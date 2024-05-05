@@ -23,17 +23,10 @@
 #include "render/rs_skia_filter.h"
 #include "render/rs_kawase_blur.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkColorFilter.h"
-#include "include/core/SkColor.h"
-#include "include/effects/SkColorMatrix.h"
-#include "include/effects/SkImageFilters.h"
-#else
 #include "effect/color_filter.h"
 #include "draw/color.h"
 #include "effect/color_matrix.h"
 #include "effect/image_filter.h"
-#endif
 #include "property/rs_color_picker_cache_task.h"
 
 namespace OHOS {
@@ -64,11 +57,7 @@ struct MaterialParam {
     float brightness;
     RSColor maskColor;
 };
-#ifndef USE_ROSEN_DRAWING
-class RSB_EXPORT RSMaterialFilter : public RSSkiaFilter {
-#else
-class RSB_EXPORT RSMaterialFilter : public RSDrawingFilter {
-#endif
+class RSB_EXPORT RSMaterialFilter : public RSDrawingFilterOriginal {
 public:
     RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
@@ -77,38 +66,32 @@ public:
     ~RSMaterialFilter() override;
     std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
     bool IsValid() const override;
-#ifndef USE_ROSEN_DRAWING
-    void PreProcess(sk_sp<SkImage> image) override;
-#else
     void PreProcess(std::shared_ptr<Drawing::Image> image) override;
-#endif
-    void PostProcess(RSPaintFilterCanvas& canvas) override;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
-#else
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
-#endif
+    void PostProcess(Drawing::Canvas& canvas) override;
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override;
     std::string GetDescription() override;
+    std::string GetDetailedDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
-
-#ifndef USE_ROSEN_DRAWING
-    void DrawImageRect(
-        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
-#else
+    void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& greyImage,
+        const Drawing::Rect& src, const Drawing::Rect& dst) const;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
-#endif
     float GetRadius() const;
+    float GetSaturation() const;
+    float GetBrightness() const;
+    RSColor GetMaskColor() const;
+    BLUR_COLOR_MODE GetColorMode() const;
     bool CanSkipFrame() const override;
 
     bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
-    void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) override;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
  
     // color picker subthread
     const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
@@ -118,27 +101,15 @@ private:
     float radius_ {};
     float saturation_ = 1.f;
     float brightness_ = 1.f;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
-    bool isGreyCoefValid_ = false;
     RSColor maskColor_ = RSColor();
+    std::optional<Vector2f> greyCoef_;
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorFilter> GetColorFilter(float sat, float brightness);
-    sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
-    sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
-#else
     std::shared_ptr<Drawing::ColorFilter> GetColorFilter(float sat, float brightness);
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
-#endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorFilter> colorFilter_;
-#else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_;
-#endif
     std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
     friend class RSMarshallingHelper;
 };

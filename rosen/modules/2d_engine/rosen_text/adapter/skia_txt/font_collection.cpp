@@ -16,21 +16,17 @@
 #include "font_collection.h"
 
 #include "include/core/SkTypeface.h"
-
 #include "convert.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
 #define OHOS_THEME_FONT "OhosThemeFont"
 
-std::shared_ptr<FontCollection> g_instance;
-
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
-    if (g_instance == nullptr) {
-        g_instance = std::make_shared<AdapterTxt::FontCollection>();
-    }
-    return g_instance;
+    static std::shared_ptr<FontCollection> instance = std::make_shared<AdapterTxt::FontCollection>();
+    return instance;
 }
 
 std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCollection> fontCollection)
@@ -40,23 +36,39 @@ std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCo
 
 namespace AdapterTxt {
 FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollection)
-#ifndef USE_ROSEN_DRAWING
-    : fontCollection_(fontCollection), dfmanager_(sk_make_sp<txt::DynamicFontManager>())
-#else
     : fontCollection_(fontCollection), dfmanager_(Drawing::FontMgr::CreateDynamicFontMgr())
-#endif
 {
     if (fontCollection_ == nullptr) {
         fontCollection_ = std::make_shared<txt::FontCollection>();
+    }
+    fontCollection_->SetupDefaultFontManager();
+    fontCollection_->SetDynamicFontManager(dfmanager_);
+}
+
+FontCollection::~FontCollection()
+{
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
+        return;
+    }
+    for (auto& name : familyNames_) {
+        auto styleSet = dfmanager_->MatchFamily(name.c_str());
+        if (!styleSet) {
+            continue;
+        }
+        int count = styleSet->Count();
+        for (int i = 0; i < count; ++i) {
+            Drawing::Typeface* typeface = styleSet->CreateTypeface(i);
+            if (!typeface) {
+                continue;
+            }
+            std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
+            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(drawingTypeface);
+        }
     }
 }
 
 std::shared_ptr<txt::FontCollection> FontCollection::Get()
 {
-    if (!disableSystemFont_) {
-        fontCollection_->SetupDefaultFontManager();
-    }
-    fontCollection_->SetDynamicFontManager(dfmanager_);
     return fontCollection_;
 }
 
@@ -67,38 +79,29 @@ void FontCollection::DisableFallback()
 
 void FontCollection::DisableSystemFont()
 {
-    disableSystemFont_ = true;
+    fontCollection_->SetDefaultFontManager(nullptr);
 }
 
-void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+std::shared_ptr<Drawing::FontMgr> FontCollection::GetFontMgr()
 {
-#ifndef USE_ROSEN_DRAWING
-    auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
-    auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-    if (familyName.empty()) {
-        dfmanager_->font_provider().RegisterTypeface(typeface);
-    } else {
-        dfmanager_->font_provider().RegisterTypeface(typeface, familyName);
-    }
-#else
-    dfmanager_->LoadDynamicFont(familyName, data, datalen);
-#endif
+    return dfmanager_;
+}
+
+void FontCollection::AddLoadedFamilyName(const std::string& name)
+{
+    familyNames_.emplace_back(name);
+}
+
+Drawing::Typeface* FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    Drawing::Typeface* typeface = dfmanager_->LoadDynamicFont(familyName, data, datalen);
     fontCollection_->ClearFontFamilyCache();
+    return typeface;
 }
 
 void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-#ifndef USE_ROSEN_DRAWING
-    if (familyName.empty() || data == nullptr) {
-        dfmanager_->font_provider().RegisterTypeface(nullptr, OHOS_THEME_FONT);
-    } else {
-        auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
-        auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-        dfmanager_->font_provider().RegisterTypeface(typeface, OHOS_THEME_FONT);
-    }
-#else
     dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen);
-#endif
     fontCollection_->ClearFontFamilyCache();
 }
 } // namespace AdapterTxt

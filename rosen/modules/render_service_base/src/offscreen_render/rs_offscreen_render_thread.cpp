@@ -20,7 +20,12 @@
 #include "render_context/render_context.h"
 #endif
 
+#ifdef RES_BASE_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 namespace OHOS::Rosen {
+
 RSOffscreenRenderThread& RSOffscreenRenderThread::Instance()
 {
     static RSOffscreenRenderThread instance;
@@ -43,11 +48,14 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
         }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-        renderContext_->SetUpGrContext(nullptr);
-#else
         renderContext_->SetUpGpuContext(nullptr);
-#endif // USE_ROSEN_DRAWING
+    });
+#endif
+
+#ifdef RES_BASE_SCHED_ENABLE
+    PostTask([this]() {
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSOffscreenRenderThread: SetThreadQos retcode = %{public}d", ret);
     });
 #endif
 }
@@ -57,6 +65,26 @@ void RSOffscreenRenderThread::PostTask(const std::function<void()>& task)
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSOffscreenRenderThread::InSertCaptureTask(NodeId nodeId, std::function<void()>& task)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    taskMap_[nodeId] = task;
+}
+
+const std::function<void()> RSOffscreenRenderThread::GetCaptureTask(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (!taskMap_.empty()) {
+        auto iter = taskMap_.find(nodeId);
+        if (iter != taskMap_.end()) {
+            auto task = taskMap_[nodeId];
+            taskMap_.erase(nodeId);
+            return task;
+        }
+    }
+    return nullptr;
 }
 
 #ifdef ROSEN_OHOS
@@ -74,20 +102,12 @@ void RSOffscreenRenderThread::CleanGrResource()
         if (!renderContext_) {
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        auto grContext = renderContext_->GetGrContext();
-#else
         auto grContext = renderContext_->GetDrGPUContext();
-#endif
         if (grContext == nullptr) {
             RS_LOGE("RSOffscreenRenderThread::grContext is nullptr");
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        grContext->freeGpuResources();
-#else
         grContext->FreeGpuResources();
-#endif
         RS_LOGD("RSOffscreenRenderThread::CleanGrResource() finished");
     });
 }

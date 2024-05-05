@@ -14,10 +14,12 @@
  */
 
 #include "js_text_blob.h"
-#include "../js_drawing_utils.h"
+
 #include "native_value.h"
-#include "../font_napi/js_font.h"
-#include "../js_common.h"
+
+#include "js_common.h"
+#include "js_drawing_utils.h"
+#include "font_napi/js_font.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

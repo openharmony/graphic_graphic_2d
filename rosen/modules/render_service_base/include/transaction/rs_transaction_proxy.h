@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
+using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();
@@ -51,9 +52,14 @@ public:
     void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void MarkTransactionNeedSync();
     void MarkTransactionNeedCloseSync(const int32_t transactionCount);
+    void SetSyncTransactionNum(const int32_t transactionCount);
 
     void StartSyncTransaction();
     void CloseSyncTransaction();
+    void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
+    {
+        flushEmptyCallback_ = flushEmptyCallback;
+    }
 
     void SetSyncId(const uint64_t syncId)
     {
@@ -93,6 +99,7 @@ private:
     static RSTransactionProxy* instance_;
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
+    FlushEmptyCallback flushEmptyCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

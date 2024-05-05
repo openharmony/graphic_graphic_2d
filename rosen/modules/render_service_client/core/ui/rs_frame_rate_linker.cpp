@@ -52,6 +52,13 @@ RSFrameRateLinker::RSFrameRateLinker() : id_(GenerateId())
 
 RSFrameRateLinker::~RSFrameRateLinker()
 {
+    // tell RT/RS to destroy related frameRateLinker
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerDestroy>(id_);
+    transactionProxy->AddCommand(command, IsUniRenderEnabled());
 }
 
 FrameRateLinkerId RSFrameRateLinker::GetId() const
@@ -80,7 +87,7 @@ void RSFrameRateLinker::UpdateFrameRateRangeImme(const FrameRateRange& range)
 {
     if (currentRange_ != range) {
         currentRange_ = range;
-        RSInterfaces::GetInstance().SyncFrameRateRange(range);
+        RSInterfaces::GetInstance().SyncFrameRateRange(GetId(), range);
     }
 }
 

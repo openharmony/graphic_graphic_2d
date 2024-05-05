@@ -13,14 +13,37 @@
  * limitations under the License.
  */
 
-#include "../hook.h"
-#include "../thread_private_data_ctl.h"
-#include "../wrapper_log.h"
+#include <dlfcn.h>
+#include <string>
+
+#include "hook.h"
+#include "thread_private_data_ctl.h"
+#include "wrapper_log.h"
+
+using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
+template<typename Func = void*>
+Func GetEglApi(const char* procname)
+{
+#if (defined(__aarch64__) || defined(__x86_64__))
+    static const char* libegl = "/system/lib64/libEGL.so";
+#else
+    static const char* libegl = "/system/lib/platformsdk/libEGL.so";
+#endif
+    void* dlEglHandle = dlopen(libegl, RTLD_NOW | RTLD_GLOBAL);
+
+    void* func = dlsym(dlEglHandle, procname);
+    if (func) {
+        return reinterpret_cast<Func>(func);
+    };
+
+    return nullptr;
+}
+static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                                         \
     do {                                                                                \
-        OHOS::GlHookTable const *table = OHOS::ThreadPrivateDataCtl::GetGlHookTable();  \
+        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
         if (table && table->table3.api) {                                               \
             table->table3.api(__VA_ARGS__);                                             \
         } else {                                                                        \
@@ -31,7 +54,7 @@
 
 #undef CALL_HOOK_API_RET
 #define CALL_HOOK_API_RET(api, ...) do {                                                \
-        OHOS::GlHookTable const *table = OHOS::ThreadPrivateDataCtl::GetGlHookTable();  \
+        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
         if (table && table->table3.api) {                                               \
             return table->table3.api(__VA_ARGS__);                                      \
         } else {                                                                        \
@@ -45,6 +68,6 @@
 
 extern "C" {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#include "../gl3_hook_entries.in"
+#include "gl3_hook_entries.in"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 }

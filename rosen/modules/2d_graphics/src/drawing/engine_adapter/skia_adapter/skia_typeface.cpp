@@ -20,6 +20,7 @@
 #include "include/core/SkFontStyle.h"
 
 #include "skia_adapter/skia_convert_utils.h"
+#include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
 #include "utils/log.h"
 
@@ -103,6 +104,49 @@ int32_t SkiaTypeface::GetUnitsPerEm() const
     return skTypeface_->getUnitsPerEm();
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) const
+{
+    if (!skTypeface_) {
+        LOGD("SkiaTypeface::MakeClone, skTypeface nullptr");
+        return nullptr;
+    }
+
+    SkFontArguments skArgs;
+    skArgs.setCollectionIndex(args.GetCollectionIndex());
+
+    SkFontArguments::VariationPosition pos;
+    pos.coordinates = reinterpret_cast<const SkFontArguments::VariationPosition::Coordinate*>(
+        args.GetVariationDesignPosition().coordinates
+    );
+    pos.coordinateCount = args.GetVariationDesignPosition().coordinateCount;
+    skArgs.setVariationDesignPosition(pos);
+
+    SkFontArguments::Palette pal;
+    pal.overrides = reinterpret_cast<const SkFontArguments::Palette::Override*>(
+        args.GetPalette().overrides
+    );
+    pal.index = args.GetPalette().index;
+    pal.overrideCount = args.GetPalette().overrideCount;
+    skArgs.setPalette(pal);
+
+    auto cloned = skTypeface_->makeClone(skArgs);
+    if (!cloned) {
+        return nullptr;
+    }
+
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(cloned);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
+sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    return skTypeface_;
+}
+
 std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 {
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
@@ -156,13 +200,60 @@ sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
         LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+    TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
+    if (textblobCtx != nullptr && textblobCtx->IsCustomTypeface()) {
+        sk_sp<SkTypeface> typefacePtr = sk_ref_sp(typeface);
+        auto typefaceImpl = std::make_shared<SkiaTypeface>(typefacePtr);
+        auto customTypeface = std::make_shared<Typeface>(typefaceImpl);
+        textblobCtx->SetTypeface(customTypeface);
+    }
     return typeface->serialize();
 }
 
 sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t length, void* ctx)
 {
-    SkMemoryStream stream(data, length);
-    return SkTypeface::MakeDeserialize(&stream);
+    if (data == nullptr) {
+        LOGD("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+
+    TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
+    if (textblobCtx == nullptr || textblobCtx->GetTypeface() == nullptr) {
+        SkMemoryStream stream(data, length);
+        return SkTypeface::MakeDeserialize(&stream);
+    }
+    auto& typeface = textblobCtx->GetTypeface();
+    auto skTypeface = typeface->GetImpl<SkiaTypeface>()->GetSkTypeface();
+    return skTypeface;
+}
+
+std::shared_ptr<Data> SkiaTypeface::Serialize() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
+    auto data = std::make_shared<Data>();
+    auto skiaData = data->GetImpl<SkiaData>();
+    if (!skiaData) {
+        LOGD("skiaData nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    skiaData->SetSkData(skData);
+    return data;
+}
+
+std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t size)
+{
+    SkMemoryStream stream(data, size);
+    auto skTypeface = SkTypeface::MakeDeserialize(&stream);
+    if (!skTypeface) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
 }
 } // namespace Drawing
 } // namespace Rosen

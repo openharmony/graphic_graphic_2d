@@ -24,6 +24,8 @@
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
+#include "common/rs_optional_trace.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -220,6 +222,26 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
+bool RSScreenManager::IsAllScreensPowerOff() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenPowerStatus_.empty()) {
+        return false;
+    }
+    for (const auto &[id, powerStatus] : screenPowerStatus_) {
+        auto iter = screens_.find(id);
+        if (iter != screens_.end() && iter->second->IsVirtual()) {
+            continue;
+        }
+        // we also need to consider the AOD mode(POWER_STATUS_SUSPEND)
+        if (powerStatus != ScreenPowerStatus::POWER_STATUS_OFF &&
+            powerStatus != ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+            return false;
+        }
+    }
+    return true;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
 {
@@ -247,6 +269,18 @@ float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
     return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;
 }
 #endif
+
+void RSScreenManager::ForceRefreshOneFrameIfNoRNV()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr && !mainThread->IsRequestedNextVSync()) {
+        RS_TRACE_NAME("No RNV, ForceRefreshOneFrame");
+        mainThread->PostTask([mainThread]() {
+            mainThread->SetDirtyFlag();
+        });
+        mainThread->RequestNextVSync();
+    }
+}
 
 void RSScreenManager::OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data)
 {
@@ -357,6 +391,17 @@ void RSScreenManager::CleanAndReinit()
             }
         });
     }
+}
+
+bool RSScreenManager::TrySimpleProcessHotPlugEvents()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pendingHotPlugEvents_.empty() && connectedIds_.empty()) {
+        isHwcDead_ = false;
+        mipiCheckInFirstHotPlugEvent_ = true;
+        return true;
+    }
+    return false;
 }
 
 void RSScreenManager::ProcessScreenHotPlugEvents()
@@ -531,7 +576,6 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
-
     if (screens_.count(id) == 0) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
     } else {
@@ -570,6 +614,18 @@ void RSScreenManager::HandleDefaultScreenDisConnectedLocked()
         if (!screens_.empty()) {
             defaultScreenId_ = screens_.cbegin()->first;
         }
+    }
+}
+
+// if SetVirtualScreenSurface success, force a refresh of one frame, avoiding prolong black screen
+void RSScreenManager::ForceRefreshOneFrame() const
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        mainThread->PostTask([mainThread]() {
+            mainThread->SetDirtyFlag();
+        });
+        mainThread->ForceRefreshForUni();
     }
 }
 
@@ -736,7 +792,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     if (surface != nullptr) {
         uint64_t surfaceId = surface->GetUniqueId();
         for (auto &[_, screen] : screens_) {
-            if (!screen->IsVirtual()) {
+            if (screen == nullptr || !screen->IsVirtual()) {
                 continue;
             }
             auto screenSurface = screen->GetProducerSurface();
@@ -773,7 +829,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (screens_.find(id) == screens_.end()) {
+    if (screens_.find(id) == screens_.end() || surface == nullptr) {
         return SCREEN_NOT_FOUND;
     }
     uint64_t surfaceId = surface->GetUniqueId();
@@ -793,14 +849,8 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     }
     screens_.at(id)->SetProducerSurface(surface);
     RS_LOGD("RSScreenManager %{public}s: set virtual screen surface success!", __func__);
-    // if SetVirtualScreenSurface success, force a refresh of one frame, avoiding prolong black screen
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        mainThread->PostTask([mainThread]() {
-            mainThread->SetDirtyFlag();
-        });
-        mainThread->ForceRefreshForUni();
-    }
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetVirtualScreenSurface, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return SUCCESS;
 }
 
@@ -852,6 +902,8 @@ int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width,
     }
     screens_.at(id)->SetResolution(width, height);
     RS_LOGD("RSScreenManager %{public}s: set virtual screen resolution success", __func__);
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetVirtualScreenResolution, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return SUCCESS;
 }
 
@@ -871,7 +923,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (screens_.count(id) == 0) {
+    if (screens_.count(id) == 0 || !screens_.at(id)) {
         RS_LOGW("[UL_POWER]RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return;
     }
@@ -880,7 +932,8 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     /*
      * If app adds the first frame when power on the screen, delete the code
      */
-    if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+    if (status == ScreenPowerStatus::POWER_STATUS_ON ||
+        status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
         auto mainThread = RSMainThread::Instance();
         if (mainThread == nullptr) {
             return;
@@ -890,13 +943,14 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         });
         if (screenPowerStatus_.count(id) == 0 ||
             screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF ||
-            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE) {
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED) {
             mainThread->ForceRefreshForUni();
         } else {
             mainThread->RequestNextVSync();
         }
 
-        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: Set system power on, request a frame", __func__);
+        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
     screenPowerStatus_[id] = status;
 }
@@ -911,8 +965,22 @@ bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool can
     }
 
     RS_LOGD("RSScreenManager %{public}s: canvasRotation: %{public}d", __func__, canvasRotation);
-    
+
     return screens_.at(id)->SetVirtualMirrorScreenCanvasRotation(canvasRotation);
+}
+
+bool RSScreenManager::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+
+    RS_LOGD("RSScreenManager %{public}s: scaleMode: %{public}d", __func__, scaleMode);
+
+    return screens_.at(id)->SetVirtualMirrorScreenScaleMode(scaleMode);
 }
 
 void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
@@ -985,7 +1053,8 @@ int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32
         return SCREEN_NOT_FOUND;
     }
     screens_.at(id)->ResizeVirtualScreen(width, height);
-    RS_LOGD("RSScreenManager %{public}s: resize virtual screen success", __func__);
+    RS_LOGI("RSScreenManager %{public}s: resize virtual screen success, width:%{public}u, height:%{public}u",
+        __func__, width, height);
 
     return SUCCESS;
 }
@@ -1068,6 +1137,23 @@ bool RSScreenManager::GetCanvasRotation(ScreenId id) const
     return screens_.at(id)->GetCanvasRotation();
 }
 
+ScreenScaleMode RSScreenManager::GetScaleMode(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0 || !screens_.at(id)) {
+        RS_LOGW("RSScreenManager::GetScaleMode: There is no screen for id %{public}" PRIu64 ".", id);
+        return ScreenScaleMode::INVALID_MODE;
+    }
+    auto scaleModeDFX = static_cast<ScreenScaleMode>(
+        RSSystemProperties::GetVirtualScreenScaleModeDFX());
+    // Support mode can be configured for maintenance and testing before
+    // upper layer application adaptation
+    const auto& scaleMode = (scaleModeDFX == ScreenScaleMode::INVALID_MODE) ?
+        screens_.at(id)->GetScaleMode() : scaleModeDFX;
+    return scaleMode;
+}
+
 sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1128,6 +1214,9 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
 {
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            continue;
+        }
         screen->DisplayDump(index, dumpString);
         index++;
     }
@@ -1137,6 +1226,9 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
 {
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            continue;
+        }
         screen->SurfaceDump(index, dumpString);
         index++;
     }
@@ -1158,6 +1250,31 @@ void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
     dumpString += "\n-- Clear fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
         screen->ClearFpsDump(index, dumpString, arg);
+        index++;
+    }
+}
+
+void RSScreenManager::ClearFrameBufferIfNeed()
+{
+    RSHardwareThread::Instance().PostTask([this]() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (const auto& [id, screen] : screens_) {
+            if (!screen) {
+                continue;
+            }
+            if (screen->GetOutput()->GetBufferCacheSize() > 0) {
+                RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
+            }
+        }
+    });
+}
+
+void RSScreenManager::HitchsDump(std::string& dumpString, std::string& arg)
+{
+    int32_t index = 0;
+    dumpString += "\n-- The recently window hitchs records info of screens:\n";
+    for (const auto &[id, screen] : screens_) {
+        screen->HitchsDump(index, dumpString, arg);
         index++;
     }
 }
@@ -1205,6 +1322,8 @@ int32_t RSScreenManager::SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mod
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetScreenGamutMapLocked, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return screens_.at(id)->SetScreenGamutMap(mode);
 }
 

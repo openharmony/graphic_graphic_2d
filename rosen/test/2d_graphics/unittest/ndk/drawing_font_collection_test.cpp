@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "c/drawing_font_collection.h"
+#include "drawing_font_collection.h"
 
 #include "gtest/gtest.h"
-#include "c/drawing_text_declaration.h"
+#include "drawing_text_declaration.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,6 +34,30 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     EXPECT_EQ(fontCollection == nullptr, false);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
+/*
+ * @tc.name: NativeDrawingTest002
+ * @tc.desc: test for disabling fontCollection fallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    OH_Drawing_DisableFontCollectionFallback(fontCollection);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
+/*
+ * @tc.name: NativeDrawingTest003
+ * @tc.desc: test for disabling the font collection systemfont
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 }

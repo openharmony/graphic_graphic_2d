@@ -43,6 +43,7 @@ public:
     std::optional<float> GetTranslateZ() const;
     std::optional<Vector2f> GetScale() const;
     std::optional<Vector2f> GetSkew() const;
+    std::optional<Vector2f> GetPersp() const;
 
     std::optional<float> GetAlpha() const;
     std::optional<Vector4f> GetCornerRadius() const;
@@ -70,6 +71,7 @@ public:
 
     std::optional<float> GetSpherizeDegree() const;
     std::optional<float> GetLightUpEffectDegree() const;
+    std::optional<float> GetDynamicDimDegree() const;
 
 private:
     NodeId id_;

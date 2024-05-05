@@ -17,6 +17,7 @@
 #define RECT_H
 
 #include <cmath>
+#include <string>
 #include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
@@ -106,6 +107,8 @@ public:
      */
     inline bool Join(const RectI& other);
 
+    inline std::string ToString() const;
+
     friend inline bool operator==(const RectI& r1, const RectI& r2);
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
 
@@ -134,12 +137,9 @@ inline bool RectI::IsEmpty() const
 {
     int64_t w = (int64_t)right_ - (int64_t)left_;
     int64_t h = (int64_t)bottom_ - (int64_t)top_;
-    if (w <= 0 || h <= 0) {
-        return true;
-    }
-    // Return true if either exceeds int32_t
-    int32_t int32test = (w | h) & 0xFFFFFFFF;
-    return int32test < 0;
+    int64_t r = w | h;
+    // return true if either under 0 or either exceed int32_t
+    return r <= 0 || (r & 0xffffffff) < 0;
 }
 
 inline int RectI::GetLeft() const
@@ -240,6 +240,12 @@ inline bool RectI::Contains(const RectI& other) const
         right_ >= other.right_ && bottom_ >= other.bottom_;
 }
 
+inline std::string RectI::ToString() const
+{
+    return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+        std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
+}
+
 inline bool operator==(const RectI& r1, const RectI& r2)
 {
     return r1.left_ == r2.left_ && r1.right_ == r2.right_ && r1.top_ == r2.top_ && r1.bottom_ == r2.bottom_;
@@ -279,6 +285,7 @@ public:
     inline void MakeOutset(scalar dx, scalar dy);
     inline void Round();
     inline RectI RoundOut();
+    inline std::string ToString() const;
 
     /*
      * @brief        If RectF intersects other, sets RectF to intersection.
@@ -433,6 +440,12 @@ inline bool RectF::Join(const RectF& other)
             right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
     }
     return true;
+}
+
+inline std::string RectF::ToString() const
+{
+    return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+        std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
 }
 
 inline bool operator==(const RectF& r1, const RectF& r2)

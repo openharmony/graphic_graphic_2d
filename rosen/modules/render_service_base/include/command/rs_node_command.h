@@ -40,7 +40,11 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_IMAGE_PTR,
     UPDATE_MODIFIER_MASK_PTR,
     UPDATE_MODIFIER_PATH_PTR,
+    UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
     UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
+    UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+    UPDATE_MODIFIER_NOISE_FIELD_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
@@ -48,25 +52,20 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_RRECT,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
-#ifndef USE_ROSEN_DRAWING
-    UPDATE_MODIFIER_SKMATRIX,
-#else
     UPDATE_MODIFIER_DRAWING_MATRIX,
-#endif
 
     SET_FREEZE,
-    MARK_DRIVEN_RENDER,
-    MARK_DRIVEN_RENDER_ITEM_INDEX,
-    MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
-    MARK_CONTENT_CHANGED,
     SET_DRAW_REGION,
     SET_OUT_OF_PARENT,
+    SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
 
     REGISTER_GEOMETRY_TRANSITION,
     UNREGISTER_GEOMETRY_TRANSITION,
 
     MARK_NODE_GROUP,
     MARK_NODE_SINGLE_FRAME_COMPOSER,
+
+    SET_NODE_NAME,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -102,18 +101,11 @@ public:
                 break;
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    static void UpdateModifierDrawCmdList(
-        RSContext& context, NodeId nodeId, DrawCmdListPtr value, PropertyId id, bool isDelta)
-    {
-        std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(value, id);
-#else
     static void UpdateModifierDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
     {
         std::shared_ptr<RSRenderPropertyBase> prop =
             std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, id);
-#endif
         auto& nodeMap = context.GetNodeMap();
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
@@ -130,16 +122,14 @@ public:
     }
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
 
-    static void MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag);
-    static void MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index);
-    static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
-    static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
+    static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
@@ -183,10 +173,26 @@ ADD_COMMAND(RSUpdatePropertyMask,
 ADD_COMMAND(RSUpdatePropertyPath,
     ARG(RS_NODE, UPDATE_MODIFIER_PATH_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyDynamicBrightness,
+    ARG(RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
+        RSNodeCommandHelper::UpdateModifier<RSDynamicBrightnessPara>,
+        NodeId, RSDynamicBrightnessPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
         NodeId, std::shared_ptr<RSLinearGradientBlurPara>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
+    ARG(RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
+        NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
+    ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
+        NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
+    ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,
+        NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))
@@ -205,39 +211,22 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(RS_NODE, UPDATE_MODIFIER_RRECT, RSNodeCommandHelper::UpdateModifier<RRect>,
         NodeId, RRect, PropertyId, PropertyUpdateType))
-#ifndef USE_ROSEN_DRAWING
-ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
-        NodeId, DrawCmdListPtr, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertySkMatrix,
-    ARG(RS_NODE, UPDATE_MODIFIER_SKMATRIX, RSNodeCommandHelper::UpdateModifier<SkMatrix>,
-        NodeId, SkMatrix, PropertyId, PropertyUpdateType))
-#else
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX, RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>,
         NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
-#endif
 
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
+ADD_COMMAND(RSSetNodeName,
+    ARG(RS_NODE, SET_NODE_NAME, RSNodeCommandHelper::SetNodeName, NodeId, std::string))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer,
         NodeId, bool, pid_t))
-
-ADD_COMMAND(RSMarkDrivenRender,
-    ARG(RS_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))
-ADD_COMMAND(RSMarkDrivenRenderItemIndex,
-    ARG(RS_NODE, MARK_DRIVEN_RENDER_ITEM_INDEX, RSNodeCommandHelper::MarkDrivenRenderItemIndex, NodeId, int32_t))
-ADD_COMMAND(RSMarkDrivenRenderFramePaintState,
-    ARG(RS_NODE, MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
-        RSNodeCommandHelper::MarkDrivenRenderFramePaintState, NodeId, bool))
-ADD_COMMAND(RSMarkContentChanged,
-    ARG(RS_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,
@@ -245,6 +234,8 @@ ADD_COMMAND(RSSetDrawRegion,
 ADD_COMMAND(RSSetOutOfParent,
     ARG(RS_NODE, SET_OUT_OF_PARENT, RSNodeCommandHelper::SetOutOfParent,
         NodeId, OutOfParentType))
+ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
+    ARG(RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG, RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))

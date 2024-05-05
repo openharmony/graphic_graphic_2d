@@ -46,6 +46,8 @@ DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, Multiply, Geometry, FINE)
 
 DECLARE_ANIMATABLE_MODIFIER(Skew, Vector2f, SKEW, Add, Geometry, FINE)
 
+DECLARE_ANIMATABLE_MODIFIER(Persp, Vector2f, PERSP, Add, Geometry, FINE)
+
 DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, Add, Geometry, LAYOUT)
 
 DECLARE_ANIMATABLE_MODIFIER(TranslateZ, float, TRANSLATE_Z, Add, Geometry, LAYOUT)
@@ -63,6 +65,8 @@ DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, Add, Backg
 DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKGROUND_SHADER, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE, Background)
+
+DECLARE_ANIMATABLE_MODIFIER(BgImageInnerRect, Vector4f, BG_IMAGE_INNER_RECT, Add, Background, LAYOUT)
 
 DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, Add, Background, LAYOUT)
 
@@ -91,6 +95,12 @@ DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Fore
 DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background, COARSE)
 
 DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA, Foreground)
+
+DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARA, Foreground)
+
+DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::vector<std::shared_ptr<EmitterUpdater>>, PARTICLE_EMITTER_UPDATER, Foreground)
+
+DECLARE_NOANIMATABLE_MODIFIER(ParticleNoiseFields, std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
@@ -134,6 +144,8 @@ DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geom
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry, FINE)
 
+DECLARE_NOANIMATABLE_MODIFIER(PixelStretchTileMode, int, PIXEL_STRETCH_TILE_MODE, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(Brightness, float, BRIGHTNESS, Add, Foreground, COARSE)
@@ -160,15 +172,27 @@ DECLARE_NOANIMATABLE_MODIFIER(ColorBlendMode, int, COLOR_BLEND_MODE, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(ColorBlendApplyType, int, COLOR_BLEND_APPLY_TYPE, Background)
 
+DECLARE_NOANIMATABLE_MODIFIER(FgBrightnessParams, RSDynamicBrightnessPara, FG_BRIGHTNESS_PARAMS,
+    Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessFract, float, FG_BRIGHTNESS_FRACTION, Replace,
+    Foreground, COARSE)
+
+DECLARE_NOANIMATABLE_MODIFIER(BgBrightnessParams, RSDynamicBrightnessPara, BG_BRIGHTNESS_PARAMS,
+    Background)
+
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessFract, float, BG_BRIGHTNESS_FRACTION, Replace,
+    Background, COARSE)
+
 DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpDegree, float, DYNAMIC_LIGHT_UP_DEGREE, Replace, Foreground, COARSE)
 
+DECLARE_ANIMATABLE_MODIFIER(DynamicDimDegree, float, DYNAMIC_DIM_DEGREE, Replace, Foreground, COARSE)
+
 DECLARE_NOANIMATABLE_MODIFIER(UseShadowBatching, bool, USE_SHADOW_BATCHING, Background)
 
-DECLARE_ANIMATABLE_MODIFIER(GreyCoef1, float, GREY_COEF1, Replace, Background, COARSE)
-
-DECLARE_ANIMATABLE_MODIFIER(GreyCoef2, float, GREY_COEF2, Replace, Background, COARSE)
+DECLARE_ANIMATABLE_MODIFIER(GreyCoef, Vector2f, GREY_COEF, Replace, Background, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(Bloom, float, BLOOM, Replace, Foreground, COARSE)
 
@@ -176,6 +200,38 @@ DECLARE_ANIMATABLE_MODIFIER(LightPosition, Vector4f, LIGHT_POSITION, Replace, Fo
 
 DECLARE_ANIMATABLE_MODIFIER(LightIntensity, float, LIGHT_INTENSITY, Replace, Foreground, COARSE)
 
+DECLARE_ANIMATABLE_MODIFIER(LightColor, Color, LIGHT_COLOR, Replace, Foreground, COARSE)
+
 DECLARE_ANIMATABLE_MODIFIER(IlluminatedBorderWidth, float, ILLUMINATED_BORDER_WIDTH, Replace, Foreground, COARSE)
 
 DECLARE_NOANIMATABLE_MODIFIER(IlluminatedType, int, ILLUMINATED_TYPE, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundEffectRadius, float, FOREGROUND_EFFECT_RADIUS, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurRadius, float, BACKGROUND_BLUR_RADIUS, Add, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurSaturation, float, BACKGROUND_BLUR_SATURATION, Add, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurBrightness, float, BACKGROUND_BLUR_BRIGHTNESS, Add, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurMaskColor, Color, BACKGROUND_BLUR_MASK_COLOR, Add, Background, COLOR)
+
+DECLARE_NOANIMATABLE_MODIFIER(BackgroundBlurColorMode, int, BACKGROUND_BLUR_COLOR_MODE, Background)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurRadiusX, float, BACKGROUND_BLUR_RADIUS_X, Add, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundBlurRadiusY, float, BACKGROUND_BLUR_RADIUS_Y, Add, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurRadius, float, FOREGROUND_BLUR_RADIUS, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurSaturation, float, FOREGROUND_BLUR_SATURATION, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurBrightness, float, FOREGROUND_BLUR_BRIGHTNESS, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurMaskColor, Color, FOREGROUND_BLUR_MASK_COLOR, Add, Foreground, COLOR)
+
+DECLARE_NOANIMATABLE_MODIFIER(ForegroundBlurColorMode, int, FOREGROUND_BLUR_COLOR_MODE, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurRadiusX, float, FOREGROUND_BLUR_RADIUS_X, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ForegroundBlurRadiusY, float, FOREGROUND_BLUR_RADIUS_Y, Add, Foreground, COARSE)

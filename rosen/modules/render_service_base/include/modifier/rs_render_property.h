@@ -100,6 +100,11 @@ protected:
         return nullptr;
     }
 
+    virtual std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator()
+    {
+        return nullptr;
+    }
+
     virtual bool IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
     {
         return true;
@@ -158,6 +163,7 @@ private:
     template<typename T>
     friend class RSSpringModel;
     friend class RSTransitionCustom;
+    friend class RSAnimationTraceUtils;
 };
 
 template<typename T>
@@ -223,6 +229,10 @@ public:
         : RSRenderProperty<T>(value, id), type_(type), unit_(unit)
     {}
     virtual ~RSRenderAnimatableProperty() = default;
+    virtual RSRenderPropertyType GetPropertyType() const override
+    {
+        return type_;
+    }
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
@@ -242,11 +252,6 @@ protected:
     void SetPropertyType(const RSRenderPropertyType type) override
     {
         type_ = type;
-    }
-
-    virtual RSRenderPropertyType GetPropertyType() const override
-    {
-        return type_;
     }
 
     void SetPropertyUnit(RSPropertyUnit unit) override
@@ -282,6 +287,11 @@ protected:
                 return nullptr;
             }
         }
+    }
+
+    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
+    {
+        return std::make_shared<RSSpringValueEstimator<T>>();
     }
 
 private:

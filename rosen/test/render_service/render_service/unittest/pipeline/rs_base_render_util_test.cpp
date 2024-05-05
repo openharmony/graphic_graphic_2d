@@ -23,6 +23,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr Rect RECT_ONE = {0, 0, 100, 100};
+constexpr Rect RECT_TWO = {100, 100, 100, 100};
+constexpr Rect RECT_RESULT = {0, 0, 200, 200};
 class RSBaseRenderUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -44,11 +47,7 @@ private:
     static inline BufferFlushConfig flushConfig = {
         .damage = { .w = 0x100, .h = 0x100, },
     };
-#ifndef USE_ROSEN_DRAWING
-    static inline SkMatrix matrix = SkMatrix::MakeAll(1, 2, 3, 4, 5, 6, 7, 8, 9);
-#else
     static inline Drawing::Matrix matrix  = Drawing::Matrix();
-#endif
     static const uint32_t MATRIX_SIZE = 20;
     static inline float InvertColorMat[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
@@ -167,7 +166,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
     BufferRequestConfig config = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true,
-        colorGamut, pixelFormat);
+        false, colorGamut, pixelFormat);
     ASSERT_EQ(static_cast<int32_t>(screenInfo.width), config.width);
     ASSERT_EQ(colorGamut, config.colorGamut);
     ASSERT_EQ(pixelFormat, config.format);
@@ -187,6 +186,23 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: MergeBufferDamages_001
+ * @tc.desc: check MergeBufferDamages result
+ * @tc.type: FUNC
+ * @tc.require: #I9E60C
+ */
+HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_001, TestSize.Level2)
+{
+    std::vector<Rect> damages;
+    damages.push_back(RECT_ONE);
+    damages.push_back(RECT_TWO);
+    Rect damageAfterMerge = RSBaseRenderUtil::MergeBufferDamages(damages);
+    bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
+        (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
+    ASSERT_EQ(true, compareResult);
+}
+
+/*
  * @tc.name: ConsumeAndUpdateBuffer_001
  * @tc.desc: Test ConsumeAndUpdateBuffer
  * @tc.type: FUNC
@@ -196,7 +212,38 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true));
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_002
+ * @tc.desc: Test ConsumeAndUpdateBuffer while buffer not satisfy consume time
+ * @tc.type: FUNC
+ * @tc.require: issueI9J3IQ
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    flushConfig.timestamp = 100; // this timestamp can be any nunmber
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
+    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+    ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
 }
 
 /*
@@ -241,61 +288,6 @@ HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    float matrix[MATRIX_SIZE];
-    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, InvertColorMat);
-
-    colorFilterMode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, ProtanomalyMat);
-
-    colorFilterMode = ColorFilterMode::DALTONIZATION_DEUTERANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, DeuteranomalyMat);
-
-    colorFilterMode = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, TritanomalyMat);
-
-    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_PROTANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, InvertProtanomalyMat);
-
-    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_DEUTERANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, InvertDeuteranomalyMat);
-
-    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
-    CompareMatrix(matrix, InvertTritanomalyMat);
-
-    colorFilterMode = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    ASSERT_EQ(paint.refColorFilter(), nullptr);
-
-    colorFilterMode = ColorFilterMode::DALTONIZATION_NORMAL_MODE;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    ASSERT_EQ(paint.refColorFilter(), nullptr);
-
-    colorFilterMode = ColorFilterMode::COLOR_FILTER_END;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    ASSERT_EQ(paint.refColorFilter(), nullptr);
-
-    colorFilterMode = static_cast<ColorFilterMode>(40); // use invalid number to test default mode
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    ASSERT_EQ(paint.refColorFilter(), nullptr);
-
-#else
     Drawing::Brush paint;
     float matrix[MATRIX_SIZE];
     Drawing::Filter filter;
@@ -361,7 +353,6 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
     filter = paint.GetFilter();
     ASSERT_EQ(filter.GetColorFilter(), nullptr);
 
-#endif
 }
 
 /*
@@ -425,11 +416,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
     sptr<SurfaceBuffer> cbuffer;
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
@@ -459,11 +446,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
 
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     (void)RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap);
 }
 
@@ -494,11 +477,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
 
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
@@ -529,11 +508,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
 
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
@@ -560,11 +535,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_005, TestSize.Level2)
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     (void)RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
 }
 
@@ -612,30 +583,15 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
  */
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
 
     BufferDrawParam params;
-#ifndef USE_ROSEN_DRAWING
-    params.clipRect = SkRect::MakeWH(5, 5);
-#else
     params.clipRect = Drawing::Rect(0, 0, 5, 5);
-#endif
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
-#ifndef USE_ROSEN_DRAWING
-    auto rect = skCanvas->getDeviceClipBounds();
-    ASSERT_EQ(params.clipRect.width(), rect.width());
-    ASSERT_EQ(params.clipRect.height(), rect.height());
-#else
     auto rect = drawingCanvas->GetDeviceClipBounds();
     ASSERT_EQ(params.clipRect.GetWidth(), rect.GetWidth());
     ASSERT_EQ(params.clipRect.GetHeight(), rect.GetHeight());
-#endif
 }
 
 /*
@@ -646,23 +602,13 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_002, TestSize.Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     BufferDrawParam params;
     params.isNeedClip = false;
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
-#ifndef USE_ROSEN_DRAWING
-    auto rect = skCanvas->getDeviceClipBounds();
-    ASSERT_EQ(10, rect.width());
-#else
     auto rect = drawingCanvas->GetDeviceClipBounds();
     ASSERT_EQ(10, rect.GetWidth());
-#endif
 }
 
 /*
@@ -673,23 +619,13 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_003, TestSize.Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     BufferDrawParam params;
     params.cornerRadius = Vector4f(1.0f);
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
-#ifndef USE_ROSEN_DRAWING
-    auto rect = skCanvas->getDeviceClipBounds();
-    ASSERT_EQ(0, rect.width());
-#else
     auto rect = drawingCanvas->GetDeviceClipBounds();
     ASSERT_EQ(0, rect.GetWidth());
-#endif
 }
 
 /*
@@ -700,31 +636,15 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_003, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_004, TestSize.Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     BufferDrawParam params;
-#ifndef USE_ROSEN_DRAWING
-    params.clipRect = SkRect::MakeWH(5, 5);
-    params.backgroundColor = SK_ColorRED;
-#else
     params.clipRect = Drawing::Rect(0, 0, 5, 5);
     params.backgroundColor = Drawing::Color::COLOR_RED;
-#endif
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
-#ifndef USE_ROSEN_DRAWING
-    auto rect = skCanvas->getDeviceClipBounds();
-    ASSERT_EQ(params.clipRect.width(), rect.width());
-    ASSERT_EQ(params.clipRect.height(), rect.height());
-#else
     auto rect = drawingCanvas->GetDeviceClipBounds();
     ASSERT_EQ(params.clipRect.GetWidth(), rect.GetWidth());
     ASSERT_EQ(params.clipRect.GetHeight(), rect.GetHeight());
-#endif
 }
 
 /*
@@ -897,13 +817,9 @@ HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_011, Function | SmallTest | Level2)
 HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
 {
     BufferDrawParam params;
-#ifndef USE_ROSEN_DRAWING
-    params.matrix = matrix;
-#else
     matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     params.matrix = Drawing::Matrix();
     params.matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-#endif
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
 
@@ -912,15 +828,9 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_EQ(params.matrix.get(0), -matrix.get(0));
-    ASSERT_EQ(params.matrix.get(3), -matrix.get(3));
-    ASSERT_EQ(params.matrix.get(6), -matrix.get(6));
-#else
     ASSERT_EQ(params.matrix.Get(0), -matrix.Get(0));
     ASSERT_EQ(params.matrix.Get(3), -matrix.Get(3));
     ASSERT_EQ(params.matrix.Get(6), -matrix.Get(6));
-#endif
 }
 
 /*
@@ -932,13 +842,9 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
 HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_002, Function | SmallTest | Level2)
 {
     BufferDrawParam params;
-#ifndef USE_ROSEN_DRAWING
-    params.matrix = matrix;
-#else
     matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     params.matrix = Drawing::Matrix();
     params.matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-#endif
 
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
@@ -948,15 +854,9 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_002, Function | SmallTest | Level2)
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_EQ(params.matrix.get(1), -matrix.get(1));
-    ASSERT_EQ(params.matrix.get(4), -matrix.get(4));
-    ASSERT_EQ(params.matrix.get(7), -matrix.get(7));
-#else
     ASSERT_EQ(params.matrix.Get(1), -matrix.Get(1));
     ASSERT_EQ(params.matrix.Get(4), -matrix.Get(4));
     ASSERT_EQ(params.matrix.Get(7), -matrix.Get(7));
-#endif
 }
 
 /*
@@ -1178,17 +1078,10 @@ HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_007, Function |
 HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_001, TestSize.Level2)
 {
     RectF bounds(1, 2, 3, 4);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-    const float boundsHeight = bounds.GetHeight();
-    matrix.preTranslate(0, boundsHeight);
-    matrix.preRotate(-90);
-#else
     Drawing::Matrix matrix;
     const float boundsHeight = bounds.GetHeight();
     matrix.PreTranslate(0, boundsHeight);
     matrix.PreRotate(-90);
-#endif
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_90;
     ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
 }
@@ -1202,20 +1095,11 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_001, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_002, TestSize.Level2)
 {
     RectF bounds(1, 2, 3, 4);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-#else
     Drawing::Matrix matrix;
-#endif
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
-#ifndef USE_ROSEN_DRAWING
-    matrix.preTranslate(boundsWidth, boundsHeight);
-    matrix.preRotate(-180);
-#else
     matrix.PreTranslate(boundsWidth, boundsHeight);
     matrix.PreRotate(-180);
-#endif
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_180;
     ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
 }
@@ -1229,19 +1113,10 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_002, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
 {
     RectF bounds(1, 2, 3, 4);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-#else
     Drawing::Matrix matrix;
-#endif
     const float boundsWidth = bounds.GetWidth();
-#ifndef USE_ROSEN_DRAWING
-    matrix.preTranslate(boundsWidth, 0);
-    matrix.preRotate(-270);
-#else
     matrix.PreTranslate(boundsWidth, 0);
     matrix.PreRotate(-270);
-#endif
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_270;
     ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
 }
@@ -1308,11 +1183,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmapTest, TestSize.Level2)
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-#else
     Drawing::Bitmap bitmap;
-#endif
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
 } // namespace OHOS::Rosen

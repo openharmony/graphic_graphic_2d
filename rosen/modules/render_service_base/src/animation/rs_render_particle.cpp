@@ -24,43 +24,65 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEGREE_TO_RADIAN = M_PI / 180;
+constexpr int RAND_PRECISION = 10000;
+constexpr float SIGMA = 3.f;
 
 int ParticleRenderParams::GetEmitRate() const
 {
     return emitterConfig_.emitRate_;
 }
+
 const ShapeType& ParticleRenderParams::GetEmitShape() const
 {
     return emitterConfig_.emitShape_;
 }
+
 const Vector2f& ParticleRenderParams::GetEmitPosition() const
 {
     return emitterConfig_.position_;
 }
+
 const Vector2f& ParticleRenderParams::GetEmitSize() const
 {
     return emitterConfig_.emitSize_;
 }
+
 int32_t ParticleRenderParams::GetParticleCount() const
 {
     return emitterConfig_.particleCount_;
 }
-int64_t ParticleRenderParams::GetParticleLifeTime() const
+
+int64_t ParticleRenderParams::GetLifeTimeStartValue() const
 {
-    return emitterConfig_.lifeTime_ * NS_PER_MS;
+    if (emitterConfig_.lifeTime_.start_ > std::numeric_limits<int64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<int64_t>::max();
+    }
+    return emitterConfig_.lifeTime_.start_ * NS_PER_MS;
 }
+
+int64_t ParticleRenderParams::GetLifeTimeEndValue() const
+{
+    if (emitterConfig_.lifeTime_.end_ > std::numeric_limits<int64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<int64_t>::max();
+    }
+    return emitterConfig_.lifeTime_.end_ * NS_PER_MS;
+}
+
 const ParticleType& ParticleRenderParams::GetParticleType() const
 {
     return emitterConfig_.type_;
 }
+
 float ParticleRenderParams::GetParticleRadius() const
 {
     return emitterConfig_.radius_;
 }
+
 const std::shared_ptr<RSImage>& ParticleRenderParams::GetParticleImage()
 {
     return emitterConfig_.image_;
 }
+
 const Vector2f& ParticleRenderParams::GetImageSize() const
 {
     return emitterConfig_.imageSize_;
@@ -70,14 +92,17 @@ float ParticleRenderParams::GetVelocityStartValue() const
 {
     return velocity_.velocityValue_.start_;
 }
+
 float ParticleRenderParams::GetVelocityEndValue() const
 {
     return velocity_.velocityValue_.end_;
 }
+
 float ParticleRenderParams::GetVelocityStartAngle() const
 {
     return velocity_.velocityAngle_.start_;
 }
+
 float ParticleRenderParams::GetVelocityEndAngle() const
 {
     return velocity_.velocityAngle_.end_;
@@ -87,38 +112,47 @@ float ParticleRenderParams::GetAccelerationStartValue() const
 {
     return acceleration_.accelerationValue_.val_.start_;
 }
+
 float ParticleRenderParams::GetAccelerationEndValue() const
 {
     return acceleration_.accelerationValue_.val_.end_;
 }
+
 float ParticleRenderParams::GetAccelerationStartAngle() const
 {
     return acceleration_.accelerationAngle_.val_.start_;
 }
+
 float ParticleRenderParams::GetAccelerationEndAngle() const
 {
     return acceleration_.accelerationAngle_.val_.end_;
 }
+
 const ParticleUpdator& ParticleRenderParams::GetAccelerationValueUpdator()
 {
     return acceleration_.accelerationValue_.updator_;
 }
+
 const ParticleUpdator& ParticleRenderParams::GetAccelerationAngleUpdator()
 {
     return acceleration_.accelerationAngle_.updator_;
 }
+
 float ParticleRenderParams::GetAccelRandomValueStart() const
 {
     return acceleration_.accelerationValue_.random_.start_;
 }
+
 float ParticleRenderParams::GetAccelRandomValueEnd() const
 {
     return acceleration_.accelerationValue_.random_.end_;
 }
+
 float ParticleRenderParams::GetAccelRandomAngleStart() const
 {
     return acceleration_.accelerationAngle_.random_.start_;
 }
+
 float ParticleRenderParams::GetAccelRandomAngleEnd() const
 {
     return acceleration_.accelerationAngle_.random_.end_;
@@ -128,42 +162,57 @@ const Color& ParticleRenderParams::GetColorStartValue()
 {
     return color_.colorVal_.start_;
 }
+
 const Color& ParticleRenderParams::GetColorEndValue()
 {
     return color_.colorVal_.end_;
 }
+
+const DistributionType& ParticleRenderParams::GetColorDistribution()
+{
+    return color_.distribution_;
+}
+
 const ParticleUpdator& ParticleRenderParams::GetColorUpdator()
 {
     return color_.updator_;
 }
+
 float ParticleRenderParams::GetRedRandomStart() const
 {
     return color_.redRandom_.start_;
 }
+
 float ParticleRenderParams::GetRedRandomEnd() const
 {
     return color_.redRandom_.end_;
 }
+
 float ParticleRenderParams::GetGreenRandomStart() const
 {
     return color_.greenRandom_.start_;
 }
+
 float ParticleRenderParams::GetGreenRandomEnd() const
 {
     return color_.greenRandom_.end_;
 }
+
 float ParticleRenderParams::GetBlueRandomStart() const
 {
     return color_.blueRandom_.start_;
 }
+
 float ParticleRenderParams::GetBlueRandomEnd() const
 {
     return color_.blueRandom_.end_;
 }
+
 float ParticleRenderParams::GetAlphaRandomStart() const
 {
     return color_.alphaRandom_.start_;
 }
+
 float ParticleRenderParams::GetAlphaRandomEnd() const
 {
     return color_.alphaRandom_.end_;
@@ -173,18 +222,22 @@ float ParticleRenderParams::GetOpacityStartValue()
 {
     return opacity_.val_.start_;
 }
+
 float ParticleRenderParams::GetOpacityEndValue()
 {
     return opacity_.val_.end_;
 }
+
 const ParticleUpdator& ParticleRenderParams::GetOpacityUpdator()
 {
     return opacity_.updator_;
 }
+
 float ParticleRenderParams::GetOpacityRandomStart() const
 {
     return opacity_.random_.start_;
 }
+
 float ParticleRenderParams::GetOpacityRandomEnd() const
 {
     return opacity_.random_.end_;
@@ -194,18 +247,22 @@ float ParticleRenderParams::GetScaleStartValue()
 {
     return scale_.val_.start_;
 }
+
 float ParticleRenderParams::GetScaleEndValue()
 {
     return scale_.val_.end_;
 }
+
 const ParticleUpdator& ParticleRenderParams::GetScaleUpdator()
 {
     return scale_.updator_;
 }
+
 float ParticleRenderParams::GetScaleRandomStart() const
 {
     return scale_.random_.start_;
 }
+
 float ParticleRenderParams::GetScaleRandomEnd() const
 {
     return scale_.random_.end_;
@@ -215,18 +272,22 @@ float ParticleRenderParams::GetSpinStartValue()
 {
     return spin_.val_.start_;
 }
+
 float ParticleRenderParams::GetSpinEndValue()
 {
     return spin_.val_.end_;
 }
+
 const ParticleUpdator& ParticleRenderParams::GetSpinUpdator()
 {
     return spin_.updator_;
 }
+
 float ParticleRenderParams::GetSpinRandomStart() const
 {
     return spin_.random_.start_;
 }
+
 float ParticleRenderParams::GetSpinRandomEnd() const
 {
     return spin_.random_.end_;
@@ -236,35 +297,41 @@ void ParticleRenderParams::SetEmitConfig(const EmitterConfig& emiterConfig)
 {
     emitterConfig_ = emiterConfig;
 }
+
 void ParticleRenderParams::SetParticleVelocity(const ParticleVelocity& velocity)
 {
     velocity_ = velocity;
 }
+
 void ParticleRenderParams::SetParticleAcceleration(const RenderParticleAcceleration& acceleration)
 {
     acceleration_ = acceleration;
 }
+
 void ParticleRenderParams::SetParticleColor(const RenderParticleColorParaType& color)
 {
     color_ = color;
 }
+
 void ParticleRenderParams::SetParticleOpacity(const RenderParticleParaType<float>& opacity)
 {
     opacity_ = opacity;
 }
+
 void ParticleRenderParams::SetParticleScale(const RenderParticleParaType<float>& scale)
 {
     scale_ = scale;
 }
+
 void ParticleRenderParams::SetParticleSpin(const RenderParticleParaType<float>& spin)
 {
     spin_ = spin;
 }
 
 RSRenderParticle::RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams)
-    : particleRenderParams_(particleParams)
+    : particleParams_(particleParams)
 {
-    InitProperty(particleRenderParams_);
+    InitProperty();
 }
 
 // Set methods
@@ -496,103 +563,106 @@ int64_t RSRenderParticle::GetActiveTime()
 
 const std::shared_ptr<ParticleRenderParams>& RSRenderParticle::GetParticleRenderParams()
 {
-    return particleRenderParams_;
+    return particleParams_;
 }
 
 const ParticleUpdator& RSRenderParticle::GetAccelerationValueUpdator()
 {
-    return particleRenderParams_->acceleration_.accelerationValue_.updator_;
+    return particleParams_->acceleration_.accelerationValue_.updator_;
 }
+
 const ParticleUpdator& RSRenderParticle::GetAccelerationAngleUpdator()
 {
-    return particleRenderParams_->acceleration_.accelerationAngle_.updator_;
+    return particleParams_->acceleration_.accelerationAngle_.updator_;
 }
+
 const ParticleUpdator& RSRenderParticle::GetColorUpdator()
 {
-    return particleRenderParams_->color_.updator_;
+    return particleParams_->color_.updator_;
 }
+
 const ParticleUpdator& RSRenderParticle::GetOpacityUpdator()
 {
-    return particleRenderParams_->opacity_.updator_;
+    return particleParams_->opacity_.updator_;
 }
+
 const ParticleUpdator& RSRenderParticle::GetScaleUpdator()
 {
-    return particleRenderParams_->scale_.updator_;
+    return particleParams_->scale_.updator_;
 }
+
 const ParticleUpdator& RSRenderParticle::GetSpinUpdator()
 {
-    return particleRenderParams_->spin_.updator_;
+    return particleParams_->spin_.updator_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetAcceValChangeOverLife()
 {
-    return particleRenderParams_->acceleration_.accelerationValue_.valChangeOverLife_;
+    return particleParams_->acceleration_.accelerationValue_.valChangeOverLife_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetAcceAngChangeOverLife()
 {
-    return particleRenderParams_->acceleration_.accelerationAngle_.valChangeOverLife_;
+    return particleParams_->acceleration_.accelerationAngle_.valChangeOverLife_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetOpacityChangeOverLife()
 {
-    return particleRenderParams_->opacity_.valChangeOverLife_;
+    return particleParams_->opacity_.valChangeOverLife_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetScaleChangeOverLife()
 {
-    return particleRenderParams_->scale_.valChangeOverLife_;
+    return particleParams_->scale_.valChangeOverLife_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetSpinChangeOverLife()
 {
-    return particleRenderParams_->spin_.valChangeOverLife_;
+    return particleParams_->spin_.valChangeOverLife_;
 }
+
 const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& RSRenderParticle::GetColorChangeOverLife()
 {
-    return particleRenderParams_->color_.valChangeOverLife_;
+    return particleParams_->color_.valChangeOverLife_;
 }
-// Other methods
-void RSRenderParticle::InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams)
+
+void RSRenderParticle::InitProperty()
 {
-    // Initialize particle properties
-    auto emitShape = particleParams->GetEmitShape();
-    auto position = particleParams->GetEmitPosition();
-    auto emitSize = particleParams->GetEmitSize();
-    position_ = CalculateParticlePosition(emitShape, position, emitSize);
+    position_ = CalculateParticlePosition(
+        particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize());
 
     float velocityValue =
-        GetRandomValue(particleParams->GetVelocityStartValue(), particleParams->GetVelocityEndValue());
+        GetRandomValue(particleParams_->GetVelocityStartValue(), particleParams_->GetVelocityEndValue());
     float velocityAngle =
-        GetRandomValue(particleParams->GetVelocityStartAngle(), particleParams->GetVelocityEndAngle());
+        GetRandomValue(particleParams_->GetVelocityStartAngle(), particleParams_->GetVelocityEndAngle());
     velocityAngle *= DEGREE_TO_RADIAN;
     velocity_ = Vector2f { velocityValue * std::cos(velocityAngle), velocityValue * std::sin(velocityAngle) };
 
     accelerationValue_ =
-        GetRandomValue(particleParams->GetAccelerationStartValue(), particleParams->GetAccelerationEndValue());
+        GetRandomValue(particleParams_->GetAccelerationStartValue(), particleParams_->GetAccelerationEndValue());
     accelerationAngle_ =
-        GetRandomValue(particleParams->GetAccelerationStartAngle(), particleParams->GetAccelerationEndAngle());
+        GetRandomValue(particleParams_->GetAccelerationStartAngle(), particleParams_->GetAccelerationEndAngle());
     acceleration_ = Vector2f { accelerationValue_ * std::cos(accelerationAngle_ * DEGREE_TO_RADIAN),
         accelerationValue_ * std::sin(accelerationAngle_ * DEGREE_TO_RADIAN) };
 
-    spin_ = GetRandomValue(particleParams->GetSpinStartValue(), particleParams->GetSpinEndValue());
-    opacity_ = GetRandomValue(particleParams->GetOpacityStartValue(), particleParams->GetOpacityEndValue());
-    scale_ = GetRandomValue(particleParams->GetScaleStartValue(), particleParams->GetScaleEndValue());
-    opacitySpeed_ = GetRandomValue(particleParams->GetOpacityRandomStart(), particleParams->GetOpacityRandomEnd());
-    scaleSpeed_ = GetRandomValue(particleParams->GetScaleRandomStart(), particleParams->GetScaleRandomEnd());
-    spinSpeed_ = GetRandomValue(particleParams->GetSpinRandomStart(), particleParams->GetSpinRandomEnd());
+    spin_ = GetRandomValue(particleParams_->GetSpinStartValue(), particleParams_->GetSpinEndValue());
+    opacity_ = GetRandomValue(particleParams_->GetOpacityStartValue(), particleParams_->GetOpacityEndValue());
+    scale_ = GetRandomValue(particleParams_->GetScaleStartValue(), particleParams_->GetScaleEndValue());
+    opacitySpeed_ = GetRandomValue(particleParams_->GetOpacityRandomStart(), particleParams_->GetOpacityRandomEnd());
+    scaleSpeed_ = GetRandomValue(particleParams_->GetScaleRandomStart(), particleParams_->GetScaleRandomEnd());
+    spinSpeed_ = GetRandomValue(particleParams_->GetSpinRandomStart(), particleParams_->GetSpinRandomEnd());
     accelerationValueSpeed_ =
-        GetRandomValue(particleParams->GetAccelRandomValueStart(), particleParams->GetAccelRandomValueEnd());
+        GetRandomValue(particleParams_->GetAccelRandomValueStart(), particleParams_->GetAccelRandomValueEnd());
     accelerationAngleSpeed_ =
-        GetRandomValue(particleParams->GetAccelRandomAngleStart(), particleParams->GetAccelRandomAngleEnd());
+        GetRandomValue(particleParams_->GetAccelRandomAngleStart(), particleParams_->GetAccelRandomAngleEnd());
 
-    particleType_ = particleParams->GetParticleType();
+    particleType_ = particleParams_->GetParticleType();
     if (particleType_ == ParticleType::POINTS) {
-        float colorRandomValue = GetRandomValue(0.0f, 1.0f);
-        color_ = Lerp(particleParams->GetColorStartValue(), particleParams->GetColorEndValue(), colorRandomValue);
-        redSpeed_ = GetRandomValue(particleParams->GetRedRandomStart(), particleParams->GetRedRandomEnd());
-        greenSpeed_ = GetRandomValue(particleParams->GetGreenRandomStart(), particleParams->GetGreenRandomEnd());
-        blueSpeed_ = GetRandomValue(particleParams->GetBlueRandomStart(), particleParams->GetBlueRandomEnd());
-        alphaSpeed_ = GetRandomValue(particleParams->GetAlphaRandomStart(), particleParams->GetAlphaRandomEnd());
-        radius_ = particleParams->GetParticleRadius();
+        SetColor();
+        radius_ = particleParams_->GetParticleRadius();
     } else if (particleType_ == ParticleType::IMAGES) {
-        image_ = particleParams->GetParticleImage();
-        imageSize_ = particleParams->GetImageSize();
+        image_ = particleParams_->GetParticleImage();
+        imageSize_ = particleParams_->GetImageSize();
         if (image_ != nullptr) {
             auto pixelMap = image_->GetPixelMap();
             if (pixelMap != nullptr) {
@@ -601,7 +671,7 @@ void RSRenderParticle::InitProperty(const std::shared_ptr<ParticleRenderParams>&
         }
     }
     activeTime_ = 0;
-    lifeTime_ = particleParams->GetParticleLifeTime();
+    lifeTime_ = GetRandomValue(particleParams_->GetLifeTimeStartValue(), particleParams_->GetLifeTimeEndValue());
 }
 
 bool RSRenderParticle::IsAlive() const
@@ -609,7 +679,9 @@ bool RSRenderParticle::IsAlive() const
     if (dead_ == true) {
         return false;
     }
-    if (lifeTime_ == -1 * NS_PER_MS) {
+
+    if (particleParams_->GetLifeTimeStartValue() == (-1 * NS_PER_MS) &&
+        particleParams_->GetLifeTimeEndValue() == (-1 * NS_PER_MS)) {
         return true;
     }
     return activeTime_ < lifeTime_;
@@ -628,14 +700,51 @@ float RSRenderParticle::GetRandomValue(float min, float max)
     if (min > max) {
         std::swap(min, max);
     }
-    std::random_device rd;
-    if (rd.entropy() > 0) {
-        std::mt19937_64 gen(rd());
-        std::uniform_real_distribution<float> dis(min, max);
-        return dis(gen);
+    int rand_int = rand() % RAND_PRECISION;
+    float rand_float = min + (static_cast<float>(rand_int) / RAND_PRECISION) * (max - min);
+    return rand_float;
+}
+
+void RSRenderParticle::SetColor()
+{
+    if (particleParams_->GetColorDistribution() == DistributionType::GAUSSIAN) {
+        auto& colorStart = particleParams_->GetColorStartValue();
+        auto& colorEnd = particleParams_->GetColorEndValue();
+        auto redScale = std::abs(colorEnd.GetRed() - colorStart.GetRed());
+        auto greenScale = std::abs(colorEnd.GetGreen() - colorStart.GetGreen());
+        auto blueScale = std::abs(colorEnd.GetBlue() - colorStart.GetBlue());
+        auto alphaScale = std::abs(colorEnd.GetAlpha() - colorStart.GetAlpha());
+        auto meanRed = (colorStart.GetRed() + colorEnd.GetRed()) / 2;
+        auto meanGreen = (colorStart.GetGreen() + colorEnd.GetGreen()) / 2;
+        auto meanBlue = (colorStart.GetBlue() + colorEnd.GetBlue()) / 2;
+        auto meanAlpha = (colorStart.GetAlpha() + colorEnd.GetAlpha()) / 2;
+
+        color_.SetRed(GenerateColorComponent(meanRed, SIGMA * redScale));
+        color_.SetGreen(GenerateColorComponent(meanGreen, SIGMA * greenScale));
+        color_.SetBlue(GenerateColorComponent(meanBlue, SIGMA * blueScale));
+        color_.SetAlpha(GenerateColorComponent(meanAlpha, SIGMA * alphaScale));
     } else {
-        return min + (max - min) / 2.0f;
+        float colorRandomValue = GetRandomValue(0.0f, 1.0f);
+        color_ = Lerp(particleParams_->GetColorStartValue(), particleParams_->GetColorEndValue(), colorRandomValue);
     }
+    redSpeed_ = GetRandomValue(particleParams_->GetRedRandomStart(), particleParams_->GetRedRandomEnd());
+    greenSpeed_ = GetRandomValue(particleParams_->GetGreenRandomStart(), particleParams_->GetGreenRandomEnd());
+    blueSpeed_ = GetRandomValue(particleParams_->GetBlueRandomStart(), particleParams_->GetBlueRandomEnd());
+    alphaSpeed_ = GetRandomValue(particleParams_->GetAlphaRandomStart(), particleParams_->GetAlphaRandomEnd());
+}
+
+// Generate color components that follow normal distribution
+int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
+{
+    // Creates a random number engine and a normal distribution object.
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> dis(mean, stddev);
+
+    double number = dis(gen);
+    int component = static_cast<int>(std::round(std::abs(number)));
+    component = std::max(0, std::min(component, 255)); // 255 is RGB Component max.
+    return component;
 }
 
 Vector2f RSRenderParticle::CalculateParticlePosition(
@@ -670,16 +779,6 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
         }
     }
     return Vector2f { positionX, positionY };
-}
-
-Color RSRenderParticle::Lerp(const Color& start, const Color& end, float t)
-{
-    Color result;
-    result.SetRed(start.GetRed() + static_cast<int>(std::round((end.GetRed() - start.GetRed()) * t)));
-    result.SetGreen(start.GetGreen() + static_cast<int>(std::round((end.GetGreen() - start.GetGreen()) * t)));
-    result.SetBlue(start.GetBlue() + static_cast<int>(std::round((end.GetBlue() - start.GetBlue()) * t)));
-    result.SetAlpha(start.GetAlpha() + static_cast<int>(std::round((end.GetAlpha() - start.GetAlpha()) * t)));
-    return result;
 }
 
 } // namespace Rosen

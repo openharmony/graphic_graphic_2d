@@ -34,8 +34,7 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef RS_ENABLE_VK
 bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return false;
     }
     return impl_->BuildFromVK(context);
@@ -43,8 +42,7 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
 
 bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return false;
     }
     return impl_->BuildFromVK(context, options);
@@ -126,6 +124,11 @@ void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GP
     impl_->PurgeUnlockedResourcesByTag(scratchResourcesOnly, tag);
 }
 
+void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
+{
+    impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     impl_->PurgeUnlockAndSafeCacheGpuResources();
@@ -151,6 +154,11 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
+void GPUContext::ResetContext()
+{
+    impl_->ResetContext();
+}
+
 #ifdef RS_ENABLE_VK
 void GPUContext::StoreVkPipelineCacheData()
 {
@@ -158,10 +166,16 @@ void GPUContext::StoreVkPipelineCacheData()
 }
 #endif
 
+void GPUContext::RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
+{
+    impl_->RegisterPostFunc(func);
+}
+
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {
     return persistentCache_;
 }
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

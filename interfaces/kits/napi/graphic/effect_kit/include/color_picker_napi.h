@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef COLOR_PICKER_NAPI_H_
-#define COLOR_PICKER_NAPI_H_
+#ifndef COLOR_PICKER_NAPI_H
+#define COLOR_PICKER_NAPI_H
 
 #include "effect_type.h"
 #include "napi/native_api.h"
@@ -53,6 +53,7 @@ private:
     static napi_value GetHighestSaturationColor(napi_env env, napi_callback_info info);
     static napi_value GetAverageColor(napi_env env, napi_callback_info info);
     static napi_value IsBlackOrWhiteOrGrayColor(napi_env env, napi_callback_info info);
+    static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
 
     // napi var
@@ -68,4 +69,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif /* COLOR_PICKER_NAPI_H_ */
+#endif /* COLOR_PICKER_NAPI_H */

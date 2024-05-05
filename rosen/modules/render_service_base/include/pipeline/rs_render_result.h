@@ -25,33 +25,21 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderResult final {
 public:
-#ifndef USE_ROSEN_DRAWING
-    RSRenderResult(const RectI& r, std::shared_ptr<DrawCmdList> dcl) : dirty_(r), drawCmdList_(dcl) {}
-#else
     RSRenderResult(const RectI& r, std::shared_ptr<Drawing::DrawCmdList> dcl) : dirty_(r), drawCmdList_(dcl) {}
-#endif
     ~RSRenderResult() = default;
 
     RectI GetDirtyRegion() const
     {
         return dirty_;
     }
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> GetDrawCmdList() const
-#else
     std::shared_ptr<Drawing::DrawCmdList> GetDrawCmdList() const
-#endif
     {
         return drawCmdList_;
     }
 
 private:
     RectI dirty_;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> drawCmdList_;
-#else
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
-#endif
 };
 
 using RenderFinishedCallback = std::function<void(const RSRenderResult&)>;

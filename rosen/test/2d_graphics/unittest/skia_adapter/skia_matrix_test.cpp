@@ -84,6 +84,129 @@ HWTEST_F(SkiaMatrixTest, Equals001, TestSize.Level1)
     EXPECT_EQ(skiaMatrix.Equals(matrix1, matrix2), true);
 }
 
+/**
+ * @tc.name: Scale001
+ * @tc.desc: Test Scale
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, Scale001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.Scale(2, 2, 2, 2); // 2: sx, sy, px, py
+}
+
+/**
+ * @tc.name: PreRotate001
+ * @tc.desc: Test PreRotate
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreRotate001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PreRotate(90); // 90: degree
+}
+
+/**
+ * @tc.name: PreRotate002
+ * @tc.desc: Test PreRotate
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreRotate002, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PreRotate(90, 0, 0); // 90: degree
+}
+
+/**
+ * @tc.name: PostRotate001
+ * @tc.desc: Test PostRotate
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostRotate001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PostRotate(90); // 90: degree
+}
+
+/**
+ * @tc.name: PostTranslate001
+ * @tc.desc: Test PostTranslate
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostTranslate001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PostTranslate(100, 100); // 100: dx, dy
+}
+
+/**
+ * @tc.name: PreScale001
+ * @tc.desc: Test PreScale
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreScale001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PreScale(2, 2); // 2: sx, sy
+}
+
+/**
+ * @tc.name: PostScale001
+ * @tc.desc: Test PostScale
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostScale001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PostScale(2, 2); // 2: sx, sy
+}
+
+/**
+ * @tc.name: PreConcat001
+ * @tc.desc: Test PreConcat
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreConcat001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    Matrix44 matrix44;
+    skiaMatrix.PreConcat(matrix44);
+}
+
+/**
+ * @tc.name: PostConcat001
+ * @tc.desc: Test PostConcat
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostConcat001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    Matrix matrix;
+    skiaMatrix.PostConcat(matrix);
+}
+
+/**
+ * @tc.name: PostConcat002
+ * @tc.desc: Test PostConcat
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostConcat002, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    Matrix44 matrix44;
+    skiaMatrix.PostConcat(matrix44);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

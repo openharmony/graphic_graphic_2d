@@ -13,31 +13,16 @@
  * limitations under the License.
  */
 
-#include <event_handler.h>
-#include "boot_animation.h"
-#include "util.h"
-#include "core/transaction/rs_interfaces.h"
+#include "boot_animation_controller.h"
+#include "log.h"
 
 using namespace OHOS;
 
 int main(int argc, const char *argv[])
 {
     LOGI("main enter");
-    WaitRenderServiceInit();
-
-    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
-    Rosen::ScreenId defaultId = interface.GetDefaultScreenId();
-    if (defaultId == Rosen::INVALID_SCREEN_ID) {
-        LOGE("invalid default screen id, return");
-        return 0;
-    }
-    Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(defaultId);
-    int screenWidth = modeinfo.GetScreenWidth();
-    int screenHeight = modeinfo.GetScreenHeight();
-
-    BootAnimation bootAnimation;
-    bootAnimation.Run(defaultId, screenWidth, screenHeight);
-
+    std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
+    controller->Start();
     LOGI("main exit");
     return 0;
 }

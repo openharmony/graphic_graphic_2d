@@ -17,9 +17,6 @@
 
 #include <algorithm>
 
-#ifdef SUPPORT_OHOS_PIXMAP
-#include "pixel_map.h"
-#endif
 #include "utils/log.h"
 
 namespace OHOS {
@@ -34,9 +31,6 @@ CmdList::CmdList(const CmdListData& cmdListData)
 
 CmdList::~CmdList()
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    pixelMapVec_.clear();
-#endif
 #ifdef ROSEN_OHOS
     surfaceBufferVec_.clear();
 #endif
@@ -181,54 +175,38 @@ CmdListData CmdList::GetAllBitmapData() const
     return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
 }
 
-uint32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+uint32_t CmdList::AddExtendObject(const std::shared_ptr<ExtendObject>& object)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    pixelMapVec_.emplace_back(pixelMap);
-    return static_cast<uint32_t>(pixelMapVec_.size()) - 1;
-#else
-    return 0;
-#endif
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    extendObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(extendObjectVec_.size()) - 1;
 }
 
-std::shared_ptr<Media::PixelMap> CmdList::GetPixelMap(uint32_t id)
+std::shared_ptr<ExtendObject> CmdList::GetExtendObject(uint32_t index)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    if (id >= pixelMapVec_.size()) {
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    if (index >= extendObjectVec_.size()) {
         return nullptr;
     }
-    return pixelMapVec_[id];
-#else
-    return nullptr;
-#endif
+    return extendObjectVec_[index];
 }
 
-uint32_t CmdList::GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
+uint32_t CmdList::GetAllExtendObject(std::vector<std::shared_ptr<ExtendObject>>& objectList)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    for (const auto &pixelMap : pixelMapVec_) {
-        pixelMapList.emplace_back(pixelMap);
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    for (const auto &object : extendObjectVec_) {
+        objectList.emplace_back(object);
     }
-    return pixelMapList.size();
-#else
-    return 0;
-#endif
+    return objectList.size();
 }
 
-uint32_t CmdList::SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
+uint32_t CmdList::SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    for (const auto &pixelMap : pixelMapList) {
-        pixelMapVec_.emplace_back(pixelMap);
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    for (const auto &object : objectList) {
+        extendObjectVec_.emplace_back(object);
     }
-    return pixelMapVec_.size();
-#else
-    return 0;
-#endif
+    return extendObjectVec_.size();
 }
 
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)

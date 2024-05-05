@@ -14,32 +14,36 @@
  */
 
 #include "rs_render_service.h"
+
+#include <iservice_registry.h>
+#include <malloc.h>
+#include <platform/common/rs_log.h>
+#include <string>
+#include <system_ability_definition.h>
+#include <unistd.h>
+
 #include "hgm_core.h"
+#include "parameter.h"
 #include "rs_main_thread.h"
-#include "rs_qos_thread.h"
+#include "rs_profiler.h"
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
+
+#include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_hardware_thread.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
 #endif
 
-#include <malloc.h>
-#include <string>
-#include <unistd.h>
-
-#include <iservice_registry.h>
-#include <platform/common/rs_log.h>
-#include <system_ability_definition.h>
-#include "parameter.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
+constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
 }
 RSRenderService::RSRenderService() {}
 
@@ -66,7 +70,9 @@ bool RSRenderService::Init()
             return false;
         }
     } else {
+        RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
+        StartRCDUpdateThread(RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext().get());
     }
 
     auto generator = CreateVSyncGenerator();
@@ -87,6 +93,8 @@ bool RSRenderService::Init()
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
 
+    generator->SetRSDistributor(rsVSyncDistributor_);
+
     mainThread_ = RSMainThread::Instance();
     if (mainThread_ == nullptr) {
         return false;
@@ -97,9 +105,6 @@ bool RSRenderService::Init()
     mainThread_->vsyncGenerator_ = generator;
     mainThread_->Init();
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
- 
-    RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;
-    RSQosThread::ThreadStart();
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
@@ -114,6 +119,7 @@ bool RSRenderService::Init()
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
+    RS_PROFILER_INIT(this);
     return true;
 }
 
@@ -123,9 +129,18 @@ void RSRenderService::Run()
     mainThread_->Start();
 }
 
+void RSRenderService::StartRCDUpdateThread(RenderContext* context) const
+{
+    auto subThreadManager = RSSubThreadManager::Instance();
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        subThreadManager->StartRCDThread(context);
+    }
+}
+
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     pid_t remotePid = GetCallingPid();
+    RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
     sptr<RSIRenderServiceConnection> newConn(
@@ -232,9 +247,13 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump the fps info of composer\n")
         .append("[surface name] fps             ")
         .append("|dump the fps info of surface\n")
-        .append("composer fpsClear                   ")
+        .append("composer fpsClear              ")
         .append("|clear the fps info of composer\n")
-        .append("[surface name] fpsClear             ")
+        .append("[windowname] fps               ")
+        .append("|dump the fps info of window\n")
+        .append("[windowname] hitchs            ")
+        .append("|dump the hitchs info of window\n")
+        .append("[surface name] fpsClear        ")
         .append("|clear the fps info of surface\n")
         .append("nodeNotOnTree                  ")
         .append("|dump nodeNotOnTree info\n")
@@ -310,15 +329,13 @@ void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- EventParamListDump: \n");
     mainThread_->RsEventParamDump(dumpString);
-    dumpString.append("-- QosDump: \n");
-    mainThread_->QosStateDump(dumpString);
 }
 
-void RSRenderService::DumpRenderServiceTree(std::string& dumpString) const
+void RSRenderService::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
 {
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
-    mainThread_->RenderServiceTreeDump(dumpString);
+    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame);
 }
 
 void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
@@ -333,6 +350,27 @@ void RSRenderService::DumpClearRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- ClearRefreshRateCounts: \n");
     RSHardwareThread::Instance().ClearRefreshRateCounts(dumpString);
+}
+
+void RSRenderService::WindowHitchsDump(
+    std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter != argSets.end()) {
+        std::string layerArg;
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+        } else {
+            mainThread_->ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+        }
+    }
 }
 
 void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
@@ -363,13 +401,8 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     dumpString += "Bounds: [" + std::to_string(node->GetRenderProperties().GetBoundsWidth()) + "," +
         std::to_string(node->GetRenderProperties().GetBoundsHeight()) + "]\n";
     if (auto& contextClipRegion = node->contextClipRect_) {
-#ifndef USE_ROSEN_DRAWING
-        dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->width()) + "," +
-                      std::to_string(contextClipRegion->height()) + "]\n";
-#else
         dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->GetWidth()) + "," +
                       std::to_string(contextClipRegion->GetHeight()) + "]\n";
-#endif
     } else {
         dumpString += "ContextClipRegion: [ empty ]\n";
     }
@@ -457,6 +490,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
     std::u16string arg6(u"RSTree");
+    std::u16string arg6_1(u"MultiRSTrees");
     std::u16string arg7(u"EventParamList");
     std::u16string arg8(u"h");
     std::u16string arg9(u"allInfo");
@@ -467,6 +501,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg14(u"dumpNode");
     std::u16string arg15(u"fpsCount");
     std::u16string arg16(u"clearFpsCount");
+    std::u16string arg17(u"hitchs");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -493,6 +528,10 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
     }
+    if (argSets.count(arg9) || argSets.count(arg6_1) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() {DumpRenderServiceTree(dumpString, false); }).wait();
+    }
     if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpRSEvenParam(dumpString); }).wait();
@@ -518,6 +557,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
+    WindowHitchsDump(argSets, dumpString, arg17);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();

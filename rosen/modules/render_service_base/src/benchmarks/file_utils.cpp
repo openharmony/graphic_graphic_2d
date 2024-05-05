@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "directory_ex.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +32,11 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
 
 std::string GetRealAndValidPath(const std::string& filePath)
 {
-    std::string realPathStr = std::filesystem::path(filePath).lexically_normal().string();
+    std::string realPathStr;
+    if (!PathToRealPath(filePath, realPathStr)) {
+        ROSEN_LOGE("FilePath is nullptr");
+        return "";
+    }
     if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
@@ -120,11 +125,7 @@ bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, cons
     std::string opsFile = fileDir + "/ops_frame" + std::to_string(frameNum) + ".txt";
     // get data
     size_t sz = messageParcel->GetDataSize();
-#ifndef USE_ROSEN_DRAWING
-    uintptr_t buf = messageParcel->GetData();
-#else
     auto buf = reinterpret_cast<uintptr_t>(messageParcel->GetData());
-#endif
     std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " +
         std::to_string(frameNum) + ", size = " + std::to_string(sz);
     RS_LOGD("%{public}s", line.c_str());

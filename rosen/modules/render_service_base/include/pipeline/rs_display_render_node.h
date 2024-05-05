@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <mutex>
+
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
@@ -28,7 +29,9 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "rs_surface_render_node.h"
 #include <screen_manager/screen_types.h>
+#include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "rs_render_surface.h"
 #else
@@ -54,7 +57,8 @@ public:
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
@@ -75,6 +79,16 @@ public:
     uint32_t GetRogWidth() const
     {
         return rogWidth_;
+    }
+
+    void SetRenderWindowsName(std::vector<std::string>& windowsName)
+    {
+        windowsName_ = windowsName;
+    }
+
+    std::vector<std::string>& GetRenderWindowName()
+    {
+        return windowsName_;
     }
 
     uint32_t GetRogHeight() const
@@ -121,6 +135,7 @@ public:
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -140,7 +155,7 @@ public:
     void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
-    bool SkipFrame(uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const
@@ -189,20 +204,22 @@ public:
 
     ScreenRotation GetRotation() const;
 
-    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager()
+    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const
     {
         return dirtyManager_;
     }
-    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const
+    {
+        return syncDirtyManager_;
+    }
+    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false, bool renderParallel = false);
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-        std::unique_lock<std::mutex> lock(mtx_);
+// add: #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
+// add:     std::unique_lock<std::mutex> lock(mtx_);
+// add: #endif
         currentFrameSurfacePos_[id] = rect;
-#else
-        currentFrameSurfacePos_[id] = rect;
-#endif
     }
 
     RectI GetLastFrameSurfacePos(NodeId id)
@@ -241,6 +258,18 @@ public:
     {
         return curAllSurfaces_;
     }
+    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
+    {
+        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
+    }
+
+    void UpdateRenderParams() override;
+    void UpdatePartialRenderParams();
+    void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
+        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
+        std::map<ScreenId, bool>& hasCaptureWindow);
+    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
+    std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
     void UpdateRotation();
     bool IsRotationChanged() const;
@@ -256,51 +285,55 @@ public:
         return originScreenRotation_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void SetInitMatrix(const SkMatrix& skMatrix) {
-        initMatrix_ = skMatrix;
-#else
     void SetInitMatrix(const Drawing::Matrix& matrix) {
         initMatrix_ = matrix;
-#endif
         isFirstTimeToProcessor_ = false;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    const SkMatrix& GetInitMatrix() const {
-#else
     const Drawing::Matrix& GetInitMatrix() const {
-#endif
         return initMatrix_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetCacheImgForCapture() {
-        std::unique_lock<std::mutex> lock(mtx_);
-        return cacheImgForCapture_;
-    }
-    void SetCacheImgForCapture(sk_sp<SkImage> cacheImgForCapture) {
-        std::unique_lock<std::mutex> lock(mtx_);
-        cacheImgForCapture_ = cacheImgForCapture;
-    }
-#else
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() {
-        std::unique_lock<std::mutex> lock(mtx_);
         return cacheImgForCapture_;
     }
     void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture) {
-        std::unique_lock<std::mutex> lock(mtx_);
         cacheImgForCapture_ = cacheImgForCapture;
     }
-#endif
+    std::shared_ptr<Drawing::Image> GetOffScreenCacheImgForCapture() {
+        return offScreenCacheImgForCapture_;
+    }
+    void SetOffScreenCacheImgForCapture(std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture) {
+        offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
+    }
     NodeId GetRootIdOfCaptureWindow() {
         return rootIdOfCaptureWindow_;
     }
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
+    bool GetResetRotate() const {
+        return resetRotate_;
+    }
+    void SetResetRotate(bool resetRotate) {
+        resetRotate_ = resetRotate;
+    }
 
+    void SetMainAndLeashSurfaceDirty(bool isDirty);
+
+    void SetHDRPresent(bool hdrPresent);
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
+    {
+        return dirtySurfaceNodeMap_;
+    }
+
+protected:
+    void OnSync() override;
 private:
+    void InitRenderParams() override;
+    // vector of sufacenodes will records dirtyregions by itself
+    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
@@ -314,11 +347,7 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix initMatrix_;
-#else
     Drawing::Matrix initMatrix_;
-#endif
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
@@ -335,20 +364,23 @@ private:
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::vector<std::string> windowsName_;
+    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
     // Use in screen recording optimization
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
-#else
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-#endif
+    std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    bool resetRotate_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

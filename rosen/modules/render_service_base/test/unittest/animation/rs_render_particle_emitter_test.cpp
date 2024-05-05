@@ -17,7 +17,6 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_render_particle_emitter.h"
 #include "common/rs_vector2.h"
@@ -60,7 +59,7 @@ void RSRenderParticleEmitterTest::SetEmitConfig()
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
@@ -74,6 +73,7 @@ void RSRenderParticleEmitterTest::SetColor()
     Color start = RSColor(200, 0, 0, 100);
     Color end = RSColor(255, 255, 255, 255);
     Range<Color> colorVal = Range<Color>(start, end);
+    DistributionType distribution = DistributionType::UNIFORM;
     ParticleUpdator colorUpdator = ParticleUpdator::RANDOM;
     Range<float> redRandom = Range<float>(0.1f, 1.f);
     Range<float> greenRandom = Range<float>(0.1f, 1.f);
@@ -81,7 +81,7 @@ void RSRenderParticleEmitterTest::SetColor()
     Range<float> alphaRandom = Range<float>(0.1f, 1.f);
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
     color_ = RenderParticleColorParaType(
-        colorVal, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
+        colorVal, distribution, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
 }
 
 void RSRenderParticleEmitterTest::SetOpacity()

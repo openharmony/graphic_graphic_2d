@@ -202,6 +202,29 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FlushImplicitTransaction007
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction007, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    FlushEmptyCallback callback = [](const uint64_t timestamp) -> bool {
+        return true;
+    };
+    RSTransactionProxy::GetInstance()->SetFlushEmptyCallback(callback);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
  * @tc.name: FlushImplicitTransactionFromRT001
  * @tc.desc: test
  * @tc.type:FUNC

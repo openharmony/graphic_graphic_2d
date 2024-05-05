@@ -32,7 +32,6 @@ config("composer_config") {
 config("composer_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include/common",
-    "//drivers/peripheral/display/interfaces/include",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
@@ -51,46 +50,38 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  include_dirs = [
-    "$graphic_2d_root/frameworks/surface/include",
-    "$graphic_2d_root/utils/log",
-  ]
+  include_dirs = [ "$graphic_2d_root/utils/log" ]
 
   configs = [ ":composer_config" ]
 
   defines = []
   defines += gpu_defines
 
-  public_configs = [
-    ":composer_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
-
-  deps = [ "$graphic_2d_root:libsurface" ]
+  public_configs = [ ":composer_public_config" ]
 
   public_deps = [
-    "$graphic_2d_root/utils:buffer_handle",
     "$graphic_2d_root/utils:scoped_bytrace",
-    "$graphic_2d_root/utils:sync_fence",
     "vsync:libvsync",
   ]
 
-  external_deps = [
+  public_external_deps = [
     "c_utils:utils",
+    "graphic_surface:buffer_handle",
+    "graphic_surface:sync_fence",
+  ]
+
+  external_deps = [
+    "drivers_interface_display:display_buffer_idl_headers",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "drivers_interface_display:display_composer_idl_headers_1.1",
+    "drivers_interface_display:display_composer_idl_headers_1.2",
+    "drivers_interface_display:libdisplay_composer_hdi_impl_1.1",
+    "drivers_interface_display:libdisplay_composer_hdi_impl_1.2",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
   ]
-
-  if (graphic_2d_feature_drivers_interface_display_enable) {
-    external_deps += [
-      "drivers_interface_display:display_buffer_idl_headers",
-      "drivers_interface_display:display_commontype_idl_headers",
-      "drivers_interface_display:display_composer_idl_headers_1.1",
-      "drivers_interface_display:libdisplay_composer_hdi_impl_1.1",
-    ]
-    defines += [ "DRIVERS_INTERFACE_DISPLAY_ENABLE" ]
-  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

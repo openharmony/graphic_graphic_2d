@@ -21,14 +21,11 @@
 #include <string>
 #include <vector>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPaint.h" // SKIA
-#else
 #include "draw/pen.h"
 #include "draw/brush.h"
-#endif
 #include "draw/color.h"
 #include "utils/point.h"
+#include "utils/scalar.h"
 
 #include "common/rs_macros.h"
 #include "typography_types.h"
@@ -40,11 +37,22 @@ class RS_EXPORT FontFeatures {
 public:
     void SetFeature(std::string tag, int value);
     std::string GetFeatureSettings() const;
-    const std::map<std::string, int> &GetFontFeatures() const;
+    const std::vector<std::pair<std::string, int>> &GetFontFeatures() const;
     bool operator ==(const FontFeatures& rhs) const;
+    void Clear();
 
 private:
-    std::map<std::string, int> featureMap_;
+    std::vector<std::pair<std::string, int>> featureSet_;
+};
+
+class RS_EXPORT FontVariations {
+public:
+    void SetAxisValue(const std::string& tag, float value);
+    const std::map<std::string, float>& GetAxisValues() const;
+    bool operator ==(const FontVariations& rhs) const;
+    void Clear();
+private:
+    std::map<std::string, float> axis_;
 };
 
 struct RS_EXPORT TextShadow {
@@ -76,6 +84,7 @@ struct TextStyle {
     TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
     double decorationThicknessScale = 1.0;
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
     std::vector<std::string> fontFamilies;
@@ -88,26 +97,24 @@ struct TextStyle {
     std::u16string ellipsis;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     std::string locale;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkPaint> background; // SKIA
-    std::optional<SkPaint> foreground; // SKIA
-#else
     std::optional<Drawing::Brush> foregroundBrush;
     std::optional<Drawing::Pen> foregroundPen;
     std::optional<Drawing::Brush> backgroundBrush;
     std::optional<Drawing::Pen> backgroundPen;
-#endif
     // if Pen and SkPaint are setting, use pen first
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
+    FontVariations fontVariations;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
     int styleId = 0;
-
     bool operator ==(const TextStyle &rhs) const;
-
+    bool EqualByFonts(const TextStyle &rhs) const;
+    bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;
+    double baseLineShift = 0.0;
+    bool isPlaceholder = false;
 };
 } // namespace Rosen
 } // namespace OHOS

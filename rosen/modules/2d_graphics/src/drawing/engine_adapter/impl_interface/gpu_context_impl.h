@@ -17,8 +17,11 @@
 #define GPU_CONTEXT_IMPL_H
 
 #include <chrono>
+#include <functional>
+#include <set>
 
 #include "base_impl.h"
+
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/vk/GrVkBackendContext.h"
@@ -27,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+using pid_t = int;
 struct GPUResourceTag;
 class GPUContext;
 class GPUContextOptions;
@@ -60,9 +64,13 @@ public:
 
     virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
 
+    virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
+
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
     virtual void ReleaseByTag(const GPUResourceTag &tag) = 0;
+
+    virtual void ResetContext() = 0;
 
     virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
@@ -73,6 +81,8 @@ public:
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;
 #endif
+
+    virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +33,9 @@ void RSRenderPropertyBase::OnChange() const
         }
         if (modifierType_ > RSModifierType::EXTENDED) {
             node->SetContentDirty();
+        }
+        if (modifierType_ == RSModifierType::POSITION_Z) {
+            node->MarkParentNeedRegenerateChildren();
         }
     }
 }
@@ -162,6 +166,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     if (!parcel.ReadUint64(id)) {
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, id);
     switch (type) {
         case RSRenderPropertyType::PROPERTY_FLOAT: {
             float value;

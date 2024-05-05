@@ -58,90 +58,15 @@ bool RSCanvasDrawingNode::ResetSurface()
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
+void RSCanvasDrawingNode::CreateTextureExportRenderNodeInRT()
 {
-    if (IsUniRenderEnabled()) {
-        auto renderServiceClient =
-            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-        if (renderServiceClient == nullptr) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap renderServiceClient is nullptr!");
-            return false;
-        }
-        bool ret = renderServiceClient->GetBitmap(GetId(), bitmap);
-        if (!ret) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap GetBitmap failed");
-            return ret;
-        }
-    } else {
-        auto node =
-            RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(GetId());
-        if (node == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", GetId());
-            return false;
-        }
-        if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            RS_LOGE("RSCanvasDrawingNode::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
-            return false;
-        }
-        auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
-        RSRenderThread::Instance().PostSyncTask(getBitmapTask);
-        if (bitmap.empty()) {
-            return false;
-        }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
     }
-    if (drawCmdList == nullptr) {
-        RS_LOGD("RSCanvasDrawingNode::GetBitmap drawCmdList == nullptr");
-    } else {
-        SkCanvas canvas(bitmap);
-        drawCmdList->Playback(canvas, rect);
-    }
-    return true;
 }
 
-bool RSCanvasDrawingNode::GetPixelmap(
-    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
-{
-    if (!pixelmap) {
-        RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
-        return false;
-    }
-    if (IsUniRenderEnabled()) {
-        auto renderServiceClient =
-            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-        if (renderServiceClient == nullptr) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
-            return false;
-        }
-        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
-        if (!ret || !pixelmap) {
-            ROSEN_LOGD("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
-            return false;
-        }
-    } else {
-        auto node =
-            RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(GetId());
-        if (node == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", GetId());
-            return false;
-        }
-        if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            RS_LOGE("RSCanvasDrawingNode::GetPixelmap: RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
-            return false;
-        }
-        bool ret = false;
-        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() {
-            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList);
-        };
-        RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
-        if (!ret || !pixelmap) {
-            return false;
-        }
-    }
-    return true;
-}
-
-#else
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
@@ -225,6 +150,5 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     }
     return true;
 }
-#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -24,11 +24,7 @@
 #include <math.h>
 #include <queue>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPixmap.h"
-#else
 #include "image/pixmap.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -46,11 +42,7 @@ const uint32_t RS_COLOR_PICKER_SUCCESS = 0; // Operation success
 class RSColorExtract {
 public:
     virtual ~RSColorExtract() {};
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkPixmap> pixelmap_;
-#else
     std::shared_ptr<Drawing::Pixmap> pixelmap_;
-#endif
 
     // Save the ARGB val of picture.
     std::shared_ptr<uint32_t> colorVal_ = nullptr;
@@ -78,13 +70,8 @@ public:
     NATIVEEXPORT void SetFeatureColorNum(int N);
     void GetNFeatureColors(int colorNum);
 protected:
-#ifndef USE_ROSEN_DRAWING
-    RSColorExtract(std::shared_ptr<SkPixmap> pixmap);
-    RSColorExtract(std::shared_ptr<SkPixmap> pixmap, double* coordinates);
-#else
     RSColorExtract(std::shared_ptr<Drawing::Pixmap> pixmap);
     RSColorExtract(std::shared_ptr<Drawing::Pixmap> pixmap, double* coordinates);
-#endif
 private:
     static constexpr int COMPONENT_RED = -3;
     static constexpr int COMPONENT_GREEN = -2;

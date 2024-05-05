@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "rs_profiler.h"
+
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_optional_trace.h"
@@ -39,24 +41,78 @@ void RSRenderParticleAnimation::DumpAnimationType(std::string& out) const
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
     RS_OPTIONAL_TRACE_NAME("RSRenderParticleAnimation::Animate");
+    auto target = GetTarget();
+    if (!target) {
+        return true;
+    } else if (!target->GetRenderProperties().GetVisible()) {
+        target->RemoveModifier(property_->GetId());
+        return true;
+    }
+
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
-        auto renderParticle = particleSystem_->Simulation(deltaTime);
-        renderParticleVector_ = RSRenderParticleVector(std::move(renderParticle));
+        particleSystem_->Emit(deltaTime, renderParticleVector_.renderParticleVector_);
+        particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
     auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     if (property) {
         property->Set(renderParticleVector_);
     }
-    auto target = GetTarget();
-    if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
+
+    if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
         if (target) {
             target->RemoveModifier(property_->GetId());
         }
         return true;
     }
     return false;
+}
+
+void RSRenderParticleAnimation::UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdaters)
+{
+    if (emitterUpdaters.empty()) {
+        return;
+    }
+    for (auto emitterUpdater : emitterUpdaters) {
+        if (emitterUpdater) {
+            uint32_t index = emitterUpdater->emitterIndex_;
+            if (index >= particlesRenderParams_.size()) {
+                continue;
+            }
+            if (particlesRenderParams_[index] == nullptr) {
+                continue;
+            }
+            if (emitterUpdater->position_.has_value() &&
+                emitterUpdater->position_.value() != particlesRenderParams_[index]->emitterConfig_.position_) {
+                particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_.value();
+            }
+            if (emitterUpdater->emitSize_.has_value() &&
+                emitterUpdater->emitSize_.value() != particlesRenderParams_[index]->emitterConfig_.emitSize_) {
+                particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_.value();
+            }
+            if (emitterUpdater->emitRate_.has_value() &&
+                emitterUpdater->emitRate_.value() != particlesRenderParams_[index]->emitterConfig_.emitRate_) {
+                particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
+            }
+        }
+    }
+    if (particleSystem_) {
+        particleSystem_->UpdateEmitter(particlesRenderParams_);
+    } else {
+        particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
+    }
+}
+
+void RSRenderParticleAnimation::UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields)
+{
+    if (particleNoiseFields == nullptr) {
+        return;
+    } else if (particleNoiseFields_ != nullptr && *particleNoiseFields_ == *particleNoiseFields) {
+        return;
+    }
+    particleNoiseFields_ = particleNoiseFields;
+    particleSystem_->UpdateNoiseField(particleNoiseFields);
 }
 
 void RSRenderParticleAnimation::OnAttach()
@@ -129,11 +185,13 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, id);
     SetAnimationId(id);
     if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     return true;
 }

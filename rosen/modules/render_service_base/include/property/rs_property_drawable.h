@@ -16,9 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#ifdef USE_ROSEN_DRAWING
 #include <bitset>
-#endif
 #include <memory>
 #include <set>
 #include <vector>
@@ -43,6 +41,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    FOREGROUND_FILTER,
     OUTLINE,
 
     // BG properties in Bounds Clip
@@ -73,8 +72,9 @@ enum class RSPropertyDrawableSlot : uint8_t {
     FG_CLIP_TO_BOUNDS,
     BINARIZATION,
     COLOR_FILTER,
+    DYNAMIC_DIM,
     LIGHT_UP_EFFECT,
-    FOREGROUND_FILTER,
+    COMPOSITING_FILTER,
     FOREGROUND_COLOR,
     FG_RESTORE_BOUNDS,
 
@@ -86,6 +86,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_BLEND_MODE,
+    RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
@@ -122,14 +123,8 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSRenderContent& content, DrawableVec& drawableVec);
-#ifndef USE_ROSEN_DRAWING
     static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
-        const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
-#else
-    static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
-        const RSProperties& properties,
-        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
-#endif
+        const RSProperties& properties, const ModifierDirtyTypes& dirtyTypes);
     static bool UpdateDrawableVec(const RSRenderContent& content, DrawableVec& drawableVec,
         std::unordered_set<RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(

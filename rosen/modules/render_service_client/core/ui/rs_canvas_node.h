@@ -17,9 +17,6 @@
 
 #include "ui/rs_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -39,11 +36,7 @@ public:
 
     static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* BeginRecording(int width, int height);
-#else
     ExtendRecordingCanvas* BeginRecording(int width, int height);
-#endif
     bool IsRecording() const;
     void FinishRecording();
     float GetPaintWidth() const;
@@ -51,6 +44,8 @@ public:
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
 
     void SetFreeze(bool isFreeze) override;
+
+    void SetHDRPresent(bool hdrPresent);
     
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
@@ -64,12 +59,9 @@ protected:
     BoundsChangedCallback boundsChangedCallback_;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* recordingCanvas_ = nullptr;
-#else
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
-#endif
     bool recordingUpdated_ = false;
+    bool hdrPresent_ = false;
     mutable std::mutex mutex_;
 
     friend class RSUIDirector;
@@ -78,6 +70,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
     void OnBoundsSizeChanged() const override;
+    void CreateTextureExportRenderNodeInRT() override;
 };
 } // namespace Rosen
 } // namespace OHOS

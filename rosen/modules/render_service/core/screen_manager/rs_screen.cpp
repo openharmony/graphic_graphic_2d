@@ -69,6 +69,8 @@ std::map<ScreenHDRFormat, GraphicHDRFormat> RSScreen::RS_TO_HDI_HDR_FORMAT_MAP {
     {IMAGE_HDR_ISO_SINGLE, GRAPHIC_NOT_SUPPORT_HDR},
 };
 
+constexpr int MAX_LUM = 1000;
+
 RSScreen::RSScreen(ScreenId id,
     bool isVirtual,
     std::shared_ptr<HdiOutput> output,
@@ -128,7 +130,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
     }
-    
+
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.",
             __func__, id_);
@@ -172,6 +174,7 @@ void RSScreen::PhysicalScreenInit() noexcept
             ++index;
         }
     }
+    screenBacklightLevel_ = GetScreenBacklight();
 }
 
 void RSScreen::ScreenCapabilityInit() noexcept
@@ -340,7 +343,8 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    if (powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON) {
+    if (powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
+        powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) {
         RS_LOGD("RSScreen %{public}s Enable hardware vsync", __func__);
         if (hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS) {
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
@@ -484,7 +488,7 @@ void RSScreen::PropDump(std::string& dumpString)
 void RSScreen::PowerStatusDump(std::string& dumpString)
 {
     dumpString += "powerstatus=";
-    switch (powerStatus_) {
+    switch (GetPowerStatus()) {
         case GRAPHIC_POWER_STATUS_ON: {
             dumpString += "POWER_STATUS_ON";
             break;
@@ -509,6 +513,14 @@ void RSScreen::PowerStatusDump(std::string& dumpString)
             dumpString += "POWER_STATUS_BUTT";
             break;
         }
+        case GRAPHIC_POWER_STATUS_ON_ADVANCED: {
+            dumpString += "POWER_STATUS_ON_ADVANCED";
+            break;
+        }
+        case GRAPHIC_POWER_STATUS_OFF_ADVANCED: {
+            dumpString += "POWER_STATUS_OFF_ADVANCED";
+            break;
+        }
         default: {
             dumpString += "INVALID_POWER_STATUS";
             break;
@@ -528,7 +540,8 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "mirrorId=";
         dumpString += (mirrorId_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(mirrorId_);
         dumpString += ", ";
-        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true\n", width_, height_);
+        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true, skipFrameInterval_:%d\n",
+            width_, height_, skipFrameInterval_);
     } else {
         dumpString += "screen[" + std::to_string(screenIndex) + "]: ";
         dumpString += "id=";
@@ -539,8 +552,9 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "backlight=" + std::to_string(GetScreenBacklight());
         dumpString += ", ";
         ScreenTypeDump(dumpString);
-        AppendFormat(dumpString, ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=true\n",
-            width_, height_, phyWidth_, phyHeight_);
+        AppendFormat(dumpString,
+            ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false, skipFrameInterval_:%d\n",
+            width_, height_, phyWidth_, phyHeight_, skipFrameInterval_);
         dumpString += "\n";
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
@@ -597,6 +611,15 @@ void RSScreen::ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::s
     hdiOutput_->ClearFpsDump(dumpString, arg);
 }
 
+void RSScreen::HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %{public}s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    hdiOutput_->DumpHitchs(dumpString, arg);
+}
+
 void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
 {
     if (!IsVirtual()) {
@@ -616,6 +639,7 @@ void RSScreen::SetScreenBacklight(uint32_t level)
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
+    screenBacklightLevel_ = static_cast<int32_t>(level);
 }
 
 int32_t RSScreen::GetScreenBacklight() const
@@ -625,6 +649,9 @@ int32_t RSScreen::GetScreenBacklight() const
         return INVALID_BACKLIGHT_VALUE;
     }
     uint32_t level = 0;
+    if (screenBacklightLevel_ != INVALID_BACKLIGHT_VALUE) {
+        return screenBacklightLevel_;
+    }
     if (hdiScreen_->GetScreenBacklight(level) < 0) {
         return INVALID_BACKLIGHT_VALUE;
     }
@@ -754,7 +781,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 
 const GraphicHDRCapability& RSScreen::GetHDRCapability()
 {
-    hdrCapability_.maxLum = 1000; // mock data
+    hdrCapability_.maxLum = MAX_LUM; // mock data
     return hdrCapability_;
 }
 
@@ -795,6 +822,20 @@ bool RSScreen::SetVirtualMirrorScreenCanvasRotation(bool canvasRotation)
 bool RSScreen::GetCanvasRotation() const
 {
     return canvasRotation_;
+}
+
+bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
+{
+    if (IsVirtual()) {
+        scaleMode_ = scaleMode;
+        return true;
+    }
+    return false;
+}
+
+ScreenScaleMode RSScreen::GetScaleMode() const
+{
+    return scaleMode_;
 }
 
 int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const

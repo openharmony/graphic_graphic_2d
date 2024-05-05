@@ -25,14 +25,6 @@ config("socketpair_config") {
 }
 
 config("socketpair_public_config") {
-  include_dirs = [
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include/message_parcel.h",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits",
-  ]
-}
-
-config("socketpair_all_dependent_config") {
   include_dirs = [ "export" ]
 }
 
@@ -42,7 +34,6 @@ ohos_shared_library("socketpair") {
   configs = [ ":socketpair_config" ]
 
   public_configs = [ ":socketpair_public_config" ]
-  all_dependent_configs = [ ":socketpair_all_dependent_config" ]
 
   deps = [ "//foundation/graphic/graphic_2d/utils:scoped_bytrace" ]
 

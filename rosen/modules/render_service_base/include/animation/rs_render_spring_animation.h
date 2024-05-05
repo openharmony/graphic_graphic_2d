@@ -22,8 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation,
-    public RSSpringModel<std::shared_ptr<RSRenderPropertyBase>> {
+class RSB_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation {
 public:
     explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue,
@@ -49,6 +48,8 @@ protected:
     void OnAttach() override;
     void OnDetach() override;
     void OnInitialize(int64_t time) override;
+    void InitValueEstimator() override;
+    void DumpFraction(float fraction, int64_t time) override;
 
 private:
 #ifdef ROSEN_OHOS
@@ -66,13 +67,17 @@ private:
     bool GetNeedLogicallyFinishCallback() const;
     void CallLogicallyFinishCallback() const;
 
+    // spring model related
+    float response_ = 0.0f;
+    float dampingRatio_ = 0.0f;
+
     // blend related
     uint64_t blendDuration_ = 0;
-    float finalResponse_ = 0.0f;
 
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;
-
+    std::shared_ptr<RSRenderPropertyBase> initialVelocity_;
+    std::shared_ptr<RSSpringValueEstimatorBase> springValueEstimator_;
     bool needLogicallyFinishCallback_ = false;
 
     // used to determine whether the animation is near finish

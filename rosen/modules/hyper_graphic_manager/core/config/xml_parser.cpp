@@ -137,7 +137,19 @@ int32_t XMLParser::ParseParams(xmlNode &node)
 
     int32_t setResult = EXEC_SUCCESS;
     if (paraName == "refresh_rate_4settings") {
-        setResult = ParseSimplex(node, mParsedData_->refreshRateForSettings_);
+        std::unordered_map<std::string, std::string> refreshRateForSettings;
+        setResult = ParseSimplex(node, refreshRateForSettings);
+        if (setResult != EXEC_SUCCESS) {
+            mParsedData_->xmlCompatibleMode_ = true;
+            setResult = ParseSimplex(node, refreshRateForSettings, "id");
+        }
+        mParsedData_->refreshRateForSettings_.clear();
+        for (auto &[name, id]: refreshRateForSettings) {
+            mParsedData_->refreshRateForSettings_.emplace_back(
+                std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+        }
+        std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
+            [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
     } else if (paraName == "refreshRate_strategy_config") {
         setResult = ParseStrategyConfig(node);
     } else if (paraName == "refreshRate_virtual_display_config") {
@@ -185,6 +197,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
+        auto down = ExtractPropertyValue("down", *currNode);
         if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
             return HGM_ERROR;
         }
@@ -192,9 +205,10 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         PolicyConfigData::StrategyConfig strategy;
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
-        strategy.dynamicMode = std::stoi(dynamicMode);
+        strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
+        strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
 
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -238,7 +252,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
             } else if (name == "scene_list") {
                 setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
             } else if (name == "app_list") {
-                setResult = ParseSimplex(*thresholdNode, screenSetting.appList, "strategy");
+                ParseMultiAppStrategy(*thresholdNode, screenSetting);
             } else {
                 setResult = 0;
             }
@@ -255,7 +269,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string valueName, const std::string keyName)
+                                const std::string &valueName, const std::string &keyName)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -356,6 +370,21 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+{
+    auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
+    if (multiAppStrategy == "focus") {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::FOLLOW_FOCUS;
+    } else if (multiAppStrategy.find("strategy_") != std::string::npos) {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_STRATEGY_NUM;
+        screenSetting.multiAppStrategyName = multiAppStrategy.substr(
+            std::string("strategy_").size(), multiAppStrategy.size());
+    } else {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
+    }
+    return ParseSimplex(node, screenSetting.appList, "strategy");
+}
+
 std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
@@ -376,7 +405,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
     return propValue;
 }
 
-bool XMLParser::IsNumber(const std::string &str)
+bool XMLParser::IsNumber(const std::string& str)
 {
     if (str.length() == 0) {
         return false;

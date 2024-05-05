@@ -241,8 +241,10 @@ bool WebGLFramebuffer::GetWebGLAttachmentInfo(napi_env env, Impl::WebGLRendering
     if (attachedObject == nullptr) {
         return false;
     }
-    LOGD("GetWebGLAttachmentInfo %{public}u %{public}d %{public}lu", attachedObject->type, attachedObject->attachment,
-        attachedObject->id);
+    
+    LOGD("GetWebGLAttachmentInfo %{public}u %{public}d %{public}lu",
+         static_cast<unsigned int>(attachedObject->type), attachedObject->attachment,
+         static_cast<unsigned long>(attachedObject->id));
     if (attachedObject->IsRenderBuffer()) {
         WebGLRenderbuffer* renderBuffer =
             context->GetObjectInstance<WebGLRenderbuffer>(env, static_cast<uint64_t>(attachedObject->id));
@@ -350,7 +352,7 @@ GLenum WebGLFramebuffer::CheckStatus(napi_env env, Impl::WebGLRenderingContextBa
     std::vector<WebGLAttachment*> attachments = {nullptr, nullptr, nullptr};
     WebGLAttachmentInfo info;
     GLenum result;
-    LOGD("CheckStatus %{public}u", attachments_.size());
+    LOGD("CheckStatus %{public}u", static_cast<unsigned int>(attachments_.size()));
     for (const auto& it : attachments_) {
         WebGLAttachment* attachedObject = it.second;
         result = CheckStatus(env, context, info, attachments, attachedObject);

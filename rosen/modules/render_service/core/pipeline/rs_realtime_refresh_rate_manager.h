@@ -17,6 +17,10 @@
 #define RS_REALTIME_REFRESH_RATE_MANAGER_H
 
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 namespace OHOS::Rosen {
 class RSRealtimeRefreshRateManager {
@@ -47,6 +51,16 @@ private:
     std::atomic<bool> enableState_ = false;
     uint32_t currRealtimeRefreshRate_ = 1;
     std::atomic<uint32_t> realtimeFrameCount_ = 0;
+
+    static constexpr uint8_t IDLE_FPS_THRESHOLD_ = 8;
+    static constexpr auto NS_PER_S_ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
+    static constexpr auto NS_FPS_SHOW_INTERVAL_ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
+
+    std::mutex threadMutex_;
+    std::condition_variable threadCondVar_;
+    std::thread updateFpsThread_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_REALTIME_REFRESH_RATE_MANAGER_H

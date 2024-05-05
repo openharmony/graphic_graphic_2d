@@ -39,43 +39,39 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
+    void DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
     void ReleaseSurface();
-#ifndef USE_ROSEN_DRAWING
-    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
-#else
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
-#endif
     void ResetGrContext();
+    void ThreadSafetyReleaseTexture();
     void DumpMem(DfxString& log);
     MemoryGraphic CountSubMem(int pid);
     float GetAppGpuMemoryInMB();
+    unsigned int GetDoingCacheProcessNum()
+    {
+        return doingCacheProcessNum.load();
+    }
+    inline void DoingCacheProcessNumInc()
+    {
+        doingCacheProcessNum++;
+    }
+
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateShareGrContext();
-#else
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
-#endif
 
-    uint32_t threadIndex_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
     RenderContext *renderContext_ = nullptr;
 #ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
 #endif
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
-#endif
     std::mutex mutex_;
-#ifndef USE_ROSEN_DRAWING
-    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
-#else
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
-#endif
+    std::atomic<unsigned int> doingCacheProcessNum = 0;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H

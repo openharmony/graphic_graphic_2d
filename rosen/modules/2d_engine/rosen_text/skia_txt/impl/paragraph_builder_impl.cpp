@@ -32,23 +32,36 @@ int ConvertToSkFontWeight(FontWeight fontWeight)
     return static_cast<int>(fontWeight) * weightBase + weightBase;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+RSFontStyle::Slant ConvertToRSFontSlant(FontStyle fontStyle)
+{
+    RSFontStyle::Slant slant;
+    switch (fontStyle) {
+        case FontStyle::NORMAL: {
+            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
+            break;
+        }
+        case FontStyle::ITALIC: {
+            slant = RSFontStyle::Slant::ITALIC_SLANT;
+            break;
+        }
+        case FontStyle::OBLIQUE: {
+            slant = RSFontStyle::Slant::OBLIQUE_SLANT;
+            break;
+        }
+        default: {
+            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
+        }
+    }
+    return slant;
+}
+
+RSFontStyle MakeFontStyle(FontWeight fontWeight, FontWidth fontWidth, FontStyle fontStyle)
 {
     auto weight = ConvertToSkFontWeight(fontWeight);
-    auto slant = fontStyle == FontStyle::NORMAL ?
-        SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
-    return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
+    auto width = static_cast<RSFontStyle::Width>(fontWidth);
+    auto slant = ConvertToRSFontSlant(fontStyle);
+    return RSFontStyle(weight, width, slant);
 }
-#else
-RSFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
-{
-    auto weight = ConvertToSkFontWeight(fontWeight);
-    auto slant = fontStyle == FontStyle::NORMAL ?
-        RSFontStyle::Slant::UPRIGHT_SLANT : RSFontStyle::Slant::ITALIC_SLANT;
-    return RSFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
-}
-#endif
 
 SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 {
@@ -133,7 +146,7 @@ std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
 {
     paints_.push_back(paint);
-    return paints_.size() - 1;
+    return static_cast<int>(paints_.size()) - 1;
 }
 
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
@@ -147,7 +160,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle = this->TextStyleToSkStyle(txt.spTextStyle);
     } else {
         textStyle.setForegroundPaintID(AllocPaintID(paint));
-        textStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
+        textStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
         textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
         textStyle.setHeight(SkDoubleToScalar(txt.height));
         textStyle.setHeightOverride(txt.heightOverride);
@@ -158,7 +171,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextStyle(textStyle);
     skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontStyle));
+    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
     strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
     strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
     strutStyle.setHeightOverride(txt.strutHeightOverride);
@@ -171,6 +184,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     strutStyle.setForceStrutHeight(txt.forceStrutHeight);
     strutStyle.setStrutEnabled(txt.strutEnabled);
     strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
+    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
     skStyle.setStrutStyle(strutStyle);
 
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));
@@ -183,9 +197,12 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
 
-    skStyle.turnHintingOff();
+    if (!txt.hintingIsOn) {
+        skStyle.turnHintingOff();
+    }
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
+    skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
 
     return skStyle;
 }
@@ -206,7 +223,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setDecorationColor(txt.decorationColor);
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
-    skStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
+    skStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
     skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
 
     std::vector<SkString> fonts;
@@ -220,6 +237,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setHeight(SkDoubleToScalar(txt.height));
     skStyle.setHeightOverride(txt.heightOverride);
     skStyle.setHalfLeading(txt.halfLeading);
+    skStyle.setBaselineShift(txt.baseLineShift);
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setStyleId(txt.styleId);
@@ -241,6 +259,10 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
         skStyle.addShadow(MakeTextShadow(txtShadow));
     }
 
+    if (txt.isPlaceholder) {
+        skStyle.setPlaceholder();
+    }
+
     return skStyle;
 }
 
@@ -258,6 +280,10 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
+        paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());
+        paint.symbol.SetRepeatCount(txt.symbol.GetRepeatCount());
+        paint.symbol.SetAnimationStart(txt.symbol.GetAnimationStart());
+        paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

@@ -15,8 +15,13 @@
 
 #include "gtest/gtest.h"
 
+#include "pixel_map.h"
+#include "recording/cmd_list.h"
+#include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
+#include "recording/mask_cmd_list.h"
+#include "recording/recording_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -65,14 +70,781 @@ HWTEST_F(DrawCmdTest, DrawCmdList001, TestSize.Level1)
     EXPECT_EQ(newDrawCmdList->GetHeight(), 0.f);
 
     auto imageData = drawCmdList->GetAllImageData();
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
-    drawCmdList->GetAllPixelMap(pixelMapVec);
     auto cmdList = DrawCmdList::CreateFromData(cmdData, false);
     cmdList->SetUpImageData(imageData.first, imageData.second);
-    cmdList->SetupPixelMap(pixelMapVec);
-    auto pixelMap = cmdList->GetPixelMap(0);
-    EXPECT_TRUE(pixelMap == nullptr);
 }
+
+/**
+ * @tc.name: Marshalling000
+ * @tc.desc: Test Marshalling
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling000, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    PaintHandle paintHandle;
+    DrawPointsOpItem::ConstructorHandle handle{PointMode::POINTS_POINTMODE, {0, 0}, paintHandle};
+    DrawPointsOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: BrushHandleToBrush001
+ * @tc.desc: Test BrushHandleToBrush
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, BrushHandleToBrush001, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.colorFilterHandle.size = 1;
+    brushHandle.colorSpaceHandle.size = 1;
+    brushHandle.shaderEffectHandle.size = 1;
+    brushHandle.imageFilterHandle.size = 1;
+    brushHandle.maskFilterHandle.size = 1;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Brush brush;
+    DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
+}
+
+/**
+ * @tc.name: GeneratePaintFromHandle001
+ * @tc.desc: Test GeneratePaintFromHandle
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, GeneratePaintFromHandle001, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.colorSpaceHandle.size = 1;
+    paintHandle.imageFilterHandle.size = 1;
+    paintHandle.pathEffectHandle.size = 1;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+}
+
+/**
+ * @tc.name: GenerateHandleFromPaint001
+ * @tc.desc: Test GenerateHandleFromPaint
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, GenerateHandleFromPaint001, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Paint paint;
+    Filter filter;
+    paint.SetFilter(filter);
+    auto space = std::make_shared<ColorSpace>();
+    Color4f color;
+    paint.SetColor(color, space);
+    auto pathEffect = PathEffect::CreateCornerPathEffect(10);
+    paint.SetPathEffect(pathEffect);
+    paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+}
+
+/**
+ * @tc.name: DrawCmdTestBlurDrawLooper001
+ * @tc.desc: Test BlurDrawLooper
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper001, TestSize.Level1)
+{
+    // recordingcanvas  width 100, height 100
+    int32_t width = 100;
+    int32_t height = 100;
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(width, height, true);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint1;
+    paint1.SetAntiAlias(true);
+    // 1.f 2.f  3.f and 0x12345678 is setted to compare.
+    float radius = 1.f;
+    Point point{2.f, 3.f};
+    Color color = Color(0x12345678);
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper1 = BlurDrawLooper::CreateBlurDrawLooper(radius,
+        point.GetX(), point.GetY(), color);
+    EXPECT_NE(blurDrawLooper1, nullptr);
+    paint1.SetLooper(blurDrawLooper1);
+
+    PaintHandle paintHandle { 0 };
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
+    EXPECT_TRUE(paintHandle.isAntiAlias);
+    EXPECT_NE(paintHandle.blurDrawLooperHandle.size, 0);
+
+    Paint paint2;
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint2);
+    EXPECT_TRUE(paint2.IsAntiAlias());
+    EXPECT_NE(paint2.GetLooper(), nullptr);
+    EXPECT_TRUE(*(paint2.GetLooper()) == *blurDrawLooper1);
+}
+
+/**
+ * @tc.name: DrawCmdTestBlurDrawLooper002
+ * @tc.desc: Test null BlurDrawLooper
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper002, TestSize.Level1)
+{
+    // recordingcanvas  width 100, height 100
+    int32_t width = 100;
+    int32_t height = 100;
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(width, height, true);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+
+    Paint paint1;
+    paint1.SetAntiAlias(true);
+    paint1.SetLooper(nullptr);
+
+    PaintHandle paintHandle { 0 };
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
+    EXPECT_TRUE(paintHandle.isAntiAlias);
+    EXPECT_EQ(paintHandle.blurDrawLooperHandle.offset, 0);
+    EXPECT_EQ(paintHandle.blurDrawLooperHandle.size, 0);
+
+    Paint paint2;
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint2);
+    EXPECT_TRUE(paint2.IsAntiAlias());
+    EXPECT_EQ(paint2.GetLooper(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateCachedOpItem001
+ * @tc.desc: Test GenerateCachedOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr);
+    OpDataHandle opDataHandle;
+    uint64_t globalUniqueId = 0;
+    PaintHandle paintHandle;
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
+        globalUniqueId, 0, 0, paintHandle};
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
+    player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle);
+}
+
+/**
+ * @tc.name: DrawShadowOpItem001
+ * @tc.desc: Test DrawShadowOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawShadowOpItem001, TestSize.Level1)
+{
+    Path path;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor = 0xFF000000;
+    Color spotColor = 0xFF000000;
+    DrawShadowOpItem opItem{path, planeParams, devLightPos,
+        10, ambientColor, spotColor, ShadowFlags::NONE}; // 10: lightRadius
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: ClipPathOpItem001
+ * @tc.desc: Test ClipPathOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, ClipPathOpItem001, TestSize.Level1)
+{
+    Path path;
+    ClipPathOpItem opItem{path, ClipOp::DIFFERENCE, true};
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: SaveLayerOpItem001
+ * @tc.desc: Test SaveLayerOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, SaveLayerOpItem001, TestSize.Level1)
+{
+    SaveLayerOps ops;
+    SaveLayerOpItem opItem{ops};
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    Rect rect1;
+    opItem.Playback(recordingCanvas.get(), &rect1);
+    Rect rect2{0, 0, 100, 100}; // 100: right, bottom
+    opItem.Playback(recordingCanvas.get(), &rect2);
+
+    Rect bounds;
+    Brush brush;
+    SaveLayerOps ops2{&bounds, &brush, 0};
+    SaveLayerOpItem opItem2{ops2};
+    opItem2.Marshalling(*drawCmdList);
+    opItem2.Playback(recordingCanvas.get(), &rect1);
+}
+
+/**
+ * @tc.name: DrawSymbolOpItem001
+ * @tc.desc: Test DrawSymbolOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    DrawingHMSymbolData drawingHMSymbolData;
+    DrawingSymbolLayers symbolInfo;
+    DrawingRenderGroup groups;
+    DrawingGroupInfo info;
+    info.layerIndexes = {1, 4};
+    info.maskIndexes = {1, 4};
+    groups.groupInfos = {info};
+    symbolInfo.renderGroups = {groups};
+    symbolInfo.layers = {{1}, {1}, {1}};
+    drawingHMSymbolData.symbolInfo_ = symbolInfo;
+    Point point;
+    Paint paint;
+    DrawSymbolOpItem opItem{drawingHMSymbolData, point, paint};
+    Path path;
+    opItem.Marshalling(*drawCmdList);
+    SymbolOpHandle symbolOpHandle;
+    PaintHandle paintHandle;
+    Point locate;
+    DrawSymbolOpItem::ConstructorHandle handle{symbolOpHandle, locate, paintHandle};
+    opItem.Unmarshalling(*drawCmdList, &handle);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    opItem.Playback(nullptr, nullptr);
+
+    DrawingHMSymbolData drawingHMSymbolData2;
+    DrawSymbolOpItem opItem2{drawingHMSymbolData2, point, paint};
+    opItem2.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: Marshalling001
+ * @tc.desc: Test Marshalling for DrawPointOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Point point;
+    PaintHandle paintHandle;
+    DrawPointOpItem::ConstructorHandle handle{point, paintHandle};
+    DrawPointOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling002
+ * @tc.desc: Test Marshalling for DrawPieOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Rect rect;
+    PaintHandle paintHandle;
+    DrawPieOpItem::ConstructorHandle handle{rect, 0, 0, paintHandle};
+    DrawPieOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling003
+ * @tc.desc: Test Marshalling for DrawOvalOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Rect rect;
+    PaintHandle paintHandle;
+    DrawOvalOpItem::ConstructorHandle handle{rect, paintHandle};
+    DrawOvalOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling004
+ * @tc.desc: Test Marshalling for DrawCircleOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Point point;
+    PaintHandle paintHandle;
+    DrawCircleOpItem::ConstructorHandle handle{point, 100, paintHandle}; // 100: radius
+    DrawCircleOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling005
+ * @tc.desc: Test Marshalling for DrawPathOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling005, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Path path;
+    Paint paint;
+    DrawPathOpItem opItem{path, paint};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling006
+ * @tc.desc: Test Marshalling for DrawBackgroundOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling006, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    BrushHandle brushHandle;
+    DrawBackgroundOpItem::ConstructorHandle handle{brushHandle};
+    DrawBackgroundOpItem opItem{*drawCmdList, &handle};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling007
+ * @tc.desc: Test Marshalling for DrawRegionOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling007, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Region region;
+    Paint paint;
+    DrawRegionOpItem opItem{region, paint};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling008
+ * @tc.desc: Test Marshalling for DrawVerticesOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling008, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Vertices vertices;
+    Paint paint;
+    DrawVerticesOpItem opItem{vertices, BlendMode::SRC_OVER, paint};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: Marshalling009
+ * @tc.desc: Test Marshalling for DrawColorOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling009, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ColorQuad colorQuad{0};
+    DrawColorOpItem::ConstructorHandle handle{colorQuad, BlendMode::SRC_OVER};
+    DrawColorOpItem opItem{&handle};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: Marshalling010
+ * @tc.desc: Test Marshalling for DrawImageNineOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling010, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle opDataHandle;
+    RectI recti;
+    Rect rect;
+    BrushHandle brushHandle;
+    DrawImageNineOpItem::ConstructorHandle handle{opDataHandle, recti, rect, FilterMode::NEAREST, brushHandle, true};
+    Image image;
+    Brush brush;
+    DrawImageNineOpItem opItem{&image, recti, rect, FilterMode::NEAREST, &brush};
+    opItem.Marshalling(*drawCmdList);
+    opItem.Unmarshalling(*drawCmdList, &handle);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    DrawImageNineOpItem opItem2{&image, recti, rect, FilterMode::NEAREST, nullptr};
+    opItem2.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling011
+ * @tc.desc: Test Marshalling for DrawImageLatticeOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling011, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Image image;
+    Lattice lattice;
+    Rect dst;
+    Brush brush;
+    DrawImageLatticeOpItem opItem{&image, lattice, dst, FilterMode::NEAREST, &brush};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    DrawImageLatticeOpItem opItem2{&image, lattice, dst, FilterMode::NEAREST, nullptr};
+    opItem2.Marshalling(*drawCmdList);
+    opItem2.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: Marshalling012
+ * @tc.desc: Test Marshalling for DrawBitmapOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling012, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Bitmap bitmap;
+    Paint paint;
+    DrawBitmapOpItem opItem{bitmap, 0, 0, paint};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling013
+ * @tc.desc: Test Marshalling for DrawImageOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling013, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Image image;
+    SamplingOptions options;
+    Paint paint;
+    DrawImageOpItem opItem{image, 0, 0, options, paint};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: Marshalling014
+ * @tc.desc: Test Marshalling for DrawImageRectOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling014, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Image image;
+    Rect src;
+    Rect dst;
+    SamplingOptions samplingOptions;
+    Paint paint;
+    DrawImageRectOpItem opItem{image, src, dst, samplingOptions,
+        SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paint, false};
+    opItem.Marshalling(*drawCmdList);
+    DrawImageRectOpItem opItem2{image, src, dst, samplingOptions,
+        SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paint, true};
+    opItem2.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    Rect rect;
+    opItem2.Playback(recordingCanvas.get(), &rect);
+}
+
+/**
+ * @tc.name: Marshalling015
+ * @tc.desc: Test Marshalling for DrawPictureOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Marshalling015, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Picture picture;
+    DrawPictureOpItem opItem{picture};
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
+ * @tc.name: DrawTextBlobOpItem001
+ * @tc.desc: Test functions for DrawTextBlobOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    Paint paint;
+    auto space = std::make_shared<ColorSpace>();
+    Color4f color;
+    color.alphaF_ = 0;
+    color.blueF_ = 1;
+    paint.SetColor(color, space);
+    DrawTextBlobOpItem opItem{textBlob.get(), 0, 0, paint};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(1, 10); // 1: width, 10: height
+    Rect rect;
+    opItem.Playback(recordingCanvas.get(), &rect);
+    Canvas canvas;
+    opItem.GenerateCachedOpItem(&canvas);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas2.get(), &rect);
+
+    DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, nullptr, 0, 0, paint);
+    DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, textBlob.get(), 0, 0, paint);
+    TextBlob textBlob2{nullptr};
+    DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, &textBlob2, 0, 0, paint);
+
+    auto opDataHandle = CmdListHelper::AddTextBlobToCmdList(*drawCmdList, textBlob.get());
+    opDataHandle.offset = 2;
+    opDataHandle.size = 10;
+    uint64_t globalUniqueId = 0;
+    PaintHandle paintHandle;
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
+    handler.GenerateCachedOpItem(*drawCmdList, &canvas);
+}
+
+/**
+ * @tc.name: DrawCmdList002
+ * @tc.desc: Test function for DrawCmdList
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    ColorQuad color = 0xFF000000;
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    EXPECT_TRUE(drawCmdList->IsEmpty());
+    drawCmdList->SetIsCache(true);
+    EXPECT_TRUE(drawCmdList->GetIsCache());
+    drawCmdList->SetCachedHighContrast(true);
+    EXPECT_TRUE(drawCmdList->GetCachedHighContrast());
+    EXPECT_TRUE(drawCmdList->GetOpItemSize() >= 0);
+    std::string s = "";
+    s = drawCmdList->GetOpsWithDesc();
+    drawCmdList->ClearOp();
+    delete drawCmdList;
+
+    auto drawCmdList2 = new DrawCmdList(
+        10, 10, DrawCmdList::UnmarshalMode::IMMEDIATE); // 10: width, height
+    EXPECT_TRUE(drawCmdList2->IsEmpty());
+    EXPECT_TRUE(drawCmdList2->GetOpItemSize() >= 0);
+    drawCmdList2->AddDrawOp(nullptr);
+    EXPECT_TRUE(drawCmdList2->IsEmpty());
+    delete drawCmdList2;
+}
+
+/**
+ * @tc.name: GetOpsWithDesc001
+ * @tc.desc: Test GetOpsWithDesc
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    ColorQuad color = 0xFF000000;
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::DST_OVER);
+
+    std::string s = "";
+    s = drawCmdList->GetOpsWithDesc();
+    drawCmdList->ClearOp();
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: MarshallingDrawOps001
+ * @tc.desc: Test MarshallingDrawOps
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
+{
+    auto drawCmdList1 = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList1->MarshallingDrawOps();
+    drawCmdList1->UnmarshallingDrawOps();
+    drawCmdList1->AddDrawOp(nullptr);
+    delete drawCmdList1;
+
+    auto drawCmdList2 = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList2->MarshallingDrawOps();
+    drawCmdList2->UnmarshallingDrawOps();
+    ColorQuad color = 0xFF000000;
+    drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    delete drawCmdList2;
+}
+
+/**
+ * @tc.name: Playback001
+ * @tc.desc: Test Playback for DrawCmdList
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->SetWidth(0);
+    Canvas canvas;
+    Rect rect;
+    drawCmdList->Playback(canvas, &rect);
+    drawCmdList->SetWidth(10);
+    drawCmdList->SetHeight(10);
+    drawCmdList->SetCachedHighContrast(false);
+    drawCmdList->Playback(canvas, &rect);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    drawCmdList->Playback(*recordingCanvas, &rect);
+    drawCmdList->SetIsCache(true);
+    drawCmdList->SetCachedHighContrast(false);
+    drawCmdList->Playback(canvas, &rect);
+    drawCmdList->SetCachedHighContrast(true);
+    drawCmdList->Playback(canvas, &rect);
+    delete drawCmdList;
+
+    auto drawCmdList2 = new DrawCmdList(10, 10, DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList2->Playback(*recordingCanvas, &rect);
+    delete drawCmdList2;
+
+    auto drawCmdList3 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    drawCmdList3->Playback(*recordingCanvas, &rect);
+}
+
+/**
+ * @tc.name: GenerateCache001
+ * @tc.desc: Test GenerateCache for DrawCmdList
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->SetIsCache(true);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    Rect rect;
+    drawCmdList->Playback(*recordingCanvas, &rect);
+    drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
+    drawCmdList->SetIsCache(false);
+    drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
+    Brush brush;
+    drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    Paint paint;
+    auto space = std::make_shared<ColorSpace>();
+    Color4f color;
+    color.alphaF_ = 0;
+    color.blueF_ = 1;
+    paint.SetColor(color, space);
+    auto opItem = std::make_shared<DrawTextBlobOpItem>(textBlob.get(), 0, 0, paint);
+    drawCmdList->AddDrawOp(opItem);
+    drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
+    drawCmdList->Playback(*recordingCanvas, &rect);
+    drawCmdList->MarshallingDrawOps();
+    drawCmdList->AddDrawOp(nullptr);
+    drawCmdList->UnmarshallingDrawOps();
+    delete drawCmdList;
+    
+    auto drawCmdList2 = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList2->SetIsCache(false);
+    drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
+    ColorQuad color2 = 0xFF000000;
+    drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color2, BlendMode::SRC_OVER);
+    drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
+    delete drawCmdList2;
+}
+
+/**
+ * @tc.name: UpdateNodeIdToPicture001
+ * @tc.desc: Test UpdateNodeIdToPicture
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, UpdateNodeIdToPicture001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    NodeId nodeId = 100;
+    drawCmdList->AddDrawOp(nullptr);
+    Brush brush;
+    drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
+    drawCmdList->UpdateNodeIdToPicture(nodeId);
+}
+
+/**
+ * @tc.name: MaskCmdList001
+ * @tc.desc: Test functions for MaskCmdList
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, MaskCmdList001, TestSize.Level1)
+{
+    Drawing::CmdListData listData;
+    auto maskCmdList = MaskCmdList::CreateFromData(listData, true);
+    auto path = std::make_shared<Path>();
+    Brush brush;
+    maskCmdList->Playback(path, brush);
+    Pen pen;
+    maskCmdList->Playback(path, pen, brush);
+
+    auto maskCmdList2 = MaskCmdList::CreateFromData(listData, false);
+    maskCmdList2->Playback(path, brush);
+    maskCmdList2->Playback(path, pen, brush);
+}
+
+#ifdef ROSEN_OHOS
+/**
+ * @tc.name: SurfaceBuffer001
+ * @tc.desc: Test SurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, SurfaceBuffer001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    sptr<SurfaceBuffer> surfaceBuffer;
+    drawCmdList->AddSurfaceBuffer(surfaceBuffer);
+    EXPECT_TRUE(drawCmdList->GetSurfaceBuffer(0) == nullptr);
+    EXPECT_TRUE(drawCmdList->GetSurfaceBuffer(10) == nullptr);
+    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
+    uint32_t surfaceBufferSize = drawCmdList->GetAllSurfaceBuffer(surfaceBufferVec);
+    EXPECT_TRUE(surfaceBufferSize >= 0);
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

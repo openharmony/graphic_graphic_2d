@@ -15,6 +15,7 @@
 
 #include "font_config.h"
 
+#include "cJSON.h"
 #include <dirent.h>
 #include <fstream>
 #include <libgen.h>
@@ -85,34 +86,32 @@ char* FontConfig::GetFileData(const char* fname, int& size)
 
     return nullptr;
 }
-
-int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
+cJSON* FontConfig::CheckConfigFile(const char* fname) const
 {
     int size = 0;
     char* data = GetFileData(fname, size);
     if (data == nullptr) {
-        LOGSO_FUNC_LINE(ERROR) << "data is null";
-        return FAILED;
+        LOGSO_FUNC_LINE(ERROR) << "data is NULL";
+        return nullptr;
     }
-    JSONCPP_STRING errs;
-    Json::CharReaderBuilder charReaderBuilder;
-    std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.newCharReader());
-    bool isJson = jsonReader->parse(data, data + size, &root, &errs);
-    free(data);
-    data = nullptr;
-
-    if (!isJson || !errs.empty()) {
-        LOGSO_FUNC_LINE(ERROR) << "not json or errs no empty";
-        return FAILED;
-    }
-    return SUCCESSED;
+    std::string pramsString;
+    pramsString.assign(data, size);
+    return cJSON_Parse(pramsString.c_str());
 }
 
-int FontConfig::ParseFont(const Json::Value& root)
+int FontConfig::ParseFont(const cJSON* root)
 {
-    for (unsigned int i = 0; i < root.size(); ++i) {
-        if (root[i].isString()) {
-            fontSet_.emplace_back(DEFAULT_DIR + root[i].asString());
+    const char* tag = "font";
+    cJSON* filters = cJSON_GetObjectItem(root, tag);
+    if (filters == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "parse font failed";
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(filters);
+    for (int i = 0; i < size;i++) {
+        cJSON* item = cJSON_GetArrayItem(filters, i);
+        if (item != nullptr && cJSON_IsString(item)) {
+            fontSet_.emplace_back(DEFAULT_DIR + std::string(item->valuestring));
         }
     }
     return SUCCESSED;
@@ -124,26 +123,13 @@ int FontConfig::ParseConfig(const char* fname)
         LOGSO_FUNC_LINE(ERROR) << "fname is null";
         return FAILED;
     }
-    Json::Value root;
-    int err = CheckConfigFile(fname, root);
-    if (err != 0) {
+
+    cJSON* root = CheckConfigFile(fname);
+    if (root == nullptr) {
         LOGSO_FUNC_LINE(ERROR) << "check config file failed";
-        return err;
-    }
-    const char* tag = "font";
-    if (root.isMember(tag)) {
-        if (root[tag].isArray()) {
-            ParseFont(root[tag]);
-        } else {
-            LOGSO_FUNC_LINE(ERROR) << "not array";
-            return FAILED;
-        }
-    } else {
-        LOGSO_FUNC_LINE(ERROR) << "not member";
         return FAILED;
     }
-
-    return SUCCESSED;
+    return ParseFont(root);
 }
 
 void FontConfig::Dump() const
@@ -175,21 +161,31 @@ int FontConfigJson::ParseFile(const char* fname)
     return SUCCESSED;
 }
 
-int FontConfigJson::ParseDir(const Json::Value &root)
+void FontConfigJson::AnalyseFontDir(const cJSON* root)
 {
-    // "fontdir" - directory
-    const char* key = "fontdir";
-    if (root.isMember(key)) {
-        if (root[key].isArray()) {
-            int ret = ParseFontDir(root[key]);
-            if (ret != SUCCESSED) {
-                LOGSO_FUNC_LINE(ERROR) << "ParseConfigList ParseFontDir failed";
-                return ret;
-            }
-        } else {
-            LOGSO_FUNC_LINE(ERROR) << "ParseConfigList root[fontdir] is not array";
-            return FAILED;
+    if (root == nullptr) {
+        return;
+    }
+    int size = cJSON_GetArraySize(root);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (item != nullptr && cJSON_IsString(item)) {
+            fontPtr->fontDirSet.emplace_back(std::string(item->valuestring));
         }
+    }
+    return;
+}
+
+int FontConfigJson::ParseDir(const cJSON* root)
+{
+    if (root == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "parse dir failed";
+        return FAILED;
+    }
+    const char* key = "fontdir";
+    cJSON* item = cJSON_GetObjectItem(root, key);
+    if (item != nullptr) {
+        AnalyseFontDir(item);
     }
     return SUCCESSED;
 }
@@ -200,245 +196,181 @@ int FontConfigJson::ParseConfigList(const char* fname)
         LOGSO_FUNC_LINE(ERROR) << "ParseConfigList fname is nullptr";
         return FAILED;
     }
-    Json::Value root;
-    int ret = CheckConfigFile(fname, root);
-    if (ret != SUCCESSED) {
+    cJSON* root = CheckConfigFile(fname);
+    if (root == nullptr) {
         LOGSO_FUNC_LINE(ERROR) << "ParseConfigList CheckConfigFile failed";
-        return ret;
-    }
-    ret = ParseDir(root);
-    if (ret) {
-        return ret;
+        return FAILED;
     }
     // "generic", "fallback" - font attribute
-    const char* keys[] = {"generic", "fallback", nullptr};
+    const char* keys[] = {"generic", "fallback", "fontdir", nullptr};
     int index = 0;
     while (true) {
         if (keys[index] == nullptr) {
             break;
         }
         const char* key = keys[index++];
-        if (!root.isMember(key)) {
-            LOGSO_FUNC_LINE(ERROR) << "ParseConfigList root[" << key << "] is not member";
-            return FAILED;
-        } else if (!root[key].isArray()) {
-            LOGSO_FUNC_LINE(ERROR) << "ParseConfigList root[" << key << "] is not array";
-            return FAILED;
-        }
-        const Json::Value& arr = root[key];
-        for (unsigned int i = 0; i < arr.size(); i++) {
-            ret = ParseFallbakArr(arr, i, key);
-            if (ret != SUCCESSED) {
-                return ret;
-            }
-        }
-    }
-    root.clear();
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseFallbakArr(const Json::Value& arr, int i, const char* key)
-{
-    int ret;
-    if (arr[i].isObject()) {
-        if (!strcmp(key, "generic")) {
-            if ((ret = ParseGeneric(arr[i])) != SUCCESSED) {
-                LOGSO_FUNC_LINE(ERROR) << "ParseConfigList ParseGeneric failed";
-                return ret;
-            }
+        if (!strcmp(key, "fontdir")) {
+            ParseDir(root);
+        } else if (!strcmp(key, "generic")) {
+            ParseGeneric(root, key);
         } else if (!strcmp(key, "fallback")) {
-            if ((ret = ParseFallback(arr[i])) != SUCCESSED) {
-                LOGSO_FUNC_LINE(ERROR) << "ParseConfigList ParseFallback failed";
-                return ret;
-            }
-        }
-    } else {
-        LOGSO_FUNC_LINE(ERROR) << "ParseConfigList arr is not object :" << i;
-        return FAILED;
-    }
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseFontDir(const Json::Value& root)
-{
-    for (unsigned int i = 0; i < root.size(); i++) {
-        if (root[i].isString()) {
-            const char* dir = root[i].asCString();
-            fontPtr->fontDirSet.emplace_back(std::string(dir));
-        } else {
-            LOGSO_FUNC_LINE(ERROR) << "ParseFontDir root is not string :" << i;
-            return FAILED;
+            ParseFallback(root, key);
         }
     }
+    cJSON_Delete(root);
     return SUCCESSED;
 }
 
-int FontConfigJson::CheckGeneric(const Json::Value& root, const char* key)
+int FontConfigJson::ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo)
 {
-    if (!root.isMember(key)) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseGeneric root is not member";
-        return FAILED;
-    } else if (!root[key].isString()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseGeneric root is not string";
+    if (arr == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "parse adjust arr failed";
         return FAILED;
     }
-    // "alias" - necessary, the data type should be Array
-    if (!root.isMember("alias")) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseGeneric root has no alias member";
-        return FAILED;
-    }
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAliasArr(const Json::Value& arr, const char* key,
-    FontGenericInfo &genericInfo)
-{
-    for (unsigned int j = 0; j < arr.size(); j++) {
-        if (arr[j].isObject()) {
-            if (!strcmp(key, "alias")) {
-                ParseAlias(arr[j], genericInfo);
-            } else if (!strcmp(key, "adjust")) {
-                ParseAdjust(arr[j], genericInfo);
-            } else {
-                LOGSO_FUNC_LINE(ERROR) << "ParseGeneric not support";
-            }
-        } else {
-            LOGSO_FUNC_LINE(ERROR) << "ParseGeneric arr[j:" << j << "] is not object";
-            return FAILED;
-        }
-    }
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseGeneric(const Json::Value& root)
-{
-    // "family" - necessary, the data type should be String
-    const char* key = "family";
-    std::string familyName = root[key].asCString();
-    int ret = CheckGeneric(root, key);
-    if (ret) {
-        return ret;
-    }
-    // "adjust", "variation" - optional
-    std::vector<std::string> tags = {"alias", "adjust"};
-    unsigned int tagsCont = 2; // tags size
-    FontGenericInfo genericInfo;
-    genericInfo.familyName = familyName;
-    for (unsigned int i = 0; i < tags.size(); i++) {
-        key= tags[i].c_str();
-        if (!root.isMember(key)) {
+    int size = cJSON_GetArraySize(arr);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(arr, i);
+        if (item == nullptr) {
             continue;
         }
-        if (root[key].isArray()) {
-            const Json::Value& arr = root[key];
-            ret = ParseAliasArr(arr, key, genericInfo);
-            if (ret) return ret;
-        } else {
-            LOGSO_FUNC_LINE(ERROR) << "ParseGeneric root[key:" << key << "] is not array";
-            return FAILED;
+        ParseAdjust(item, genericInfo);
+    }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo)
+{
+    if (arr == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "ParseAliasArr failed";
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(arr);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(arr, i);
+        if (item == nullptr) {
+            continue;
         }
-        if (root.size() == tagsCont) {
+        ParseAlias(item, genericInfo);
+    }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseGeneric(const cJSON* root, const char* key)
+{
+    if (root == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "root is nullptr";
+        return FAILED;
+    }
+    cJSON* filters = cJSON_GetObjectItem(root, key);
+    if (filters == nullptr || !cJSON_IsArray(filters)) {
+        LOGSO_FUNC_LINE(ERROR) << "ParseGeneric failed";
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(filters);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(filters, i);
+        if (item == nullptr) {
+            continue;
+        }
+        FontGenericInfo genericInfo;
+        cJSON* family = cJSON_GetObjectItem(item, "family");
+        if (family != nullptr && cJSON_IsString(family)) {
+            genericInfo.familyName = std::string(family->valuestring);
+        }
+
+        cJSON* alias = cJSON_GetObjectItem(item, "alias");
+        if (alias != nullptr && cJSON_IsArray(alias)) {
+            ParseAliasArr(alias, genericInfo);
+        }
+
+        cJSON* adjust = cJSON_GetObjectItem(item, "adjust");
+        if (adjust != nullptr && cJSON_IsArray(adjust)) {
+            ParseAdjustArr(adjust, genericInfo);
+        }
+
+        fontPtr->genericSet.push_back(genericInfo);
+    }
+
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseAlias(const cJSON* root, FontGenericInfo &genericInfo)
+{
+    if (root == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "root is nullptr";
+        return FAILED;
+    }
+
+    int size = cJSON_GetArraySize(root);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (item == nullptr) {
+            continue;
+        }
+        std::string aliasName = std::string(item->string);
+        int weight = item->valueint;
+        AliasInfo info = {aliasName, weight};
+        genericInfo.aliasSet.emplace_back(std::move(info));
+    }
+
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo)
+{
+    if (root == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "root is nullptr";
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(root);
+    const int count = 2; // the adjust item is 2
+    int value[count] = { 0 };
+    for (int i = 0; i < size; i++) {
+        if (i >= count) {
             break;
         }
-    }
-    fontPtr->genericSet.push_back(genericInfo);
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAlias(const Json::Value& root, FontGenericInfo &genericInfo)
-{
-    if (root.empty()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseAlias root is empty";
-        return FAILED;
-    }
-    Json::Value::Members members = root.getMemberNames();
-    const char* key = members[0].c_str();
-    if (!root[key].isInt()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseAlias root[key:" << key << "] is not int";
-        return FAILED;
-    }
-
-    std::string aliasName = std::string(key);
-    int weight = root[key].asInt();
-    AliasInfo info = {aliasName, weight};
-    genericInfo.aliasSet.emplace_back(std::move(info));
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAdjust(const Json::Value& root, FontGenericInfo &genericInfo)
-{
-    std::vector<std::string> tags = {"weight", "to"};
-    int values[2]; // value[0] - to save 'weight', value[1] - to save 'to'
-    for (unsigned int i = 0; i < tags.size(); i++) {
-        const char* key  = tags[i].c_str();
-        if (!root.isMember(key)) {
-            LOGSO_FUNC_LINE(ERROR) << "ParseAdjust root[key:" << key << "] is not member";
-            return FAILED;
-        } else if (!root[key].isInt()) {
-            LOGSO_FUNC_LINE(ERROR) << "ParseAdjust root[key:" << key << "] is not int";
-            return FAILED;
-        } else {
-            values[i] = root[key].asInt();
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (item == nullptr) {
+            continue;
         }
+        value[i] = item->valueint;
     }
-    AdjustInfo info = {values[0], values[1]};
+
+    AdjustInfo info = {value[0], value[1]};
     genericInfo.adjustSet.emplace_back(std::move(info));
     return SUCCESSED;
 }
 
-int FontConfigJson::ParseFallback(const Json::Value& root)
+int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
 {
-    if (root.empty()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseFallback root is empty";
+    if (root == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "root is nullptr";
         return FAILED;
     }
-    Json::Value::Members members = root.getMemberNames();
-    const char* key = members[0].c_str();
-    if (!root[key].isArray()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseFallback root[key:" << key << "] is not array";
+    cJSON* filters = cJSON_GetObjectItem(root, key);
+    if (filters == nullptr || !cJSON_IsArray(filters)) {
+        LOGSO_FUNC_LINE(ERROR) << "cJSON_GetObjectItem failed";
         return FAILED;
     }
+    cJSON* forItem = cJSON_GetArrayItem(cJSON_GetArrayItem(filters, 0), 0);
+    int size = cJSON_GetArraySize(forItem);
     FallbackGroup fallbackGroup;
-    fallbackGroup.groupName = std::string(key);
-    const Json::Value& fallbackArr = root[key];
-    for (unsigned int i = 0; i < fallbackArr.size(); i++) {
-        if (!fallbackArr[i].isObject()) {
+    fallbackGroup.groupName = std::string("");
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(forItem, i);
+        if (item == nullptr) {
+            continue;
+        }
+        cJSON* item2 = cJSON_GetArrayItem(item, 0);
+        if (item2 == nullptr) {
             continue;
         }
         FallbackInfo fallbackInfo;
-        ParseFallbackItem(fallbackArr[i], fallbackInfo);
+        fallbackInfo.familyName = item2->valuestring;
+        fallbackInfo.font = item2->string;
         fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
     }
     fontPtr->fallbackGroupSet.emplace_back(std::move(fallbackGroup));
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseFallbackItem(const Json::Value& root, FallbackInfo &fallbackInfo)
-{
-    if (root.empty()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseFallbackItem root is empty";
-        return FAILED;
-    }
-    Json::Value::Members members = root.getMemberNames();
-    const char* key = nullptr;
-    for (unsigned int i = 0; i < members.size(); i++) {
-        if (members[i] != "variations" && members[i] != "index") {
-            key = members[i].c_str();
-        } else continue;
-    }
-    if (key == nullptr) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseFallbackItem key is nullptr";
-        return FAILED;
-    }
-    if (!root[key].isString()) {
-        LOGSO_FUNC_LINE(ERROR) << "ParseFallbackItem root[key:" << key << "] is not string";
-        return FAILED;
-    }
-    std::string lang = std::string(key);
-    std::string familyName = root[key].asCString();
-
-    fallbackInfo.familyName = familyName;
-    fallbackInfo.font = lang;
     return SUCCESSED;
 }
 

@@ -22,7 +22,9 @@
 #include "draw/brush.h"
 #include "draw/path.h"
 #include "draw/surface.h"
+#include "effect/blender.h"
 #include "image/pixmap.h"
+#include "image/yuv_info.h"
 #include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
@@ -54,6 +56,7 @@ public:
         std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
 #endif
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
     static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
@@ -62,7 +65,8 @@ public:
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
-    static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
+    static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);
+    static std::shared_ptr<Typeface> DeserializeTypeface(const void* data, size_t size);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
     static bool AsBlendMode(const Brush& brush);
@@ -73,10 +77,12 @@ public:
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
-    static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
-    static std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> GetGroupParameters(
-        DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode);
+    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint32_t glyphId);
+    static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
+        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
+        DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static FontStyleSet* CreateEmpty();
+    static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 };
 } // namespace Drawing
 } // namespace Rosen

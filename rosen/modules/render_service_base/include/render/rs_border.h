@@ -25,17 +25,11 @@
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-class SkPaint;
-class SkRRect;
-#else
 #include "draw/canvas.h"
 #include "draw/brush.h"
 #include "draw/pen.h"
 #include "utils/rect.h"
 #include "utils/round_rect.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -80,17 +74,6 @@ public:
 
     std::string ToString() const;
 
-#ifndef USE_ROSEN_DRAWING
-    bool ApplyFillStyle(SkPaint& paint) const;
-    bool ApplyPathStyle(SkPaint& paint) const;
-    bool ApplyFourLine(SkPaint& paint) const;
-    bool ApplyLineStyle(SkPaint& paint, int borderIdx, float length) const;
-    void PaintFourLine(SkCanvas& canvas, SkPaint& paint, RectF rect) const;
-    void PaintTopPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
-    void PaintRightPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
-    void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
-    void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
-#else
     bool ApplyFillStyle(Drawing::Brush& brush) const;
     bool ApplyPathStyle(Drawing::Pen& pen) const;
     bool ApplyFourLine(Drawing::Pen& pen) const;
@@ -105,9 +88,12 @@ public:
         const Drawing::Point& innerRectCenter) const;
     void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
         const Drawing::Point& innerRectCenter) const;
-#endif
 
 private:
+    Drawing::Point GetTLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetTRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetBLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetBRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     // Vectors containing uniform or four-sided border attributes.
     // If four-sided, the order of contents is left, top, right, bottom.
     std::vector<Color> colors_;

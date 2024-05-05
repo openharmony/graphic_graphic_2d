@@ -83,20 +83,15 @@ void ShaderCache::SetFilePath(const std::string& filename)
     filePath_ = filename + "/shader_cache";
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkData> ShaderCache::load(const SkData& key)
-#else
 std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    RS_TRACE_NAME("load shader");
-    size_t keySize = key.size();
-#else
     RS_TRACE_NAME("Load shader");
     size_t keySize = key.GetSize();
-#endif
-    std::lock_guard<std::mutex> lock(mutex_);
+    OptionalLockGuard lock(mutex_);
+    if (!lock.status) {
+        LOGD("load: locked_ failed");
+        return nullptr;
+    }
     if (!initialized_) {
         LOGD("load: failed because ShaderCache is not initialized");
         return nullptr;
@@ -116,28 +111,24 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
     CacheData::ErrorCode errorCode = CacheData::ErrorCode::NO_ERR;
     size_t valueSize = 0;
     std::tuple<CacheData::ErrorCode, size_t> res = {errorCode, valueSize};
-#ifndef USE_ROSEN_DRAWING
-    res = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
-#else
     res = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
-#endif
     errorCode = std::get<0>(res);
     valueSize = std::get<1>(res);
     if (errorCode == CacheData::ErrorCode::VALUE_SIZE_TOO_SAMLL) {
         free(valueBuffer);
         valueBuffer = nullptr;
-        void* newValueBuffer = realloc(valueBuffer, valueSize);
+        if (valueSize <= 0) {
+            LOGD("valueSize size error");
+            return nullptr;
+        }
+        void* newValueBuffer = malloc(valueSize);
         if (!newValueBuffer) {
             LOGD("load: failed to reallocate valueSize:%zu", valueSize);
             return nullptr;
         }
         valueBuffer = newValueBuffer;
         // Get key data with updated valueSize
-#ifndef USE_ROSEN_DRAWING
-        res = cacheData_->Get(key.data(), keySize, valueBuffer, valueSize);
-#else
         res = cacheData_->Get(key.GetData(), keySize, valueBuffer, valueSize);
-#endif
         // update res after realloc and Get key
         errorCode = std::get<0>(res);
     }
@@ -148,9 +139,6 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
         valueBuffer = nullptr;
         return nullptr;
     }
-#ifndef USE_ROSEN_DRAWING
-    return SkData::MakeFromMalloc(valueBuffer, valueSize);
-#else
     auto data = std::make_shared<Drawing::Data>();
     if (!data->BuildFromMalloc(valueBuffer, valueSize)) {
         LOGD("load: failed to build drawing data");
@@ -159,7 +147,6 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
         return nullptr;
     }
     return data;
-#endif
 }
 
 void ShaderCache::WriteToDisk()
@@ -178,15 +165,9 @@ void ShaderCache::WriteToDisk()
     savePending_ = false;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void ShaderCache::store(const SkData& key, const SkData& data)
-{
-    RS_TRACE_NAME("store shader");
-#else
 void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
 {
     RS_TRACE_NAME("Store shader");
-#endif
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!initialized_) {
@@ -194,33 +175,20 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    size_t valueSize = data.size();
-    size_t keySize = key.size();
-#else
     size_t valueSize = data.GetSize();
     size_t keySize = key.GetSize();
-#endif
     if (keySize == 0 || valueSize == 0 || valueSize >= MAX_VALUE_SIZE) {
         LOGD("store: failed because of illegal cache sizes");
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    const void* value = data.data();
-#else
     const void* value = data.GetData();
-#endif
     cacheDirty_ = true;
     if (!cacheData_) {
         LOGD("store: cachedata has been destructed");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    cacheData_->Rewrite(key.data(), keySize, value, valueSize);
-#else
     cacheData_->Rewrite(key.GetData(), keySize, value, valueSize);
-#endif
 
     if (!savePending_ && saveDelaySeconds_ > 0) {
         savePending_ = true;

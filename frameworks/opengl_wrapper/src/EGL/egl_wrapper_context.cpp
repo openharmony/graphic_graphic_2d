@@ -14,10 +14,10 @@
  */
 #include "egl_wrapper_context.h"
 
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 namespace OHOS {
-EglWrapperContext::EglWrapperContext(EglWrapperDisplay *disp, EGLContext context)
-    : EglWrapperObject(disp), context_(context), read_(nullptr), draw_(nullptr)
+EglWrapperContext::EglWrapperContext(EglWrapperDisplay *disp, EGLContext context, EGLint version)
+    : EglWrapperObject(disp), context_(context), read_(nullptr), draw_(nullptr), version_(version)
 {
     WLOGD("");
 }

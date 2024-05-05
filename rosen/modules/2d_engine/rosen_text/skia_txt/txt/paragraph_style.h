@@ -31,22 +31,29 @@ enum class WordBreakType {
     BREAK_WORD, // break only occur after word.
 };
 
+enum class BreakStrategy {
+    GREEDY = 0,
+    HIGH_QUALITY = 1,
+    BALANCED = 2
+};
+
 class ParagraphStyle {
 public:
     TextStyle ConvertToTextStyle() const;
     TextAlign GetEquivalentAlign() const;
 
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     WordBreakType wordBreakType = WordBreakType::NORMAL;
     std::string fontFamily;
     double fontSize = 16;
     double height = 1;
     bool heightOverride = false;
-    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 
     bool strutEnabled = false;
     FontWeight strutFontWeight = FontWeight::W400;
+    FontWidth strutFontWidth = FontWidth::NORMAL;
     FontStyle strutFontStyle = FontStyle::NORMAL;
     std::vector<std::string> strutFontFamilies;
     double strutFontSize = 16;
@@ -65,6 +72,9 @@ public:
     bool textOverflower = false;
     TextStyle spTextStyle;
     bool customSpTextStyle = false;
+    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
+    bool hintingIsOn = false;
+    BreakStrategy breakStrategy = BreakStrategy::GREEDY;
 };
 } // namespace SPText
 } // namespace Rosen

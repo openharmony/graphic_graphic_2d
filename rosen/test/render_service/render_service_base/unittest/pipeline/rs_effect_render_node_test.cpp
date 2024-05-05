@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;
@@ -30,11 +31,7 @@ public:
     void TearDown() override;
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas canvas;
-#endif
 };
 
 void RSEffectRenderNodeTest::SetUpTestCase() {}
@@ -44,7 +41,7 @@ void RSEffectRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: Prepare
- * @tc.desc: test
+ * @tc.desc: test results of Prepare
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -55,10 +52,15 @@ HWTEST_F(RSEffectRenderNodeTest, Prepare, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
     rsEffectRenderNode.Prepare(visitor);
+
+    std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
+    rsEffectRenderNode.Prepare(visitorTwo);
+    ASSERT_TRUE(true);
 }
+
 /**
  * @tc.name: Process
- * @tc.desc: test
+ * @tc.desc: test results of Process
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -69,10 +71,15 @@ HWTEST_F(RSEffectRenderNodeTest, Process, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
     rsEffectRenderNode.Process(visitor);
+
+    std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
+    rsEffectRenderNode.Prepare(visitorTwo);
+    ASSERT_TRUE(true);
 }
+
 /**
  * @tc.name: GetFilterRect
- * @tc.desc: test
+ * @tc.desc: test results of GetFilterRect
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -81,12 +88,60 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
-#ifndef USE_ROSEN_DRAWING
-    SkIRect path;
-#else
     Drawing::RectI path;
-#endif
     rsEffectRenderNode.SetEffectRegion(path);
     rsEffectRenderNode.GetFilterRect();
+}
+
+/**
+ * @tc.name: ProcessRenderBeforeChildren
+ * @tc.desc: test results of ProcessRenderBeforeChildren
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeTest, ProcessRenderBeforeChildren, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSEffectRenderNode rsEffectRenderNode(nodeId, context);
+    Drawing::Canvas canvas(1, 1);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+}
+
+/**
+ * @tc.name: SetEffectRegion
+ * @tc.desc: test results of SetEffectRegion
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSEffectRenderNode rsEffectRenderNode(nodeId, context);
+    Drawing::RectI path(1, 1, 1, 1);
+    rsEffectRenderNode.SetEffectRegion(path);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithBelowDirty
+ * @tc.desc: test results of UpdateFilterCacheWithBelowDirty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithBelowDirty, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSEffectRenderNode rsEffectRenderNode(nodeId, context);
+    RSDirtyRegionManager dirtyManager;
+    bool isForeground = true;
+    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
+
+    rsEffectRenderNode.isRotationChanged_ = true;
+    rsEffectRenderNode.preRotationStatus_ = true;
+    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

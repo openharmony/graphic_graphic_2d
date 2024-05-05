@@ -463,7 +463,8 @@ napi_value WebGL2RenderingContextImpl::ClientWaitSync(
     }
     GLuint64 timeout64 = (timeout == -1) ? GL_TIMEOUT_IGNORED : static_cast<GLuint64>(timeout);
     GLenum returnValue = glClientWaitSync(reinterpret_cast<GLsync>(syncId), flags, timeout64);
-    LOGD("WebGL2 clientWaitSync syncId = %{public}u %{public}u result %{public}u", syncId, returnValue, GetError_());
+    LOGD("WebGL2 clientWaitSync syncId = %{public}d %{public}u result %{public}u",
+         static_cast<int>(syncId), returnValue, GetError_());
     return NVal::CreateInt64(env, static_cast<int64_t>(returnValue)).val_;
 }
 
@@ -481,7 +482,7 @@ napi_value WebGL2RenderingContextImpl::WaitSync(napi_env env, napi_value syncObj
     }
     GLuint64 timeout64 = (timeout == -1) ? GL_TIMEOUT_IGNORED : static_cast<GLuint64>(timeout);
     glWaitSync(reinterpret_cast<GLsync>(syncId), flags, timeout64);
-    LOGD("WebGL2 waitSync GL_TIMEOUT_IGNORED %{public}u", GL_TIMEOUT_IGNORED);
+    LOGD("WebGL2 waitSync GL_TIMEOUT_IGNORED %{public}u", static_cast<unsigned int>(GL_TIMEOUT_IGNORED));
     return NVal::CreateNull(env).val_;
 }
 
@@ -1233,7 +1234,8 @@ napi_value WebGL2RenderingContextImpl::VertexAttribIPointer(napi_env env, const 
 
     glVertexAttribIPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.stride,
         reinterpret_cast<GLvoid*>(vertexInfo.offset));
-    LOGD("WebGL vertexAttribPointer index %{public}u offset %{public}u", vertexInfo.index, vertexInfo.offset);
+    LOGD("WebGL vertexAttribPointer index %{public}u offset %{public}u",
+         static_cast<unsigned int>(vertexInfo.index), static_cast<unsigned int>(vertexInfo.offset));
     return NVal::CreateNull(env).val_;
 }
 
@@ -1307,7 +1309,7 @@ napi_value WebGL2RenderingContextImpl::DrawRangeElements(
     napi_env env, const DrawElementArg& arg, GLuint start, GLuint end)
 {
     LOGD("WebGL2 drawRangeElements mode %{public}u %{public}d %{public}u start [%{public}u %{public}u]"
-        "%{public}d" PRIi64, arg.mode, arg.count, arg.type, start, end, arg.offset);
+        "%{public}d" PRIi64, arg.mode, arg.count, arg.type, start, end, static_cast<int>(arg.offset));
     GLenum result = CheckDrawElements(env, arg.mode, arg.count, arg.type, arg.offset);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
@@ -1383,7 +1385,8 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
     GLsizeiptr dstSize = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
                                            : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
     GLuint dstOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
-    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{public}p", dstSize, writeBuffer->bufferData_);
+    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{public}p",
+         static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
 
     void *mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);
     if (mapBuffer == nullptr ||
@@ -1962,7 +1965,7 @@ GLenum WebGL2RenderingContextImpl::CheckTexStorage(napi_env env, const TexStorag
     } else {
         if (arg.levels > log2(std::max(arg.width, arg.height)) + 1) {
             LOGE("CheckTexStorage invalid %{public}d %{public}d",
-                arg.levels, log2(std::max(arg.width, arg.height)) + 1);
+                arg.levels, static_cast<int>(log2(std::max(arg.width, arg.height)) + 1));
             return WebGLRenderingContextBase::INVALID_OPERATION;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 #include "command/rs_surface_node_command.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
-#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -33,6 +32,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
 #include "render_context/shader_cache.h"
+#include "rs_frame_report.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -107,10 +107,12 @@ RSRenderThread::RSRenderThread()
         ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
             prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
-        ApplyModifiers();
         Render();
         SendCommands();
-        context_->activeNodesInRoot_.clear();
+        {
+            std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+            context_->activeNodesInRoot_.clear();
+        }
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
 #endif
@@ -245,8 +247,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
         }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->SetUpGpuContext(nullptr);
     }
 #endif
@@ -437,42 +438,6 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         RSRenderThread::Instance().RequestNextVSync();
-    }
-}
-
-void RSRenderThread::ApplyModifiers()
-{
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
-    if (context_->activeNodesInRoot_.empty()) {
-        return;
-    }
-    RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
-        RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> nodesThatNeedsRegenerateChildren;
-    context_->globalRootRenderNode_->ApplyModifiers();
-    for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
-        for (const auto& [id, nodePtr] : nodeSet) {
-            auto node = nodePtr.lock();
-            if (node == nullptr) {
-                continue;
-            }
-            if (!node->isFullChildrenListValid_ || !node->isChildrenSorted_) {
-                nodesThatNeedsRegenerateChildren.emplace(node->id_, node);
-            }
-            // apply modifiers, if z-order not changed, skip
-            if (!node->ApplyModifiers()) {
-                continue;
-            }
-            if (auto parent = node->GetParent().lock()) {
-                parent->isChildrenSorted_ = false;
-                nodesThatNeedsRegenerateChildren.emplace(parent->id_, parent);
-            }
-        }
-    }
-    // Update the full children list of the nodes that need it
-    nodesThatNeedsRegenerateChildren.emplace(0, context_->globalRootRenderNode_);
-    for (auto& [id, node] : nodesThatNeedsRegenerateChildren) {
-        node->UpdateFullChildrenListIfNeeded();
     }
 }
 

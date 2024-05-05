@@ -15,6 +15,7 @@
 
 #include "skia_static_factory.h"
 
+#include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
@@ -72,8 +73,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUConte
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return SkiaSurface::MakeFromBackendRenderTarget(gpuContext, info, origin,
@@ -83,8 +83,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendTexture(GPUContext* g
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return SkiaSurface::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
@@ -95,6 +94,11 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuCont
     bool budgeted, const ImageInfo& imageInfo)
 {
     return SkiaSurface::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+}
+
+std::shared_ptr<Image> SkiaStaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return SkiaImage::MakeFromYUVAPixmaps(gpuContext, info, memory);
 }
 #endif
 
@@ -125,9 +129,14 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, 
     return SkiaImage::MakeRasterData(info, pixels, rowBytes);
 }
 
-std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size)
+std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size, void* ctx)
 {
-    return SkiaTextBlob::Deserialize(data, size);
+    return SkiaTextBlob::Deserialize(data, size, ctx);
+}
+
+std::shared_ptr<Typeface> SkiaStaticFactory::DeserializeTypeface(const void* data, size_t size)
+{
+    return SkiaTypeface::Deserialize(data, size);
 }
 
 bool SkiaStaticFactory::CanComputeFastBounds(const Brush& brush)
@@ -176,20 +185,25 @@ void SkiaStaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::v
     return SkiaTextBlob::GetDrawingPointsForTextBlob(blob, points);
 }
 
-std::shared_ptr<DrawingSymbolLayersGroups> SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 {
     return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
 }
 
-std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaStaticFactory::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, subType, animationMode);
+    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
 }
 
 FontStyleSet* SkiaStaticFactory::CreateEmpty()
 {
     return SkiaFontStyleSet::CreateEmpty();
+}
+
+std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
+{
+    return SkiaBlender::CreateWithBlendMode(mode);
 }
 } // namespace Drawing
 } // namespace Rosen

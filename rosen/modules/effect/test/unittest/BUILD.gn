@@ -44,6 +44,7 @@ ohos_unittest("EffectTest") {
       "program_unittest.cpp",
       "saturation_filter_unittest.cpp",
       "scale_filter_unittest.cpp",
+      "sk_image_filter_factory_unittest.cpp",
       "vertical_blur_filter_unittest.cpp",
     ]
   }
@@ -52,7 +53,9 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root:libgl",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
+    "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/utils/color_manager:color_manager",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
@@ -65,8 +68,11 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/utils/color_manager:color_manager_public_config",
   ]
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:pixelmap",
   ]
 }
 
@@ -78,6 +84,7 @@ config("effect_test_config") {
     "//third_party/skia",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/utils/color_manager/export",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",

@@ -25,7 +25,15 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
 {
     rsUiDirector_ = RSUIDirector::Create();
     rootNode_ = rootNode;
+    rootNode_->SyncTextureExport(true);
     surfaceId_ = surfaceId;
+    RSSurfaceNodeConfig config = {
+        .SurfaceNodeName = "textureExportSurfaceNode",
+        .additionalData = nullptr,
+        .isTextureExportNode = true,
+        .surfaceId = surfaceId_
+    };
+    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false);
 }
 
 RSTextureExport::~RSTextureExport()
@@ -47,13 +55,6 @@ bool RSTextureExport::DoTextureExport()
         auto frame = rootNode_->GetStagingProperties().GetFrame();
         virtualRootNode_->SetFrame({-frame.x_, -frame.y_, frame.z_, frame.w_});
     }
-    RSSurfaceNodeConfig config = {
-        .SurfaceNodeName = "textureExportSurfaceNode",
-        .additionalData = nullptr,
-        .isTextureExportNode = true,
-        .surfaceId = surfaceId_
-    };
-    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false);
     if (!virtualSurfaceNode_) {
         ROSEN_LOGE("RSTextureExport::DoTextureExport create surfaceNode failed");
         return false;

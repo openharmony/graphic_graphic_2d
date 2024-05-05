@@ -19,25 +19,10 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "common/rs_common_def.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkSurface.h"
-#ifdef ROSEN_OHOS
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include <GLES/gl.h>
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
-
-#include "surface_buffer.h"
-#include "window.h"
-#endif
-#else
+#include "system/rs_system_parameters.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/matrix.h"
-#endif
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -48,11 +33,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-#else
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-#endif
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -73,11 +54,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-#ifndef USE_ROSEN_DRAWING
-        void SetSurface(SkSurface* surface);
-#else
         void SetSurface(Drawing::Surface* surface);
-#endif
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -88,14 +65,14 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
             return isUniRender_;
         }
 
-        bool GetHasingSecurityOrSkipLayer() const
+        bool GetHasingSecurityOrSkipOrProtectedLayer() const
         {
-            return hasSecurityOrSkipLayer_;
+            return hasSecurityOrSkipOrProtectedLayer_;
         }
 
-        void SetHasingSecurityOrSkipLayer(const bool &hasSecurityOrSkipLayer)
+        void SetHasingSecurityOrSkipOrProtectedLayer(const bool &hasSecurityOrSkipOrProtectedLayer)
         {
-            hasSecurityOrSkipLayer_ = hasSecurityOrSkipLayer;
+            hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
         }
 
     private:
@@ -123,15 +100,11 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
-        bool hasSecurityOrSkipLayer_ = false;
+        bool hasSecurityOrSkipOrProtectedLayer_ = false;
         bool isUIFirst_ = false;
         std::unordered_set<NodeId> curCacheFilterRects_ = {};
 
-#ifndef USE_ROSEN_DRAWING
-        SkMatrix captureMatrix_ = SkMatrix::I();
-#else
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
-#endif
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
@@ -143,7 +116,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 class RSSurfaceCaptureTask {
 public:
     explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread) {}
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread),
+        rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTask() = default;
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
@@ -151,19 +125,15 @@ public:
 private:
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
-#else
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
-#endif
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
-        bool isUniRender = false, bool hasSecurityOrSkipLayer = false);
+        bool isUniRender = false, bool hasSecurityOrSkipOrProtectedLayer = false);
 
-    bool FindSecurityOrSkipLayer();
+    bool FindSecurityOrSkipOrProtectedLayer();
 
     // It is currently only used on folding screen.
     int32_t ScreenCorrection(ScreenRotation screenRotation);
@@ -178,6 +148,7 @@ private:
 
     // if true, do surfaceCapture on background thread
     bool isProcOnBgThread_ = false;
+    RsParallelType rsParallelType_;
 };
 } // namespace Rosen
 } // namespace OHOS

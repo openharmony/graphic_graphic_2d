@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
+CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
     : maxKeySize_(maxKeySize),
     maxValueSize_(maxValueSize),
@@ -133,12 +133,11 @@ void CacheData::WriteToFile()
 
 void CacheData::Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize)
 {
-    if (maxKeySize_ < keySize || maxValueSize_ < valueSize || maxTotalSize_ < keySize + valueSize
-        || keySize == 0 || valueSize <= 0) {
+    if (maxKeySize_ < keySize || maxValueSize_ < valueSize ||
+        maxTotalSize_ < keySize + valueSize || keySize == 0 || valueSize <= 0) {
         LOGD("abandon, because of illegal content size");
         return;
     }
-
     std::shared_ptr<DataPointer> fakeDataPointer(std::make_shared<DataPointer>(key, keySize, false));
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
     bool isShaderFound = false;
@@ -231,6 +230,7 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size) const
     Header *header = reinterpret_cast<Header *>(buffer);
     header->numShaders_ = shaderPointers_.size();
     size_t byteOffset = Align4(sizeof(Header));
+    size_t headSize = sizeof(ShaderData);
 
     uint8_t *byteBuffer = reinterpret_cast<uint8_t *>(buffer);
     for (const ShaderPointer &p: shaderPointers_) {
@@ -248,11 +248,12 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size) const
         ShaderData *shaderBuffer = reinterpret_cast<ShaderData *>(&byteBuffer[byteOffset]);
         shaderBuffer->keySize_ = keySize;
         shaderBuffer->valueSize_ = valueSize;
-        if (memcpy_s(shaderBuffer->data_, keySize, keyPointer->GetData(), keySize)) {
+        size_t sizeLeft = size - byteOffset - headSize;
+        if (memcpy_s(shaderBuffer->data_, sizeLeft, keyPointer->GetData(), keySize)) {
             LOGD("abandon, failed to copy key");
             return -EINVAL;
         }
-        if (memcpy_s(shaderBuffer->data_ + keySize, valueSize, valuePointer->GetData(), valueSize)) {
+        if (memcpy_s(shaderBuffer->data_ + keySize, sizeLeft - keySize, valuePointer->GetData(), valueSize)) {
             LOGD("abandon, failed to copy value");
             return -EINVAL;
         }

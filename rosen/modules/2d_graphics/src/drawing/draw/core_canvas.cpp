@@ -47,6 +47,11 @@ RectI CoreCanvas::GetDeviceClipBounds() const
     return impl_->GetDeviceClipBounds();
 }
 
+RectI CoreCanvas::GetRoundInDeviceClipBounds() const
+{
+    return impl_->GetRoundInDeviceClipBounds();
+}
+
 #ifdef ACE_ENABLE_GPU
 std::shared_ptr<GPUContext> CoreCanvas::GetGPUContext()
 {
@@ -87,6 +92,12 @@ void CoreCanvas::DrawPoint(const Point& point)
 {
     AttachPaint();
     impl_->DrawPoint(point);
+}
+
+void CoreCanvas::DrawSdf(const SDFShapeBase& shape)
+{
+    AttachPaint();
+    impl_->DrawSdf(shape);
 }
 
 void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
@@ -160,6 +171,12 @@ void CoreCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     impl_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void CoreCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    impl_->DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+}
+
 void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)
 {
     impl_->DrawColor(color, mode);
@@ -183,40 +200,6 @@ void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
     impl_->DrawVertices(vertices, mode);
 }
 
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
-{
-    AttachPaint();
-    impl_->DrawBitmap(bitmap, px, py);
-}
-
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-}
-
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, dst, sampling);
-}
-
-void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageNine(image, center, dst, filter, brush);
-}
-
-void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
-}
-
 // opinc_begin
 bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
 {
@@ -238,32 +221,39 @@ int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
     return impl_->CanDrawOpList(handle);
 }
 
-void CoreCanvas::PreOpListDrawArea(const Matrix& matrix)
+bool CoreCanvas::OpCalculateBefore(const Matrix& matrix)
 {
-    impl_->PreOpListDrawArea(matrix);
+    return impl_->OpCalculateBefore(matrix);
 }
 
-bool CoreCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+std::shared_ptr<Drawing::OpListHandle> CoreCanvas::OpCalculateAfter(const Rect& bound)
 {
-    return impl_->CanUseOpListDrawArea(handle, bound);
-}
-
-Drawing::OpListHandle CoreCanvas::GetOpListDrawArea()
-{
-    return impl_->GetOpListDrawArea();
-}
-
-void CoreCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-{
-    impl_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
+    return impl_->OpCalculateAfter(bound);
 }
 // opinc_end
 
-void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
+void CoreCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    impl_->DrawAtlas(atlas, xform, tex, colors, count, mode, sampling, cullRect);
+}
+
+void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     AttachPaint();
-    impl_->DrawBitmap(pixelMap, px, py);
+    impl_->DrawBitmap(bitmap, px, py);
+}
+
+void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageNine(image, center, dst, filter, brush);
+}
+
+void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
 }
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
@@ -297,8 +287,7 @@ void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
 
 void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
-    AttachPaint();
-    impl_->DrawTextBlob(blob, x, y);
+    ApplyDrawLooper([&]() { impl_->DrawTextBlob(blob, x, y); });
 }
 
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
@@ -494,6 +483,57 @@ int CoreCanvas::GetAlphaSaveCount() const
     return 0;
 }
 
+void CoreCanvas::ApplyDrawProc(const Paint& paint, const std::function<void()>& proc)
+{
+    impl_->AttachPaint(paint);
+    proc();
+}
+
+void CoreCanvas::ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc)
+{
+    std::shared_ptr<BlurDrawLooper> looper = paint.GetLooper();
+    if (looper == nullptr) {
+        return;
+    }
+    Paint tmpPaint(paint);
+    tmpPaint.SetColor(looper->GetColor());
+    Filter filter = tmpPaint.GetFilter();
+    filter.SetMaskFilter(looper->GetMaskFilter());
+    tmpPaint.SetFilter(filter);
+    impl_->Save();
+    impl_->Translate(looper->GetXOffset(), looper->GetYOffset());
+    ApplyDrawProc(tmpPaint, proc);
+    impl_->Restore();
+}
+
+void CoreCanvas::ApplyDrawLooper(const std::function<void()> drawProc)
+{
+    bool brushValid = paintBrush_.IsValid();
+    bool penValid = paintPen_.IsValid();
+    if (!brushValid && !penValid) {
+        LOGD("Drawing CoreCanvas ApplyDrawLooper with Invalid Paint");
+        return;
+    }
+
+    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+        ApplyBlurDrawProc(paintPen_, drawProc);
+        ApplyDrawProc(paintPen_, drawProc);
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
+        return;
+    }
+
+    if (brushValid) {
+        ApplyBlurDrawProc(paintBrush_, drawProc);
+        ApplyDrawProc(paintBrush_, drawProc);
+    }
+
+    if (penValid) {
+        ApplyBlurDrawProc(paintPen_, drawProc);
+        ApplyDrawProc(paintPen_, drawProc);
+    }
+}
+
 void CoreCanvas::AttachPaint()
 {
     bool brushValid = paintBrush_.IsValid();
@@ -524,6 +564,21 @@ void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
     if (impl_ && canvas) {
         impl_->BuildOverDraw(canvas);
     }
+}
+
+void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
+{
+    impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::Reset(int32_t width, int32_t height)
+{
+    impl_->Reset(width, height);
+}
+
+bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)
+{
+    return impl_->DrawBlurImage(image, blurParams);
 }
 } // namespace Drawing
 } // namespace Rosen

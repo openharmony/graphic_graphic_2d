@@ -47,16 +47,6 @@ void RSSystemProperties::SetRecordingDisenabled()
     return;
 }
 
-int RSSystemProperties::GetDumpRSTreeCount()
-{
-    return 0;
-}
-
-void RSSystemProperties::SetDumpRSTreeCount(int count)
-{
-    return;
-}
-
 std::string RSSystemProperties::GetRecordingFile()
 {
     return "";
@@ -73,6 +63,11 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
 }
 
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     return {};
 }
@@ -192,11 +187,6 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    return {};
-}
-
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
@@ -222,17 +212,17 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetColorPickerPartialEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetMotionBlurEnabled()
 {
     return true;
 }
@@ -253,6 +243,11 @@ bool RSSystemProperties::IsFoldScreenFlag()
 }
 
 bool RSSystemProperties::GetKawaseEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
 }
@@ -334,17 +329,22 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
     return 0;
 }
 
-bool RSSystemProperties::GetUseShadowBatchingEnabled()
-{
-    return true;
-}
-
 bool RSSystemProperties::GetSingleFrameComposerEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
 {
     return false;
 }
@@ -369,6 +369,36 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 }
 
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetVirtualScreenScaleModeDFX()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetHwcRegionDfxEnabled()
+{
+    return false;
+}
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    return SubTreePrepareCheckType::ENABLED;
+}
+
+bool RSSystemProperties::GetRenderParallelEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUIFirstForceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     return false;
 }

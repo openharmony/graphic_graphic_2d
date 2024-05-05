@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include "pixel_map.h"
 #include "recording/recording_canvas.h"
 #include "draw/path.h"
 
@@ -690,113 +689,6 @@ HWTEST_F(RecordingCanvasTest, DrawImage001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawImage002
- * @tc.desc: Test the playback of the DrawImage function.
- * @tc.type: FUNC
- * @tc.require: I7OAIR
- */
-HWTEST_F(RecordingCanvasTest, DrawImage002, TestSize.Level1)
-{
-    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
-    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
-    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
-    Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bitmap.Build(CANAS_HEIGHT, CANAS_HEIGHT, bitmapFormat);
-    auto image = std::make_shared<Image>();
-    image->BuildFromBitmap(bitmap);
-    AdaptiveImageInfo rsImageInfo;
-    SamplingOptions smapling;
-    recordingCanvas1->DrawImage(image, nullptr, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(image, nullptr, rsImageInfo, smapling);
-
-    Brush brush(Color::COLOR_GREEN);
-    recordingCanvas1->AttachBrush(brush);
-    recordingCanvas2->AttachBrush(brush);
-    recordingCanvas1->DrawImage(image, nullptr, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(image, nullptr, rsImageInfo, smapling);
-
-    Pen pen(Color::COLOR_GREEN);
-    recordingCanvas1->AttachPen(pen);
-    recordingCanvas2->AttachPen(pen);
-    recordingCanvas1->DrawImage(image, nullptr, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(image, nullptr, rsImageInfo, smapling);
-
-    recordingCanvas1->DetachBrush();
-    recordingCanvas2->DetachBrush();
-    recordingCanvas1->DrawImage(image, nullptr, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(image, nullptr, rsImageInfo, smapling);
-
-    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
-    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
-    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
-    Canvas canvas;
-    drawCmdList1->Playback(canvas);
-    drawCmdList2->Playback(canvas);
-}
-
-/**
- * @tc.name: DrawImage003
- * @tc.desc: Test the playback of the DrawImage function.
- * @tc.type: FUNC
- * @tc.require: I7OAIR
- */
-HWTEST_F(RecordingCanvasTest, DrawImage003, TestSize.Level1)
-{
-    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
-    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
-    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
-    auto data = std::make_shared<Data>();
-    AdaptiveImageInfo rsImageInfo;
-    SamplingOptions smapling;
-    recordingCanvas1->DrawImage(nullptr, data, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(nullptr, data, rsImageInfo, smapling);
-
-    Brush brush(Color::COLOR_GREEN);
-    recordingCanvas1->AttachBrush(brush);
-    recordingCanvas2->AttachBrush(brush);
-    recordingCanvas1->DrawImage(nullptr, data, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(nullptr, data, rsImageInfo, smapling);
-
-    Pen pen(Color::COLOR_GREEN);
-    recordingCanvas1->AttachPen(pen);
-    recordingCanvas2->AttachPen(pen);
-    recordingCanvas1->DrawImage(nullptr, data, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(nullptr, data, rsImageInfo, smapling);
-
-    recordingCanvas1->DetachBrush();
-    recordingCanvas2->DetachBrush();
-    recordingCanvas1->DrawImage(nullptr, data, rsImageInfo, smapling);
-    recordingCanvas2->DrawImage(nullptr, data, rsImageInfo, smapling);
-
-    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
-    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
-    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
-    Canvas canvas;
-    drawCmdList1->Playback(canvas);
-    drawCmdList2->Playback(canvas);
-}
-
-/**
- * @tc.name: DrawImage004
- * @tc.desc: Test the playback of the DrawImage function.
- * @tc.type: FUNC
- * @tc.require: I7OAIR
- */
-HWTEST_F(RecordingCanvasTest, DrawImage004, TestSize.Level1)
-{
-    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
-    EXPECT_TRUE(recordingCanvas != nullptr);
-    AdaptiveImageInfo rsImageInfo;
-    SamplingOptions smapling;
-    recordingCanvas->DrawImage(nullptr, nullptr, rsImageInfo, smapling);
-    auto drawCmdList = recordingCanvas->GetDrawCmdList();
-    EXPECT_TRUE(drawCmdList != nullptr);
-    Canvas canvas;
-    drawCmdList->Playback(canvas);
-}
-
-/**
  * @tc.name: DrawImageRect001
  * @tc.desc: Test the playback of the DrawImageRect function.
  * @tc.type: FUNC
@@ -1373,32 +1265,6 @@ HWTEST_F(RecordingCanvasTest, ClipAdaptiveRoundRect001, TestSize.Level1)
     Rect rect(0.0f, 0.0f, CANAS_WIDTH, CANAS_HEIGHT);
     drawCmdList1->Playback(canvas, &rect);
     drawCmdList2->Playback(canvas, &rect);
-}
-
-
-/**
- * @tc.name: DrawPixelMap001
- * @tc.desc: Test the playback of the DrawPixelMap function.
- * @tc.type: FUNC
- * @tc.require: I7OAIR
- */
-HWTEST_F(RecordingCanvasTest, DrawPixelMap001, TestSize.Level1)
-{
-    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
-    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
-    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
-    Media::InitializationOptions opts;
-    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
-    AdaptiveImageInfo rsImageInfo;
-    SamplingOptions smapling;
-    recordingCanvas1->DrawPixelMap(pixelMap, rsImageInfo, smapling);
-    recordingCanvas2->DrawPixelMap(pixelMap, rsImageInfo, smapling);
-    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
-    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
-    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
-    Canvas canvas;
-    drawCmdList1->Playback(canvas);
-    drawCmdList2->Playback(canvas);
 }
 } // namespace Drawing
 } // namespace Rosen

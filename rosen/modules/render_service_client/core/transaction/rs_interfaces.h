@@ -79,8 +79,10 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f);
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 #ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
@@ -95,6 +97,9 @@ public:
 #endif // !ROSEN_ARKUI_X
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
+
+    // set scale mode for virtual screen
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -107,7 +112,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -178,7 +183,10 @@ public:
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         uint64_t id,
-        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
+        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
+        NodeId windowNodeId = 0);
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
@@ -190,6 +198,10 @@ public:
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);
+
+    int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
+
+    int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
     void SetAppWindowNum(uint32_t num);
 
@@ -217,12 +229,14 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
-    
+
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
+
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 
     GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id);
 
@@ -230,6 +244,7 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

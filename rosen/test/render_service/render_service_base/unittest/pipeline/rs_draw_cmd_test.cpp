@@ -13,30 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef USE_ROSEN_DRAWING
-#include <gtest/gtest.h>
-#include <securec.h>
-
-#include "include/core/SkPictureRecorder.h"
+#include "gtest/gtest.h"
 
 #include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
-namespace Rosen {
+namespace OHOS::Rosen {
 class RSDrawCmdTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
-private:
-    static sk_sp<SkImage> CreateSkImage();
-    static sk_sp<SkPicture> CreateSkPicture();
+    static inline std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    static inline Drawing::AdaptiveImageInfo imageInfo;
+    static inline NodeId id = 1;
 };
 
 void RSDrawCmdTest::SetUpTestCase() {}
@@ -44,621 +37,313 @@ void RSDrawCmdTest::TearDownTestCase() {}
 void RSDrawCmdTest::SetUp() {}
 void RSDrawCmdTest::TearDown() {}
 
-sk_sp<SkImage> RSDrawCmdTest::CreateSkImage()
-{
-    const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
-    auto surface(SkSurface::MakeRaster(info));
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    int x = 50;
-    int y = 50;
-    int width = 100;
-    int height = 100;
-    canvas->drawRect(SkRect::MakeXYWH(x, y, width, height), paint);
-    return surface->makeImageSnapshot();
-}
-
-sk_sp<SkPicture> RSDrawCmdTest::CreateSkPicture()
-{
-    SkPictureRecorder recorder;
-    SkCanvas* canvas = recorder.beginRecording(200, 200);
-    auto image = CreateSkImage();
-    canvas->drawImage(image, 0, 0);
-    sk_sp<SkPicture> picture(recorder.finishRecordingAsPicture());
-    return picture;
-}
-
 /**
- * @tc.name: RectOpItem001
- * @tc.desc: test
+ * @tc.name: SetNodeId001
+ * @tc.desc: test results of SetNodeId
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, RectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, SetNodeId001, TestSize.Level1)
 {
-    SkRect rect;
-    SkPaint paint;
-    auto op = std::make_unique<RectOpItem>(rect, paint);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (RectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    RSExtendImageObject extendImageObject(pixelMap, imageInfo);
+    NodeId id = 1;
+    extendImageObject.SetNodeId(id);
+
+    RSExtendImageObject extendImageObjectTwo;
+    extendImageObjectTwo.SetNodeId(id);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: RoundRectOpItem001
- * @tc.desc: test
+ * @tc.name: GetDrawingImageFromSurfaceBuffer
+ * @tc.desc: test results of GetDrawingImageFromSurfaceBuffer
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, RoundRectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, GetDrawingImageFromSurfaceBuffer, TestSize.Level1)
 {
-    SkRRect rrect;
-    SkPaint paint;
-    auto op = std::make_unique<RoundRectOpItem>(rrect, paint);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (RoundRectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    RSExtendImageObject extendImageObject(pixelMap, imageInfo);
+    Drawing::Canvas canvas(1, 1);
+    OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
 }
 
 /**
- * @tc.name: ImageWithParmOpItem001
- * @tc.desc: test
+ * @tc.name: Unmarshalling001
+ * @tc.desc: test results of Unmarshalling
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, ImageWithParmOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Unmarshalling001, TestSize.Level1)
 {
-    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
-    SkPaint paint;
-    SkSamplingOptions samplingOptions;
-    auto op = std::make_unique<ImageWithParmOpItem>(rsImage, samplingOptions, paint);
-    ASSERT_EQ(paint, op->paint_);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    op->Draw(canvas, nullptr);
+    RSExtendImageObject extendImageObject(pixelMap, imageInfo);
     Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (ImageWithParmOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    ASSERT_EQ(extendImageObject.Unmarshalling(parcel), nullptr);
 }
 
 /**
- * @tc.name: DRRectOpItem001
- * @tc.desc: test
+ * @tc.name: Playback007
+ * @tc.desc: test results of Playback
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, DRRectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
 {
-    SkRRect outer;
-    SkRRect inner;
-    SkPaint paint;
-    auto op = std::make_unique<DRRectOpItem>(outer, inner, paint);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (DRRectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    Drawing::SamplingOptions sampling;
+    bool isBackground = true;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
+    Drawing::AdaptiveImageInfo imageInfo;
+    RSExtendImageObject extendImageObject(image, data, imageInfo);
+    extendImageObject.Playback(canvas, rect, sampling, isBackground);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: BitmapOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback001
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, BitmapOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
 {
-    sk_sp<SkImage> bitmapInfo = CreateSkImage();
-    float left = 1.0f;
-    float top = 1.0f;
-    SkSamplingOptions samplingOptions;
-    SkPaint paint;
-    auto op = std::make_unique<BitmapOpItem>(bitmapInfo, left, top, samplingOptions, &paint);
-    ASSERT_EQ(paint, op->paint_);
-    NodeId id = 0;
-    op->SetNodeId(id);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect;
-    op->Draw(canvas, &rect);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (BitmapOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    RSExtendImageBaseObj extendImageBaseObj(pixelMap, src, dst);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    Drawing::SamplingOptions sampling;
+    extendImageBaseObj.Playback(canvas, rect, sampling);
+
+    RSExtendImageBaseObj obj;
+    obj.Playback(canvas, rect, sampling);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: BitmapRectOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetNodeId002
+ * @tc.desc: test results of SetNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, BitmapRectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, SetNodeId002, TestSize.Level1)
 {
-    sk_sp<SkImage> bitmapInfo = CreateSkImage();
-    SkRect rectSrc = SkRect::MakeLTRB(1, 1, 3, 3);
-    SkRect rectDst = SkRect::MakeLTRB(16, 16, 48, 48);
-    SkSamplingOptions samplingOptions;
-    SkPaint paint;
-    auto op = std::make_unique<BitmapRectOpItem>(
-        bitmapInfo, &rectSrc, rectDst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
-    ASSERT_EQ(paint, op->paint_);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (BitmapRectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    RSExtendImageBaseObj extendImageBaseObj(pixelMap, src, dst);
+    extendImageBaseObj.SetNodeId(id);
+
+    RSExtendImageBaseObj obj;
+    obj.SetNodeId(id);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: PixelMapOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Unmarshalling002
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, PixelMapOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Unmarshalling002, TestSize.Level1)
 {
-    Media::InitializationOptions opts;
-    opts.size.width = 512;
-    opts.size.height = 512;
-    opts.editable = true;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
-    float left = 1.0f;
-    float top = 1.0f;
-    SkSamplingOptions samplingOptions;
-    SkPaint paint;
-    auto op = std::make_unique<PixelMapOpItem>(shpPixelMap, left, top, samplingOptions, &paint);
-    ASSERT_EQ(paint, op->paint_);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    RSExtendImageBaseObj extendImageBaseObj(pixelMap, src, dst);
     Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (PixelMapOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    ASSERT_EQ(extendImageBaseObj.Unmarshalling(parcel), nullptr);
 }
 
 /**
- * @tc.name: PixelMapRectOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback002
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, PixelMapRectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
 {
-    Media::InitializationOptions opts;
-    opts.size.width = 512;
-    opts.size.height = 512;
-    opts.editable = true;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
-    SkRect src = SkRect::MakeLTRB(0, 0, 128, 128);
-    SkRect dst = SkRect::MakeLTRB(0, 0, 512, 512);
-    SkSamplingOptions samplingOptions;
-    SkPaint paint;
-    SkCanvas::SrcRectConstraint constraint = SkCanvas::kStrict_SrcRectConstraint;
-    auto op = std::make_unique<PixelMapRectOpItem>(shpPixelMap, src, dst, samplingOptions, &paint, constraint);
-    ASSERT_EQ(paint, op->paint_);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (PixelMapRectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::RecordingCanvas::DrawFunc drawFunc;
+    RSExtendDrawFuncObj extendDrawFuncObj(std::move(drawFunc));
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    extendDrawFuncObj.Playback(&canvas, &rect);
+
+    drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    RSExtendDrawFuncObj obj(std::move(drawFunc));
+    obj.Playback(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: BitmapNineOpItem00
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback003
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, BitmapNineOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback003, TestSize.Level1)
 {
-    sk_sp<SkImage> bitmapInfo = CreateSkImage();
-    SkIRect center = SkIRect::MakeLTRB(0, 0, 128, 128);
-    SkRect rectDst = SkRect::MakeLTRB(0, 0, 512, 512);
-    SkFilterMode filter = SkFilterMode::kLinear;
-    SkPaint paint;
-    auto op = std::make_unique<BitmapNineOpItem>(bitmapInfo, center, rectDst, filter, &paint);
-    ASSERT_EQ(paint, op->paint_);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (BitmapNineOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawImageWithParmOpItem drawImageWithParmOpItem(image, data, imageInfo, sampling, paint);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawImageWithParmOpItem.Playback(&canvas, &rect);
+    drawImageWithParmOpItem.objectHandle_ = nullptr;
+    drawImageWithParmOpItem.Playback(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: AdaptiveRRectOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetNodeId003
+ * @tc.desc: test results of SetNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, AdaptiveRRectOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, SetNodeId003, TestSize.Level1)
 {
-    float radius = 1.0f;
-    SkPaint paint;
-    auto op = std::make_unique<AdaptiveRRectOpItem>(radius, paint);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect = SkRect::MakeLTRB(0, 0, 512, 512);
-    op->Draw(canvas, &rect);
-    op->Draw(canvas, nullptr);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (AdaptiveRRectOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawImageWithParmOpItem drawImageWithParmOpItem(image, data, imageInfo, sampling, paint);
+    drawImageWithParmOpItem.SetNodeId(id);
+
+    drawImageWithParmOpItem.objectHandle_ = nullptr;
+    drawImageWithParmOpItem.SetNodeId(id);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: AdaptiveRRectScaleOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback004
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, AdaptiveRRectScaleOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback004, TestSize.Level1)
 {
-    float radiusRatio = 1.0f;
-    SkPaint paint;
-    auto op = std::make_unique<AdaptiveRRectScaleOpItem>(radiusRatio, paint);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect = SkRect::MakeLTRB(0, 0, 512, 512);
-    op->Draw(canvas, &rect);
-    op->Draw(canvas, nullptr);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (AdaptiveRRectScaleOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapWithParmOpItem drawPixelMapWithParmOpItem(cmdList, &handle);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawPixelMapWithParmOpItem.Playback(&canvas, &rect);
+    drawPixelMapWithParmOpItem.objectHandle_ = nullptr;
+    drawPixelMapWithParmOpItem.Playback(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: SaveLayerOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetNodeId004
+ * @tc.desc: test results of SetNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, SaveLayerOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, SetNodeId004, TestSize.Level1)
 {
-    SkCanvas::SaveLayerRec rec;
-    auto op = std::make_unique<SaveLayerOpItem>(rec);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (SaveLayerOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawPixelMapWithParmOpItem drawPixelMapWithParmOpItem(pixelMap, imageInfo, sampling, paint);
+    drawPixelMapWithParmOpItem.SetNodeId(id);
+
+    drawPixelMapWithParmOpItem.objectHandle_ = nullptr;
+    drawPixelMapWithParmOpItem.SetNodeId(id);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: DrawableOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback005
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, DrawableOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback005, TestSize.Level1)
 {
-    SkMatrix matrix = SkMatrix::I();
-    const char data[] = { '0', '0' };
-    sk_sp<SkDrawable> inSkDrawable = SkDrawable::Deserialize(data, sizeof(data));
-    auto op = std::make_unique<DrawableOpItem>(inSkDrawable.get(), nullptr);
-    op = std::make_unique<DrawableOpItem>(inSkDrawable.get(), &matrix);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (DrawableOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::DrawCmdList list;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawPixelMapRectOpItem.Playback(&canvas, &rect);
+
+    drawPixelMapRectOpItem.objectHandle_ = nullptr;
+    drawPixelMapRectOpItem.Playback(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: PictureOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetNodeId005
+ * @tc.desc: test results of SetNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, PictureOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
 {
-    sk_sp<SkPicture> picture = CreateSkPicture();
-    SkMatrix matrix = SkMatrix::I();
-    SkPaint paint;
-    auto op = std::make_unique<PictureOpItem>(picture, nullptr, nullptr);
-    op = std::make_unique<PictureOpItem>(picture, &matrix, &paint);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (PictureOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::DrawCmdList list;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
+    drawPixelMapRectOpItem.SetNodeId(id);
+
+    drawPixelMapRectOpItem.objectHandle_ = nullptr;
+    drawPixelMapRectOpItem.SetNodeId(id);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: PointsOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback006
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, PointsOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
 {
-    SkCanvas::PointMode mode = SkCanvas::PointMode::kLines_PointMode;
-    int count = 3;
-    SkPoint processedPoints[] = { { 0, 0 }, { 1, 2 }, { 4, 3 } };
-    SkPaint paint;
-    auto op = std::make_unique<PointsOpItem>(mode, count, processedPoints, paint);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (PointsOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::DrawCmdList list;
+    uint32_t funcObjectId = 1;
+    Drawing::DrawFuncOpItem::ConstructorHandle constructorHandle(funcObjectId);
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    Drawing::DrawFuncOpItem drawFuncOpItem(std::move(drawFunc));
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawFuncOpItem.Playback(&canvas, &rect);
+    ASSERT_NE(drawFuncOpItem.objectHandle_, nullptr);
+
+    drawFuncOpItem.objectHandle_ = nullptr;
+    drawFuncOpItem.Playback(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: ShadowRecOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: Playback008
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, ShadowRecOpItem001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
 {
-    SkPath path;
-    SkDrawShadowRec rec;
-    auto op = std::make_unique<ShadowRecOpItem>(path, rec);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect = SkRect::MakeLTRB(0, 0, 512, 512);
-    op->Draw(canvas, &rect);
-    op->Draw(canvas, nullptr);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (ShadowRecOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
+    Drawing::DrawCmdList list;
+    uint32_t surfaceBufferId = 1;
+    int offSetX = 1;
+    int offSetY = 1;
+    int width = 1;
+    int height = 1;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
+        surfaceBufferId, offSetX, offSetY, width, height, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawSurfaceBufferOpItem.Playback(&canvas, &rect);
+    ASSERT_EQ(drawSurfaceBufferOpItem.nativeWindowBuffer_, nullptr);
 }
-
-/**
- * @tc.name: MultiplyAlphaOpItem001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSDrawCmdTest, MultiplyAlphaOpItem001, TestSize.Level1)
-{
-    float alpha = 1.0f;
-    auto op = std::make_unique<MultiplyAlphaOpItem>(alpha);
-    Parcel parcel;
-    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
-    auto bufferSize = parcel.GetMaxCapacity();
-    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
-    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
-    bool ret = false;
-    parcel.SkipBytes(bufferSize);
-    while (!ret) {
-        size_t position = parcel.GetWritePosition();
-        ret = op->Marshalling(parcel) && (MultiplyAlphaOpItem::Unmarshalling(parcel) != nullptr);
-        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
-        if (!ret) {
-            parcel.RewindWrite(position);
-            parcel.RewindRead(bufferSize);
-        }
-    }
-    free(buffer);
-    ASSERT_TRUE(ret);
-}
-} // namespace Rosen
-} // namespace OHOS
-#endif
+} // namespace OHOS::Rosen

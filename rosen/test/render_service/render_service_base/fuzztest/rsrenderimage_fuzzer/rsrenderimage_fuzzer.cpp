@@ -171,17 +171,10 @@ bool RSImageCacheFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     uint64_t uniqueId = GetData<uint64_t>();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> img;
-    RSImageCache::Instance().CacheSkiaImage(uniqueId, img);
-    RSImageCache::Instance().GetSkiaImageCache(uniqueId);
-    RSImageCache::Instance().ReleaseSkiaImageCache(uniqueId);
-#else
     std::shared_ptr<Drawing::Image> img;
     RSImageCache::Instance().CacheDrawingImage(uniqueId, img);
     RSImageCache::Instance().GetDrawingImageCache(uniqueId);
     RSImageCache::Instance().ReleaseDrawingImageCache(uniqueId);
-#endif
 
     return true;
 }
@@ -198,30 +191,16 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     RSImage other;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
     float fRight = GetData<float>();
     float fBottom = GetData<float>();
-#ifndef USE_ROSEN_DRAWING
-    SkRect rect { fLeft, fTop, fRight, fBottom };
-    SkPaint paint;
-#else
     Drawing::Rect rect { fLeft, fTop, fRight, fBottom };
     Drawing::Brush brush;
-#endif
     bool isBackground = GetData<bool>();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> image;
-#else
     std::shared_ptr<Drawing::Image> image;
-#endif
     float left = GetData<float>();
     float top = GetData<float>();
     float right = GetData<float>();
@@ -237,53 +216,29 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     float fY3 = GetData<float>();
     float fX4 = GetData<float>();
     float fY4 = GetData<float>();
-#ifndef USE_ROSEN_DRAWING
-    SkVector vector1 { fX1, fY1 };
-    SkVector vector2 { fX2, fY2 };
-    SkVector vector3 { fX3, fY3 };
-    SkVector vector4 { fX4, fY4 };
-    SkVector radius[] = { vector1, vector2, vector3, vector4 };
-#else
     Drawing::Point vector1 { fX1, fY1 };
     Drawing::Point vector2 { fX2, fY2 };
     Drawing::Point vector3 { fX3, fY3 };
     Drawing::Point vector4 { fX4, fY4 };
     std::vector<Drawing::Point> radius = { vector1, vector2, vector3, vector4 };
-#endif
     double scale = GetData<double>();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> skData;
-#else
     std::shared_ptr<Drawing::Data> drawingData;
-#endif
     int width = GetData<int>();
     int height = GetData<int>();
     int id = GetData<int>();
 
     RSImage rsImage;
     rsImage.IsEqual(other);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-#else
-    rsImage.CanvasDrawImage(canvas, rect, paint, isBackground);
-#endif
-#else
     canvas.AttachBrush(brush);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
-#endif
     rsImage.SetImage(image);
     rsImage.SetDstRect(dstRect);
     rsImage.SetImageFit(fitNum);
     rsImage.SetImageRepeat(repeatNum);
     rsImage.SetRadius(radius);
     rsImage.SetScale(scale);
-#ifndef USE_ROSEN_DRAWING
-    rsImage.SetCompressData(skData, id, width, height);
-#else
     rsImage.SetCompressData(drawingData, id, width, height);
-#endif
     return true;
 }
 
@@ -302,13 +257,8 @@ bool RSMaskFuzzTest(const uint8_t* data, size_t size)
     double y = GetData<double>();
     double scaleX = GetData<double>();
     double scaleY = GetData<double>();
-#ifndef USE_ROSEN_DRAWING
-    SkPath skPath;
-    SkPaint skPaint;
-#else
     Drawing::Path path;
     Drawing::Brush brush;
-#endif
     sk_sp<SkSVGDOM> svgDom;
     MaskType type = GetData<MaskType>();
 
@@ -317,13 +267,8 @@ bool RSMaskFuzzTest(const uint8_t* data, size_t size)
     rsMask.SetSvgY(y);
     rsMask.SetScaleX(scaleX);
     rsMask.SetScaleY(scaleY);
-#ifndef USE_ROSEN_DRAWING
-    rsMask.SetMaskPath(skPath);
-    rsMask.SetMaskPaint(skPaint);
-#else
     rsMask.SetMaskPath(path);
     rsMask.SetMaskBrush(brush);
-#endif
     rsMask.SetSvgDom(svgDom);
     rsMask.SetMaskType(type);
 
@@ -340,11 +285,7 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-#ifndef USE_ROSEN_DRAWING
-    SkPath skPath = SkPath();
-#else
     Drawing::Path drPath = Drawing::Path();
-#endif
     // std::string path = GetStringFromData(STR_LEN);
     float distance = GetData<float>();
     float x = GetData<float>();
@@ -354,11 +295,7 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
     std::shared_ptr<RSPath> rsPath1 = RSPath::CreateRSPath();
 
     rsPath1->GetPosTan(distance, pos, degrees);
-#ifndef USE_ROSEN_DRAWING
-    rsPath1->SetSkiaPath(skPath);
-#else
     rsPath1->SetDrawingPath(drPath);
-#endif
 
     return true;
 }
@@ -374,13 +311,8 @@ bool RSShaderFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkShader> skShader;
-    shaderPtr->SetSkShader(skShader);
-#else
     std::shared_ptr<Drawing::ShaderEffect> shader;
     shaderPtr->SetDrawingShader(shader);
-#endif
 
     return true;
 }

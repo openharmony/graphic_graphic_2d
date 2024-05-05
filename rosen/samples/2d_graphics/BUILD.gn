@@ -65,10 +65,10 @@ ohos_executable("drawing_engine_sample") {
     "drawing_engine/drawing_surface",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/utils/sync_fence/export",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/include/common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 
   sources += [
@@ -88,11 +88,7 @@ ohos_executable("drawing_engine_sample") {
     "benchmarks/benchmark_dcl",
   ]
 
-  deps = [
-    "$graphic_2d_root:libsurface",
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/utils:sync_fence",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
 
@@ -110,7 +106,6 @@ ohos_executable("drawing_engine_sample") {
   public_deps += [
     "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/openssl:libcrypto_shared",
   ]
   external_deps = [
     "c_utils:utils",
@@ -120,6 +115,7 @@ ohos_executable("drawing_engine_sample") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+  public_external_deps = [ "openssl:libcrypto_shared" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
@@ -137,14 +133,13 @@ ohos_executable("drawing_sample_rs") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_client",
     "$graphic_2d_root/rosen/include/common",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/zlib:libz",
   ]
 
   external_deps = [
@@ -171,18 +166,82 @@ ohos_executable("drawing_sample_canvaskit0310") {
   ]
 
   deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/utils:libgraphic_utils",
-    "$graphic_2d_root/utils:sync_fence",
   ]
 
   external_deps = [
+    "graphic_surface:surface",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+ohos_executable("drawing_sample_replayer") {
+  install_enable = true
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-variable",
+    "-Werror,-Wreturn-type",
+    "-Wno-error=deprecated-declarations",
+  ]
+
+  sources = [ "drawing_sample_replayer.cpp" ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "foundation/communication/ipc/interfaces/innerkits/dm",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+  ]
+
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
+
+  public_deps = libgl
+  defines = gpu_defines
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+
+  defines += [
+    "VK_USE_PLATFORM_OHOS",
+    "NDEBUG",
+  ]
+  include_dirs += [
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+  ]
+  public_deps += [
+    "$graphic_2d_root:libvulkan",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "ipc:ipc_core",
+    "window_manager:libdm",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }

@@ -46,8 +46,7 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
         return nullptr;
     }
 #if defined(ACE_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
         return derivedPtr->GetSurface();
     }

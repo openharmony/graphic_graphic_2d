@@ -18,7 +18,6 @@
 #include "gtest/gtest.h"
 #include "pixel_map.h"
 
-#include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"
@@ -52,7 +51,7 @@ void RSRenderParticleTest::SetUp()
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
@@ -80,16 +79,18 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-    SkImageInfo info =
-        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto srfce = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    auto cnvs = srfce->getCanvas();
-    cnvs->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
+    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888,  Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto srfce = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    auto cnvs = srfce->GetCanvas();
+    cnvs->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
     int a = 4;
     int b = 2;
-    cnvs->drawRect(SkRect::MakeXYWH(width/a, height/a, width/b, height/b), paint);
+    cnvs->AttachBrush(brush);
+    cnvs->DrawRect(Drawing::Rect(width/a, height/a, width/a + width/b, height/a + height/b));
+    cnvs->DetachBrush();
     return pixelmap;
 }
 
@@ -101,7 +102,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 HWTEST_F(RSRenderParticleTest, InitProperty001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 start";
-    particle->InitProperty(params);
+    particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 end";
 }
@@ -119,7 +120,8 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(std::numeric_limits<uint64_t>::max() / NS_PER_MS,
+        std::numeric_limits<uint64_t>::max() / NS_PER_MS + 1);
     ParticleType type = ParticleType::IMAGES;
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = nullptr;
@@ -134,7 +136,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    particle->InitProperty(params);
+    particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty002 end";
 }
@@ -152,7 +154,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(0, 3000); // 3000 is lifeTime range end.
     ParticleType type = ParticleType::IMAGES;
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
@@ -169,7 +171,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    particle->InitProperty(params);
+    particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty003 end";
 }
@@ -187,7 +189,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = -1;
+    Range<int64_t> lifeTime = Range<int64_t>(-1, -1);
     ParticleType type = ParticleType::IMAGES;
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
@@ -207,7 +209,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    particle->InitProperty(params);
+    particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty004 end";
 }

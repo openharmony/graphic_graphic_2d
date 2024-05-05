@@ -81,8 +81,8 @@ group("sandbox_utils") {
   public_deps = [ "sandbox:sandbox_utils" ]
 }
 
-group("frame_report") {
-  public_deps = [ "frame_report:frame_report" ]
+group("rs_frame_report_ext") {
+  public_deps = [ "rs_frame_report_ext:rs_frame_report_ext" ]
 }
 
 ## Build libgraphic_utils.so {{{
@@ -93,23 +93,24 @@ config("libgraphic_utils_public_config") {
 ohos_shared_library("libgraphic_utils") {
   public_configs = [ ":libgraphic_utils_public_config" ]
 
-  public_deps = [
-    "buffer_handle:buffer_handle",
-    "color_manager:color_manager",
-    "cpudraw:cpudraw",
-    "frame_report:frame_report",
-    "gl_utils:gl_utils",
-    "gslogger:libgslogger",
-    "matrix:matrix",
-    "option_parser:option_parser",
-    "promise:promise",
-    "raw_maker:raw_maker",
-    "raw_parser:raw_parser",
-    "sandbox:sandbox_utils",
-    "scoped_bytrace:scoped_bytrace",
-    "semaphore:semaphore",
-    "test_header:test_header",
+  public_deps = [ "color_manager:color_manager" ]
+
+  deps = [
+    ":buffer_handle",
+    ":cpudraw",
+    ":gl_utils",
+    ":libgslogger",
+    ":matrix",
+    ":option_parser",
+    ":promise",
+    ":raw_maker",
+    ":raw_parser",
+    ":sandbox_utils",
+    ":scoped_bytrace",
+    ":semaphore",
+    ":test_header",
   ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

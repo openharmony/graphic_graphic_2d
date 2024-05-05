@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -27,6 +28,10 @@ constexpr const char* ENTRY_VIEW = "SCBDesktop";
 constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
+constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
+constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
+constexpr const char* SYSTEM_APP = "";
+constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
@@ -49,6 +54,9 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     }
     if (surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos) {
         wallpaperViewNodeId_ = surfaceNode->GetId();
+    }
+    if (surfaceNode->GetName().find(NEGATIVE_SCREEN) != std::string::npos) {
+        negativeScreenNodeId_ = surfaceNode->GetId();
     }
 }
 
@@ -77,12 +85,39 @@ NodeId RSRenderNodeMap::GetScreenLockWindowNodeId() const
     return screenLockWindowNodeId_;
 }
 
+NodeId RSRenderNodeMap::GetNegativeScreenNodeId() const
+{
+    return negativeScreenNodeId_;
+}
+
 static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
 {
     return surfaceNode->GetName().find(ENTRY_VIEW) != std::string::npos ||
            surfaceNode->GetName().find(SYSUI_DROPDOWN) != std::string::npos ||
            surfaceNode->GetName().find(SCREENLOCK_WINDOW) != std::string::npos ||
            surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos;
+}
+
+void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
+{
+    if (abilityComponentNumsInProcess_[ExtractPid(id)] > ABILITY_COMPONENT_LIMIT) {
+        renderNodeMap_.erase(id);
+        surfaceNodeMap_.erase(id);
+        return;
+    }
+    abilityComponentNumsInProcess_[ExtractPid(id)]++;
+}
+
+uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
+{
+    if (surfaceNodeMap_.empty()) {
+        return 0;
+    }
+
+    return std::count_if(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
+        [](const auto& pair) -> bool {
+            return pair.second && pair.second->IsLeashWindowSurfaceNodeVisible();
+        });
 }
 
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
@@ -108,6 +143,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         }
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
     }
     return true;
 }
@@ -124,27 +162,32 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     return true;
 }
 
+void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
+{
+    auto surfaceNodeIter = surfaceNodeMap_.find(id);
+    if (surfaceNodeIter != surfaceNodeMap_.end()) {
+        auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
+        if ((surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE) &&
+            (surfaceNode->GetName().find(SYSTEM_APP) == std::string::npos)) {
+            auto pid = ExtractPid(id);
+            auto iter = abilityComponentNumsInProcess_.find(pid);
+            if (iter != abilityComponentNumsInProcess_.end()) {
+                if (--abilityComponentNumsInProcess_[pid] == 0) {
+                    abilityComponentNumsInProcess_.erase(pid);
+                }
+            }
+        }
+    }
+}
+
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
+    EraseAbilityComponentNumsInProcess(id);
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
-    drivenRenderNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
-}
-
-void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
-{
-    NodeId id = nodePtr->GetId();
-    if (!renderNodeMap_.count(id)) {
-        return;
-    }
-    drivenRenderNodeMap_.emplace(id, nodePtr);
-}
-
-void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
-{
-    drivenRenderNodeMap_.erase(id);
+    canvasDrawingNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -175,12 +218,16 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
-    EraseIf(drivenRenderNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
 
-    EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(canvasDrawingNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
+    });
+
+    EraseIf(abilityComponentNumsInProcess_, [pid](const auto& pair) -> bool {
+        return pair.first == pid;
     });
 
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {
@@ -205,6 +252,14 @@ void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<R
     }
 }
 
+void RSRenderNodeMap::TraverseCanvasDrawingNodes(
+    std::function<void(const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : canvasDrawingNodeMap_) {
+        func(node);
+    }
+}
+
 void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
 {
     for (const auto& [_, node] : surfaceNodeMap_) {
@@ -216,13 +271,6 @@ bool RSRenderNodeMap::ContainPid(pid_t pid) const
 {
     return std::any_of(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
         [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
-}
-
-void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const
-{
-    for (const auto& [_, node] : drivenRenderNodeMap_) {
-        func(node);
-    }
 }
 
 void RSRenderNodeMap::TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const

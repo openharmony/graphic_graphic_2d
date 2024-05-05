@@ -24,7 +24,7 @@ group("ace_skia") {
 # eventhandler {{{
 group("eventhandler") {
   if (platform == "ohos") {
-    public_deps = eventhandler_deps
+    public_external_deps = [ "eventhandler:libeventhandler" ]
   } else if (cross_platform) {
     public_deps = [ "$appframework_root/ability/ability_runtime/cross_platform/frameworks/native/base/event_handler:cross_platform_event_handler" ]
   } else {
@@ -50,11 +50,13 @@ ohos_source_set("impl_eventhandler") {
   ]
   defines = [ "LOG_DOMAIN=0xD001200" ]
   cflags = [ "-std=c++17" ]
-  deps = [
-    ":utils",
-    "//third_party/libuv:uv",
+  deps = [ ":utils" ]
+
+  external_deps = [
+    "hilog:libhilog",
+    "libuv:uv",
   ]
-  external_deps = [ "hilog:libhilog" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -77,9 +79,9 @@ ohos_source_set("hilog") {
 # image_native {{{
 group("image_native") {
   if (platform == "ohos") {
-    public_deps = image_deps
+    public_external_deps = [ "image_framework:image_native" ]
   } else if (platform == "android" || platform == "ios") {
-    public_deps = [ "$image_framework_root/interfaces/innerkits:image_native" ]
+    public_external_deps = [ "image_framework:image_native" ]
   } else {
     public_deps = [ ":mock_image_native" ]
   }
@@ -103,7 +105,7 @@ ohos_source_set("mock_image_native") {
 # ipc_core {{{
 group("ipc_core") {
   if (platform == "ohos") {
-    public_deps = ipc_deps
+    public_external_deps = [ "ipc:ipc_core" ]
   } else {
     public_deps = [ ":mock_ipc_core" ]
   }
@@ -133,9 +135,9 @@ ohos_source_set("mock_ipc_core") {
 # utils {{{
 group("utils") {
   if (platform == "ohos") {
-    public_deps = utils_deps
+    public_external_deps = [ "c_utils:utils" ]
   } else if (platform == "android" || platform == "ios") {
-    public_deps = [ "$c_utils_root/base:utilsbase" ]
+    public_external_deps = [ "c_utils:utilsbase" ]
   } else {
     public_deps = [ ":mock_utils" ]
   }
@@ -153,9 +155,10 @@ config("ios_utils_config") {
 }
 
 ohos_source_set("mock_utils") {
+  public_external_deps = []
   if (current_os == "ios") {
     public_configs = [ ":ios_utils_config" ]
-    public_deps = [ "$c_utils_root/base:utilsbase" ]
+    public_external_deps += [ "c_utils:utilsbase" ]
   } else {
     public_configs = [ ":utils_config" ]
     sources = [
@@ -163,7 +166,7 @@ ohos_source_set("mock_utils") {
       "utils/parcel.cpp",
       "utils/refbase.cpp",
     ]
-    public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+    public_external_deps += [ "bounds_checking_function:libsec_shared" ]
   }
   part_name = "graphic_2d"
   subsystem_name = "graphic"

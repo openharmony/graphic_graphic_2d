@@ -15,33 +15,26 @@
 
 #include "pipeline/rs_uni_render_listener.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 RSUniRenderListener::~RSUniRenderListener() {}
 
-RSUniRenderListener::RSUniRenderListener(std::weak_ptr<RSDisplayRenderNode> displayRenderNode)
-    : displayRenderNode_(displayRenderNode) {}
+RSUniRenderListener::RSUniRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler)
+    : surfaceHandler_(surfaceHandler) {}
 
 void RSUniRenderListener::OnBufferAvailable()
 {
-    auto node = displayRenderNode_.lock();
-    if (node == nullptr) {
-        RS_LOGE("RSUniRenderListener::OnBufferAvailable node is nullptr");
+    auto surfaceHandler = surfaceHandler_.lock();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSUniRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-    node->IncreaseAvailableBuffer();
-#if (defined RS_ENABLE_PARALLEL_RENDER) && (defined RS_ENABLE_VK)
-    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && node->IsParallelDisplayNode()) {
-        RSParallelRenderManager::Instance()->NotifyUniRenderFinish();
-        return;
-    }
-#endif
+    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
+    surfaceHandler->IncreaseAvailableBuffer();
     RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }

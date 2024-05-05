@@ -37,24 +37,20 @@ public:
 
     void HoldResource(const std::shared_ptr<Image>& img) override
     {
-        const sk_sp<SkImage> skImage = img->GetImpl<SkiaImage>()->GetImage();
-        if (!skImage) {
+        uintptr_t id = uintptr_t(img.get());
+        if (images_.find(id) != images_.end()) {
             return;
         }
-        uint32_t id = skImage->uniqueID();
-        if (skImages_.find(id) != skImages_.end()) {
-            return;
-        }
-        skImages_.emplace(id, skImage);
+        images_.emplace(id, img);
     }
 
     void ReleaseResource() override
     {
-        auto iter = skImages_.begin();
-        while (iter != skImages_.end()) {
-            if (iter->second->unique()) {
+        auto iter = images_.begin();
+        while (iter != images_.end()) {
+            if (iter->second.use_count() == 1) {
                 auto tmp = iter++;
-                skImages_.erase(tmp);
+                images_.erase(tmp);
             } else {
                 ++iter;
             }
@@ -63,11 +59,11 @@ public:
 
     bool IsEmpty() override
     {
-        return skImages_.empty();
+        return images_.empty();
     }
 
 private:
-    std::unordered_map<uint32_t, const sk_sp<SkImage>> skImages_;
+    std::unordered_map<uintptr_t, const std::shared_ptr<Image>> images_;
 };
 } // namespace Drawing
 } // namespace Rosen

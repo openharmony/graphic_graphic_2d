@@ -153,6 +153,7 @@ public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
     void Init(bool independentContext = false);
+    void InitCapture(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -163,17 +164,17 @@ public:
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
     void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos);
 #else
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
     void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);
 #endif
@@ -187,9 +188,10 @@ public:
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         float mirrorAdaptiveCoefficient = 1.0f) = 0;
 
-    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
+    void ClearCacheSet(const std::set<int32_t> unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled)
@@ -215,6 +217,10 @@ public:
     {
         return renderContext_;
     }
+    const std::shared_ptr<RenderContext>& GetCaptureRenderContext()
+    {
+        return captureRenderContext_;
+    }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #endif
     void ResetCurrentContext();
@@ -230,23 +236,18 @@ public:
     {
         return vkImageManager_;
     }
-#ifndef USE_ROSEN_DRAWING
-    const sk_sp<GrDirectContext> GetSkContext() const
-#else
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
-#endif
     {
         return skContext_;
     }
+    const std::shared_ptr<Drawing::GPUContext> GetCaptureSkContext() const
+    {
+        return captureSkContext_;
+    }
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
-#else
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
-#endif
 #endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
@@ -256,15 +257,9 @@ protected:
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
-#else
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
-#endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 #if defined(NEW_RENDER_CONTEXT)
@@ -273,17 +268,15 @@ private:
 #else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
+    std::shared_ptr<RenderContext> captureRenderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #endif
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> skContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
-#endif
+    std::shared_ptr<Drawing::GPUContext> captureSkContext_ = nullptr;
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
     using SurfaceId = uint64_t;

@@ -80,7 +80,7 @@ public:
     std::u16string GetObjectDescriptor() const;
 
 protected:
-    explicit IRemoteObject(std::u16string descriptor = nullptr);
+    explicit IRemoteObject(const std::u16string &descriptor = nullptr);
     virtual ~IRemoteObject() = default;
 };
 } // namespace OHOS

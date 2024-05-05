@@ -14,10 +14,11 @@
  */
 
 #include "js_color_filter.h"
-#include "../js_drawing_utils.h"
+
 #include "native_value.h"
 #include "draw/color.h"
 
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

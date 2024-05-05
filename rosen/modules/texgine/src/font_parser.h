@@ -24,7 +24,7 @@
 #include "opentype_parser/name_table_parser.h"
 #include "opentype_parser/post_table_parser.h"
 
-#include "texgine_typeface.h"
+#include "typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,7 +88,9 @@ public:
     };
 
     FontParser();
-    std::vector<FontDescriptor> GetVisibilityFonts(const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<FontDescriptor> GetVisibilityFonts(const std::string &locale = SIMPLIFIED_CHINESE);
+    std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
+        const std::string locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -96,11 +98,13 @@ private:
     static void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor);
     int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
     static void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor);
-    int ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    int ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
     int SetFontDescriptor(const unsigned int languageId);
+    std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(const std::string& fontName,
+        const unsigned int languageId);
     static void SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
         unsigned int languageId, const std::string& nameString);
     int GetLanguageId(const std::string& locale)

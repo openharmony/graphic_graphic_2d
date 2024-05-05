@@ -1,0 +1,102 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+group("textnapi") {
+  deps = [
+    ":text_napi",
+    ":text_napi_impl",
+  ]
+}
+
+config("text_config") {
+  include_dirs = [ "../text" ]
+}
+
+config("local_text") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "../text",
+    "../drawing",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  ]
+}
+
+ohos_shared_library("text_napi") {
+  sources = [ "text_module.cpp" ]
+  configs = [
+    ":local_text",
+    ":text_config",
+  ]
+
+  deps = [ ":text_napi_impl" ]
+
+  external_deps = [ "napi:ace_napi" ]
+  relative_install_dir = "module/graphics"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_shared_library("text_napi_impl") {
+  sources = [
+    "enum_napi/text_enum_napi.cpp",
+    "fontcollection_napi/js_fontcollection.cpp",
+    "js_text_init.cpp",
+    "js_text_utils.cpp",
+    "paragraph_builder_napi/js_paragraph_builder.cpp",
+    "paragraph_napi/js_paragraph.cpp",
+    "run_napi/js_run.cpp",
+    "text_line_napi/js_text_line.cpp",
+  ]
+
+  configs = [
+    ":local_text",
+    ":text_config",
+  ]
+
+  deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
+  ]
+
+  external_deps = [
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "napi:ace_napi",
+    "resource_management:global_resmgr",
+  ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    defines = [ "ROSEN_OHOS" ]
+    cflags = [ "-fstack-protector-strong" ]
+    cflags_cc = [
+      "-fstack-protector-strong",
+      "-std=c++17",
+    ]
+  } else {
+    cflags_cc = [ "-std=c++17" ]
+  }
+
+  if (current_os == "mingw") {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

@@ -23,22 +23,42 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
   sources = [
     "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_mask_filter.cpp",
     "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
+    "skia_bitmap_test.cpp",
+    "skia_canvas_autocache_test.cpp",
     "skia_canvas_test.cpp",
     "skia_color_filter_test.cpp",
+    "skia_color_space_test.cpp",
+    "skia_data_test.cpp",
+    "skia_font_mgr_test.cpp",
+    "skia_font_style_set_test.cpp",
+    "skia_font_test.cpp",
+    "skia_gpu_context_test.cpp",
     "skia_helper_test.cpp",
+    "skia_hm_symbol_config_ohos_test.cpp",
+    "skia_hm_symbol_test.cpp",
     "skia_image_filter_test.cpp",
     "skia_image_info_test.cpp",
     "skia_image_test.cpp",
     "skia_mask_filter_test.cpp",
     "skia_matrix44_test.cpp",
     "skia_matrix_test.cpp",
+    "skia_memory_tracer_test.cpp",
     "skia_paint_test.cpp",
     "skia_path_effect_test.cpp",
     "skia_path_test.cpp",
     "skia_picture_test.cpp",
     "skia_pixmap_test.cpp",
     "skia_region_test.cpp",
+    "skia_runtime_blender_builder_test.cpp",
+    "skia_runtime_effect_test.cpp",
+    "skia_runtime_shader_builder_test.cpp",
     "skia_shader_effect_test.cpp",
+    "skia_surface_test.cpp",
+    "skia_text_blob_test.cpp",
+    "skia_texture_info_test.cpp",
+    "skia_trace_memory_dump_test.cpp",
+    "skia_typeface_test.cpp",
+    "skia_vertices_test.cpp",
   ]
 
   include_dirs = [
@@ -54,11 +74,17 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "jsoncpp:jsoncpp",
+  ]
 
   include_dirs += [
     "//third_party/skia",
     "//third_party/skia/include/",
+    "//third_party/skia/include/core/",
+    "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/",
   ]
   deps += [ "//third_party/skia:skia_ohos" ]
 

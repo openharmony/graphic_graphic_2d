@@ -16,11 +16,18 @@
 #include "egl_wrapper_display.h"
 
 #include "egl_defs.h"
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+#include "egl_wrapper_hook.h"
+#endif
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_surface.h"
-#include "../thread_private_data_ctl.h"
-#include "../wrapper_log.h"
+#include "thread_private_data_ctl.h"
+#include "wrapper_log.h"
 #include "egl_blob_cache.h"
+#include "external_window.h"
+#include "surface.h"
+#include "window.h"
+
 namespace OHOS {
 EglWrapperDisplay EglWrapperDisplay::wrapperDisp_;
 
@@ -66,13 +73,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
                 *minor = table->minor;
             }
             refCnt_++;
-
-            if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
-                BlobCache::Get()->Init();
-                table->egl.eglSetBlobCacheFuncsANDROID(disp_, BlobCache::setBlobFunc, BlobCache::getBlobFunc);
-            } else {
-                WLOGE("eglSetBlobCacheFuncsANDROID not found.");
-            }
+            BlobCache::Get()->Init(this);
         } else {
             WLOGE("eglInitialize Error.");
         }
@@ -99,6 +100,7 @@ EGLBoolean EglWrapperDisplay::Terminate()
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad) {
         if (table->egl.eglTerminate) {
+            BlobCache::Get()->Terminate();
             ClearObjects();
             return table->egl.eglTerminate(disp_);
         }
@@ -109,7 +111,8 @@ EGLBoolean EglWrapperDisplay::Terminate()
 }
 
 EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
-    EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx)
+    EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx,
+    bool isAfterHook, EglWrapperContext *curCtx)
 {
     WLOGD("");
     EGLContext actualCtx  = EGL_NO_CONTEXT;
@@ -137,6 +140,9 @@ EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
                 hookTable = &gWrapperHook.gl;
                 ctx->SetCurrentSurface(draw, read);
             }
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+            ChooseHookTable(isAfterHook, ctx, curCtx, &hookTable);
+#endif
             ThreadPrivateDataCtl::SetGlHookTable(hookTable);
             ThreadPrivateDataCtl::SetContext(ctx);
         } else {
@@ -147,6 +153,28 @@ EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
     }
     return ret;
 }
+
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+void EglWrapperDisplay::ChooseHookTable(bool isAfterHook,
+    const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
+    GlHookTable **ppHookTable)
+{
+    if (ppHookTable == nullptr) {
+        return;
+    }
+
+    if (isAfterHook) {
+        if (ctx == nullptr && curCtx != nullptr) {
+            *ppHookTable = &g_glHookCSDR;
+        }
+    } else {
+        EglWrapperHook& hookLayer(EglWrapperHook::GetInstance());
+        if (hookLayer.IsInit() && hookLayer.gtx.gtxGetSingleThreadStatus()) {
+            *ppHookTable = &g_glHookSingle;
+        }
+    }
+}
+#endif
 
 EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
@@ -195,6 +223,58 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
 
     return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr);
 }
+
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+EGLBoolean EglWrapperDisplay::MakeCurrentAfterHook(EGLSurface draw, EGLSurface read, EGLContext ctx)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperContext *ctxPtr = nullptr;
+    EglWrapperSurface *surDrawPtr = nullptr;
+    EglWrapperSurface *surReadPtr = nullptr;
+
+    EGLContext curC = ThreadPrivateDataCtl::GetContext();
+    EglWrapperContext *curCtx = EglWrapperContext::GetWrapperContext(curC);
+
+    if (ctx != EGL_NO_CONTEXT) {
+        ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
+        if (!CheckObject(ctxPtr)) {
+            WLOGE("EGLContext is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_CONTEXT);
+            return EGL_FALSE;
+        }
+    } else {
+        if (draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE) {
+            WLOGE("EGLContext and EGLSurface is bad match.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_MATCH);
+            return EGL_FALSE;
+        }
+        if (ThreadPrivateDataCtl::GetContext() == EGL_NO_CONTEXT) {
+            WLOGI("There is just no current context. skip");
+            return EGL_TRUE;
+        }
+    }
+
+    if (draw != EGL_NO_SURFACE) {
+        surDrawPtr = EglWrapperSurface::GetWrapperSurface(draw);
+        if (!CheckObject(surDrawPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
+    }
+
+    if (read != EGL_NO_SURFACE) {
+        surReadPtr = EglWrapperSurface::GetWrapperSurface(read);
+        if (!CheckObject(surReadPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
+    }
+    return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr, true, curCtx);
+}
+#endif
 
 EglWrapperDisplay *EglWrapperDisplay::GetWrapperDisplay(EGLDisplay display)
 {
@@ -276,6 +356,23 @@ bool EglWrapperDisplay::ValidateEglSurface(EGLSurface surf)
     return false;
 }
 
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+int EglWrapperDisplay::ChooseGlesVersion(const EGLint *attribList)
+{
+    int version = EglWrapperDispatchTable::GLESV1_INDEX;
+    if (attribList) {
+        while (*attribList != EGL_NONE) {
+            GLint attr = *attribList++;
+            GLint value = *attribList++;
+            if (attr == EGL_CONTEXT_CLIENT_VERSION && (value == 2 || value == 3)) { // 2:version 3:version
+                version = EglWrapperDispatchTable::GLESV2_INDEX;
+            }
+        }
+    }
+    return version;
+}
+#endif
+
 EGLContext EglWrapperDisplay::CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList)
 {
     WLOGD("");
@@ -296,7 +393,11 @@ EGLContext EglWrapperDisplay::CreateEglContext(EGLConfig config, EGLContext shar
     if (table->isLoad && table->egl.eglCreateContext) {
         EGLContext context = table->egl.eglCreateContext(disp_, config, shareCtx, attribList);
         if (context != EGL_NO_CONTEXT) {
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+            return new EglWrapperContext(this, context, ChooseGlesVersion(attribList));
+#else
             return new EglWrapperContext(this, context);
+#endif
         } else {
             WLOGE("egl.eglCreateContext error.");
         }
@@ -351,7 +452,7 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config, NativeWindowTyp
     if (table->isLoad && table->egl.eglCreateWindowSurface) {
         EGLSurface surf = table->egl.eglCreateWindowSurface(disp_, config, window, attribList);
         if (surf != EGL_NO_SURFACE) {
-            return new EglWrapperSurface(this, surf);
+            return new EglWrapperSurface(this, surf, window);
         } else {
             WLOGE("egl.eglCreateWindowSurface error.");
         }
@@ -542,6 +643,10 @@ EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 
     EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
     if (!CheckObject(surfPtr)) {
+        if (surfPtr->GetEglSurface() == nullptr) {
+            WLOGE("INparament is invalid.");
+            return EGL_FALSE;
+        }
         WLOGE("EGLSurface is invalid.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
         return EGL_FALSE;
@@ -913,6 +1018,172 @@ EGLBoolean EglWrapperDisplay::SetDamageRegionKHR(EGLSurface surf, EGLint *rects,
         WLOGE("eglSetDamageRegionKHR is invalid.");
     }
 
+    return ret;
+}
+
+EGLBoolean EglWrapperDisplay::GetCompositorTimingSupportedANDROID(EGLSurface surface, EGLint name)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
+    if (!CheckObject(surfPtr)) {
+        WLOGE("EGLSurface is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+
+    if (surfPtr->GetNativeWindow() == nullptr) {
+        WLOGE("GetCompositorTimingSupportedANDROID native window is nullptr.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+
+    switch (name) {
+        case EGL_COMPOSITE_DEADLINE_ANDROID:
+        case EGL_COMPOSITE_INTERVAL_ANDROID:
+        case EGL_COMPOSITE_TO_PRESENT_LATENCY_ANDROID:
+            return EGL_TRUE;
+        default:
+            return EGL_FALSE;
+    }
+}
+
+EGLBoolean EglWrapperDisplay::GetFrameTimestampSupportedANDROID(EGLSurface surface, EGLint timestamp)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
+    if (!CheckObject(surfPtr)) {
+        WLOGE("EGLSurface is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+
+    if (surfPtr->GetNativeWindow() == nullptr) {
+        WLOGE("GetFrameTimestampSupportedANDROID native window is nullptr.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+    switch (timestamp) {
+        case EGL_COMPOSITE_DEADLINE_ANDROID:
+        case EGL_COMPOSITE_INTERVAL_ANDROID:
+        case EGL_COMPOSITE_TO_PRESENT_LATENCY_ANDROID:
+        case EGL_REQUESTED_PRESENT_TIME_ANDROID:
+        case EGL_RENDERING_COMPLETE_TIME_ANDROID:
+        case EGL_COMPOSITION_LATCH_TIME_ANDROID:
+        case EGL_FIRST_COMPOSITION_START_TIME_ANDROID:
+        case EGL_LAST_COMPOSITION_START_TIME_ANDROID:
+        case EGL_FIRST_COMPOSITION_GPU_FINISHED_TIME_ANDROID:
+        case EGL_DEQUEUE_READY_TIME_ANDROID:
+        case EGL_READS_DONE_TIME_ANDROID:
+            return EGL_TRUE;
+        default:
+            return EGL_FALSE;
+    }
+}
+
+EGLBoolean EglWrapperDisplay::PresentationTimeANDROID(EGLSurface surface, EGLnsecsANDROID time)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
+    if (!CheckObject(surfPtr)) {
+        WLOGE("EGLSurface is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+    if (surfPtr->GetNativeWindow() == nullptr) {
+        WLOGE("PresentationTimeANDROID native window is nullptr.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+
+    if (NativeWindowHandleOpt(reinterpret_cast<OHNativeWindow*>(surfPtr->GetNativeWindow()),
+        SET_UI_TIMESTAMP, time) != 0) {
+        WLOGE("NativeWindowHandleOpt SET_UI_TIMESTAMP failed.");
+        return EGL_FALSE;
+    }
+    return EGL_TRUE;
+}
+
+EGLSurface EglWrapperDisplay::CreatePlatformWindowSurfaceEXT(EGLConfig config, void *nativeWindow,
+    const EGLint *attribList)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    if (nativeWindow == nullptr) {
+        WLOGE("CreatePlatformWindowSurfaceEXT nativeWindow is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_NATIVE_WINDOW);
+        return EGL_NO_SURFACE;
+    }
+
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglCreatePlatformWindowSurfaceEXT) {
+        EGLSurface surf = table->egl.eglCreatePlatformWindowSurfaceEXT(
+            disp_, config, nativeWindow, attribList);
+        if (surf != EGL_NO_SURFACE) {
+            return new EglWrapperSurface(this, surf);
+        } else {
+            WLOGE("egl.eglCreatePlatformWindowSurfaceEXT error.");
+        }
+    } else {
+        WLOGE("eglCreatePlatformWindowSurfaceEXT is invalid.");
+    }
+
+    return EGL_NO_SURFACE;
+}
+
+EGLSurface EglWrapperDisplay::CreatePlatformPixmapSurfaceEXT(EGLConfig config, void *nativePixmap,
+    const EGLint *attribList)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    if (nativePixmap == nullptr) {
+        WLOGE("CreatePlatformPixmapSurfaceEXT nativePixmap is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_NATIVE_WINDOW);
+        return EGL_NO_SURFACE;
+    }
+
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglCreatePlatformPixmapSurfaceEXT) {
+        EGLSurface surf = table->egl.eglCreatePlatformPixmapSurfaceEXT(
+            disp_, config, nativePixmap, attribList);
+        if (surf != EGL_NO_SURFACE) {
+            return new EglWrapperSurface(this, surf);
+        } else {
+            WLOGE("egl.eglCreatePlatformPixmapSurfaceEXT error.");
+        }
+    } else {
+        WLOGE("eglCreatePlatformPixmapSurfaceEXT is invalid.");
+    }
+    return EGL_NO_SURFACE;
+}
+
+EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageEXT(EGLSurface surface, const EGLint *rects, EGLint nRects)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
+    if (!CheckObject(surfPtr)) {
+        WLOGE("EGLSurface is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+        return EGL_FALSE;
+    }
+
+    if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
+        WLOGE("Paramter error.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+        return EGL_FALSE;
+    }
+
+    EGLBoolean ret = EGL_FALSE;
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglSwapBuffersWithDamageEXT) {
+        ret = table->egl.eglSwapBuffersWithDamageEXT(
+            disp_, surfPtr->GetEglSurface(), rects, nRects);
+    } else {
+        WLOGE("eglSwapBuffersWithDamageEXT is invalid.");
+    }
     return ret;
 }
 } // namespace OHOS

@@ -29,12 +29,13 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
+constexpr uint32_t STANDARD_REFRESH_RATE = 60;
 constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
+    bool isSetReportEventResponseTemp_ = false;
     bool isSetReportEventComplete_ = false;
     bool isSetReportEventJankFrame_ = false;
     bool isReportEventResponse_ = false;
@@ -42,10 +43,12 @@ struct JankFrames {
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
     bool isFirstFrame_ = false;
+    bool isFirstFrameTemp_ = false;
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
@@ -61,6 +64,12 @@ struct JankFrames {
     int64_t totalFrameTimeSteady_ = 0;
     int64_t lastTotalFrameTimeSteady_ = 0;
     int32_t traceId_ = TRACE_ID_INITIAL;
+    int64_t totalFrameTimeSteadyForHTR_ = 0;
+    int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
+    float totalHitchTimeSteady_ = 0;
+    float lastTotalHitchTimeSteady_ = 0;
+    float maxHitchTime_ = 0;
+    float lastMaxHitchTime_ = 0;
     Rosen::DataBaseRs info_;
 };
 
@@ -83,19 +92,31 @@ struct TraceIdRemainderStats {
     int64_t remainder_ = 0;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
 };
-} // namespace
+
+struct JankDurationParams {
+    int64_t timeStart_ = TIMESTAMP_INITIAL;
+    int64_t timeStartSteady_ = TIMESTAMP_INITIAL;
+    int64_t timeEnd_ = TIMESTAMP_INITIAL;
+    int64_t timeEndSteady_ = TIMESTAMP_INITIAL;
+    uint32_t refreshRate_ = 0;
+    bool discardJankFrames_ = false;
+    bool skipJankAnimatorFrame_ = false;
+};
 
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
-    void SetStartTime();
-    void SetEndTime(bool discardJankFrames);
+    void SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady);
+    void SetStartTime(bool doDirectComposition = false);
+    void SetEndTime(bool skipJankAnimatorFrame = false, bool discardJankFrames = false,
+                    uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE,
+                    bool doDirectComposition = false, bool isReportTaskDelayed = false);
+    void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed);
     void ReportJankStats();
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
     void SetAppFirstFrame(pid_t appPid);
-    void SetSkipDisplayNode();
 
 private:
     RSJankStats() = default;
@@ -103,16 +124,16 @@ private:
     DISALLOW_COPY_AND_MOVE(RSJankStats);
 
     void UpdateEndTime();
-    void SetRSJankStats();
-    void UpdateJankFrame(JankFrames& jankFrames);
+    void SetRSJankStats(uint32_t dynamicRefreshRate);
+    void UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
+    void ReportEventHitchTimeRatio(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
     void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);
-    void RecordJankFrameInit();
-    void RecordJankFrame();
+    void RecordJankFrame(uint32_t dynamicRefreshRate);
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
     void RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool isReportTaskDelayed);
     void SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, const JankFrames& jankFrames);
@@ -123,6 +144,7 @@ private:
     std::pair<int64_t, std::string> GetAnimationId(const DataBaseRs& info) const;
     int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);
     int64_t ConvertTimeToSystime(int64_t time) const;
+    int64_t GetEffectiveFrameTime(bool isConsiderRsStartTime) const;
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
 
@@ -132,18 +154,23 @@ private:
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
     static constexpr bool IS_FOLD_DISP = false;
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
-    std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };
-    std::vector<JankFrameRecordStats> jankImplicitAnimatorFrameRecorder_{ {"JANK_IMPLICIT_ANIMATOR_FRAME_2F", 2} };
+    std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_1F", 1},
+                                                                          {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };
+    std::vector<JankFrameRecordStats> jankImplicitAnimatorFrameRecorder_{ {"JANK_IMPLICIT_ANIMATOR_FRAME_1F", 1},
+                                                                          {"JANK_IMPLICIT_ANIMATOR_FRAME_2F", 2} };
     bool isFirstSetStart_ = true;
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
-    bool isSkipDisplayNode_ = false;
-    int64_t startTime_ = TIMESTAMP_INITIAL;
-    int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t endTime_ = TIMESTAMP_INITIAL;
-    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t lastEndTime_ = TIMESTAMP_INITIAL;
-    int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
+    bool isLastFrameDoDirectComposition_ = false;
+    bool isCurrentFrameSwitchToNotDoDirectComposition_ = false;
+    int64_t rsStartTime_ = TIMESTAMP_INITIAL;
+    int64_t rsStartTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtStartTime_ = TIMESTAMP_INITIAL;
+    int64_t rtStartTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtEndTime_ = TIMESTAMP_INITIAL;
+    int64_t rtEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtLastEndTime_ = TIMESTAMP_INITIAL;
+    int64_t rtLastEndTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastReportTime_ = TIMESTAMP_INITIAL;
     int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;

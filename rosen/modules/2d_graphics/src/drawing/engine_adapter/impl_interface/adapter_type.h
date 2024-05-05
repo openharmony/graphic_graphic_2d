@@ -30,6 +30,8 @@ enum class DrawingType {
     COMMON,
     RECORDING,
     OVER_DRAW,
+    NO_DRAW,
+    PAINT_FILTER
 };
 } // namespace Drawing
 } // namespace Rosen

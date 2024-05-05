@@ -28,6 +28,7 @@ namespace Rosen {
 class RSSurfaceNode;
 class RSTransactionData;
 using TaskRunner = std::function<void(const std::function<void()>&)>;
+using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 
 class RSC_EXPORT RSUIDirector final {
 public:
@@ -48,9 +49,10 @@ public:
      */
     void SetRTRenderForced(bool isRenderForced);
     void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback);
 
     void SetRoot(NodeId root);
-    void SetUITaskRunner(const TaskRunner& uiTaskRunner);
+    void SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId = INSTANCE_ID_UNDEFINED);
     void SendMessages(); // post messages to render thread
 
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
@@ -76,7 +78,7 @@ private:
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event);
-    static void PostTask(const std::function<void()>& task);
+    static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED);
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;
@@ -86,6 +88,7 @@ private:
 
     std::mutex mutex_;
     NodeId root_ = 0;
+    int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
 
     bool isActive_ = false;
     bool isUniRenderEnabled_ = false;

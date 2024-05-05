@@ -49,7 +49,9 @@ ohos_unittest("2d_graphics_image_test") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
+    "image_framework:image_native",
   ]
 }
 

@@ -32,29 +32,13 @@ public:
     ~DrawingContext() = default;
     sk_sp<SkSurface> AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
     bool SetUpDrawingContext();
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    GrDirectContext* GetDrawingContext() const;
-#else
-    GrContext* GetDrawingContext() const;
-#endif
-#else
     GPUContext* GetDrawingContext() const;
-#endif
 private:
     sk_sp<SkSurface> AcquireSurfaceInGLES(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
     sk_sp<SkSurface> AcquireSurfaceInRaster(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
     sk_sp<SkSurface> AcquireSurfaceInVulkan(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
     sk_sp<SkColorSpace> GetSkColorSpace(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
-#else
     std::shared_ptr<GPUContext> gpuContext_ = nullptr;
-#endif
     RenderType renderType_;
 };
 }

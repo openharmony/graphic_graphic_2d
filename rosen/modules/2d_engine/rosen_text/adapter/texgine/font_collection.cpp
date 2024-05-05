@@ -14,7 +14,6 @@
  */
 
 #include "font_collection.h"
-
 #include "texgine/dynamic_font_provider.h"
 #include "texgine/font_providers.h"
 #include "texgine/system_font_provider.h"
@@ -40,12 +39,9 @@ std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCo
 }
 
 namespace AdapterTextEngine {
-FontCollection::FontCollection()
-{
-    fontProviders_ = TextEngine::FontProviders::Create();
-    dfprovider_ = TextEngine::DynamicFontProvider::Create();
-    tfprovider_ = TextEngine::ThemeFontProvider::GetInstance();
-}
+FontCollection::FontCollection() : fontProviders_(TextEngine::FontProviders::Create()),
+    dfprovider_(TextEngine::DynamicFontProvider::Create()),
+    tfprovider_(TextEngine::ThemeFontProvider::GetInstance()) {}
 
 std::shared_ptr<TextEngine::FontProviders> FontCollection::Get()
 {

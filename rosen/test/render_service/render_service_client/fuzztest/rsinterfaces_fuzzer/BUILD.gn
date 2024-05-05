@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -22,12 +23,11 @@ ohos_fuzztest("RSInterfacesFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",

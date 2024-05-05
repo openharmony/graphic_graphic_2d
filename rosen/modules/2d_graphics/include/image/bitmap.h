@@ -31,8 +31,8 @@ class DRAWING_API Bitmap {
 public:
     Bitmap();
     virtual ~Bitmap();
-    void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
-    void Build(const ImageInfo& imageInfo, int32_t stride = 0);
+    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
+    bool Build(const ImageInfo& imageInfo, int32_t stride = 0);
 
     /**
      * @brief Gets the width of Bitmap.
@@ -123,7 +123,6 @@ public:
      * @param dst     destination Bitmap
      * @param srcLeft column index whose absolute value is less than GetWidth()
      * @param srcTop  row index whose absolute value is less than GetHeight()
-     * @return true if pixels are copied to dst Bitmap Pixels
      */
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const;
     
@@ -160,7 +159,7 @@ public:
      */
     void SetImmutable();
 
-    /** 
+    /**
      * @brief Replaces pixel values with c, interpreted as being in the sRGB ColorSpace.
      * @param color unpremultiplied color
      */
@@ -207,15 +206,15 @@ public:
     void SetInfo(const ImageInfo& info);
 
     /**
-     * @brief Returns width, height, AlphaType, ColorType, and ColorSpace.
-     * @return reference to ImageInfo
+     * @brief Gets Image info which contains width, height, AlphaType, ColorType, and ColorSpace.
+     * @return Returns ImageInfo describing this Bitmap
      */
     ImageInfo GetImageInfo() const;
 
     /**
-     * @brief Returns a constant reference to the Pixmap holding the Bitmap pixel
+     * @brief Gets a constant reference to the Pixmap holding the Bitmap pixel
      * address, row bytes, and ImageInfo.
-     * @return reference to Pixmap describing this Bitmap
+     * @return Returns Pixmap describing this Bitmap
      */
     Pixmap GetPixmap() const;
 

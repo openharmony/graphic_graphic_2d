@@ -25,23 +25,6 @@ SKResourceManager& SKResourceManager::Instance()
     return instance;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void SKResourceManager::HoldResource(sk_sp<SkImage> img)
-{
-#ifdef ROSEN_OHOS
-    auto tid = gettid();
-    if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
-        return;
-    }
-    std::scoped_lock<std::recursive_mutex> lock(mutex_);
-    if (std::any_of(skImages_[tid].cbegin(), skImages_[tid].cend(),
-        [&img](const sk_sp<SkImage>& skImage) {return skImage.get() == img.get(); })) {
-        return ;
-    }
-    skImages_[tid].push_back(img);
-#endif
-}
-#else
 void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 {
 #ifdef ROSEN_OHOS
@@ -59,35 +42,27 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
     }
 #endif
 }
+
+void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
+        return;
+    }
+    std::scoped_lock<std::recursive_mutex> lock(mutex_);
+    if (std::any_of(skSurfaces_[tid].cbegin(), skSurfaces_[tid].cend(),
+        [&surface](const std::shared_ptr<Drawing::Surface>& skSurface) {return skSurface.get() == surface.get(); })) {
+        return;
+    }
+    skSurfaces_[tid].push_back(surface);
 #endif
+}
 
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
-#ifndef USE_ROSEN_DRAWING
-    for (auto& skImages : skImages_) {
-        if (skImages.second.size() > 0) {
-            RSTaskDispatcher::GetInstance().PostTask(skImages.first, [this]() {
-            auto tid = gettid();
-            std::scoped_lock<std::recursive_mutex> lock(mutex_);
-            size_t size = skImages_[tid].size();
-            while (size-- > 0) {
-                auto image = skImages_[tid].front();
-                skImages_[tid].pop_front();
-                if (image == nullptr) {
-                    continue;
-                }
-                if (image->unique()) {
-                    image = nullptr;
-                } else {
-                    skImages_[tid].push_back(image);
-                }
-            }
-            });
-        }
-    }
-#else
     for (auto& images : images_) {
         if (!images.second->IsEmpty()) {
             RSTaskDispatcher::GetInstance().PostTask(images.first, [this]() {
@@ -97,7 +72,28 @@ void SKResourceManager::ReleaseResource()
             });
         }
     }
-#endif
+
+    for (auto& skSurface : skSurfaces_) {
+        if (skSurface.second.size() > 0) {
+            RSTaskDispatcher::GetInstance().PostTask(skSurface.first, [this]() {
+                auto tid = gettid();
+                std::scoped_lock<std::recursive_mutex> lock(mutex_);
+                size_t size = skSurfaces_[tid].size();
+                while (size-- > 0) {
+                    auto surface = skSurfaces_[tid].front();
+                    skSurfaces_[tid].pop_front();
+                    if (surface == nullptr) {
+                        continue;
+                    }
+                    if (surface.unique()) {
+                        surface = nullptr;
+                    } else {
+                        skSurfaces_[tid].push_back(surface);
+                    }
+                }
+            });
+        }
+    }
 #endif
 }
 } // OHOS::Rosen

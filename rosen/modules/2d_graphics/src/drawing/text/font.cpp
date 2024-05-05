@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,16 @@ void Font::SetEdging(FontEdging edging)
     fontImpl_->SetEdging(edging);
 }
 
+void Font::SetBaselineSnap(bool baselineSnap)
+{
+    fontImpl_->SetBaselineSnap(baselineSnap);
+}
+
+void Font::SetForceAutoHinting(bool isForceAutoHinting)
+{
+    fontImpl_->SetForceAutoHinting(isForceAutoHinting);
+}
+
 void Font::SetSubpixel(bool isSubpixel)
 {
     fontImpl_->SetSubpixel(isSubpixel);
@@ -39,6 +49,11 @@ void Font::SetSubpixel(bool isSubpixel)
 void Font::SetHinting(FontHinting hintingLevel)
 {
     fontImpl_->SetHinting(hintingLevel);
+}
+
+void Font::SetEmbeddedBitmaps(bool embeddedBitmaps)
+{
+    fontImpl_->SetEmbeddedBitmaps(embeddedBitmaps);
 }
 
 void Font::SetTypeface(std::shared_ptr<Typeface> typeface)
@@ -106,6 +121,11 @@ FontHinting Font::GetHinting() const
     return fontImpl_->GetHinting();
 }
 
+bool Font::IsEmbeddedBitmaps() const
+{
+    return fontImpl_->IsEmbeddedBitmaps();
+}
+
 scalar Font::GetScaleX() const
 {
     return fontImpl_->GetScaleX();
@@ -116,9 +136,29 @@ scalar Font::GetSkewX() const
     return fontImpl_->GetSkewX();
 }
 
+bool Font::IsBaselineSnap() const
+{
+    return fontImpl_->IsBaselineSnap();
+}
+
+bool Font::IsForceAutoHinting() const
+{
+    return fontImpl_->IsForceAutoHinting();
+}
+
 bool Font::IsSubpixel() const
 {
     return fontImpl_->IsSubpixel();
+}
+
+bool Font::IsLinearMetrics() const
+{
+    return fontImpl_->IsLinearMetrics();
+}
+
+bool Font::IsEmbolden() const
+{
+    return fontImpl_->IsEmbolden();
 }
 
 uint16_t Font::UnicharToGlyph(int32_t uni) const

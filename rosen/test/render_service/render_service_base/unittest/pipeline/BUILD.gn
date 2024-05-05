@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -28,23 +28,29 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_base_render_node_test.cpp",
     "rs_canvas_drawing_render_node_test.cpp",
     "rs_canvas_render_node_test.cpp",
+    "rs_context_test.cpp",
     "rs_dirty_region_manager_test.cpp",
     "rs_display_render_node_test.cpp",
     "rs_draw_cmd_list_test.cpp",
     "rs_draw_cmd_test.cpp",
     "rs_effect_render_node_test.cpp",
-    "rs_frame_report_test.cpp",
     "rs_occlusion_config_test.cpp",
     "rs_paint_filter_canvas_test.cpp",
     "rs_proxy_render_node_test.cpp",
     "rs_recording_canvas_test.cpp",
+    "rs_render_content_test.cpp",
     "rs_render_display_sync_test.cpp",
     "rs_render_frame_rate_linker_map_test.cpp",
     "rs_render_frame_rate_linker_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
     "rs_root_render_node_test.cpp",
+    "rs_single_frame_composer_test.cpp",
+    "rs_surface_handler_test.cpp",
     "rs_surface_render_node_test.cpp",
+    "rs_task_dispatcher_test.cpp",
+    "rs_uni_render_judgement_test.cpp",
+    "sk_resource_manager_test.cpp",
   ]
 
   cflags = [
@@ -65,7 +71,6 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 

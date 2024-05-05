@@ -18,13 +18,8 @@
 #include "dm/display_manager.h"
 #include "securec.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkBitmap.h"
-#include "include/core/SkTextBlob.h"
-#else
 #include "draw/canvas.h"
 #include "image/bitmap.h"
-#endif
 
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_node.h"
@@ -76,30 +71,13 @@ sptr<SurfaceBuffer> GetSurfaceBuffer(sptr<Surface> ohosSurface, int32_t width, i
 
 void DoDraw(uint8_t* addr, uint32_t width, uint32_t height)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo imageInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    static constexpr uint32_t stride = 4;
-    auto canvas = SkCanvas::MakeRasterDirect(imageInfo, static_cast<void*>(addr), width * stride);
-    canvas->clear(SK_ColorTRANSPARENT);
-
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(1);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(SK_ColorRED);
-
-    std::string textInfo = "<>";
-    sk_sp<SkTextBlob> infoTextBlob = SkTextBlob::MakeFromString(textInfo.c_str(), SkFont(nullptr, 30.0f, 1.0f, 0.0f));
-    canvas->drawTextBlob(infoTextBlob, 10, 30, paint);
-#else
     Drawing::Bitmap bitmap;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, format);
 
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-    canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.Clear(Drawing::Color::COLOR_GREEN);
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_RED);
@@ -112,7 +90,6 @@ void DoDraw(uint8_t* addr, uint32_t width, uint32_t height)
     static constexpr uint32_t stride = 4;
     uint32_t addrSize = width * height * stride;
     memcpy_s(addr, addrSize, bitmap.GetPixels(), addrSize);
-#endif
 }
 
 void InitSurfaceStyle(std::shared_ptr<RSSurfaceNode> surfaceNode)

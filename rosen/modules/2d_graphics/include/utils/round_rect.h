@@ -92,7 +92,7 @@ inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : 
 inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept : RoundRect()
 {
     rect_ = r;
-    for (int i = 0; i < CORNER_NUMBER && i < radiusXY.size(); ++i) {
+    for (int i = 0; i < CORNER_NUMBER && i < static_cast<int>(radiusXY.size()); ++i) {
         radiusXY_[i] = radiusXY[i];
     }
     ScaleRadii();

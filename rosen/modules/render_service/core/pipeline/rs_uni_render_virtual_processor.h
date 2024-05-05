@@ -26,22 +26,35 @@ public:
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+              std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
-    void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
-    void PostProcess(RSDisplayRenderNode* node) override;
+    void PostProcess() override;
+    void Fill(RSPaintFilterCanvas& canvas,
+        float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
+    void UniScale(RSPaintFilterCanvas& canvas,
+        float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
 
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
         return std::move(canvas_);
+    }
+    float GetMirrorScaleX() const
+    {
+        return mirrorScaleX_;
+    }
+    float GetMirrorScaleY() const
+    {
+        return mirrorScaleY_;
     }
 private:
     void CanvasRotation(ScreenRotation screenRotation, float width, float height);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node);
     void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation);
     void CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation);
+    void JudgeResolution(RSDisplayRenderNode& node);
+
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
@@ -53,7 +66,10 @@ private:
     float mainWidth_ = 0.f;
     float mainHeight_ = 0.f;
     bool canvasRotation_ = false;
+    ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation mainScreenRotation_ = ScreenRotation::ROTATION_0;
+    float mirrorScaleX_ = 1.0f;
+    float mirrorScaleY_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

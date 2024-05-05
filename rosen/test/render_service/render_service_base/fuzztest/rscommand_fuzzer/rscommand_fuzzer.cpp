@@ -76,6 +76,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
     bool hasContainerWindow = GetData<bool>();
     float density = GetData<float>();
+    bool flag = GetData<bool>();
 
     // test
     RSContext context;
@@ -92,6 +93,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(context, static_cast<NodeId>(id), available);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, static_cast<NodeId>(id), static_cast<uint8_t>(type));
     SurfaceNodeCommandHelper::SetContainerWindow(context, static_cast<NodeId>(id), hasContainerWindow, density);
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, static_cast<NodeId>(id), flag);
 
     return true;
 }
@@ -177,11 +179,7 @@ bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
     // test
     RSContext context;
     RSCanvasNodeCommandHelper::Create(context, static_cast<NodeId>(id), false);
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> drawCmds;
-#else
     std::shared_ptr<Drawing::DrawCmdList> drawCmds;
-#endif
     RSCanvasNodeCommandHelper::UpdateRecording(context, static_cast<NodeId>(id), drawCmds, static_cast<uint16_t>(type));
     RSCanvasNodeCommandHelper::ClearRecording(context, static_cast<NodeId>(id));
     

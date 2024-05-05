@@ -14,17 +14,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "render/rs_path.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPath.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkPathMeasure.h"
-#include "include/utils/SkParsePath.h"
-#else
+
 #include "draw/path.h"
+#include "render/rs_path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,21 +40,12 @@ void RSPathTest::TearDown() {}
 static const int START_X = 20;
 static const int START_Y = 20;
 
-#ifndef USE_ROSEN_DRAWING
-static SkPath CreateSkPath()
-{
-    SkPath path;
-    path.moveTo(START_X, START_Y);
-    return path;
-}
-#else
 static Drawing::Path CreateDrawingPath()
 {
     Drawing::Path path;
     path.MoveTo(START_X, START_Y);
     return path;
 }
-#endif
 
 /**
  * @tc.name: CreateRSPathTest
@@ -80,15 +65,46 @@ HWTEST_F(RSPathTest, CreateRSPathTest001, TestSize.Level1)
  */
 HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkPath path1 = CreateSkPath();
-    auto rsPath = RSPath::CreateRSPath(path1);
-    ASSERT_NE(rsPath, nullptr);
-#else
     Drawing::Path path1 = CreateDrawingPath();
     auto rsPath = RSPath::CreateRSPath(path1);
     ASSERT_NE(rsPath, nullptr);
-#endif
+}
+
+/**
+ * @tc.name: GetDrawingPathTest001
+ * @tc.desc: Verify function GetDrawingPath
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetDrawingPathTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    rsPath->GetDrawingPath();
+    ASSERT_NE(rsPath->drPath_, nullptr);
+}
+
+/**
+ * @tc.name: ReverseTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, ReverseTest, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    auto reveseRsPath = rsPath->Reverse();
+    EXPECT_NE(rsPath, reveseRsPath);
+}
+
+/**
+ * @tc.name: GetDistanceTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, GetDistanceTest, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    EXPECT_EQ(rsPath->GetDistance(), path.GetLength(false));
 }
 
 /**
@@ -98,14 +114,34 @@ HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
  */
 HWTEST_F(RSPathTest, SetSkiaPathTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkPath path = CreateSkPath();
-    RSPath rsPath;
-    rsPath.SetSkiaPath(path);
-#else
     Drawing::Path path = CreateDrawingPath();
     RSPath rsPath;
     rsPath.SetDrawingPath(path);
-#endif
+}
+
+/**
+ * @tc.name: GetPosTanTest001
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector2f pos = { 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
+}
+
+/**
+ * @tc.name: GetPosTanTest002
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest002, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector4f pos = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
 }
 } // namespace OHOS::Rosen

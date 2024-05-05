@@ -13,15 +13,20 @@
  * limitations under the License.
  */
 
+#include "js_enum.h"
+
 #include <map>
 #include <vector>
 
-#include "draw/blend_mode.h"
-#include "text/font_types.h"
-
-#include "js_enum.h"
-#include "../js_drawing_utils.h"
 #include "native_value.h"
+#include "draw/blend_mode.h"
+#include "draw/clip.h"
+#include "draw/pen.h"
+#include "effect/mask_filter.h"
+#include "text/font_types.h"
+#include "utils/sampling_options.h"
+
+#include "js_drawing_utils.h"
 
 #ifdef WINDOWS_PLATFORM
 #ifdef DIFFERENCE
@@ -75,9 +80,43 @@ static const std::vector<struct JsEnumInt> g_textEncoding = {
     { "TEXT_ENCODING_GLYPH_ID", static_cast<int32_t>(TextEncoding::GLYPH_ID) },
 };
 
+static const std::vector<struct JsEnumInt> g_filterMode = {
+    { "FILTER_MODE_NEAREST", static_cast<int32_t>(FilterMode::NEAREST) },
+    { "FILTER_MODE_LINEAR", static_cast<int32_t>(FilterMode::LINEAR) },
+};
+
+static const std::vector<struct JsEnumInt> g_clipOp = {
+    { "DIFFERENCE", static_cast<int32_t>(ClipOp::DIFFERENCE) },
+    { "INTERSECT", static_cast<int32_t>(ClipOp::INTERSECT) },
+};
+
+static const std::vector<struct JsEnumInt> g_joinStyle = {
+    { "MITER_JOIN", static_cast<int32_t>(Pen::JoinStyle::MITER_JOIN) },
+    { "ROUND_JOIN", static_cast<int32_t>(Pen::JoinStyle::ROUND_JOIN) },
+    { "BEVEL_JOIN", static_cast<int32_t>(Pen::JoinStyle::BEVEL_JOIN) },
+};
+
+static const std::vector<struct JsEnumInt> g_capStyle = {
+    { "FLAT_CAP", static_cast<int32_t>(Pen::CapStyle::FLAT_CAP) },
+    { "SQUARE_CAP", static_cast<int32_t>(Pen::CapStyle::SQUARE_CAP) },
+    { "ROUND_CAP", static_cast<int32_t>(Pen::CapStyle::ROUND_CAP) },
+};
+
+static const std::vector<struct JsEnumInt> g_blurType = {
+    { "NORMAL", static_cast<int32_t>(BlurType::NORMAL) },
+    { "SOLID", static_cast<int32_t>(BlurType::SOLID) },
+    { "OUTER", static_cast<int32_t>(BlurType::OUTER) },
+    { "INNER", static_cast<int32_t>(BlurType::INNER) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
+    { "FilterMode", g_filterMode },
+    { "ClipOp", g_clipOp },
+    { "JoinStyle", g_joinStyle },
+    { "CapStyle", g_capStyle },
+    { "BlurType", g_blurType },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

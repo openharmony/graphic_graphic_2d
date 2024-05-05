@@ -28,31 +28,37 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "FrameSaver" };
-} // namespace
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
+#undef LOG_TAG
+#define LOG_TAG "FramePainter"
+#define LOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 
 FrameSaver::FrameSaver()
 {
     struct stat saveDirectoryStat = {};
     if (stat(saveDirectory, &saveDirectoryStat) && errno != ENOENT) {
-        ::OHOS::HiviewDFX::HiLog::Warn(LABEL,
-            "get stat '%{public}s' failed: %{public}s",
-            saveDirectory, strerror(errno));
+        LOGW("get stat '%{public}s' failed: %{public}s", saveDirectory, strerror(errno));
         return;
     }
 
     if (errno == ENOENT) {
         constexpr int directoryPermission = 0777; // drwxrwxrwx
         if (mkdir(saveDirectory, directoryPermission)) {
-            ::OHOS::HiviewDFX::HiLog::Warn(LABEL,
-                "create directory '%{public}s' failed: %{public}s",
-                saveDirectory, strerror(errno));
+            LOGW("create directory '%{public}s' failed: %{public}s", saveDirectory, strerror(errno));
             return;
         }
     }
 
     std::stringstream ss;
+
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(ss.str().c_str(), tmpPath) == nullptr) {
+        return;
+    }
+
     ss << saveDirectory << "/" << GetRealPid() << ".log";
     ofs_.open(ss.str(), ofs_.out | ofs_.app);
 }
@@ -65,8 +71,7 @@ FrameSaver::~FrameSaver()
 void FrameSaver::SaveFrameEvent(const FrameEventType &type, int64_t timeNs)
 {
     if (!ofs_.is_open()) {
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}s",
-            GetNameByFrameEventType(type).c_str(), std::to_string(timeNs).c_str());
+        LOGI("%{public}s %{public}s", GetNameByFrameEventType(type).c_str(), std::to_string(timeNs).c_str());
         return;
     }
 

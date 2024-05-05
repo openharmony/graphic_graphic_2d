@@ -26,7 +26,7 @@ class RSNode;
 
 class RSC_EXPORT RSModifierExtractor {
 public:
-    RSModifierExtractor(NodeId id);
+    RSModifierExtractor(RSNode* node = nullptr);
     virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
@@ -44,6 +44,7 @@ public:
     float GetTranslateZ() const;
     Vector2f GetScale() const;
     Vector2f GetSkew() const;
+    Vector2f GetPersp() const;
 
     float GetAlpha() const;
     bool GetAlphaOffscreen() const;
@@ -68,6 +69,7 @@ public:
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineRadius() const;
 
+    float GetForegroundEffectRadius() const;
     std::shared_ptr<RSFilter> GetBackgroundFilter() const;
     std::shared_ptr<RSFilter> GetFilter() const;
 
@@ -92,8 +94,26 @@ public:
     std::shared_ptr<RSMask> GetMask() const;
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
+    float GetDynamicDimDegree() const;
 
+    float GetBackgroundBlurRadius() const;
+    float GetBackgroundBlurSaturation() const;
+    float GetBackgroundBlurBrightness() const;
+    Color GetBackgroundBlurMaskColor() const;
+    int GetBackgroundBlurColorMode() const;
+    float GetBackgroundBlurRadiusX() const;
+    float GetBackgroundBlurRadiusY() const;
+
+    float GetForegroundBlurRadius() const;
+    float GetForegroundBlurSaturation() const;
+    float GetForegroundBlurBrightness() const;
+    Color GetForegroundBlurMaskColor() const;
+    int GetForegroundBlurColorMode() const;
+    float GetForegroundBlurRadiusX() const;
+    float GetForegroundBlurRadiusY() const;
+    
     float GetLightIntensity() const;
+    Color GetLightColor() const;
     Vector4f GetLightPosition() const;
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
@@ -101,7 +121,7 @@ public:
 
     std::string Dump() const;
 private:
-    NodeId id_;
+    const RSNode *node_;
 };
 } // namespace Rosen
 } // namespace OHOS

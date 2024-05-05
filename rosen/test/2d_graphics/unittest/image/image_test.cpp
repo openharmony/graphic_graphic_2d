@@ -15,13 +15,20 @@
 
 #include "gtest/gtest.h"
 
+#ifdef ACE_ENABLE_GPU
+#include "image_source.h"
+#include "pixel_map.h"
+#endif
+
 #include "draw/brush.h"
 #include "effect/color_space.h"
 #include "drawing/engine_adapter/impl_factory.h"
 #include "image/bitmap.h"
 #include "image/gpu_context.h"
 #include "image/image.h"
+#include "image/yuv_info.h"
 #include "image/picture.h"
+#include "render_context/render_context.h"
 #include "utils/matrix.h"
 #include "utils/size.h"
 
@@ -151,13 +158,9 @@ HWTEST_F(ImageTest, ImageGetHeightTest002, TestSize.Level1)
  */
 HWTEST_F(ImageTest, ImageGetUniqueIDTest001, TestSize.Level1)
 {
-    Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bitmap.Build(15, 15, bitmapFormat);
+    // GetUniqueID will change all the time
     Image image;
     ASSERT_EQ(0, image.GetUniqueID());
-    image.BuildFromBitmap(bitmap);
-    ASSERT_EQ(10, image.GetUniqueID());
 }
 
 /**
@@ -330,7 +333,7 @@ HWTEST_F(ImageTest, SerializeAndDeserializeTest001, TestSize.Level1)
 
     BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     auto bitmap = std::make_shared<Bitmap>();
-    bitmap->Build(10, 10, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(10, 10, bitmapFormat));
     image->BuildFromBitmap(*bitmap);
     data = image->Serialize();
     ASSERT_TRUE(data != nullptr);
@@ -339,6 +342,108 @@ HWTEST_F(ImageTest, SerializeAndDeserializeTest001, TestSize.Level1)
     ASSERT_TRUE(data == nullptr);
     EXPECT_FALSE(image->Deserialize(data));
 #endif
+}
+
+/**
+ * @tc.name: MakeFromYUVAPixmapsTest001
+ * @tc.desc: test for MakeFromYUVAPixmapsTest failed with nullptr gpuContext.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest001, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
+    auto image = Image::MakeFromYUVAPixmaps(gpuContext, info, nullptr);
+    EXPECT_TRUE(image == nullptr);
+}
+
+/**
+ * @tc.name: MakeFromYUVAPixmapsTest002
+ * @tc.desc: test for MakeFromYUVAPixmapsTest failed with nullptr memory.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest002, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    renderContext->InitializeEglContext();
+    renderContext->SetUpGpuContext();
+    auto gpuContext = renderContext->GetSharedDrGPUContext();
+    ASSERT_NE(gpuContext, nullptr);
+
+    YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
+    auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info, nullptr);
+    EXPECT_TRUE(image == nullptr);
+    gpuContext = nullptr;
+}
+
+/**
+ * @tc.name: MakeFromYUVAPixmapsTest003
+ * @tc.desc: test for MakeFromYUVAPixmapsTest success for YUV NV21.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest003, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    renderContext->InitializeEglContext();
+    renderContext->SetUpGpuContext();
+    auto gpuContext = renderContext->GetSharedDrGPUContext();
+    ASSERT_NE(gpuContext, nullptr);
+
+    uint32_t errorCode = 0;
+    Media::SourceOptions opts;
+    std::string hw_jpg_path = "/data/local/tmp/getScreenSize.jpeg";
+    std::unique_ptr<Media::ImageSource> imageSource = Media::ImageSource::CreateImageSource(hw_jpg_path,
+        opts, errorCode);
+    ASSERT_NE(imageSource.get(), nullptr);
+    Media::DecodeOptions decodeOpts;
+    decodeOpts.desiredPixelFormat = Media::PixelFormat::NV21;
+    std::unique_ptr<Media::PixelMap> pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    ASSERT_NE(pixelMap.get(), nullptr);
+
+    YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_VU, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
+    auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
+        const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+    EXPECT_TRUE(image != nullptr);
+    gpuContext = nullptr;
+}
+
+/**
+ * @tc.name: MakeFromYUVAPixmapsTest004
+ * @tc.desc: test for MakeFromYUVAPixmapsTest success for YUV NV12.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest004, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    renderContext->InitializeEglContext();
+    renderContext->SetUpGpuContext();
+    auto gpuContext = renderContext->GetSharedDrGPUContext();
+    ASSERT_NE(gpuContext, nullptr);
+
+    uint32_t errorCode = 0;
+    Media::SourceOptions opts;
+    std::string hw_jpg_path = "/data/local/tmp/getScreenSize.jpeg";
+    std::unique_ptr<Media::ImageSource> imageSource = Media::ImageSource::CreateImageSource(hw_jpg_path,
+        opts, errorCode);
+    ASSERT_NE(imageSource.get(), nullptr);
+    Media::DecodeOptions decodeOpts;
+    decodeOpts.desiredPixelFormat = Media::PixelFormat::NV12;
+    std::unique_ptr<Media::PixelMap> pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    ASSERT_NE(pixelMap.get(), nullptr);
+
+    YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
+    auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
+        const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+    EXPECT_TRUE(image != nullptr);
+    gpuContext = nullptr;
 }
 #endif
 } // namespace Drawing

@@ -16,11 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkShader.h"
-#else
 #include "effect/shader_effect.h"
-#endif
 
 #include "common/rs_macros.h"
 
@@ -28,32 +24,21 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSShader {
 public:
+    RSShader() = default;
+    ~RSShader() = default;
     static std::shared_ptr<RSShader> CreateRSShader();
-#ifndef USE_ROSEN_DRAWING
-    static std::shared_ptr<RSShader> CreateRSShader(const sk_sp<SkShader>& skShader);
-
-    void SetSkShader(const sk_sp<SkShader>& skShader);
-    const sk_sp<SkShader>& GetSkShader() const;
-#else
     static std::shared_ptr<RSShader> CreateRSShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
 
     void SetDrawingShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const;
-#endif
-    ~RSShader() = default;
 
 private:
-    RSShader() = default;
     RSShader(const RSShader&) = delete;
     RSShader(const RSShader&&) = delete;
     RSShader& operator=(const RSShader&) = delete;
     RSShader& operator=(const RSShader&&) = delete;
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkShader> skShader_ = nullptr;
-#else
     std::shared_ptr<Drawing::ShaderEffect> drShader_ = nullptr;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

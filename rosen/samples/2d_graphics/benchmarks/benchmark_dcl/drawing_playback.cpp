@@ -30,6 +30,7 @@
 #include <filesystem>
 #include <fcntl.h>
 #include <unistd.h>
+#include "directory_ex.h"
 
 namespace {
 bool IsValidFile(const std::string& realPathStr, const std::string& validFile = "/data/")
@@ -39,7 +40,11 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile = 
 
 std::string GetRealAndValidPath(const std::string& filePath)
 {
-    std::string realPathStr = std::filesystem::path(filePath).lexically_normal().string();
+    std::string realPathStr;
+    if (!OHOS::PathToRealPath(filePath, realPathStr)) {
+        std::cout << "FileUtils: The file path is not valid!" << std::endl;
+        return "";
+    }
     if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
@@ -376,8 +381,7 @@ void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
         case IterateType::REPLAY_MSKP:
             std::cout << "replay mskp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 UpdateParameters(ReplayMSKP(skiaCanvas_) || (beginFrame_ == 1));
             }
 #endif
@@ -385,8 +389,7 @@ void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
         case IterateType::REPLAY_SKP:
             std::cout << "replay skp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 ReplaySKP(skiaCanvas_);
             }
 #endif

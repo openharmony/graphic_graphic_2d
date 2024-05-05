@@ -21,33 +21,27 @@
 #include <memory>
 #include <tuple>
 
-#include "memory/rs_memory_track.h"
+#include "surface_type.h"
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "platform/common/rs_system_properties.h"
 #include "platform/common/rs_surface_ext.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
-#include "surface_type.h"
 #include "transaction/rs_occlusion_data.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkRect.h"
-#include "include/core/SkRefCnt.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#include "refbase.h"
-#endif
+#ifndef ROSEN_CROSS_PLATFORM
+#include "surface_buffer.h"
+#include "sync_fence.h"
 #endif
 
 namespace OHOS {
@@ -58,6 +52,7 @@ class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHand
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
+    using TreeStateChangeCallback = std::function<void(RSSurfaceRenderNode&)>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::SURFACE_NODE;
     RSRenderNodeType GetType() const override
     {
@@ -73,7 +68,8 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -136,6 +132,10 @@ public:
         selfDrawingType_ = selfDrawingType;
     }
 
+    void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
+    int32_t GetFixedRotationDegree() const;
+
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
         return selfDrawingType_;
@@ -162,6 +162,11 @@ public:
         return hasSubNodeShouldPaint_;
     }
 
+#ifndef ROSEN_CROSS_PLATFORM
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const sptr<SurfaceBuffer>& preBuffer);
+#endif
+
     bool IsLastFrameHardwareEnabled() const
     {
         return isLastFrameHardwareEnabled_;
@@ -172,9 +177,29 @@ public:
         return isCurrentFrameHardwareEnabled_;
     }
 
+    void SetCurrentFrameHardwareEnabled(bool enable)
+    {
+        isCurrentFrameHardwareEnabled_ = enable;
+    }
+
     void MarkCurrentFrameHardwareEnabled()
     {
         isCurrentFrameHardwareEnabled_ = true;
+    }
+
+    void SetIsRotating(bool isRotating)
+    {
+        isRotating_ = isRotating;
+    }
+
+    bool IsRotating() const
+    {
+        return isRotating_;
+    }
+
+    void ResetRotateState()
+    {
+        isRotating_ = false;
     }
 
     void ResetCurrentFrameHardwareEnabledState()
@@ -192,6 +217,11 @@ public:
     void SetHardwareForcedDisabledState(bool forcesDisabled)
     {
         isHardwareForcedDisabled_ = forcesDisabled;
+    }
+
+    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
     }
 
     void SetHardwareDisabledByCache(bool disabledByCache)
@@ -216,18 +246,53 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ || isHardwareForcedDisabledBySrcRect_ ||
+        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
+            return false;
+        }
+        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
+    }
+
+    bool IsLeashOrMainWindow() const
+    {
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::DEFAULT ||
-               nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    }
+
+    bool GetIsLastFrameHwcEnabled() const
+    {
+        return isLastFrameHwcEnabled_;
+    }
+
+    void SetIsLastFrameHwcEnabled(bool enable)
+    {
+        isLastFrameHwcEnabled_ = enable;
+    }
+
+    bool GetNeedCollectHwcNode() const
+    {
+        return needCollectHwcNode_;
+    }
+
+    void ResetNeedCollectHwcNode()
+    {
+        needCollectHwcNode_ = false;
+    }
+
+    bool GetCalcRectInPrepare() const
+    {
+        return calcRectInPrepare_;
+    }
+
+    void SetCalcRectInPrepare(bool calc)
+    {
+        calcRectInPrepare_ = calc;
     }
 
     bool IsSelfDrawingType() const
@@ -268,6 +333,8 @@ public:
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
 
+    bool IsLeashWindowSurfaceNodeVisible();
+
     const std::string& GetName() const
     {
         return name_;
@@ -307,6 +374,9 @@ public:
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    // keep specified nodetype preparation
+    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -318,24 +388,20 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHardwareDisabledState(bool disabled);
+    void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
+    bool CheckParticipateInOcclusion() const;
 
     void OnApplyModifiers() override;
 
-#ifndef USE_ROSEN_DRAWING
-    void SetTotalMatrix(const SkMatrix& totalMatrix)
-#else
     void SetTotalMatrix(const Drawing::Matrix& totalMatrix)
-#endif
     {
         totalMatrix_ = totalMatrix;
     }
-#ifndef USE_ROSEN_DRAWING
-    const SkMatrix& GetTotalMatrix() const
-#else
     const Drawing::Matrix& GetTotalMatrix() const
-#endif
     {
         return totalMatrix_;
     }
@@ -346,26 +412,31 @@ public:
     // - All three variables are relative to their parent node.
     // - Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
     // - The matrix and clipRegion should be applied according to the parent node's matrix.
-#ifndef USE_ROSEN_DRAWING
-    void SetContextMatrix(const std::optional<SkMatrix>& transform, bool sendMsg = true);
-    void SetContextAlpha(float alpha, bool sendMsg = true);
-    void SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg = true);
-    std::optional<SkRect> GetContextClipRegion() const override;
-#else
     void SetContextMatrix(const std::optional<Drawing::Matrix>& transform, bool sendMsg = true);
     void SetContextAlpha(float alpha, bool sendMsg = true);
     void SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg = true);
     std::optional<Drawing::Rect> GetContextClipRegion() const override;
-#endif
 
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
-    bool GetSecurityLayer() const;
-
     void SetSkipLayer(bool isSkipLayer);
+    void SetProtectedLayer(bool isProtectedLayer);
+
+    // get whether it is a security/skip layer itself
+    bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetProtectedLayer() const;
+
+    // get whether it and it's subtree contain security layer
+    bool GetHasSecurityLayer() const;
+    bool GetHasSkipLayer() const;
+    bool GetHasProtectedLayer() const;
+
+    void SyncSecurityInfoToFirstLevelNode();
+    void SyncSkipInfoToFirstLevelNode();
+    void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -376,13 +447,22 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    bool GetAncoForceDoDirect() const;
+
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
+
+    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
+    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
     {
         srcRect_ = rect;
     }
+
+    void NeedClearBufferCache();
 
     const RectI& GetSrcRect() const
     {
@@ -400,6 +480,11 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
+    }
+
+    const RectI& GetOriginalDstRect() const
+    {
+        return originalDstRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -426,10 +511,7 @@ public:
         alphaChanged_ = true;
     }
 
-    void SetOcclusionVisible(bool visible)
-    {
-        isOcclusionVisible_ = visible;
-    }
+    void SetOcclusionVisible(bool visible);
 
     bool GetOcclusionVisible() const
     {
@@ -480,7 +562,7 @@ public:
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
         VisibleData& visibleVec,
-        std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+        std::map<NodeId, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
@@ -551,13 +633,7 @@ public:
         alphaChanged_ = false;
     }
 
-    void SetGlobalDirtyRegion(const RectI& rect)
-    {
-        Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
-        Occlusion::Region region { tmpRect };
-        globalDirtyRegion_ = visibleRegion_.And(region);
-        globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
-    }
+    void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
 
     const Occlusion::Region& GetGlobalDirtyRegion() const
     {
@@ -620,6 +696,14 @@ public:
         return visibleRegion_.IsIntersectWith(nodeRect);
     }
 
+    bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
+    bool CheckIfOcclusionChanged() const;
+
+    void SetVisibleRegion(Occlusion::Region region)
+    {
+        visibleRegion_ = region;
+    }
+
     inline bool IsEmptyAppWindow() const
     {
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
@@ -666,8 +750,9 @@ public:
 
     void UpdatePositionZ()
     {
-        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
-        positionZ_ = GetRenderProperties().GetPositionZ();
+        const auto& zProperties = GetRenderProperties().GetPositionZ();
+        zOrderChanged_ = !ROSEN_EQ(zProperties, positionZ_);
+        positionZ_ = zProperties;
     }
 
     inline bool HasContainerWindow() const
@@ -696,6 +781,7 @@ public:
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
     const std::vector<bool>& GetChildrenNeedFilterRectsCacheValid() const;
     const std::vector<std::shared_ptr<RSRenderNode>>& GetChildrenFilterNodes() const;
+    std::vector<RectI> GetChildrenNeedFilterRectsWithoutCacheValid();
 
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
@@ -713,6 +799,9 @@ public:
         return GetNodeId() == focusedNodeId;
     }
 
+
+    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation);
+
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     Occlusion::Region ResetOpaqueRegion(
@@ -726,17 +815,13 @@ public:
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
-
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
     // if surfacenode's buffer has been consumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
-#ifndef USE_ROSEN_DRAWING
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect, bool hasRotation = false);
-#else
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
-#endif
+    void UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
+    void UpdateHwcDisabledBySrcRect(bool hasRotation);
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -773,19 +858,11 @@ public:
         bool isUniRender,
         bool filterCacheOcclusionEnabled);
 
-    bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
+    bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
     void OnTreeStateChanged() override;
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    void SetGrContext(GrDirectContext* grContext)
-#else
-    void SetGrContext(GrContext* grContext)
-#endif
-#else
     void SetDrawingGPUContext(Drawing::GPUContext* grContext)
-#endif
     {
         grContext_ = grContext;
     }
@@ -803,6 +880,10 @@ public:
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
+    void RegisterTreeStateChangeCallback(TreeStateChangeCallback callback);
+    void NotifyTreeStateChange();
+
+    /* For filter cache occlusion calculation */
     bool GetFilterCacheFullyCovered() const
     {
         return isFilterCacheFullyCovered_;
@@ -818,7 +899,12 @@ public:
         return isFilterCacheValidForOcclusion_;
     }
 
+    // mark if any valid filter cache within surface fully cover targer range
+    void CheckValidFilterCacheFullyCoverTarget(const RSRenderNode& filterNode, const RectI& targetRect);
     void CalcFilterCacheValidForOcclusion();
+    // mark occluded by upper filtercache
+    void UpdateOccludedByFilterCache(bool val);
+    bool IsOccludedByFilterCache() const;
 
     bool IsFilterCacheStatusChanged() const
     {
@@ -842,25 +928,6 @@ public:
     // whether the subtree has only one root node
     bool HasOnlyOneRootNode() const;
 
-    bool GetHasSecurityLayer()
-    {
-        return hasSecurityLayer_;
-    }
-
-    void SetHasSecurityLayer(bool hasSecurityLayer)
-    {
-        hasSecurityLayer_ = hasSecurityLayer;
-    }
-    bool GetHasSkipLayer()
-    {
-        return hasSkipLayer_;
-    }
-
-    void SetHasSkipLayer(bool hasSkipLayer)
-    {
-        hasSkipLayer_ = hasSkipLayer;
-    }
-
     bool GetHwcDelayDirtyFlag() const noexcept
     {
         return hwcDelayDirtyFlag_;
@@ -875,6 +942,8 @@ public:
     {
         return surfaceCacheContentStatic_;
     }
+
+    void UpdateSurfaceCacheContentStatic();
 
     void UpdateSurfaceCacheContentStatic(
         const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
@@ -898,11 +967,27 @@ public:
 
     bool IsUIFirstCacheReusable(DeviceType deviceType);
 
+    bool GetUifirstSupportFlag() override
+    {
+        return RSRenderNode::GetUifirstSupportFlag();
+    }
+
+    void UpdateSurfaceCacheContentStaticFlag();
+
+    void UpdateSurfaceSubTreeDirtyFlag();
+
+    void MergeOldDirtyRect() override
+    {
+        if (IsAppWindow()) {
+            this->GetDirtyManager()->MergeDirtyRect(this->GetOldDirtyInSurface());
+        }
+    }
+
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
 #endif
-    
+
     void SetForeground(bool isForeground)
     {
         isForeground_ = isForeground;
@@ -929,6 +1014,12 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
+    void SetUifirstNodeEnableParam(MultiThreadCacheType b);
+
+    void SetIsParentUifirstNodeEnableParam(bool b);
+
+    void SetUifirstChildrenDirtyRectParam(RectI rect);
+
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -939,6 +1030,18 @@ public:
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
+    void UpdatePartialRenderParams();
+    void UpdateAncestorDisplayNodeInRenderParams();
+
+    void SetNeedDrawFocusChange(bool needDrawFocusChange)
+    {
+        needDrawFocusChange_ = needDrawFocusChange;
+    }
+
+    bool GetNeedDrawFocusChange() const
+    {
+        return needDrawFocusChange_;
+    }
 
     bool HasWindowCorner()
     {
@@ -946,6 +1049,18 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
+    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    {
+        bufferRelMatrix_ = matrix;
+    }
+
+    const Drawing::Matrix& GetBufferRelMatrix() const
+    {
+        return bufferRelMatrix_;
+    }
+
+protected:
+    void OnSync() override;
 
 private:
     void OnResetParent() override;
@@ -956,42 +1071,36 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
-    bool IsHardwareDisabledBySrcRect() const;
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
     bool IsYUVBufferFormat() const;
-
+    void InitRenderParams() override;
+    void UpdateRenderParams() override;
+    void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    GrDirectContext* grContext_ = nullptr;
-#else
-    GrContext* grContext_ = nullptr;
-#endif
-#else
     Drawing::GPUContext* grContext_ = nullptr;
-#endif
     std::mutex parallelVisitMutex_;
 
     float contextAlpha_ = 1.0f;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> contextMatrix_;
-    std::optional<SkRect> contextClipRect_;
-#else
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
-#endif
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
+    std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
+
     bool hasFingerprint_ = false;
+    bool hasHdrPresent_ = false;
     RectI srcRect_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix totalMatrix_;
-#else
     Drawing::Matrix totalMatrix_;
-#endif
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -1020,7 +1129,7 @@ private:
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
-    windowmanager, qos, and web surfacenode visibility callback.
+    windowmanager, and web surfacenode visibility callback.
         These two values are the same in most cases. If there are filter cache occlusion, this two values will be
     different under filter cache surfacenode layer.
     */
@@ -1033,6 +1142,7 @@ private:
     bool isOcclusionVisibleWithoutFilter_ = true;
     bool isOcclusionInSpecificScenes_ = false;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     RectI dstRect_;
     bool dstRectChanged_ = false;
@@ -1066,6 +1176,7 @@ private:
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
+    bool isOccludedByFilterCache_ = false;
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
     // valid filter nodes within, including itself
@@ -1076,13 +1187,13 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
-        ScreenRotation screenRotation_;
-        bool isFocusWindow_;
-        bool isTransparent_;
-        bool hasContainerWindow_;
+        ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+        bool isFocusWindow_ = false;
+        bool isTransparent_ = false;
+        bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
     };
-    
+
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
     OpaqueRegionBaseInfo opaqueRegionBaseInfo_;
 
@@ -1124,9 +1235,17 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isForceHardwareByUser_ = false;
+    bool isHardwareForcedDisabledByVisibility_ = false;
+    RectI originalDstRect_;
+    int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isLastFrameHwcEnabled_ = false;
+    bool needCollectHwcNode_ = false;
+    bool intersectByFilterInApp_ = false;
+    bool calcRectInPrepare_ = false;
     bool hasSubNodeShouldPaint_ = false;
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
@@ -1141,11 +1260,10 @@ private:
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
+    bool isRotating_ = false;
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
-    bool hasSecurityLayer_ = false;
-    bool hasSkipLayer_ = false;
 
     uint32_t processZOrder_ = -1;
 
@@ -1161,21 +1279,30 @@ private:
 #endif
     bool isForeground_ = false;
 
+    TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
     bool hasSharedTransitionNode_ = false;
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
+    bool needDrawFocusChange_ = false;
+
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
-    bool hasTransparentSurface_ = false;
-    bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
+    Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
+    bool forceUIFirst_ = false;
+    bool hasTransparentSurface_ = false;
+
+    bool ancoForceDoDirect_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

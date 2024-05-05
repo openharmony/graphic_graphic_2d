@@ -40,18 +40,9 @@ ohos_shared_library("effectkit") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
-    "//foundation/multimedia/image_framework/interfaces/kits/js/common/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
   ]
 
-  include_dirs += [ "//third_party/skia" ]
-
-  configs = [
-    ":graphic_napi_effect_kit_config",
-    "//commonlibrary/c_utils/base:utils_config",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_external_config",
-  ]
+  configs = [ ":graphic_napi_effect_kit_config" ]
 
   sources = [
     "./src/color_picker_napi.cpp",

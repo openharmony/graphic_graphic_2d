@@ -126,6 +126,12 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
         paint.setShader(skShader);
     }
 
+    if (pen.GetBlender() != nullptr) {
+        auto skBlenderImpl = pen.GetBlender()->GetImpl<SkiaBlender>();
+        sk_sp<SkBlender> skBlender = (skBlenderImpl != nullptr) ? skBlenderImpl->GetBlender() : nullptr;
+        paint.setBlender(skBlender);
+    }
+
     auto filter = pen.GetFilter();
     ApplyFilter(paint, filter);
     paint.setStyle(SkPaint::kStroke_Style);
@@ -175,6 +181,13 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 
     if (paint.HasStrokeStyle()) {
         ApplyStrokeParam(paint, skPaint);
+    }
+
+    auto blender = paint.GetBlender();
+    if (blender != nullptr) {
+        auto skBlenderImpl = blender->GetImpl<SkiaBlender>();
+        sk_sp<SkBlender> skBlender = (skBlenderImpl != nullptr) ? skBlenderImpl->GetBlender() : nullptr;
+        skPaint.setBlender(skBlender);
     }
 }
 
@@ -300,6 +313,11 @@ bool SkiaPaint::AsBlendMode(const Brush& brush)
     SkPaint skPaint;
     BrushToSkPaint(brush, skPaint);
     return skPaint.asBlendMode().has_value();
+}
+
+void SkiaPaint::Reset()
+{
+    paintInUse_ = 0;
 }
 } // namespace Drawing
 } // namespace Rosen

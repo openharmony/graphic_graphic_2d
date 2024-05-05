@@ -25,16 +25,19 @@ namespace Rosen {
 
 namespace {
 // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Composer" };
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+#undef LOG_TAG
+#define LOG_TAG "Composer"
 }
 
-#define __HLOG(func, fmt, ...) \
-    func(LABEL, "%{public}s: " fmt , __func__, ##__VA_ARGS__)
+#define C_HLOG(func, fmt, ...) \
+    func(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
-#define HLOGD(fmt, ...) __HLOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
-#define HLOGI(fmt, ...) __HLOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
-#define HLOGW(fmt, ...) __HLOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
-#define HLOGE(fmt, ...) __HLOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
+#define HLOGD(fmt, ...) C_HLOG(HILOG_DEBUG, fmt, ##__VA_ARGS__)
+#define HLOGI(fmt, ...) C_HLOG(HILOG_INFO, fmt, ##__VA_ARGS__)
+#define HLOGW(fmt, ...) C_HLOG(HILOG_WARN, fmt, ##__VA_ARGS__)
+#define HLOGE(fmt, ...) C_HLOG(HILOG_ERROR, fmt, ##__VA_ARGS__)
 
 #define HLOG_SUCCESS(fmt, ...) HLOGI("Success, Way: " fmt, ##__VA_ARGS__)
 #define HLOG_FAILURE(fmt, ...) HLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)

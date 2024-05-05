@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/effects/Sk1DPathEffect.h>
-#else
 #include "drawing.h"
-#endif
 
 #include "texgine_path.h"
 #include "texgine_path_effect.h"

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "screen_manager/rs_screen.h"
+#include "mock_hdi_device.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,9 +28,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline ScreenId mockScreenId_;
+    static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 };
 
-void RSScreenTest::SetUpTestCase() {}
+void RSScreenTest::SetUpTestCase()
+{
+    mockScreenId_ = 0xFFFF;
+    hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenPowerStatus(mockScreenId_, _)).WillRepeatedly(
+        DoAll(SaveArg<1>(&Mock::HdiDeviceMock::powerStatusMock_), testing::Return(0)));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenPowerStatus(mockScreenId_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::powerStatusMock_)), testing::Return(0)));
+}
 void RSScreenTest::TearDownTestCase() {}
 void RSScreenTest::SetUp() {}
 void RSScreenTest::TearDown() {}
@@ -191,6 +203,40 @@ HWTEST_F(RSScreenTest, SetPowerStatus_002, testing::ext::TestSize.Level1)
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     virtualScreen->SetPowerStatus(status);
+}
+
+/*
+ * @tc.name: SetPowerStatus_003
+ * @tc.desc: SetPowerStatus Test, test POWER_STATUS_ON_ADVANCED with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_003, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
+    rsScreen->SetPowerStatus(status);
+    ASSERT_EQ(rsScreen->GetPowerStatus(), status);
+}
+
+/*
+ * @tc.name: SetPowerStatus_004
+ * @tc.desc: SetPowerStatus Test, test POWER_STATUS_OFF_ADVANCED with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_004, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED;
+    rsScreen->SetPowerStatus(status);
+    ASSERT_EQ(rsScreen->GetPowerStatus(), status);
 }
 
 /*
@@ -446,5 +492,48 @@ HWTEST_F(RSScreenTest, ClearFpsDumpTest_002, testing::ext::TestSize.Level1)
     std::string dumpString = "ClearFpsDumpTest";
     std::string arg = "ClearFpsDumpTest";
     rsScreen->ClearFpsDump(screenIndex, dumpString, arg);
+}
+
+/*
+ * @tc.name: PowerStatusDump_001
+ * @tc.desc: PowerStatusDump Test, virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, PowerStatusDump_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    config.id = 1;
+    auto rsScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(rsScreen, nullptr);
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    rsScreen->SetPowerStatus(status);
+    std::string dumpString = "";
+    rsScreen->PowerStatusDump(dumpString);
+    ASSERT_TRUE(dumpString=="powerstatus=INVALID_POWER_STATUS");
+}
+
+/*
+ * @tc.name: PowerStatusDump_002
+ * @tc.desc: PowerStatusDump Test, with mocked HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, PowerStatusDump_002, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    // Set status to GRAPHIC_POWER_STATUS_ON_ADVANCED
+    rsScreen->SetPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED);
+    std::string dumpString = "";
+    rsScreen->PowerStatusDump(dumpString);
+    ASSERT_TRUE(dumpString=="powerstatus=POWER_STATUS_ON_ADVANCED");
+    // Set status to GRAPHIC_POWER_STATUS_OFF_ADVANCED
+    rsScreen->SetPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED);
+    dumpString = "";
+    rsScreen->PowerStatusDump(dumpString);
+    ASSERT_TRUE(dumpString=="powerstatus=POWER_STATUS_OFF_ADVANCED");
 }
 } // namespace OHOS::Rosen

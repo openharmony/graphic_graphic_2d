@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_render_thread_visitor.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -37,7 +38,7 @@ void RSRootRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: settings
- * @tc.desc: test
+ * @tc.desc: test results of settings
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -58,7 +59,7 @@ HWTEST_F(RSRootRenderNodeTest, settings, TestSize.Level1)
 
 /**
  * @tc.name: Prepare
- * @tc.desc: test
+ * @tc.desc: test results of Prepare
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -69,10 +70,15 @@ HWTEST_F(RSRootRenderNodeTest, Prepare, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSRootRenderNode rsRootRenderNode(nodeId, context);
     rsRootRenderNode.Prepare(visitor);
+
+    std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
+    rsRootRenderNode.Prepare(visitorTwo);
+    ASSERT_TRUE(true);
 }
+
 /**
  * @tc.name: Process
- * @tc.desc: test
+ * @tc.desc: test results of Process
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -83,6 +89,29 @@ HWTEST_F(RSRootRenderNodeTest, Process, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSRootRenderNode rsRootRenderNode(nodeId, context);
     rsRootRenderNode.Process(visitor);
+
+    std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
+    rsRootRenderNode.Process(visitorTwo);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: QuickPrepare
+ * @tc.desc: test results of QuickPrepare
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootRenderNodeTest, QuickPrepare, TestSize.Level1)
+{
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSRootRenderNode rsRootRenderNode(nodeId, context);
+    rsRootRenderNode.QuickPrepare(visitor);
+
+    std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
+    rsRootRenderNode.QuickPrepare(visitorTwo);
+    ASSERT_TRUE(true);
 }
 } // namespace Rosen
 } // namespace OHOS

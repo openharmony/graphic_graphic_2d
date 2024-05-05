@@ -82,8 +82,8 @@ public:
      * away from the original path by a maximum of deviation.
      * Note: works on filled or framed paths.
      *
-     * @param segLength 
-     * @param dev 
+     * @param segLength
+     * @param dev
      * @param seedAssist This is a caller-supplied seedAssist that modifies
      * the seed value that is used to randomize the path segments' endpoints.
      * If not supplied it defaults to 0, in which case filtering a path multiple
@@ -102,7 +102,7 @@ public:
      *
      * @param e1 first PathEffect
      * @param e2 second PathEffect
-     * @return std::shared_ptr<PathEffect> 
+     * @return std::shared_ptr<PathEffect>
      */
     static std::shared_ptr<PathEffect> CreateSumPathEffect(PathEffect& e1, PathEffect& e2);
     /**
@@ -110,6 +110,7 @@ public:
      *  outer effect to the result of the inner's.
      *
      * result = outer(inner(path))
+     * @return a share pointer to PathEffect
      */
     static std::shared_ptr<PathEffect> CreateComposePathEffect(PathEffect& e1, PathEffect& e2);
 

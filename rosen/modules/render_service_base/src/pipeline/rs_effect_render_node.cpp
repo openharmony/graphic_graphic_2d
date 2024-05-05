@@ -48,7 +48,18 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    ApplyModifiers();
     visitor->PrepareEffectRenderNode(*this);
+    preStaticStatus_ = IsStaticCached();
+}
+
+void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    ApplyModifiers();
+    visitor->QuickPrepareEffectRenderNode(*this);
 }
 
 void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -86,32 +97,12 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (!GetRenderProperties().GetHaveEffectRegion()) {
+    if (!ChildHasVisibleEffect()) {
         return {};
     }
     return RSRenderNode::GetFilterRect();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectRegion)
-{
-    if (!effectRegion.has_value() || effectRegion->isEmpty()) {
-        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
-        GetMutableRenderProperties().SetHaveEffectRegion(false);
-        return;
-    }
-
-    const auto& properties = GetRenderProperties();
-    const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
-    if (!SkIRect::Intersects(*effectRegion,
-        SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
-        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: effect region is not in node.");
-        GetMutableRenderProperties().SetHaveEffectRegion(false);
-        return;
-    }
-    GetMutableRenderProperties().SetHaveEffectRegion(true);
-}
-#else
 void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion)
 {
     if (!effectRegion.has_value() || !effectRegion->IsValid()) {
@@ -131,69 +122,63 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     }
     GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
-#endif
 
-void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
+void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect,
+    bool isInSkippedSubTree, const std::optional<RectI>& filterRectForceUpdated)
 {
-    if (NeedForceCache()) {
+    if (!RSProperties::FilterCacheEnabled) {
+        ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
-
-    // We need to check cache validity by comparing the cached image region with the filter rect
-    // PLANNING: the last != condition should be reconsidered
-    auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-    if (!manager) {
+    RectI filterRect = isInSkippedSubTree ? filterRectForceUpdated.value() : GetFilterRect();
+    if (!isInSkippedSubTree && clipRect.has_value()) {
+        filterRect = filterRect.IntersectRect(*clipRect);
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("effectNode[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+        GetId(), GetFilterCachedRegion().ToString().c_str(), filterRect.ToString().c_str());
+    if (filterRect == GetFilterCachedRegion()) {
         return;
     }
-    if (manager->IsCacheValid() &&
-        (manager->GetCachedImageRegion() != GetFilterRect() || preRotationStatus_ != isRotationChanged_)) {
-        // If the cached image region is different from the filter rect, invalidate the cache
-        manager->InvalidateCache();
-    }
-    // If the effectnode filter cache is invalid and there is no visited filter cache for occlusion
-    // Invalid this surface's filter cache occlusion
-    if (!manager->IsCacheValid() && IsVisitedFilterCacheEmpty()) {
-        ROSEN_LOGD("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion: InvalidateFilterCacheRect.");
-        dirtyManager.InvalidateFilterCacheRect();
-    }
+    // effect render node  only support background filter
+    MarkFilterStatusChanged(false, true);
 }
 
-void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
+void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(
+    std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground)
 {
-    // No need to invalidate cache if background image is not null
-    if (NeedForceCache()) {
+    if (filterDrawable == nullptr) {
         return;
     }
-    RSRenderNode::UpdateFilterCacheWithDirty(dirtyManager, isForeground);
+    if (!(filterDrawable->GetFilterForceClearCache()) && CheckFilterCacheNeedForceClear()) {
+        filterDrawable->MarkFilterForceClearCache();
+    } else if (CheckFilterCacheNeedForceSave()) {
+        filterDrawable->MarkFilterForceUseCache();
+    }
+    if (isRotationChanged_) {
+        filterDrawable->MarkRotationChanged();
+    }
+
+    RSRenderNode::MarkFilterCacheFlagsAfterPrepare(filterDrawable, isForeground);
+    preStaticStatus_ = IsStaticCached();
+    lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
 }
 
-bool RSEffectRenderNode::NeedForceCache()
+bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 {
-    // force update the first frame and last frame when rotating.
-    if (preRotationStatus_ != isRotationChanged_) {
-        return false;
-    }
-    // No need to invalidate cache if background image is not null or freezed
-    if (GetRenderProperties().GetBgImage() || (IsStaticCached() && !isRotationChanged_)) {
-        RS_OPTIONAL_TRACE_NAME("RSEffectRenderNode: background is not null or freezed");
-        return true;
-    }
-    if (isRotationChanged_ && invalidateTimes_ > 0) {
-        --invalidateTimes_;
-        return true;
-    }
-    if (isRotationChanged_ && invalidateTimes_ == 0 && cacheUpdateInterval_ > 0) {
-        --cacheUpdateInterval_;
-        return true;
-    }
-    cacheUpdateInterval_ = 1; // cache one frame
-    return false;
+    RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceSave"
+        " isBackgroundImage:%d, isRotationChanged_:%d, IsStaticCached():%d,",
+        GetId(), GetRenderProperties().GetBgImage() != nullptr, isRotationChanged_, IsStaticCached());
+    return GetRenderProperties().GetBgImage() != nullptr || (IsStaticCached() && !isRotationChanged_);
 }
 
-void RSEffectRenderNode::SetInvalidateTimesForRotation(int times)
+bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
 {
-    invalidateTimes_ = times;
+    RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
+        " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d,"
+        " hasVisibleEffect:%d", GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_,
+        preStaticStatus_, IsStaticCached(), ChildHasVisibleEffect());
+    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
+        (preStaticStatus_ != IsStaticCached()) || !ChildHasVisibleEffect();
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
@@ -205,6 +190,21 @@ void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
 bool RSEffectRenderNode::GetRotationChanged() const
 {
     return isRotationChanged_;
+}
+
+void RSEffectRenderNode::SetCurrentAttachedScreenId(uint64_t screenId)
+{
+    currentAttachedScreenId_ = screenId;
+}
+
+uint64_t RSEffectRenderNode::GetCurrentAttachedScreenId() const
+{
+    return currentAttachedScreenId_;
+}
+
+void RSEffectRenderNode::SetFoldStatusChanged(bool foldStatusChanged)
+{
+    foldStatusChanged_ = foldStatusChanged;
 }
 } // namespace Rosen
 } // namespace OHOS

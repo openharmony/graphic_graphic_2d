@@ -36,24 +36,11 @@ public:
     static inline void* _s_removeStoppedThreads = nullptr;
     static inline void* _s_checkForSerialForced = nullptr;
 
-    // qos vsync
-    static bool UpdateQosVsyncEnabled();
-    static inline bool _s_qosVsyncFuncLoaded = false;
-    static inline void* _s_createRSQosService = nullptr;
-    static inline void* _s_qosThreadStart = nullptr;
-    static inline void* _s_qosThreadStop = nullptr;
-    static inline void* _s_qosSetBoundaryRate = nullptr;
-    static inline void* _s_qosOnRSVisibilityChangeCB = nullptr;
-    static inline void* _s_qosRegisteFuncCB = nullptr;
-    static inline void* _s_qosOnRSResetPid = nullptr;
-
 private:
     RSInnovation() = default;
 
     static void GetParallelCompositionFunc();
     static void ResetParallelCompositionFunc();
-    static void GetQosVSyncFunc();
-    static void ResetQosVsyncFunc();
 };
 }
 }

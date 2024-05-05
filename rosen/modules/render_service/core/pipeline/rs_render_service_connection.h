@@ -24,6 +24,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_hardware_thread.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "vsync_distributor.h"
@@ -49,6 +50,10 @@ public:
         return token_;
     }
 
+#ifdef RS_PROFILER_ENABLED
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+#endif
+
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
@@ -73,7 +78,10 @@ private:
 
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                  const sptr<VSyncIConnectionToken>& token,
-                                                 uint64_t id) override;
+                                                 uint64_t id,
+                                                 NodeId windowNodeId = 0) override;
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -106,7 +114,7 @@ private:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(const FrameRateRange& range) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -123,10 +131,10 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType) override;
+        SurfaceCaptureType surfaceCaptureType, bool isSync) override;
 
     void TakeSurfaceCaptureForUIWithUni(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -168,6 +176,8 @@ private:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -190,15 +200,11 @@ private:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
-#ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
-    bool GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
-        const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList) override;
-#else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) override;
-#endif
+    bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
+    bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
@@ -212,6 +218,8 @@ private:
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
+
+    int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
 
@@ -249,10 +257,12 @@ private:
 #endif
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
+    RSUniRenderThread& renderThread_;
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
 
@@ -289,6 +299,10 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

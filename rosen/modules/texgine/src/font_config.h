@@ -16,12 +16,12 @@
 #ifndef FONT_CONFIG_H
 #define FONT_CONFIG_H
 
-#include <json/json.h>
 #include <string>
 #include <vector>
 #include <include/core/SkString.h>
 #include <map>
 
+struct cJSON;
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
@@ -34,8 +34,8 @@ public:
 
 protected:
     int ParseConfig(const char* fname);
-    int ParseFont(const Json::Value& root);
-    int CheckConfigFile(const char* fname, Json::Value& root) const;
+    int ParseFont(const cJSON* root);
+    cJSON* CheckConfigFile(const char* fname) const;
     static char* GetFileData(const char* fname, int& size);
 
 private:
@@ -93,16 +93,14 @@ public:
 
 private:
     int ParseConfigList(const char* fname);
-    int ParseFontDir(const Json::Value& root);
-    int ParseGeneric(const Json::Value& root);
-    int ParseAlias(const Json::Value& root, FontGenericInfo &genericInfo);
-    int ParseAdjust(const Json::Value& root, FontGenericInfo &genericInfo);
-    int ParseFallback(const Json::Value& root);
-    int ParseFallbackItem(const Json::Value& root, FallbackInfo &fallbackInfo);
-    int ParseDir(const Json::Value &root);
-    int ParseFallbakArr(const Json::Value& arr, int i, const char* key);
-    int CheckGeneric(const Json::Value& root, const char* key);
-    int ParseAliasArr(const Json::Value& arr, const char* key, FontGenericInfo &genericInfo);
+    int ParseGeneric(const cJSON* root, const char* key);
+    int ParseAlias(const cJSON* root, FontGenericInfo &genericInfo);
+    int ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo);
+    int ParseFallback(const cJSON* root, const char* key);
+    int ParseDir(const cJSON* root);
+    void AnalyseFontDir(const cJSON* root);
+    int ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo);
+    int ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo);
     void DumpFontDir() const;
     void DumpGeneric() const;
     void DumpForbak() const;

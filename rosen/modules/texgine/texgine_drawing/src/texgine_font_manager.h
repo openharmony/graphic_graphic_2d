@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkFontMgr.h>
-#else
 #include "drawing.h"
-#endif
 
 #include "texgine_font_style.h"
 #include "texgine_font_style_set.h"
@@ -43,15 +39,9 @@ public:
     /*
      * @brief Get the font manager
      */
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkFontMgr> GetFontMgr() const;
-
-    void SetFontMgr(const sk_sp<SkFontMgr> mgr);
-#else
     std::shared_ptr<RSFontMgr> GetFontMgr() const;
 
     void SetFontMgr(const std::shared_ptr<RSFontMgr> mgr);
-#endif
 
     /*
      * @brief Use the system fallback to find a typeface for the given character.
@@ -77,11 +67,7 @@ public:
         const TexgineFontStyle &style);
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkFontMgr> fontMgr_;
-#else
     std::shared_ptr<RSFontMgr> fontMgr_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

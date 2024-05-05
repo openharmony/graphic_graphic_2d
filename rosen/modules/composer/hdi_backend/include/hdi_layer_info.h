@@ -207,6 +207,11 @@ public:
         gravity_ = gravity;
     }
 
+    void SetUniRenderFlag(bool isUniRender)
+    {
+        isUniRender_ = isUniRender;
+    }
+
     void SetTunnelHandleChange(bool change)
     {
         tunnelHandleChange_ = change;
@@ -312,9 +317,24 @@ public:
         return gravity_;
     }
 
+    bool GetUniRenderFlag() const
+    {
+        return isUniRender_;
+    }
+
     bool IsPreMulti() const
     {
         return preMulti_;
+    }
+
+    void SetWindowsName(std::vector<std::string>& windowsName)
+    {
+        windowsName_ = windowsName;
+    }
+
+    const std::vector<std::string>& GetWindowsName()
+    {
+        return windowsName_;
     }
 
     const std::vector<float> &GetColorTransform()
@@ -464,6 +484,7 @@ private:
     GraphicIRect cropRect_;
     GraphicMatrix matrix_; // matrix used for uni render redraw
     int32_t gravity_; // used for uni render redraw
+    bool isUniRender_ = false; // true for uni render layer (DisplayNode)
     GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_;
@@ -474,6 +495,7 @@ private:
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
+    std::vector<std::string> windowsName_;
     bool tunnelHandleChange_ = false;
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};

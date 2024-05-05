@@ -27,9 +27,6 @@
 #include "utils/vertices.h"
 
 namespace OHOS {
-namespace Media {
-class PixelMap;
-}
 namespace Rosen {
 namespace Drawing {
 class DrawOpItem;
@@ -46,9 +43,6 @@ public:
         const OpDataHandle& opDataHandle);
     static ImageHandle AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap);
     static std::shared_ptr<Bitmap> GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle);
-    static OpDataHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
-    static std::shared_ptr<Media::PixelMap> GetPixelMapFromCmdList(
-        const CmdList& cmdList, const OpDataHandle& pixelMapHandle);
     static OpDataHandle DRAWING_API AddImageObjectToCmdList(
         CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
     static std::shared_ptr<ExtendImageObject> GetImageObjectFromCmdList(
@@ -62,10 +56,10 @@ public:
     static OpDataHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
     static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
 
-    static OpDataHandle DRAWING_API AddDrawFuncObjToCmdList(
+    static uint32_t DRAWING_API AddDrawFuncObjToCmdList(
         CmdList& cmdList, const std::shared_ptr<ExtendDrawFuncObj>& object);
     static std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObjFromCmdList(
-        const CmdList& cmdList, const OpDataHandle& objectHandle);
+        const CmdList& cmdList, uint32_t objectHandle);
 
     template<typename RecordingType, typename CommonType>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const CommonType& recorded)
@@ -186,8 +180,9 @@ public:
         return childCmdList;
     }
 
-    static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob);
-    static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList, const OpDataHandle& textBlobHandle);
+    static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx = nullptr);
+    static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& textBlobHandle, void* ctx = nullptr);
 
     static OpDataHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
     static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
@@ -223,6 +218,10 @@ public:
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
 
+    static OpDataHandle AddBlurDrawLooperToCmdList(CmdList& cmdList, std::shared_ptr<BlurDrawLooper> blurDrawLooper);
+    static std::shared_ptr<BlurDrawLooper> GetBlurDrawLooperFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& blurDrawLooperHandle);
+
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);
 
@@ -241,6 +240,8 @@ public:
     static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
         const CmdList& cmdList, uint32_t imageFilterHandle);
 #endif
+    static uint32_t AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject>);
+    static std::shared_ptr<ExtendObject> GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index);
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -16,23 +16,20 @@
 #include "command/rs_canvas_node_command.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS {
 namespace Rosen {
 
 void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+    auto node = std::shared_ptr<RSCanvasRenderNode>(new RSCanvasRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
-    std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type)
-#else
 bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
     std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type)
-#endif
 {
     if (node->GetNodeIsSingleFrameComposer()) {
         if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
@@ -50,13 +47,8 @@ bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCa
     return false;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSCanvasNodeCommandHelper::UpdateRecording(
-    RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType)
-#else
 void RSCanvasNodeCommandHelper::UpdateRecording(
     RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
-#endif
 {
     auto type = static_cast<RSModifierType>(modifierType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {

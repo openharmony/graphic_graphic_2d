@@ -22,13 +22,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* data_ = nullptr;
-size_t size_ = 0;
-size_t pos;
+const uint8_t* g_data = nullptr;
+size_t g_size = 0;
+size_t g_pos;
 } // namespace
 
 /*
- * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
+ * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
  * tips: only support basic type
  */
 template<class T>
@@ -36,14 +36,14 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (data_ == nullptr || objectSize > size_ - pos) {
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
-    pos += objectSize;
+    g_pos += objectSize;
     return object;
 }
 
@@ -54,9 +54,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     // get data
     uint64_t id = GetData<uint64_t>();
@@ -68,6 +68,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
     bool canvasRotation = GetData<bool>();
+    uint32_t scaleMode = GetData<uint32_t>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -102,6 +103,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.UnRegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id));
     rsInterfaces.ResizeVirtualScreen(static_cast<NodeId>(id), width, height);
     rsInterfaces.SetVirtualMirrorScreenCanvasRotation(static_cast<ScreenId>(id), canvasRotation);
+    rsInterfaces.SetVirtualMirrorScreenScaleMode(static_cast<ScreenId>(id), static_cast<ScreenScaleMode>(scaleMode));
 
     sleep(1);
 

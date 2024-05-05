@@ -56,6 +56,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
 {
     return {
         .fontWeight = static_cast<SPText::FontWeight>(style.fontWeight),
+        .fontWidth = static_cast<SPText::FontWidth>(style.fontWidth),
         .fontStyle = static_cast<SPText::FontStyle>(style.fontStyle),
         .wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType),
         .fontFamily = style.fontFamily,
@@ -64,6 +65,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .heightOverride = style.heightOnly,
         .strutEnabled = style.useLineStyle,
         .strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight),
+        .strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth),
         .strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle),
         .strutFontFamilies = style.lineStyleFontFamilies,
         .strutFontSize = style.lineStyleFontSize,
@@ -82,6 +84,9 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .textOverflower = style.Ellipsized(),
         .spTextStyle = Convert(style.insideTextStyle),
         .customSpTextStyle = style.customTextStyle,
+        .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
+        .hintingIsOn = style.hintingIsOn,
+        .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
     };
 }
 
@@ -96,37 +101,34 @@ SPText::PlaceholderRun Convert(const PlaceholderSpan& run)
     };
 }
 
-SPText::TextStyle Convert(const TextStyle& style)
+static std::string RemoveQuotes(const std::string& str)
 {
-    SPText::TextStyle textStyle;
-    textStyle.color = style.color.CastToColorQuad();
-    textStyle.decoration = static_cast<SPText::TextDecoration>(style.decoration);
-    auto decorationColor = SkColorSetARGB(style.decorationColor.GetAlpha(), style.decorationColor.GetRed(),
-        style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
-    textStyle.decorationColor = decorationColor;
-    textStyle.decorationStyle = static_cast<SPText::TextDecorationStyle>(style.decorationStyle);
-    textStyle.decorationThicknessMultiplier = style.decorationThicknessScale;
-    textStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
-    textStyle.fontStyle = static_cast<SPText::FontStyle>(style.fontStyle);
-    textStyle.baseline = static_cast<SPText::TextBaseline>(style.baseline);
-    textStyle.halfLeading = style.halfLeading;
-    textStyle.fontFamilies = style.fontFamilies;
-    textStyle.fontSize = style.fontSize;
-    textStyle.letterSpacing = style.letterSpacing;
-    textStyle.wordSpacing = style.wordSpacing;
-    textStyle.height = style.heightScale;
-    textStyle.heightOverride = style.heightOnly;
-    textStyle.locale = style.locale;
-    textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
-        style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
-        style.backgroundRect.leftBottomRadius };
-    textStyle.styleId = style.styleId;
-    textStyle.isSymbolGlyph = style.isSymbolGlyph;
+    if (str.empty() || str.front() != '\"' || str.back() != '\"') {
+        return str;
+    }
+    const int start = 1; // The starting position of string.
+    const int end = static_cast<int>(str.size()) - 2; // End position of string.
+    return str.substr(start, end); // Remove quotation marks from both ends.
+}
 
+void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
+{
+    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+    textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
+    textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+    textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+    textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+    textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
+    textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
+    for (auto [tag, value] : style.symbol.GetVisualMap()) {
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+    }
+}
+
+void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
+{
     if (style.isSymbolGlyph) {
-        textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
-        textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
-        textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+        CopyTextStyleSymbol(style, textStyle);
     }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
@@ -142,8 +144,47 @@ SPText::TextStyle Convert(const TextStyle& style)
     }
 
     for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(tag, value);
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
+
+    if (!style.fontVariations.GetAxisValues().empty()) {
+        for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
+            textStyle.fontVariations.SetAxisValue(axis, value);
+        }
+    }
+}
+
+SPText::TextStyle Convert(const TextStyle& style)
+{
+    SPText::TextStyle textStyle;
+    textStyle.color = style.color.CastToColorQuad();
+    textStyle.decoration = static_cast<SPText::TextDecoration>(style.decoration);
+    auto decorationColor = SkColorSetARGB(style.decorationColor.GetAlpha(), style.decorationColor.GetRed(),
+        style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
+    textStyle.decorationColor = decorationColor;
+    textStyle.decorationStyle = static_cast<SPText::TextDecorationStyle>(style.decorationStyle);
+    textStyle.decorationThicknessMultiplier = style.decorationThicknessScale;
+    textStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
+    textStyle.fontWidth = static_cast<SPText::FontWidth>(style.fontWidth);
+    textStyle.fontStyle = static_cast<SPText::FontStyle>(style.fontStyle);
+    textStyle.baseline = static_cast<SPText::TextBaseline>(style.baseline);
+    textStyle.halfLeading = style.halfLeading;
+    textStyle.fontFamilies = style.fontFamilies;
+    textStyle.fontSize = style.fontSize;
+    textStyle.letterSpacing = style.letterSpacing;
+    textStyle.wordSpacing = style.wordSpacing;
+    textStyle.height = style.heightScale;
+    textStyle.heightOverride = style.heightOnly;
+    textStyle.locale = style.locale;
+    textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
+        style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
+        style.backgroundRect.leftBottomRadius };
+    textStyle.styleId = style.styleId;
+    textStyle.isSymbolGlyph = style.isSymbolGlyph;
+    textStyle.baseLineShift = style.baseLineShift;
+    textStyle.isPlaceholder = style.isPlaceholder;
+    SplitTextStyleConvert(textStyle, style);
+
     return textStyle;
 }
 } // namespace AdapterTxt

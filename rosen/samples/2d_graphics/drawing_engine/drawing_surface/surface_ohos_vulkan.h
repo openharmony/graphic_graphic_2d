@@ -46,10 +46,8 @@ public:
         int32_t width, int32_t height, int& fenceFd);
 
     void CreateVkSemaphore(
-        VkSemaphore* semaphore, const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
-#ifdef USE_ROSEN_DRAWING
+        VkSemaphore* semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
     Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
-#endif
 private:
     void SetNativeWindowInfo(int32_t width, int32_t height);
     std::unique_ptr<SurfaceFrameOhosVulkan> frame_;
@@ -58,11 +56,7 @@ private:
     std::list<NativeWindowBuffer*> surfaceList_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> surfaceMap_;
     std::shared_ptr<Drawing::GPUContext> drContext_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> surface_ = nullptr;
-#else
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

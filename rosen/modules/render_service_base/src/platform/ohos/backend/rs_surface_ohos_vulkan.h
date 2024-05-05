@@ -41,6 +41,19 @@ struct DestroySemaphoreInfo {
     DestroySemaphoreInfo(PFN_vkDestroySemaphore destroyFunction, VkDevice device,
                         VkSemaphore semaphore)
         : mDestroyFunction(destroyFunction), mDevice(device), mSemaphore(semaphore) {}
+
+    static void DestroySemaphore(void *context)
+    {
+        if (context == nullptr) {
+            return;
+        }
+        DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
+        --info->mRefs;
+        if (!info->mRefs) {
+            info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
+            delete info;
+        }
+    }
 };
 
 class RSSurfaceOhosVulkan : public RSSurfaceOhos {
@@ -54,7 +67,7 @@ public:
     }
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
+        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage) override;
@@ -62,11 +75,7 @@ public:
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
-#ifndef USE_ROSEN_DRAWING
-    void SetSkContext(sk_sp<GrDirectContext> skContext)
-#else
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
-#endif
     {
         mSkContext = skContext;
     }
@@ -74,19 +83,15 @@ private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
-    void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC);
+    void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> mSkContext = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
-#endif
-    int32_t RequestNativeWindowBuffer(
-        NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC);
+    int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
+        int32_t width, int32_t height, int& fenceFd, bool useAFBC, bool isProtected = false);
     void CreateVkSemaphore(VkSemaphore* semaphore,
-        const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
+        RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 };
 
 } // namespace Rosen

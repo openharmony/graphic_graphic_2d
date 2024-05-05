@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -28,11 +28,20 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "rs_innovation_test.cpp",
     "rs_jank_stats_test.cpp",
     "rs_log_test.cpp",
+    "rs_node_stats_test.cpp",
     "rs_render_service_client_test.cpp",
     "rs_render_service_connect_hub_test.cpp",
+    "rs_render_service_connection_proxy_test.cpp",
     "rs_render_service_proxy_test.cpp",
+    "rs_surface_ohos_converter_test.cpp",
     "rs_surface_ohos_test.cpp",
+    "rs_system_properties_test.cpp",
     "rs_vsync_client_ohos_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   configs = [
@@ -47,7 +56,6 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
@@ -62,22 +70,19 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   ]
 
   public_deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/utils:sync_fence",
-    "//commonlibrary/c_utils/base:utils",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
+  public_external_deps = [ "graphic_surface:sync_fence" ]
   deps += [ "//third_party/skia:skia_ohos" ]
   public_deps += [ "//third_party/skia:skia_ohos" ]
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
 
-    public_deps += [
-      "$graphic_2d_root:libgl",
-      "//third_party/openssl:libcrypto_shared",
-    ]
+    public_deps += [ "$graphic_2d_root:libgl" ]
+
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   external_deps = [

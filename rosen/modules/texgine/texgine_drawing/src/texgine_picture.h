@@ -18,31 +18,18 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkPicture.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 class TexginePicture {
 public:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkPicture> GetPicture() const;
-    void SetPicture(const sk_sp<SkPicture> picture);
-#else
     std::shared_ptr<RSPicture> GetPicture() const;
     void SetPicture(const std::shared_ptr<RSPicture> picture);
-#endif
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkPicture> picture_ = nullptr;
-#else
     std::shared_ptr<RSPicture> picture_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

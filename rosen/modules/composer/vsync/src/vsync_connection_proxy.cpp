@@ -30,7 +30,7 @@ VsyncError VSyncConnectionProxy::RequestNextVSync()
 
 VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS)
 {
-    MessageOption opt;
+    MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
     MessageParcel ret;
 

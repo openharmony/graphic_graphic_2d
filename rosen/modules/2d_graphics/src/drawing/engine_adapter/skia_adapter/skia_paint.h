@@ -50,6 +50,7 @@ public:
 
     void ApplyPaint(const Paint& paint);
     SortedPaints& GetSortedPaints();
+    void Reset();
 
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);

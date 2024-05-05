@@ -16,6 +16,7 @@
 #ifndef DRAW_CMD_H
 #define DRAW_CMD_H
 
+#include <cstdint>
 #include <unordered_map>
 #include <functional>
 #include <stack>
@@ -53,11 +54,11 @@ public:
         CIRCLE_OPITEM,
         COLOR_OPITEM,
         IMAGE_NINE_OPITEM,
-        IMAGE_ANNOTATION_OPITEM,
         IMAGE_LATTICE_OPITEM,
         PATH_OPITEM,
         BACKGROUND_OPITEM,
         SHADOW_OPITEM,
+        SHADOW_STYLE_OPITEM,
         BITMAP_OPITEM,
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
@@ -83,8 +84,6 @@ public:
         RESTORE_OPITEM,
         DISCARD_OPITEM,
         CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
-        ADAPTIVE_IMAGE_OPITEM,
-        ADAPTIVE_PIXELMAP_OPITEM,
         IMAGE_WITH_PARM_OPITEM,
         PIXELMAP_WITH_PARM_OPITEM,
         PIXELMAP_RECT_OPITEM,
@@ -105,12 +104,15 @@ public:
     virtual void Marshalling(DrawCmdList& cmdList) = 0;
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
-    virtual void SetSymbol() {}
     virtual void SetNodeId(NodeId id) {}
 
     static void SetBaseCallback(
         std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc_;
+
+    static void SetTypefaceQueryCallBack(
+        std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc);
+    static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
 class UnmarshallingPlayer {
@@ -150,6 +152,60 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override {}
 protected:
     Paint paint_;
+};
+
+class DrawShadowStyleOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& path, const Point3& planeParams, const Point3& devLightPos,
+            scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+            : OpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
+              path(path),
+              planeParams(planeParams),
+              devLightPos(devLightPos),
+              lightRadius(lightRadius),
+              ambientColor(ambientColor),
+              spotColor(spotColor),
+              flag(flag),
+              isShadowStyle(isShadowStyle)
+        {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle path;
+        Point3 planeParams;
+        Point3 devLightPos;
+        scalar lightRadius;
+        Color ambientColor;
+        Color spotColor;
+        ShadowFlags flag;
+        bool isShadowStyle;
+    };
+    DrawShadowStyleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawShadowStyleOpItem(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+        Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+        : DrawOpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
+          planeParams_(planeParams),
+          devLightPos_(devLightPos),
+          lightRadius_(lightRadius),
+          ambientColor_(ambientColor),
+          spotColor_(spotColor),
+          flag_(flag),
+          isShadowStyle_(isShadowStyle),
+          path_(std::make_shared<Path>(path))
+    {}
+    ~DrawShadowStyleOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    Point3 planeParams_;
+    Point3 devLightPos_;
+    scalar lightRadius_;
+    Color ambientColor_;
+    Color spotColor_;
+    ShadowFlags flag_;
+    bool isShadowStyle_;
+    std::shared_ptr<Path> path_;
 };
 
 class DrawPointOpItem : public DrawWithPaintOpItem {
@@ -721,12 +777,15 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, scalar x, scalar y, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), x(x), y(y), paintHandle(paintHandle) {}
+        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
+            scalar x, scalar y, const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
+            x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
+        uint64_t globalUniqueId;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -744,24 +803,11 @@ public:
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
     void DrawHighContrast(Canvas* canvas) const;
+    void DrawHighContrastEnabled(Canvas* canvas) const;
 private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
-    std::shared_ptr<DrawImageRectOpItem> cacheImage_;
-    bool callFromCacheFunc_ = false;
-};
-
-using DrawSymbolAnimation = struct DrawSymbolAnimation {
-    // all animation need
-    double startValue = 0;
-    double curValue = 0;
-    double endValue = 1;
-    double speedValue = 0.01;
-    uint32_t number = 0; // animate times when reach the destination
-    // hierarchy animation need
-    long long startDuration = 0;
-    std::chrono::milliseconds curTime; // frame timestamp
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
@@ -783,28 +829,11 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
 
-    void SetSymbol() override;
-
-    void InitialScale();
-
-    void InitialVariableColor();
-
-    void SetScale(size_t index);
-
-    void SetVariableColor(size_t index);
-
-    static void UpdateScale(const double cur, Path& path);
-
-    void UpdataVariableColor(const double cur, size_t index);
 private:
     static void MergeDrawingPath(
         Path& multPath, DrawingRenderGroup& group, std::vector<Path>& pathLayers);
     DrawingHMSymbolData symbol_;
     Point locate_;
-
-    std::vector<DrawSymbolAnimation> animation_;
-    uint32_t number_ = 2; // one animation means a back and forth
-    bool startAnimation_ = false; // update animation_ if true
 };
 
 class ClipRectOpItem : public DrawOpItem {
@@ -1183,75 +1212,6 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     std::vector<Point> radiusData_;
-};
-
-class DrawAdaptiveImageOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& image, const AdaptiveImageInfo& rsImageInfo,
-            const SamplingOptions& sampling, const bool isImage, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::ADAPTIVE_IMAGE_OPITEM), image(image), rsImageInfo(rsImageInfo), sampling(sampling),
-              isImage(isImage), paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle image;
-        AdaptiveImageInfo rsImageInfo;
-        SamplingOptions sampling;
-        bool isImage;
-        PaintHandle paintHandle;
-    };
-    DrawAdaptiveImageOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    DrawAdaptiveImageOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
-        : DrawWithPaintOpItem(paint, DrawOpItem::ADAPTIVE_IMAGE_OPITEM), rsImageInfo_(rsImageInfo), sampling_(sampling)
-    {
-        if (data != nullptr) {
-            data_ = data;
-            isImage_ = false;
-        } else if (image != nullptr) {
-            image_ = image;
-            isImage_ = true;
-        } else {
-            isImage_ = false;
-        }
-    }
-    ~DrawAdaptiveImageOpItem() override = default;
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
-    void Marshalling(DrawCmdList& cmdList) override;
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    AdaptiveImageInfo rsImageInfo_;
-    SamplingOptions sampling_;
-    bool isImage_;
-    std::shared_ptr<Image> image_;
-    std::shared_ptr<Data> data_;
-};
-
-class DrawAdaptivePixelMapOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
-            const SamplingOptions& sampling, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM), pixelMap(pixelMap),
-              imageInfo(imageInfo), sampling(sampling), paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle pixelMap;
-        AdaptiveImageInfo imageInfo;
-        SamplingOptions sampling;
-        PaintHandle paintHandle;
-    };
-    DrawAdaptivePixelMapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    DrawAdaptivePixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const AdaptiveImageInfo& rsImageInfo,
-        const SamplingOptions& sampling, const Paint& paint)
-        : DrawWithPaintOpItem(paint, DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM), imageInfo_(rsImageInfo),
-          sampling_(sampling), pixelMap_(pixelMap) {}
-    ~DrawAdaptivePixelMapOpItem() override = default;
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
-    void Marshalling(DrawCmdList& cmdList) override;
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    AdaptiveImageInfo imageInfo_;
-    SamplingOptions sampling_;
-    std::shared_ptr<Media::PixelMap> pixelMap_;
 };
 } // namespace Drawing
 } // namespace Rosen

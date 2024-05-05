@@ -324,7 +324,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient002, TestSize.Level1)
  */
 HWTEST_F(ShaderEffectTest, ArgsContructor001, TestSize.Level1)
 {
-    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, 230);
+    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, 230);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -511,10 +511,10 @@ HWTEST_F(ShaderEffectTest, ArgsContructor012, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR_EFFECT, startPoint, endPoint, colors, position, TileMode::REPEAT);
+        ShaderEffect::ShaderEffectType::COLOR_SHADER, startPoint, endPoint, colors, position, TileMode::REPEAT);
     ASSERT_TRUE(newShaderEffect != nullptr);
     auto type = newShaderEffect->GetType();
-    EXPECT_EQ(type, ShaderEffect::ShaderEffectType::COLOR_EFFECT);
+    EXPECT_EQ(type, ShaderEffect::ShaderEffectType::COLOR_SHADER);
 }
 
 /*
@@ -571,7 +571,7 @@ HWTEST_F(ShaderEffectTest, ArgsContructor015, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     Matrix matrix;
-    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, startPoint,
+    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, startPoint,
         startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT, &matrix);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
@@ -631,9 +631,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor018, TestSize.Level1)
     scalar endAngle = 4.65f;
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
-    auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR_EFFECT, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
-        nullptr);
+    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, centerPoint,
+        colors, position, TileMode::REPEAT, startAngle, endAngle, nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 } // namespace Drawing

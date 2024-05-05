@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "screen_manager/screen_types.h"
 #include "animation/rs_frame_rate_range.h"
@@ -26,6 +27,8 @@
 namespace OHOS::Rosen {
 
 constexpr int UNI_APP_PID = -1;
+constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
+constexpr pid_t DEFAULT_PID = 0;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -66,16 +69,19 @@ enum HgmXmlNode {
     HGM_XML_PARAMS,
 };
 
-enum RefreshRateMode {
-    HGM_REFRESHRATE_MODE_AUTO = -1,
-    HGM_REFRESHRATE_MODE_NULL = 0,
-    HGM_REFRESHRATE_MODE_LOW = 1,
-    HGM_REFRESHRATE_MODE_MEDIUM,
-    HGM_REFRESHRATE_MODE_HIGH,
-};
-
 enum class SceneType {
     SCREEN_RECORD,
+};
+
+enum DynamicModeType : int32_t {
+    TOUCH_DISENABLED = 0,
+    TOUCH_ENABLED = 1,
+};
+
+enum MultiAppStrategyType {
+    USE_MAX,
+    FOLLOW_FOCUS,
+    USE_STRATEGY_NUM,
 };
 
 class PolicyConfigData {
@@ -86,9 +92,10 @@ public:
     struct StrategyConfig {
         int32_t min;
         int32_t max;
-        int32_t dynamicMode;
+        DynamicModeType dynamicMode;
         int32_t drawMin;
         int32_t drawMax;
+        int32_t down;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -116,6 +123,8 @@ public:
         std::unordered_map<std::string, std::string> ltpoConfig;
         // <"pkgName", "4">
         std::unordered_map<std::string, std::string> appList;
+        MultiAppStrategyType multiAppStrategyType;
+        std::string multiAppStrategyName;
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
@@ -127,7 +136,8 @@ public:
 
     std::string defaultRefreshRateMode_ = "-1";
     // <"120", "1">
-    std::unordered_map<std::string, std::string> refreshRateForSettings_;
+    std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings_;
+    bool xmlCompatibleMode_ = false;
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;
@@ -136,17 +146,6 @@ public:
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
 
-    DynamicSetting GetRSAnimateRateConfig(const std::string& screenType, const std::string& settingMode,
-        const std::string& animateType)
-    {
-        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode) &&
-            screenConfigs_[screenType][settingMode].animationDynamicSettings.count(animateType)) {
-            return screenConfigs_[screenType][settingMode].animationDynamicSettings[animateType];
-        } else {
-            return {};
-        }
-    }
-
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {
         if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode)) {
@@ -154,6 +153,34 @@ public:
         } else {
             return {};
         }
+    }
+
+    int32_t SettingModeId2XmlModeId(int32_t settingModeId)
+    {
+        if (settingModeId < 0 || settingModeId >= static_cast<int32_t>(refreshRateForSettings_.size())) {
+            return 0;
+        }
+        return refreshRateForSettings_[settingModeId].second;
+    }
+
+    int32_t XmlModeId2SettingModeId(int32_t xmlModeId)
+    {
+        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+            [=] (auto nameModeId) { return nameModeId.second == xmlModeId; });
+        if (iter != refreshRateForSettings_.end()) {
+            return static_cast<int32_t>(iter - refreshRateForSettings_.begin());
+        }
+        return 0;
+    }
+
+    int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
+    {
+        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+            [=] (auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+        if (iter != refreshRateForSettings_.end()) {
+            return iter->first;
+        }
+        return 0;
     }
 };
 } // namespace OHOS

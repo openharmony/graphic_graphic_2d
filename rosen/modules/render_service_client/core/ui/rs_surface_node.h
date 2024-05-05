@@ -35,9 +35,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -104,9 +101,10 @@ public:
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
-    void SetTextureExport(bool isTextureExportNode);
+    void SetTextureExport(bool isTextureExportNode) override;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -117,7 +115,7 @@ public:
         return colorSpace_;
     }
 
-    std::string GetName() const
+    inline std::string GetName() const
     {
         return name_;
     }
@@ -142,6 +140,9 @@ public:
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    void SetHDRPresent(bool hdrPresent);
+    void RegisterHDRPresentCallback();
 
 protected:
     bool NeedForcedSendToRemote() const override;
@@ -161,7 +162,7 @@ private:
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
-    void CreateTextExportRenderNodeInRT();
+    void CreateTextureExportRenderNodeInRT() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
 #ifdef NEW_RENDER_CONTEXT

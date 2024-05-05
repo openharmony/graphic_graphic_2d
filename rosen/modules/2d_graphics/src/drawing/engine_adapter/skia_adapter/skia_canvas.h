@@ -16,6 +16,7 @@
 #ifndef SKIACANVAS_H
 #define SKIACANVAS_H
 
+#include "draw/canvas.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/HMSymbol.h"
@@ -34,6 +35,9 @@
 #include "skia_picture.h"
 #include "skia_region.h"
 #include "skia_vertices.h"
+// opinc_begin
+#include "skia_canvas_op.h"
+// opinc_end
 
 #include "common/rs_macros.h"
 #include "impl_interface/core_canvas_impl.h"
@@ -41,11 +45,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT SkiaCanvas : public CoreCanvasImpl {
-#else
 class DRAWING_API SkiaCanvas : public CoreCanvasImpl {
-#endif
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
@@ -64,6 +64,7 @@ public:
     Matrix GetTotalMatrix() const override;
     Rect GetLocalClipBounds() const override;
     RectI GetDeviceClipBounds() const override;
+    RectI GetRoundInDeviceClipBounds() const override;
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() const override;
 #endif
@@ -75,6 +76,7 @@ public:
     bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) override;
 
     // shapes
+    void DrawSdf(const SDFShapeBase& shape) override;
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
     void DrawLine(const Point& startPt, const Point& endPt) override;
@@ -89,6 +91,8 @@ public:
     void DrawBackground(const Brush& brush) override;
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
+    void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+        Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle) override;
     void DrawRegion(const Region& region) override;
     void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) override;
@@ -107,16 +111,14 @@ public:
     Drawing::OpListHandle EndOpRecording() override;
     void DrawOpList(Drawing::OpListHandle handle) override;
     int CanDrawOpList(Drawing::OpListHandle handle) override;
-    void PreOpListDrawArea(const Matrix& matrix) override;
-    bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound = nullptr) override;
-    Drawing::OpListHandle GetOpListDrawArea() override;
-    void OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-        const SamplingOptions& sampling, SrcRectConstraint constraint) override;
+    bool OpCalculateBefore(const Matrix& matrix) override;
+    std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) override;
     // opinc_end
 
     // image
+    void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[], int count,
+        BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
-    void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint) override;
@@ -168,11 +170,23 @@ public:
 
     void BuildOverDraw(std::shared_ptr<Canvas> canvas) override;
 
+    void BuildNoDraw(int32_t width, int32_t height) override;
+
+    void Reset(int32_t width, int32_t height) override;
+
+    void SetGrContextToSkiaImage(SkiaImage* skiaImage);
+
+    bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
+    // opinc_begin
+    SkCanvas* skCanvasBackup_ = nullptr;
+    std::shared_ptr<SkiaCanvasOp> skiaCanvasOp_ = nullptr;
+    // opinc_end
     SkiaPaint skiaPaint_;
 };
 } // namespace Drawing

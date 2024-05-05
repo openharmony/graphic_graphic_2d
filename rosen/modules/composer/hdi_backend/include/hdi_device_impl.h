@@ -18,6 +18,8 @@
 
 #include "hdi_device.h"
 #include "graphic_error.h"
+#include "v1_1/include/idisplay_composer_interface.h"
+#include "v1_2/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +60,8 @@ public:
     int32_t GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapability &info) override;
     int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) override;
     int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) override;
+    int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush,
+        std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

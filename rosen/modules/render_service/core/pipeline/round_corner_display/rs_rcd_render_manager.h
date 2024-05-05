@@ -67,11 +67,13 @@ private:
     void Reset();
 
     bool rcdRenderEnabled_ = false;
+    constexpr static NodeId TOP_RCD_NODE_ID = 1;
+    constexpr static NodeId BACKGROUND_RCD_NODE_ID = 2;
 
     std::shared_ptr<RSRcdSurfaceRenderNode> topSurfaceNode_ =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+        std::make_shared<RSRcdSurfaceRenderNode>(TOP_RCD_NODE_ID, RCDSurfaceType::TOP);
     std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode_ =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+        std::make_shared<RSRcdSurfaceRenderNode>(BACKGROUND_RCD_NODE_ID, RCDSurfaceType::BOTTOM);
     bool isBufferCacheClear_ = false;
 };
 } // namespace Rosen

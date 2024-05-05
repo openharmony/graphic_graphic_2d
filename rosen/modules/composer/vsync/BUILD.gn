@@ -25,6 +25,10 @@ config("vsync_config") {
     "-g3",
   ]
 
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
+
   if (graphic_2d_feature_enable_dvsync) {
     gpu_defines += [ "RS_ENABLE_DVSYNC" ]
   }
@@ -35,7 +39,6 @@ config("vsync_config") {
 
 config("vsync_public_config") {
   include_dirs = [
-    "//base/notification/eventhandler/interfaces/inner_api",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/include/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
@@ -55,24 +58,25 @@ ohos_shared_library("libvsync") {
     "src/vsync_generator.cpp",
     "src/vsync_receiver.cpp",
     "src/vsync_sampler.cpp",
+    "src/vsync_system_ability_listener.cpp",
   ]
 
   include_dirs = [
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/utils/rs_frame_report_ext/include",
   ]
+
+  defines = []
 
   configs = [ ":vsync_config" ]
 
-  public_configs = [
-    ":vsync_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":vsync_public_config" ]
 
   deps = [
+    "$graphic_2d_root/utils:rs_frame_report_ext",
     "$graphic_2d_root/utils:sandbox_utils",
-    "$graphic_2d_root/utils:socketpair",
   ]
 
   if (graphic_2d_feature_enable_dvsync) {
@@ -80,13 +84,21 @@ ohos_shared_library("libvsync") {
     include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
   }
 
-  public_deps = [ "$graphic_2d_root/utils:scoped_bytrace" ]
+  public_deps = [
+    "$graphic_2d_root/utils:scoped_bytrace",
+    "$graphic_2d_root/utils:socketpair",
+  ]
+
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
+  public_external_deps = [ "c_utils:utils" ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     include_dirs += graphic_2d_ext_configs.libvsync_ext_include_dirs
@@ -94,6 +106,12 @@ ohos_shared_library("libvsync") {
     sources += graphic_2d_ext_configs.libvsync_ext_sources
 
     public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
+  }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "COMPOSER_SCHED_ENABLE" ]
   }
 
   innerapi_tags = [ "platformsdk" ]

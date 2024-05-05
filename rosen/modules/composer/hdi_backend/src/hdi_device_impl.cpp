@@ -21,7 +21,7 @@
 #include <scoped_bytrace.h>
 #include <valarray>
 #include <securec.h>
-#include "v1_1/include/idisplay_composer_interface.h"
+#include "v1_2/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -29,13 +29,15 @@
             HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
             return GRAPHIC_DISPLAY_NULL_PTR;                         \
         }                                                            \
-    } while(0) 
+    } while (0)
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
-using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface>;
+using namespace OHOS::HDI::Display::Composer::V1_1;
+using namespace OHOS::HDI::Display::Composer::V1_2;
+using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -67,7 +69,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface::Get();
+        g_composer = OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;
@@ -111,6 +113,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
 {
     CHECK_FUNC(g_composer);
     DisplayCapability hdiInfo;
+    uint32_t propertyId = DisplayPropertyID::DISPLAY_PROPERTY_ID_SKIP_VALIDATE;
+    uint64_t propertyValue;
     int32_t ret = g_composer->GetDisplayCapability(screenId, hdiInfo);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         info.name = hdiInfo.name;
@@ -132,6 +136,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
             info.props.emplace_back(graphicProperty);
         }
     }
+
+    (void)g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
     return ret;
 }
 
@@ -180,7 +186,7 @@ int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t wi
 int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status)
 {
     CHECK_FUNC(g_composer);
-    DispPowerStatus hdiStatus;
+    HDI::Display::Composer::V1_0::DispPowerStatus hdiStatus;
     int32_t ret = g_composer->GetDisplayPowerStatus(screenId, hdiStatus);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         status = static_cast<GraphicDispPowerStatus>(hdiStatus);
@@ -191,7 +197,8 @@ int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerS
 int32_t HdiDeviceImpl::SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status)
 {
     CHECK_FUNC(g_composer);
-    return g_composer->SetDisplayPowerStatus(screenId, static_cast<DispPowerStatus>(status));
+    return g_composer->SetDisplayPowerStatus(screenId,
+        static_cast<HDI::Display::Composer::V1_0::DispPowerStatus>(status));
 }
 
 int32_t HdiDeviceImpl::GetScreenBacklight(uint32_t screenId, uint32_t &level)
@@ -391,6 +398,34 @@ int32_t HdiDeviceImpl::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 
     return ret;
 }
+
+int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence,
+    int32_t &skipState, bool &needFlush, std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences)
+{
+    ScopedBytrace bytrace(__func__);
+    CHECK_FUNC(g_composer);
+    int32_t fenceFd = -1;
+    std::vector<int32_t>fenceFds;
+    
+    int32_t ret = g_composer->CommitAndGetReleaseFence(screenId, fenceFd, skipState, needFlush, layers, fenceFds);
+
+    if (skipState == 0 || fenceFd >= 0) {
+        fence = new SyncFence(fenceFd);
+    } else {
+        fence =new SyncFence(-1);
+    }
+
+    size_t fencesNum = fenceFds.size();
+    fences.resize(fencesNum);
+    for (size_t i = 0; i < fencesNum; i++) {
+        if (fenceFds[i] >= 0) {
+            fences[i] = new SyncFence(fenceFds[i]);
+        } else {
+            fences[i] = new SyncFence(-1);
+        }
+    }
+    return ret;
+}
 /* set & get device screen info end */
 
 /* set & get device layer info begin */
@@ -475,7 +510,8 @@ int32_t HdiDeviceImpl::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const
 int32_t HdiDeviceImpl::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type)
 {
     CHECK_FUNC(g_composer);
-    CompositionType hdiType = static_cast<CompositionType>(type);
+    HDI::Display::Composer::V1_0::CompositionType hdiType
+        = static_cast<HDI::Display::Composer::V1_0::CompositionType>(type);
     return g_composer->SetLayerCompositionType(screenId, layerId, hdiType);
 }
 
@@ -632,7 +668,7 @@ int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &la
         .width = layerInfo.width,
         .height = layerInfo.height,
         .type = static_cast<LayerType>(layerInfo.type),
-        .pixFormat = static_cast<PixelFormat>(layerInfo.pixFormat),
+        .pixFormat = static_cast<HDI::Display::Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
     };
     return g_composer->CreateLayer(screenId, hdiLayerInfo, cacheCount, layerId);
 }

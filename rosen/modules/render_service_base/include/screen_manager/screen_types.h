@@ -61,6 +61,12 @@ enum class ScreenRotation : uint32_t {
     INVALID_SCREEN_ROTATION,
 };
 
+enum class ScreenScaleMode : uint32_t {
+    FILL_MODE = 0,
+    UNISCALE_MODE,
+    INVALID_MODE,
+};
+
 typedef enum : uint32_t {
     BUILT_IN_TYPE_SCREEN = 0,
     EXTERNAL_TYPE_SCREEN,
@@ -74,6 +80,8 @@ typedef enum : uint32_t {
     POWER_STATUS_SUSPEND,
     POWER_STATUS_OFF,
     POWER_STATUS_OFF_FAKE,
+    POWER_STATUS_ON_ADVANCED,
+    POWER_STATUS_OFF_ADVANCED,
     POWER_STATUS_BUTT,
     INVALID_POWER_STATUS,
 } ScreenPowerStatus;

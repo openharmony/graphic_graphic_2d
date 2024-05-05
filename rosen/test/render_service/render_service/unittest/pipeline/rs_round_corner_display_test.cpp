@@ -133,13 +133,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
     uint32_t height = 2772;
     rcdInstance.UpdateDisplayParameter(width, height);
 
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(width, height);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(width, height);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     ASSERT_NE(canvas, nullptr);
     rcdInstance.DrawRoundCorner(canvas.get());
 }
@@ -152,13 +147,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
  */
 HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> imgBottomPortrait;
-    SkBitmap bitmapBottomPortrait;
-#else
     std::shared_ptr<Drawing::Image> imgBottomPortrait;
     Drawing::Bitmap bitmapBottomPortrait;
-#endif
     const char* path = "port_down.png";
 
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
@@ -264,13 +254,8 @@ rs_rcd::ROGSetting* GetRogFromLcdModel(rs_rcd::LCDModel* lcdModel, int& width, i
 HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1)
 {
     // prepare test
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> imgBottomPortrait;
-    SkBitmap bitmapBottomPortrait;
-#else
     std::shared_ptr<Drawing::Image> imgBottomPortrait;
     Drawing::Bitmap bitmapBottomPortrait;
-#endif
     const char* path = "port_down.png";
 
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
@@ -328,13 +313,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
 HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1)
 {
     // prepare test
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> imgBottomPortrait;
-    SkBitmap bitmapBottomPortrait;
-#else
     std::shared_ptr<Drawing::Image> imgBottomPortrait;
     Drawing::Bitmap bitmapBottomPortrait;
-#endif
     const char* path = "port_down.png";
 
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();

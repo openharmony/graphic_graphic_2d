@@ -41,10 +41,10 @@ void SkiaRuntimeEffect::GlslToSksl(std::string& sksl, std::string& glsl)
         searchStart = match.suffix().first;
     }
 
-    for (auto& childName : childNames) {
-        std::string pattern(childName + R"(\((.*?)\))");
+    for (const auto& childName : childNames) {
+        std::string patternStr(childName + R"(\((.*?)\))");
         std::string replacement = childName + ".eval($1)";
-        fixup(pattern.c_str(), replacement.c_str());
+        fixup(patternStr.c_str(), replacement.c_str());
     }
     // change "uniform sampler2D inputTexture" to "uniform shader inputTexture"
     fixup(R"(\buniform\s+sampler2D\b)", "uniform shader ");

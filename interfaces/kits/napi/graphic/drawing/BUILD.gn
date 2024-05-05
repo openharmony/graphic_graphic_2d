@@ -30,7 +30,6 @@ config("local_drawing_config") {
 
   include_dirs = [
     "../drawing",
-    "../../../../../../../multimedia/image_framework/interfaces/innerkits/include/",
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
@@ -48,6 +47,11 @@ ohos_shared_library("drawing_napi") {
 
   external_deps = [ "napi:ace_napi" ]
 
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    cflags = [ "-fstack-protector-strong" ]
+    cflags_cc = [ "-fstack-protector-strong" ]
+  }
+
   relative_install_dir = "module/graphics"
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -64,8 +68,12 @@ ohos_shared_library("drawing_napi_impl") {
     "js_common.cpp",
     "js_drawing_init.cpp",
     "js_drawing_utils.cpp",
+    "mask_filter_napi/js_mask_filter.cpp",
+    "path_effect_napi/js_path_effect.cpp",
     "path_napi/js_path.cpp",
     "pen_napi/js_pen.cpp",
+    "sampling_options_napi/js_sampling_options.cpp",
+    "shadow_layer_napi/js_shadow_layer.cpp",
     "text_blob_napi/js_text_blob.cpp",
   ]
 
@@ -73,7 +81,10 @@ ohos_shared_library("drawing_napi_impl") {
   configs = [ ":local_drawing_config" ]
   public_configs = [ ":drawing_config" ]
 
-  deps = [ "../../../../../rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "../../../../../rosen/modules/2d_graphics:2d_graphics",
+    "../../../../../rosen/modules/render_service_base:librender_service_base",
+  ]
 
   external_deps = [ "napi:ace_napi" ]
 
@@ -81,6 +92,7 @@ ohos_shared_library("drawing_napi_impl") {
     external_deps += [
       "hilog:libhilog",
       "image_framework:image_native",
+      "init:libbegetutil",
     ]
     deps += [ "../../../../../utils:libgraphic_utils" ]
     defines += [ "ROSEN_OHOS" ]

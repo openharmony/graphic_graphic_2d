@@ -16,12 +16,15 @@
 #ifndef TYPEFACE_H
 #define TYPEFACE_H
 
+#include <functional>
 #include <memory>
 #include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
-#include "utils/memory_stream.h"
+#include "text/font_arguments.h"
 #include "text/font_style.h"
+#include "utils/data.h"
+#include "utils/memory_stream.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +38,10 @@ public:
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
+    static void RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
+    static void UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
+    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceRegisterCallBack();
+    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceUnRegisterCallBack();
 
     /**
      * @brief   Get the familyName for this typeface.
@@ -79,6 +86,11 @@ public:
 
     int32_t GetUnitsPerEm() const;
 
+    std::shared_ptr<Typeface> MakeClone(const FontArguments&) const;
+
+    std::shared_ptr<Data> Serialize() const;
+    static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
+
     template<typename T>
     T* GetImpl() const
     {
@@ -90,6 +102,8 @@ public:
 
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
+    static std::function<bool(std::shared_ptr<Typeface>)> registerTypefaceCallBack_;
+    static std::function<bool(std::shared_ptr<Typeface>)> unregisterTypefaceCallBack_;
 };
 } // namespace Drawing
 } // namespace Rosen

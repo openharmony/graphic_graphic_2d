@@ -23,14 +23,9 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "include/core/SkRRect.h"
 
-#ifndef USE_ROSEN_DRAWING
-template <typename T>
-class sk_sp;
-class SkImage;
-#else
 #include "draw/canvas.h"
 #include "image/image.h"
-#endif
+#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,15 +33,14 @@ class RSB_EXPORT RSPixelMapUtil {
 public:
     // The generated SkImage already holds the shared_ptr of the source PixelMap,
     // and the PixelMap should not hold SkImage to avoid circular references.
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkImage> ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap);
-    static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
-                                        SkRect& src, SkRect& dst, RSPaintFilterCanvas& canvas);
-#else
     static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
     static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
                                         Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);
-#endif
+    static void DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
+                             const Drawing::scalar px, const Drawing::scalar py);
+    static bool IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap);
+    static std::shared_ptr<Drawing::Image> ConvertYUVPixelMapToDrawingImage(
+        std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
 };
 } // namespace Rosen
 } // namespace OHOS

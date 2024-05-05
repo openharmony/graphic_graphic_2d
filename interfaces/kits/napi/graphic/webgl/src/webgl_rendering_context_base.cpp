@@ -1096,7 +1096,7 @@ napi_value WebGLRenderingContextBase::DrawElements(napi_env env, napi_callback_i
         return NVal::CreateNull(env).val_;
     }
     WebGLRenderingContext* context = GetWebGLRenderingContextBase(env, funcArg.GetThisVar());
-    return (context == nullptr) ? NVal::CreateNull(env).val_ : 
+    return (context == nullptr) ? NVal::CreateNull(env).val_ :
         context->GetWebGLRenderingContextImpl().DrawElements(
         env, mode, static_cast<GLsizei>(count), type, static_cast<GLintptr>(offset));
 }
@@ -1483,8 +1483,8 @@ napi_value WebGLRenderingContextBase::Scissor(napi_env env, napi_callback_info i
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    LOGD("WebGL scissor x %{public}d y %{public}d width %{public}" PRIi64 " height %{public}u" PRIi64,
-        x, y, width, height);
+    LOGD("WebGL scissor x %{public}d y %{public}d width %{public}" PRIi64 " height %{public}d" PRIi64,
+        x, y, width, static_cast<int>(height));
 
     if (width < 0 || height < 0) {
         context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);

@@ -21,6 +21,7 @@
 #include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
 #include "utils/drawing_macros.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +29,17 @@ namespace Drawing {
 enum class SrcRectConstraint {
     STRICT_SRC_RECT_CONSTRAINT,
     FAST_SRC_RECT_CONSTRAINT,
+};
+
+struct HpsBlurParameter {
+    Rect src;
+    Rect dst;
+    scalar sigma { 1E-6 };
+    float saturation { 1.0 };
+    float brightness { 1.0 };
+    HpsBlurParameter(const Rect& s, const Rect& d, const scalar& sgm,
+        float satura, float bright)
+        : src(s), dst(d), sigma(sgm), saturation(satura), brightness(bright) {}
 };
 
 /**
@@ -78,11 +90,7 @@ class Surface;
 /**
  * @brief Contains the option used to create the layer.
  */
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT SaveLayerOps {
-#else
 class DRAWING_API SaveLayerOps {
-#endif
 public:
     // How to allocate layer
     enum Flags {
@@ -102,6 +110,7 @@ public:
 
     /**
      * @brief Gets the bounds of layer, may be nullptr.
+     * @return Returns the bounds of layer.
      */
     const Rect* GetBounds() const
     {
@@ -110,6 +119,7 @@ public:
 
     /**
      * @brief Gets the brush of layer, may be nullptr.
+     * @return Returns the brush of layer.
      */
     const Brush* GetBrush() const
     {
@@ -118,6 +128,7 @@ public:
 
     /**
      * @brief Gets the options to modify layer.
+     * @return Returns the options to modify layer.
      */
     uint32_t GetSaveLayerFlags() const
     {
@@ -130,11 +141,7 @@ private:
     uint32_t saveLayerFlags_;
 };
 
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT CoreCanvas {
-#else
 class DRAWING_API CoreCanvas {
-#endif
 public:
     CoreCanvas();
     explicit CoreCanvas(void* rawCanvas);
@@ -150,38 +157,51 @@ public:
 
     /**
      * @brief Gets the total matrix of Canvas to device.
+     * @return Returns the total matrix of Canvas to device.
      */
     virtual Matrix GetTotalMatrix() const;
 
     /**
      * @brief Gets bounds of clip in local coordinates.
+     * @return Returns bounds of clip in local coordinates.
      */
     virtual Rect GetLocalClipBounds() const;
 
     /**
-     * @brief Gets bounds of clip in device corrdinates.
+     * @brief Gets bounds of clip in device coordinates.
+     * @return Returns bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
     /**
-     * @brief Gets GPU context of the GPU surface associated with Canvas.
+     * @brief Gets bounds of clip in device coordinates with round in.
+     * @return Returns bounds of clip in device coordinates.
      */
+    virtual RectI GetRoundInDeviceClipBounds() const;
+
 #ifdef ACE_ENABLE_GPU
+    /**
+     * @brief Gets GPU context of the GPU surface associated with Canvas.
+     * @return Returns GPU context of the GPU surface associated with Canvas.
+     */
     virtual std::shared_ptr<GPUContext> GetGPUContext();
 #endif
 
     /**
      * @brief Gets width of Canvas.
+     * @return Returns width of Canvas.
      */
     int32_t GetWidth() const;
 
     /**
      * @brief Gets height of Canvas.
+     * @return Returns height of Canvas.
      */
     int32_t GetHeight() const;
 
     /**
      * @brief Gets ImageInfo of Canvas.
+     * @return Returns ImageInfo of Canvas.
      */
     ImageInfo GetImageInfo();
 
@@ -194,10 +214,16 @@ public:
     /**
      * @brief The shape of point drawn depends on pen. If pen is set to Pen::CapStyle::ROUND_CAP,
      * draw a circle of diameter pen stroke width. If pen is set to Pen::CapStyle::SQUAER_CAP,
-     * draw a square of width and height pen stroke width. 
+     * draw a square of width and height pen stroke width.
      * @param point top-left edge of circle or square
      */
     virtual void DrawPoint(const Point& point);
+
+    /**
+     * @brief Describing a graph by combining directed vector fields.
+     * @param shape describes the combination of a group of sdf entities.
+     */
+    virtual void DrawSdf(const SDFShapeBase& shape);
 
     /**
      * @brief If mode is LINES_POINTMODE, each pair of points draws a line segment. One line
@@ -295,6 +321,9 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
+    virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle);
+
     // color
     /**
      * @brief Fills clip with color color. Mode determines how ARGB is combined with destination.
@@ -350,6 +379,7 @@ public:
      * @param center IRect edge of image corners and sides
      * @param dst    destination Rect of image to draw to
      * @param filter what technique to use when sampling the image
+     * @param brush  brush containing MaskFilter; or nullptr
      */
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
@@ -361,12 +391,12 @@ public:
      * fixed lattice elements never scale larger than their initial
      * size and shrink proportionately when all fixed elements exceed the bitmap
      * dimension. All other grid elements scale to fill the available space, if any.
-     * 
+     *
      * If brush is attached, apply ColorFilter, alpha, ImageFilter, and
      * BlendMode. If image is COLORTYPE_ALPHA_8, apply Shader.
      * If brush contains MaskFilter, generate mask from image bounds.
      * Any MaskFilter on paint is ignored as is paint anti-aliasing state.
-     * 
+     *
      * @param image   Image containing pixels, dimensions, and format
      * @param lattice division of bitmap into fixed and variable rectangles
      * @param dst     destination Rect of image to draw to
@@ -381,18 +411,36 @@ public:
     virtual Drawing::OpListHandle EndOpRecording();
     virtual void DrawOpList(Drawing::OpListHandle handle);
     virtual int CanDrawOpList(Drawing::OpListHandle handle);
-    virtual void PreOpListDrawArea(const Matrix& matrix);
-    virtual bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound = nullptr);
-    virtual Drawing::OpListHandle GetOpListDrawArea();
-    virtual void OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    virtual bool OpCalculateBefore(const Matrix& matrix);
+    virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound);
     // opinc_end
 
     // image
+    /**
+     * @brief Draws many parts of the image (atlas) onto the canvas.
+     * This approach can be optimized when you want to draw many parts of an image on the canvas.
+     * Rect tex selects the area in the atlas, xform transforms each sprite individually rotating or zooming.
+     * MaskFilter and PathEffect on brush are ignored.
+     * 
+     * The xform and tex list must contain count entries, and if the colors is present,
+     * it must be the same length as the other two lists, the max count supported is 2000.
+     * Optional parameter colors, if present, are applied to each sprite using BlendMode mode, treating
+     * sprite as source and colors as destination.
+     * Optional parameter cullRect, if present, provides boundary values rendered by all
+     * components of the atlas to be compared to the clip.
+     *
+     * @param atlas    Image containing pixels, dimensions, and format
+     * @param xform    RSXform mappings for sprites in atlas
+     * @param tex      destination Rect of image to draw to
+     * @param colors   for each sprite, blend with it using blendmode; or nullptr
+     * @param count    the number of sprites to draw, the maximum is 2000
+     * @param mode     used to combine colors with sprites
+     * @param sampling SamplingOptions used when sampling from the atlas image
+     * @param cullRect bounds of sprites for efficient clipping; or nullptr
+     */
+    virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+        int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect);
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
-    void DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling);
-    void DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling);
-    virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
@@ -440,10 +488,9 @@ public:
 
     /**
      * @brief Replace the clipping area with the intersection or difference between the
-     * current clipping area and RectI, and use a clipping edge that is aliased or anti-aliased.
+     * current clipping area and RectI, and use a clipping edge.
      * @param rect        To combine with clipping area.
      * @param op          To apply to clip.
-     * @param doAntiAlias true if clip is to be anti-aliased. The default value is false.
      */
     virtual void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT);
 
@@ -496,7 +543,7 @@ public:
     virtual bool QuickReject(const Rect& rect);
 
     // transform
-    /** 
+    /**
      * @brief Replaces RSMatrix with matrix. Unlike Concat(), any prior matrix state is overwritten.
      * @param matrix matrix to copy, replacing existing RSMatrix
      */
@@ -547,7 +594,7 @@ public:
      * Mathematically, constructs a rotation matrix; premultiplies the rotation matrix by
      * a translation matrix; then replaces RSMatrix with the resulting matrix premultiplied with RSMatrix.
      * This has the effect of rotating the drawing about a given point before transforming the result with RSMatrix.
-     * @param degrees amount to rotate, in degrees
+     * @param deg amount to rotate, in degrees
      * @param sx      x-axis value of the point to rotate about
      * @param sy      y-axis value of the point to rotate about
      */
@@ -568,7 +615,7 @@ public:
     /**
      * @brief Triggers the immediate execution of all pending draw operations.
      * If Canvas is associated with GPU surface, resolves all pending GPU operations.
-     * If Canvas is associated with raster surface, has no effect; raster draw 
+     * If Canvas is associated with raster surface, has no effect; raster draw
      * operations are never deferred.
      */
     virtual void Flush();
@@ -590,8 +637,9 @@ public:
      * @param saveLayerOps Contains the option used to create the layer.
      */
     virtual void SaveLayer(const SaveLayerOps& saveLayerOps);
+
     /**
-     * @brief Removes changes to Matrix and clip since Canvas state was last saved. 
+     * @brief Removes changes to Matrix and clip since Canvas state was last saved.
      * The state is removed from the stack. Does nothing if the stack is empty.
      */
     virtual void Restore();
@@ -612,39 +660,39 @@ public:
     /**
      * @brief Attach pen to canvas and stroke something.
      * @param pen tool to stroke
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPen(const Pen& pen);
 
     /**
      * @brief Attach brush to canvas and fill something.
      * @param brush tool to fill
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachBrush(const Brush& brush);
 
     /**
      * @brief Attach paint to canvas to draw something.
      * @param paint tool to fill or stroke something
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPaint(const Paint& paint);
     
     /**
      * @brief Detach pen from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPen();
     
     /**
      * @brief Detach brush from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachBrush();
 
     /**
      * @brief Detach paint from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPaint();
 
@@ -663,12 +711,30 @@ public:
     }
     std::shared_ptr<CoreCanvasImpl> GetCanvasData() const;
 
+    Paint& GetMutableBrush()
+    {
+        return paintBrush_;
+    }
+
+    Paint& GetMutablePen()
+    {
+        return paintPen_;
+    }
+
+    virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
+
 protected:
     CoreCanvas(int32_t width, int32_t height);
+    void BuildNoDraw(int32_t width, int32_t height);
+    void Reset(int32_t width, int32_t height);
     Paint paintBrush_;
     Paint paintPen_;
 
 private:
+    void ApplyDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyDrawLooper(const std::function<void()> drawProc);
+
     void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU

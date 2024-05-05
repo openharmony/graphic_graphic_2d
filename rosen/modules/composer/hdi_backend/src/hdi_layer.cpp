@@ -15,8 +15,13 @@
 
 #include "hdi_layer.h"
 #include "hdi_log.h"
+#include <algorithm>
 namespace OHOS {
 namespace Rosen {
+constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
+constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
+constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
+constexpr float FPS_TO_MS = 1000000.f;
 
 template<typename T>
 bool Compare(const T& lhs, const T& rhs)
@@ -523,14 +528,14 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerVisibleRegion");
     ret = SetLayerDirtyRegion();
     CheckRet(ret, "SetLayerDirtyRegion");
+    ret = SetLayerCrop();
+    CheckRet(ret, "SetLayerCrop");
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
     ret = SetLayerCompositionType();
     CheckRet(ret, "SetLayerCompositionType");
     ret = SetLayerBlendType();
     CheckRet(ret, "SetLayerBlendType");
-    ret = SetLayerCrop();
-    CheckRet(ret, "SetLayerCrop");
     ret = SetLayerZorder();
     CheckRet(ret, "SetLayerZorder");
     ret = SetLayerPreMulti();
@@ -603,12 +608,53 @@ sptr<SyncFence> HdiLayer::GetReleaseFence() const
     return currSbuffer_->releaseFence_;
 }
 
-void HdiLayer::RecordPresentTime(int64_t timestamp)
+bool HdiLayer::RecordPresentTime(int64_t timestamp)
 {
     if (currSbuffer_->sbuffer_ != prevSbuffer_->sbuffer_) {
-        presentTimeRecords[count] = timestamp;
+        presentTimeRecords[count].presentTime = timestamp;
+        presentTimeRecords[count].windowsName = layerInfo_->GetWindowsName();
         count = (count + 1) % FRAME_RECORDS_NUM;
+        return true;
     }
+    return false;
+}
+
+void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
+{
+    int sixtySixTimes = 0;
+    int thirtyThreeTimes = 0;
+    int sixteenTimes = 0;
+    int64_t lastFlushTimestamp = 0;
+    int64_t nowFlushTimestamp = 0;
+    const uint32_t offset = count;
+    for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        auto windowsName = presentTimeRecords[order].windowsName;
+        auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
+        if (iter != windowsName.end()) {
+            nowFlushTimestamp = presentTimeRecords[order].presentTime;
+            if (lastFlushTimestamp != 0) {
+                float time = (nowFlushTimestamp - lastFlushTimestamp) / FPS_TO_MS;
+                if (time > SIXTY_SIX_INTERVAL_IN_MS) {
+                    sixtySixTimes++;
+                } else if (time > THIRTY_THREE_INTERVAL_IN_MS) {
+                    thirtyThreeTimes++;
+                } else if (time > SIXTEEN_INTERVAL_IN_MS) {
+                    sixteenTimes++;
+                }
+            }
+        }
+        lastFlushTimestamp = nowFlushTimestamp;
+    }
+    result += "more than 66 ms       " + std::to_string(sixtySixTimes) + "\n";
+    result += "more than 33 ms       " + std::to_string(thirtyThreeTimes) + "\n";
+    result += "more than 16.67 ms    " + std::to_string(sixteenTimes) + "\n";
+}
+
+void HdiLayer::RecordMergedPresentTime(int64_t timestamp)
+{
+    mergedPresentTimeRecords[mergedCount] = timestamp;
+    mergedCount = (mergedCount + 1) % FRAME_RECORDS_NUM;
 }
 
 void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
@@ -660,13 +706,38 @@ void HdiLayer::Dump(std::string &result)
     const uint32_t offset = count;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
         uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
-        result += std::to_string(presentTimeRecords[order]) + "\n";
+        result += std::to_string(presentTimeRecords[order].presentTime) + "\n";
+    }
+}
+
+void HdiLayer::DumpByName(std::string windowName, std::string &result)
+{
+    const uint32_t offset = count;
+    for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        auto windowsName = presentTimeRecords[order].windowsName;
+        auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
+        if (iter != windowsName.end()) {
+            result += std::to_string(presentTimeRecords[order].presentTime) + "\n";
+        }
+    }
+}
+
+void HdiLayer::DumpMergedResult(std::string &result)
+{
+    const uint32_t offset = mergedCount;
+    for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        result += std::to_string(mergedPresentTimeRecords[order]) + "\n";
     }
 }
 
 void HdiLayer::ClearDump()
 {
-    presentTimeRecords.fill(0);
+    std::vector<std::string> windowName = {};
+    FPSInfo defaultFPSInfo = {0, windowName};
+    presentTimeRecords.fill(defaultFPSInfo);
+    mergedPresentTimeRecords.fill(0);
 }
 
 } // namespace Rosen

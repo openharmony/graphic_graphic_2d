@@ -44,10 +44,7 @@ void RSSyncTransactionController::Destroy()
     instance_ = nullptr;
 }
 
-RSSyncTransactionController::RSSyncTransactionController()
-{
-    rsTransaction_ = std::make_shared<RSTransaction>();
-}
+RSSyncTransactionController::RSSyncTransactionController() : rsTransaction_(std::make_shared<RSTransaction>()) {}
 
 std::shared_ptr<RSTransaction> RSSyncTransactionController::GetRSTransaction()
 {

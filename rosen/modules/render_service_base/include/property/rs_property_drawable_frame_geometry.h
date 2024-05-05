@@ -45,22 +45,14 @@ public:
 //
 class RSColorFilterDrawable : public RSPropertyDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSColorFilterDrawable(SkPaint&& paint) : paint_(std::move(paint)) {}
-#else
     explicit RSColorFilterDrawable(Drawing::Brush&& brush) : brush_(std::move(brush)) {}
-#endif
     ~RSColorFilterDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
     static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
     bool Update(const RSRenderContent& content) override;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint_;
-#else
     Drawing::Brush brush_;
-#endif
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H

@@ -27,12 +27,13 @@
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
 #include "utils/log.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-RecordingCanvas::RecordingCanvas(int width, int height, bool addDrawOpImmediate)
-    : Canvas(width, height), addDrawOpImmediate_(addDrawOpImmediate)
+RecordingCanvas::RecordingCanvas(int32_t width, int32_t height, bool addDrawOpImmediate)
+    : NoDrawCanvas(width, height), addDrawOpImmediate_(addDrawOpImmediate)
 {
     DrawCmdList::UnmarshalMode mode =
         addDrawOpImmediate ? DrawCmdList::UnmarshalMode::IMMEDIATE : DrawCmdList::UnmarshalMode::DEFERRED;
@@ -50,6 +51,29 @@ void RecordingCanvas::Clear() const
         return;
     }
     cmdList_->ClearOp();
+}
+
+void RecordingCanvas::ResetCanvas(int32_t width, int32_t height)
+{
+    Clear();
+    Reset(width, height);
+}
+
+void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmediate)
+{
+    DrawCmdList::UnmarshalMode mode =
+        addDrawOpImmediate ? DrawCmdList::UnmarshalMode::IMMEDIATE : DrawCmdList::UnmarshalMode::DEFERRED;
+    cmdList_ = std::make_shared<DrawCmdList>(width, height, mode);
+    addDrawOpImmediate_ = addDrawOpImmediate;
+    isCustomTextType_ = false;
+    customTextBrush_ = std::nullopt;
+    customTextPen_ = std::nullopt;
+    saveOpStateStack_ = std::stack<SaveOpState>();
+    gpuContext_ = nullptr;
+    RemoveAll();
+    DetachBrush();
+    DetachPen();
+    NoDrawCanvas::Reset(width, height);
 }
 
 void RecordingCanvas::DrawPoint(const Point& point)
@@ -176,6 +200,19 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
     auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     cmdList_->AddDrawOp<DrawShadowOpItem::ConstructorHandle>(
         pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
+}
+
+void RecordingCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawShadowStyleOpItem>(
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle));
+        return;
+    }
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
+    cmdList_->AddDrawOp<DrawShadowStyleOpItem::ConstructorHandle>(
+        pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
 }
 
 void RecordingCanvas::DrawRegion(const Region& region)
@@ -307,6 +344,7 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     if (!blob) {
         return;
     }
@@ -321,8 +359,14 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         AddDrawOpDeferred<DrawTextBlobOpItem>(blob, x, y);
         return;
     }
-    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
+    TextBlob::Context ctx {nullptr, IsCustomTypeface()};
+    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob, &ctx);
+    uint64_t globalUniqueId = 0;
+    if (ctx.GetTypeface() != nullptr) {
+        uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
+        globalUniqueId = (shiftedPid | typefaceId);
+    }
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
@@ -588,36 +632,6 @@ void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
     cmdList_->AddDrawOp<ClipAdaptiveRoundRectOpItem::ConstructorHandle>(radiusData);
 }
 
-void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling)
-{
-    if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<DrawAdaptiveImageOpItem>(image, data, rsImageInfo, sampling);
-        return;
-    }
-    OpDataHandle imageHandle;
-    if (data != nullptr) {
-        imageHandle = CmdListHelper::AddCompressDataToCmdList(*cmdList_, data);
-        AddDrawOpImmediate<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, sampling, false);
-        return;
-    }
-    if (image != nullptr) {
-        imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
-        AddDrawOpImmediate<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, sampling, true);
-    }
-}
-
-void RecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
-    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling)
-{
-    if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<DrawAdaptivePixelMapOpItem>(pixelMap, rsImageInfo, sampling);
-        return;
-    }
-    auto pixelmapHandle = CmdListHelper::AddPixelMapToCmdList(*cmdList_, pixelMap);
-    AddDrawOpImmediate<DrawAdaptivePixelMapOpItem::ConstructorHandle>(pixelmapHandle, rsImageInfo, sampling);
-}
-
 void RecordingCanvas::SetIsCustomTextType(bool isCustomTextType)
 {
     isCustomTextType_ = isCustomTextType;
@@ -626,6 +640,16 @@ void RecordingCanvas::SetIsCustomTextType(bool isCustomTextType)
 bool RecordingCanvas::IsCustomTextType() const
 {
     return isCustomTextType_;
+}
+
+void RecordingCanvas::SetIsCustomTypeface(bool isCustomTypeface)
+{
+    isCustomTypeface_ = isCustomTypeface;
+}
+
+bool RecordingCanvas::IsCustomTypeface() const
+{
+    return isCustomTypeface_;
 }
 
 void RecordingCanvas::CheckForLazySave()
@@ -647,10 +671,6 @@ void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        PaintHandle paintHandle;
-        paintHandle.isAntiAlias = true;
-        paintHandle.style = Paint::PaintStyle::PAINT_FILL;
-        cmdList_->AddDrawOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -679,10 +699,6 @@ void RecordingCanvas::AddDrawOpDeferred(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        Paint paint;
-        paint.SetAntiAlias(true);
-        paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
-        cmdList_->AddDrawOp(std::make_shared<T>(std::forward<Args>(args)..., paint));
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -704,10 +720,6 @@ void RecordingCanvas::GenerateCachedOpForTextblob(const TextBlob* blob, const sc
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        Paint paint;
-        paint.SetAntiAlias(true);
-        paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
-        GenerateCachedOpForTextblob(blob, x, y, paint);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {

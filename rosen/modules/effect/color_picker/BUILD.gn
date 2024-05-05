@@ -36,9 +36,7 @@ config("graphic_napi_color_picker_config") {
 ohos_shared_library("color_picker") {
   include_dirs = [
     "include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
   ]
@@ -57,6 +55,7 @@ ohos_shared_library("color_picker") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "image_framework:image_native",
   ]

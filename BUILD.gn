@@ -33,13 +33,11 @@ group("graphic_common_test") {
   public_deps = [
     "frameworks/bootanimation/test:test",
     "frameworks/opengl_wrapper/test:test",
-    "frameworks/opengl_wrapper/test/unittest:blobunittest",
-    "frameworks/surface/test:test",
     "frameworks/vulkan_layers/test:test",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
-    "rosen/samples/texgine:texgine_feature_test",
     "rosen/test/frame_analyzer:test",
+    "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",
     "rosen/test/render_frame_trace:test",
     "rosen/test/render_service:test",
@@ -63,10 +61,6 @@ ohos_prebuilt_etc("graphic.rc") {
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
-
-group("libsurface") {
-  public_deps = [ "frameworks/surface:surface" ]
-}
 
 group("libfence") {
   public_deps = [ "frameworks/fence:libfence" ]

@@ -21,38 +21,25 @@
 #include <cstdint>
 #include <inttypes.h>
 #include <string>
+#include <cstdarg>
+#include <cstdio>
 
 #include "hilog/log.h"
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
 
-template<typename ...Args>
-void PrintLogE(const std::string &func, int line, const std::string &format, Args... args)
-{
-    std::string prefix = "[%{public}s:%{public}d]";
-    std::string formatFull = prefix + format;
-    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
-    OHOS::HiviewDFX::HiLog::Error(label, formatFull.c_str(), func.c_str(), line, args...);
-}
+#undef LOG_TAG
+#define LOG_TAG "WebGL"
 
-template<typename ...Args>
-void PrintLogI(const std::string &func, int line, const std::string &format, Args... args)
-{
-    std::string prefix = "[%{public}s:%{public}d]";
-    std::string formatFull = prefix + format;
-    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
-    OHOS::HiviewDFX::HiLog::Info(label, formatFull.c_str(), func.c_str(), line, args...);
-}
-
-template<typename ...Args>
-void PrintLogD(const std::string &func, int line, const std::string &format, Args... args)
-{
-    std::string prefix = "[%{public}s:%{public}d]";
-    std::string formatFull = prefix + format;
-    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
-    OHOS::HiviewDFX::HiLog::Debug(label, formatFull.c_str(), func.c_str(), line, args...);
-}
-
-#define LOGI(...) PrintLogI(__func__, __LINE__, ##__VA_ARGS__)
-#define LOGE(...) PrintLogE(__func__, __LINE__, ##__VA_ARGS__)
-#define LOGD(...) PrintLogD(__func__, __LINE__, ##__VA_ARGS__)
+#define LOGI(format, ...) \
+    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGD(format, ...) \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGE(format, ...) \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGW(format, ...) \
+    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGF(format, ...) \
+    HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
 
 #endif // WEBGL_LOG_H

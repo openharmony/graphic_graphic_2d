@@ -28,12 +28,28 @@ int ConvertToInt(const char *originValue, int defaultValue)
 {
     return originValue == nullptr ? defaultValue : std::atoi(originValue);
 }
+
 bool RSSystemParameters::GetCalcCostEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.calcCost.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+int RSSystemParameters::GetDumpRSTreeCount()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpRSTreeCount", "0");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
+
+void RSSystemParameters::SetDumpRSTreeCount(int count)
+{
+    count = (count > 0) ? count : 0;
+    system::SetParameter("debug.graphic.dumpRSTreeCount", std::to_string(count));
+    RS_LOGD("RSSystemParameters::SetDumpRSTreeCount %{public}d", count);
 }
 
 bool RSSystemParameters::GetDrawingCacheEnabled()
@@ -62,10 +78,30 @@ bool RSSystemParameters::GetShowRefreshRateEnabled()
 
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "5");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "2");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
+}
+
+RsParallelType RSSystemParameters::GetRsParallelType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.parallel.type", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsParallelType>(ConvertToInt(type, 0));
+}
+
+RsSurfaceCaptureType RSSystemParameters::GetRsSurfaceCaptureType()
+{
+    if (GetRsParallelType() == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+        return RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD;
+    }
+    static CachedHandle g_Handle =
+        CachedParameterCreate("persist.sys.graphic.surface_capture.type", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsSurfaceCaptureType>(ConvertToInt(type, 0));
 }
 
 bool RSSystemParameters::GetVSyncControlEnabled()
@@ -91,7 +127,7 @@ bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
 
 bool RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -103,6 +139,21 @@ bool RSSystemParameters::GetDrawingEffectRegionEnabledDfx()
     int changed = 0;
     const char *enableDfx = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enableDfx, 0) != 0;
+}
+
+bool RSSystemParameters::GetRenderStop()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.render.stop", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
+{
+    static bool prevalidateHwcNodeEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.prevalidateHwcNode.Enabled", "1")).c_str()) != 0;
+    return prevalidateHwcNodeEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

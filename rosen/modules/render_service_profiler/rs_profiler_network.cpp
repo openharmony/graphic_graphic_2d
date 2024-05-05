@@ -19,7 +19,7 @@
 #include <memory>
 #include <thread>
 
-#include "rs_profiler_base.h"
+#include "rs_profiler.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
@@ -71,12 +71,19 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     for (uint32_t i = 0; i < pidCount; i++) {
         pid_t pid = 0u;
         stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
-        file.AddHeaderPID(pid);
+        file.AddHeaderPid(pid);
     }
     file.AddLayer();
 
-    std::map<uint64_t, ImageCacheRecord>& imageMap = RSProfilerBase::GetImageCache();
-    imageMap.clear();
+    std::string dataFirstFrame;
+    uint32_t sizeDataFirstFrame = 0;
+    stream.read(reinterpret_cast<char*>(&sizeDataFirstFrame), sizeof(sizeDataFirstFrame));
+    dataFirstFrame.resize(sizeDataFirstFrame);
+    stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
+    file.AddHeaderFirstFrame(dataFirstFrame);
+
+    ImageCache& cache = RSProfiler::GetImageCache();
+    RSProfiler::ClearImageCache();
 
     uint32_t imageCount = 0u;
     stream.read(reinterpret_cast<char*>(&imageCount), sizeof(imageCount));
@@ -91,7 +98,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
         std::shared_ptr<uint8_t[]> image = std::make_unique<uint8_t[]>(record.imageSize);
         stream.read(reinterpret_cast<char*>(image.get()), record.imageSize);
         record.image = image;
-        imageMap.insert({ key, record });
+        cache.insert({ key, record });
     }
 }
 
@@ -106,8 +113,7 @@ static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
 
 static void OnBinaryFinish(RSFile& file, const char* data, size_t size)
 {
-    auto imageMap = reinterpret_cast<std::map<uint64_t, ReplayImageCacheRecordFile>*>(&RSProfilerBase::GetImageCache());
-    file.SetImageMapPtr(imageMap);
+    file.SetImageCache(reinterpret_cast<FileImageCache*>(&RSProfiler::GetImageCache()));
     file.Close();
 }
 
@@ -196,13 +202,34 @@ std::vector<NetworkStats> Network::GetStats(const std::string& interface)
     return results;
 }
 
-void Network::SendRdc(const std::string& path)
+void Network::SendRdcPath(const std::string& path)
 {
     if (!path.empty()) {
         std::string out;
         out += static_cast<char>(PackageID::RS_PROFILER_RDC_BINARY);
         out += path;
         SendBinary(out.data(), out.size());
+    }
+}
+
+void Network::SendDclPath(const std::string& path)
+{
+    if (!path.empty()) {
+        std::string out;
+        out += static_cast<char>(PackageID::RS_PROFILER_DCL_BINARY);
+        out += path;
+        SendBinary(out.data(), out.size());
+    }
+}
+
+void Network::SendSkp(const void* data, size_t size)
+{
+    if (data && (size > 0)) {
+        std::vector<char> buffer;
+        buffer.reserve(size + 1);
+        buffer.push_back(static_cast<char>(PackageID::RS_PROFILER_SKP_BINARY));
+        buffer.insert(buffer.end(), static_cast<const char*>(data), static_cast<const char*>(data) + size);
+        SendBinary(buffer.data(), buffer.size());
     }
 }
 
@@ -241,6 +268,34 @@ void Network::SendTelemetry(double startTime)
     const char headerType = 3; // TYPE: GFX METRICS
     out.insert(out.begin(), headerType);
     SendBinary(out.data(), out.size());
+}
+
+void Network::SendRSTreeDumpJSON(const std::string& jsonstr)
+{
+    Packet packet { Packet::BINARY };
+    packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_DUMP_JSON));
+    packet.Write(jsonstr);
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_.emplace(packet.Release());
+}
+
+void Network::SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList)
+{
+    Packet packet { Packet::BINARY };
+    packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_PERF_NODE_LIST));
+    packet.Write(perfNodesList);
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_.emplace(packet.Release());
+}
+
+void Network::SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec)
+{
+    Packet packet { Packet::BINARY };
+    packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_SINGLE_NODE_PERF));
+    packet.Write(id);
+    packet.Write(nanosec);
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_.emplace(packet.Release());
 }
 
 void Network::SendBinary(const void* data, size_t size)
@@ -361,22 +416,14 @@ void Network::ProcessIncoming(Socket& socket)
         return;
     }
 
-    std::string data;
-    constexpr size_t extraSpace = 2;
-    data.resize(size + extraSpace);
-    socket.ReceiveWhenReady(data.data(), size);
-    data[size] = 0;
+    std::vector<char> data;
+    data.resize(size);
+    socket.ReceiveWhenReady(data.data(), data.size());
 
     if (packetIncoming.IsBinary()) {
-        ProcessBinary(data.data(), size);
+        ProcessBinary(data.data(), data.size());
     } else if (packetIncoming.IsCommand()) {
-        ProcessCommand(data.data(), size + 1);
-
-        errno = EWOULDBLOCK;
-        Packet acknowledgement { Packet::COMMAND_ACKNOWLEDGED };
-        acknowledgement.Write(std::string(" "));
-        const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(acknowledgement.Release());
+        ProcessCommand(data.data(), data.size());
     }
 }
 

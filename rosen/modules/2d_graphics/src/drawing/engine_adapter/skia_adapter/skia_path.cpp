@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,10 +33,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-SkiaPath::SkiaPath(const SkiaPath& other) noexcept
-{
-    path_ = other.path_;
-}
+SkiaPath::SkiaPath(const SkiaPath& other) noexcept : path_(other.path_) {}
 
 SkiaPath& SkiaPath::operator=(const SkiaPath& other) noexcept
 {
@@ -79,11 +76,7 @@ void SkiaPath::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar 
 
 void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
-#endif
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
     path_.arcTo(rx, ry, angle, arcLarge, pathDir, endX, endY);
 }
@@ -103,6 +96,11 @@ void SkiaPath::QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endP
     path_.quadTo(ctrlPtX, ctrlPtY, endPtX, endPtY);
 }
 
+void SkiaPath::ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight)
+{
+    path_.conicTo(ctrlX, ctrlY, endX, endY, weight);
+}
+
 void SkiaPath::RMoveTo(scalar dx, scalar dy)
 {
     path_.rMoveTo(dx, dy);
@@ -115,11 +113,7 @@ void SkiaPath::RLineTo(scalar dx, scalar dy)
 
 void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
-#endif
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
     path_.arcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
 }
@@ -129,6 +123,11 @@ void SkiaPath::RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar d
     path_.rCubicTo(dx1, dy1, dx2, dy2, dx3, dy3);
 }
 
+void SkiaPath::RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight)
+{
+    path_.rConicTo(ctrlPtX, ctrlPtY, endPtX, endPtY, weight);
+}
+
 void SkiaPath::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
 {
     path_.rQuadTo(dx1, dy1, dx2, dy2);
@@ -136,22 +135,26 @@ void SkiaPath::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
 
 void SkiaPath::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
-#endif
     path_.addRect(SkRect::MakeLTRB(left, top, right, bottom), pathDir);
+}
+
+void SkiaPath::AddRect(const Rect& rect, unsigned start, PathDirection dir)
+{
+    SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
+    path_.addRect(SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()), pathDir, start);
 }
 
 void SkiaPath::AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
-#endif
     path_.addOval(SkRect::MakeLTRB(left, top, right, bottom), pathDir);
+}
+
+void SkiaPath::AddOval(scalar left, scalar top, scalar right, scalar bottom, unsigned start, PathDirection dir)
+{
+    SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
+    path_.addOval(SkRect::MakeLTRB(left, top, right, bottom), pathDir, start);
 }
 
 void SkiaPath::AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle)
@@ -170,32 +173,20 @@ void SkiaPath::AddPoly(const std::vector<Point>& points, int count, bool close)
 
 void SkiaPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
-#endif
     path_.addCircle(x, y, radius, pathDir);
 }
 
 void SkiaPath::AddRoundRect(
     scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
-#endif
     path_.addRoundRect(SkRect::MakeLTRB(left, top, right, bottom), xRadius, yRadius, pathDir);
 }
 
 void SkiaPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
-#else
-    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
-#endif
 
     Rect rect = rrect.GetRect();
     SkRect outer = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
@@ -216,19 +207,19 @@ void SkiaPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
     path_.addRRect(skRRect, pathDir);
 }
 
-void SkiaPath::AddPath(const Path& src, scalar dx, scalar dy)
+void SkiaPath::AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode)
 {
     auto skPathImpl = src.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
-        path_.addPath(skPathImpl->GetPath(), dx, dy);
+        path_.addPath(skPathImpl->GetPath(), dx, dy, static_cast<SkPath::AddPathMode>(mode));
     }
 }
 
-void SkiaPath::AddPath(const Path& src)
+void SkiaPath::AddPath(const Path& src, PathAddMode mode)
 {
     auto skPathImpl = src.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
-        path_.addPath(skPathImpl->GetPath());
+        path_.addPath(skPathImpl->GetPath(), static_cast<SkPath::AddPathMode>(mode));
     }
 }
 
@@ -242,12 +233,12 @@ void SkiaPath::ReverseAddPath(const Path& src)
     path_.reverseAddPath(src.GetImpl<SkiaPath>()->GetPath());
 }
 
-void SkiaPath::AddPathWithMatrix(const Path& src, const Matrix& matrix)
+void SkiaPath::AddPath(const Path& src, const Matrix& matrix, PathAddMode mode)
 {
     auto skPathImpl = src.GetImpl<SkiaPath>();
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
     if (skPathImpl != nullptr && skMatrixImpl != nullptr) {
-        path_.addPath(skPathImpl->GetPath(), skMatrixImpl->ExportSkiaMatrix());
+        path_.addPath(skPathImpl->GetPath(), skMatrixImpl->ExportSkiaMatrix(), static_cast<SkPath::AddPathMode>(mode));
     }
 }
 
@@ -259,11 +250,7 @@ Rect SkiaPath::GetBounds() const
 
 void SkiaPath::SetFillStyle(PathFillType fillstyle)
 {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathFillType ft = static_cast<SkPathFillType>(fillstyle);
-#else
-    SkPath::FillType ft = static_cast<SkPath::FillType>(fillstyle);
-#endif
     path_.setFillType(ft);
 }
 
@@ -294,9 +281,44 @@ void SkiaPath::Transform(const Matrix& matrix)
     }
 }
 
+void SkiaPath::TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip)
+{
+    auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
+    if (skMatrixImpl == nullptr) {
+        LOGE("SkiaPath::TransformWithPerspectiveClip, skMatrixImpl is nullptr!");
+        return;
+    }
+    if (dst == nullptr) {
+        path_.transform(skMatrixImpl->ExportSkiaMatrix(), nullptr,
+            static_cast<SkApplyPerspectiveClip>(applyPerspectiveClip));
+        return;
+    }
+    auto dstPathImpl = dst->GetImpl<SkiaPath>();
+    if (dstPathImpl == nullptr) {
+        LOGE("SkiaPath::TransformWithPerspectiveClip, dstPathImpl is nullptr!");
+        return;
+    }
+    path_.transform(skMatrixImpl->ExportSkiaMatrix(), &dstPathImpl->path_,
+        static_cast<SkApplyPerspectiveClip>(applyPerspectiveClip));
+}
+
 void SkiaPath::Offset(scalar dx, scalar dy)
 {
     path_.offset(dx, dy);
+}
+
+void SkiaPath::Offset(Path* dst, scalar dx, scalar dy)
+{
+    if (dst == nullptr) {
+        path_.offset(dx, dy, nullptr);
+        return;
+    }
+    auto dstPathImpl = dst->GetImpl<SkiaPath>();
+    if (dstPathImpl == nullptr) {
+        LOGE("SkiaPath::Offset, data is invalid!");
+        return;
+    }
+    path_.offset(dx, dy, &dstPathImpl->path_);
 }
 
 bool SkiaPath::OpWith(const Path& path1, const Path& path2, PathOp op)

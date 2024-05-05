@@ -15,6 +15,12 @@
 
 #include "skia_image.h"
 
+#include "skia_bitmap.h"
+#include "skia_data.h"
+#include "skia_image_info.h"
+#include "skia_pixmap.h"
+#include "skia_surface.h"
+#include "skia_texture_info.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
@@ -26,16 +32,10 @@
 #include "image/picture.h"
 #include "utils/data.h"
 #include "utils/log.h"
-
-#include "skia_bitmap.h"
-#include "skia_data.h"
-#include "skia_image_info.h"
-#include "skia_pixmap.h"
-#include "skia_surface.h"
-#include "skia_texture_info.h"
 #include "utils/system_properties.h"
 
 #ifdef ACE_ENABLE_GPU
+#include "include/core/SkYUVAPixmaps.h"
 #include "skia_gpu_context.h"
 #endif
 
@@ -44,7 +44,29 @@ namespace Rosen {
 namespace Drawing {
 SkiaImage::SkiaImage() noexcept : skiaImage_(nullptr) {}
 
-SkiaImage::SkiaImage(sk_sp<SkImage> skImg) noexcept : skiaImage_(skImg) {}
+SkiaImage::SkiaImage(sk_sp<SkImage> skImg) noexcept
+{
+    PostSkImgToTargetThread();
+    skiaImage_ = skImg;
+}
+
+SkiaImage::~SkiaImage()
+{
+    PostSkImgToTargetThread();
+}
+
+void SkiaImage::PostSkImgToTargetThread()
+{
+    if (skiaImage_ == nullptr) {
+        return;
+    }
+    auto context = as_IB(skiaImage_.get())->directContext();
+    auto func = SkiaGPUContext::GetPostFunc(sk_ref_sp(context));
+    if (func) {
+        auto image = skiaImage_;
+        func([image]() {});
+    }
+}
 
 std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
     RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
@@ -83,6 +105,7 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
     if (skBitmapImpl != nullptr) {
         const SkBitmap skBitmap = skBitmapImpl->ExportSkiaBitmap();
+        PostSkImgToTargetThread();
         skiaImage_ = SkImage::MakeFromBitmap(skBitmap);
         return skiaImage_ != nullptr;
     }
@@ -90,11 +113,39 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 }
 
 #ifdef ACE_ENABLE_GPU
+std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    if (!memory) {
+        LOGD("memory nullprt, %{public}s, %{public}d",  __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    
+    auto grContext = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    if (grContext == nullptr) {
+        LOGD("grContext nullprt, %{public}s, %{public}d",  __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    SkYUVAPixmapInfo pixmapInfo({{info.GetWidth(), info.GetHeight()},
+                                 SkiaYUVInfo::ConvertToSkPlaneConfig(info.GetConfig()),
+                                 SkiaYUVInfo::ConvertToSkSubSampling(info.GetSampling()),
+                                 SkiaYUVInfo::ConvertToSkYUVColorSpace(info.GetColorSpace())},
+                                 SkYUVAPixmapInfo::DataType::kUnorm8,
+                                 nullptr);
+    auto skYUVAPixmaps = SkYUVAPixmaps::FromExternalMemory(pixmapInfo, memory);
+    auto skImage = SkImage::MakeFromYUVAPixmaps(grContext.get(), skYUVAPixmaps);
+    if (skImage == nullptr) {
+        LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
-
+    PostSkImgToTargetThread();
     skiaImage_ = SkImage::MakeCrossContextFromPixmap(grContext_.get(), skBitmap.pixmap(), false);
 
     return (skiaImage_ != nullptr) ? true : false;
@@ -108,6 +159,7 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
     }
 
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
+    PostSkImgToTargetThread();
     skiaImage_ = SkImage::MakeFromEncoded(skData);
     return (skiaImage_ != nullptr);
 }
@@ -121,6 +173,7 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
     auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
     auto skiaRect = SkIRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    PostSkImgToTargetThread();
     skiaImage_ = skiaImage->makeSubset(skiaRect, grContext_.get());
     return (skiaImage_ != nullptr) ? true : false;
 }
@@ -132,9 +185,9 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
         LOGD("SkiaImage::BuildFromCompressed, build failed, data is invalid");
         return false;
     }
-
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
+    PostSkImgToTargetThread();
 #ifdef NEW_SKIA
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type));
@@ -163,31 +216,37 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     }
 
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (SystemProperties::IsUseVulkan()) {
         const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         if (!backendTexture.isValid()) {
-            LOGD("SkiaImage BuildFromTexture backend texture is not valid!!!!");
+            LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
             return false;
         }
-
+        PostSkImgToTargetThread();
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
     } else {
+        PostSkImgToTargetThread();
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
     }
 #else
+    PostSkImgToTargetThread();
     skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
         SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
 #endif
-
-    return (skiaImage_ != nullptr) ? true : false;
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::MakeFromTexture skiaImage_ is nullptr!!!! "
+            "TextureInfo format:%u, w:%d, h:%d , bitmapFormat.colorType is %d",
+            info.GetFormat(), info.GetWidth(), info.GetHeight(), static_cast<int>(bitmapFormat.colorType));
+        return false;
+    }
+    return true;
 }
 
 bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
@@ -205,14 +264,13 @@ bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, Textu
         LOGD("SkiaImage::BuildFromSurface grBackendTexture is invalid");
         return false;
     }
-
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
     }
-
+    PostSkImgToTargetThread();
     skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), grBackendTexture,
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
         SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
@@ -246,8 +304,7 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
     auto backendTexture = BackendTexture(true);
     SetGrBackendTexture(skBackendTexture);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (SystemProperties::IsUseVulkan()) {
         TextureInfo info;
         SkiaTextureInfo::ConvertToVKTexture(skBackendTexture, info);
         backendTexture.SetTextureInfo(info);
@@ -464,6 +521,7 @@ const sk_sp<SkImage> SkiaImage::GetImage() const
 
 void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
 {
+    PostSkImgToTargetThread();
     skiaImage_ = skImage;
 }
 
@@ -549,6 +607,7 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
     bool type = reader.readBool();
 
     if (type) {
+        PostSkImgToTargetThread();
         skiaImage_ = reader.readImage();
         return skiaImage_ != nullptr;
     } else {
@@ -579,6 +638,7 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
         auto skData = SkData::MakeWithCopy(const_cast<void*>(pixBuffer.get()), pixmapSize);
+        PostSkImgToTargetThread();
         skiaImage_ = SkImage::MakeRasterData(imageInfo, skData, rb);
         return true;
     }

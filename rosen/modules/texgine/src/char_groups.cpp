@@ -411,7 +411,7 @@ double CharGroups::GetCharWidth(const size_t index) const
         return 0.0;
     }
     // size - 1 means last index of the array
-    if (index > (pcgs_->size() - 1)) {
+    if (index > (static_cast<int>(pcgs_->size()) - 1)) {
         LOGEX_FUNC_LINE(ERROR) << "the index is out of range, index = " << index << " pcgs_ size = " << pcgs_->size();
         return 0.0;
     }
@@ -425,7 +425,7 @@ std::vector<uint16_t> CharGroups::GetCharsToU16(size_t start, size_t end, const 
         return {};
     }
     // size - 1 means last index of the array
-    size_t maxIndex = pcgs_->size() - 1;
+    size_t maxIndex = pcgs_->size() - 1 >= 0 ? pcgs_->size() - 1 : 0;
     if ((start > end) || (start > maxIndex) || (end > maxIndex)) {
         LOGEX_FUNC_LINE(ERROR) << "invalid parameter, start = " << start <<
             " end = " << end << " size = " << pcgs_->size();

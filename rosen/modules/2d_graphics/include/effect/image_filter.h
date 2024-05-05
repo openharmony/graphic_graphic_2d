@@ -35,14 +35,17 @@ public:
         ARITHMETIC,
         COMPOSE,
         GRADIENT_BLUR,
+        BLEND,
+        SHADER
     };
     /**
      * @brief Create a filter that blurs its input by the separate X and Y sinma value.
-     * @param sigmaX  The Gaussian sigma value for blurring along the X axis.
-     * @param sigmaY  The Gaussian sigma value for blurring along the Y axis.
-     * @param mode    The tile mode applied at edges.
-     * @param input   The input filter that is blurred, uses source bitmap if this is null.
-     * @return        A shared pointer to ImageFilter that its type is blur.
+     * @param sigmaX     The Gaussian sigma value for blurring along the X axis.
+     * @param sigmaY     The Gaussian sigma value for blurring along the Y axis.
+     * @param mode       The tile mode applied at edges.
+     * @param input      The input filter that is blurred, uses source bitmap if this is null.
+     * @param blurType   The BlurType of Image, default as GAUSS.
+     * @return           A shared pointer to ImageFilter that its type is blur.
      */
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
         std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS);
@@ -89,6 +92,33 @@ public:
     static std::shared_ptr<ImageFilter> CreateGradientBlurImageFilter(float radius,
         const std::vector<std::pair<float, float>>& fractionStops, GradientDir direction,
         GradientBlurType blurType, std::shared_ptr<ImageFilter> input);
+    
+    /**
+     * @brief This filter takes an BlendMode and uses it to composite the two filters together
+     * @param mode  The blend mode that defines the compositing operation
+     * @param background  The Dst pixels used in blending, if null the source bitmap is used.
+     * @param foreground  The Src pixels used in blending, if null the source bitmap is used.
+     * @return    A shared pointer to ImageFilter that its type is blend.
+     */
+    static std::shared_ptr<ImageFilter> CreateBlendImageFilter(BlendMode mode,
+        std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground = nullptr);
+
+    /**
+     * @brief Create a filter that fills the output with the per-pixel evaluation of the ShaderEffect. The
+     *        shader is defined in the image filter's local coordinate system, so will automatically
+     *        be affected by Canvas's transform.
+     *
+     *        Like Image() and Picture(), this is a leaf filter that can be used to introduce inputs to
+     *        a complex filter graph, but should generally be combined with a filter that as at least
+     *        one null input to use the implicit source image.
+     * @param shader  The shader that fills the result image
+     * @return    A shared pointer to ImageFilter that its type is shader.
+     */
+    static std::shared_ptr<ImageFilter> CreateShaderImageFilter(std::shared_ptr<ShaderEffect> shader,
+        const Rect& rect = {
+            -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+            std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+        });
 
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
@@ -116,6 +146,9 @@ public:
         GradientDir direction, GradientBlurType blurType, std::shared_ptr<ImageFilter> input) noexcept;
     ImageFilter(FilterType t) noexcept;
     void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType);
+    ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilter> background,
+        std::shared_ptr<ImageFilter> foreground = nullptr) noexcept;
+    ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& rect) noexcept;
 protected:
     ImageFilter() noexcept;
 

@@ -45,6 +45,15 @@ void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFr
     }
 }
 
+void RSNodeCommandHelper::SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetNodeName(nodeName);
+    }
+}
+
 void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
     bool includeProperty)
 {
@@ -62,44 +71,6 @@ void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, pid);
         node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer, pid);
-    }
-}
-
-void RSNodeCommandHelper::MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetIsMarkDriven(flag);
-        auto& nodeMap = context.GetMutableNodeMap();
-        if (flag) {
-            nodeMap.AddDrivenRenderNode(node);
-        } else {
-            nodeMap.RemoveDrivenRenderNode(nodeId);
-        }
-    }
-}
-
-void RSNodeCommandHelper::MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetItemIndex(index);
-    }
-}
-
-void RSNodeCommandHelper::MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetPaintState(flag);
-    }
-}
-
-void RSNodeCommandHelper::MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetIsContentChanged(isChanged);
     }
 }
 
@@ -121,19 +92,26 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
     }
 }
 
+void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ExecuteSurfaceCaptureCommand();
+    }
+}
+
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
 {
     auto& nodeMap = context.GetNodeMap();
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
-    if (inNode && outNode) {
-        // used inNode id as transition key
-        RSRenderNode::SharedTransitionParam inNodeParam { inNode->GetId(), outNode };
-        inNode->SetSharedTransitionParam(std::move(inNodeParam));
-
-        RSRenderNode::SharedTransitionParam outNodeParam { inNode->GetId(), inNode };
-        outNode->SetSharedTransitionParam(std::move(outNodeParam));
+    if (inNode == nullptr || outNode == nullptr) {
+        return;
     }
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    inNode->SetSharedTransitionParam(sharedTransitionParam);
+    outNode->SetSharedTransitionParam(sharedTransitionParam);
 }
 
 void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
@@ -142,13 +120,9 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     // Sanity check, if any check failed, RSUniRenderVisitor will auto unregister the pair, we do nothing here.
-    if (inNode && outNode &&
-        inNode->GetSharedTransitionParam().has_value() &&
-        inNode->GetSharedTransitionParam()->first == inNode->GetId() &&
-        outNode->GetSharedTransitionParam().has_value() &&
-        outNode->GetSharedTransitionParam()->first == inNode->GetId()) {
-        inNode->SetSharedTransitionParam(std::nullopt);
-        outNode->SetSharedTransitionParam(std::nullopt);
+    if (inNode && outNode && inNode->GetSharedTransitionParam() == outNode->GetSharedTransitionParam()) {
+        inNode->SetSharedTransitionParam(nullptr);
+        outNode->SetSharedTransitionParam(nullptr);
     }
 }
 } // namespace Rosen

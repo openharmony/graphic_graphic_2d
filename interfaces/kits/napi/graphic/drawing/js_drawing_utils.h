@@ -21,6 +21,7 @@
 #include "hilog/log.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font_metrics.h"
@@ -28,13 +29,39 @@
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
+
+// used for test
+class JsDrawingTestUtils {
+public:
+    static bool GetDrawingTestDisabled() { return closeDrawingTest_; }
+private:
+    static bool closeDrawingTest_;
+};
+
+#ifdef JS_DRAWING_TEST
+#define JS_CALL_DRAWING_FUNC(func)                                  \
+    do {                                                            \
+        if (LIKELY(JsDrawingTestUtils::GetDrawingTestDisabled())) { \
+            func;                                                   \
+        }                                                           \
+    } while (0)
+#else
+#define JS_CALL_DRAWING_FUNC(func)           \
+    do {                                     \
+        func;                                \
+    } while (0)
+#endif
+
 namespace Drawing {
+constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
+constexpr size_t ARGC_SEVEN = 7;
+constexpr int NUMBER_TWO = 2;
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -263,13 +290,19 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 } // namespace OHOS::Rosen
 
 #ifdef ROSEN_OHOS
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = {LOG_CORE, 0xD001400, "JsDrawing"};
-#define ROSEN_LOGI(format, ...) \
-    OHOS::HiviewDFX::HiLog::Info(LABEL_ROSEN, format, ##__VA_ARGS__)
-#define ROSEN_LOGD(format, ...) \
-    OHOS::HiviewDFX::HiLog::Debug(LABEL_ROSEN, format, ##__VA_ARGS__)
-#define ROSEN_LOGE(format, ...) \
-    OHOS::HiviewDFX::HiLog::Error(LABEL_ROSEN, format, ##__VA_ARGS__)
+
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
+#undef LOG_TAG
+#define LOG_TAG "JsDrawing"
+
+#define ROSEN_LOGI(format, ...)              \
+    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGD(format, ...)               \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGE(format, ...)               \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
 #else
 #define ROSEN_LOGI(format, ...)
 #define ROSEN_LOGD(format, ...)

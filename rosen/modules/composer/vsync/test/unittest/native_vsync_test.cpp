@@ -51,7 +51,7 @@ namespace {
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_Create001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(OH_NativeVSync_Create(nullptr,0), nullptr);
+    ASSERT_EQ(OH_NativeVSync_Create(nullptr, 0), nullptr);
 }
 
 /*
@@ -145,7 +145,7 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy002, Function | MediumTest | Lev
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod001, Function | MediumTest | Level2)
 {
-    ASSERT_NE(OH_NativeVSync_GetPeriod(nullptr,nullptr),0);
+    ASSERT_NE(OH_NativeVSync_GetPeriod(nullptr, nullptr), 0);
 }
 
 /*
@@ -158,7 +158,7 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod001, Function | MediumTest | L
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod002, Function | MediumTest | Level2)
 {
-    ASSERT_NE(OH_NativeVSync_GetPeriod(native_vsync,nullptr),0);
+    ASSERT_NE(OH_NativeVSync_GetPeriod(native_vsync, nullptr), 0);
 }
 
 } // namespace

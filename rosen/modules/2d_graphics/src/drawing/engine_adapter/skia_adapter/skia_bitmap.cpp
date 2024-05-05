@@ -28,6 +28,8 @@
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "utils/data.h"
+#include "utils/log.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -41,18 +43,26 @@ static inline SkImageInfo MakeSkImageInfo(const int width, const int height, con
     return imageInfo;
 }
 
-void SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
+bool SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
 {
     auto imageInfo = MakeSkImageInfo(width, height, format);
-    skiaBitmap_.setInfo(imageInfo, stride);
-    skiaBitmap_.allocPixels();
+    bool isBuildSuccess = skiaBitmap_.setInfo(imageInfo, stride) && skiaBitmap_.tryAllocPixels();
+    if (!isBuildSuccess) {
+        LOGE("SkiaBitmap::Build failed, the format is incorrect");
+        return false;
+    }
+    return true;
 }
 
-void SkiaBitmap::Build(const ImageInfo& imageInfo, int32_t stride)
+bool SkiaBitmap::Build(const ImageInfo& imageInfo, int32_t stride)
 {
     auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    skiaBitmap_.setInfo(skImageInfo, stride);
-    skiaBitmap_.allocPixels();
+    bool isBuildSuccess = skiaBitmap_.setInfo(skImageInfo, stride) && skiaBitmap_.tryAllocPixels();
+    if (!isBuildSuccess) {
+        LOGE("SkiaBitmap::Build failed, the format is incorrect");
+        return false;
+    }
+    return true;
 }
 
 int SkiaBitmap::GetWidth() const
@@ -157,8 +167,7 @@ void SkiaBitmap::ClearWithColor(const ColorQuad& color) const
 
 ColorQuad SkiaBitmap::GetColor(int x, int y) const
 {
-    SkColor color;
-    color = skiaBitmap_.getColor(x, y);
+    SkColor color = skiaBitmap_.getColor(x, y);
     return static_cast<ColorQuad>(color);
 }
 
@@ -216,7 +225,6 @@ void SkiaBitmap::SetSkBitmap(const SkBitmap& skBitmap)
 
 std::shared_ptr<Data> SkiaBitmap::Serialize() const
 {
-#ifdef ROSEN_OHOS
     SkBinaryWriteBuffer writer;
     size_t rb = skiaBitmap_.rowBytes();
     int width = skiaBitmap_.width();
@@ -249,9 +257,6 @@ std::shared_ptr<Data> SkiaBitmap::Serialize() const
     data->BuildUninitialized(length);
     writer.writeToMemory(data->WritableData());
     return data;
-#else
-    return nullptr;
-#endif
 }
 
 bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
@@ -290,9 +295,11 @@ bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
-    skiaBitmap_.setInfo(imageInfo, rb);
-    skiaBitmap_.allocPixels();
-    skiaBitmap_.setPixels(const_cast<void*>(pixBuffer.get()));
+    auto releaseProc = [] (void* addr, void* context) -> void {
+        free(addr);
+        addr = nullptr;
+    };
+    skiaBitmap_.installPixels(imageInfo, const_cast<void*>(pixBuffer.release()), rb, releaseProc, nullptr);
     return true;
 }
 

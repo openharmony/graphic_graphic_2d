@@ -17,7 +17,19 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 config("egl_config") {
   visibility = [ ":*" ]
 
-  #defines = [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+  defines = []
+
+  # defines += [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+  if (graphic_2d_feature_use_igraphics_extend_hooks) {
+    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=1" ]
+  } else {
+    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=0" ]
+  }
+  if (graphic_2d_feature_use_aps_igameservice_func) {
+    defines += [ "USE_APS_IGAMESERVICE_FUNC=1" ]
+  } else {
+    defines += [ "USE_APS_IGAMESERVICE_FUNC=0" ]
+  }
 
   cflags = [
     "-Wall",
@@ -28,17 +40,23 @@ config("egl_config") {
 
 config("egl_public_config") {
   include_dirs = [ "include" ]
+  if (graphic_2d_feature_use_igraphics_extend_hooks) {
+    include_dirs += egl_igraphics_extend_hooks_include_dirs
+  }
+  if (graphic_2d_feature_use_aps_igameservice_func) {
+    include_dirs += aps_client_include_dirs
+    include_dirs += gameservice_render_slice_report_include_dirs
+  }
 }
 
 if (current_os != "ohos") {
   group("EGL") {
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
   }
 } else {
   ohos_shared_library("EGL") {
+    defines = [ "EGL_ERROR_ENABLE" ]
     sources = [
       "src/EGL/egl.cpp",
       "src/EGL/egl_blob_cache.cpp",
@@ -52,21 +70,31 @@ if (current_os != "ohos") {
       "src/EGL/egl_wrapper_surface.cpp",
       "src/thread_private_data_ctl.cpp",
     ]
+    if (graphic_2d_feature_use_igraphics_extend_hooks) {
+      sources += egl_igraphics_extend_hooks_sources
+    }
+    if (graphic_2d_feature_use_aps_igameservice_func) {
+      sources += aps_client_sources
+      sources += gameservice_render_slice_report_sources
+    }
     configs = [ ":egl_config" ]
 
     public_configs = [ ":egl_public_config" ]
 
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
-
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
     external_deps = [
       "c_utils:utils",
+      "graphic_surface:surface",
       "hilog:libhilog",
       "init:libbeget_proxy",
       "init:libbegetutil",
     ]
+
+    if (graphic_2d_feature_use_aps_igameservice_func) {
+      external_deps += aps_client_external_deps
+      external_deps += gameservice_render_slice_report_external_deps
+    }
 
     if (defined(graphic_2d_ext_configs.vendor_root)) {
       install_enable = false
@@ -107,10 +135,8 @@ ohos_shared_library("GLESv1") {
 
   public_configs = [ ":glesv1_public_config" ]
 
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
+  public_external_deps = [ "egl:libEGL" ]
+  public_deps = [ "//third_party/openGLES:libGLES" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -147,10 +173,8 @@ ohos_shared_library("GLESv2") {
 
   public_configs = [ ":glesv2_public_config" ]
 
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
+  public_external_deps = [ "egl:libEGL" ]
+  public_deps = [ "//third_party/openGLES:libGLES" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -180,25 +204,18 @@ config("glesv3_public_config") {
 
 if (current_os != "ohos") {
   group("GLESv3") {
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
   }
 } else {
   ohos_shared_library("GLESv3") {
-    sources = [
-      "src/GLES3/gles3.cpp",
-      "src/thread_private_data_ctl.cpp",
-    ]
+    sources = [ "src/GLES3/gles3.cpp" ]
     configs = [ ":glesv3_config" ]
 
     public_configs = [ ":glesv3_public_config" ]
 
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
 
     external_deps = [ "hilog:libhilog" ]
 
@@ -224,7 +241,6 @@ ohos_executable("opengl_wrapper_native_test") {
   sources = [ "test/opengl_wrapper_native_test.cpp" ]
 
   include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_service_client",
   ]
@@ -237,6 +253,7 @@ ohos_executable("opengl_wrapper_native_test") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
 
@@ -269,7 +286,7 @@ ohos_shared_library("debug_layer_test1") {
 
   public_configs = [ ":debug_layer_test_public_config" ]
 
-  public_deps = [ "//third_party/EGL:libEGL" ]
+  public_external_deps = [ "egl:libEGL" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -285,7 +302,7 @@ ohos_shared_library("debug_layer_test2") {
 
   public_configs = [ ":debug_layer_test_public_config" ]
 
-  public_deps = [ "//third_party/EGL:libEGL" ]
+  public_external_deps = [ "egl:libEGL" ]
 
   external_deps = [ "hilog:libhilog" ]
 

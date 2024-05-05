@@ -18,7 +18,21 @@ module_out_path = "graphic_2d/render_service_client"
 group("systemtest") {
   testonly = true
 
-  deps = [ ":RSInterfacesSystemTest" ]
+  deps = [
+    ":RSInterfacesSystemTest",
+    ":RSInterfacesVirtualScreenTest",
+  ]
+}
+
+## Build RSInterfacesVirtualScreenTest
+ohos_systemtest("RSInterfacesVirtualScreenTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_interfaces_virtual_screen_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## Build RSInterfacesSystemTest
@@ -35,7 +49,6 @@ ohos_systemtest("RSInterfacesSystemTest") {
 ## Build rs_client_test_common.a {{{
 config("rs_client_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
 
     # windowmanager
@@ -65,7 +78,6 @@ ohos_static_library("rs_client_test_common") {
 
   public_deps = [
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
@@ -82,6 +94,8 @@ ohos_static_library("rs_client_test_common") {
     "hilog:libhilog",
     "image_framework:image_native",
   ]
+
+  public_external_deps = [ "window_manager:libwmutil_base" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

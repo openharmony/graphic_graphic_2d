@@ -16,6 +16,7 @@
 #include "rs_render_service_connection_proxy.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <message_option.h>
 #include <message_parcel.h>
 #include <vector>
@@ -210,7 +211,8 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
 
 sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
                                                                              const sptr<VSyncIConnectionToken>& token,
-                                                                             uint64_t id)
+                                                                             uint64_t id,
+                                                                             NodeId windowNodeId)
 {
     if (token == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateVSyncConnection: token is nullptr.");
@@ -223,6 +225,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     data.WriteString(name);
     data.WriteRemoteObject(token->AsObject());
     data.WriteUint64(id);
+    data.WriteUint64(windowNodeId);
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -233,6 +236,44 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
     return conn;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    auto producer = surface->GetProducer();
+    if (producer == nullptr) {
+        return nullptr;
+    }
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return nullptr;
+    }
+    data.WriteRemoteObject(producer->AsObject());
+    data.WriteInt32(srcRect.x);
+    data.WriteInt32(srcRect.y);
+    data.WriteInt32(srcRect.w);
+    data.WriteInt32(srcRect.h);
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreatePixelMapFromSurface: Send Request err.");
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    if (reply.ReadBool()) {
+        pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
+    }
+    return pixelMap;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
@@ -512,7 +553,7 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
     }
 }
 
-void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -523,6 +564,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& ra
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
     data.WriteUint32(range.min_);
     data.WriteUint32(range.max_);
     data.WriteUint32(range.preferred_);
@@ -714,7 +756,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -730,6 +772,7 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     data.WriteFloat(scaleX);
     data.WriteFloat(scaleY);
     data.WriteUint8(static_cast<uint8_t>(surfaceCaptureType));
+    data.WriteBool(isSync);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1460,11 +1503,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType&
     return result;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1508,13 +1547,29 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     return result;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
+bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(static_cast<uint32_t>(scaleMode));
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
+}
+
 bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1537,6 +1592,48 @@ bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Medi
         RS_LOGD("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
         return false;
     }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
+    std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(globalUniqueId);
+    RSMarshallingHelper::Marshalling(data, typeface);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGD("RSRenderServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
+}
+
+bool RSRenderServiceConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(globalUniqueId);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGD("RSRenderServiceConnectionProxy::UnRegisterTypeface: send request failed");
+        return false;
+    }
+
     return true;
 }
 
@@ -1665,6 +1762,31 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteRemoteObject(callback->AsObject());
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
+    sptr<RSIHgmConfigChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (callback) {
+        data.WriteRemoteObject(callback->AsObject());
+    } else {
+        data.WriteRemoteObject(nullptr);
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback: Send Request err.");
@@ -2088,6 +2210,25 @@ void RSRenderServiceConnectionProxy::SetVirtualScreenUsingStatus(bool isVirtualS
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenUsingStatus: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(isCurtainScreenOn)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCurtainScreenUsingStatus: Send Request err.");
     }
 }
 } // namespace Rosen

@@ -36,7 +36,9 @@ using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
+constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
+constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -74,16 +76,35 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_DRAWING_NODE = 0x2081u,
 };
 
+enum RSRenderParamsDirtyType {
+    NO_DIRTY = 0,
+    MATRIX_DIRTY,
+    LAYER_INFO_DIRTY,
+    MAX_DIRTY_TYPE,
+};
+
 enum class CacheType : uint8_t {
     NONE = 0,
     CONTENT,
     ANIMATE_PROPERTY,
 };
 
+enum class DrawableCacheType : uint8_t {
+    NONE = 0,
+    CONTENT,
+};
+
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
     FORCED_CACHE,    // must-to-do case
     TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+};
+
+enum class FilterCacheType : uint8_t {
+    NONE              = 0,
+    SNAPSHOT          = 1,
+    FILTERED_SNAPSHOT = 2,
+    BOTH              = SNAPSHOT | FILTERED_SNAPSHOT,
 };
 
 // priority for node, higher number means lower priority
@@ -108,6 +129,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    UNKNOWN,
 };
 
 // the type of surfaceCapture
@@ -147,14 +169,20 @@ enum class SystemAnimatedScenes : uint32_t {
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,          // surfacenode created as app main window
+    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
+    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    LEASH_WINDOW_NODE,        // leashwindow
     ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
     SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
-    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
-    LEASH_WINDOW_NODE,        // leashwindow
-    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
+};
+
+enum class MultiThreadCacheType : uint8_t {
+    NONE = 0,
+    LEASH_WINDOW,
+    ARKTS_CARD,
 };
 
 enum class SelfDrawingNodeType : uint8_t {
@@ -225,25 +253,25 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
-inline bool ROSEN_LNE(float left, float right) //less not equal
+inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) < epsilon;
 }
 
-inline bool ROSEN_GNE(float left, float right) //great not equal
+inline bool ROSEN_GNE(float left, float right) // great not equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_GE(float left, float right) //great or equal
+inline bool ROSEN_GE(float left, float right) // great or equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_LE(float left, float right) //less or equal
+inline bool ROSEN_LE(float left, float right) // less or equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) < epsilon;

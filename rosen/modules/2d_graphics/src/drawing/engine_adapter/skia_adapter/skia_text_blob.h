@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,14 +48,16 @@ public:
 
     sk_sp<SkTextBlob> GetTextBlob() const;
 
-    std::shared_ptr<Data> Serialize() const override;
+    std::shared_ptr<Data> Serialize(void* ctx) const override;
 
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, void* ctx);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
 
     std::shared_ptr<Rect> Bounds() const override;
+
+    uint32_t UniqueID() const override;
 
 private:
     sk_sp<SkTextBlob> skTextBlob_;

@@ -19,6 +19,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,6 +94,7 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
         return false;
     }
@@ -133,7 +135,15 @@ const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetLastV
 
 void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value)
 {
-    SetPropertyValue(GetAnimationValue(value));
+    std::shared_ptr<RSRenderPropertyBase> animationValue;
+    if (GetAdditive() && (property_ != nullptr)) {
+        animationValue = property_->Clone() + (value - lastValue_);
+        lastValue_ = value->Clone();
+    } else {
+        animationValue = value->Clone();
+        lastValue_ = value->Clone();
+    }
+    SetPropertyValue(animationValue);
 }
 
 const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetAnimationValue(
@@ -141,7 +151,7 @@ const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetAnimat
 {
     std::shared_ptr<RSRenderPropertyBase> animationValue;
     if (GetAdditive()) {
-        animationValue = GetPropertyValue() + value - lastValue_;
+        animationValue = GetPropertyValue() + (value - lastValue_);
     } else {
         animationValue = value->Clone();
     }
@@ -154,7 +164,7 @@ void RSRenderPropertyAnimation::OnRemoveOnCompletion()
 {
     std::shared_ptr<RSRenderPropertyBase> backwardValue;
     if (GetAdditive()) {
-        backwardValue = GetPropertyValue() + GetOriginValue() - lastValue_;
+        backwardValue = GetPropertyValue() + (GetOriginValue() - lastValue_);
     } else {
         backwardValue = GetOriginValue();
     }

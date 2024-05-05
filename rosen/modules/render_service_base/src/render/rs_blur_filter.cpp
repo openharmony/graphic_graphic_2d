@@ -20,58 +20,27 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-#include "include/core/SkTileMode.h"
-#include "include/effects/SkImageFilters.h"
-#else
-#include "include/effects/SkBlurImageFilter.h"
-#endif
-#endif
+#include "ge_render.h"
+#include "ge_visual_effect.h"
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkImageFilters::Blur(blurRadiusX,
-    blurRadiusY, SkTileMode::kClamp, nullptr)), blurRadiusX_(blurRadiusX),
-    blurRadiusY_(blurRadiusY)
-{
-    type_ = FilterType::BLUR;
-
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
-    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
-    useKawase_ = RSSystemProperties::GetKawaseEnabled();
-}
-#else
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
-    blurRadiusY, nullptr, nullptr, SkBlurImageFilter::kClamp_TileMode)), blurRadiusX_(blurRadiusX),
-    blurRadiusY_(blurRadiusY)
-{
-    type_ = FilterType::BLUR;
-
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
-    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
-}
-#endif
-#else
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilter(
+const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+const auto BLUR_TYPE = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilterOriginal(
     Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP, nullptr,
-        Drawing::ImageBlurType::KAWASE)),
+        BLUR_TYPE)),
     blurRadiusX_(blurRadiusX),
     blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 
+    float blurRadiusXForHash = DecreasePrecision(blurRadiusX);
+    float blurRadiusYForHash = DecreasePrecision(blurRadiusY);
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
-    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
-    useKawase_ = RSSystemProperties::GetKawaseEnabled();
+    hash_ = SkOpts::hash(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
+    hash_ = SkOpts::hash(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
 }
-#endif
 
 RSBlurFilter::~RSBlurFilter() = default;
 
@@ -90,24 +59,24 @@ std::string RSBlurFilter::GetDescription()
     return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
 }
 
+std::string RSBlurFilter::GetDetailedDescription()
+{
+    return "RSBlurFilterBlur, radius: " + std::to_string(blurRadiusX_) + " sigma" +
+        ", greyCoef1: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->x_) +
+        ", greyCoef2: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->y_);
+}
+
 bool RSBlurFilter::IsValid() const
 {
     constexpr float epsilon = 0.999f;
     return blurRadiusX_ > epsilon || blurRadiusY_ > epsilon;
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& other) const
-#else
-std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
-#endif
+std::shared_ptr<RSDrawingFilterOriginal> RSBlurFilter::Compose(
+    const std::shared_ptr<RSDrawingFilterOriginal>& other) const
 {
     std::shared_ptr<RSBlurFilter> result = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
-#ifndef USE_ROSEN_DRAWING
-    result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
-#else
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
-#endif
     auto otherHash = other->Hash();
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
     return result;
@@ -159,64 +128,56 @@ bool RSBlurFilter::IsNearZero(float threshold) const
     return ROSEN_EQ(blurRadiusX_, 0.0f, threshold) && ROSEN_EQ(blurRadiusY_, 0.0f, threshold);
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSBlurFilter::DrawImageRect(
-    SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
-#else
 void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    auto paint = GetPaint();
-#ifdef NEW_SKIA
-    sk_sp<SkImage> greyImage = image;
-    if (isGreyCoefValid_) {
-        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
-    }
-    if (greyImage == nullptr) {
-        greyImage = image;
-    }
-    // if kawase blur failed, use gauss blur
-    KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, paint.getAlphaf());
-    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
+    if (!image) {
         return;
     }
-    canvas.drawImageRect(greyImage.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-    canvas.drawImageRect(greyImage.get(), src, dst, &paint);
-#endif
-#else
     auto brush = GetBrush();
-    std::shared_ptr<Drawing::Image> greyImage = image;
-    if (isGreyCoefValid_) {
-        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    if (!visualEffectContainer) {
+        return;
     }
-    if (greyImage == nullptr) {
-        greyImage = image;
+    if (greyCoef_.has_value()) {
+        auto greyFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY, Drawing::DrawingPaintType::BRUSH);
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_1, greyCoef_.value()[0]); // 模糊半径
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_2, greyCoef_.value()[1]); // 模糊半径
+        visualEffectContainer->AddToChainedFilter(greyFilter);
+    }
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    if (!geRender) {
+        return;
     }
     // if kawase blur failed, use gauss blur
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, brush.GetColor().GetAlphaF());
-    if (!DDGR_ENABLED && useKawase_ &&
-        KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
+    if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED) {
+        auto kawaseFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR, Drawing::DrawingPaintType::BRUSH);
+        kawaseFilter->SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, (int)blurRadiusX_); // 模糊半径
+        visualEffectContainer->AddToChainedFilter(kawaseFilter);
+
+        auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+            image, src, src, Drawing::SamplingOptions());
+        Drawing::Brush brushKawas;
+        brushKawas.SetAlphaF(brush.GetColor().GetAlphaF());
+        canvas.AttachBrush(brushKawas);
+        canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
+        canvas.DetachBrush();
         return;
     }
+    auto greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+        image, src, src, Drawing::SamplingOptions());
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*greyImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
-#endif
 }
 
-void RSBlurFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
+void RSBlurFilter::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 {
-    if (!isGreyCoefValid) {
-        isGreyCoefValid_ = isGreyCoefValid;
-        return;
-    }
-    greyCoef1_ = greyCoef1;
-    greyCoef2_ = greyCoef2;
-    isGreyCoefValid_ = isGreyCoefValid;
+    greyCoef_ = greyCoef;
 }
 
 bool RSBlurFilter::CanSkipFrame() const

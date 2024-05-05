@@ -14,6 +14,7 @@
  */
 
 #include <cstddef>
+#include <vulkan/vulkan_core.h>
 #include <window.h>
 #include <gtest/gtest.h>
 #include <dlfcn.h>
@@ -43,7 +44,9 @@ public:
     void TearDown() {}
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
     OHNativeWindow* CreateNativeWindow(std::string name);
-    VkSwapchainCreateInfoKHR GetSwapchainCreateInfo(VkFormat imageFormat, VkColorSpaceKHR imageColorSpace);
+    VkSwapchainCreateInfoKHR GetSwapchainCreateInfo(
+        VkFormat imageFormat, VkColorSpaceKHR imageColorSpace,
+        VkSurfaceTransformFlagBitsKHR transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR);
     static VkBool32 UserCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -82,6 +85,11 @@ public:
     static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
     static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
+    static inline PFN_vkGetPhysicalDevicePresentRectanglesKHR fpGetPhysicalDevicePresentRectanglesKHR;
+    static inline PFN_vkGetPhysicalDeviceSurfaceFormats2KHR fpGetPhysicalDeviceSurfaceFormats2KHR;
+    static inline PFN_vkSetHdrMetadataEXT fpSetHdrMetadataEXT;
+    static inline PFN_vkReleaseSwapchainImagesEXT fpReleaseSwapchainImagesEXT;
+
     static inline void *libVulkan_ = nullptr;
     static inline VkInstance instance_ = nullptr;
     static inline VkSurfaceKHR surface_ = VK_NULL_HANDLE;
@@ -102,9 +110,9 @@ public:
 void VulkanLoaderUnitTest::DLOpenLibVulkan()
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    const char *path = "/system/lib64/libvulkan.so";
+    const char *path = "/system/lib64/platformsdk/libvulkan.so";
 #else
-    const char *path = "/system/lib/libvulkan.so";
+    const char *path = "/system/lib/platformsdk/libvulkan.so";
 #endif
     libVulkan_ = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (libVulkan_ == nullptr) {
@@ -147,7 +155,7 @@ void VulkanLoaderUnitTest::TrytoCreateVkInstance()
 }
 
 VkSwapchainCreateInfoKHR VulkanLoaderUnitTest::GetSwapchainCreateInfo(
-    VkFormat imageFormat, VkColorSpaceKHR imageColorSpace)
+    VkFormat imageFormat, VkColorSpaceKHR imageColorSpace, VkSurfaceTransformFlagBitsKHR transform)
 {
         VkSwapchainCreateInfoKHR swapchainCI = {};
         swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -164,7 +172,7 @@ VkSwapchainCreateInfoKHR VulkanLoaderUnitTest::GetSwapchainCreateInfo(
         uint32_t height = 720;
         swapchainCI.imageExtent = { width, height };
         swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainCI.preTransform = (VkSurfaceTransformFlagBitsKHR)VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        swapchainCI.preTransform = transform;
         swapchainCI.imageArrayLayers = 1;
         swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCI.queueFamilyIndexCount = 0;
@@ -502,6 +510,8 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateDevice_Test, TestSize.Level1)
 
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_HDR_METADATA_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
         VkDevice logicalDevice;
@@ -547,13 +557,9 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateSurfaceOHOS_Test2, TestSize.Level1)
         EXPECT_NE(vkCreateSurfaceOHOS, nullptr);
         EXPECT_NE(instance_, nullptr);
 
-        OHNativeWindow* nativeWindow = CreateNativeWindow("createSurfaceUT2");
-        EXPECT_NE(nativeWindow, nullptr);
-        int ret = NativeWindowHandleOpt(nativeWindow, SET_USAGE, 0);
-        EXPECT_EQ(ret, OHOS::GSERROR_OK);
         VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
         surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS;
-        surfaceCreateInfo.window = nativeWindow;
+        surfaceCreateInfo.window = nullptr;
         VkSurfaceKHR surface2 = VK_NULL_HANDLE;
         VkResult err = vkCreateSurfaceOHOS(instance_, &surfaceCreateInfo, NULL, &surface2);
         EXPECT_NE(err, VK_SUCCESS);
@@ -603,6 +609,13 @@ HWTEST_F(VulkanLoaderUnitTest, LoadDeviceFuncPtr, TestSize.Level1)
         fpGetSwapchainImagesKHR = reinterpret_cast<PFN_vkGetSwapchainImagesKHR>(
             vkGetDeviceProcAddr(device_, "vkGetSwapchainImagesKHR"));
         EXPECT_NE(fpGetSwapchainImagesKHR, nullptr);
+
+        fpSetHdrMetadataEXT = reinterpret_cast<PFN_vkSetHdrMetadataEXT>(
+            vkGetDeviceProcAddr(device_, "vkSetHdrMetadataEXT"));
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        fpReleaseSwapchainImagesEXT = reinterpret_cast<PFN_vkReleaseSwapchainImagesEXT>(
+            vkGetDeviceProcAddr(device_, "vkReleaseSwapchainImagesEXT"));
+        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
     }
 }
 
@@ -750,25 +763,37 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Success_Test, TestSize.Level
             VK_COLORSPACE_SRGB_NONLINEAR_KHR,
             VK_COLOR_SPACE_DCI_P3_LINEAR_EXT
         };
+        std::vector<VkSurfaceTransformFlagBitsKHR> transformArray = {
+            VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+            VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR,
+            VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR,
+            VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR,
+            VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR,
+            VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR,
+            VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR,
+            VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR,
+        };
 
         for (decltype(pixelFormatArray.size()) i = 0; i < pixelFormatArray.size(); i++) {
             for (decltype(colorDataspaceArray.size()) j = 0; j < colorDataspaceArray.size(); j++) {
-                VkSwapchainCreateInfoKHR swapchainCI = GetSwapchainCreateInfo(
-                    pixelFormatArray[i], colorDataspaceArray[j]);
+                for (decltype(transformArray.size()) k = 0; k < transformArray.size(); k++) {
+                    VkSwapchainCreateInfoKHR swapchainCI = GetSwapchainCreateInfo(
+                        pixelFormatArray[i], colorDataspaceArray[j], transformArray[k]);
 
-                VkSwapchainKHR swapChainSuccess = VK_NULL_HANDLE;
-                VkSwapchainKHR swapChainSuccess2 = VK_NULL_HANDLE;
+                    VkSwapchainKHR swapChainSuccess = VK_NULL_HANDLE;
+                    VkSwapchainKHR swapChainSuccess2 = VK_NULL_HANDLE;
 
-                VkResult err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainSuccess);
-                EXPECT_EQ(err, VK_SUCCESS);
-                EXPECT_NE(swapChainSuccess, VK_NULL_HANDLE);
+                    VkResult err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainSuccess);
+                    EXPECT_EQ(err, VK_SUCCESS);
+                    EXPECT_NE(swapChainSuccess, VK_NULL_HANDLE);
 
-                swapchainCI.oldSwapchain = swapChainSuccess;
-                err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainSuccess2);
-                EXPECT_EQ(err, VK_SUCCESS);
-                EXPECT_NE(swapChainSuccess2, VK_NULL_HANDLE);
-                fpDestroySwapchainKHR(device_, swapChainSuccess, nullptr);
-                fpDestroySwapchainKHR(device_, swapChainSuccess2, nullptr);
+                    swapchainCI.oldSwapchain = swapChainSuccess;
+                    err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainSuccess2);
+                    EXPECT_EQ(err, VK_SUCCESS);
+                    EXPECT_NE(swapChainSuccess2, VK_NULL_HANDLE);
+                    fpDestroySwapchainKHR(device_, swapChainSuccess, nullptr);
+                    fpDestroySwapchainKHR(device_, swapChainSuccess2, nullptr);
+                }
             }
         }
     }
@@ -1036,4 +1061,80 @@ HWTEST_F(VulkanLoaderUnitTest, DestroySurface_NULL_Test, TestSize.Level1)
         vkDestroySurfaceKHR(instance_, VK_NULL_HANDLE, nullptr);
     }
 }
+
+/**
+ * @tc.name: test TranslateNativeToVulkanTransform
+ * @tc.desc: test TranslateNativeToVulkanTransform
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, translateNativeToVulkanTransform_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(vkCreateSurfaceOHOS, nullptr);
+        EXPECT_NE(instance_, nullptr);
+
+        OHNativeWindow* nativeWindow = CreateNativeWindow("translateNativeToVulkanTransform_Test");
+        EXPECT_NE(nativeWindow, nullptr);
+        std::vector<OH_NativeBuffer_TransformType> transformArray = {
+            NATIVEBUFFER_ROTATE_NONE,
+            NATIVEBUFFER_ROTATE_90,
+            NATIVEBUFFER_ROTATE_180,
+            NATIVEBUFFER_ROTATE_270,
+            NATIVEBUFFER_FLIP_H,
+            NATIVEBUFFER_FLIP_V,
+            NATIVEBUFFER_FLIP_H_ROT90,
+            NATIVEBUFFER_FLIP_V_ROT90,
+            NATIVEBUFFER_FLIP_H_ROT180,
+            NATIVEBUFFER_FLIP_V_ROT180,
+            NATIVEBUFFER_FLIP_H_ROT270,
+            NATIVEBUFFER_FLIP_V_ROT270,
+        };
+        VkSurfaceKHR surface = VK_NULL_HANDLE;
+        for (decltype(transformArray.size()) i = 0; i < transformArray.size(); i++) {
+            int res = NativeWindowSetTransformHint(nativeWindow, transformArray[i]);
+            EXPECT_EQ(res, OHOS::GSERROR_OK);
+
+            VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
+            surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS;
+            surfaceCreateInfo.window = nativeWindow;
+            VkResult err = vkCreateSurfaceOHOS(instance_, &surfaceCreateInfo, NULL, &surface);
+            EXPECT_EQ(err, VK_SUCCESS);
+            EXPECT_NE(surface, VK_NULL_HANDLE);
+
+
+            EXPECT_NE(fpGetPhysicalDeviceSurfaceCapabilitiesKHR, nullptr);
+            EXPECT_NE(physicalDevice_, nullptr);
+            EXPECT_NE(surface, VK_NULL_HANDLE);
+
+            err = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface, &surfCaps_);
+            EXPECT_EQ(err, VK_SUCCESS);
+
+            vkDestroySurfaceKHR(instance_, surface, nullptr);
+            surface = VK_NULL_HANDLE;
+        }
+    }
+}
+/**
+ * @tc.name: test vkEnumerateDeviceExtensionProperties GetExtensionProperties
+ * @tc.desc: test vkEnumerateDeviceExtensionProperties GetExtensionProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, enumerateDeviceExtensionProperties_GetExtensionProperties_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        uint32_t pPropertyCount = 0;
+        const char* pLayerName = "VK_LAYER_OHOS_surface";
+        VkResult err = vkEnumerateDeviceExtensionProperties(physicalDevice_, pLayerName, &pPropertyCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        if (pPropertyCount > 0) {
+            std::vector<VkExtensionProperties> pProperties(pPropertyCount);
+            err = vkEnumerateDeviceExtensionProperties(
+                physicalDevice_, pLayerName, &pPropertyCount, pProperties.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
+    }
+}
+
 } // vulkan::loader

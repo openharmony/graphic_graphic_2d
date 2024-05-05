@@ -48,6 +48,9 @@ public:
     void InitWithGradientBlur(float radius, const std::vector<std::pair<float, float>>& fractionStops,
         GradientDir direction, GradientBlurType blurType,
         const std::shared_ptr<ImageFilter> f) override;
+    void InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
+        std::shared_ptr<ImageFilter> foreground = nullptr) override;
+    void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect) override;
     sk_sp<SkImageFilter> GetImageFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

@@ -15,6 +15,11 @@
 
 #include "pipeline/rs_dirty_region_manager.h"
 
+#include <string>
+
+#include "rs_trace.h"
+
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 RSDirtyRegionManager::RSDirtyRegionManager()
@@ -30,7 +35,7 @@ RSDirtyRegionManager::RSDirtyRegionManager(bool isDisplayDirtyManager)
     isDisplayDirtyManager_ = isDisplayDirtyManager;
 }
 
-void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
+void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect, bool isDebugRect)
 {
     if (rect.IsEmpty()) {
         return;
@@ -43,6 +48,21 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
     if (isDisplayDirtyManager_) {
         mergedDirtyRegions_.emplace_back(rect);
     }
+    if (isDebugRect) {
+        debugRect_ = rect;
+    }
+}
+
+bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
+{
+    if (!currentFrameDirtyRegion_.Intersect(rect)) {
+        return false;
+    }
+    currentFrameDirtyRegion_ = currentFrameDirtyRegion_.JoinRect(rect);
+    if (isDisplayDirtyManager_) {
+        mergedDirtyRegions_.emplace_back(rect);
+    }
+    return true;
 }
 
 void RSDirtyRegionManager::MergeDirtyRectAfterMergeHistory(const RectI& rect)
@@ -121,6 +141,26 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
     return dirtyRegion_;
 }
 
+void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
+{
+    currentFrameDirtyRegion_ = dirtyRect;
+}
+
+void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetManager)
+{
+    if (!targetManager) {
+        return;
+    }
+    targetManager->surfaceRect_ = surfaceRect_;
+    targetManager->dirtyRegion_ = dirtyRegion_;
+    targetManager->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
+    targetManager->debugRect_ = debugRect_;
+    if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
+        targetManager->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
+        targetManager->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
+    }
+}
+
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 {
     RectI glRect;
@@ -130,8 +170,7 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
         glRect = dirtyRegion_;
     }
 
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - glRect.top_ - glRect.height_;
     }
@@ -142,8 +181,7 @@ RectI RSDirtyRegionManager::GetRectFlipWithinSurface(const RectI& rect) const
 {
     RectI glRect = rect;
 
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - rect.top_ - rect.height_;
     }
@@ -188,7 +226,7 @@ void RSDirtyRegionManager::Clear()
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const
 {
-    return !currentFrameDirtyRegion_.IsEmpty();
+    return !currentFrameDirtyRegion_.IsEmpty() && currentFrameDirtyRegion_ != debugRect_;
 }
 
 bool RSDirtyRegionManager::IsDirty() const
@@ -283,6 +321,7 @@ void RSDirtyRegionManager::MergeSurfaceRect()
 void RSDirtyRegionManager::ResetDirtyAsSurfaceSize()
 {
     dirtyRegion_ = surfaceRect_;
+    currentFrameDirtyRegion_ = surfaceRect_;
 }
 
 void RSDirtyRegionManager::UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType)

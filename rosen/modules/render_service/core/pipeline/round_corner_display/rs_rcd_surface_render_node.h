@@ -87,6 +87,17 @@ struct HardwareLayerInfo {
     int cldHeight = 0;
 };
 
+struct CldInfo {
+    uint32_t cldDataOffset = 0;
+    uint32_t cldSize = 0;
+    uint32_t cldWidth = 0;
+    uint32_t cldHeight = 0;
+    uint32_t cldStride = 0;
+    uint32_t exWidth = 0;
+    uint32_t exHeight = 0;
+    uint32_t baseColor = 0;
+};
+
 class RSRcdSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSRcdSurfaceRenderNode>;
@@ -123,16 +134,14 @@ public:
     float GetFrameOffsetX() const;
     float GetFrameOffsetY() const;
 
+    const CldInfo& GetCldInfo() const;
+
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
     bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width, int stride, uint8_t *img);
     HardwareLayerInfo cldLayerInfo;
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap layerBitmap;
-#else
     Drawing::Bitmap layerBitmap;
-#endif
 
     uint32_t GetRcdBufferWidth() const;
     uint32_t GetRcdBufferHeight() const;
@@ -147,6 +156,8 @@ private:
     sptr<IBufferConsumerListener> consumerListener_;
 
     RcdExtInfo rcdExtInfo_;
+
+    CldInfo cldInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

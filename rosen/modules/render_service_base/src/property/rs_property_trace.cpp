@@ -34,6 +34,7 @@ const std::string COLON_SEPARATOR = ":";
 const std::string COMMA_SEPARATOR = ",";
 const std::string SEMICOLON_SEPARATOR = ";";
 const std::string NODE_ID_TAG = "ID";
+const std::string NODE_NAME_TAG = "NODE_NAME:";
 const std::string PROPERTY_ID_TAG = "PROPERTY";
 const std::string ALL_NEED_TAG = "all";
 const std::string CORNER_PROPERTY_TAG = "corner";
@@ -76,6 +77,21 @@ void RSPropertyTrace::PropertiesDisplayByTrace(const NodeId& id, const RSPropert
         }
         AddTraceFlag(str);
     }
+}
+
+void RSPropertyTrace::TracePropertiesByNodeName(const NodeId& id, const std::string& nodeName,
+    const RSProperties& properties)
+{
+    if (!IsNeedPropertyTrace(nodeName)) {
+        return;
+    }
+    std::string content = "NodeId:[" + std::to_string(id) + "], NodeName:[" + nodeName + "]" +
+        " Geometry Rect: " + (properties.GetBoundsGeometry())->GetAbsRect().ToString() +
+        " Bounds Rect: " + properties.GetBoundsRect().ToString() +
+        " Frame Rect: " + properties.GetFrameRect().ToString() +
+        " Alpha: " + std::to_string(properties.GetAlpha()) +
+        " Visible: " + std::to_string(properties.GetVisible());
+    AddTraceFlag(content);
 }
 
 void RSPropertyTrace::RefreshNodeTraceInfo()
@@ -121,6 +137,9 @@ void RSPropertyTrace::InitNodeAndPropertyInfo()
 
     std::string info;
     while (std::getline(configFile, info)) {
+        if (DealNodeNameConfig(info)) {
+            continue;
+        }
         std::vector<std::string> infos = SplitStringBySeparator(info, SEMICOLON_SEPARATOR);
         if (infos.empty()) {
             continue;
@@ -159,9 +178,29 @@ void RSPropertyTrace::DealConfigInputInfo(const std::string& info)
     }
 }
 
+bool RSPropertyTrace::DealNodeNameConfig(const std::string& info)
+{
+    if (info.compare(0, NODE_NAME_TAG.size(), NODE_NAME_TAG) != 0) {
+        return false;
+    }
+
+    if (info == NODE_NAME_TAG) {
+        needTraceAllNode_ = true;
+        return true;
+    }
+
+    needTraceAllNode_ = false;
+    std::vector<std::string> nodeNames = SplitStringBySeparator(info.substr(NODE_NAME_TAG.size()), COMMA_SEPARATOR);
+    for (std::string nodeName : nodeNames) {
+        nodeNameSet_.insert(nodeName);
+    }
+    return true;
+}
+
 void RSPropertyTrace::ClearNodeAndPropertyInfo()
 {
     nodeIdSet_.clear();
+    nodeNameSet_.clear();
     propertySet_.clear();
 }
 
@@ -188,6 +227,14 @@ bool RSPropertyTrace::IsNeedPropertyTrace(const NodeId& id)
         return false;
     }
     return true;
+}
+
+bool RSPropertyTrace::IsNeedPropertyTrace(const std::string& nodeName)
+{
+    if (nodeName == "") {
+        return false;
+    }
+    return needTraceAllNode_ || (nodeNameSet_.find(nodeName) != nodeNameSet_.end());
 }
 } // namespace Rosen
 } // namespace OHOS

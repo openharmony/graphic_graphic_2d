@@ -17,7 +17,6 @@
 
 #include "render/rs_pixel_map_util.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -46,21 +45,8 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo info =
-        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto skSurface = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    auto canvas = skSurface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    int w = 50;
-    int h = 50;
-    int half = 25;
-    canvas->drawRect(SkRect::MakeXYWH(w, h, half, half), paint);
-#else
     Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
     auto surface = std::make_shared<Drawing::Surface>();
     surface->Bind(bitmap);
@@ -74,27 +60,101 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     canvas->AttachBrush(brush);
     canvas->DrawRect(Drawing::Rect(w, h, half, half));
     canvas->DetachBrush();
-#endif
     return pixelmap;
 }
 
 /**
- * @tc.name: ExtractSkImage
+ * @tc.name: ExtractDrawingImage
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(RSPixelMapUtilTest, ExtractSkImage, TestSize.Level1)
+HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+}
+
+/**
+ * @tc.name: TransformDataSetForAstcnTest001
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: IsYUVFormat
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, IsYUVFormat, TestSize.Level1)
 {
     std::shared_ptr<Media::PixelMap> pixelmap;
     int width = 200;
     int height = 300;
     pixelmap = CreatePixelMap(width, height);
 
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractSkImage(pixelmap));
-#else
-    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelmap));
-#endif
+    EXPECT_FALSE(RSPixelMapUtil::IsYUVFormat(pixelmap));
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: DrawPixelMapTest001
+ * @tc.desc: Verify function DrawPixelMap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, DrawPixelMapTest001, TestSize.Level1)
+{
+    Media::PixelMap pixelMap;
+    Drawing::Canvas canvas;
+    RSPixelMapUtil::DrawPixelMap(canvas, pixelMap, 1.0f, 1.0f);
+    EXPECT_EQ(pixelMap.rowDataSize_, 0);
+}
+
+/**
+ * @tc.name: DrawPixelMap
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, DrawPixelMap, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    EXPECT_NE(nullptr, canvas);
+
+    RSPixelMapUtil::DrawPixelMap(*canvas, *pixelmap, 0.0f, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

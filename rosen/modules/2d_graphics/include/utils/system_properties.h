@@ -18,12 +18,12 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
 enum class GpuApiType {
     OPENGL = 0,
     VULKAN,
     DDGR,
 };
+namespace Drawing {
 class SystemProperties {
 public:
     static inline GpuApiType GetGpuApiType()
@@ -31,7 +31,13 @@ public:
         return SystemProperties::systemGpuApiType_;
     }
 
+    static inline bool IsUseVulkan()
+    {
+        return SystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
+    }
+
     static bool GetHMSymbolEnable();
+    static GpuApiType GetSystemGraphicGpuType();
 
 private:
     static const GpuApiType systemGpuApiType_;

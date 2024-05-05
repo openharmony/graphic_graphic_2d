@@ -27,10 +27,6 @@
 #include "wm/window.h"
 #include "wm/window_scene.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_display_node.h"
@@ -104,22 +100,14 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     auto rootNode = RSRootNode::Create();
     cout << "RootNode id = " << rootNode->GetId() << endl;
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorWHITE);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-#endif
     rsUiDirector->SetRoot(rootNode->GetId());
 
     auto canvasNode = RSCanvasNode::Create();
     cout << "canvasNode id = " << canvasNode->GetId() << endl;
     // SetFrame also can be (100, 100, 960, 1000)
     canvasNode->SetFrame(10, 10, 100, 100);
-#ifndef USE_ROSEN_DRAWING
-    canvasNode->SetBackgroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
     rootNode->AddChild(canvasNode, -1);
 
     struct RSSurfaceNodeConfig rsSurfaceNodeConfig;

@@ -68,7 +68,6 @@ struct SymbolLayersHandle {
     uint32_t id;
     std::pair<uint32_t, size_t> layers;
     std::pair<uint32_t, size_t> groups;
-    int32_t effect;
 };
 
 struct SymbolOpHandle {
@@ -93,6 +92,7 @@ struct PaintHandle {
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
     FlattenableHandle pathEffectHandle;
+    OpDataHandle blurDrawLooperHandle;
 };
 
 struct BrushHandle {

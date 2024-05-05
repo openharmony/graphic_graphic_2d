@@ -57,13 +57,20 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Path path1, path2, ending, out, op;
+    Path path1;
+    Path ending;
+    Path out;
     uint32_t weight = GetObject<uint32_t>();
+    path1.Interpolate(ending, weight, out);
+
     uint32_t px = GetObject<uint32_t>();
     uint32_t py = GetObject<uint32_t>();
-    path1.Interpolate(ending, weight, out);
     path1.LineTo(px, py);
+
+    Path op;
     op.MoveTo(px, py);
+
+    Path path2;
     path2.Op(op, path1, PathOp::DIFFERENCE);
     path1.Close();
     path2.Reset();

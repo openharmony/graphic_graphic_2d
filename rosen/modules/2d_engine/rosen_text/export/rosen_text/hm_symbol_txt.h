@@ -20,15 +20,8 @@
 #include <vector>
 #include "draw/color.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/HMSymbol.h"
-#else
 #include "text/hm_symbol.h"
-#endif
 
-#define EFFECT_NONE 0
-#define EFFECT_SCALE 1
-#define EFFECT_HIERARCHICAL 2
 #define RENDER_SINGLE 0
 #define RENDER_MULTIPLE_COLOR 1
 #define RENDER_MULTIPLE_OPACITY 2
@@ -36,16 +29,28 @@
 namespace OHOS {
 namespace Rosen {
 
+static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
+    {0, Drawing::DrawingEffectStrategy::NONE},
+    {1, Drawing::DrawingEffectStrategy::SCALE},
+    {2, Drawing::DrawingEffectStrategy::VARIABLE_COLOR},
+    {3, Drawing::DrawingEffectStrategy::APPEAR},
+    {4, Drawing::DrawingEffectStrategy::DISAPPEAR},
+    {5, Drawing::DrawingEffectStrategy::BOUNCE},
+    {6, Drawing::DrawingEffectStrategy::PULSE},
+    {7, Drawing::DrawingEffectStrategy::REPLACE_APPEAR}};
+
+enum VisualMode {
+    VISUAL_MEDIUM = 0,
+    VISUAL_SMALL = 1,
+    VISUAL_LARGER = 2
+};
+
 class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
     ~HMSymbolTxt() {}
 
-#ifndef USE_ROSEN_DRAWING
-    void SetRenderColor(const std::vector<SColor>& colorList)
-#else
     void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
-#endif
     {
         colorList_ = colorList;
     }
@@ -54,30 +59,18 @@ public:
     {
         colorList_.clear();
         for (auto color: colorList) {
-#ifndef USE_ROSEN_DRAWING
-            SColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#else
             Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#endif
             colorList_.push_back(colorIt);
         }
     }
 
     void SetRenderColor(const Drawing::Color& color)
     {
-#ifndef USE_ROSEN_DRAWING
-        SColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#else
         Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#endif
         colorList_ = {colorIt};
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void SetRenderColor(const SColor& colorList)
-#else
     void SetRenderColor(const Drawing::DrawingSColor& colorList)
-#endif
     {
         colorList_ = {colorList};
     }
@@ -85,17 +78,6 @@ public:
     void SetRenderMode(const uint32_t& renderMode)
     {
         switch (renderMode) {
-#ifndef USE_ROSEN_DRAWING
-            case RENDER_SINGLE:
-                renderMode_ = SymbolRenderingStrategy::SINGLE;
-                break;
-            case RENDER_MULTIPLE_OPACITY:
-                renderMode_ = SymbolRenderingStrategy::MULTIPLE_OPACITY;
-                break;
-            case RENDER_MULTIPLE_COLOR:
-                renderMode_ = SymbolRenderingStrategy::MULTIPLE_COLOR;
-                break;
-#else
             case RENDER_SINGLE:
                 renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
                 break;
@@ -105,7 +87,6 @@ public:
             case RENDER_MULTIPLE_COLOR:
                 renderMode_ = Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR;
                 break;
-#endif
             default:
                 break;
         }
@@ -113,70 +94,97 @@ public:
 
     void SetSymbolEffect(const uint32_t& effectStrategy)
     {
-        switch (effectStrategy) {
-#ifndef USE_ROSEN_DRAWING
-            case EFFECT_NONE:
-                effectStrategy_ = EffectStrategy::NONE;
-                break;
-            case EFFECT_SCALE:
-                effectStrategy_ = EffectStrategy::SCALE;
-                break;
-            case EFFECT_HIERARCHICAL:
-                effectStrategy_ = EffectStrategy::HIERARCHICAL;
-                break;
-#else
-            case EFFECT_NONE:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
-                break;
-            case EFFECT_SCALE:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::SCALE;
-                break;
-            case EFFECT_HIERARCHICAL:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::HIERARCHICAL;
-                break;
-#endif
-            default:
-                break;
+        auto iter = EFFECT_TYPES.find(effectStrategy);
+        if (iter != EFFECT_TYPES.end()) {
+            effectStrategy_ = iter->second;
         }
     }
 
-#ifndef USE_ROSEN_DRAWING
-    std::vector<SColor> GetRenderColor() const
-#else
     std::vector<Drawing::DrawingSColor> GetRenderColor() const
-#endif
     {
         return colorList_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SymbolRenderingStrategy GetRenderMode() const
-#else
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const
-#endif
     {
         return renderMode_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    EffectStrategy GetEffectStrategy() const
-#else
     Drawing::DrawingEffectStrategy GetEffectStrategy() const
-#endif
     {
         return effectStrategy_;
     }
 
+    void SetAnimationMode(const uint16_t animationMode)
+    {
+        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or iteratuve, 0 is hierarchical or cumulative
+    }
+
+    void SetRepeatCount(const int repeatCount)
+    {
+        repeatCount_ = repeatCount;
+    }
+
+    void SetAnimationStart(const bool animationStart)
+    {
+        animationStart_ = animationStart;
+    }
+
+    uint16_t GetAnimationMode() const
+    {
+        return animationMode_;
+    }
+
+    int GetRepeatCount() const
+    {
+        return repeatCount_;
+    }
+
+    bool GetAnimationStart() const
+    {
+        return animationStart_;
+    }
+
+    void SetVisualMode(const VisualMode visual)
+    {
+        visualMap_.clear();
+        if (visual == VisualMode::VISUAL_SMALL) {
+            visualMap_["ss01"] = 1;
+        }
+
+        if (visual == VisualMode::VISUAL_LARGER) {
+            visualMap_["ss02"] = 1;
+        }
+    }
+
+    std::map<std::string, int> GetVisualMap() const
+    {
+        return visualMap_;
+    }
+
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
+    {
+        commonSubType_ = commonSubType;
+    }
+
+    Drawing::DrawingCommonSubType GetCommonSubType() const
+    {
+        return commonSubType_;
+    }
+
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::vector<SColor> colorList_;
-    SymbolRenderingStrategy renderMode_ = SymbolRenderingStrategy::SINGLE;
-    EffectStrategy effectStrategy_ = EffectStrategy::NONE;
-#else
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
-#endif
+
+    // animationMode_ is the implementation mode of the animation effect:
+    // common_animations: the 0 is the byLayer effect and 1 is the wholeSymbol effect;
+    // variable_color : the 0 is the cumulative  effect and 1 is the iteratuve effect.
+    uint16_t animationMode_ = 0;
+    int repeatCount_ = 1;
+    bool animationStart_ = true;
+    std::map<std::string, int> visualMap_;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 };
 }
 }

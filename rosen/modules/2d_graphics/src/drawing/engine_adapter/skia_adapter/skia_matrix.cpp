@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -187,6 +187,14 @@ void SkiaMatrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar sk
     scalar persp0, scalar persp1, scalar persp2)
 {
     skMatrix_.setAll(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+}
+
+bool SkiaMatrix::SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf)
+{
+    SkRect skSrc = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
+    SkRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
+    bool ret = skMatrix_.setRectToRect(skSrc, skDst, static_cast<SkMatrix::ScaleToFit>(stf));
+    return ret;
 }
 
 void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const

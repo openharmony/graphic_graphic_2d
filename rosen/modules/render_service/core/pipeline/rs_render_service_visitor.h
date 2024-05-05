@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#else
 #include "draw/canvas.h"
-#endif
 #include "rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor.h"
@@ -63,11 +59,7 @@ public:
     }
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas_;
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas_;
-#endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     float globalZOrder_ = 0.0f;
     int32_t offsetX_ = 0;

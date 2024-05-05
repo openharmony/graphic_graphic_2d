@@ -20,11 +20,18 @@
 #include "egl_pre_initializer.h"
 #include "egl_wrapper_layer.h"
 #include "egl_wrapper_loader.h"
-#include "../wrapper_log.h"
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+#include "egl_wrapper_hook.h"
+#endif
+#include "wrapper_log.h"
 
 namespace OHOS {
 EglWrapperDispatchTable gWrapperHook;
 GlHookTable gGlHookNoContext;
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+GlHookTable g_glHookCSDR;
+GlHookTable g_glHookSingle;
+#endif
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(...)
@@ -36,27 +43,27 @@ GlHookTable gGlHookNoContext;
 #define HOOK_API_ENTRY(r, api, ...) #api,
 
 char const * const gWrapperApiNames[EGL_API_NUM] = {
-#include "../wrapper_hook_entries.in"
+#include "wrapper_hook_entries.in"
     nullptr
 };
 
 char const * const gEglApiNames[EGL_API_NUM] = {
-#include "../egl_hook_entries.in"
+#include "egl_hook_entries.in"
     nullptr
 };
 
 char const * const gGlApiNames1[GL_API_NUM] = {
-#include "../gl1_hook_entries.in"
+#include "gl1_hook_entries.in"
     nullptr
 };
 
 char const * const gGlApiNames2[GL_API_NUM] = {
-#include "../gl2_hook_entries.in"
+#include "gl2_hook_entries.in"
     nullptr
 };
 
 char const * const gGlApiNames3[GL_API_NUM] = {
-#include "../gl3_hook_entries.in"
+#include "gl3_hook_entries.in"
     nullptr
 };
 
@@ -106,6 +113,14 @@ bool EglCoreInit()
         WLOGE("EglWrapperLayer Init Failed.");
     }
 
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    EglWrapperHook& hookLayer(EglWrapperHook::GetInstance());
+    if (!hookLayer.Hook(&gWrapperHook)) {
+        WLOGE("EglWrapperHookLayer init Failed!");
+    } else {
+        WLOGI("EglWrapperHookLayer init Success!");
+    }
+#endif
     return true;
 }
 }; // namespace OHOS

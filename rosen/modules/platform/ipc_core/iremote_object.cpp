@@ -52,7 +52,7 @@ bool IRemoteObject::IsProxyObject() const
     return true;
 }
 
-IRemoteObject::IRemoteObject(std::u16string descriptor) : descriptor_(descriptor)
+IRemoteObject::IRemoteObject(const std::u16string &descriptor) : descriptor_(descriptor)
 {
 }
 } // namespace OHOS

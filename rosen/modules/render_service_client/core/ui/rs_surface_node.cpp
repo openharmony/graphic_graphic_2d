@@ -36,6 +36,7 @@
 #endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_hdr_manager.h"
 #include "ui/rs_proxy_node.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -208,7 +209,9 @@ void RSSurfaceNode::MarkUIHidden(bool isHidden)
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeMarkUIHidden>(GetId(), isHidden);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    transactionProxy->FlushImplicitTransaction();
+    if (!isTextureExportNode_) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 
 void RSSurfaceNode::OnBoundsSizeChanged() const
@@ -244,7 +247,7 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGI("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
+    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
         GetId(), isSecurityLayer ? "true" : "false");
 }
 
@@ -300,7 +303,7 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceNode::CreateTextExportRenderNodeInRT()
+void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
         RSSurfaceNodeType::SELF_DRAWING_NODE, true);
@@ -308,6 +311,12 @@ void RSSurfaceNode::CreateTextExportRenderNodeInRT()
     if (transactionProxy == nullptr) {
         return;
     }
+    transactionProxy->AddCommand(command, false);
+    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+    transactionProxy->AddCommand(command, false);
+
+    RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
     transactionProxy->AddCommand(command, false);
 }
 
@@ -321,6 +330,7 @@ void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
     }
     transactionProxy->AddCommand(command, false);
     // need to reset isTextureExport sign in renderService
+    command = std::make_unique<RSSurfaceNodeSetIsTextureExportNode>(GetId(), isTextureExportNode);
     transactionProxy->AddCommand(command, true);
 }
 
@@ -335,7 +345,7 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
         DoFlushModifier();
         return;
     }
-    CreateTextExportRenderNodeInRT();
+    CreateTextureExportRenderNodeInRT();
     SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();
@@ -486,14 +496,16 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
 #ifndef ROSEN_CROSS_PLATFORM
         sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
         if (surface == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu cannot find surface by surfaceId %llu",
+            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64
+                       " cannot find surface by surfaceId %{public}" PRIu64 "",
                 GetId(), surfaceId);
             return false;
         }
         surface_ = std::static_pointer_cast<RSRenderServiceClient>(
             RSIRenderClient::CreateRenderServiceClient())->CreateRSSurface(surface);
         if (surface_ == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu creat RSSurface fail", GetId());
+            ROSEN_LOGE(
+                "RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64 " creat RSSurface fail", GetId());
             return false;
         }
 #endif
@@ -574,9 +586,16 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
     return std::make_pair("", surfaceNodeName);
 }
 
+void RSSurfaceNode::RegisterHDRPresentCallback()
+{
+    auto callback = std::bind(&RSSurfaceNode::SetHDRPresent, this, std::placeholders::_1);
+    RSHDRManager::Instance().RegisterSetHDRPresent(callback);
+}
+
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode, config.isTextureExportNode)
 {
+    RegisterHDRPresentCallback();
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;
     name_ = result.second;
@@ -585,6 +604,7 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
     : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
 {
+    RegisterHDRPresentCallback();
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;
     name_ = result.second;
@@ -649,6 +669,15 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     }
 }
 
+void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
 {
     isBootAnimation_ = isBootAnimation;
@@ -701,6 +730,7 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 
@@ -749,6 +779,26 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
         std::make_unique<RSSurfaceNodeSetForceUIFirst>(GetId(), forceUIFirst);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+void RSSurfaceNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetAncoForceDoDirect>(GetId(), ancoForceDoDirect);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+void RSSurfaceNode::SetHDRPresent(bool hdrPresent)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetHDRPresent>(GetId(), hdrPresent);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("SetHDRPresent  RSSurfaceNode");
         transactionProxy->AddCommand(command, true);
     }
 }

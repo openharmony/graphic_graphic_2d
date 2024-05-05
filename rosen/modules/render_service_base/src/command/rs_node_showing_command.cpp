@@ -21,6 +21,8 @@
 
 namespace OHOS {
 namespace Rosen {
+RSNodeGetShowingPropertyAndCancelAnimation::Registrar RSNodeGetShowingPropertyAndCancelAnimation::instance_;
+RSNodeGetShowingPropertiesAndCancelAnimation::Registrar RSNodeGetShowingPropertiesAndCancelAnimation::instance_;
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) const
 {
@@ -142,22 +144,25 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
 {
     success_ = true;
     auto& nodeMap = context.GetNodeMap();
-    for (auto& [key, value]: propertiesMap_) {
+    for (auto& [key, value] : propertiesMap_) {
         // value should already initialized as nullptr
         auto& [nodeId, propertyId] = key;
+        auto& [property, animations] = value;
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
         if (!modifier) {
+            node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
             continue;
         }
-        value = modifier->GetProperty();
-        if (!value) {
+        property = modifier->GetProperty();
+        if (!property) {
+            node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
             continue;
         }
-        node->GetAnimationManager().CancelAnimationByPropertyId(propertyId);
+        node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
     }
 }
 } // namespace Rosen

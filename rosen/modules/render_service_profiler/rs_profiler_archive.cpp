@@ -17,6 +17,11 @@
 
 namespace OHOS::Rosen {
 
+void Archive::Serialize(char& value)
+{
+    Serialize(&value, sizeof(value));
+}
+
 void Archive::Serialize(float& value)
 {
     Serialize(&value, sizeof(value));
@@ -27,7 +32,27 @@ void Archive::Serialize(double& value)
     Serialize(&value, sizeof(value));
 }
 
+void Archive::Serialize(int8_t& value)
+{
+    Serialize(&value, sizeof(value));
+}
+
+void Archive::Serialize(int16_t& value)
+{
+    Serialize(&value, sizeof(value));
+}
+
 void Archive::Serialize(int32_t& value)
+{
+    Serialize(&value, sizeof(value));
+}
+
+void Archive::Serialize(uint8_t& value)
+{
+    Serialize(&value, sizeof(value));
+}
+
+void Archive::Serialize(uint16_t& value)
 {
     Serialize(&value, sizeof(value));
 }
@@ -37,7 +62,7 @@ void Archive::Serialize(uint32_t& value)
     Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(size_t& value)
+void Archive::Serialize(uint64_t& value)
 {
     Serialize(&value, sizeof(value));
 }
@@ -51,7 +76,20 @@ void Archive::Serialize(std::string& value)
         value.resize(size);
     }
 
-    Serialize(const_cast<char*>(value.data()), size);
+    Serialize(value.data(), size);
+}
+
+void Archive::Serialize(void* data, size_t size)
+{
+    if (!data || (size == 0)) {
+        return;
+    }
+
+    if (IsReading()) {
+        Read(data, size);
+    } else {
+        Write(data, size);
+    }
 }
 
 } // namespace OHOS::Rosen

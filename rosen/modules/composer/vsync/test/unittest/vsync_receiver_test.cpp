@@ -26,7 +26,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class vsyncReceiverTest : public testing::Test {
+class VsyncReceiverTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -40,21 +40,21 @@ public:
     static inline int32_t onVsyncCount = 0;
 };
 
-void vsyncReceiverTest::OnVSync(int64_t now, void* data)
+void VsyncReceiverTest::OnVSync(int64_t now, void* data)
 {
     onVsyncCount ++;
 }
 
-void vsyncReceiverTest::SetUpTestCase()
+void VsyncReceiverTest::SetUpTestCase()
 {
     vsyncGenerator = CreateVSyncGenerator();
     vsyncController = new VSyncController(vsyncGenerator, 0);
-    vsyncDistributor = new VSyncDistributor(vsyncController, "vsyncReceiverTest");
-    conn = new VSyncConnection(vsyncDistributor, "vsyncReceiverTest");
+    vsyncDistributor = new VSyncDistributor(vsyncController, "VsyncReceiverTest");
+    conn = new VSyncConnection(vsyncDistributor, "VsyncReceiverTest");
     vsyncReceiver = new VSyncReceiver(conn);
 }
 
-void vsyncReceiverTest::TearDownTestCase()
+void VsyncReceiverTest::TearDownTestCase()
 {
     vsyncReceiver = nullptr;
     vsyncController = nullptr;
@@ -72,21 +72,30 @@ namespace {
 * EnvConditions: N/A
 * CaseDescription: 1. call RequestNextVSync Before Init
                    2. call SetVSyncRate Before Init
-                   3. call GetVSyncPeriodAndLastTimeStamp Before Init
+                   3. call the one-parameter method of CreateVSyncReceiver
+                   4. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 3.
+                   5. call the two-parameter method of CreateVSyncReceiver
+                   6. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 5.
+                   7. call the four-parameter method of CreateVSyncReceiver
+                   8. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 7.
  */
-HWTEST_F(vsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = OnVSync,
     };
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_API_FAILED);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 0), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 0), VSYNC_ERROR_API_FAILED);
 
     int64_t period;
     int64_t timeStamp;
     auto& rsClient = RSInterfaces::GetInstance();
-    auto rsReceiver = rsClient.CreateVSyncReceiver("vsyncReceiverTest");
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
+    rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest", nullptr);
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
+    rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest", 0, nullptr, 0);
     ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
 }
 
@@ -97,10 +106,10 @@ HWTEST_F(vsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call Init
  */
-HWTEST_F(vsyncReceiverTest, Init001, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, Init001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
 }
 
 /*
@@ -110,10 +119,10 @@ HWTEST_F(vsyncReceiverTest, Init001, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call Init
  */
-HWTEST_F(vsyncReceiverTest, Init002, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, Init002, Function | MediumTest| Level3)
 {
     sptr<IVSyncConnection> connection_ = nullptr;
-    ASSERT_NE(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_NULLPTR);
+    ASSERT_NE(VsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -123,12 +132,24 @@ HWTEST_F(vsyncReceiverTest, Init002, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call Init
  */
-HWTEST_F(vsyncReceiverTest, Init003, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, Init003, Function | MediumTest| Level3)
 {
-    int fd_;
+    int fd;
     sptr<IVSyncConnection> connection_ = nullptr;
-    VsyncError ret = connection_->GetReceiveFd(fd_);
+    VsyncError ret = connection_->GetReceiveFd(fd);
     ASSERT_NE(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: IsRequestedNextVSync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsRequestedNextVSync
+ */
+HWTEST_F(VsyncReceiverTest, IsRequestedNextVSync001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->IsRequestedNextVSync(), false);
 }
 
 /*
@@ -138,14 +159,14 @@ HWTEST_F(vsyncReceiverTest, Init003, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call RequestNextVSync
  */
-HWTEST_F(vsyncReceiverTest, RequestNextVSync001, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, RequestNextVSync001, Function | MediumTest| Level3)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = OnVSync,
     };
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 
@@ -156,15 +177,27 @@ HWTEST_F(vsyncReceiverTest, RequestNextVSync001, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call RequestNextVSync
  */
-HWTEST_F(vsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = OnVSync,
     };
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb, "unknown", 0), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb, "unknown", 0), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: IsRequestedNextVSync002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsRequestedNextVSync
+ */
+HWTEST_F(VsyncReceiverTest, IsRequestedNextVSync002, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->IsRequestedNextVSync(), true);
 }
 
 /*
@@ -175,11 +208,11 @@ HWTEST_F(vsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
 * CaseDescription: 1. call CreateVSyncReceiver
 *                  2. call GetVSyncPeriodAndLastTimeStamp and check result
  */
-HWTEST_F(vsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | MediumTest| Level3)
 {
     onVsyncCount = 0;
     auto& rsClient = RSInterfaces::GetInstance();
-    auto rsReceiver = rsClient.CreateVSyncReceiver("vsyncReceiverTest");
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
 
     ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
     VSyncReceiver::FrameCallback fcb = {
@@ -208,14 +241,14 @@ HWTEST_F(vsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | Medium
 * EnvConditions: N/A
 * CaseDescription: 1. call SetVSyncRate
  */
-HWTEST_F(vsyncReceiverTest, SetVSyncRate001, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, SetVSyncRate001, Function | MediumTest| Level3)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = OnVSync,
     };
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 0), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 0), VSYNC_ERROR_INVALID_ARGUMENTS);
     vsyncDistributor->RemoveConnection(conn);
 }
 
@@ -226,14 +259,14 @@ HWTEST_F(vsyncReceiverTest, SetVSyncRate001, Function | MediumTest| Level3)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetVSyncRate
  */
-HWTEST_F(vsyncReceiverTest, SetVSyncRate002, Function | MediumTest| Level3)
+HWTEST_F(VsyncReceiverTest, SetVSyncRate002, Function | MediumTest| Level3)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = OnVSync,
     };
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 1), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 } // namespace

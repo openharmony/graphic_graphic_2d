@@ -25,13 +25,9 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class DrawCmdList;
-#else
 namespace Drawing {
 class DrawCmdList;
 }
-#endif
 class RSModifierContext;
 
 class RSCanvasRenderNode : public RSRenderNode {
@@ -44,13 +40,8 @@ public:
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasRenderNode();
 
-#ifndef USE_ROSEN_DRAWING
-    void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds,
-        RSModifierType type, bool isSingleFrameComposer = false);
-#else
     void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
         RSModifierType type, bool isSingleFrameComposer = false);
-#endif
     void ClearRecording();
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
@@ -61,15 +52,9 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
 
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-
-    // functions that are dedicated to driven render [start]
-    RSB_EXPORT void ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT RectF GetDrivenContentClipFrameRect() const;
-    // functions that are dedicated to driven render [end]
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
@@ -82,15 +67,11 @@ public:
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
-    // functions that are dedicated to driven render [start]
-    void DrawDrivenContent(RSPaintFilterCanvas& canvas);
-    // functions that are dedicated to driven render [end]
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
     void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
-    mutable std::mutex canvasNodeProcessMutex_;
 
     friend class RSColorfulShadowDrawable;
     friend class RSRenderTransition;

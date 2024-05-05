@@ -29,8 +29,6 @@ ohos_unittest("vulkan_loader_unit_test") {
 
 config("vulkan_loader_test_common_public_config") {
   include_dirs = [
-    "../../../surface/include",
-    "../../../../interfaces/inner_api/surface",
     "../../../../interfaces/inner_api/common",
     "../../../../rosen/modules/render_service_client",
   ]
@@ -55,7 +53,6 @@ ohos_static_library("vulkan_loader_test_common") {
     "../../../../rosen/modules/render_service_base:librender_service_base",
     "../../../../rosen/modules/render_service_client:librender_service_client",
     "../../../../utils:libgraphic_utils",
-    "../../../surface:surface",
     "//third_party/googletest:gtest_main",
     "//third_party/vulkan-headers:vulkan_headers",
     "//third_party/zlib:libz",

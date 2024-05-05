@@ -16,16 +16,19 @@
 #ifndef SKIA_GPUCONTEXT_H
 #define SKIA_GPUCONTEXT_H
 
+#include <unordered_map>
+
+#include "include/core/SkExecutor.h"
+#include "include/gpu/GrContextOptions.h"
+
+#include "image/gpu_context.h"
+#include "impl_interface/gpu_context_impl.h"
+
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
 #endif
-#include "include/gpu/GrContextOptions.h"
-
-#include "impl_interface/gpu_context_impl.h"
-#include "image/gpu_context.h"
-#include "include/core/SkExecutor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -83,9 +86,13 @@ public:
 
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) override;
 
+    void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) override;
+
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag &tag) override;
+
+    void ResetContext() override;
 
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
@@ -112,7 +119,9 @@ public:
     {
         return grContext_;
     }
+    void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) override;
 
+    static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
 private:
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_;
@@ -120,6 +129,7 @@ private:
     sk_sp<GrContext> grContext_;
 #endif
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;
+    static std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>> contextPostMap_;
 };
 } // namespace Drawing
 } // namespace Rosen

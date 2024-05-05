@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "rs_particle_noise_field.h"
 #include "rs_render_particle.h"
 
 #include "animation/rs_render_particle_system.h"
@@ -44,6 +45,12 @@ public:
         return renderParticleVector_;
     }
     bool Animate(int64_t time) override;
+    void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
+    void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
+    const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
+    {
+        return particleSystem_;
+    }
 
 protected:
     void OnAttach() override;
@@ -54,6 +61,7 @@ private:
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
     std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     RSRenderParticleVector renderParticleVector_;
+    std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;
 };
 } // namespace Rosen
 } // namespace OHOS

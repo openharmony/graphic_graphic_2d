@@ -72,6 +72,7 @@ public:
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;
+    void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
@@ -80,22 +81,28 @@ public:
     RosenError InitDevice();
     /* only used for mock tests */
     RosenError SetHdiOutputDevice(HdiDevice* device);
-    int32_t PreProcessLayersComp(bool &needFlush);
+    int32_t PreProcessLayersComp();
     int32_t UpdateLayerCompType();
     int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
     int32_t Commit(sptr<SyncFence> &fbFence);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
-    void ReleaseLayers();
+    void ReleaseLayers(sptr<SyncFence>& releaseFence);
+    int32_t GetBufferCacheSize();
 
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
-    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+
+    std::vector<sptr<SyncFence>> historicalPresentfences_;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    int32_t presentFenceIndex_ = 0;
+
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
     sptr<SurfaceBuffer> lastFrameBuffer_ = nullptr;
 
@@ -113,14 +120,19 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    std::mutex layerMutex_;
+    mutable std::mutex layerMutex_;
+
+    std::vector<uint32_t> layersId_;
+    std::vector<sptr<SyncFence>> fences_;
+
+    int32_t skipState_ = -1;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();
     void ResetLayerStatus();
     void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
     void UpdatePrevLayerInfo();
-    void ReleaseSurfaceBuffer();
+    void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);

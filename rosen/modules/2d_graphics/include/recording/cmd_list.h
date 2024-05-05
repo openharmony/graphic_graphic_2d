@@ -20,20 +20,17 @@
 #include <optional>
 #include <vector>
 
-#include "draw/color.h"
+#include "draw/canvas.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
-#include "recording/adaptive_image_helper.h"
 #include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
+#include "utils/extend_object.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
 
 namespace OHOS {
-namespace Media {
-class PixelMap;
-}
 namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
@@ -45,6 +42,7 @@ public:
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
     virtual void SetNodeId(NodeId id) {};
+    virtual void SetPaint(Paint paint) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -65,15 +63,7 @@ class DRAWING_API CmdList {
 public:
     enum Type : uint32_t {
         CMD_LIST = 0,
-        COLOR_FILTER_CMD_LIST,
-        COLOR_SPACE_CMD_LIST,
         DRAW_CMD_LIST,
-        IMAGE_FILTER_CMD_LIST,
-        MASK_FILTER_CMD_LIST,
-        PATH_CMD_LIST,
-        PATH_EFFECT_CMD_LIST,
-        REGION_CMD_LIST,
-        SHADER_EFFECT_CMD_LIST,
         MASK_CMD_LIST,
     };
 
@@ -113,7 +103,7 @@ public:
 
     /**
      * @brief       Add a contiguous buffers to the CmdList.
-     * @param src   A contiguous buffers.
+     * @param data  A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
     uint32_t AddCmdListData(const CmdListData& data);
@@ -140,24 +130,24 @@ public:
     CmdListData GetAllBitmapData() const;
 
     /*
-     * @brief  return pixelmap index, negative is error.
+     * @brief  return ExtendObject index. UINT32_MAX is error.
      */
-    uint32_t AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    uint32_t AddExtendObject(const std::shared_ptr<ExtendObject>& object);
 
     /*
-     * @brief  get pixelmap by index.
+     * @brief  get ExtendObject by index.
      */
-    std::shared_ptr<Media::PixelMap> GetPixelMap(uint32_t id);
+    std::shared_ptr<ExtendObject> GetExtendObject(uint32_t index);
 
     /*
-     * @brief  return pixelmaplist size, 0 is no pixelmap.
+     * @brief  return ExtendObject size, 0 is no ExtendObject.
      */
-    uint32_t GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
+    uint32_t GetAllExtendObject(std::vector<std::shared_ptr<ExtendObject>>& objectList);
 
     /*
-     * @brief  return real setup pixelmap size.
+     * @brief  return real setup ExtendObject size.
      */
-    uint32_t SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
+    uint32_t SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList);
 
     /*
      * @brief  return imageObject index, negative is error.
@@ -256,14 +246,12 @@ protected:
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;
 
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
-    std::mutex pixelMapMutex_;
-#endif
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
     std::mutex imageBaseObjMutex_;
+    std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
+    std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;

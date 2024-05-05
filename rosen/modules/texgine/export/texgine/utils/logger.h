@@ -140,7 +140,7 @@ private:
 #define LOGSYSERR " failed, because " << strerror(errno)
 
 #define LOGSCOPED(name, logger, ...) ScopedLogger name(logger, ##__VA_ARGS__)
-#define LOGSCOPED_FINISH(name) name.Finish()
+#define LOGSCOPED_FINISH(name) (name).Finish()
 #define LOGENTER() Logger::EnterScope()
 #define LOGEXIT() Logger::ExitScope()
 

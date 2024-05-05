@@ -37,7 +37,7 @@ void RSSurfaceOhosRaster::SetSurfacePixelFormat(int32_t pixelFormat)
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height,
-    uint64_t uiTimestamp, bool useAFBC)
+    uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (producer_ == nullptr) {
         ROSEN_LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");
@@ -58,7 +58,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
         ROSEN_LOGE("RSSurfaceOhosRaster::Map Failed, error is : %{public}s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
-
 
     sptr<SyncFence> tempFence = new SyncFence(frame->releaseFence_);
     int res = tempFence->Wait(3000);

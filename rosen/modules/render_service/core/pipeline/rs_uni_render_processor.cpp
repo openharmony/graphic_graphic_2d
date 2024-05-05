@@ -14,16 +14,17 @@
  */
 
 #include "rs_uni_render_processor.h"
+#include <vector>
 
+#include "hdi_layer.h"
+#include "hdi_layer_info.h"
 #include "rs_trace.h"
 #include "string_utils.h"
+#include "surface_type.h"
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
-
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-#include "pipeline/driven_render/rs_driven_surface_render_node.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -37,9 +38,9 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 }
 
 bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,
@@ -47,33 +48,62 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
-    return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
 }
 
-void RSUniRenderProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSUniRenderProcessor::PostProcess()
 {
-    if (node != nullptr) {
-        auto acquireFence = node->GetAcquireFence();
-        auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
-        for (auto surfaceNode : selfDrawingNodes) {
-            if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
-                // current frame : gpu
-                // use display node's acquire fence as release fence to ensure not release buffer until gpu finish
-                surfaceNode->SetCurrentReleaseFence(acquireFence);
-                if (surfaceNode->IsLastFrameHardwareEnabled()) {
-                    // last frame : hwc
-                    // use display node's acquire fence as release fence to ensure not release buffer until its real
-                    // release fence signals
-                    surfaceNode->SetReleaseFence(acquireFence);
-                }
-            }
-        }
-    }
     uniComposerAdapter_->CommitLayers(layers_);
     if (!isPhone_) {
         MultiLayersPerf(layerNum);
     }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
+}
+
+void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
+{
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    auto& layerInfo = params.layerInfo_;
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d]",
+        node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight());
+
+    layer->SetSurface(node.GetConsumer());
+    layer->SetBuffer(layerInfo.buffer, layerInfo.acquireFence);
+    layer->SetPreBuffer(layerInfo.preBuffer);
+    layerInfo.preBuffer = nullptr;
+    layer->SetZorder(layerInfo.zOrder);
+
+    GraphicLayerAlpha alpha;
+    alpha.enGlobalAlpha = true;
+    alpha.gAlpha = 255; // Alpha of 255 indicates opacity
+    layer->SetAlpha(alpha);
+    layer->SetLayerSize(layerInfo.dstRect);
+    layer->SetBoundSize(layerInfo.boundRect);
+    layer->SetCompositionType(RSBaseRenderUtil::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+        GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+
+    std::vector<GraphicIRect> visibleRegions;
+    visibleRegions.emplace_back(layerInfo.dstRect);
+    layer->SetVisibleRegions(visibleRegions);
+    std::vector<GraphicIRect> dirtyRegions;
+    dirtyRegions.emplace_back(layerInfo.srcRect);
+    layer->SetDirtyRegions(dirtyRegions);
+
+    layer->SetBlendType(layerInfo.blendType);
+    layer->SetCropRect(layerInfo.srcRect);
+    layer->SetGravity(layerInfo.gravity);
+    layer->SetTransform(layerInfo.transformType);
+    auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X), layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
+    layer->SetMatrix(matrix);
+
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
+    layers_.emplace_back(layer);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
@@ -110,19 +140,6 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
-}
-
-void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    auto layer = uniComposerAdapter_->CreateLayer(node);
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            node.GetId());
-        return;
-    }
-    layers_.emplace_back(layer);
-#endif
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "render/rs_shader.h"
 
 using namespace testing;
@@ -45,6 +46,17 @@ HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateRSShaderTest002
+ * @tc.desc: Verify function CreateRSShader
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShaderTest, CreateRSShaderTest002, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::ShaderEffect> drShader;
+    EXPECT_NE(RSShader::CreateRSShader(drShader), nullptr);
+}
+
+/**
  * @tc.name: SetSkShaderTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -52,12 +64,19 @@ HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
 HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
 {
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkShader> skShader;
-    shaderPtr->SetSkShader(skShader);
-#else
     std::shared_ptr<Drawing::ShaderEffect> drawingShader;
     shaderPtr->SetDrawingShader(drawingShader);
-#endif
 }
+
+/**
+ * @tc.name: CreateRSShaderTest001
+ * @tc.desc: Verify function CreateRSShader
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShaderTest, CreateRSShaderTest001, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
 } // namespace OHOS::Rosen

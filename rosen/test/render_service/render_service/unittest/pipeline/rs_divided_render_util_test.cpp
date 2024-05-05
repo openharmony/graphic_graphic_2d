@@ -45,20 +45,12 @@ HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix  = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node, true);
     ASSERT_EQ(matrix, param.matrix);
 
-#ifndef USE_ROSEN_DRAWING
-    matrix = SkMatrix::MakeAll(1, 2, 3, 4, 5, 6, 7, 8, 9);
-#else
     matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-#endif
     node->SetTotalMatrix(matrix);
     param = RSDividedRenderUtil::CreateBufferDrawParam(*node, false);
     ASSERT_EQ(matrix, param.matrix);

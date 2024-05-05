@@ -80,7 +80,9 @@ void RSImplicitCancelAnimationParam::SyncProperties()
             continue;
         }
         auto& propertiesMap = node->IsRenderServiceNode() ? RSpropertiesMap : RTpropertiesMap;
-        propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), rsProperty->GetId()), nullptr);
+        propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), rsProperty->GetId()),
+            std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
+                nullptr, node->GetAnimationByPropertyId(rsProperty->GetId())));
     }
     pendingSyncList_.clear();
 
@@ -124,9 +126,10 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             continue;
         }
         node->CancelAnimationByProperty(propertyId, !property->GetIsCustom());
-        if (value != nullptr) {
+        const auto& [propertyValue, animations] = value;
+        if (propertyValue != nullptr) {
             // successfully canceled RS animation and extract value, update ui value
-            property->SetValueFromRender(value);
+            property->SetValueFromRender(propertyValue);
         } else {
             // property or node is not yet created in RS, just trigger a force update
             property->UpdateOnAllAnimationFinish();

@@ -26,14 +26,14 @@ Bitmap::Bitmap()
 
 Bitmap::~Bitmap() {}
 
-void Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
+bool Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
 {
-    bmpImplPtr->Build(width, height, format, stride);
+    return bmpImplPtr->Build(width, height, format, stride);
 }
 
-void Bitmap::Build(const ImageInfo& imageInfo, int32_t stride)
+bool Bitmap::Build(const ImageInfo& imageInfo, int32_t stride)
 {
-    bmpImplPtr->Build(imageInfo, stride);
+    return bmpImplPtr->Build(imageInfo, stride);
 }
 
 int Bitmap::GetWidth() const

@@ -14,11 +14,6 @@
  */
 
 #include "rs_round_corner_display.h"
-#include <SkImage.h>
-#include <SkData.h>
-#include <SkStream.h>
-#include <SkMatrix.h>
-#include <SkCanvas.h>
 #include <mutex>
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
@@ -72,37 +67,6 @@ bool RoundCornerDisplay::LoadConfigFile()
     return rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RoundCornerDisplay::LoadImg(const char* path, sk_sp<SkImage>& img)
-{
-    std::string filePath = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + path;
-    RS_LOGD("[%{public}s] Read Img(%{public}s) \n", __func__, filePath.c_str());
-    sk_sp<SkData> skData = SkData::MakeFromFileName(filePath.c_str());
-    if (skData == nullptr) {
-        RS_LOGE("[%{public}s] Open picture file failed! \n", __func__);
-        return false;
-    }
-    img = SkImage::MakeFromEncoded(skData);
-    if (img == nullptr) {
-        RS_LOGE("[%{public}s] Decode picture file failed! \n", __func__);
-        return false;
-    }
-    return true;
-}
-
-bool RoundCornerDisplay::DecodeBitmap(sk_sp<SkImage> image, SkBitmap &bitmap)
-{
-    if (image == nullptr) {
-        RS_LOGE("[%{public}s] No image found \n", __func__);
-        return false;
-    }
-    if (!image->asLegacyBitmap(&bitmap, SkImage::kRO_LegacyBitmapMode)) {
-        RS_LOGE("[%{public}s] Create bitmap from skImage failed \n", __func__);
-        return false;
-    }
-    return true;
-}
-#else
 bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img)
 {
     std::string filePath = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + path;
@@ -133,7 +97,6 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
     }
     return true;
 }
-#endif
 
 bool RoundCornerDisplay::SetHardwareLayerSize()
 {
@@ -413,33 +376,26 @@ void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int sur
     std::lock_guard<std::mutex> lock(resourceMut_);
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
+        RS_TRACE_END();
         return;
     }
     UpdateParameter(updateFlag_);
     if (surfaceType == TOP_SURFACE) {
         RS_LOGD("[%{public}s] draw TopSurface start  \n", __func__);
         if (curTop_ != nullptr) {
-#ifndef USE_ROSEN_DRAWING
-            canvas->drawImage(curTop_, 0, 0);
-#else
             Drawing::Brush brush;
             canvas->AttachBrush(brush);
             canvas->DrawImage(*curTop_, 0, 0, Drawing::SamplingOptions());
             canvas->DetachBrush();
-#endif
             RS_LOGD("[%{public}s] Draw top \n", __func__);
         }
     } else if (surfaceType == BOTTOM_SURFACE) {
         RS_LOGD("[%{public}s] BottomSurface supported \n", __func__);
         if (curBottom_ != nullptr) {
-#ifndef USE_ROSEN_DRAWING
-            canvas->drawImage(curBottom_, 0, displayHeight_ - curBottom_->height());
-#else
             Drawing::Brush brush;
             canvas->AttachBrush(brush);
             canvas->DrawImage(*curBottom_, 0, displayHeight_ - curBottom_->GetHeight(), Drawing::SamplingOptions());
             canvas->DetachBrush();
-#endif
             RS_LOGD("[%{public}s] Draw Bottom \n", __func__);
         }
     } else {

@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef USE_ROSEN_DRAWING
 #include <gtest/gtest.h>
-#include <include/core/SkTextBlob.h>
 
-#include "pipeline/rs_proxy_render_node.h"
+#include "recording/cmd_list_helper.h"
 #include "pipeline/rs_recording_canvas.h"
 
 using namespace testing;
@@ -25,7 +23,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class RSRecordingCanvasTest : public testing::Test {
+class RSExtendRecordingCanvasTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -33,97 +31,145 @@ public:
     void TearDown() override;
 };
 
-void RSRecordingCanvasTest::SetUpTestCase() {}
-void RSRecordingCanvasTest::TearDownTestCase() {}
-void RSRecordingCanvasTest::SetUp() {}
-void RSRecordingCanvasTest::TearDown() {}
+void RSExtendRecordingCanvasTest::SetUpTestCase() {}
+void RSExtendRecordingCanvasTest::TearDownTestCase() {}
+void RSExtendRecordingCanvasTest::SetUp() {}
+void RSExtendRecordingCanvasTest::TearDown() {}
 
 /**
- * @tc.name: Clear001
- * @tc.desc: test
+ * @tc.name: DrawImageWithParm
+ * @tc.desc: test results of DrawImageWithParm
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSRecordingCanvasTest, Clear001, TestSize.Level1)
+HWTEST_F(RSExtendRecordingCanvasTest, DrawImageWithParm, TestSize.Level1)
 {
     int width = 1;
     int height = 1;
-    RSRecordingCanvas canvas(width, height);
-    canvas.Clear();
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+    extendRecordingCanvas.addDrawOpImmediate_ = false;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: willRestore001
- * @tc.desc: test
+ * @tc.name: DrawPixelMapWithParm
+ * @tc.desc: test results of DrawPixelMapWithParm
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSRecordingCanvasTest, willRestore001, TestSize.Level1)
+HWTEST_F(RSExtendRecordingCanvasTest, DrawPixelMapWithParm, TestSize.Level1)
 {
     int width = 1;
     int height = 1;
-    RSRecordingCanvas canvas(width, height);
-    canvas.willRestore();
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    extendRecordingCanvas.DrawPixelMapWithParm(pixelMap, rsImageInfo, sampling);
+    extendRecordingCanvas.addDrawOpImmediate_ = false;
+    extendRecordingCanvas.DrawPixelMapWithParm(pixelMap, rsImageInfo, sampling);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: onDrawPath001
- * @tc.desc: test
+ * @tc.name: DrawPixelMapRect
+ * @tc.desc: test results of DrawPixelMapRect
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSRecordingCanvasTest, onDrawPath001, TestSize.Level1)
+HWTEST_F(RSExtendRecordingCanvasTest, DrawPixelMapRect, TestSize.Level1)
 {
     int width = 1;
     int height = 1;
-    RSRecordingCanvas canvas(width, height);
-    SkPath path;
-    SkPaint paint;
-    canvas.onDrawPath(path, paint);
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    Drawing::SamplingOptions sampling;
+    const Drawing::Rect src;
+    const Drawing::Rect dst;
+    extendRecordingCanvas.DrawPixelMapRect(pixelMap, src, dst, sampling);
+    extendRecordingCanvas.addDrawOpImmediate_ = false;
+    extendRecordingCanvas.DrawPixelMapRect(pixelMap, src, dst, sampling);
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: RSRecordingCanvas001
- * @tc.desc: test
+ * @tc.name: DrawDrawFunc
+ * @tc.desc: test results of DrawDrawFunc
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas001, TestSize.Level1)
+HWTEST_F(RSExtendRecordingCanvasTest, DrawDrawFunc, TestSize.Level1)
 {
     int width = 1;
     int height = 1;
-    RSRecordingCanvas canvas(width, height);
-    canvas.willRestore();
-    SkPaint skPaint;
-    canvas.onDrawBehind(skPaint);
-    canvas.Clear();
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    extendRecordingCanvas.DrawDrawFunc(std::move(drawFunc));
+    extendRecordingCanvas.addDrawOpImmediate_ = false;
+    extendRecordingCanvas.DrawDrawFunc(std::move(drawFunc));
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: RSRecordingCanvas002
- * @tc.desc: test
+ * @tc.name: AddDrawOpImmediate
+ * @tc.desc: test results of AddDrawOpImmediate
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas002, TestSize.Level1)
+HWTEST_F(RSExtendRecordingCanvasTest, AddDrawOpImmediate, TestSize.Level1)
 {
     int width = 1;
     int height = 1;
-    RSRecordingCanvas canvas(width, height);
-    canvas.willSave();
-    canvas.willRestore();
-    sk_sp<SkTextBlob> blob = SkTextBlob::MakeFromString("TextBlob", SkFont(nullptr, 24.0f, 1.0f, 0.0f));
-    SkScalar x = 1.0;
-    SkScalar y = 1.0;
-    SkPaint paint;
-    canvas.SetIsCustomTextType(false);
-    ASSERT_FALSE(canvas.IsCustomTextType());
-    canvas.onDrawTextBlob(blob.get(), x, y, paint);
-    canvas.SetIsCustomTextType(true);
-    ASSERT_TRUE(canvas.IsCustomTextType());
-    canvas.onDrawTextBlob(blob.get(), x, y, paint);
-    canvas.Clear();
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    // Test the function template AddDrawOpImmediate() with the DrawImageWithParm() function
+    extendRecordingCanvas.paintBrush_.style_ = Drawing::Paint::PaintStyle::PAINT_FILL;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+
+    extendRecordingCanvas.paintPen_.style_ = Drawing::Paint::PaintStyle::PAINT_FILL;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+
+    extendRecordingCanvas.paintBrush_.style_ = Drawing::Paint::PaintStyle::PAINT_NONE;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: AddDrawOpDeferred
+ * @tc.desc: test results of AddDrawOpImmediate
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSExtendRecordingCanvasTest, AddDrawOpDeferred, TestSize.Level1)
+{
+    int width = 1;
+    int height = 1;
+    ExtendRecordingCanvas extendRecordingCanvas(width, height);
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    extendRecordingCanvas.addDrawOpImmediate_ = false;
+    // Test the function template AddDrawOpImmediate() with the DrawImageWithParm() function
+    extendRecordingCanvas.paintBrush_.style_ = Drawing::Paint::PaintStyle::PAINT_FILL;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+
+    extendRecordingCanvas.paintPen_.style_ = Drawing::Paint::PaintStyle::PAINT_FILL;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+
+    extendRecordingCanvas.paintBrush_.style_ = Drawing::Paint::PaintStyle::PAINT_NONE;
+    extendRecordingCanvas.DrawImageWithParm(image, data, rsImageInfo, sampling);
+    ASSERT_TRUE(true);
 }
 } // namespace Rosen
 } // namespace OHOS
-#endif

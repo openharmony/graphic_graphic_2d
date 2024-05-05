@@ -16,9 +16,9 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
-#include "c/drawing_font_collection.h"
-#include "c/drawing_register_font.h"
-#include "c/drawing_text_declaration.h"
+#include "drawing_font_collection.h"
+#include "drawing_register_font.h"
+#include "drawing_text_declaration.h"
 
 using namespace testing;
 using namespace testing::ext;

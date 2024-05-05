@@ -36,8 +36,6 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   ]
 
   include_dirs = [
-    "../../../../../../interfaces/inner_api/common",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
     "//foundation/graphic/graphic_2d/rosen/include",

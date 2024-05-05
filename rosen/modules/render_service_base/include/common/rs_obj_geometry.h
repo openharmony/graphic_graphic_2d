@@ -33,6 +33,8 @@ public:
     float scaleY_ { 1.0f };
     float skewX_ {0.0f};
     float skewY_ {0.0f};
+    float perspX_ {0.0f};
+    float perspY_ {0.0f};
     float rotation_ { 0.0f };
     float rotationX_ { 0.0f };
     float rotationY_ { 0.0f };
@@ -148,6 +150,25 @@ public:
         SetSkewX(x);
         SetSkewY(y);
     }
+    void SetPerspX(float x)
+    {
+        if (!trans_) {
+            trans_ = std::make_optional<Transform>();
+        }
+        trans_->perspX_ = x;
+    }
+    void SetPerspY(float y)
+    {
+        if (!trans_) {
+            trans_ = std::make_optional<Transform>();
+        }
+        trans_->perspY_ = y;
+    }
+    void SetPersp(float x, float y)
+    {
+        SetPerspX(x);
+        SetPerspY(y);
+    }
     void SetRotation(float rotation)
     {
         if (!trans_) {
@@ -255,6 +276,14 @@ public:
     {
         return trans_ ? trans_->skewY_ : 0.f;
     }
+    float GetPerspX() const
+    {
+        return trans_ ? trans_->perspX_ : 0.f;
+    }
+    float GetPerspY() const
+    {
+        return trans_ ? trans_->perspY_ : 0.f;
+    }
     float GetRotation() const
     {
         return trans_ ? trans_->rotation_ : 0.f;
@@ -304,15 +333,6 @@ public:
             trans_ = geo.trans_;
         }
         return *this;
-    }
-    virtual void Reset()
-    {
-        x_ = -INFINITY;
-        y_ = -INFINITY;
-        z_ = 0.0f;
-        width_ = -INFINITY;
-        height_ = -INFINITY;
-        trans_.reset();
     }
 
 protected:

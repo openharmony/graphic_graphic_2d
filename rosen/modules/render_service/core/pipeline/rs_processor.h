@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
- #ifndef RS_CORE_PIPELINE_PROCESSOR_H
- #define RS_CORE_PIPELINE_PROCESSOR_H
+#ifndef RS_CORE_PIPELINE_PROCESSOR_H
+#define RS_CORE_PIPELINE_PROCESSOR_H
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkMatrix.h"
-#else
+#include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
-#endif
 
 #include "rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -30,8 +27,9 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSDrivenSurfaceRenderNode;
 class RSRcdSurfaceRenderNode;
+class RSDisplayRenderParams;
+class RSSurfaceRenderParams;
 class RSProcessor {
 public:
     RSProcessor() = default;
@@ -39,28 +37,25 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                      std::shared_ptr<RSBaseRenderEngine> renderEngine);
+        std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false);
+    virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
-    virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
-    virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
+    virtual void PostProcess() = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
     void MirrorScenePerf();
 
-#ifndef USE_ROSEN_DRAWING
-    const SkMatrix& GetScreenTransformMatrix() const
-#else
     const Drawing::Matrix& GetScreenTransformMatrix() const
-#endif
     {
         return screenTransformMatrix_;
     }
 
 protected:
+    bool InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirroredId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine);
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);
@@ -78,11 +73,7 @@ protected:
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix screenTransformMatrix_;
-#else
     Drawing::Matrix screenTransformMatrix_;
-#endif
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;

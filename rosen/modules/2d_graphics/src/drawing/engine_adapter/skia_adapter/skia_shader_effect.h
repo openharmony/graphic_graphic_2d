@@ -36,6 +36,7 @@ public:
     }
 
     void InitWithColor(ColorQuad color) override;
+    void InitWithColorSpace(const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) override;
     void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) override;
     void InitWithImage(const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling,
         const Matrix& matrix) override;

@@ -43,5 +43,56 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 {
     return globalZOrder_;
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry buffer)
+{
+    auto& consumer = GetConsumer();
+    if (consumer != nullptr && buffer.buffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
+        if (ret != OHOS::SURFACE_ERROR_OK) {
+            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
+                GetNodeId(), ret);
+        }
+    }
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
+{
+    if (!buffer.buffer) {
+        return;
+    }
+    SetBufferSizeChanged(buffer.buffer);
+    SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
+    SetCurrentFrameBufferConsumed();
+    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
+        "buffer timestamp = %{public}" PRIu64 " .", GetNodeId(), static_cast<uint64_t>(buffer.timestamp));
+}
+
+void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
+{
+    bufferCache_[static_cast<uint64_t>(buffer.timestamp)] = buffer;
+}
+
+bool RSSurfaceHandler::HasBufferCache() const
+{
+    return bufferCache_.size() != 0;
+}
+
+RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
+        if (iter->first < vsyncTimestamp) {
+            ReleaseBuffer(buffer);
+            buffer = iter->second;
+            iter = bufferCache_.erase(iter);
+        } else {
+            break;
+        }
+    }
+    return buffer;
+}
+#endif
 }
 }

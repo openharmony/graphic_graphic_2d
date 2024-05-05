@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -37,24 +39,17 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas drawingCanvas_;
-#endif
 };
 
 void RSRenderNodeTest::SetUpTestCase()
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
-#else
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
-#endif
 }
 void RSRenderNodeTest::TearDownTestCase()
 {
     delete canvas_;
+    canvas_ = nullptr;
 }
 void RSRenderNodeTest::SetUp() {}
 void RSRenderNodeTest::TearDown() {}
@@ -115,21 +110,6 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSharedTransitionParamTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, SetSharedTransitionParamTest, TestSize.Level1)
-{
-    using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
-    const std::optional<SharedTransitionParam> sharedTransitionParam;
-    RSRenderNode node(id, context);
-    node.SetSharedTransitionParam(std::move(sharedTransitionParam));
-    ASSERT_FALSE(node.IsDirty());
-}
-
-/**
  * @tc.name: InitCacheSurfaceTest
  * @tc.desc: test
  * @tc.type:FUNC
@@ -140,15 +120,7 @@ HWTEST_F(RSRenderNodeTest, InitCacheSurfaceTest, TestSize.Level1)
     RSRenderNode node(id, context);
     CacheType type = CacheType::ANIMATE_PROPERTY;
     node.SetCacheType(type);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    node.InitCacheSurface(canvas_->recordingContext());
-#else
-    node.InitCacheSurface(canvas_->getGrContext());
-#endif
-#else
    node.InitCacheSurface(canvas_->GetGPUContext().get());
-#endif
 }
 
 /**
@@ -246,6 +218,7 @@ HWTEST_F(RSRenderNodeTest, ResetFilterRectsInCacheTest, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
 {
     RSRenderNode node(id, context);
+    node.InitRenderParams();
     bool isDrawingCacheChanged = true;
 
     node.SetDrawingCacheChanged(isDrawingCacheChanged);
@@ -261,6 +234,7 @@ HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
 {
     RSRenderNode node(id, context);
+    node.InitRenderParams();
     bool isDrawingCacheChanged = true;
 
     node.SetDrawingCacheChanged(isDrawingCacheChanged);
@@ -277,9 +251,8 @@ HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest002, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-
+    node.InitRenderParams();
     node.SetDrawingCacheChanged(true);
-    node.SetDrawingCacheChanged(false);
     ASSERT_EQ(node.GetDrawingCacheChanged(), true);
 }
 
@@ -316,62 +289,47 @@ HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetCacheGeoPreparationDelay01
- * @tc.desc: test SetCacheGeoPreparationDelay once
+ * @tc.name: SetGeoUpdateDelay01
+ * @tc.desc: test SetGeoUpdateDelay once
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay01, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  SetGeoUpdateDelay01, TestSize.Level2)
 {
     RSRenderNode node(id, context);
     // test default value
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), false);
 
-    node.SetCacheGeoPreparationDelay(true);
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+    node.SetGeoUpdateDelay(true);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), true);
 }
 
 /**
- * @tc.name: SetCacheGeoPreparationDelay02
- * @tc.desc: test SetCacheGeoPreparationDelay would not be covered by later setting
+ * @tc.name: SetGeoUpdateDelay02
+ * @tc.desc: test SetGeoUpdateDelay would not be covered by later setting
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay02, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  SetGeoUpdateDelay02, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-    node.SetCacheGeoPreparationDelay(true);
-    node.SetCacheGeoPreparationDelay(false);
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+    node.SetGeoUpdateDelay(true);
+    node.SetGeoUpdateDelay(false);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), true);
 }
 
 /**
- * @tc.name: ResetCacheGeoPreparationDelay01
- * @tc.desc: test SetCacheGeoPreparationDelay would be reset
+ * @tc.name: ResetGeoUpdateDelay01
+ * @tc.desc: test SetGeoUpdateDelay would be reset
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  ResetCacheGeoPreparationDelay01, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  ResetGeoUpdateDelay01, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-    node.SetCacheGeoPreparationDelay(true);
-    node.ResetCacheGeoPreparationDelay();
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
-}
-
-/**
- * @tc.name: SetContainBootAnimation
- * @tc.desc: test SetContainBootAnimation and GetContainBootAnimation
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSRenderNodeTest,  SetContainBootAnimation001, TestSize.Level2)
-{
-    RSRenderNode node(id, context);
-    node.SetContainBootAnimation(true);
-    ASSERT_EQ(node.GetContainBootAnimation(), true);
-    node.SetContainBootAnimation(false);
-    ASSERT_EQ(node.GetContainBootAnimation(), false);
+    node.SetGeoUpdateDelay(true);
+    node.ResetGeoUpdateDelay();
+    ASSERT_EQ(node.GetGeoUpdateDelay(), false);
 }
 
 /**
@@ -428,6 +386,119 @@ HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest03, TestSize.Level1)
     ASSERT_EQ(node.IsOnlyBasicGeoTransform(), false);
     node.ResetIsOnlyBasicGeoTransform();
     ASSERT_EQ(node.IsOnlyBasicGeoTransform(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest01
+ * @tc.desc: check dirty region not join when not dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest01, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI clipRect{0, 0, 1000, 1000};
+    bool geoDirty = false;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest02
+ * @tc.desc: check dirty region not join when not geometry dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest02, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.geometryChangeNotPerceived_ = false;
+    bool geoDirty = false;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest03
+ * @tc.desc: check dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest03, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    bool isDirtyRectCorrect = (rsDirtyManager->GetCurrentFrameDirtyRegion() == absRect);
+    ASSERT_EQ(isDirtyRectCorrect, true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest04
+ * @tc.desc: check shadow dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest04, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    properties.SetShadowOffsetX(10.0f);
+    properties.SetShadowOffsetY(10.0f);
+    properties.SetShadowRadius(10.0f);
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest05
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    properties.SetOutlineWidth(10.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

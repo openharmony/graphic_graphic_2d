@@ -19,31 +19,12 @@ namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSShader> RSShader::CreateRSShader()
 {
-    std::shared_ptr<RSShader> rsShader(new RSShader());
-    return rsShader;
+    return std::make_shared<RSShader>();
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSShader> RSShader::CreateRSShader(const sk_sp<SkShader>& skShader)
-{
-    std::shared_ptr<RSShader> rsShader(new RSShader());
-    rsShader->SetSkShader(skShader);
-    return rsShader;
-}
-
-void RSShader::SetSkShader(const sk_sp<SkShader>& skShader)
-{
-    skShader_ = skShader;
-}
-
-const sk_sp<SkShader>& RSShader::GetSkShader() const
-{
-    return skShader_;
-}
-#else
 std::shared_ptr<RSShader> RSShader::CreateRSShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader)
 {
-    std::shared_ptr<RSShader> rsShader(new RSShader());
+    auto rsShader = std::make_shared<RSShader>();
     rsShader->SetDrawingShader(drShader);
     return rsShader;
 }
@@ -57,6 +38,5 @@ const std::shared_ptr<Drawing::ShaderEffect>& RSShader::GetDrawingShader() const
 {
     return drShader_;
 }
-#endif
 } // namespace Rosen
 } // namespace OHOS

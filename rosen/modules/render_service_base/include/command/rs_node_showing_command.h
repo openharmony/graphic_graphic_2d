@@ -61,7 +61,8 @@ private:
     NodeId targetId_ = 0;
     std::shared_ptr<RSRenderPropertyBase> property_;
     bool isTimeout_ = true;
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
+    static Registrar instance_;
 };
 
 class RSB_EXPORT RSNodeGetShowingPropertiesAndCancelAnimation : public RSSyncTask {
@@ -69,7 +70,8 @@ class RSB_EXPORT RSNodeGetShowingPropertiesAndCancelAnimation : public RSSyncTas
     constexpr static uint16_t commandSubType = GET_RENDER_PROPERTIES;
 
 public:
-    using PropertiesMap = std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSRenderPropertyBase>>;
+    using PropertiesMap = std::map<std::pair<NodeId, PropertyId>,
+        std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>;
     explicit RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS, PropertiesMap&& map)
         : RSSyncTask(timeoutNS), propertiesMap_(std::move(map))
     {}
@@ -91,7 +93,8 @@ public:
 private:
     RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
     PropertiesMap propertiesMap_;
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
+    static Registrar instance_;
 };
 
 } // namespace Rosen

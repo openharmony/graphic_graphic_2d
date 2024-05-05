@@ -25,11 +25,11 @@
 #include "rs_base_render_util.h"
 #include "rs_hardware_thread.h"
 #include "rs_main_thread.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
-class RSDrivenSurfaceRenderNode;
 class RSRcdSurfaceRenderNode;
 class RSUniRenderComposerAdapter {
 public:
@@ -40,16 +40,15 @@ public:
 
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
-    LayerInfoPtr CreateLayer(RSDrivenSurfaceRenderNode& node);
     LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
-
+    void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
+        const sptr<IConsumerSurface>& surface) const;
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
-    ComposeInfo BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
@@ -57,8 +56,6 @@ private:
         const sptr<IConsumerSurface>& surface,
         RSBaseRenderNode* node) const;
     static void SetBufferColorSpace(RSDisplayRenderNode& node);
-    void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const ComposeInfo& info,
-                                const sptr<IConsumerSurface>& surface) const;
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;

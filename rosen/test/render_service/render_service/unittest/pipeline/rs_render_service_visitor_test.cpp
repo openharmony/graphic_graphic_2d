@@ -15,17 +15,20 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_render_service_visitor.h"
+#include "rs_test_util.h"
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_service_visitor.h"
+#include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,7 +44,13 @@ public:
 
 void RSRenderServiceVisitorTest::SetUpTestCase() {}
 void RSRenderServiceVisitorTest::TearDownTestCase() {}
-void RSRenderServiceVisitorTest::SetUp() {}
+void RSRenderServiceVisitorTest::SetUp()
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto& uniRenderThread = RSUniRenderThread::Instance();
+        uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    }
+}
 void RSRenderServiceVisitorTest::TearDown() {}
 
 /*
@@ -65,6 +74,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareChildren001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    rsSurfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(rsSurfaceRenderNode.GetId());
     RSRenderServiceVisitor rsRenderServiceVisitor;
     rsRenderServiceVisitor.PrepareChildren(rsSurfaceRenderNode);
 }
@@ -206,7 +216,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode009, TestSize.Level
     property.SetBounds({ 0, 0, 400, 600 });
     property.SetFrameWidth(0);
     property.SetFrameHeight(0);
-    auto absGeo = (property.GetBoundsGeometry());
+    auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(90);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(node);
 }
@@ -228,7 +238,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level
     property.SetBounds({ 0, 0, 400, 600 });
     property.SetFrameWidth(0);
     property.SetFrameHeight(0);
-    auto absGeo = (property.GetBoundsGeometry());
+    auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(270);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(node);
 }
@@ -326,13 +336,8 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
@@ -347,13 +352,8 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsSurfaceRenderNode.GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
@@ -369,6 +369,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSCanvasRenderNode node(nodeId);
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
 
@@ -622,6 +623,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode001, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(nodeId, config);
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
     rsRenderServiceVisitor.ProcessDisplayRenderNode(node);
 }
 
@@ -637,6 +639,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode002, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(nodeId, config);
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
     rsRenderServiceVisitor.ProcessDisplayRenderNode(node);
 }
 

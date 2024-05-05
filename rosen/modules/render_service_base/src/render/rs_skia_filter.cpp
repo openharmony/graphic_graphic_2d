@@ -14,34 +14,17 @@
  */
 
 #include "render/rs_skia_filter.h"
-#ifdef USE_ROSEN_DRAWING
 #include <memory>
 #include "draw/blend_mode.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter) {}
-
-RSSkiaFilter::~RSSkiaFilter() {}
-#else
-RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter)
+RSDrawingFilterOriginal::RSDrawingFilterOriginal(std::shared_ptr<Drawing::ImageFilter> imageFilter)
     : RSFilter(), imageFilter_(imageFilter) {}
 
-RSDrawingFilter::~RSDrawingFilter() {}
-#endif
+RSDrawingFilterOriginal::~RSDrawingFilterOriginal() {}
 
-#ifndef USE_ROSEN_DRAWING
-SkPaint RSSkiaFilter::GetPaint() const
-{
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setImageFilter(imageFilter_);
-    return paint;
-}
-#else
-Drawing::Brush RSDrawingFilter::GetBrush() const
+Drawing::Brush RSDrawingFilterOriginal::GetBrush() const
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
@@ -50,38 +33,19 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
     brush.SetFilter(filter);
     return brush;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
-#else
-std::shared_ptr<Drawing::ImageFilter> RSDrawingFilter::GetImageFilter() const
-#endif
+std::shared_ptr<Drawing::ImageFilter> RSDrawingFilterOriginal::GetImageFilter() const
 {
     return imageFilter_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSkiaFilter::DrawImageRect(
-    SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
-#else
-void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+void RSDrawingFilterOriginal::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    auto paint = GetPaint();
-#ifdef NEW_SKIA
-    canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-    canvas.drawImageRect(image.get(), src, dst, &paint);
-#endif
-#else
     auto brush = GetBrush();
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

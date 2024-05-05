@@ -19,18 +19,7 @@
 #include "event_handler.h"
 #include "common/rs_macros.h"
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#endif
-#include "include/core/SkSurface.h"
-#if defined(NEW_SKIA)
-#include "include/gpu/GrDirectContext.h"
-#endif
-#else
 #include "image/gpu_context.h"
-#endif
 #endif
 
 namespace OHOS::Rosen {
@@ -40,14 +29,11 @@ class RSB_EXPORT RSBackgroundThread final {
 public:
     static RSBackgroundThread& Instance();
     void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(RenderContext* context);
     void CleanGrResource();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> GetShareGrContext() const;
-#else
     std::shared_ptr<Drawing::GPUContext> GetShareGPUContext() const;
-#endif
 #endif
 private:
     RSBackgroundThread();
@@ -62,20 +48,11 @@ private:
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef RS_ENABLE_GL
     void CreateShareEglContext();
-#ifndef USE_ROSEN_DRAWING
-    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
-#else
     EGLContext eglShareContext_ = static_cast<EGLContext>(0);
 #endif
-#endif
     RenderContext* renderContext_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateShareGrContext();
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
-#endif
 #endif
 };
 }

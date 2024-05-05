@@ -26,6 +26,7 @@
 #include "utils/rect.h"
 
 #include "text_style.h"
+#include "text_line_base.h"
 #include "typography_types.h"
 #include "symbol_animation_config.h"
 
@@ -60,14 +61,6 @@ struct IndexAndAffinity {
     size_t index;
     Affinity affinity;
     IndexAndAffinity(size_t charIndex, Affinity charAffinity);
-};
-
-struct Boundary {
-    size_t leftIndex = 0; // include leftIndex_
-    size_t rightIndex = 0; // not include rightIndex_
-
-    Boundary(size_t left, size_t right);
-    bool operator ==(const Boundary& rhs) const;
 };
 
 struct LineMetrics {
@@ -118,6 +111,9 @@ public:
     virtual double GetGlyphsBoundsRight() = 0;
     virtual bool DidExceedMaxLines() const = 0;
     virtual int GetLineCount() const = 0;
+    virtual void MarkDirty() = 0;
+    virtual int32_t GetUnresolvedGlyphsCount() = 0;
+    virtual void UpdateFontSize(size_t from, size_t to, float fontSize) = 0;
 
     virtual void SetIndents(const std::vector<float>& indents) = 0;
     virtual float DetectIndents(size_t index) = 0;
@@ -135,11 +131,16 @@ public:
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)= 0;
+    virtual void SetParagraghId(uint32_t id) = 0;
     virtual Drawing::FontMetrics MeasureText() = 0;
     virtual bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) = 0;
     virtual std::vector<LineMetrics> GetLineMetrics() = 0;
     virtual bool GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics) = 0;
     virtual Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) = 0;
+    virtual bool GetLineFontMetrics(const size_t lineNumber,
+        size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
+    virtual std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const = 0;
+    virtual std::unique_ptr<Typography> CloneSelf() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

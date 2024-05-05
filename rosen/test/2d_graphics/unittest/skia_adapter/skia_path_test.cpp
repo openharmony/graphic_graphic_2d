@@ -66,11 +66,11 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
     skiaPath.AddRoundRect(0, 0,
         100, 100, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom, xRadius, yRadius
     Path path;
-    skiaPath.AddPath(path, 200, 200); // 200: dx and dy
-    skiaPath.AddPath(path);
+    skiaPath.AddPath(path, 200, 200, PathAddMode::APPEND_PATH_ADD_MODE); // 200: dx and dy
+    skiaPath.AddPath(path, PathAddMode::APPEND_PATH_ADD_MODE);
     skiaPath.ReverseAddPath(path);
     Matrix matrix;
-    skiaPath.AddPathWithMatrix(path, matrix);
+    skiaPath.AddPath(path, matrix, PathAddMode::APPEND_PATH_ADD_MODE);
     skiaPath.SetFillStyle(PathFillType::WINDING);
     Path path2;
     skiaPath.Interpolate(path, 2, path2); // 2: weight

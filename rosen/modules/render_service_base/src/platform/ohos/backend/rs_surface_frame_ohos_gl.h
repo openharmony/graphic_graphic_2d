@@ -35,13 +35,8 @@ public:
     RSSurfaceFrameOhosGl(int32_t width, int32_t height);
     ~RSSurfaceFrameOhosGl() = default;
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* GetCanvas() override;
-    sk_sp<SkSurface> GetSurface() override;
-#else
     Drawing::Canvas* GetCanvas() override;
     std::shared_ptr<Drawing::Surface> GetSurface() override;
-#endif
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
     void SetDamageRegion(const std::vector<RectI> &rects) override;
     int32_t GetBufferAge() const override;

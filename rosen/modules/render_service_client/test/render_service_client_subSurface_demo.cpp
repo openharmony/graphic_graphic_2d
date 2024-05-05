@@ -37,7 +37,7 @@ void Resize(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int32_t h
     surfaceNode->SetBoundsHeight(height);
 }
 
-bool InitSurface(std::shared_ptr<RSSurfaceNode>& surfaceNode, std::string surfaceName,
+bool InitSurface(std::shared_ptr<RSSurfaceNode>& surfaceNode, const std::string& surfaceName,
     int32_t width, int32_t height, uint32_t color)
 {
     std::cout << "InitSurface" << std::endl;

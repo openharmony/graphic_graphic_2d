@@ -39,9 +39,10 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 }
 
 bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                    std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    // TO-DO adapt isRenderThread
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
 
@@ -69,16 +70,12 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
     if (canvas_ == nullptr) {
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->concat(screenTransformMatrix_);
-#else
     canvas_->ConcatMatrix(screenTransformMatrix_);
-#endif
 
     return true;
 }
 
-void RSVirtualScreenProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSVirtualScreenProcessor::PostProcess()
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::PostProcess surface is null!");
@@ -89,11 +86,7 @@ void RSVirtualScreenProcessor::PostProcess(RSDisplayRenderNode* node)
         return;
     }
     if (isSecurityDisplay_ && displayHasSecSurface_) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->clear(SK_ColorBLACK);
-#else
         canvas_->Clear(Drawing::Color::COLOR_BLACK);
-#endif
     }
     auto surfaceOhos = renderFrame_->GetSurface();
     renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
@@ -116,29 +109,18 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // clipHole: false.
     // forceCPU: true.
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
-#ifndef USE_ROSEN_DRAWING
-    const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient_;
-    const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient_;
-    params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
-#else
     const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
     const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
     params.dstRect.SetLeft(0);
     params.dstRect.SetTop(0);
     params.dstRect.SetRight(adaptiveDstWidth);
     params.dstRect.SetBottom(adaptiveDstHeight);
-#endif
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 
 void RSVirtualScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     RS_LOGI("RSVirtualScreenProcessor::ProcessDisplaySurface() is not supported.");
-}
-
-void RSVirtualScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-    RS_LOGI("RSVirtualScreenProcessor::ProcessDrivenSurface() is not supported.");
 }
 
 void RSVirtualScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

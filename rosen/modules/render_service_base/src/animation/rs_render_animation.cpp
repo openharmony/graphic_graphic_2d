@@ -19,6 +19,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "command/rs_message_processor.h"
 #include "platform/common/rs_log.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -92,6 +93,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, id_);
     SetDuration(duration);
     SetStartDelay(startDelay);
     SetRepeatCount(repeatCount);
@@ -318,6 +320,7 @@ bool RSRenderAnimation::Animate(int64_t time)
 
     RecordLastAnimateValue();
     OnAnimate(fraction);
+    DumpFraction(fraction, time);
     UpdateAnimateVelocity(frameInterval);
 
     if (isRepeatFinished) {

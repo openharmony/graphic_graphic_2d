@@ -20,9 +20,11 @@
 #include "native_buffer_inner.h"
 #include "platform/common/rs_log.h"
 #include "include/gpu/GrBackendSurface.h"
-#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_hardware_thread.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/rs_task_dispatcher.h"
+#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,22 +49,9 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
     auto width = buffer->GetSurfaceBufferWidth();
     auto height = buffer->GetSurfaceBufferHeight();
     NativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    bool isProtected = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
-        width, height);
-#ifndef USE_ROSEN_DRAWING
-    if (!backendTexture.isValid()) {
-        DestroyNativeWindowBuffer(nativeWindowBuffer);
-        return nullptr;
-    }
-    GrVkImageInfo imageInfo;
-    backendTexture.getVkImageInfo(&imageInfo);
-
-    return std::make_unique<NativeVkImageRes>(
-        nativeWindowBuffer,
-        backendTexture,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            imageInfo.fImage, imageInfo.fAlloc.fMemory));
-#else
+        width, height, isProtected);
     if (!backendTexture.IsValid()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
@@ -73,18 +62,17 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkImage,
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkAlloc.memory));
-#endif
 }
 
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence,
-    uint32_t threadIndex)
+    pid_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
-    if (imageCacheSeqs_.count(bufferId) == 0) {
+    if (imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end() || (buffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
         return NewImageCacheFromBuffer(buffer, threadIndex);
     } else {
         return imageCacheSeqs_[bufferId];
@@ -107,7 +95,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(s
 }
 
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
-    const sptr<OHOS::SurfaceBuffer>& buffer, uint32_t threadIndex)
+    const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex)
 {
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = NativeVkImageRes::Create(buffer);
@@ -118,6 +106,9 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     }
 
     imageCache->SetThreadIndex(threadIndex);
+    if (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) {
+        return imageCache;
+    }
     imageCacheSeqs_.emplace(bufferId, imageCache);
     cacheQueue_.push(bufferId);
     return imageCache;
@@ -138,7 +129,7 @@ void RSVkImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 
 void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
 {
-    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
+    pid_t threadIndex = UNI_RENDER_THREAD_INDEX;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
         if (imageCacheSeqs_.count(seqNum) == 0) {
@@ -146,7 +137,7 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
         }
         threadIndex = imageCacheSeqs_[seqNum]->GetThreadIndex();
     }
-    auto func = [this, seqNum]() {
+    auto func = [this, seqNum, threadIndex]() {
         {
             std::lock_guard<std::mutex> lock(opMutex_);
             if (imageCacheSeqs_.count(seqNum) == 0) {
@@ -154,13 +145,8 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
             }
             (void)imageCacheSeqs_.erase(seqNum);
         }
-        RS_LOGD("RSVkImageManager::UnMapVkImageFromSurfaceBuffer: %{public}d", seqNum);
     };
-    if (threadIndex == UNI_MAIN_THREAD_INDEX) {
-        RSMainThread::Instance()->PostTask(func);
-    } else {
-        RSSubThreadManager::Instance()->PostTask(func, threadIndex);
-    }
+    RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
 }
 
 void RSVkImageManager::UnMapVkImageFromSurfaceBufferForUniRedraw(int32_t seqNum)

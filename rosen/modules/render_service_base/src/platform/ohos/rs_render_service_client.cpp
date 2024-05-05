@@ -14,6 +14,8 @@
  */
 
 #include "transaction/rs_render_service_client.h"
+#include "surface_type.h"
+#include "surface_utils.h"
 
 #include "backend/rs_surface_ohos_gl.h"
 #include "backend/rs_surface_ohos_raster.h"
@@ -35,6 +37,7 @@
 #ifdef NEW_RENDER_CONTEXT
 #include "render_backend/rs_surface_factory.h"
 #endif
+#include "render/rs_typeface_cache.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 #include "vsync_iconnection_token.h"
@@ -136,8 +139,7 @@ std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sp
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined (ACE_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         return std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
     }
 #endif
@@ -154,7 +156,8 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
-    uint64_t id)
+    uint64_t id,
+    NodeId windowNodeId)
 {
     ROSEN_LOGD("RSRenderServiceClient::CreateVSyncReceiver Start");
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -162,12 +165,27 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token, id);
+    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token, id, windowNodeId);
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return nullptr;
+    }
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
@@ -221,7 +239,7 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -247,7 +265,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY, surfaceCaptureType);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY, surfaceCaptureType, isSync);
     return true;
 }
 
@@ -389,7 +407,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
     renderService->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -397,7 +415,7 @@ void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
         return;
     }
 
-    return renderService->SyncFrameRateRange(range);
+    return renderService->SyncFrameRateRange(id, range);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
@@ -443,7 +461,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
     return renderService->GetShowRefreshRateEnabled();
 }
-    
+
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -718,6 +736,16 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
     return renderService->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetVirtualMirrorScreenScaleMode: renderService is nullptr");
+        return false;
+    }
+    return renderService->SetVirtualMirrorScreenScaleMode(id, scaleMode);
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -822,11 +850,7 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return renderService->GetScreenType(id, screenType);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -836,13 +860,8 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     return renderService->GetBitmap(id, bitmap);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -850,6 +869,32 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
         return false;
     }
     return renderService->GetPixelmap(id, pixelmap, rect, drawCmdList);
+}
+
+bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: renderService is nullptr");
+        return false;
+    }
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    return renderService->RegisterTypeface(globalUniqueId, typeface);
+}
+
+bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnRegisterTypeface: renderService is nullptr");
+        return false;
+    }
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    ROSEN_LOGD("RSRenderServiceClient::UnRegisterTypeface: pid[%{public}d] unregister typface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    return renderService->UnRegisterTypeface(globalUniqueId);
 }
 
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
@@ -945,6 +990,9 @@ public:
     {
     }
 
+    void OnHgmRefreshRateUpdate(int32_t refreshRate) override
+    {
+    }
 private:
     HgmConfigChangeCallback cb_;
 };
@@ -977,6 +1025,9 @@ public:
     {
     }
 
+    void OnHgmRefreshRateUpdate(int32_t refreshRate) override
+    {
+    }
 private:
     HgmRefreshRateModeChangeCallback cb_;
 };
@@ -991,6 +1042,50 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
     }
     sptr<CustomHgmRefreshRateModeChangeCallback> cb = new CustomHgmRefreshRateModeChangeCallback(callback);
     return renderService->RegisterHgmRefreshRateModeChangeCallback(cb);
+}
+
+class CustomHgmRefreshRateUpdateCallback : public RSHgmConfigChangeCallbackStub
+{
+public:
+    explicit CustomHgmRefreshRateUpdateCallback(const HgmRefreshRateModeChangeCallback& callback) : cb_(callback) {}
+    ~CustomHgmRefreshRateUpdateCallback() override {};
+
+    void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) override
+    {
+    }
+
+    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override
+    {
+    }
+
+    void OnHgmRefreshRateUpdate(int32_t refreshRate) override
+    {
+        ROSEN_LOGD("CustomHgmRefreshRateUpdateCallback::OnHgmRefreshRateUpdate called");
+        if (cb_ != nullptr) {
+            cb_(refreshRate);
+        }
+    }
+
+private:
+    HgmRefreshRateUpdateCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
+    const HgmRefreshRateUpdateCallback& callback)
+{
+    sptr<CustomHgmRefreshRateUpdateCallback> cb = nullptr;
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    if (callback) {
+        cb = new CustomHgmRefreshRateUpdateCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback called");
+    return renderService->RegisterHgmRefreshRateUpdateCallback(cb);
 }
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
@@ -1027,6 +1122,7 @@ int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, 
         return RENDER_SERVICE_NULL;
     }
 
+    ROSEN_LOGI("RSRenderServiceClient::ResizeVirtualScreen, width:%{public}u, height:%{public}u", width, height);
     return renderService->ResizeVirtualScreen(id, width, height);
 }
 
@@ -1151,6 +1247,14 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+    }
+}
+
+void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
 }
 } // namespace Rosen

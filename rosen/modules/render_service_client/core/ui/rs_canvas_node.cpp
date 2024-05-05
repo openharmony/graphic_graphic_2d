@@ -26,6 +26,7 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_hdr_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,19 +47,17 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode, bool isTe
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode)
     : RSNode(isRenderServiceNode, isTextureExportNode) {}
 
-RSCanvasNode::~RSCanvasNode() {}
-
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
+RSCanvasNode::~RSCanvasNode()
 {
-    recordingCanvas_ = new RSRecordingCanvas(width, height);
-    static_cast<RSRecordingCanvas*>(recordingCanvas_)->SetIsCustomTextType(isCustomTextType_);
-#else
+    if (hdrPresent_) {
+        RSHDRManager::Instance().ReduceHDRNum();
+    }
+}
+
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
-#endif
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -77,23 +76,24 @@ bool RSCanvasNode::IsRecording() const
     return recordingCanvas_ != nullptr;
 }
 
+void RSCanvasNode::CreateTextureExportRenderNodeInRT()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
+    }
+}
+
 void RSCanvasNode::FinishRecording()
 {
     if (!IsRecording()) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    auto recording = static_cast<RSRecordingCanvas*>(recordingCanvas_)->GetDrawCmdList();
-#else
     auto recording = recordingCanvas_->GetDrawCmdList();
-#endif
     delete recordingCanvas_;
     recordingCanvas_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    if (recording && recording->GetSize() == 0) {
-#else
     if (recording && recording->IsEmpty()) {
-#endif
         return;
     }
     if (recording != nullptr && RSSystemProperties::GetDrawTextAsBitmap()) {
@@ -113,24 +113,15 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto recordingCanvas = std::make_shared<RSRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
-    recordingCanvas->SetIsCustomTextType(isCustomTextType_);
-#else
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
-#endif
     func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
-#ifndef USE_ROSEN_DRAWING
-    if (recording && recording->GetSize() == 0) {
-#else
     if (recording && recording->IsEmpty()) {
-#endif
         return;
     }
     if (recording != nullptr && RSSystemProperties::GetDrawTextAsBitmap()) {
@@ -166,6 +157,18 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+}
+
+void RSCanvasNode::SetHDRPresent(bool hdrPresent)
+{
+    ROSEN_LOGD("RSCanvasNode::SetHDRPresent:%{pubilc}d", hdrPresent);
+    hdrPresent_ = hdrPresent;
+    if (hdrPresent) {
+        RSHDRManager::Instance().IncreaseHDRNum();
+    } else {
+        RSHDRManager::Instance().ReduceHDRNum();
+    }
+    
 }
 
 void RSCanvasNode::OnBoundsSizeChanged() const

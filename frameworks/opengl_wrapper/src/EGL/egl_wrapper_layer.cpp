@@ -20,7 +20,7 @@
 #include <parameters.h>
 #include <sstream>
 
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 
 namespace OHOS {
 namespace {
@@ -37,13 +37,13 @@ constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
 constexpr const char *DEBUG_LAYER_NAME = "debug_layer";
 }
 
-static std::string strLayers;
+static std::string g_strLayers;
 
 static void GetWrapperDebugLayers(const char *key, const char *value, void *context)
 {
     WLOGD("");
-    strLayers = std::string(value);
-    WLOGD("strLayers is %{public}s", strLayers.c_str());
+    g_strLayers = std::string(value);
+    WLOGD("g_strLayers is %{public}s", g_strLayers.c_str());
 }
 
 static void UpdateApiEntries(LayerSetupFunc func,
@@ -115,15 +115,15 @@ static std::vector<std::string> GetDebugLayers(void)
     WLOGD("");
     std::vector<std::string> layers;
 
-    strLayers = system::GetParameter(DEBUG_LAYER_NAME, "");
-    WLOGD("strLayers is %{public}s", strLayers.c_str());
+    g_strLayers = system::GetParameter(DEBUG_LAYER_NAME, "");
+    WLOGD("g_strLayers is %{public}s", g_strLayers.c_str());
     auto ret = WatchParameter(DEBUG_LAYER_NAME, GetWrapperDebugLayers, nullptr);
     if (ret) {
         WLOGD("WatchParameter faild.");
     }
 
-    if (!strLayers.empty()) {
-        SplitEnvString(strLayers, &layers);
+    if (!g_strLayers.empty()) {
+        SplitEnvString(g_strLayers, &layers);
     } else {
         WLOGD("OPENGL_WRAPPER_DEBUG_LAYERS is not set.");
     }

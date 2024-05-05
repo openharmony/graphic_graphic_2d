@@ -23,6 +23,12 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr static float FLOAT_DATA_ZERO = 0.0f;
+constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
+constexpr static float FLOAT_DATA_NEGATIVE = -34.4f;
+constexpr static float FLOAT_DATA_MAX = std::numeric_limits<float>::max();
+constexpr static float FLOAT_DATA_MIN = std::numeric_limits<float>::min();
+
 class RSCanvasNodeTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -1248,6 +1254,191 @@ HWTEST_F(RSCanvasNodeTest, SetandGetSkewY005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetSkewY(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().y_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetPersp001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPersp001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPersp(FLOAT_DATA_POSITIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_POSITIVE));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
+}
+
+/**
+ * @tc.name: SetandGetPersp002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPersp002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPersp(FLOAT_DATA_NEGATIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_NEGATIVE));
+}
+
+/**
+ * @tc.name: SetandGetPersp003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPersp003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPersp(FLOAT_DATA_MAX);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MAX));
+}
+
+/**
+ * @tc.name: SetandGetPersp004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPersp004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPersp(FLOAT_DATA_MAX, FLOAT_DATA_ZERO);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_ZERO));
+}
+
+/**
+ * @tc.name: SetandGetPersp0005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPersp0005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPersp(FLOAT_DATA_NEGATIVE, FLOAT_DATA_POSITIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
+}
+
+/**
+ * @tc.name: SetandGetPerspX001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspX001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspX(FLOAT_DATA_POSITIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_POSITIVE));
+}
+
+/**
+ * @tc.name: SetandGetPerspX002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspX002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspX(FLOAT_DATA_NEGATIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
+}
+
+/**
+ * @tc.name: SetandGetPerspX003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspX003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspX(FLOAT_DATA_MAX);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
+}
+
+/**
+ * @tc.name: SetandGetPerspX004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspX004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspX(FLOAT_DATA_MIN);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MIN));
+}
+
+/**
+ * @tc.name: SetandGetPerspX005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspX005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspX(FLOAT_DATA_ZERO);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_ZERO));
+}
+
+/**
+ * @tc.name: SetandGetPerspY001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspY001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspY(FLOAT_DATA_POSITIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
+}
+
+/**
+ * @tc.name: SetandGetPerspY002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspY002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspY(FLOAT_DATA_NEGATIVE);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_NEGATIVE));
+}
+
+/**
+ * @tc.name: SetandGetPerspY003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspY003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspY(FLOAT_DATA_MAX);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MAX));
+}
+
+/**
+ * @tc.name: SetandGetPerspY004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspY004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspY(FLOAT_DATA_MIN);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MIN));
+}
+
+/**
+ * @tc.name: SetandGetPerspY005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetPerspY005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPerspY(FLOAT_DATA_ZERO);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_ZERO));
 }
 
 /**
@@ -3178,5 +3369,105 @@ HWTEST_F(RSCanvasNodeTest, GetType003, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
     ASSERT_TRUE(canvasNode != nullptr);
     ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
+}
+
+/**
+ * @tc.name: CreateTextureExportRenderNodeInRT
+ * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, CreateTextureExportRenderNodeInRT, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->CreateTextureExportRenderNodeInRT();
+    ASSERT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawOnNode
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, DrawOnNode, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    RSModifierType type = RSModifierType::INVALID;
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: GetPaintWidth
+ * @tc.desc: test results of GetPaintWidth
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, GetPaintWidth, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintWidth();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: GetPaintHeight
+ * @tc.desc: test results of GetPaintHeight
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, GetPaintHeight, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintHeight();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: SetFreeze
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, SetFreeze, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetFreeze(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: SetBoundsChangedCallback
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallback, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
+    canvasNode->SetBoundsChangedCallback(canvasNode->boundsChangedCallback_);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 } // namespace OHOS::Rosen

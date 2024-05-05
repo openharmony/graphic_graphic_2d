@@ -18,8 +18,10 @@
 #include <unistd.h>
 #include <scoped_bytrace.h>
 #include <fcntl.h>
+#include <hitrace_meter.h>
 #include "event_handler.h"
 #include "graphic_common.h"
+#include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
 
@@ -30,6 +32,7 @@ constexpr int32_t INVALID_FD = -1;
 }
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
+    HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     if (fileDescriptor < 0) {
         return;
     }
@@ -58,19 +61,28 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
+        RNVFlag_ = false;
     }
     now = data[0];
-    period_ = data[1] - data[0];
-    periodShared_ = data[1] - data[0];
+    period_ = data[1];
+    periodShared_ = data[1];
     timeStamp_ = data[0];
     timeStampShared_ = data[0];
+
+    int64_t expectedEnd = now + period_;
+    if (name_ == "rs") {
+        expectedEnd += period_ - 5000000; // rs vsync offset is 5000000ns
+    }
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
-        " expectedEnd:" + std::to_string(data[1]) + " vsyncId:" + std::to_string(data[2]));
+        " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
     if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
+    }
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
     }
 }
 
@@ -106,13 +118,15 @@ VsyncError VSyncReceiver::Init()
         VLOGW("%{public}s fcntl set fd_ NonBlock failed", __func__);
     }
 
+    listener_->SetName(name_);
+
     if (looper_ == nullptr) {
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(true);
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
     }
 
-    looper_->AddFileDescriptorListener(fd_, OHOS::AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -139,7 +153,11 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
         return VSYNC_ERROR_API_FAILED;
     }
     listener_->SetCallback(callback);
+    listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
 }
 
@@ -186,6 +204,7 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
 
 void VSyncReceiver::CloseVsyncReceiverFd()
 {
+    std::lock_guard<std::mutex> locker(initMutex_);
     if (looper_ != nullptr) {
         looper_->RemoveFileDescriptorListener(fd_);
         VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
@@ -204,6 +223,15 @@ VsyncError VSyncReceiver::Destroy()
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->Destroy();
+}
+
+bool VSyncReceiver::IsRequestedNextVSync()
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return false;
+    }
+    return listener_->GetRNVFlag();
 }
 } // namespace Rosen
 } // namespace OHOS

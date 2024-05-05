@@ -39,7 +39,7 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
         return;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();
-    std::unique_lock<std::mutex> lock(activeNodesInRootMutex_);
+    std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
 
@@ -49,14 +49,32 @@ bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
         return false;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();
-    std::unique_lock<std::mutex> lock(activeNodesInRootMutex_);
+    std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
     return activeNodesInRoot_[rootNodeId].count(node->GetId()) > 0;
+}
+
+void RSContext::AddPendingSyncNode(const std::shared_ptr<RSRenderNode> &node)
+{
+    if (node == nullptr || node->GetId() == INVALID_NODEID) {
+        return;
+    }
+    pendingSyncNodes_.emplace(node->GetId(), node);
 }
 
 void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
 {
     clearMoment_ = moment;
     purgeType_ = purgeType;
+}
+
+void RSContext::SetClearMoment(ClearMemoryMoment moment)
+{
+    clearMoment_ = moment;
+}
+
+ClearMemoryMoment RSContext::GetClearMoment() const
+{
+    return clearMoment_;
 }
 
 void RSContext::Initialize()

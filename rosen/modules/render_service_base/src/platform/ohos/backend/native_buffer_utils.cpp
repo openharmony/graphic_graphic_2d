@@ -17,6 +17,7 @@
 #include "native_buffer_utils.h"
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
+#include "pipeline/sk_resource_manager.h"
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)
@@ -27,7 +28,7 @@ void DeleteVkImage(void* context)
     }
 }
 
-bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice device, OH_NativeBuffer* nativeBuffer,
+bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device, OH_NativeBuffer* nativeBuffer,
                                      VkNativeBufferFormatPropertiesOHOS* nbFormatProps,
                                      VkNativeBufferPropertiesOHOS* nbProps)
 {
@@ -37,7 +38,7 @@ bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice 
     nbProps->sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_PROPERTIES_OHOS;
     nbProps->pNext = nbFormatProps;
 
-    VkResult err = vkContext.vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, nbProps);
+    VkResult err = vkContext.GetRsVulkanInterface().vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, nbProps);
     if (VK_SUCCESS != err) {
         ROSEN_LOGE("NativeBufferUtils: vkGetNativeBufferPropertiesOHOS Failed ! %d", err);
         return false;
@@ -45,9 +46,9 @@ bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice 
     return true;
 }
 
-bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
+bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
     const VkNativeBufferFormatPropertiesOHOS& nbFormatProps, const VkExtent3D& imageSize,
-    VkImageUsageFlags usageFlags = 0)
+    VkImageUsageFlags usageFlags = 0, bool isProtected = false)
 {
     VkExternalFormatOHOS externalFormat;
     externalFormat.sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_OHOS;
@@ -66,7 +67,7 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
 
     VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 
-    VkImageCreateFlags flags = 0;
+    VkImageCreateFlags flags = isProtected ? VK_IMAGE_CREATE_PROTECTED_BIT : 0;
 
     const VkImageCreateInfo imageCreateInfo = {
         VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -86,7 +87,8 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
         VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    VkResult err = vkContext.vkCreateImage(vkContext.GetDevice(), &imageCreateInfo, nullptr, image);
+    VkResult err = vkContext.GetRsVulkanInterface().vkCreateImage(vkContext.GetDevice(),
+        &imageCreateInfo, nullptr, image);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImage failed");
         return false;
@@ -94,17 +96,18 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
     return true;
 }
 
-bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memory, VkImage& image,
-    OH_NativeBuffer* nativeBuffer, VkNativeBufferPropertiesOHOS& nbProps)
+bool AllocateDeviceMemory(RsVulkanContext& vkContext, VkDeviceMemory* memory, VkImage& image,
+    OH_NativeBuffer* nativeBuffer, VkNativeBufferPropertiesOHOS& nbProps, bool isProtected)
 {
     VkPhysicalDeviceMemoryProperties2 physicalDeviceMemProps;
     physicalDeviceMemProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
     physicalDeviceMemProps.pNext = nullptr;
+    auto& vkInterface = vkContext.GetRsVulkanInterface();
 
     uint32_t foundTypeIndex = 0;
-    VkDevice device = vkContext.GetDevice();
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
-    vkContext.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
+    VkDevice device = vkInterface.GetDevice();
+    VkPhysicalDevice physicalDevice = vkInterface.GetPhysicalDevice();
+    vkInterface.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
     uint32_t memTypeCnt = physicalDeviceMemProps.memoryProperties.memoryTypeCount;
     bool found = false;
     for (uint32_t i = 0; i < memTypeCnt; ++i) {
@@ -120,7 +123,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
     }
     if (!found) {
         ROSEN_LOGE("NativeBufferUtils: no fit memory type, memoryTypeBits is %{public}u", nbProps.memoryTypeBits);
-        vkContext.vkDestroyImage(device, image, nullptr);
+        vkInterface.vkDestroyImage(device, image, nullptr);
         return false;
     }
 
@@ -139,17 +142,18 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, &dedicatedAllocInfo, nbProps.allocationSize, foundTypeIndex,
     };
 
-    VkResult err = vkContext.vkAllocateMemory(device, &allocInfo, nullptr, memory);
+    VkResult err = vkInterface.vkAllocateMemory(device, &allocInfo, nullptr, memory);
     if (err != VK_SUCCESS) {
-        vkContext.vkDestroyImage(device, image, nullptr);
+        vkInterface.vkDestroyImage(device, image, nullptr);
         ROSEN_LOGE("NativeBufferUtils: vkAllocateMemory Fail");
         return false;
     }
     return true;
 }
 
-bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory& memory)
+bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory& memory)
 {
+    auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkBindImageMemoryInfo bindImageInfo;
     bindImageInfo.sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
     bindImageInfo.pNext = nullptr;
@@ -157,23 +161,18 @@ bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage&
     bindImageInfo.memory = memory;
     bindImageInfo.memoryOffset = 0;
 
-    VkResult err = vkContext.vkBindImageMemory2(device, 1, &bindImageInfo);
+    VkResult err = vkInterface.vkBindImageMemory2(device, 1, &bindImageInfo);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("NativeBufferUtils: vkBindImageMemory2 failed");
-        vkContext.vkDestroyImage(device, image, nullptr);
-        vkContext.vkFreeMemory(device, memory, nullptr);
+        vkInterface.vkDestroyImage(device, image, nullptr);
+        vkInterface.vkFreeMemory(device, memory, nullptr);
         return false;
     }
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
-    NativeSurfaceInfo& nativeSurface, int width, int height)
-#else
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
-    NativeSurfaceInfo& nativeSurface, int width, int height)
-#endif
+    NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected)
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
@@ -181,7 +180,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         return false;
     }
 
-    auto const& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::GetSingleton();
 
     VkDevice device = vkContext.GetDevice();
 
@@ -198,12 +197,12 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     }
 
     VkImage image;
-    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags)) {
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags, isProtected)) {
         return false;
     }
 
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps)) {
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps, isProtected)) {
         return false;
     }
 
@@ -212,32 +211,6 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     }
 
     auto skColorSpace = RenderContext::ConvertColorGamutToSkColorSpace(nativeSurface.graphicColorGamut);
-#ifndef USE_ROSEN_DRAWING
-    GrVkImageInfo image_info;
-    image_info.fImage = image;
-    image_info.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.fFormat = nbFormatProps.format;
-    image_info.fImageUsageFlags = usageFlags;
-    image_info.fSampleCount = 1;
-    image_info.fLevelCount = 1;
-
-    GrBackendRenderTarget backend_render_target(width, height, 0, image_info);
-    SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
-
-    SkColorType colorType = kRGBA_8888_SkColorType;
-
-    if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
-        colorType = kRGBA_1010102_SkColorType;
-    }
-
-    RSTagTracker tagTracker(skContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-
-    nativeSurface.skSurface = SkSurface::MakeFromBackendRenderTarget(
-        skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, colorType,
-        skColorSpace, &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        image, memory));
-#else
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
     texture_info.SetHeight(height);
@@ -249,6 +222,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     vkTextureInfo->imageUsageFlags = usageFlags;
     vkTextureInfo->sampleCount = 1;
     vkTextureInfo->levelCount = 1;
+    vkTextureInfo->vkProtected = isProtected;
     texture_info.SetVKTextureInfo(vkTextureInfo);
 
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
@@ -269,7 +243,9 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));
-#endif
+    if (nativeSurface.drawingSurface) {
+        SKResourceManager::Instance().HoldResource(nativeSurface.drawingSurface);
+    }
 
     nativeSurface.image = image;
     if (nativeSurface.nativeWindowBuffer != nullptr) {
@@ -301,13 +277,8 @@ GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbForma
     return ycbcrInfo;
 }
 
-#ifndef USE_ROSEN_DRAWING
-GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
-    int width, int height)
-#else
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
-    int width, int height)
-#endif
+    int width, int height, bool isProtected)
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (!nativeBuffer) {
@@ -315,7 +286,7 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
         return {};
     }
 
-    auto const& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::GetSingleton();
     VkDevice device = vkContext.GetDevice();
 
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
@@ -330,12 +301,12 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     }
 
     VkImage image;
-    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags)) {
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags, isProtected)) {
         return {};
     }
 
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps)) {
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps, isProtected)) {
         return {};
     }
 
@@ -343,25 +314,6 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
         return {};
     }
 
-#ifndef USE_ROSEN_DRAWING
-    GrVkAlloc alloc;
-    alloc.fMemory = memory;
-    alloc.fOffset = nbProps.allocationSize;
-
-    GrVkImageInfo imageInfo;
-    imageInfo.fImage = image;
-    imageInfo.fAlloc = alloc;
-    imageInfo.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.fFormat = nbFormatProps.format;
-    imageInfo.fImageUsageFlags = usageFlags;
-    imageInfo.fLevelCount = 1;
-    imageInfo.fCurrentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-    imageInfo.fYcbcrConversionInfo = GetYcbcrInfo(nbFormatProps);
-    imageInfo.fSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    return GrBackendTexture(width, height, imageInfo);
-#else
     Drawing::BackendTexture backendTexture(true);
     Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -370,6 +322,7 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     std::shared_ptr<Drawing::VKTextureInfo> imageInfo = std::make_shared<Drawing::VKTextureInfo>();
     imageInfo->vkImage = image;
     imageInfo->vkAlloc.memory = memory;
+    imageInfo->vkProtected = isProtected ? true : false;
     imageInfo->vkAlloc.size = nbProps.allocationSize;
     imageInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -394,7 +347,6 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     textureInfo.SetVKTextureInfo(imageInfo);
     backendTexture.SetTextureInfo(textureInfo);
     return backendTexture;
-#endif
 }
 } // namespace NativeBufferUtils
 } // namespace OHOS::Rosen

@@ -18,6 +18,7 @@
 
 #include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
+#include <memory>
 #include <platform/ohos/rs_irender_service_connection.h>
 #include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
@@ -43,7 +44,10 @@ public:
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token,
-                                                         uint64_t id = 0) override;
+                                                         uint64_t id = 0,
+                                                         NodeId windowNodeId = 0) override;
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -76,7 +80,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(const FrameRateRange& range) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -95,7 +99,7 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType) override;
+        SurfaceCaptureType surfaceCaptureType, bool isSync) override;
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
@@ -133,6 +137,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -155,15 +161,11 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
-#ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
-    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList) override;
-#else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) override;
-#endif
+    bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
+    bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
@@ -177,6 +179,8 @@ public:
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
+
+    int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
 
@@ -218,6 +222,7 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

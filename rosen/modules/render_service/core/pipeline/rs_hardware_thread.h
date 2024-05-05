@@ -22,6 +22,9 @@
 #include "event_handler.h"
 #include "hdi_backend.h"
 #include "rs_main_thread.h"
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
 
 namespace OHOS::Rosen {
 using UniFallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers,
@@ -43,7 +46,7 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-    uint32_t GetunExcuteTaskNum();
+    uint32_t GetunExecuteTaskNum();
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     int GetHardwareTid() const;
@@ -61,6 +64,10 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
@@ -72,12 +79,15 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
-    std::atomic<uint32_t> unExcuteTaskNum_ = 0;
+    std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
 
     HgmRefreshRates hgmRefreshRates_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
+    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+
+    friend class RSUniRenderThread;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

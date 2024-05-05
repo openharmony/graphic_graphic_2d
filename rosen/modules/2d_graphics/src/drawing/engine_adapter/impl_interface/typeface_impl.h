@@ -20,11 +20,14 @@
 #include <string>
 
 #include "impl_interface/base_impl.h"
+#include "text/font_arguments.h"
 #include "text/font_style.h"
+#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Typeface;
 class TypefaceImpl : public BaseImpl {
 public:
     ~TypefaceImpl() override = default;
@@ -35,6 +38,8 @@ public:
     virtual bool GetItalic() const = 0;
     virtual uint32_t GetUniqueID() const = 0;
     virtual int32_t GetUnitsPerEm() const = 0;
+    virtual std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
 
 protected:
     TypefaceImpl() noexcept = default;

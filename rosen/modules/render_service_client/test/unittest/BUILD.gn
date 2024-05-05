@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/render_service_client"
 
@@ -25,9 +26,21 @@ group("unittest") {
     ":RSInterfacesTest",
     ":RSJankDetectorTest",
     ":RSRegionTest",
+    ":RSScreenSkipFrameTest",
     ":RSTransactionsTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
+  ]
+}
+
+## Build RSScreenSkipFrameTest
+ohos_unittest("RSScreenSkipFrameTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_screen_skipframe_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 
@@ -39,11 +52,7 @@ ohos_unittest("RSJankDetectorTest") {
     "rs_jank_detector_test.cpp",
   ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-  ]
+  external_deps = [ "hisysevent:libhisysevent" ]
 }
 
 ## Build RSInterfacesTest
@@ -51,10 +60,6 @@ ohos_unittest("RSInterfacesTest") {
   module_out_path = module_out_path
   sources = [ "rs_interfaces_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSTransactionsTest
@@ -65,11 +70,6 @@ ohos_unittest("RSTransactionsTest") {
     ":rs_client_test_common",
     "../../../render_service_base:render_service_base_src",
   ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSDropframeTest
@@ -77,10 +77,6 @@ ohos_unittest("RSDropframeTest") {
   module_out_path = module_out_path
   sources = [ "rs_dropframe_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSDisplayModeTest
@@ -88,10 +84,6 @@ ohos_unittest("RSDisplayModeTest") {
   module_out_path = module_out_path
   sources = [ "rs_display_mode_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build TunnelHandleTest
@@ -99,10 +91,6 @@ ohos_unittest("RSTunnelHandleTest") {
   module_out_path = module_out_path
   sources = [ "rs_tunnel_handle_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSEventTest
@@ -110,10 +98,6 @@ ohos_unittest("RSEventTest") {
   module_out_path = module_out_path
   sources = [ "rs_event_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSRegionTest
@@ -124,18 +108,11 @@ ohos_unittest("RSRegionTest") {
     ":rs_client_test_common",
     "../../../render_service_base:render_service_base_src",
   ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build rs_client_test_common.a {{{
 config("rs_client_test_common_public_config") {
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-  ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_client/core" ]
 
   cflags = [
     "-Wall",
@@ -154,14 +131,16 @@ ohos_static_library("rs_client_test_common") {
 
   public_deps = [
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  public_external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

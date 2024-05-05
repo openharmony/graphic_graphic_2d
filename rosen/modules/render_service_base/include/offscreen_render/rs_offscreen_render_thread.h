@@ -18,9 +18,11 @@
 
 #include <functional>
 #include <event_handler.h>
+#include <map>
 #include <mutex>
+#include <sched.h>
 
-#include "common/rs_macros.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
 class RenderContext;
@@ -28,6 +30,8 @@ class RSB_EXPORT RSOffscreenRenderThread {
 public:
     static RSOffscreenRenderThread& Instance();
     void PostTask(const std::function<void()>& task);
+    void InSertCaptureTask(NodeId nodeId, std::function<void()>& task);
+    const std::function<void()> GetCaptureTask(NodeId nodeId);
 #ifdef ROSEN_OHOS
     const std::shared_ptr<RenderContext>& GetRenderContext();
     void CleanGrResource();
@@ -48,6 +52,7 @@ private:
 #ifdef ROSEN_OHOS
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif
+    std::map<NodeId, std::function<void()>> taskMap_;
 };
 }
 #endif // RS_OFFSCREEN_RENDER_THREAD_H

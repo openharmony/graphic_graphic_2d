@@ -14,9 +14,11 @@
  */
 
 #include "js_font.h"
-#include "js_typeface.h"
-#include "../js_drawing_utils.h"
+
 #include "native_value.h"
+
+#include "js_drawing_utils.h"
+#include "js_typeface.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -369,6 +371,11 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 std::shared_ptr<Font> JsFont::GetFont()
 {
     return m_font;
+}
+
+void JsFont::SetFont(std::shared_ptr<Font> font)
+{
+    m_font = font;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

@@ -46,6 +46,9 @@ public:
     void Begin();
     void Commit();
 
+    void SetDuration(int32_t duration) { duration_ = duration; }
+    int32_t GetDuration() const { return duration_; }
+
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
@@ -54,6 +57,7 @@ private:
     uint64_t syncId_ { 0 };
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };
+    int32_t duration_ = 0;
 
     friend class RSSyncTransactionController;
 };

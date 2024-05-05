@@ -41,6 +41,17 @@ enum class CMSMatrixType {
     XYZ,
 };
 
+// CMSMatrix3x3 is a 3x3 float type matrix.
+constexpr static int MATRIX3_SIZE = 3;
+
+struct CMSMatrix3x3 {
+    float vals[MATRIX3_SIZE][MATRIX3_SIZE];
+};
+
+struct CMSTransferFunction {
+    float g, a, b, c, d, e, f;
+};
+
 class DRAWING_API ColorSpace {
 public:
     enum class ColorSpaceType {
@@ -71,6 +82,7 @@ public:
      * @return        A shared pointer to ColorSpace that its type is RGB.
      */
     static std::shared_ptr<ColorSpace> CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix);
+    static std::shared_ptr<ColorSpace> CreateCustomRGB(const CMSTransferFunction& func, const CMSMatrix3x3& matrix);
     /**
      * @brief Create a ColorSpace form a adaptro impl, only used by ImageInfo to ccreate from adaptor image info
      * @param impl    A adaptor impl of color space
@@ -96,6 +108,7 @@ public:
     ColorSpace(ColorSpaceType t) noexcept;
     ColorSpace(ColorSpaceType t, const Image& image) noexcept;
     ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept;
+    ColorSpace(ColorSpaceType t, const CMSTransferFunction& func, const CMSMatrix3x3& matrix) noexcept;
 
     /**
      * @brief Caller use method toProfile of SkColorSpace, the parameter is type skcms_ICCProfile.

@@ -33,21 +33,16 @@ config("effect_config") {
 
 config("effect_public_config") {
   include_dirs = [
-    "//third_party/cJSON",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     "$graphic_2d_root/utils/log",
     "include",
   ]
-  if (effect_enable_gpu) {
-    include_dirs += [ "//third_party/openGLES/api" ]
-  }
 }
 
 ohos_shared_library("libeffectchain") {
   sources = [ "//third_party/cJSON/cJSON.c" ]
 
   external_deps = [
-    "c_utils:utils",
+    "cJSON:cjson",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",
@@ -78,10 +73,9 @@ ohos_shared_library("libeffectchain") {
 
   configs = [ ":effect_config" ]
 
-  public_configs = [
-    ":effect_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":effect_public_config" ]
+
+  public_external_deps = [ "c_utils:utils" ]
 
   cflags_cc = [ "-std=c++17" ]
 

@@ -35,26 +35,13 @@ public:
     void Draw(RSDrawingContext& context) const override
     {
         if (!alpha_ || !rect_ || !backgroundColor_) {
-#ifndef USE_ROSEN_DRAWING
-            SkRect rect = SkRect::MakeXYWH(0, 0, 0, 0);
-            SkPaint p;
-            context.canvas->drawRect(rect, p);
-#else
             auto rect = Drawing::Rect(0, 0, 0, 0);
             Drawing::Brush brush;
             context.canvas->AttachBrush(brush);
             context.canvas->DrawRect(rect);
             context.canvas->DetachBrush();
-#endif
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        SkRect rect = SkRect::MakeXYWH(rect_->Get().x_, rect_->Get().y_, rect_->Get().z_, rect_->Get().w_);
-        SkPaint p;
-        p.setColor(backgroundColor_->Get().AsArgbInt());
-        p.setAlphaf(alpha_->Get());
-        context.canvas->drawRect(rect, p);
-#else
         auto rect = Drawing::Rect(rect_->Get().x_, rect_->Get().y_, rect_->Get().z_, rect_->Get().w_);
         Drawing::Brush brush;
         brush.SetColor(backgroundColor_->Get().AsArgbInt());
@@ -62,7 +49,6 @@ public:
         context.canvas->AttachBrush(brush);
         context.canvas->DrawRect(rect);
         context.canvas->DetachBrush();
-#endif
     }
     void SetRect(Vector4f rect)
     {

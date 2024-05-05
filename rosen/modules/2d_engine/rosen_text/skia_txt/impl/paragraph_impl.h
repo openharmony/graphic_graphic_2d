@@ -60,6 +60,12 @@ public:
 
     void SetIndents(const std::vector<float>& indents) override;
 
+    void MarkDirty() override;
+
+    int32_t GetUnresolvedGlyphsCount() override;
+
+    void UpdateFontSize(size_t from, size_t to, float fontSize) override;
+
     float DetectIndents(size_t index) override;
 
     void Layout(double width) override;
@@ -92,9 +98,19 @@ public:
         }
     }
 
+    void SetParagraghId(uint32_t id) override
+    {
+        id_ = id;
+    }
+
     Drawing::FontMetrics MeasureText() override;
 
     Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
+
+    bool GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
+        std::vector<Drawing::FontMetrics>& fontMetrics) override;
+    std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
+    std::unique_ptr<Paragraph> CloneSelf() override;
 
 private:
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
@@ -105,6 +121,7 @@ private:
     std::vector<TextStyle> lineMetricsStyles_;
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+    uint32_t id_ = 0;
 };
 } // namespace SPText
 } // namespace Rosen

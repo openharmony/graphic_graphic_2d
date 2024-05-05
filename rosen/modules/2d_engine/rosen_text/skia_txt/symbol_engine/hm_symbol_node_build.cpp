@@ -18,73 +18,49 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-#ifndef USE_ROSEN_DRAWING
-static void MergePath(SkPath& multPath, const std::vector<GroupInfo>& groupInfos, std::vector<SkPath>& pathLayers)
-#else
+
+static const std::map<RSEffectStrategy, TextEngine::SymbolAnimationEffectStrategy> ANIMATION_TYPES = {
+    {RSEffectStrategy::NONE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE},
+    {RSEffectStrategy::SCALE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE},
+    {RSEffectStrategy::VARIABLE_COLOR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR},
+    {RSEffectStrategy::APPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR},
+    {RSEffectStrategy::DISAPPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR},
+    {RSEffectStrategy::BOUNCE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE},
+    {RSEffectStrategy::PULSE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_PULSE},
+    {RSEffectStrategy::REPLACE_APPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR}};
+
 static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
-#endif
 {
     for (const auto& groupInfo : groupInfos) {
-#ifndef USE_ROSEN_DRAWING
-        SkPath pathTemp;
-#else
         RSPath pathTemp;
-#endif
         for (auto k : groupInfo.layerIndexes) {
             if (k >= pathLayers.size()) {
                 continue;
             }
-#ifndef USE_ROSEN_DRAWING
-            pathTemp.addPath(pathLayers[k]);
-#else
             pathTemp.AddPath(pathLayers[k]);
-#endif
         }
         for (size_t h : groupInfo.maskIndexes) {
             if (h >= pathLayers.size()) {
                 continue;
             }
-#ifndef USE_ROSEN_DRAWING
-            SkPath outPath;
-            auto isOk = Op(pathTemp, pathLayers[h], SkPathOp::kDifference_SkPathOp, &outPath);
-#else
             RSPath outPath;
             auto isOk = outPath.Op(pathTemp, pathLayers[h], RSPathOp::DIFFERENCE);
-#endif
             if (isOk) {
                 pathTemp = outPath;
             }
         }
-#ifndef USE_ROSEN_DRAWING
-        multPath.addPath(pathTemp);
-#else
         multPath.AddPath(pathTemp);
-#endif
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-SymbolNodeBuild::SymbolNodeBuild(const AnimationSetting animationSetting, const HMSymbolData symbolData,
-    const EffectStrategy effectStrategy, const std::pair<double, double> offset)
-#else
 SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
-    const RSEffectStrategy effectStrategy, const std::pair<double, double> offset)
-#endif
-{
-    animationSetting_ = animationSetting;
-    symbolData_ = symbolData;
-    effectStrategy_ = effectStrategy;
-    offsetX_ = offset.first;
-    offsetY_ = offset.second;
-}
+    const RSEffectStrategy effectStrategy,
+    const std::pair<double, double> offset) : animationSetting_(animationSetting),
+    symbolData_(symbolData), effectStrategy_(effectStrategy),
+    offsetX_(offset.first), offsetY_(offset.second) {}
 
-#ifndef USE_ROSEN_DRAWING
-void SymbolNodeBuild::AddWholeAnimation(const HMSymbolData &symbolData, const Vector4f &nodeBounds,
-    std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
-#else
 void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
-#endif
 {
     TextEngine::SymbolNode symbolNode;
     symbolNode.symbolData = symbolData;
@@ -93,37 +69,19 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void SymbolNodeBuild::AddHierarchicalAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
-    std::vector<GroupSetting> &groupSettings,
-    std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
-#else
 void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::vector<RSGroupSetting> &groupSettings,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    std::vector<SkPath> paths;
-    HMSymbol::PathOutlineDecompose(symbolData.path_, paths);
-    std::vector<SkPath> pathLayers;
-    HMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
-    SColor color;
-#else
     std::vector<RSPath> paths;
     RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
     RSSColor color;
-#endif
     size_t i = 0;
     auto renderGroups = symbolData.symbolInfo_.renderGroups;
     for (auto& groupSetting: groupSettings) {
-#ifndef USE_ROSEN_DRAWING
-        SkPath multPath;
-#else
         RSPath multPath;
-#endif
         MergePath(multPath, groupSetting.groupInfos, pathLayers);
         if (i < renderGroups.size()) {
             color = renderGroups[i].color;
@@ -161,34 +119,26 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     if (symbolAnimationConfig == nullptr) {
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-    auto rect = symbolData_.path_.getBounds();
-    float nodeWidth = rect.fRight - rect.fLeft;
-    float nodeHeight = rect.fTop - rect.fBottom;
-#else
     auto rect = symbolData_.path_.GetBounds();
     float nodeWidth = rect.GetWidth();
     float nodeHeight = rect.GetHeight();
-#endif
     Vector4f nodeBounds = Vector4f(offsetX_, offsetY_, nodeWidth, nodeHeight);
 
-#ifndef USE_ROSEN_DRAWING
-    if (effectStrategy_ == EffectStrategy::SCALE) {
-#else
-    if (effectStrategy_ == RSEffectStrategy::SCALE) {
-#endif
-        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE;
-    }
-#ifndef USE_ROSEN_DRAWING
-    if (effectStrategy_ == EffectStrategy::HIERARCHICAL) {
-#else
-    if (effectStrategy_ == RSEffectStrategy::HIERARCHICAL) {
-#endif
+    if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR || animationMode_ == 0) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
+    } else {
+        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
     }
+
+    auto iter = ANIMATION_TYPES.find(effectStrategy_);
+    if (iter != ANIMATION_TYPES.end()) {
+        symbolAnimationConfig->effectStrategy = iter->second;
+    }
+    symbolAnimationConfig->repeatCount = repeatCount_;
+    symbolAnimationConfig->animationMode = animationMode_;
+    symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
+    symbolAnimationConfig->commonSubType = commonSubType_;
     animationFunc_(symbolAnimationConfig);
     return true;
 }

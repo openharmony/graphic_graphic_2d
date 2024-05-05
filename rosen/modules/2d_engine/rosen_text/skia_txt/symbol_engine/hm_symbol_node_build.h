@@ -21,13 +21,7 @@
 #include <vector>
 #include <utility>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/HMSymbol.h"
-#include "include/core/SkPaint.h"
-#include "include/pathops/SkPathOps.h"
-#else
 #include "drawing.h"
-#endif
 #include "symbol_engine/hm_symbol_txt.h"
 #include "rosen_text/symbol_animation_config.h"
 #include "common/rs_vector4.h"
@@ -38,27 +32,15 @@ namespace SPText {
 
 class SymbolNodeBuild {
 public:
-#ifndef USE_ROSEN_DRAWING
-    SymbolNodeBuild(const AnimationSetting animationSetting, const HMSymbolData symbolData,
-    const EffectStrategy effectStrategy, const std::pair<double, double> offset);
-
-    void AddWholeAnimation(const HMSymbolData &symbolData, const Vector4f &nodeBounds,
-        std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-
-    void AddHierarchicalAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
-        std::vector<GroupSetting> &groupSettings,
-        std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-#else
     SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
     const RSEffectStrategy effectStrategy, const std::pair<double, double> offset);
 
     void AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
 
-    void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
+    static void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::vector<RSGroupSetting> &groupSettings,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-#endif
     ~SymbolNodeBuild() {}
     bool DecomposeSymbolAndDraw();
     void ClearAnimation();
@@ -74,18 +56,36 @@ public:
         symblSpanId_ = symbolSpanId;
     }
 
+    void SetAnimationMode(const uint16_t animationMode)
+    {
+        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
+    }
+
+    void SetRepeatCount(const int repeatCount)
+    {
+        repeatCount_ = repeatCount;
+    }
+
+    void SetAnimationStart(const bool animationStart)
+    {
+        animationStart_ = animationStart;
+    }
+
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
+    {
+        commonSubType_ = commonSubType;
+    }
+
 private:
-#ifndef USE_ROSEN_DRAWING
-    AnimationSetting animationSetting_;
-    HMSymbolData symbolData_;
-    EffectStrategy effectStrategy_;
-#else
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
-    RSEffectStrategy effectStrategy_;
-#endif
+    RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     double offsetX_;
     double offsetY_;
+    uint16_t animationMode_ = 0;
+    int repeatCount_ = 1;
+    bool animationStart_ = true;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;

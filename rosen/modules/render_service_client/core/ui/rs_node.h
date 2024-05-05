@@ -22,6 +22,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
+#include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
@@ -34,19 +35,11 @@
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#else
 #include "recording/recording_canvas.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-using DrawFunc = std::function<void(std::shared_ptr<SkCanvas>)>;
-#else
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
-#endif
 using PropertyCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
@@ -118,6 +111,12 @@ public:
     {
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
+    template<typename T>
+    std::shared_ptr<const T> ReinterpretCastTo() const
+    {
+        return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
+    }
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -128,6 +127,7 @@ public:
 
     bool IsUniRenderEnabled() const;
     bool IsRenderServiceNode() const;
+    void SetTakeSurfaceForUIFlag();
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
@@ -184,6 +184,7 @@ public:
 
     // The property is valid only for CanvasNode and SurfaceNode in uniRender.
     virtual void SetFreeze(bool isFreeze);
+    void SetNodeName(const std::string& nodeName);
 
     void SetSandBox(std::optional<Vector2f> parentPosition);
 
@@ -223,6 +224,12 @@ public:
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
 
+    void SetPersp(float persp);
+    void SetPersp(float perspX, float perspY);
+    void SetPersp(const Vector2f& persp);
+    void SetPerspX(float perspX);
+    void SetPerspY(float perspY);
+
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
 
@@ -230,12 +237,14 @@ public:
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
-    void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
+    void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
+    void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
+    void SetBgImageInnerRect(const Vector4f& innerRect);
     void SetBgImageSize(float width, float height);
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
@@ -261,13 +270,19 @@ public:
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
     void SetOutlineRadius(const Vector4f& radius);
 
+    void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
+    void SetMotionBlurPara(const float radius, const Vector2f& anchor);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
-    void SetGreyCoef1(const float greyCoef1);
-    void SetGreyCoef2(const float greyCoef2);
+    void SetDynamicDimDegree(const float dimDegree);
+    void SetFgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetFgBrightnessFract(const float& fract);
+    void SetBgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetBgBrightnessFract(const float& fract);
+    void SetGreyCoef(const Vector2f greyCoef);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 
     void SetShadowColor(uint32_t colorValue);
@@ -294,7 +309,7 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
@@ -312,11 +327,12 @@ public:
 
     void SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType);
 
-    // driven render
-    void MarkDrivenRender(bool flag);
-    void MarkDrivenRenderItemIndex(int index);
-    void MarkDrivenRenderFramePaintState(bool flag);
-    void MarkContentChanged(bool isChanged);
+    // driven render was shelved, functions will be deleted soon [start]
+    void MarkDrivenRender(bool flag) {}
+    void MarkDrivenRenderItemIndex(int index) {}
+    void MarkDrivenRenderFramePaintState(bool flag) {}
+    void MarkContentChanged(bool isChanged) {}
+    // driven render was shelved, functions will be deleted soon [end]
 
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
@@ -335,6 +351,8 @@ public:
     void SetGrayScale(float grayScale);
 
     void SetLightIntensity(float lightIntensity);
+
+    void SetLightColor(uint32_t lightColorValue);
 
     void SetLightPosition(const Vector4f& lightPosition);
 
@@ -370,6 +388,10 @@ public:
 
     void SetFrameNodeInfo(int32_t id, std::string tag);
 
+    virtual void SetTextureExport(bool isTextureExportNode);
+
+    void SyncTextureExport(bool isTextureExportNode);
+
     int32_t GetFrameNodeId();
 
     std::string GetFrameNodeTag();
@@ -381,8 +403,20 @@ public:
         return isTextureExportNode_;
     }
 
-    // key: symbolSpanID, value:symbol animation node list
-    std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
+    std::mutex childrenNodeLock_; // lock for map operation
+    // key: symbolSpanID, value:nodeid and symbol animation node list
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+
+    // key: status : 1 appear, -1 invalid, value:symbol node animation config
+    std::unordered_map<int,
+        std::unordered_map<NodeId,
+            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
+
+    void SetInstanceId(int32_t instanceId);
+    int32_t GetInstanceId() const
+    {
+        return instanceId_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -406,7 +440,7 @@ protected:
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
 
-    std::recursive_mutex& GetPropertyMutex()
+    std::recursive_mutex& GetPropertyMutex() const
     {
         return propertyMutex_;
     }
@@ -415,14 +449,34 @@ private:
     static void InitUniRenderEnabled();
     NodeId id_;
     NodeId parent_ = 0;
+    int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
+    std::string nodeName_ = "";
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
+    virtual void CreateTextureExportRenderNodeInRT() {};
 
+    void SetBackgroundBlurRadius(float radius);
+    void SetBackgroundBlurSaturation(float saturation);
+    void SetBackgroundBlurBrightness(float brightness);
+    void SetBackgroundBlurMaskColor(Color maskColor);
+    void SetBackgroundBlurColorMode(int colorMode);
+    void SetBackgroundBlurRadiusX(float blurRadiusX);
+    void SetBackgroundBlurRadiusY(float blurRadiusY);
+
+    void SetForegroundBlurRadius(float radius);
+    void SetForegroundBlurSaturation(float saturation);
+    void SetForegroundBlurBrightness(float brightness);
+    void SetForegroundBlurMaskColor(Color maskColor);
+    void SetForegroundBlurColorMode(int colorMode);
+    void SetForegroundBlurRadiusX(float blurRadiusX);
+    void SetForegroundBlurRadiusY(float blurRadiusY);
+    
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
+    std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
@@ -434,14 +488,13 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void UpdateImplicitAnimator();
+    void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };
-    // driven render
-    bool drivenFlag_ = false;
 
     bool isNodeGroup_ = false;
 
@@ -449,8 +502,9 @@ private:
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
+    std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -461,7 +515,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     std::mutex animationMutex_;
-    std::recursive_mutex propertyMutex_;
+    mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;
     friend class RSTransition;

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,6 +32,7 @@ ohos_shared_library("librender_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   if (enhanced_opt) {
@@ -85,12 +86,12 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_base_render_util.cpp",
     "core/pipeline/rs_composer_adapter.cpp",
     "core/pipeline/rs_divided_render_util.cpp",
+    "core/pipeline/rs_draw_frame.cpp",
     "core/pipeline/rs_hardware_thread.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
-    "core/pipeline/rs_qos_thread.cpp",
     "core/pipeline/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/rs_render_engine.cpp",
     "core/pipeline/rs_render_service.cpp",
@@ -98,10 +99,14 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_surface_capture_task_parallel.cpp",
+    "core/pipeline/rs_uifirst_manager.cpp",
+    "core/pipeline/rs_uni_hwc_prevalidate_util.cpp",
     "core/pipeline/rs_uni_render_composer_adapter.cpp",
     "core/pipeline/rs_uni_render_engine.cpp",
     "core/pipeline/rs_uni_render_listener.cpp",
     "core/pipeline/rs_uni_render_processor.cpp",
+    "core/pipeline/rs_uni_render_thread.cpp",
     "core/pipeline/rs_uni_render_util.cpp",
     "core/pipeline/rs_uni_render_virtual_processor.cpp",
     "core/pipeline/rs_uni_render_visitor.cpp",
@@ -118,15 +123,23 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
-  if (rs_enable_driven_render) {
-    sources += [
-      "core/pipeline/driven_render/rs_driven_render_ext.cpp",
-      "core/pipeline/driven_render/rs_driven_render_listener.cpp",
-      "core/pipeline/driven_render/rs_driven_render_manager.cpp",
-      "core/pipeline/driven_render/rs_driven_render_visitor.cpp",
-      "core/pipeline/driven_render/rs_driven_surface_render_node.cpp",
-    ]
-  }
+  #drawable
+  sources += [
+    "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
+    "core/drawable/rs_canvas_render_node_drawable.cpp",
+    "core/drawable/rs_display_render_node_drawable.cpp",
+    "core/drawable/rs_effect_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_drawable.cpp",
+    "core/drawable/rs_root_render_node_drawable.cpp",
+    "core/drawable/rs_surface_render_node_drawable.cpp",
+    "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
+  ]
+
+  #dfx
+  sources += [
+    "core/drawable/dfx/rs_dirty_rects_dfx.cpp",
+    "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+  ]
 
   if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
@@ -139,16 +152,14 @@ ohos_shared_library("librender_service") {
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
       "core/pipeline/parallel_render/rs_filter_sub_thread.cpp",
-      "core/pipeline/parallel_render/rs_node_cost_manager.cpp",
-      "core/pipeline/parallel_render/rs_parallel_hardware_composer.cpp",
-      "core/pipeline/parallel_render/rs_parallel_pack_visitor.cpp",
-      "core/pipeline/parallel_render/rs_parallel_render_manager.cpp",
-      "core/pipeline/parallel_render/rs_parallel_sub_thread.cpp",
-      "core/pipeline/parallel_render/rs_parallel_task_manager.cpp",
       "core/pipeline/parallel_render/rs_render_task.cpp",
       "core/pipeline/parallel_render/rs_sub_thread.cpp",
       "core/pipeline/parallel_render/rs_sub_thread_manager.cpp",
     ]
+  }
+
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    sources += [ "$graphic_2d_ext_root/chipset_vsync/src/chipset_vsync.cpp" ]
   }
 
   if (use_memmgr_plugin || use_memmgr) {
@@ -162,52 +173,74 @@ ohos_shared_library("librender_service") {
   include_dirs = [
     "core",
     "core/round_corner_display",
-    "$graphic_2d_root/frameworks/surface/include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/frame_report/include",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/utils",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/utils/frame_report",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+  }
 
-  if (graphic_2d_feature_enable_ddgr_opinc) {
-    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+  if (graphic_2d_feature_enable_opinc) {
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 
   deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
+    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/utils:frame_report",
   ]
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
-    deps +=
-        [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample" ]
+    deps += [
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
+    ]
   }
+
+  if (rosen_is_ohos) {
+    sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+  } else {
+    sources +=
+        [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+  }
+
+  #profiler
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+    sources += [
+      "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
+    ]
+  }
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_deps = [
     "//third_party/libpng:libpng",
@@ -250,15 +283,20 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
+    "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
+    "graphic_surface:frame_report",
+    "graphic_surface:surface",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
@@ -297,11 +335,12 @@ ohos_shared_library("librender_service") {
 
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
     defines += accessibility_defines
   }
 
   if (use_memmgr_plugin) {
-    external_deps += [ "memmgr_plugin:memmgrclient" ]
+    external_deps += [ "memmgr_override:memmgrclient" ]
   } else if (use_memmgr) {
     external_deps += [ "memmgr:memmgrclient" ]
   }
@@ -311,6 +350,14 @@ ohos_shared_library("librender_service") {
     external_deps += [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
+    ]
+  }
+
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+    external_deps += [
+      "drivers_interface_camera_ext:chipset_vsync_idl_headers",
+      "drivers_interface_camera_ext:libchipset_vsync_proxy_1.0",
     ]
   }
 
@@ -333,20 +380,24 @@ ohos_executable("render_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
+    if (rosen_is_ohos) {
+      boundary_sanitize = true
+      integer_overflow = true
+      ubsan = true
+    }
   }
   sources = [ "core/main.cpp" ]
 
   include_dirs = [
     "core",
-    "//commonlibrary/c_utils/base/include",
-    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
   deps = [
     ":librender_service",
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",

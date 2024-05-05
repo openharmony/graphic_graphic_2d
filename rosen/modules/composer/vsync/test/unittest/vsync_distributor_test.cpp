@@ -220,49 +220,6 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate004, Function | MediumTest| Level3)
 }
 
 /*
-* Function: SetQosVSyncRate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetQosVSyncRate and check ret
- */
-HWTEST_F(VSyncDistributorTest, SetQosVSyncRate001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_123");
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetQosVSyncRate(123, 1), VSYNC_ERROR_OK);
-}
-
-/*
-* Function: QosGetPidByName001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call QosGetPidByName and check ret
- */
-HWTEST_F(VSyncDistributorTest, QosGetPidByName001, Function | MediumTest| Level3)
-{
-    std::string name;
-    uint32_t pid;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
-    name = "WM";
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: GetQosVSyncRateInfos001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetQosVSyncRateInfos and check ret
- */
-HWTEST_F(VSyncDistributorTest, GetQosVSyncRateInfos001, Function | MediumTest| Level3)
-{
-    std::vector<std::pair<uint32_t, int32_t>> vsyncRateInfos;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetQosVSyncRateInfos(vsyncRateInfos), VSYNC_ERROR_OK);
-}
-
-/*
 * Function: SetHighPriorityVSyncRate001
 * Type: Function
 * Rank: Important(2)
@@ -312,27 +269,27 @@ HWTEST_F(VSyncDistributorTest, GetVSyncConnectionInfos001, Function | MediumTest
 }
 
 /*
-* Function: MarkRSNotRendering001
+* Function: SetFrameIsRender001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call MarkRSNotRendering
+* CaseDescription: 1. call SetFrameIsRender with render is true
  */
-HWTEST_F(VSyncDistributorTest, MarkRSNotRendering001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->MarkRSNotRendering();
+    VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(true);
 }
 
 /*
-* Function: UnmarkRSNotRendering001
+* Function: SetFrameIsRender002
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call UnmarkRSNotRendering
+* CaseDescription: 1. call SetFrameIsRender with render is false
  */
-HWTEST_F(VSyncDistributorTest, UnmarkRSNotRendering001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->UnmarkRSNotRendering();
+    VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
 } // namespace
 } // namespace Rosen

@@ -48,8 +48,7 @@ void ShaderCacheTest::TearDown() {}
 HWTEST_F(ShaderCacheTest, instance_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -61,20 +60,12 @@ HWTEST_F(ShaderCacheTest, instance_test_001, TestSize.Level1)
     std::string testedFileDir = "";
     cache.SetFilePath(testedFileDir);
     const char* identity = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeData = SkData::MakeEmpty();
-#else
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
-#endif
     /**
      * @tc.steps: step2. test initialization function
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(nullptr, cache.load(*fakeData));
-#else
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
-#endif
 #endif
 }
 
@@ -88,8 +79,7 @@ HWTEST_F(ShaderCacheTest, instance_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -99,20 +89,12 @@ HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
      */
     auto &cache = ShaderCache::Instance();
     const char* identity = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeData = SkData::MakeEmpty();
-#else
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
-#endif
     /**
      * @tc.steps: step2. test initialization function
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(nullptr, cache.load(*fakeData));
-#else
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
-#endif
 #endif
 }
 
@@ -127,8 +109,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, initialization_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -141,21 +122,13 @@ HWTEST_F(ShaderCacheTest, initialization_test_002, TestSize.Level1)
     cache.SetFilePath(testedFileDir);
     const char* identity = nullptr;
     const char* fakeBuffer = "testStr";
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeData = SkData::MakeWithCopy(fakeBuffer, 8);
-#else
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
     fakeData->BuildWithCopy(fakeBuffer, 8);
-#endif
     /**
      * @tc.steps: step2. test if the file direction is correctly set
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(nullptr, cache.load(*fakeData));
-#else
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
-#endif
 #endif
 }
 
@@ -169,8 +142,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_002, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, store_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -182,24 +154,14 @@ HWTEST_F(ShaderCacheTest, store_test_001, TestSize.Level1)
     std::string testedFileDir = "TemporalFilePath";
     cache.SetFilePath(testedFileDir);
     const char* identity = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeKey = SkData::MakeEmpty();
-    sk_sp<SkData> fakeData = SkData::MakeEmpty();
-#else
     std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
-#endif
     /**
      * @tc.steps: step2. test the store function with given parameters
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    cache.store(*fakeKey, *fakeData);
-    EXPECT_EQ(nullptr, cache.load(*fakeKey));
-#else
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(nullptr, cache.Load(*fakeKey));
-#endif
 #endif
 }
 
@@ -213,8 +175,7 @@ HWTEST_F(ShaderCacheTest, store_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, store_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -226,24 +187,14 @@ HWTEST_F(ShaderCacheTest, store_test_002, TestSize.Level1)
     std::string testedFileDir = "";
     cache.SetFilePath(testedFileDir);
     const char* identity = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeKey = SkData::MakeEmpty();
-    sk_sp<SkData> fakeData = SkData::MakeEmpty();
-#else
     std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
-#endif
     /**
      * @tc.steps: step2. test the store function with given parameters
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    cache.store(*fakeKey, *fakeData);
-    EXPECT_EQ(nullptr, cache.load(*fakeKey));
-#else
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(nullptr, cache.Load(*fakeKey));
-#endif
 #endif
 }
 
@@ -257,8 +208,7 @@ HWTEST_F(ShaderCacheTest, store_test_002, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, writing_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -271,26 +221,16 @@ HWTEST_F(ShaderCacheTest, writing_test_001, TestSize.Level1)
     cache.SetFilePath(testedFileDir);
     const char* identity = nullptr;
     const char* fakeBuffer = "testStr";
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeKey = SkData::MakeWithCopy(fakeBuffer, 8);
-    sk_sp<SkData> fakeData = SkData::MakeWithCopy(fakeBuffer, 8);
-#else
     std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
     fakeKey->BuildWithCopy(fakeBuffer, 8);
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
     fakeData->BuildWithCopy(fakeBuffer, 8);
-#endif
     /**
      * @tc.steps: step2. verify the empty result of writeToDisk function
      */
     cache.InitShaderCache(identity, 0, false);
-#ifndef USE_ROSEN_DRAWING
-    cache.store(*fakeKey, *fakeData);
-    EXPECT_EQ(fakeData->size(), cache.load(*fakeKey)->size());
-#else
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(fakeData->GetSize(), cache.Load(*fakeKey)->GetSize());
-#endif
 
 #endif
 }
@@ -305,8 +245,7 @@ HWTEST_F(ShaderCacheTest, writing_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, writing_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -319,26 +258,16 @@ HWTEST_F(ShaderCacheTest, writing_test_002, TestSize.Level1)
     cache.SetFilePath(testedFileDir);
     const char* identity = "testIdentity";
     const char* fakeBuffer = "testStr";
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> fakeKey = SkData::MakeWithCopy(fakeBuffer, 8);
-    sk_sp<SkData> fakeData = SkData::MakeWithCopy(fakeBuffer, 8);
-#else
     std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
     fakeKey->BuildWithCopy(fakeBuffer, 8);
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
     fakeData->BuildWithCopy(fakeBuffer, 8);
-#endif
     /**
      * @tc.steps: step2. verify the non-empty result of writeToDisk function
      */
     cache.InitShaderCache(identity, 16, false);
-#ifndef USE_ROSEN_DRAWING
-    cache.store(*fakeKey, *fakeData);
-    EXPECT_EQ(fakeData->size(), cache.load(*fakeKey)->size());
-#else
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(fakeData->GetSize(), cache.Load(*fakeKey)->GetSize());
-#endif
 #endif
 }
 } // namespace Rosen

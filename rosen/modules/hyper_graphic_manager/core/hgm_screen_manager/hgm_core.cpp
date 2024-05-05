@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "hgm_frame_rate_manager.h"
+#include "hgm_config_callback_manager.h"
 #include "hgm_log.h"
 #include "vsync_generator.h"
 #include "platform/common/rs_system_properties.h"
@@ -31,10 +32,19 @@
 
 namespace OHOS::Rosen {
 static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+    { 144, 6944444 },
     { 120, 8333333 },
     { 90, 11111111 },
     { 72, 13888888 },
-    { 60, 16666666 }
+    { 60, 16666666 },
+    { 45, 22222222 },
+    { 40, 25000000 },
+    { 36, 27777777 },
+    { 30, 33333333 },
+    { 24, 41666666 },
+    { 20, 50000000 },
+    { 15, 66666666 },
+    { 10, 100000000 },
 };
 
 HgmCore& HgmCore::Instance()
@@ -74,17 +84,18 @@ bool HgmCore::Init()
     // ensure that frameRateManager init after XML parsed.
     hgmFrameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 
-    int newRateMode = static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
+    auto newRateMode = static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
     if (newRateMode == 0) {
         HGM_LOGI("HgmCore No customer refreshrate mode found, set to xml default");
         if (mPolicyConfigData_ == nullptr) {
             HGM_LOGE("HgmCore failed to get parsed data");
         } else {
-            customFrameRateMode_ = static_cast<RefreshRateMode>(std::stoi(mPolicyConfigData_->defaultRefreshRateMode_));
+            customFrameRateMode_ = std::stoi(mPolicyConfigData_->defaultRefreshRateMode_);
         }
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
-        customFrameRateMode_ = static_cast<RefreshRateMode>(newRateMode);
+        customFrameRateMode_ = newRateMode;
+        CheckCustomFrameRateModeValid();
     }
 
     SetLtpoConfig();
@@ -94,6 +105,38 @@ bool HgmCore::Init()
     return isInit_;
 }
 
+void HgmCore::CheckCustomFrameRateModeValid()
+{
+    if (hgmFrameRateMgr_ == nullptr || mPolicyConfigData_ == nullptr) {
+        return;
+    }
+
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto &screenConfigs = mPolicyConfigData_->screenConfigs_;
+    if (screenConfigs.find(curScreenStrategyId) == screenConfigs.end()) {
+        return;
+    }
+
+    auto &screenConfig = screenConfigs[curScreenStrategyId];
+    auto modeStr = std::to_string(customFrameRateMode_);
+    if (screenConfigs.find(modeStr) != screenConfigs.end() || screenConfigs.empty()) {
+        return;
+    }
+
+    int32_t maxMode = HGM_REFRESHRATE_MODE_AUTO;
+    for (auto &[modeStr, _] : screenConfig) {
+        if (!XMLParser::IsNumber(modeStr)) {
+            continue;
+        }
+        auto mode = std::stoi(modeStr);
+        if (maxMode < mode) {
+            maxMode = mode;
+        }
+    }
+    HGM_LOGE("auto repair mode: %{public}d -> %{public}d", customFrameRateMode_, maxMode);
+    customFrameRateMode_ = maxMode;
+}
+
 int32_t HgmCore::InitXmlConfig()
 {
     HGM_LOGD("HgmCore is parsing xml configuration");
@@ -101,7 +144,7 @@ int32_t HgmCore::InitXmlConfig()
         mParser_ = std::make_unique<XMLParser>();
     }
 
-    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(configFileProduct) != EXEC_SUCCESS) {
         HGM_LOGW("HgmCore failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
@@ -160,14 +203,25 @@ void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeC
 {
     refreshRateModeChangeCallback_ = callback;
     if (refreshRateModeChangeCallback_ != nullptr) {
-        refreshRateModeChangeCallback_(customFrameRateMode_);
+        auto refreshRateModeName = GetCurrentRefreshRateModeName();
+        refreshRateModeChangeCallback_(refreshRateModeName);
     }
 }
 
-int32_t HgmCore::SetCustomRateMode(RefreshRateMode mode)
+int32_t HgmCore::SetCustomRateMode(int32_t mode)
 {
     customFrameRateMode_ = mode;
     return EXEC_SUCCESS;
+}
+
+void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback)
+{
+    ScreenId screenId = HgmCore::Instance().GetActiveScreenId();
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    refreshRateUpdateCallback_ = callback;
+    if (refreshRateUpdateCallback_ != nullptr) {
+        refreshRateUpdateCallback_(refreshRate);
+    }
 }
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -200,6 +254,11 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     }
     auto modeList = modeListToApply_.get();
     (*modeList)[id] = modeToSwitch;
+
+    if (refreshRateUpdateCallback_) {
+        refreshRateUpdateCallback_(rate);
+        HGM_LOGD("refresh rate changed, notify to app");
+    }
     return modeToSwitch;
 }
 
@@ -209,8 +268,13 @@ int32_t HgmCore::SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate
     return HGM_ERROR;
 }
 
-int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
+int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
 {
+    // setting mode to xml modeid
+    if (refreshRateMode != HGM_REFRESHRATE_MODE_AUTO
+        && mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+        refreshRateMode = mPolicyConfigData_->SettingModeId2XmlModeId(refreshRateMode);
+    }
     HGM_LOGD("HgmCore set refreshrate mode to : %{public}d", refreshRateMode);
     // change refreshrate mode by setting application
     if (SetCustomRateMode(refreshRateMode) != EXEC_SUCCESS) {
@@ -219,9 +283,11 @@ int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
 
     hgmFrameRateMgr_->HandleRefreshRateMode(refreshRateMode);
 
+    auto refreshRateModeName = GetCurrentRefreshRateModeName();
     if (refreshRateModeChangeCallback_ != nullptr) {
-        refreshRateModeChangeCallback_(refreshRateMode);
+        refreshRateModeChangeCallback_(refreshRateModeName);
     }
+    HgmConfigCallbackManager::GetInstance()->SyncRefreshRateModeChangeCallback(refreshRateModeName);
     return EXEC_SUCCESS;
 }
 
@@ -230,7 +296,8 @@ void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
 
     if (refreshRateModeChangeCallback_ != nullptr) {
-        refreshRateModeChangeCallback_(customFrameRateMode_);
+        auto refreshRateModeName = GetCurrentRefreshRateModeName();
+        refreshRateModeChangeCallback_(refreshRateModeName);
     }
 }
 
@@ -328,8 +395,23 @@ uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 
 int32_t HgmCore::GetCurrentRefreshRateMode() const
 {
-    int32_t currentRefreshRateMode = static_cast<int32_t>(customFrameRateMode_);
-    return currentRefreshRateMode;
+    if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO
+        && mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+        return mPolicyConfigData_->XmlModeId2SettingModeId(customFrameRateMode_);
+    }
+    return customFrameRateMode_;
+}
+
+int32_t HgmCore::GetCurrentRefreshRateModeName() const
+{
+    if (mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+        return mPolicyConfigData_->GetRefreshRateModeName(customFrameRateMode_);
+    }
+    std::map<int32_t, int32_t> modeIdRateMap = {{-1, -1}, {1, 60}, {2, 90}, {3, 120}};
+    if (modeIdRateMap.find(customFrameRateMode_) != modeIdRateMap.end()) {
+        return modeIdRateMap[customFrameRateMode_];
+    }
+    return customFrameRateMode_;
 }
 
 sptr<HgmScreen> HgmCore::GetScreen(ScreenId id) const
@@ -367,8 +449,8 @@ std::vector<int32_t> HgmCore::GetScreenComponentRefreshRates(ScreenId id)
 
     std::vector<int32_t> retVec;
     for (const auto& [rate, _] : mPolicyConfigData_->refreshRateForSettings_) {
-        retVec.emplace_back(std::stoi(rate));
-        HGM_LOGE("HgmCore Adding component rate: %{public}d", std::stoi(rate));
+        retVec.emplace_back(rate);
+        HGM_LOGE("HgmCore Adding component rate: %{public}d", rate);
     }
     return retVec;
 }

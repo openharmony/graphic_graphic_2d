@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -90,10 +91,10 @@ enum class HgmRefreshRateModes {
     SET_RATE_MODE_HIGH = 3
 };
 
-enum class GpuApiType {
-    OPENGL = 0,
-    VULKAN,
-    DDGR,
+enum class SubTreePrepareCheckType {
+    DISABLED = 0,                       // 0, Disable the IsSubTreeNeedPrepare check, prepare the whole subtree
+    DISABLE_SUBTREE_DIRTY_CHECK = 1,    // 1, Disable the IsSubTreeDirty check
+    ENABLED = 2,                        // 2, Enable the IsSubTreeNeedPrepare check
 };
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -124,12 +125,17 @@ public:
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
-    static int GetDumpRSTreeCount();
-    static void SetDumpRSTreeCount(int count);
+
+    static bool GetProfilerEnabled();
+    static bool GetInstantRecording();
+    static void SetInstantRecording(bool flag);
+    static bool GetSaveRDC();
+    static void SetSaveRDC(bool flag);
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
+    static bool GetAnimationTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -146,6 +152,7 @@ public:
     static SurfaceRegionDebugType GetSurfaceRegionDfxType();
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
+    static bool GetHwcRegionDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
@@ -165,25 +172,35 @@ public:
     static bool GetFilterCacheEnabled();
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
-    static bool GetFilterPartialRenderEnabled();
     static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
+    static bool GetMotionBlurEnabled();
     static bool GetKawaseEnabled();
+    static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
+    static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
     static const std::vector<float>& GetAiInvertCoef();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();
+    static bool GetQuickPrepareEnabled();
+    static bool GetRenderParallelEnabled();
     static bool GetPropertyDrawableEnable();
+
+    static bool GetDrawFilterWithoutSnapshotEnabled();
+    static bool GetBlurExtraFilterEnabled();
 
     static bool GetAnimationCacheEnabled();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
+    static bool GetUIFirstDebugEnabled();
+    static bool GetUIFirstForceEnabled();
     static bool GetDebugTraceEnabled();
+    static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();
@@ -191,17 +208,20 @@ public:
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSnapshotWithDMAEnabled();
+    static bool GetDrmEnabled();
     static bool IsPhoneType();
     static bool IsPcType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
-    static bool GetUseShadowBatchingEnabled();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
+    static bool GetAceDebugBoundaryEnabled();
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
+    static SubTreePrepareCheckType GetSubTreePrepareCheckType();
+    static bool GetHDRImageEnable();
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();
@@ -211,12 +231,24 @@ public:
     static bool IsOpincRealDrawCacheEnable();
 #endif
 
+#ifdef RS_ENABLE_STACK_CULLING
+    static bool GetViewOcclusionCullingEnabled();
+#endif
+
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
+    static bool GetDumpImgEnabled();
+
+    static int GetVirtualScreenScaleModeDFX();
 
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;
+    }
+
+    static inline bool IsUseVulkan()
+    {
+        return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
 private:

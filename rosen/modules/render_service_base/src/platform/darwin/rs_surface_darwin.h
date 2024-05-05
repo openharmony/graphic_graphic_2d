@@ -18,15 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
-#else
 #include "image/gpu_context.h"
-#endif
 
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
@@ -35,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
-using OnRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t);
+using OnRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t, const uint64_t);
 class RSSurfaceDarwin : public RSSurface {
 public:
     explicit RSSurfaceDarwin(OnRenderFunc onRender);
@@ -46,7 +38,7 @@ public:
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) override;
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
+        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     RenderContext* GetRenderContext() override;
@@ -69,17 +61,8 @@ private:
     bool SetupGrContext();
 
     RenderContext* renderContext_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
-    sk_sp<SkColorSpace> skColorSpace_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::shared_ptr<Drawing::ColorSpace> drColorSpace_ = nullptr;
-#endif
     OnRenderFunc onRender_ = nullptr;
 };
 } // namespace Rosen

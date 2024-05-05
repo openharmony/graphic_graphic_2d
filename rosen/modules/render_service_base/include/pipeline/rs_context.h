@@ -88,6 +88,8 @@ public:
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
+    void AddPendingSyncNode(const std::shared_ptr<RSRenderNode>& node);
+
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 
     void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
@@ -111,6 +113,21 @@ public:
         }
     }
 
+    void SetRTTaskRunner(const std::function<void(const std::function<void()>&)>& taskRunner)
+    {
+        rttaskRunner_ = taskRunner;
+    }
+
+    void PostRTTask(const std::function<void()>& task) const
+    {
+        if (rttaskRunner_) {
+            rttaskRunner_(task);
+        }
+    }
+
+    void SetClearMoment(ClearMemoryMoment moment);
+    ClearMemoryMoment GetClearMoment() const;
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -126,13 +143,20 @@ private:
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
+    std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
 
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
+
     friend class RSRenderThread;
     friend class RSMainThread;
+    friend class RSDrawFrame;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 
 } // namespace Rosen

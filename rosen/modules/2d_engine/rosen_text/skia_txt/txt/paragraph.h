@@ -21,8 +21,10 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_style.h"
 #include "line_metrics.h"
+#include "text_line_base.h"
 
 #include "rosen_text/symbol_animation_config.h"
+#include "utils.h"
 
 class SkCanvas;
 
@@ -69,20 +71,6 @@ struct TextBox {
 
     SkRect rect;
     TextDirection direction;
-};
-
-template<typename T>
-struct Range {
-    Range() : start(), end() {}
-    Range(T s, T e) : start(s), end(e) {}
-
-    bool operator==(const Range<T>& other) const
-    {
-        return start == other.start && end == other.end;
-    }
-
-    T start;
-    T end;
 };
 
 // Paragraph can be laid out and then drawn on the canvas.
@@ -147,6 +135,15 @@ public:
     // index The index of element in indents vector.
     virtual float DetectIndents(size_t index) = 0;
 
+    // Mark the Typography as dirty, and initially state the Typography.
+    virtual void MarkDirty() = 0;
+
+    // Get the unresolved Glyphs count of lines in a text.
+    virtual int32_t GetUnresolvedGlyphsCount() = 0;
+
+    // Update the font size of lines in a text.
+    virtual void UpdateFontSize(size_t from, size_t to, float fontSize) = 0;
+
     // Layout calculates the positioning of all the glyphs.
     // This method must be called before other methods are called.
     virtual void Layout(double width) = 0;
@@ -183,8 +180,14 @@ public:
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
 
+    virtual void SetParagraghId(uint32_t id) = 0;
+
     virtual OHOS::Rosen::Drawing::FontMetrics MeasureText() = 0;
     virtual OHOS::Rosen::Drawing::FontMetrics GetFontMetricsResult(const OHOS::Rosen::SPText::TextStyle& textStyle) = 0;
+    virtual bool GetLineFontMetrics(const size_t lineNumber,
+        size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
+    virtual std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const = 0;
+    virtual std::unique_ptr<Paragraph> CloneSelf() = 0;
 };
 } // namespace SPText
 } // namespace Rosen

@@ -61,6 +61,7 @@ using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
+using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -118,11 +119,14 @@ public:
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
-        uint64_t id = 0);
+        uint64_t id = 0,
+        NodeId windowNodeId = 0);
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE);
+        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE, bool isSync = false);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId);
@@ -155,7 +159,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -216,6 +220,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
@@ -238,15 +244,11 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
-#ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(NodeId id, SkBitmap& bitmap);
-    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList);
-#else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
-#endif
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
@@ -260,6 +262,8 @@ public:
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);
+
+    int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -299,6 +303,7 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

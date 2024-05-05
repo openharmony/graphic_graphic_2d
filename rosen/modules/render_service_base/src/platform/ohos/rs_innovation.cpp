@@ -24,14 +24,12 @@ void RSInnovation::OpenInnovationSo()
 {
     innovationHandle = dlopen("libgraphic_innovation.z.so", RTLD_NOW);
     GetParallelCompositionFunc();
-    GetQosVSyncFunc();
 }
 
 void RSInnovation::CloseInnovationSo()
 {
     if (innovationHandle) {
         ResetParallelCompositionFunc();
-        ResetQosVsyncFunc();
         dlclose(innovationHandle);
     }
 }
@@ -45,13 +43,6 @@ bool RSInnovation::GetParallelCompositionEnabled(bool isUniRender)
         return parallelcompositionEnabled;
     }
     return _s_parallelCompositionLoaded && parallelcompositionEnabled;
-}
-
-bool RSInnovation::UpdateQosVsyncEnabled()
-{
-    static bool qosVsyncEnabled = std::atoi((system::GetParameter(
-        "persist.rosen.qos_vsync.enabled", "0")).c_str()) != 0;
-    return _s_qosVsyncFuncLoaded && qosVsyncEnabled;
 }
 
 void RSInnovation::GetParallelCompositionFunc()
@@ -83,40 +74,6 @@ void RSInnovation::ResetParallelCompositionFunc()
         _s_assignTask = nullptr;
         _s_removeStoppedThreads = nullptr;
         _s_checkForSerialForced = nullptr;
-    }
-}
-
-void RSInnovation::GetQosVSyncFunc()
-{
-    if (innovationHandle) {
-        _s_createRSQosService = dlsym(innovationHandle, "CreateRSQosService");
-        _s_qosThreadStart = dlsym(innovationHandle, "QosThreadStart");
-        _s_qosThreadStop = dlsym(innovationHandle, "QosThreadStop");
-        _s_qosSetBoundaryRate = dlsym(innovationHandle, "QosSetBoundaryRate");
-        _s_qosOnRSVisibilityChangeCB = dlsym(innovationHandle, "QosOnRSVisibilityChangeCB");
-        _s_qosRegisteFuncCB = dlsym(innovationHandle, "QosRegisteFuncCB");
-        _s_qosOnRSResetPid = dlsym(innovationHandle, "QosOnRSResetPid");
-        _s_qosVsyncFuncLoaded = (_s_createRSQosService != nullptr) &&
-                                (_s_qosThreadStart != nullptr) &&
-                                (_s_qosThreadStop != nullptr) &&
-                                (_s_qosSetBoundaryRate != nullptr) &&
-                                (_s_qosOnRSVisibilityChangeCB != nullptr) &&
-                                (_s_qosRegisteFuncCB != nullptr) &&
-                                (_s_qosOnRSResetPid != nullptr);
-    }
-}
-
-void RSInnovation::ResetQosVsyncFunc()
-{
-    if (_s_qosVsyncFuncLoaded) {
-        _s_qosVsyncFuncLoaded = false;
-        _s_createRSQosService = nullptr;
-        _s_qosThreadStart = nullptr;
-        _s_qosThreadStop = nullptr;
-        _s_qosSetBoundaryRate = nullptr;
-        _s_qosOnRSVisibilityChangeCB = nullptr;
-        _s_qosRegisteFuncCB = nullptr;
-        _s_qosOnRSResetPid = nullptr;
     }
 }
 } // namespace Rosen

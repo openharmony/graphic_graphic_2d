@@ -16,10 +16,6 @@
 #ifndef RS_DIVIDED_UI_CAPTURE
 #define RS_DIVIDED_UI_CAPTURE
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkSurface.h"
-#endif
 #include "pixel_map.h"
 
 #include "common/rs_macros.h"
@@ -63,11 +59,7 @@ private:
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-#ifndef USE_ROSEN_DRAWING
-        void SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas);
-#else
         void SetCanvas(std::shared_ptr<ExtendRecordingCanvas> canvas);
-#endif
 
         void SetPaintFilterCanvas(std::shared_ptr<RSPaintFilterCanvas> canvas);
 
@@ -78,15 +70,9 @@ private:
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
     };
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
-    void PostTaskToRTRecord(std::shared_ptr<RSRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
-        std::shared_ptr<RSDividedUICaptureVisitor> visitor);
-#else
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
     void PostTaskToRTRecord(std::shared_ptr<ExtendRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
         std::shared_ptr<RSDividedUICaptureVisitor> visitor);
-#endif
     std::shared_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
 
     NodeId nodeId_;

@@ -18,19 +18,9 @@
 #include <memory>
 #include <optional>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkMatrix.h"
-#include "include/core/SkPoint.h"
-#ifdef NEW_SKIA
-#include "include/core/SkM44.h"
-#else
-#include "include/core/SkMatrix44.h"
-#endif
-#else
 #include "utils/matrix.h"
 #include "utils/matrix44.h"
 #include "utils/point.h"
-#endif
 
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
@@ -44,15 +34,8 @@ class RSB_EXPORT RSObjAbsGeometry : public RSObjGeometry {
 public:
     RSObjAbsGeometry();
     ~RSObjAbsGeometry() override;
-#ifndef USE_ROSEN_DRAWING
-    void ConcatMatrix(const SkMatrix& matrix);
-    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, const std::optional<SkPoint>& offset,
-        const std::optional<SkRect>& clipRect);
-#else
     void ConcatMatrix(const Drawing::Matrix& matrix);
-    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, const std::optional<Drawing::Point>& offset,
-        const std::optional<Drawing::Rect>& clipRect);
-#endif
+    void UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
 
     // Using by RenderService
     void UpdateByMatrixFromSelf();
@@ -61,43 +44,20 @@ public:
     {
         return absRect_;
     }
+    RectI MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const;
     RectI MapAbsRect(const RectF& rect) const;
+    RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix) const;
 
-#ifndef USE_ROSEN_DRAWING
-    // return transform matrix (context + self)
-    const SkMatrix& GetMatrix() const;
-    // return transform matrix (parent + context + self)
-    const SkMatrix& GetAbsMatrix() const;
-#else
     // return transform matrix (context + self)
     const Drawing::Matrix& GetMatrix() const;
     // return transform matrix (parent + context + self)
     const Drawing::Matrix& GetAbsMatrix() const;
-#endif
 
     bool IsNeedClientCompose() const;
 
-#ifndef USE_ROSEN_DRAWING
-    void SetContextMatrix(const std::optional<SkMatrix>& matrix);
-#else
     void SetContextMatrix(const std::optional<Drawing::Matrix>& matrix);
-#endif
-
-    void Reset() override
-    {
-        RSObjGeometry::Reset();
-        absMatrix_.reset();
-        contextMatrix_.reset();
-    }
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    void ApplySkewToMatrix(SkMatrix& m, bool preConcat = true);
-    void ApplySkewToMatrix44(SkM44& m44, bool preConcat = true);
-#else
-    void ApplySkewToMatrix(Drawing::Matrix& m, bool preConcat = true);
-    void ApplySkewToMatrix44(Drawing::Matrix44& m44, bool preConcat = true);
-#endif
     void UpdateAbsMatrix2D();
     void UpdateAbsMatrix3D();
     void SetAbsRect();
@@ -105,15 +65,9 @@ private:
     Vector2f GetDataRange(float d0, float d1, float d2, float d3) const;
 
     RectI absRect_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix_;
-    std::optional<SkMatrix> absMatrix_;
-    std::optional<SkMatrix> contextMatrix_;
-#else
     Drawing::Matrix matrix_;
     std::optional<Drawing::Matrix> absMatrix_;
     std::optional<Drawing::Matrix> contextMatrix_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

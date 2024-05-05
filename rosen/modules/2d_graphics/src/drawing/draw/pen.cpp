@@ -144,6 +144,16 @@ void Pen::SetBlendMode(BlendMode mode)
     return brush_.SetBlendMode(mode);
 }
 
+void Pen::SetBlender(std::shared_ptr<Blender> blender)
+{
+    brush_.SetBlender(blender);
+}
+
+std::shared_ptr<Blender> Pen::GetBlender() const
+{
+    return brush_.GetBlender();
+}
+
 bool Pen::IsAntiAlias() const
 {
     return brush_.IsAntiAlias();
@@ -192,6 +202,16 @@ std::shared_ptr<ShaderEffect> Pen::GetShaderEffect() const
 void Pen::Reset()
 {
     *this = Pen();
+}
+
+void Pen::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
+{
+    brush_.SetLooper(blurDrawLooper);
+}
+
+std::shared_ptr<BlurDrawLooper> Pen::GetLooper() const
+{
+    return brush_.GetLooper();
 }
 
 bool operator==(const Pen& p1, const Pen& p2)

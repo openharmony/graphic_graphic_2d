@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -95,6 +95,11 @@ void Path::QuadTo(const Point& ctrlPt, const Point endPt)
     impl_->QuadTo(ctrlPt.GetX(), ctrlPt.GetY(), endPt.GetX(), endPt.GetY());
 }
 
+void Path::ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight)
+{
+    impl_->ConicTo(ctrlX, ctrlY, endX, endY, weight);
+}
+
 void Path::RMoveTo(scalar dx, scalar dy)
 {
     impl_->RMoveTo(dx, dy);
@@ -115,6 +120,11 @@ void Path::RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, 
     impl_->RCubicTo(dx1, dy1, dx2, dy2, dx3, dy3);
 }
 
+void Path::RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight)
+{
+    impl_->RConicTo(ctrlPtX, ctrlPtY, endPtX, endPtY, weight);
+}
+
 void Path::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
 {
     impl_->RQuadTo(dx1, dy1, dx2, dy2);
@@ -125,6 +135,11 @@ void Path::AddRect(const Rect& rect, PathDirection dir)
     impl_->AddRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom(), dir);
 }
 
+void Path::AddRect(const Rect& rect, unsigned start, PathDirection dir)
+{
+    impl_->AddRect(rect, start, dir);
+}
+
 void Path::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
     impl_->AddRect(left, top, right, bottom, dir);
@@ -133,6 +148,11 @@ void Path::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDir
 void Path::AddOval(const Rect& oval, PathDirection dir)
 {
     impl_->AddOval(oval.GetLeft(), oval.GetTop(), oval.GetRight(), oval.GetBottom(), dir);
+}
+
+void Path::AddOval(const Rect& oval, unsigned start, PathDirection dir)
+{
+    impl_->AddOval(oval.GetLeft(), oval.GetTop(), oval.GetRight(), oval.GetBottom(), start, dir);
 }
 
 void Path::AddArc(const Rect& oval, scalar startAngle, scalar sweepAngle)
@@ -160,19 +180,19 @@ void Path::AddRoundRect(const RoundRect& rrect, PathDirection dir)
     impl_->AddRoundRect(rrect, dir);
 }
 
-void Path::AddPath(const Path& src, scalar dx, scalar dy)
+void Path::AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode)
 {
-    impl_->AddPath(src, dx, dy);
+    impl_->AddPath(src, dx, dy, mode);
 }
 
-void Path::AddPath(const Path& src)
+void Path::AddPath(const Path& src, PathAddMode mode)
 {
-    impl_->AddPath(src);
+    impl_->AddPath(src, mode);
 }
 
-void Path::AddPath(const Path& src, const Matrix& matrix)
+void Path::AddPath(const Path& src, const Matrix& matrix, PathAddMode mode)
 {
-    impl_->AddPathWithMatrix(src, matrix);
+    impl_->AddPath(src, matrix, mode);
 }
 
 bool Path::Contains(scalar x, scalar y) const
@@ -205,6 +225,11 @@ bool Path::BuildFromInterpolate(const Path& src, const Path& ending, scalar weig
     return impl_->InitWithInterpolate(src, ending, weight);
 }
 
+void Path::TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip)
+{
+    impl_->TransformWithPerspectiveClip(matrix, dst, applyPerspectiveClip);
+}
+
 void Path::Transform(const Matrix& matrix)
 {
     impl_->Transform(matrix);
@@ -213,6 +238,11 @@ void Path::Transform(const Matrix& matrix)
 void Path::Offset(scalar dx, scalar dy)
 {
     impl_->Offset(dx, dy);
+}
+
+void Path::Offset(Path* dst, scalar dx, scalar dy)
+{
+    impl_->Offset(dst, dx, dy);
 }
 
 bool Path::Op(const Path& path1, Path& path2, PathOp op)

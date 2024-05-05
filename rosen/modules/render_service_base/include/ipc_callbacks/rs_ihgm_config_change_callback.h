@@ -27,7 +27,8 @@ public:
     RSIHgmConfigChangeCallback() = default;
     virtual ~RSIHgmConfigChangeCallback() noexcept = default;
     virtual void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) = 0;
-    virtual void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) = 0;
+    virtual void OnHgmRefreshRateModeChanged(int32_t refreshRateModeName) = 0;
+    virtual void OnHgmRefreshRateUpdate(int32_t refreshRateUpdate) = 0;
 };
 }
 }

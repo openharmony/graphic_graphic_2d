@@ -27,15 +27,15 @@
 
 namespace OHOS {
 namespace ColorManager {
-#ifndef TITLE
-#define TITLE __func__
-#endif
 
-constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001400, "JsColorSpace"};
-#define CMLOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
-#define CMLOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
+#undef LOG_TAG
+#define LOG_TAG "JsColorSpace"
+
+#define CMLOGE(fmt, args...) HILOG_ERROR(LOG_CORE, fmt, ##args)
+#define CMLOGI(fmt, args...) HILOG_INFO(LOG_CORE, fmt, ##args)
 
 enum class ApiColorSpaceType : uint32_t {
     UNKNOWN = 0,

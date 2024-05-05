@@ -22,17 +22,29 @@ group("systemtest") {
 }
 
 ohos_systemtest("vulkan_loader_system_test") {
+  defines = [ "VK_USE_PLATFORM_OHOS" ]
   module_out_path = module_out_path
   sources = [ "vulkan_loader_system_test.cpp" ]
   deps = [ ":vulkan_loader_test_common" ]
+  external_deps = [ "graphic_surface:surface" ]
 }
 
-config("vulkan_loader_test_common_public_config") {
-  include_dirs = [
-    "../../../surface/include",
-    "../../../../interfaces/inner_api/surface",
-    "../../../../interfaces/inner_api/common",
-    "../../../../rosen/modules/render_service_client",
+ohos_static_library("vulkan_loader_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_deps = [
+    "../../../../rosen/modules/2d_graphics:2d_graphics",
+    "../../../../rosen/modules/render_service_base:librender_service_base",
+    "../../../../rosen/modules/render_service_client:librender_service_client",
+    "../../../../utils:libgraphic_utils",
+    "//third_party/googletest:gtest_main",
+    "//third_party/vulkan-headers:vulkan_headers",
+    "//third_party/zlib:libz",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 
   cflags = [
@@ -41,28 +53,6 @@ config("vulkan_loader_test_common_public_config") {
     "-g3",
     "-Dprivate=public",
     "-Dprotected=public",
-  ]
-}
-
-ohos_static_library("vulkan_loader_test_common") {
-  visibility = [ ":*" ]
-  testonly = true
-
-  public_configs = [ ":vulkan_loader_test_common_public_config" ]
-
-  public_deps = [
-    "../../../../rosen/modules/2d_graphics:2d_graphics",
-    "../../../../rosen/modules/render_service_base:librender_service_base",
-    "../../../../rosen/modules/render_service_client:librender_service_client",
-    "../../../../utils:libgraphic_utils",
-    "../../../surface:surface",
-    "//third_party/googletest:gtest_main",
-    "//third_party/vulkan-headers:vulkan_headers",
-    "//third_party/zlib:libz",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
   ]
 
   subsystem_name = "graphic"

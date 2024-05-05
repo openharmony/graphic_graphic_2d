@@ -16,14 +16,9 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkColorFilter.h"
-#include "include/core/SkImage.h"
-#else
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
-#endif
 #include "render/rs_image_base.h"
 
 namespace OHOS {
@@ -33,23 +28,13 @@ class PixelMap;
 namespace Rosen {
 class RsImageInfo final {
 public:
-#ifndef USE_ROSEN_DRAWING
-    RsImageInfo(int fitNum, int repeatNum, const SkVector* radius, double scale, uint32_t id, int w, int h)
-        : fitNum_(fitNum), repeatNum_(repeatNum), radius_(radius), scale_(scale),
-          uniqueId_(id), width_(w), height_(h) {};
-#else
     RsImageInfo(int fitNum, int repeatNum, const Drawing::Point* radius, double scale, uint32_t id, int w, int h)
         : fitNum_(fitNum), repeatNum_(repeatNum), radius_(radius), scale_(scale),
           uniqueId_(id), width_(w), height_(h) {};
-#endif
     ~RsImageInfo() {}
     int fitNum_ = 0;
     int repeatNum_ = 0;
-#ifndef USE_ROSEN_DRAWING
-    const SkVector* radius_;
-#else
     const Drawing::Point* radius_;
-#endif
     double scale_ = 0.0;
     uint32_t uniqueId_ = 0;
     int width_ = 0;
@@ -72,6 +57,7 @@ enum class ImageFit {
     NONE,
     SCALE_DOWN,
     TOP_LEFT,
+    COVER_TOP_LEFT,
 };
 
 class RSB_EXPORT RSImage : public RSImageBase {
@@ -80,34 +66,20 @@ public:
     ~RSImage();
 
     bool IsEqual(const RSImage& other) const;
-#ifndef USE_ROSEN_DRAWING
-    void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
-        const SkPaint& paint, bool isBackground = false);
-#else
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
-#endif
     void SetImageFit(int fitNum);
     void SetImageRepeat(int repeatNum);
-#ifndef USE_ROSEN_DRAWING
-    void SetRadius(const SkVector radius[]);
-#else
     void SetRadius(const std::vector<Drawing::Point>& radius);
-#endif
     void SetScale(double scale);
+    void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
 
-#ifndef USE_ROSEN_DRAWING
-    void SetCompressData(const sk_sp<SkData> data, uint32_t id, int width, int height);
-#else
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
-#endif
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    void SetCompressData(const sk_sp<SkData> compressData);
-#endif
-#else
     void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
-#endif
+
+    bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
+    void SetPaint(Drawing::Paint paint);
+    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
 #ifdef ROSEN_OHOS
@@ -122,14 +94,10 @@ public:
         desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + "\n";
         int radiusSize = 4;
         for (int i = 0; i < radiusSize; i++) {
-#ifndef USE_ROSEN_DRAWING
-            radius_[i].dump(desc, depth + 1);
-#else
             desc += split + "\tPointF:{ \n";
             desc += split + "\t\t x_: " + std::to_string(radius_[i].GetX()) + "\n";
             desc += split + "\t\t y_: " + std::to_string(radius_[i].GetY()) + "\n";
             desc += split + "\t}\n";
-#endif
         }
         desc += split + frameRect_.ToString();
         desc += split + "\tscale_: " + std::to_string(scale_) + "\n";
@@ -139,33 +107,21 @@ public:
 private:
     bool HasRadius() const;
     void ApplyImageFit();
-#ifndef USE_ROSEN_DRAWING
-    void ApplyCanvasClip(RSPaintFilterCanvas& canvas);
-    void UploadGpu(RSPaintFilterCanvas& canvas);
-    void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint,
-        RSPaintFilterCanvas& canvas);
-#else
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkData> compressData_;
-#else
     std::shared_ptr<Drawing::Data> compressData_;
-#endif
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
-#ifndef USE_ROSEN_DRAWING
-    SkVector radius_[4];
-#else
     std::vector<Drawing::Point> radius_ = std::vector<Drawing::Point>(4);
-#endif
+    std::optional<Drawing::RectI> innerRect_ = std::nullopt;
     bool hasRadius_ = false;
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
+    Drawing::Paint paint_;
+    uint32_t dynamicRangeMode_ = 0;
 };
 
 template<>

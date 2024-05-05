@@ -20,6 +20,9 @@ namespace Rosen {
 namespace {
 inline float GetCubicBezierValue(const float time, const float ctl1, const float ctl2)
 {
+    if (time < 0.0f) {
+        return 0.0f;
+    }
     constexpr static int three = 3.0;
     const float oneMinusTime = 1.0f - time;
     return three * oneMinusTime * oneMinusTime * time * ctl1 + three * oneMinusTime * time * time * ctl2 +
@@ -83,7 +86,7 @@ int RSCubicBezierInterpolator::BinarySearch(float key) const
     float approximation;
     constexpr float epsilon = 1e-6f;
     while (low <= high) {
-        middle = (low + high) >> 1;
+        middle = ((unsigned int)(low + high)) >> 1;
         approximation = GetCubicBezierValue(SEARCH_STEP * middle, controlX1_, controlX2_);
         if (ROSEN_EQ(approximation, key, epsilon)) {
             // Early exit if the key is found within an acceptable error range

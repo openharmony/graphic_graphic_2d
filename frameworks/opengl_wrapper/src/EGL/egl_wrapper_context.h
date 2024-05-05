@@ -18,12 +18,14 @@
 
 #include <EGL/egl.h>
 #include "egl_wrapper_object.h"
+#include "egl_defs.h"
 namespace OHOS {
 class EglWrapperDisplay;
 
 class EglWrapperContext : public EglWrapperObject {
 public:
-    EglWrapperContext(EglWrapperDisplay *disp, EGLContext context);
+    EglWrapperContext(EglWrapperDisplay *disp, EGLContext context,
+        EGLint version = EglWrapperDispatchTable::GLESV1_INDEX);
     void SetCurrentSurface(EGLSurface draw, EGLSurface read);
     EGLSurface GetCurrentSurface(EGLint type) const;
     static EglWrapperContext *GetWrapperContext(EGLContext ctx);
@@ -31,12 +33,17 @@ public:
     {
         return context_;
     };
+    inline EGLint GetEglVersion() const
+    {
+        return version_;
+    };
 protected:
     ~EglWrapperContext() override;
 private:
     EGLContext context_;
     EGLSurface read_;
     EGLSurface draw_;
+    EGLint version_;
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_CONTEXT_H
