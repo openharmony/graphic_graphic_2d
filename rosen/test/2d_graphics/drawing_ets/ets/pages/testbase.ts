@@ -135,8 +135,9 @@ export class TestBase {
     await this.OnTestPerformanceCpu(this.canvas_);
 
     let endTime = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
-    console.error(TAG, 'DrawingApiTest Finished: [' + endTime + ']');
+    console.log(TAG, 'DrawingApiTest Finished: [' + endTime + ']');
     this.time_ = endTime - startTime;
+    // log error is to avoid log loss
     console.error(TAG, 'DrawingApiTest TotalApiCallTime: [' + this.time_ + ']');
     console.error(TAG, 'DrawingApiTest TotalApiCallCount: [' + this.testCount_ + ']');
     this.StyleSettingsDestroy(this.canvas_);
@@ -163,8 +164,9 @@ export class TestBase {
     this.OnTestPerformanceGpuUpScreen(canvas);
 
     let endTime = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
-    console.error(TAG, 'DrawingApiTest Finished: [' + endTime + ']');
+    console.log(TAG, 'DrawingApiTest Finished: [' + endTime + ']');
     this.time_ = endTime - startTime;
+    // log error is to avoid log loss
     console.error(TAG, 'DrawingApiTest TotalApiCallTime: [' + this.time_ + ']');
     console.error(TAG, 'DrawingApiTest TotalApiCallCount: [' + this.testCount_ + ']');
     console.log(TAG, 'TestPerformanceGpuUpScreen end');
