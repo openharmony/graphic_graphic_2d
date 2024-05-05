@@ -61,7 +61,8 @@ uint32_t TestBase::GetTime()
     return usedTime_;
 }
 
-void TestBase::ClipCanvasToDrawSize(OH_Drawing_Canvas *canvas) {
+void TestBase::ClipCanvasToDrawSize(OH_Drawing_Canvas *canvas)
+{
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, bitmapWidth_, bitmapHeight_);
     OH_Drawing_CanvasClipRect(canvas, rect, OH_Drawing_CanvasClipOp::INTERSECT, false);
     OH_Drawing_RectDestroy(rect);
@@ -84,7 +85,8 @@ void TestBase::TestFunctionGpu(napi_env env)
 
 void TestBase::TestFunctionGpu(OH_Drawing_Canvas *canvas) { OnTestFunction(canvas); }
 
-std::chrono::high_resolution_clock::time_point TestBase::LogStart() {
+std::chrono::high_resolution_clock::time_point TestBase::LogStart()
+{
     auto start = std::chrono::high_resolution_clock::now();
     return start;
 }

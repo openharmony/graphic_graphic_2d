@@ -98,13 +98,6 @@ void PluginManager::SetNativeXComponent(std::string &id, OH_NativeXComponent *na
         nativeXComponentMap_[id] = nativeXComponent;
         return;
     }
-
-    if (nativeXComponentMap_[id] != nativeXComponent) {
-        OH_NativeXComponent *tmp = nativeXComponentMap_[id];
-        delete tmp;
-        tmp = nullptr;
-        nativeXComponentMap_[id] = nativeXComponent;
-    }
 }
 
 MyXComponent *PluginManager::GetRender(std::string &id)
