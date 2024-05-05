@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "common/rs_macros.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,19 +37,19 @@ public:
     RSLuminanceControl(RSLuminanceControl&&) = delete;
     RSLuminanceControl& operator=(RSLuminanceControl&&) = delete;
 
-    RSB_EXPORT void SetHdrStatus([[maybe_unused]] uint64_t screenId, [[maybe_unused]] bool isHdrOn);
-    RSB_EXPORT bool IsHdrOn([[maybe_unused]] uint64_t screenId) const;
-    RSB_EXPORT bool IsDimmingOn([[maybe_unused]] uint64_t screenId) const;
-    RSB_EXPORT void DimmingIncrease([[maybe_unused]] uint64_t screenId);
+    RSB_EXPORT void SetHdrStatus([[maybe_unused]] ScreenId screenId, [[maybe_unused]] bool isHdrOn);
+    RSB_EXPORT bool IsHdrOn([[maybe_unused]] ScreenId screenId) const;
+    RSB_EXPORT bool IsDimmingOn([[maybe_unused]] ScreenId screenId) const;
+    RSB_EXPORT void DimmingIncrease([[maybe_unused]] ScreenId screenId);
 
-    RSB_EXPORT void SetSdrLuminance([[maybe_unused]] uint64_t screenId, [[maybe_unused]] uint32_t level);
-    RSB_EXPORT uint32_t GetNewHdrLuminance([[maybe_unused]] uint64_t screenId);
-    RSB_EXPORT void SetNowHdrLuminance([[maybe_unused]] uint64_t screenId, [[maybe_unused]] uint32_t level);
-    RSB_EXPORT bool IsNeedUpdateLuminance([[maybe_unused]] uint64_t screenId);
+    RSB_EXPORT void SetSdrLuminance([[maybe_unused]] ScreenId screenId, [[maybe_unused]] uint32_t level);
+    RSB_EXPORT uint32_t GetNewHdrLuminance([[maybe_unused]] ScreenId screenId);
+    RSB_EXPORT void SetNowHdrLuminance([[maybe_unused]] ScreenId screenId, [[maybe_unused]] uint32_t level);
+    RSB_EXPORT bool IsNeedUpdateLuminance([[maybe_unused]] ScreenId screenId);
 
-    RSB_EXPORT float GetHdrTmoNits([[maybe_unused]] uint64_t screenId, int Mode) const;
-    RSB_EXPORT float GetHdrDisplayNits([[maybe_unused]] uint64_t screenId) const;
-    RSB_EXPORT double GetHdrBrightnessRatio([[maybe_unused]] uint64_t screenId, int Mode) const;
+    RSB_EXPORT float GetHdrTmoNits([[maybe_unused]] ScreenId screenId, int Mode) const;
+    RSB_EXPORT float GetHdrDisplayNits([[maybe_unused]] ScreenId screenId) const;
+    RSB_EXPORT double GetHdrBrightnessRatio([[maybe_unused]] ScreenId screenId, int Mode) const;
 
 private:
     RSLuminanceControl() = default;
