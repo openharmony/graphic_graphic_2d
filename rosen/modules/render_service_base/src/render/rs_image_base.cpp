@@ -91,9 +91,6 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
-#ifndef ROSEN_ARKUI_X
-    SKResourceManager::Instance().HoldResource(image);
-#endif
 }
 #endif
 
