@@ -14,38 +14,32 @@
  */
 
 #include "test_base.h"
-#include <fcntl.h>
-#include "common/log_common.h"
 
-#include <chrono>
-#include <sstream>
-#include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <memory>
-#include <unordered_map>
-
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
 #include <multimedia/image_framework/image_packer_mdk.h>
-
-
-#include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_brush.h>
+#include <native_drawing/drawing_color.h>
+#include <native_drawing/drawing_filter.h>
+#include <native_drawing/drawing_image.h>
+#include <native_drawing/drawing_mask_filter.h>
 #include <native_drawing/drawing_matrix.h>
 #include <native_drawing/drawing_path.h>
+#include <native_drawing/drawing_path_effect.h>
 #include <native_drawing/drawing_pen.h>
+#include <native_drawing/drawing_point.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_round_rect.h>
-#include <native_drawing/drawing_shader_effect.h>
-#include <native_drawing/drawing_point.h>
-#include <native_drawing/drawing_image.h>
-#include <native_drawing/drawing_filter.h>
 #include <native_drawing/drawing_sampling_options.h>
-#include <native_drawing/drawing_path_effect.h>
-#include <native_drawing/drawing_filter.h>
-#include <native_drawing/drawing_mask_filter.h>
+#include <native_drawing/drawing_shader_effect.h>
+#include <sstream>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <unordered_map>
+#include "common/log_common.h"
 
 void TestBase::SetFileName(std::string fileName)
 {
@@ -90,22 +84,26 @@ void TestBase::TestFunctionGpu(napi_env env)
 
 void TestBase::TestFunctionGpu(OH_Drawing_Canvas *canvas) { OnTestFunction(canvas); }
 
-void TestBase::TestPerformanceGpu(OH_Drawing_Canvas *canvas)
-{
-    StyleSettings(canvas, styleType_);
-    auto timeZero = std::chrono::high_resolution_clock::now();
+std::chrono::high_resolution_clock::time_point TestBase::LogStart() {
     auto start = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Started: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(start - timeZero).count());
+    return start;
+}
 
-    OnTestPerformance(canvas);
-
+void TestBase::LogEnd(std::chrono::high_resolution_clock::time_point start)
+{
     auto end = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Finished: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(end - timeZero).count());
+    // LOGE is to avoid log loss
     DRAWING_LOGE("DrawingApiTest TotalApiCallCount: [%{public}u]", testCount_);
     usedTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     DRAWING_LOGE("DrawingApiTest TotalApiCallTime: [%{public}u]", usedTime_);
+}
+
+void TestBase::TestPerformanceGpu(OH_Drawing_Canvas *canvas)
+{
+    StyleSettings(canvas, styleType_);
+    auto start = LogStart();
+    OnTestPerformance(canvas);
+    LogEnd(start);
     StyleSettingsDestroy(canvas);
 }
 
@@ -113,19 +111,11 @@ void TestBase::TestPerformanceCpu(napi_env env)
 {
     CreateBitmapCanvas();
     StyleSettings(bitmapCanvas_, styleType_);
-    auto timeZero = std::chrono::high_resolution_clock::now();
-    auto start = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Started: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(start - timeZero).count());
+    auto start = LogStart();
 
     OnTestPerformance(bitmapCanvas_);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Finished: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(end - timeZero).count());
-    DRAWING_LOGE("DrawingApiTest TotalApiCallCount: [%{public}u]", testCount_);
-    usedTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    DRAWING_LOGE("DrawingApiTest TotalApiCallTime: [%{public}u]", usedTime_);
+    LogEnd(start);
     BitmapCanvasToFile(env);
     StyleSettingsDestroy(bitmapCanvas_);
 }
@@ -134,19 +124,11 @@ void TestBase::TestPerformanceGpu(napi_env env)
 {
     CreateGpuCanvas();
     StyleSettings(gpuCanvas_, styleType_);
-    auto timeZero = std::chrono::high_resolution_clock::now();
-    auto start = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Started: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(start - timeZero).count());
+    auto start = LogStart();
 
     OnTestPerformance(gpuCanvas_);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    DRAWING_LOGE("DrawingApiTest Finished: [%{public}lld]",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(end - timeZero).count());
-    DRAWING_LOGE("DrawingApiTest TotalApiCallCount: [%{public}u]", testCount_);
-    usedTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    DRAWING_LOGE("DrawingApiTest TotalApiCallTime: [%{public}u]", usedTime_);
+    LogEnd(start);
     GpuCanvasToFile(env);
     StyleSettingsDestroy(gpuCanvas_);
     Destroy();
@@ -212,7 +194,7 @@ void TestBase::BitmapCanvasToFile(napi_env env)
 
 void TestBase::GpuCanvasToFile(napi_env env)
 {
-    DRAWING_LOGE("GpuCanvasToFile");
+    DRAWING_LOGI("GpuCanvasToFile");
     //创建pixmap
     napi_value pixelMap = nullptr;
     struct OhosPixelMapCreateOps createOps;
@@ -313,7 +295,6 @@ void TestBase::StyleSettings(OH_Drawing_Canvas* canvas, int32_t type)
     }
     StyleSettingsDestroy(canvas);
     if (type == DRAW_STYLE_COMPLEX) {
-        DRAWING_LOGE("xyj DRAW_STYLE_COMPLEX");
         styleBrush_ = OH_Drawing_BrushCreate();
         stylePen_ = OH_Drawing_PenCreate();
 

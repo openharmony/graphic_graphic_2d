@@ -110,7 +110,7 @@ void PluginManager::SetNativeXComponent(std::string &id, OH_NativeXComponent *na
 MyXComponent *PluginManager::GetRender(std::string &id)
 {
     if (pluginRenderMap_.find(id) == pluginRenderMap_.end()) {
-        MyXComponent *instance = MyXComponent::GetInstance(id);
+        MyXComponent *instance = MyXComponent::GetOrCreateInstance(id);
         pluginRenderMap_[id] = instance;
         return instance;
     }

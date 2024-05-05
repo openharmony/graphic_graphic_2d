@@ -16,14 +16,15 @@
 #ifndef TEST_BASE_H
 #define TEST_BASE_H
 
-#include "napi/native_api.h"
-#include <string>
 #include <bits/alltypes.h>
+#include <chrono>
 #include <native_drawing/drawing_canvas.h>
 #include <native_drawing/drawing_gpu_context.h>
 #include <native_drawing/drawing_bitmap.h>
 #include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_surface.h>
+#include <string>
+#include "napi/native_api.h"
 
 #define DEFAULT_WIDTH 720
 #define DEFAULT_HEIGHT 720
@@ -40,6 +41,7 @@ public:
             free(dstPixels_);
             dstPixels_ = nullptr;
         }
+        StyleSettingsDestroy(nullptr);
     };
 
     void SetFileName(std::string fileName);
@@ -75,6 +77,10 @@ protected:
     void BitmapCanvasToFile(napi_env env);
     void GpuCanvasToFile(napi_env env);
     void Pixmap2File(napi_env env, napi_value pixelMap);
+
+    std::chrono::high_resolution_clock::time_point LogStart();
+    void LogEnd(std::chrono::high_resolution_clock::time_point start);
+
     void* dstPixels_ = nullptr;
 
     //pixmap to file

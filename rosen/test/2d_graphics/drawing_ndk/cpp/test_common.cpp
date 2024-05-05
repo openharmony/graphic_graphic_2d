@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 #include "test_common.h"
-#include "common/log_common.h"
-#include <native_drawing/drawing_rect.h>
-#include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_bitmap.h>
+#include <native_drawing/drawing_path.h>
+#include <native_drawing/drawing_rect.h>
+#include "common/log_common.h"
 
 union drawFloatIntUnion {
     float   fFloat;
@@ -172,4 +172,25 @@ void DrawPathGetBound(DrawRect& r, float x, float y)
     if (y > r.bottom) {
         r.bottom = y;
     }
+}
+
+
+bool ConvertStringFromJsValue(napi_env env, napi_value jsValue, std::string &value)
+{
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, jsValue, nullptr, 0, &len) != napi_ok) {
+        return false;
+    }
+    auto buffer = std::make_unique<char[]>(len + 1);
+    size_t strLength = 0;
+    if (napi_get_value_string_utf8(env, jsValue, buffer.get(), len + 1, &strLength) == napi_ok) {
+        value = buffer.get();
+        return true;
+    }
+    return false;
+}
+
+bool ConvertIntFromJsValue(napi_env env, napi_value jsValue, uint32_t &value)
+{
+    return napi_get_value_uint32(env, jsValue, &value) == napi_ok;
 }
