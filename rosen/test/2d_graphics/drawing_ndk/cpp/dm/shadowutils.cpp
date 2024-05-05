@@ -128,8 +128,6 @@ void make_path_rect(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
 void make_path_star(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>& pathsBounds)
 {
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    std::vector<OH_Drawing_Path*> concavePaths;
-    std::vector<DrawRect> concavePathsBounds;
     path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, 0.0, -33.3333);       // 0.0, -33.3333 gm 要求的图形坐标
     OH_Drawing_PathLineTo(path, 9.62, -16.6667);      // 9.62, -16.6667 gm 要求的图形坐标
@@ -144,8 +142,8 @@ void make_path_star(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
     OH_Drawing_PathLineTo(path, -28.867f, -16.6667f); // -28.867f, -16.6667f gm 要求的图形坐标
     OH_Drawing_PathLineTo(path, -9.62f, -16.6667f);   // -9.62f, -16.6667f gm 要求的图形坐标
     OH_Drawing_PathClose(path);
-    concavePaths.push_back(path);
-    concavePathsBounds.push_back(
+    paths.push_back(path);
+    pathsBounds.push_back(
         { -28.867f, -33.3333, 28.867f, 33.3333f }); //  -28.867f, -33.3333, 28.867f, 33.3333f gm 要求的图形坐
 
     // dumbbell
@@ -153,8 +151,8 @@ void make_path_star(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
     OH_Drawing_PathMoveTo(path, 50.0, 0);                 // 50.0, 0 gm 要求的图形坐标
     OH_Drawing_PathCubicTo(path, 100, 25, 60, 50, 50, 0); // 100, 25, 60, 50, 50, 0 gm 要求的图形坐标
     OH_Drawing_PathCubicTo(path, 0, -25, 40, -50, 50, 0); // 0, -25, 40, -50, 50, 0 gm 要求的图形坐标
-    concavePaths.push_back(path1);
-    concavePathsBounds.push_back({ 0, -50, 100, 50 }); // 0, -50, 100, 50  gm 要求的图形坐标
+    paths.push_back(path1);
+    pathsBounds.push_back({ 0, -50, 100, 50 }); // 0, -50, 100, 50  gm 要求的图形坐标
 }
 
 void destory_path(std::vector<OH_Drawing_Path*>& paths, std::vector<OH_Drawing_Path*>& concavePaths,
@@ -190,7 +188,7 @@ void draw_rect_path(
         OH_Drawing_PenSetWidth(pen, 0);
         OH_Drawing_CanvasAttachPen(canvas, pen);
     } else {
-        OH_Drawing_BrushSetColor(brush, ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC : 0xFFFFFFFF);
+        OH_Drawing_BrushSetColor(brush, ShadowUtils::K_OCCLUDERS == mode ? 0xFFCCCCCC : 0xFFFFFFFF);
         if (flags & SHADOW_FLAGS_TRANSPARENT_OCCLUDER)
             OH_Drawing_BrushSetAlpha(brush, 0x80); // 0.5 alpha
         OH_Drawing_CanvasAttachBrush(canvas, brush);
@@ -202,7 +200,7 @@ void draw_rect_path(
     OH_Drawing_BrushDestroy(brush);
 }
 
-void draw_rect_path_shadow(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param, float& dy, float& x)
+void draw_rect_path_shadow(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM& param, float& dy, float& x)
 {
     ShadowUtils::ShadowMode mode = param.mode;
     OH_Drawing_Point3D lightPos = param.lightPos;
@@ -214,8 +212,9 @@ void draw_rect_path_shadow(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param, flo
     OH_Drawing_Matrix* m = param.m;
     int pathCounter = 0;
     for (const auto path : param.paths) {
-        DrawRect postMBounds = param.pathsBounds[pathCounter];
-        float dx = postMBounds.Width() + kHeight + kPad;
+        DrawRect pathBound = param.pathsBounds[pathCounter];
+        float dx = pathBound.Width() + kHeight + kPad;
+
         if (x + dx > K_W - 3 * kPad) { // 3倍间距
             OH_Drawing_CanvasRestore(canvas);
             OH_Drawing_CanvasTranslate(canvas, 0, dy);
@@ -229,7 +228,7 @@ void draw_rect_path_shadow(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param, flo
             OH_Drawing_CanvasSave(canvas);
             OH_Drawing_CanvasRotate(canvas, 180.f, 25.f, 25.f); // 180.f 旋转角度, 25.f x偏移 , 25.f y偏移
         }
-        if (ShadowUtils::K_NO_OCCLUDERS == mode || ShadowUtils::K_NO_OCCLUDERS == mode) {
+        if (ShadowUtils::K_NO_OCCLUDERS == mode || ShadowUtils::K_OCCLUDERS == mode) {
             draw_shadow(canvas, path, { kHeight, 0xFFFF0000, lightPos, kLightR, true, flags });
             draw_shadow(canvas, path, { kHeight, 0xFF0000FF, lightPos, kLightR, false, flags });
         } else if (ShadowUtils::K_GRAY_SCALE == mode) {
@@ -245,18 +244,13 @@ void draw_rect_path_shadow(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param, flo
         OH_Drawing_CanvasRestore(canvas);
         OH_Drawing_CanvasTranslate(canvas, dx, 0);
         x += dx;
-        dy = std::max(dy, postMBounds.Height() + kPad + kHeight);
+        dy = std::max(dy, pathBound.Height() + kPad + kHeight);
         ++pathCounter;
     }
 }
 
-void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
+void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM& param)
 {
-    ShadowUtils::ShadowMode mode = param.mode;
-    OH_Drawing_Point3D lightPos = param.lightPos;
-    float kHeight = param.kHeight;
-    float kLightR = param.kLightR;
-    float kPad = param.kPad;
     float dy = 0;
     float x = 0;
     for (auto m : param.matrices) {
@@ -268,7 +262,7 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
     }
 }
 
-void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
+void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM& param)
 {
     ShadowUtils::ShadowMode mode = param.mode;
     OH_Drawing_Point3D lightPos = param.lightPos;
@@ -280,11 +274,11 @@ void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
     for (auto m : param.matrices) {
         int pathCounter = 0;
         for (const auto path : param.paths) {
-            DrawRect postMBounds = param.pathsBounds[pathCounter];
-            float dx = postMBounds.Width() + kHeight + kPad;
+            DrawRect pathBounds = param.pathsBounds[pathCounter];
+            float dx = pathBounds.Width() + kHeight + kPad;
             OH_Drawing_CanvasSave(canvas);
             OH_Drawing_CanvasConcatMatrix(canvas, m);
-            if (ShadowUtils::K_NO_OCCLUDERS == mode || ShadowUtils::K_NO_OCCLUDERS == mode) {
+            if (ShadowUtils::K_NO_OCCLUDERS == mode || ShadowUtils::K_OCCLUDERS == mode) {
                 draw_shadow(canvas, path, { kHeight, 0xFFFF0000, lightPos, kLightR, true, SHADOW_FLAGS_NONE });
                 draw_shadow(canvas, path, { kHeight, 0xFF0000FF, lightPos, kLightR, false, SHADOW_FLAGS_NONE });
             } else if (ShadowUtils::K_GRAY_SCALE == mode) {
@@ -301,7 +295,7 @@ void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
                 OH_Drawing_CanvasAttachPen(canvas, pen);
             } else {
                 OH_Drawing_BrushSetColor(brush,
-                    ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC : 0xFFFFFFFF); // SK_ColorLTGRAY : SK_ColorWHITE
+                    ShadowUtils::K_OCCLUDERS == mode ? 0xFFCCCCCC : 0xFFFFFFFF); // SK_ColorLTGRAY : SK_ColorWHITE
                 OH_Drawing_CanvasAttachBrush(canvas, brush);
             }
             OH_Drawing_CanvasDrawPath(canvas, path);
@@ -312,7 +306,7 @@ void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
             OH_Drawing_CanvasRestore(canvas);
             OH_Drawing_CanvasTranslate(canvas, dx, 0);
             x += dx;
-            dy = std::max(dy, postMBounds.Height() + kPad + kHeight);
+            dy = std::max(dy, pathBounds.Height() + kPad + kHeight);
             pathCounter++;
         }
     }
@@ -347,7 +341,7 @@ ShadowUtils::ShadowUtils(ShadowMode m) : sMode(m)
 {
     bitmapWidth_ = K_W;
     bitmapHeight_ = K_H;
-    fileName_ = "shadowutils";
+    fileName_ = "shadow_utils";
 }
 
 void ShadowUtils::OnTestFunction(OH_Drawing_Canvas* canvas)
@@ -376,6 +370,7 @@ void ShadowUtils::draw_paths(OH_Drawing_Canvas* canvas, ShadowMode mode)
     OH_Drawing_Point3D lightPos = { lightXY.x, lightXY.y, 500.f }; // 500.f 坐标参数
 
     OH_Drawing_CanvasTranslate(canvas, 3 * kPad, 3 * kPad); // 3 3 个xy平移单位
+    OH_Drawing_CanvasSave(canvas);
     float x = 0;
     float dy = 0;
     std::vector<OH_Drawing_Matrix*> matrices;
