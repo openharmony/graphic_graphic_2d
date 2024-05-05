@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
+constexpr const char* SYSTEM_APP = "";
 };
 
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
@@ -166,7 +167,8 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
 {
     auto type = static_cast<RSSurfaceNodeType>(surfaceNodeType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        if ((type == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) && (node->GetName() != ARKTS_CARD_NODE)) {
+        if ((type == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) && (node->GetName() != ARKTS_CARD_NODE) &&
+            (node->GetName().find(SYSTEM_APP) == std::string::npos)) {
             auto& nodeMap = context.GetMutableNodeMap();
             nodeMap.CalCulateAbilityComponentNumsInProcess(nodeId);
         }
