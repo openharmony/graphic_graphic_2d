@@ -48,6 +48,7 @@
 #include "common/rs_optional_trace.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "luminance/rs_luminance_control.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
@@ -1631,6 +1632,25 @@ void RSMainThread::Render()
     CallbackDrawContextStatusToWMS();
     CheckSystemSceneStatus();
     PerfForBlurIfNeeded();
+
+    if (auto screenManager_ = CreateOrGetScreenManager(); screenManager_ != nullptr) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        for (const auto& child : *rootNode->GetSortedChildren()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+            auto screenId = displayNode->GetScreenId();
+            if (displayNode != nullptr) {
+                if (rsLuminance.IsDimmingOn(screenId)) {
+                    ForceRefreshForUni();
+                    rsLuminance.DimmingIncrease(screenId);
+                }
+                if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+                    uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+                    screenManager_->SetScreenBacklight(screenId, newLevel);
+                    rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+                }
+            }
+        }
+    }
 }
 
 void RSMainThread::CheckSystemSceneStatus()

@@ -165,6 +165,9 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
+    #luminance
+    "src/luminance/rs_luminance_control.cpp",
+
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
