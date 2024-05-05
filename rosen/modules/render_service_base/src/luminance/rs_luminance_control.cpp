@@ -24,6 +24,7 @@ namespace Rosen {
 
 void RSLuminanceControl::SetHdrStatus(uint64_t screenId, bool isHdrOn)
 {
+    // Update HDR status in order to determine brightness.
 }
 
 bool RSLuminanceControl::IsHdrOn(uint64_t screenId) const
@@ -37,10 +38,12 @@ bool RSLuminanceControl::IsDimmingOn(uint64_t screenId) const
 }
 void RSLuminanceControl::DimmingIncrease(uint64_t screenId)
 {
+    // Update HDR dimming index.
 }
 
 void RSLuminanceControl::SetSdrLuminance(uint64_t screenId, uint32_t level)
 {
+    // Update SDR brightness.
 }
 
 uint32_t RSLuminanceControl::GetNewHdrLuminance(uint64_t screenId)
@@ -50,6 +53,7 @@ uint32_t RSLuminanceControl::GetNewHdrLuminance(uint64_t screenId)
 
 void RSLuminanceControl::SetNowHdrLuminance(uint64_t screenId, uint32_t level)
 {
+    // Update HDR brightness after dimming increase.
 }
 
 bool RSLuminanceControl::IsNeedUpdateLuminance(uint64_t screenId)
@@ -69,7 +73,7 @@ float RSLuminanceControl::GetHdrDisplayNits(uint64_t screenId) const
 
 double RSLuminanceControl::GetHdrBrightnessRatio(uint64_t screenId, int Mode) const
 {
-    return 1.0;
+    return 1.0; // 1.0 refers to default value, no need to process.
 }
 } // namespace Rosen
 } // namespace OHOS
