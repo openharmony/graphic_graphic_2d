@@ -1630,5 +1630,23 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
         return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
 }
+
+int RSBaseRenderUtil::GetAccumulatedBufferCount()
+{
+    return std::max(acquiredBufferCount_ -  1, 0);
+}
+
+void RSBaseRenderUtil::IncAcquiredBufferCount()
+{
+    ++acquiredBufferCount_;
+    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
+void RSBaseRenderUtil::DecAcquiredBufferCount()
+{
+    --acquiredBufferCount_;
+    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
 } // namespace Rosen
 } // namespace OHOS

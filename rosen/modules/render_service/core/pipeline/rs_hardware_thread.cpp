@@ -185,6 +185,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             hdiBackend_->Repaint(output);
         }
         output->ReleaseLayers(releaseFence_);
+        RSBaseRenderUtil::DecAcquiredBufferCount();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
         // TO-DO
         RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();

@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <vector>
+#include <atomic>
 #include "image/bitmap.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
@@ -145,6 +146,9 @@ public:
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
 
+    static int GetAccumulatedBufferCount();
+    static void IncAcquiredBufferCount();
+    static void DecAcquiredBufferCount();
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
@@ -155,6 +159,8 @@ private:
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
 
     static bool enableClient;
+
+    static inline std::atomic<int> acquiredBufferCount_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

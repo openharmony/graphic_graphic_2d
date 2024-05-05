@@ -237,6 +237,17 @@ public:
     {
         return context_.lock();
     }
+
+    void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
+    {
+        isImplicitAnimationEnd_ = isImplicitAnimationEnd;
+    }
+
+    bool GetImplicitAnimationEnd() const
+    {
+        return isImplicitAnimationEnd_;
+    }
+
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
@@ -272,6 +283,8 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+
+    bool isImplicitAnimationEnd_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

@@ -703,7 +703,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_OPTIONAL_TRACE_END();
         return nullptr;
     }
-
+    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(node);
     RS_LOGD("RSUniRenderComposerAdapter::ProcessSurface displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
         " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
