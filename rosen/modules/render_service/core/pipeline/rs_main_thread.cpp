@@ -1826,7 +1826,7 @@ void RSMainThread::Render()
         PerfForBlurIfNeeded();
     }
 
-    if (auto screenManager_ = CreateOrGetScreenManager()) {
+    if (auto screenManager = CreateOrGetScreenManager()) {
         auto& rsLuminance = RSLuminanceControl::Get();
         for (const auto& child : *rootNode->GetSortedChildren()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
