@@ -588,17 +588,17 @@ void RSMainThread::SetFocusAppInfo(
     focusAppUid_ = uid;
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
-    UpdateFocusNodeId(focusNodeId_, focusNodeId);
+    UpdateFocusNodeId(focusNodeId);
 }
 
-void RSMainThread::UpdateFocusNodeId(NodeId oldFocusNodeId, NodeId newFocusNodeId)
+void RSMainThread::UpdateFocusNodeId(NodeId focusNodeId)
 {
-    if (newFocusNodeId == oldFocusNodeId || newFocusNodeId == INVALID_NODEID) {
+    if (focusNodeId_ == focusNodeId || focusNodeId == INVALID_NODEID) {
         return;
     }
-    UpdateNeedDrawFocusChange(oldFocusNodeId);
-    UpdateNeedDrawFocusChange(newFocusNodeId);
-    focusNodeId_ = newFocusNodeId;
+    UpdateNeedDrawFocusChange(focusNodeId_);
+    UpdateNeedDrawFocusChange(focusNodeId);
+    focusNodeId_ = focusNodeId;
 }
 
 void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)

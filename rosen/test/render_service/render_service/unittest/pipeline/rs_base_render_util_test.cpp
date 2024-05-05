@@ -225,25 +225,68 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
 {
     // create producer and consumer
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
     auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
     psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
     psurf->SetQueueSize(1);
 
     // request buffer
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     // flush buffer
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
     flushConfig.timestamp = 100; // this timestamp can be any nunmber
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
     uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
     RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
     ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_003
+ * @tc.desc: Test ConsumeAndUpdateBuffer while buffer satisfy consume time
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    flushConfig.timestamp = 100; // this timestamp can be any nunmber
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    uint64_t vsyncTimestamp = 200; // let vync's timestamp bigger than buffer timestamp
+    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+    ASSERT_EQ(surfaceHandler.bufferCache_.size(), 0);
 }
 
 /*
