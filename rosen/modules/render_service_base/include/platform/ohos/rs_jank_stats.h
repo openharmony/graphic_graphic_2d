@@ -47,6 +47,7 @@ struct JankFrames {
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
+    bool isImplicitAnimationEnd_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
@@ -117,7 +118,7 @@ public:
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
     void SetAppFirstFrame(pid_t appPid);
-
+    void SetImplicitAnimationEnd(bool needReport);
 private:
     RSJankStats() = default;
     ~RSJankStats() = default;

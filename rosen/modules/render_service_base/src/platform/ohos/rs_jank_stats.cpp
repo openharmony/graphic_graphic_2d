@@ -94,7 +94,8 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
         }
         if (jankFrames.isUpdateJankFrame_ && !jankFrames.isFirstFrame_ && !(!jankFrames.isDisplayAnimator_ &&
             (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_)) &&
-            !(jankFrames.isDisplayAnimator_ && skipJankAnimatorFrame)) {
+            !(jankFrames.isDisplayAnimator_ && skipJankAnimatorFrame) &&
+            !(!jankFrames.isDisplayAnimator_ && jankFrames.isImplicitAnimationEnd_)) {
             UpdateJankFrame(jankFrames, dynamicRefreshRate);
         }
         if (jankFrames.isReportEventComplete_) {
@@ -383,6 +384,21 @@ void RSJankStats::SetAppFirstFrame(pid_t appPid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     firstFrameAppPids_.push(appPid);
+}
+
+void RSJankStats::SetImplicitAnimationEnd(bool needReport)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!needReport) {
+        return;
+    }
+
+    for (auto &[animationId, jankFrames] : animateJankFrames_) {
+        if (jankFrames.isDisplayAnimator_) {
+            continue;
+        }
+        animateJankFrames_[animationId].isImplicitAnimationEnd_ = true;
+    }
 }
 
 void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const

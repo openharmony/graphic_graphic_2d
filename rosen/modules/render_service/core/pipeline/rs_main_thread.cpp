@@ -2463,6 +2463,8 @@ void RSMainThread::Animate(uint64_t timestamp)
             needRequestNextVsyncAnimate_ = true;  // set the member variable instead of directly calling rnv
             RS_TRACE_NAME("rs_RequestNextVSync");
         }
+    } else if (isUniRender_) {
+        renderThreadParams_->SetImplicitAnimationEnd(true);
     }
 
     PerfAfterAnim(needRequestNextVsync);
