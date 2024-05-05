@@ -108,6 +108,38 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SrcRectScaleFit_001
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_001, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+}
+
+/*
+ * @tc.name: SrcRectScaleFit_002
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_002, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+}
+
+/*
  * @tc.name: GetMatrixOfBufferToRelRect_001
  * @tc.desc: test GetMatrixOfBufferToRelRect with surfaceNode without buffer
  * @tc.type: FUNC

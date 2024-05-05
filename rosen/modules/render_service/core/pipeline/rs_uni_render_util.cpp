@@ -166,68 +166,114 @@ std::vector<RectI> RSUniRenderUtil::ScreenIntersectDirtyRects(const Occlusion::R
     return retRects;
 }
 
+void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
+    const sptr<IConsumerSurface>& surface, RectF& localBounds)
+{
+    if (buffer == nullptr || surface == nullptr) {
+        RS_LOGE("buffer or surface is nullptr");
+        return;
+    }
+    uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+    // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
+    uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
+    uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
+
+    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        std::swap(boundsWidth, boundsHeight);
+    }
+    if (boundsWidth == 0 || boundsHeight == 0) {
+        return;
+    }
+    if (srcWidth * boundsHeight > srcHeight * boundsWidth) {
+        newWidth = boundsWidth;
+        newHeight = srcHeight * newWidth / srcWidth;
+    } else if (srcWidth * boundsHeight < srcHeight * boundsWidth) {
+        newHeight = boundsHeight;
+        newWidth = newHeight * srcWidth / srcHeight;
+    } else {
+        newWidth = boundsWidth;
+        newHeight = boundsHeight;
+    }
+    newHeight = newHeight * srcHeight / boundsHeight;
+    newWidth = newWidth * srcWidth / boundsWidth;
+    if (newWidth < srcWidth) {
+        auto halfdw = (srcWidth - newWidth) / 2;
+        params.dstRect =
+            Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
+                params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
+                params.srcRect.GetTop() + params.srcRect.GetHeight());
+    } else if (newHeight < srcHeight) {
+        auto halfdh = (srcHeight - newHeight) / 2;
+        params.dstRect =
+            Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
+                params.srcRect.GetLeft() + params.srcRect.GetWidth(),
+                params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
+    }
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleFit name:%{public}s,"
+        " dstRect [%{public}f %{public}f %{public}f %{public}f]",
+        surface->GetName().c_str(), params.dstRect.GetLeft(), params.dstRect.GetTop(),
+        params.dstRect.GetWidth(), params.dstRect.GetHeight());
+}
 
 void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
     const sptr<IConsumerSurface>& surface, RectF& localBounds)
 {
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
-        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
-        uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-        // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
-        uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
-        uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
+    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+    // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
+    uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
+    uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
 
-        // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-        GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
-        if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
-            transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-            std::swap(boundsWidth, boundsHeight);
-        }
-        if (newWidth * boundsHeight > newHeight * boundsWidth) {
-            // too wide
-            if (boundsHeight == 0) {
-                return;
-            }
-            newWidth = boundsWidth * newHeight / boundsHeight;
-        } else if (newWidth * boundsHeight < newHeight * boundsWidth) {
-            // too tall
-            if (boundsWidth == 0) {
-                return;
-            }
-            newHeight = boundsHeight * newWidth / boundsWidth;
-        } else {
-            return;
-        }
-
-        uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
-        uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-        if (newWidth < currentWidth) {
-            // the crop is too wide
-            uint32_t dw = currentWidth - newWidth;
-            auto halfdw = dw / 2;
-            params.srcRect =
-                Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
-                    params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
-                    params.srcRect.GetTop() + params.srcRect.GetHeight());
-        } else {
-            // thr crop is too tall
-            uint32_t dh = currentHeight - newHeight;
-            auto halfdh = dh / 2;
-            params.srcRect =
-                Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
-                    params.srcRect.GetLeft() + params.srcRect.GetWidth(),
-                    params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
-        }
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name:%{public}s,"
-            " srcRect [%{public}f %{public}f %{public}f %{public}f]",
-            surface->GetName().c_str(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
-            params.srcRect.GetWidth(), params.srcRect.GetHeight());
+    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        std::swap(boundsWidth, boundsHeight);
     }
+
+    uint32_t newWidthBoundsHeight = newWidth * boundsHeight;
+    uint32_t newHeightBoundsWidth = newHeight * boundsWidth;
+
+    if (newWidthBoundsHeight > newHeightBoundsWidth) {
+        newWidth = boundsWidth * newHeight / boundsHeight;
+    } else if (newWidthBoundsHeight < newHeightBoundsWidth) {
+        newHeight = boundsHeight * newWidth / boundsWidth;
+    } else {
+        return;
+    }
+
+    uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+    if (newWidth < currentWidth) {
+        // the crop is too wide
+        uint32_t dw = currentWidth - newWidth;
+        auto halfdw = dw / 2;
+        params.srcRect =
+            Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
+                params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
+                params.srcRect.GetTop() + params.srcRect.GetHeight());
+    } else {
+        // thr crop is too tall
+        uint32_t dh = currentHeight - newHeight;
+        auto halfdh = dh / 2;
+        params.srcRect =
+            Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
+                params.srcRect.GetLeft() + params.srcRect.GetWidth(),
+                params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
+    }
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name:%{public}s,"
+        " srcRect [%{public}f %{public}f %{public}f %{public}f]",
+        surface->GetName().c_str(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
+        params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
 Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node)
@@ -294,7 +340,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+            SrcRectScaleDown(params, buffer, consumer, localBounds);
+        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+            SrcRectScaleFit(params, buffer, consumer, localBounds);
+        }
+    }
     return params;
 }
 
@@ -351,7 +404,20 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
         localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    SrcRectScaleDown(params, layer->GetBuffer(), layer->GetSurface(), localBounds);
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    const auto& surface = layer->GetSurface();
+    if (surface == nullptr) {
+        RS_LOGE("buffer or surface is nullptr");
+        return params;
+    }
+
+    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+            SrcRectScaleDown(params, buffer, surface, localBounds);
+        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+            SrcRectScaleFit(params, buffer, surface, localBounds);
+        }
+    }
     return params;
 }
 
