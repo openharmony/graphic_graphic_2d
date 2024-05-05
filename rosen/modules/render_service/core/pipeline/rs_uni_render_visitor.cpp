@@ -5288,7 +5288,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         DrawSpherize(node);
     } else {
         if (isSelfDrawingSurface) {
-            RSUniRenderUtil::CeilTransXYInCanvasMatrix(*canvas_);
+            RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
         }
         if (isUIFirst_ && node.GetCacheType() == CacheType::ANIMATE_PROPERTY) {
             RSUniRenderUtil::HandleSubThreadNode(node, *canvas_);
@@ -5674,7 +5674,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     // in case preparation'update is skipped
     canvas_->Save();
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(*canvas_);
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
     }
 
     const auto& property = node.GetRenderProperties();

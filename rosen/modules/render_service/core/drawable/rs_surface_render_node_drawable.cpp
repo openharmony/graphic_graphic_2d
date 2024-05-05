@@ -243,7 +243,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawBackground(canvas, bounds);
 
     if (isSelfDrawingSurface) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(*rscanvas);
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
     }
 
     // 2. draw self drawing node
@@ -423,7 +423,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     DrawBackground(canvas, bounds);
 
     if (isSelfDrawingSurface) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
 
     // 2. draw self drawing node
