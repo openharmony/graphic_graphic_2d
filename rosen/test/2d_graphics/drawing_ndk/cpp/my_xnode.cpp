@@ -13,46 +13,26 @@
  * limitations under the License.
  */
 
+#include "my_xnode.h"
 #include <bits/alltypes.h>
 #include <chrono>
+#include <fcntl.h>
+#include <memory>
+#include <native_drawing/drawing_brush.h>
+#include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_font_collection.h>
+#include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_text_typography.h>
 #include <sstream>
 #include <string>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <memory>
 #include <unordered_map>
-#include <native_drawing/drawing_color.h>
-#include <native_drawing/drawing_brush.h>
-#include <native_drawing/drawing_rect.h>
-#include "testcasefactory.h"
 #include "common/log_common.h"
-#include "my_xnode.h"
 #include "napi/native_api.h"
-#include "napi/native_api.h"
-
-bool ConvertStringFromJsValue(napi_env env, napi_value jsValue, std::string &value)
-{
-    size_t len = 0;
-    if (napi_get_value_string_utf8(env, jsValue, nullptr, 0, &len) != napi_ok) {
-        return false;
-    }
-    auto buffer = std::make_unique<char[]>(len + 1);
-    size_t strLength = 0;
-    if (napi_get_value_string_utf8(env, jsValue, buffer.get(), len + 1, &strLength) == napi_ok) {
-        value = buffer.get();
-        return true;
-    }
-    return false;
-}
-
-bool ConvertStringFromIntValue(napi_env env, napi_value jsValue, uint32_t &value)
-{
-    return napi_get_value_uint32(env, jsValue, &value) == napi_ok;
-}
+#include "testcasefactory.h"
+#include "test_common.h"
 
 napi_value MyXNode::NapiFunction(napi_env env, napi_callback_info info)
 {
@@ -115,7 +95,7 @@ napi_value MyXNode::NapiPerformance(napi_env env, napi_callback_info info)
     DRAWING_LOGI("NapiFunction: caseName = %{public}s", caseName.c_str());
     
     uint32_t testCount;
-    if (!ConvertStringFromIntValue(env, argv[2], testCount)) { // 2:count
+    if (!ConvertIntFromJsValue(env, argv[2], testCount)) { // 2:count
         DRAWING_LOGE("NapiDrawPattern: get caseName fail");
         return nullptr;
     }

@@ -43,9 +43,8 @@ public:
     MyXComponent() = default;
     ~MyXComponent();
     explicit MyXComponent(std::string id) : id_(id) {}
-    static MyXComponent *GetInstance(std::string &id);
-    void Destroy();
-    void DestroyGpu();
+    static MyXComponent *GetOrCreateInstance(std::string &id);
+    static void Release(std::string &id);
 
     void Export(napi_env env, napi_value exports);
     static napi_value NapiSetTestCount(napi_env env, napi_callback_info info);
@@ -60,12 +59,7 @@ public:
     void SetNativeWindow(OHNativeWindow *nativeWindow);
     void SetScreenWidth(uint64_t width);
     void SetSceenHeight(uint64_t height);
-    void GetScreenBuffer();
-    void CreateScreenCanvas();
-    void CreateScreenGpuCanvas();
-    void DisplayScreenCanvas();
-    void DisplayScreenGpuCanvas();
-    int32_t InitializeEglContext();
+
 
     // for test
     void SetTestCount(uint32_t testCount);
@@ -74,12 +68,14 @@ public:
     void TestFunctionGpu(napi_env env, std::string caseName);
     void TestPerformanceCpu(napi_env env, std::string caseName);
     void TestPerformanceGpu(napi_env env, std::string caseName);
-
-    static void Release(std::string &id);
     std::string id_;
 
 private:
+    void InitScreenCanvas();
     void BitmapToScreenCanvas(OH_Drawing_Bitmap* bitmap);
+    void FlushScreen();
+    void DeInitializeEglContext();
+    int32_t InitializeEglContext();
 
     OHNativeWindow *nativeWindow_ = nullptr;
     EGLDisplay mEGLDisplay = EGL_NO_DISPLAY;
@@ -91,8 +87,6 @@ private:
     uint64_t screenHeight_ = 0;
     OH_Drawing_Bitmap *screenBitmap_ = nullptr;
     OH_Drawing_Canvas *screenCanvas_ = nullptr;
-    OH_Drawing_GpuContext *screenGpuContext_ = nullptr;
-    OH_Drawing_Surface *screenSurface_ = nullptr;
     OH_Drawing_Image_Info screenImageInfo_;
     OH_NativeXComponent_Callback renderCallback_;
     uint32_t *mappedAddr_ = nullptr;
@@ -102,6 +96,4 @@ private:
     uint32_t testCount_ = DEFAULT_TESTCOUNT;
     uint32_t usedTime_ = 0;
 };
-
-
 #endif
