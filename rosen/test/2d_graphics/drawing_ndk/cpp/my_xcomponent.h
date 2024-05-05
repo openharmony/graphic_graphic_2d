@@ -60,7 +60,6 @@ public:
     void SetScreenWidth(uint64_t width);
     void SetSceenHeight(uint64_t height);
 
-
     // for test
     void SetTestCount(uint32_t testCount);
     uint32_t GetTime();
