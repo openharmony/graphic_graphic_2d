@@ -41,9 +41,6 @@ FillTypePersp::FillTypePersp()
 
 void FillTypePersp::MakePath()
 {
-    if (fPath) {
-        OH_Drawing_PathDestroy(fPath);
-    }
     fPath = OH_Drawing_PathCreate();
     float centerX1 = 50;  // 50 创建矩形对象参数
     float centerY1 = 50;  // 40 创建矩形对象参数

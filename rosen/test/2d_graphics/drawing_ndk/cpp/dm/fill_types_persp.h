@@ -38,6 +38,6 @@ protected:
     void ShowPath(OH_Drawing_Canvas* canvas, DATA_PARAM param, OH_Drawing_Brush* brush);
     void ShowFour(OH_Drawing_Canvas* canvas, float scale, bool aa);
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;
-    OH_Drawing_Path* fPath;
+    OH_Drawing_Path* fPath = nullptr;
 };
 #endif // AA_RECT_MODES_H
