@@ -15,7 +15,7 @@
 
 #include "draw/pen.h"
 
-#include "impl_interface/path_effect_impl.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -212,6 +212,11 @@ void Pen::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
 std::shared_ptr<BlurDrawLooper> Pen::GetLooper() const
 {
     return brush_.GetLooper();
+}
+
+bool Pen::GetFillPath(const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
+{
+    return StaticFactory::GetFillPath(*this, src, dst, rect, matrix);
 }
 
 bool operator==(const Pen& p1, const Pen& p2)

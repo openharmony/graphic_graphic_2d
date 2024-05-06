@@ -363,6 +363,11 @@ const SkPath& SkiaPath::GetPath() const
     return path_;
 }
 
+SkPath& SkiaPath::GetMutablePath()
+{
+    return path_;
+}
+
 scalar SkiaPath::GetLength(bool forceClosed) const
 {
     SkPathMeasure pathMeasure(path_, forceClosed);

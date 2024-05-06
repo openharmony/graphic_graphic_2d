@@ -67,6 +67,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_font_mgr.cpp",
       "$drawing_ndk_src_dir/drawing_gpu_context.cpp",
       "$drawing_ndk_src_dir/drawing_image.cpp",
+      "$drawing_ndk_src_dir/drawing_image_filter.cpp",
       "$drawing_ndk_src_dir/drawing_mask_filter.cpp",
       "$drawing_ndk_src_dir/drawing_matrix.cpp",
       "$drawing_ndk_src_dir/drawing_memory_stream.cpp",
@@ -87,6 +88,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_text_typography.cpp",
       "$drawing_ndk_src_dir/drawing_typeface.cpp",
       "$drawing_utils_root/drawing_canvas_utils.cpp",
+      "$drawing_utils_root/native_pixel_map_manager.cpp",
     ]
 
     if (is_arkui_x) {
@@ -130,6 +132,7 @@ template("drawing_ndk_source_set") {
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
         "image_framework:image_native",
+        "image_framework:pixelmap",
         "image_framework:pixelmap_ndk",
       ]
 

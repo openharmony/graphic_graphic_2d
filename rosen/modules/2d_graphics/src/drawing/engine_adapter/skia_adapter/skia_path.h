@@ -99,6 +99,8 @@ public:
 
     const SkPath& GetPath() const;
 
+    SkPath& GetMutablePath();
+
     scalar GetLength(bool forceClosed) const override;
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const override;
     std::shared_ptr<Data> Serialize() const override;

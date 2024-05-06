@@ -17,87 +17,86 @@
 
 #include "impl_factory.h"
 
-#include "impl_interface/mask_filter_impl.h"
-#include "skia_adapter/skia_shader_effect.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-ShaderEffect::ShaderEffect(ShaderEffectType t, ColorQuad color) noexcept : ShaderEffect()
+/* ColorShader */
+ShaderEffect::ShaderEffect(ShaderEffectType t, ColorQuad color) noexcept : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithColor(color);
 }
 
+/* ColorShader With ColorSpace */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithColorSpace(color, colorSpace);
 }
 
+/* BlendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& src, BlendMode mode) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithBlend(dst, src, mode);
 }
 
+/* ImageShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Image& image, TileMode tileX, TileMode tileY,
     const SamplingOptions& sampling, const Matrix& matrix) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithImage(image, tileX, tileY, sampling, matrix);
 }
 
+/* PictureShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Picture& picture, TileMode tileX, TileMode tileY, FilterMode mode,
     const Matrix& matrix, const Rect& rect) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithPicture(picture, tileX, tileY, mode, matrix, rect);
 }
 
+/* LinearGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept
-    : ShaderEffect()
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
 {
-    type_ = t;
-    impl_->InitWithLinearGradient(startPt, endPt, colors, pos, mode);
+    impl_->InitWithLinearGradient(startPt, endPt, colors, pos, mode, matrix);
 }
 
+/* RadialGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept
-    : ShaderEffect()
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
 {
-    type_ = t;
-    impl_->InitWithRadialGradient(centerPt, radius, colors, pos, mode);
+    impl_->InitWithRadialGradient(centerPt, radius, colors, pos, mode, matrix);
 }
 
+/* TwoPointConicalGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt,
     scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
     const Matrix *matrix) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, pos, mode, matrix);
 }
 
+/* SweepGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
     const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
+/* LightUpShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept
-    : ShaderEffect()
+    : ShaderEffect(t)
 {
-    type_ = t;
     impl_->InitWithLightUp(lightUpDeg, imageShader);
 }
 
+/* ExtendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
     : type_(t), object_(object) {}
 
@@ -105,9 +104,7 @@ ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
 
-ShaderEffect::ShaderEffect(ShaderEffectType t) noexcept
-    : type_(t), impl_(ImplFactory::CreateShaderEffectImpl())
-{}
+ShaderEffect::ShaderEffect(ShaderEffectType t) noexcept : type_(t), impl_(ImplFactory::CreateShaderEffectImpl()) {}
 
 ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
 {
@@ -144,14 +141,14 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreatePictureShader(
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& startPt, const Point& endPt,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors, pos, mode);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, centerPt, radius, colors, pos, mode);
@@ -193,17 +190,6 @@ bool ShaderEffect::Deserialize(std::shared_ptr<Data> data)
 {
     return impl_->Deserialize(data);
 }
-
-const sk_sp<SkShader> ShaderEffect::ExportSkShader()
-{
-    return GetImpl<SkiaShaderEffect>()->GetShader();
-}
-
-void ShaderEffect::SetSkShader(sk_sp<SkShader> shader)
-{
-    GetImpl<SkiaShaderEffect>()->SetSkShader(shader);
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
