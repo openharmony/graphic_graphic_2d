@@ -309,6 +309,10 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF loc
     Drawing::Rect dst;
     canvas.GetTotalMatrix().MapRect(
         dst, { localDrawRect.GetLeft(), localDrawRect.GetTop(), localDrawRect.GetRight(), localDrawRect.GetBottom() });
+    auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+    if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
+        originalCanvas->GetTotalMatrix().MapRect(dst, dst);
+    }
     auto deviceClipRegion = paintFilterCanvas->GetCurDirtyRegion();
     Drawing::Region dstRegion;
     dstRegion.SetRect(dst.RoundOut());

@@ -237,6 +237,16 @@ public:
     {
         return context_.lock();
     }
+
+    void SetClipRegion(const Drawing::Region& clipRegion)
+    {
+        clipRegion_.Clone(clipRegion);
+    }
+
+    const Drawing::Region& GetClipRegion() const
+    {
+        return clipRegion_;
+    }
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
@@ -272,6 +282,8 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+
+    Drawing::Region clipRegion_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

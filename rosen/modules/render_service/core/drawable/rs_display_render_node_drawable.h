@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "params/rs_render_thread_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_handler.h"
@@ -57,7 +58,7 @@ private:
         std::shared_ptr<RSProcessor> processor);
     using DrawFuncPtr = void(RSDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
     void DrawMirror(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
-        std::shared_ptr<RSProcessor> processor, DrawFuncPtr drawFunc);
+        std::shared_ptr<RSProcessor> processor, DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, std::shared_ptr<RSProcessor> processor);
@@ -67,14 +68,19 @@ private:
     void PostClearMemoryTask() const;
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(
         std::shared_ptr<RSDisplayRenderNode> mirrorNode);
-    void processCacheImage(Drawing::Image& cacheImageProcessed,
-        RSDisplayRenderNode& mirroredNode, RSUniRenderVirtualProcessor& mirroredProcessor);
+    void ResetRotateIfNeed(RSDisplayRenderNode& mirroredNode, RSUniRenderVirtualProcessor& mirroredProcessor,
+        Drawing::Region& clipRegion);
+    void ProcessCacheImage(Drawing::Image& cacheImageProcessed);
     void SetCanvasBlack(RSProcessor& processor);
+    // Prepare for off-screen render
+    void PrepareOffscreenRender(const RSRenderNode& node);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
-    Drawing::Region clipRegion_;
+    std::shared_ptr<Drawing::Surface> offscreenSurface_; // temporary holds offscreen surface
+    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
 };
 } // namespace DrawableV2
