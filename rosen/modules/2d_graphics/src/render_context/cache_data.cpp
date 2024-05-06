@@ -60,7 +60,7 @@ void CacheData::ReadFromFile()
     }
 
     size_t fileSize = static_cast<size_t>(statBuf.st_size);
-    if (fileSize == 0 || fileSize > maxTotalSize_ * MAX_MULTIPLE_SIZE) {
+    if (fileSize == 0 || fileSize > maxTotalSize_ * maxMultipleSize_) {
         LOGD("abandon, illegal file size");
         close(fd);
         return;
@@ -318,7 +318,7 @@ bool CacheData::IfSizeValidate(const size_t newSize, const size_t addedSize) con
 bool CacheData::IfSkipClean(const size_t addedSize) const
 {
     // check if the new shader is still too large after cleaning
-    size_t maxPermittedSize = maxTotalSize_ - maxTotalSize_ / CLEAN_LEVEL;
+    size_t maxPermittedSize = maxTotalSize_ - maxTotalSize_ / cleanLevel_;
     if (addedSize > maxPermittedSize) {
         LOGD("new shader is too large, abandon insert");
         return true;
@@ -329,7 +329,7 @@ bool CacheData::IfSkipClean(const size_t addedSize) const
 bool CacheData::IfCleanFinished()
 {
     if (!cleanThreshold_) {
-        RandClean(maxTotalSize_ / CLEAN_LEVEL);
+        RandClean(maxTotalSize_ / cleanLevel_);
         return true;
     } else {
         LOGD("abandon, failed to clean the shaders");
@@ -350,10 +350,10 @@ void CacheData::RandClean(const size_t cleanThreshold)
             return;
         }
         unsigned long currentTime = static_cast<unsigned long>(now);
-        for (int indexRand = 0; indexRand < RAND_LENGTH; ++indexRand) {
-            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
-            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
-            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
+        for (int indexRand = 0; indexRand < randLength_; ++indexRand) {
+            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
+            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
+            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
         }
     }
     cleanThreshold_ = cleanThreshold;

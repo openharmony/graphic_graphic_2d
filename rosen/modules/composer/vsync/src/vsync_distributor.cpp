@@ -549,14 +549,17 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
     vsyncMode_ = vsyncMode;
     ChangeConnsRateLocked();
 
-    if (vsyncMode_ == VSYNC_MODE_LTPO) {
-        CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
-    } else {
-        CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
-    }
-    if (!waitForVSync) {
-        DisableVSync();
-        return;
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
+        } else {
+            CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
+        }
+        if (!waitForVSync) {
+            DisableVSync();
+            return;
+        }
     }
 
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num

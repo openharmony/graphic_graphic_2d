@@ -122,7 +122,7 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
-    uniRenderEngine->DrawLayers(*canvas, layers, false, 0.0f);
+    uniRenderEngine->DrawLayers(*canvas, layers, false);
 }
 
 /**

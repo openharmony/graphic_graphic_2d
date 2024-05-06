@@ -169,7 +169,7 @@ std::vector<std::string> RSInterfaceCodeAccessVerifierBase::GetPermissions(CodeU
 
 int RSInterfaceCodeAccessVerifierBase::GetInterfacePermissionSize() const
 {
-    int countSz = 0;
+    uint32_t countSz = 0;
     for (auto& [permissionKey, permissionVal] : interfacePermissions_) {
         countSz += permissionVal.size();
     }

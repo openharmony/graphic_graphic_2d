@@ -132,7 +132,7 @@ void PostTask(std::function<void()> func, uint32_t delayTime = 0);
 
 bool IsFileExisted(const std::string& filePath);
 
-bool ParseBootConfig(const std::string& path,
+bool ParseBootConfig(const std::string& path, int32_t& duration,
     bool& isCompatible, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs);
 
 void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs);
@@ -140,6 +140,8 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
 void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs);
 
 void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config);
+
+void ParseBootDuration(cJSON* data, int32_t& duration);
 
 bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& imgVec, FrameRateConfig& frameConfig);
 

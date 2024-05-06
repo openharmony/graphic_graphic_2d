@@ -183,7 +183,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(uniParam, surfaceParams, surfaceNode, isuifirstNode);
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
-    auto curDisplayNode = rscanvas->GetCurDisplayNode();
+    auto curDisplayNode = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!curDisplayNode) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
+        return;
+    }
     if (curDisplayNode && surfaceParams->GetName().find("CapsuleWindow") != std::string::npos) {
         CacheImgForCapture(*rscanvas, curDisplayNode);
         NodeId nodeId = FindInstanceChildOfDisplay(surfaceNode->GetParent().lock());
@@ -243,7 +247,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawBackground(canvas, bounds);
 
     if (isSelfDrawingSurface) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(*rscanvas);
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
     }
 
     // 2. draw self drawing node
@@ -282,14 +286,19 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     Drawing::Region& region)
 {
-    if (surfaceNode->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+    if (surfaceParams->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
         return;
     }
-    if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
+    if (surfaceParams->IsMainWindowType() || surfaceParams->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
-        auto transparentRegion = surfaceParams->GetTransparentRegion();
-        if (!transparentRegion.IsEmpty()) {
-            auto dirtyRegion = transparentRegion.And(accumulatedDirtyRegion);
+        Occlusion::Region calcRegion;
+        if (surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) {
+            calcRegion = surfaceParams->GetVisibleRegion();
+        } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
+            calcRegion = surfaceParams->GetTransparentRegion();
+        }
+        if (!calcRegion.IsEmpty()) {
+            auto dirtyRegion = calcRegion.And(accumulatedDirtyRegion);
             if (!dirtyRegion.IsEmpty()) {
                 for (auto& rect : dirtyRegion.GetRegionRects()) {
                     Drawing::Region tempRegion;
@@ -423,7 +432,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     DrawBackground(canvas, bounds);
 
     if (isSelfDrawingSurface) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
 
     // 2. draw self drawing node

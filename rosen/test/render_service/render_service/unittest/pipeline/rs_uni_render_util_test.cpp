@@ -108,6 +108,38 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SrcRectScaleFit_001
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_001, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+}
+
+/*
+ * @tc.name: SrcRectScaleFit_002
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_002, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+}
+
+/*
  * @tc.name: GetMatrixOfBufferToRelRect_001
  * @tc.desc: test GetMatrixOfBufferToRelRect with surfaceNode without buffer
  * @tc.type: FUNC
@@ -394,12 +426,12 @@ HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2
 }
 
 /*
- * @tc.name: CeilTransXYInCanvasMatrix
+ * @tc.name: FloorTransXYInCanvasMatrix
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderUtilTest, CeilTransXYInCanvasMatrix, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest | Level2)
 {
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
@@ -408,7 +440,7 @@ HWTEST_F(RSUniRenderUtilTest, CeilTransXYInCanvasMatrix, Function | SmallTest | 
     auto cachedEffectDataptr = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
     canvas->SetCanvasStatus(status);
-    RSUniRenderUtil::CeilTransXYInCanvasMatrix(*canvas);
+    RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
     ASSERT_FALSE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
     ASSERT_FALSE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
 }
@@ -638,16 +670,16 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest, Function | SmallTe
 }
 
 /*
- * @tc.name: CeilTransXYInCanvasMatrixTest
- * @tc.desc: Verify function CeilTransXYInCanvasMatrix
+ * @tc.name: FloorTransXYInCanvasMatrixTest
+ * @tc.desc: Verify function FloorTransXYInCanvasMatrix
  * @tc.type: FUNC
  * @tc.require: issuesI9KRF1
  */
-HWTEST_F(RSUniRenderUtilTest, CeilTransXYInCanvasMatrixTest, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrixTest, Function | SmallTest | Level2)
 {
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    RSUniRenderUtil::CeilTransXYInCanvasMatrix(filterCanvas);
+    RSUniRenderUtil::FloorTransXYInCanvasMatrix(filterCanvas);
     EXPECT_FALSE(filterCanvas.recordDrawable_);
 }
 

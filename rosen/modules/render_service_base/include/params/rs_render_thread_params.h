@@ -247,6 +247,17 @@ public:
     {
         return clipRegion_;
     }
+
+    void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
+    {
+        isImplicitAnimationEnd_ = isImplicitAnimationEnd;
+    }
+
+    bool GetImplicitAnimationEnd() const
+    {
+        return isImplicitAnimationEnd_;
+    }
+
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
@@ -284,6 +295,7 @@ private:
     bool isCurtainScreenOn_ = false;
 
     Drawing::Region clipRegion_;
+    bool isImplicitAnimationEnd_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

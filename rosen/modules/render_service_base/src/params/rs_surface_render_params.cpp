@@ -43,6 +43,16 @@ RectI RSSurfaceRenderParams::GetOldDirtyInSurface() const
     return oldDirtyInSurface_;
 }
 
+void RSSurfaceRenderParams::SetIsParentScaling(bool isParentScaling)
+{
+    isParentScaling_ = isParentScaling;
+}
+
+bool RSSurfaceRenderParams::IsParentScaling() const
+{
+    return isParentScaling_;
+}
+
 void RSSurfaceRenderParams::SetTransparentRegion(const Occlusion::Region& transparentRegion)
 {
     transparentRegion_ = transparentRegion;
@@ -211,11 +221,13 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     }
 
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
+    targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
+    targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->absDrawRect_ = absDrawRect_;

@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <mutex>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -44,6 +45,8 @@ public:
 
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
 
+    std::string GetAppStrategyConfigName(const std::string& pkgName) const;
+    HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
     void UpdateXmlConfigCache();
     PolicyConfigData::ScreenSetting& GetScreenSetting() const { return screenSettingCache_; }
@@ -54,14 +57,13 @@ private:
     void FollowFocus();
     void UseMax();
 
-    HgmErrCode GetPkgNameByPid(pid_t pid, std::string& pkgNameRes) const;
-    static std::pair<std::string, pid_t> AnalyzePkgParam(const std::string& param);
+    static std::tuple<std::string, pid_t, std::string> AnalyzePkgParam(const std::string& param);
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
 
     std::vector<std::string> pkgs_;
-    std::unordered_map<pid_t, std::string> pidPkgNameMap_;
+    std::unordered_map<std::string, std::pair<pid_t, std::string>> pidAppTypeMap_;
     std::pair<HgmErrCode, PolicyConfigData::StrategyConfig> voteRes_ = { HGM_ERROR, {
         .min = OledRefreshRate::OLED_NULL_HZ,
         .max = OledRefreshRate::OLED_120_HZ,
@@ -70,7 +72,7 @@ private:
         .drawMax = OledRefreshRate::OLED_120_HZ,
         .down = OledRefreshRate::OLED_120_HZ,
     }};
-    TouchInfo touchInfo_ = { "", TouchState::IDLE }; // pkgName, touchState
+    TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 

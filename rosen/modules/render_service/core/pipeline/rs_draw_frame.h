@@ -61,6 +61,7 @@ private:
     bool canUnblockMainThread = false;
     std::unique_ptr<RSRenderThreadParams> stagingRenderThreadParams_ = nullptr;
     RsParallelType rsParallelType_;
+    static bool debugTraceEnabled_;
 };
 } // namespace Rosen
 } // namespace OHOS

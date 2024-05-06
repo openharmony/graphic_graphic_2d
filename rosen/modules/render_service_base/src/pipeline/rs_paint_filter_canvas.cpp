@@ -1235,16 +1235,6 @@ void RSPaintFilterCanvas::RestoreEnvToCount(int count)
     }
 }
 
-std::shared_ptr<RSDisplayRenderNode> RSPaintFilterCanvas::GetCurDisplayNode() const
-{
-    return curDisplayNode_;
-}
-
-void RSPaintFilterCanvas::SetCurDisplayNode(std::shared_ptr<RSDisplayRenderNode> curDisplayNode)
-{
-    curDisplayNode_ = curDisplayNode;
-}
-
 int RSPaintFilterCanvas::GetEnvSaveCount() const
 {
     return envStack_.size();

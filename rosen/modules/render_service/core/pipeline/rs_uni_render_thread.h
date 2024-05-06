@@ -127,6 +127,8 @@ public:
         return tid_;
     }
 
+    void SetAcquireFence(sptr<SyncFence> acquireFence);
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -170,6 +172,8 @@ private:
     std::mutex imageReleaseMutex_;
     bool postImageReleaseTaskFlag_;
     int imageReleaseCount_ = 0;
+
+    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
 };
 } // namespace Rosen
 } // namespace OHOS

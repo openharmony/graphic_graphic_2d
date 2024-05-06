@@ -350,6 +350,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw params %s", params->ToString().c_str());
 
+    // if start process DisplayRenderNode, restart the delaytime of clearMemoryTask
+    RemoveClearMemoryTask();
+
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
     {
@@ -400,6 +403,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     canvasRotation_ = screenManager->GetCanvasRotation(params->GetScreenId());
 
     auto mirroredNode = params->GetMirrorSource().lock();
+    if (!mirroredNode && displayNodeSp->GetCacheImgForCapture()) {
+        displayNodeSp->SetCacheImgForCapture(nullptr);
+    }
     if (!mirroredNode && displayNodeSp->GetCacheImgForCapture()) {
         mirroredNode->SetCacheImgForCapture(nullptr);
     }
@@ -476,9 +482,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetBrightnessRatio(0.5f);
         curCanvas_->SetScreenId(screenId);
     }
-    curCanvas_->SetCurDisplayNode(displayNodeSp);
 
-    RemoveClearMemoryTask();
     // canvas draw
     {
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
@@ -653,7 +657,7 @@ void RSDisplayRenderNodeDrawable::SetVirtualScreenType(RSDisplayRenderNode& node
 {
     auto mirroredNode = node.GetMirrorSource().lock();
     switch (screenInfo.state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
+        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
             node.SetCompositeType(mirroredNode ?
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
