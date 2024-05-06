@@ -19,6 +19,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing::ext;
@@ -1409,6 +1410,29 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level2)
 {
     EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto surface = IConsumerSurface::Create();
+    ASSERT_NE(surface, nullptr);
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 300,
+        .h = 300,
+    };
+    unint64_t surfaceId = static_cast<uint64_t>(surface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, surface);
+    rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
 }
 } // namespace Rosen
 } // namespace OHOS
