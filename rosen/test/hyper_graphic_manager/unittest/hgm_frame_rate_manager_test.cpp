@@ -98,7 +98,6 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
             HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(pid, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
             frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-            frameRateMgr->touchMgr_->SetRSIdleUpdateCallback([](bool rsIdleTimerExpired) {});
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, false);
         }
     }

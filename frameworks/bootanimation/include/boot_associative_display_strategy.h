@@ -26,7 +26,7 @@ public:
 
     virtual ~BootAssociativeDisplayStrategy() = default;
 
-    void Display(std::vector<BootAnimationConfig>& configs) override;
+    void Display(const int32_t duration, std::vector<BootAnimationConfig>& configs) override;
 
 private:
     bool IsExtraVideoExist(const std::vector<BootAnimationConfig>& configs);

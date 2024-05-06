@@ -76,6 +76,9 @@ napi_value JsMaskFilter::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsMaskFilter *jsMaskFilter = new(std::nothrow) JsMaskFilter();
+    if (jsMaskFilter == nullptr) {
+        return nullptr;
+    }
     status = napi_wrap(env, jsThis, jsMaskFilter, JsMaskFilter::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsMaskFilter;

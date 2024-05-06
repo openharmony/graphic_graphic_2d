@@ -50,9 +50,10 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
+constexpr uint32_t TIME_OF_TWENTY_FRAMES = 20000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
+constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 };
 
 thread_local CaptureParam RSUniRenderThread::captureParam_ = {};
@@ -260,21 +261,32 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!params->GetHardwareEnabled() && params->GetLastFrameHardwareEnabled()) {
+            params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
+        }
         if (!params->GetHardwareEnabled()) {
             auto& preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
+                if (params->releaseInHardwareThreadTaskNum_ > 0) {
+                    params->releaseInHardwareThreadTaskNum_--;
+                }
                 continue;
             }
             auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer(),
-                useReleaseFence = params->GetLastFrameHardwareEnabled()]() mutable {
+                useReleaseFence = params->GetLastFrameHardwareEnabled(), acquireFence = acquireFence_]() mutable {
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
-                    RSHardwareThread::Instance().releaseFence_ : SyncFence::INVALID_FENCE);
+                    RSHardwareThread::Instance().releaseFence_ : acquireFence);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
             preBuffer = nullptr;
-            releaseTasks.emplace_back(releaseTask);
+            if (params->releaseInHardwareThreadTaskNum_ > 0) {
+                releaseTasks.emplace_back(releaseTask);
+                params->releaseInHardwareThreadTaskNum_--;
+            } else {
+                releaseTask();
+            }
         }
     }
     if (releaseTasks.empty()) {
@@ -355,12 +367,6 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
-
-bool RSUniRenderThread::GetClearMemoryFinished() const
-{
-    return clearMemoryFinished_;
-}
-
 bool RSUniRenderThread::GetClearMemDeeply() const
 {
     return clearMemDeeply_;
@@ -396,6 +402,11 @@ bool RSUniRenderThread::GetWatermarkFlag()
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams->GetWatermarkFlag();
+}
+
+bool RSUniRenderThread::IsCurtainScreenOn() const
+{
+    return renderThreadParams_->IsCurtainScreenOn();
 }
 
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
@@ -462,7 +473,6 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
-    this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
     this->exitedPidSet_.emplace(pid);
@@ -487,14 +497,15 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
             }
+            auto screenManager_ = CreateOrGetScreenManager();
+            screenManager_->ClearFrameBufferIfNeed();
             grContext->FlushAndSubmit(true);
-            this->clearMemoryFinished_ = true;
             this->exitedPidSet_.clear();
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
     PostTask(task, CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_TWENTY_FRAMES : TIME_OF_THE_FRAMES)
                 / GetRefreshRate());
 }
 
@@ -548,6 +559,11 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
         return STANDARD_REFRESH_RATE;
     }
     return refreshRate;
+}
+
+void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
+{
+    acquireFence_ = acquireFence;
 }
 } // namespace Rosen
 } // namespace OHOS

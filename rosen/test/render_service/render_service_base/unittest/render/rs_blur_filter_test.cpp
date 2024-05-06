@@ -50,6 +50,7 @@ HWTEST_F(RSBlurFilterTest, RSBlurFilterTest001, TestSize.Level1)
 
     float threshold = 1.0f;
     EXPECT_TRUE(filter->IsNearEqual(other1, threshold));
+    EXPECT_TRUE(filter->IsNearEqual(nullptr, threshold));
 }
 
 /**
@@ -246,5 +247,62 @@ HWTEST_F(RSBlurFilterTest, CanSkipFrameTest, TestSize.Level1)
     float blurRadiusY = 26.0f;
     auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     EXPECT_TRUE(blurFilter->CanSkipFrame());
+}
+
+/**
+ * @tc.name: GetDetailedDescriptionTest
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
+{
+    float blurRadiusX = 27.0f;
+    float blurRadiusY = 26.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    blurFilter->GetDetailedDescription();
+
+    std::optional<Vector2f> greyCoef({1.f, 1.f});
+    blurFilter->SetGreyCoef(greyCoef);
+    blurFilter->GetDetailedDescription();
+}
+
+/**
+ * @tc.name: SubTest002
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, SubTest002, TestSize.Level1)
+{
+    float blurRadiusX = 27.0f;
+    float blurRadiusY = 26.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    
+    EXPECT_EQ(blurFilter->Sub(nullptr), blurFilter);
+
+    std::shared_ptr<RSFilter> otherblurFilter = std::make_shared<RSBlurFilter>(1.f, 2.f);
+    blurRadiusX = 26.0f;
+    blurRadiusY = 25.0f;
+    auto expectBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    EXPECT_EQ(blurFilter->Sub(otherblurFilter), expectBlurFilter);
+}
+
+/**
+ * @tc.name: DrawImageRect
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurFilterTest, DrawImageRect, TestSize.Level1)
+{
+    RSBlurFilter rsBlurFilter(0, 1);
+    Drawing::Canvas canvas;
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+
+    rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+
+    std::optional<Vector2f> greyCoef({1.f, 1.f});
+    rsBlurFilter.SetGreyCoef(greyCoef);
+    rsBlurFilter.DrawImageRect(canvas, image, src, dst);
 }
 } // namespace OHOS::Rosen

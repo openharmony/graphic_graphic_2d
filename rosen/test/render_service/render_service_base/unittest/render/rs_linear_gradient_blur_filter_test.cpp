@@ -58,6 +58,10 @@ HWTEST_F(LinearGradientBlurFilterTest, testInterface, TestSize.Level1)
     std::shared_ptr<Drawing::Image> image;
 
     filter->DrawImageRect(canvas, image, src, dst);
+
+    linearGradientBlurPara->direction_ = GradientDirection::NONE;
+    image = std::make_shared<Drawing::Image>();
+    filter->DrawImageRect(canvas, image, src, dst);
 }
 
 /**
@@ -251,6 +255,23 @@ HWTEST_F(LinearGradientBlurFilterTest, DrawMaskLinearGradientBlurTest001, TestSi
     auto alphaGradientShader = std::make_shared<Drawing::ShaderEffect>();
     filter->DrawMaskLinearGradientBlur(imagef, canvas, blurFilter, alphaGradientShader, dst);
     EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: testMakeMaskLinearGradientBlurShader
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(LinearGradientBlurFilterTest, testMakeMaskLinearGradientBlurShader, TestSize.Level1)
+{
+    std::vector<std::pair<float, float>> fractionStops{{0.f, 0.f}, {1.f, 1.f}};
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
+        16, fractionStops, GradientDirection::BOTTOM);
+    
+    RSLinearGradientBlurFilter filter(linearGradientBlurPara, 100, 100);
+    auto srcImageShader = std::make_shared<Drawing::ShaderEffect>();
+    auto gradientShader = std::make_shared<Drawing::ShaderEffect>();
+    EXPECT_NE(filter.MakeMaskLinearGradientBlurShader(srcImageShader, gradientShader), nullptr);
 }
 
 /**

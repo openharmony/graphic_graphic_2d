@@ -75,14 +75,27 @@ public:
     }
 
     static bool CanSkipFrame(float radius);
+    void SetSaturationForHPS(float saturationForHPS)
+    {
+        saturationForHPS_ = saturationForHPS;
+    }
+    void SetBrightnessForHPS(float brightnessForHPS)
+    {
+        brightnessForHPS_ = brightnessForHPS;
+    }
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
     void PostProcess(Drawing::Canvas& canvas);
+
+    void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst);
 
 private:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
-    uint32_t imageFilterHash_;
+    uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
+    float saturationForHPS_ = 1.f;
+    float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

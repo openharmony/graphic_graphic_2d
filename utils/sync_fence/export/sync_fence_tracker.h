@@ -35,7 +35,7 @@ private:
     const uint32_t SYNC_TIME_OUT = 3000;
     const int32_t GPU_SUBHEALTH_EVENT_LIMIT = 200;
     const int32_t GPU_SUBHEALTH_EVENT_THRESHOLD = 12;
-    const int32_t FRAME_QUEUE_SIZE_LIMIT = 4;
+    const uint32_t FRAME_QUEUE_SIZE_LIMIT = 4;
     const int32_t FRAME_PERIOD = 1000;
     const std::string threadName_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_ = nullptr;
@@ -43,7 +43,7 @@ private:
     std::atomic<uint32_t> fencesQueued_;
     std::atomic<uint32_t> fencesSignaled_;
     int32_t gpuSubhealthEventNum = 0;
-    int32_t gpuSubhealthEventDay;
+    int32_t gpuSubhealthEventDay = 0;
     std::queue<int32_t> *frameStartTimes = new std::queue<int32_t>;
     void Loop(const sptr<SyncFence>& fence);
     bool CheckGpuSubhealthEventLimit();

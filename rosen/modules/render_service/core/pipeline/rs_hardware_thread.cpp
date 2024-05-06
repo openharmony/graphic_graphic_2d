@@ -185,6 +185,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             hdiBackend_->Repaint(output);
         }
         output->ReleaseLayers(releaseFence_);
+        RSBaseRenderUtil::DecAcquiredBufferCount();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
         // TO-DO
         RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
@@ -310,6 +311,7 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
         RS_LOGE("Clear frame buffers failed for the output is nullptr");
         return GSERROR_INVALID_ARGUMENTS;
     }
+    RS_TRACE_NAME("RSHardwareThread::ClearFrameBuffers");
     if (uniRenderEngine_ != nullptr) {
         uniRenderEngine_->ResetCurrentContext();
     }
@@ -570,6 +572,12 @@ void RSHardwareThread::AddRefreshRateCount()
         iter->second++;
     }
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
+
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    frameRateMgr->GetTouchManager().HandleRsFrame();
 }
 
 void RSHardwareThread::SubScribeSystemAbility()

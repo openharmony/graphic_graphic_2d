@@ -19,6 +19,7 @@
 #include "hgm_command.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "luminance/rs_luminance_control.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
@@ -781,6 +782,11 @@ int32_t RSRenderServiceConnection::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 {
+    RSLuminanceControl::Get().SetSdrLuminance(id, level);
+    if (RSLuminanceControl::Get().IsHdrOn(id) && level > 0) {
+        return;
+    }
+
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(

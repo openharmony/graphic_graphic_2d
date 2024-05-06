@@ -2025,7 +2025,7 @@ float RSProperties::GetBackgroundBlurSaturation() const
 
 bool RSProperties::IsBackgroundBlurSaturationValid() const
 {
-    return ROSEN_GE(GetBackgroundBlurSaturation(), 1.0);
+    return (!ROSEN_EQ(GetBackgroundBlurSaturation(), 1.0f)) && ROSEN_GE(GetBackgroundBlurSaturation(), 0.0f);
 }
 
 void RSProperties::SetBackgroundBlurBrightness(float backgroundBlurBrightness)
@@ -2046,7 +2046,7 @@ float RSProperties::GetBackgroundBlurBrightness() const
     
 bool RSProperties::IsBackgroundBlurBrightnessValid() const
 {
-    return ROSEN_GE(GetBackgroundBlurBrightness(), 1.0);
+    return (!ROSEN_EQ(GetBackgroundBlurBrightness(), 1.0f)) && ROSEN_GE(GetBackgroundBlurBrightness(), 0.0f);
 }
 
 void RSProperties::SetBackgroundBlurMaskColor(Color backgroundMaskColor)
@@ -2266,7 +2266,7 @@ bool RSProperties::IsForegroundBlurRadiusYValid() const
 
 bool RSProperties::IsBackgroundMaterialFilterValid() const
 {
-    return IsBackgroundBlurRadiusValid();
+    return IsBackgroundBlurRadiusValid() || IsBackgroundBlurBrightnessValid() || IsBackgroundBlurSaturationValid();
 }
 
 bool RSProperties::IsForegroundMaterialFilterVaild() const
@@ -2359,6 +2359,8 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         backgroundColorMode_, backgroundMaskColor_);
     originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadius_));
+    originalFilter->SetSaturationForHPS(backgroundBlurSaturation_);
+    originalFilter->SetBrightnessForHPS(backgroundBlurBrightness_);
     backgroundFilter_ = originalFilter;
     maskColorShaderFilter->InitColorMod();
     backgroundFilter_->SetFilterType(RSFilter::MATERIAL);
@@ -2431,6 +2433,8 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
         foregroundColorMode_, foregroundMaskColor_);
     originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
+    originalFilter->SetSaturationForHPS(foregroundBlurSaturation_);
+    originalFilter->SetBrightnessForHPS(foregroundBlurBrightness_);
     filter_ = originalFilter;
     maskColorShaderFilter->InitColorMod();
     filter_->SetFilterType(RSFilter::MATERIAL);

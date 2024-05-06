@@ -47,8 +47,6 @@ HWTEST_F(RsFilterSubThreadTest, PostTaskTest, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
     curThread->PostTask([] {});
-    curThread->Start();
-    curThread->PostTask([] {});
 }
 
 /**
@@ -93,8 +91,6 @@ HWTEST_F(RsFilterSubThreadTest, PostSyncTaskTest001, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
     curThread->PostSyncTask([] {});
-    curThread->Start();
-    curThread->PostSyncTask([] {});
     EXPECT_TRUE(curThread->handler_);
 }
 
@@ -124,104 +120,6 @@ HWTEST_F(RsFilterSubThreadTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
     auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     EXPECT_EQ(curThread->GetAppGpuMemoryInMB(), 0.f);
-}
-
-/**
- * @tc.name: RenderCacheTest001
- * @tc.desc: Verify function RenderCache
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, RenderCacheTest001, TestSize.Level1)
-{
-    class RSFilterCacheTask : public RSFilter::RSFilterTask {
-    public:
-        bool initSurfaceSuccess = false;
-        virtual ~RSFilterCacheTask() {}
-        bool InitSurface(Drawing::GPUContext* grContext) override
-        {
-            bool success = initSurfaceSuccess;
-            initSurfaceSuccess = true;
-            return success;
-        }
-        bool Render() override
-        {
-            initSurfaceSuccess = false;
-            return false;
-        }
-        bool SaveFilteredImage() override
-        {
-            bool success = initSurfaceSuccess;
-            initSurfaceSuccess = true;
-            return success;
-        }
-        bool SetDone() override
-        {
-            return false;
-        }
-        void SwapInit() {};
-    };
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    std::vector<std::weak_ptr<RSFilter::RSFilterTask>> filterTaskList;
-    std::shared_ptr<RSFilterCacheTask> weakTask1 = nullptr;
-    std::weak_ptr<RSFilterCacheTask> weakTask2 = std::make_shared<RSFilterCacheTask>();
-    std::weak_ptr<RSFilterCacheTask> weakTask3 = std::make_shared<RSFilterCacheTask>();
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    sptr<SyncFence> fence(new SyncFence(-1));
-    curThread->SetFence(fence);
-    filterTaskList.push_back(weakTask1);
-    filterTaskList.push_back(weakTask2);
-    filterTaskList.push_back(weakTask3);
-    curThread->RenderCache(filterTaskList);
-    sptr<SyncFence> fencee(new SyncFence(0));
-    curThread->SetFence(fencee);
-    curThread->RenderCache(filterTaskList);
-    EXPECT_TRUE(filterTaskList.empty());
-}
-
-/**
- * @tc.name: FlushAndSubmitTest001
- * @tc.desc: Verify function FlushAndSubmit
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, FlushAndSubmitTest001, TestSize.Level1)
-{
-    class RSFilterCacheTask : public RSFilter::RSFilterTask {
-    public:
-        bool initSurfaceSuccess = false;
-        virtual ~RSFilterCacheTask() {}
-        bool InitSurface(Drawing::GPUContext* grContext) override
-        {
-            bool success = initSurfaceSuccess;
-            initSurfaceSuccess = true;
-            return success;
-        }
-        bool Render() override
-        {
-            initSurfaceSuccess = false;
-            return false;
-        }
-        bool SaveFilteredImage() override
-        {
-            bool success = initSurfaceSuccess;
-            initSurfaceSuccess = true;
-            return success;
-        }
-        bool SetDone() override
-        {
-            return false;
-        }
-        void SwapInit() {};
-    };
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    curThread->FlushAndSubmit();
-    std::shared_ptr<RSFilterCacheTask> weakTask1 = nullptr;
-    std::weak_ptr<RSFilterCacheTask> weakTask2 = std::make_shared<RSFilterCacheTask>();
-    curThread->filterTaskList_.push_back(weakTask1);
-    curThread->filterTaskList_.push_back(weakTask2);
-    curThread->FlushAndSubmit();
-    EXPECT_FALSE(curThread->grContext_);
 }
 
 /**

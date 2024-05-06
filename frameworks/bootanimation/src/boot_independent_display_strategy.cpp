@@ -19,7 +19,7 @@
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS;
-void BootIndependentDisplayStrategy::Display(std::vector<BootAnimationConfig>& configs)
+void BootIndependentDisplayStrategy::Display(const int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootIndependentDisplayStrategy START");
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
@@ -36,7 +36,7 @@ void BootIndependentDisplayStrategy::Display(std::vector<BootAnimationConfig>& c
         } else {
             screenConfig = config;
         }
-        op->Init(config, screenWidth, screenHeight);
+        op->Init(config, screenWidth, screenHeight, duration);
         operators_.emplace_back(op);
     }
 

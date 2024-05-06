@@ -64,6 +64,7 @@ public:
     Matrix GetTotalMatrix() const override;
     Rect GetLocalClipBounds() const override;
     RectI GetDeviceClipBounds() const override;
+    RectI GetRoundInDeviceClipBounds() const override;
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() const override;
 #endif

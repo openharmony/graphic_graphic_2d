@@ -40,7 +40,8 @@ public:
 
     virtual ~BootAnimationOperation();
 
-    void Init(const BootAnimationConfig& config, const int32_t width, const int32_t height);
+    void Init(const BootAnimationConfig& config,
+        const int32_t width, const int32_t height, const int32_t duration);
 
     void SetSoundEnable(bool isEnabled);
 
@@ -55,12 +56,13 @@ private:
     void PlayVideo(const std::string& path);
     void PlayPicture(const std::string& path);
     void PlaySound(const std::string& path);
-    void CloseVideoPlayer();
+    void StopBootAnimation();
 
 private:
     bool isSoundEnabled_ = true;
     int32_t windowWidth_;
     int32_t windowHeight_;
+    int32_t duration_;
     Rosen::ScreenId currentScreenId_;
     OHOS::BootAnimationCallback callback_;
 

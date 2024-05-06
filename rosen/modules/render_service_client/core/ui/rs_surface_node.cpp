@@ -247,7 +247,7 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGI("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
+    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
         GetId(), isSecurityLayer ? "true" : "false");
 }
 

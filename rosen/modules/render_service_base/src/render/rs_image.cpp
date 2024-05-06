@@ -27,6 +27,10 @@
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -45,6 +49,61 @@ bool RSImage::IsEqual(const RSImage& other) const
     return (image_ == other.image_) && (pixelMap_ == other.pixelMap_) &&
            (imageFit_ == other.imageFit_) && (imageRepeat_ == other.imageRepeat_) &&
            (scale_ == other.scale_) && radiusEq && (compressData_ == other.compressData_);
+}
+
+bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas)
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    // HDR disable
+    if (!RSSystemProperties::GetHDRImageEnable()) {
+        return false;
+    }
+    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
+        RS_LOGE("bhdr GetDrawingType() != Drawing::DrawingType::PAINT_FILTER");
+        return false;
+    }
+    if (pixelMap_ == nullptr || image_ == nullptr) {
+        RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
+        return false;
+    }
+    RS_LOGD("bhdr pixelMap%{public}d, colorspace%{public}d", pixelMap_->GetPixelFormat(),
+        pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
+    if (!pixelMap_->IsHdr()) {
+        return false;
+    }
+
+    SurfaceBuffer* surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd());
+
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("bhdr ColorSpaceConvertor surfaceBuffer is nullptr");
+        return false;
+    }
+
+    Drawing::Matrix matrix;  //Identity Matrix
+    auto sx = dstRect_.GetWidth() / srcRect_.GetWidth();
+    auto sy = dstRect_.GetHeight() / srcRect_.GetHeight();
+    auto tx = dstRect_.GetLeft() - srcRect_.GetLeft() * sx;
+    auto ty = dstRect_.GetTop() - srcRect_.GetTop() * sy;
+    matrix.SetScaleTranslate(sx, sy, tx, ty);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image_, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, sampling, matrix);
+
+    sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
+    RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    if (LIKELY(!rscanvas.IsCapture())) {
+        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
+            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), dynamicRangeMode_);
+    } else {
+        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
+            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+    }
+    paint_.SetHDRImage(true);
+    canvas.AttachPaint(paint_);
+    return true;
+#else
+    return false;
+#endif
 }
 
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
@@ -74,6 +133,8 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             }
             if (innerRect_.has_value()) {
                 canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+            } else if (HDRConvert(samplingOptions, canvas)) {
+                canvas.DrawRect(dst_);
             } else {
                 canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                     Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
@@ -278,6 +339,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     // draw repeat rect
     ConvertPixelMapToDrawingImage();
     UploadGpu(canvas);
+    bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
     src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
     bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
     for (int i = minX; i <= maxX; ++i) {
@@ -295,6 +357,8 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                 }
                 if (innerRect_.has_value()) {
                     canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+                } else if (hdrImageDraw) {
+                    canvas.DrawRect(dst_);
                 } else {
                     canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
@@ -369,6 +433,7 @@ void RSImage::SetPaint(Drawing::Paint paint)
 {
     paint_ = paint;
 }
+
 void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
 {
     dynamicRangeMode_ = dynamicRangeMode;

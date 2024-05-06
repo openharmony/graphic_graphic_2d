@@ -59,6 +59,17 @@ public:
     }
 
 private:
+    void CreateCanvas(int32_t width, int32_t height, bool isMirrored = false);
+    void GetLogicalScreenSize(
+        const RSDisplayRenderNode& node, const ScreenInfo& screenInfo, int32_t& width, int32_t& height);
+    bool CreateProcessor(RSDisplayRenderNode& node);
+    void UpdateDisplayNodeCompositeType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
+    void StoreSurfaceNodeAttrsToDisplayNode(RSDisplayRenderNode& displayNode, const RSSurfaceRenderNode& surfaceNode);
+    void RestoreSurfaceNodeAttrsFromDisplayNode(
+        const RSDisplayRenderNode& displayNode, RSSurfaceRenderNode& surfaceNode);
+    void ResetSurfaceNodeAttrsInDisplayNode(RSDisplayRenderNode& displayNode);
+
+private:
     std::unique_ptr<Drawing::Canvas> drawingCanvas_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     float globalZOrder_ = 0.0f;
@@ -73,6 +84,7 @@ private:
     std::shared_ptr<RSBaseRenderEngine> processorRenderEngine_ = nullptr;
     bool doAnimate_ = false;
     std::unordered_map<NodeId, std::vector<std::function<void()>>> foregroundSurfaces_ = {};
+    std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
 };
 } // namespace Rosen
 } // namespace OHOS

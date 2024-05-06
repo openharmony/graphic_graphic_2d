@@ -84,6 +84,7 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level1)
     FontVariations fontVariations2;
     EXPECT_EQ(fontVariations1 == fontVariations2, false);
 
+    auto fontCollection = FontCollection::From(nullptr);
     TypographyStyle typographyStyle1;
     TypographyStyle typographyStyle2;
     // 15 is used for initialization

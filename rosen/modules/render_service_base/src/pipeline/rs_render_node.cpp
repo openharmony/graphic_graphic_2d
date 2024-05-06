@@ -353,6 +353,7 @@ void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
+    childHasSharedTransition_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
     childrenRect_ = RectI();
@@ -916,6 +917,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
+    if (childHasSharedTransition_) {
+        return true;
+    }
     if (ChildHasVisibleFilter()) {
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
@@ -1055,7 +1059,7 @@ RSRenderNode::~RSRenderNode()
     ClearCacheSurface();
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGD("RSRenderNode::~RSRenderNode: Invalid context");
         return;
     }
 }
@@ -1210,8 +1214,9 @@ void RSRenderNode::UpdateBufferDirtyRegion()
 #endif
 }
 
-void RSRenderNode::UpdateSelfDrawRect()
+bool RSRenderNode::UpdateSelfDrawRect()
 {
+    auto prevSelfDrawRect = selfDrawRect_;
     // empty rect would not join and doesn't need to check
     auto& properties = GetRenderProperties();
     selfDrawRect_ = properties.GetLocalBoundsAndFramesRect();
@@ -1222,6 +1227,7 @@ void RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 
 const RectF& RSRenderNode::GetSelfDrawRect() const
@@ -1274,9 +1280,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
     RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect)
 {
     const static auto IdentityMatrix = Drawing::Matrix();
+    bool selfDrawRectChanged = false;
     // 1. update self drawrect if dirty
     if (IsDirty()) {
-        UpdateSelfDrawRect();
+        selfDrawRectChanged = UpdateSelfDrawRect();
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
@@ -1304,7 +1311,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         // currently CheckAndUpdateGeoTrans without dirty check
         if (auto geoPtr = properties.boundsGeo_) {
             // selfdrawing node's geo may not dirty when its dirty region changes
-            if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ || isSelfDrawingNode_) {
+            if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
+                isSelfDrawingNode_ || selfDrawRectChanged) {
                 absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
                 if (isSelfDrawingNode_) {
                     selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
@@ -2080,6 +2088,16 @@ void RSRenderNode::ApplyPositionZModifier()
     dirtyTypes_.reset(positionZModifierType);
 }
 
+void RSRenderNode::SetChildHasSharedTransition(bool val)
+{
+    childHasSharedTransition_ = val;
+}
+
+bool RSRenderNode::ChildHasSharedTransition() const
+{
+    return childHasSharedTransition_;
+}
+
 void RSRenderNode::ApplyModifiers()
 {
     if (UNLIKELY(!isFullChildrenListValid_)) {
@@ -2115,6 +2133,12 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
     UpdateShouldPaint();
+
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
+        !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
+        auto paramCopy = sharedTransitionParam_;
+        paramCopy->InternalUnregisterSelf();
+    }
 
     // Temporary code, copy matrix into render params
     UpdateDrawableVec();
@@ -2271,25 +2295,25 @@ void RSRenderNode::UpdateDisplayList()
 
         // Update index of BACKGROUND_END
         stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1 ?
-            stagingDrawCmdList_.size() : stagingDrawCmdIndex_.contentIndex_;
+            static_cast<int8_t>(stagingDrawCmdList_.size()) : stagingDrawCmdIndex_.contentIndex_;
 
         // Update index of CHILDREN
         stagingDrawCmdIndex_.childrenIndex_ = AppendDrawFunc(RSDrawableSlot::CHILDREN);
-        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
         AppendDrawFunc(RSDrawableSlot::RESTORE_FRAME);
     } else {
         // Nothing inside frame, skip useless slots and update indexes
         stagingDrawCmdIndex_.contentIndex_ = -1;
         stagingDrawCmdIndex_.childrenIndex_ = -1;
-        stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
-        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+        stagingDrawCmdIndex_.backgroundEndIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
         index = static_cast<int8_t>(RSDrawableSlot::FG_SAVE_BOUNDS);
     }
-    stagingDrawCmdIndex_.renderGroupEndIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.renderGroupEndIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
     AppendDrawFunc(RSDrawableSlot::RESTORE_ALL);
-    stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.endIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
     stagingRenderParams_->SetContentEmpty(false);
 #endif
 }
@@ -3913,5 +3937,16 @@ std::string SharedTransitionParam::Dump() const
 {
     return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
 }
+
+void SharedTransitionParam::InternalUnregisterSelf()
+{
+    if (auto inNode = inNode_.lock()) {
+        inNode->SetSharedTransitionParam(nullptr);
+    }
+    if (auto outNode = outNode_.lock()) {
+        outNode->SetSharedTransitionParam(nullptr);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

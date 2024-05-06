@@ -163,7 +163,8 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     // RSPaintFilterCanvas::CacheType::OFFSCREEN case
-    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN ||
+        curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::DISABLED) {
         if (HasFilterOrEffect()) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);

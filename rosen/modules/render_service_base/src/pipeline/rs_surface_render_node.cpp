@@ -255,8 +255,8 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     // Extract srcDest and dstRect from Drawing::Canvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     UpdateSrcRect(canvas, deviceClipRect);
-    RectI dstRect = {
-        deviceClipRect.GetLeft(), deviceClipRect.GetTop(), deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
+    RectI dstRect = { deviceClipRect.GetLeft() + offsetX_, deviceClipRect.GetTop() + offsetY_,
+        deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
     SetDstRect(dstRect);
 
     // Save TotalMatrix and GlobalAlpha for compositor
@@ -639,14 +639,14 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
     }
 }
 
-bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+bool RSSurfaceRenderNode::GetForceHardware() const
 {
-    return isForceHardwareByUser_;
+    return isForceHardware_;
 }
 
-int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+void RSSurfaceRenderNode::SetForceHardware(bool flag)
 {
-    return fixedRotationDegree_;
+    isForceHardware_ = isForceHardwareByUser_ && flag;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -1217,9 +1217,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
+    AddToPendingSyncList();
 #endif
 }
 
@@ -1815,12 +1813,16 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
     return GetZorderChanged() || GetDstRectChanged() || IsOpaqueRegionChanged();
 }
 
-bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
+bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
 {
     // planning: Need consider others situation
+    isParentScaling_ = false;
     auto nodeParent = GetParent().lock();
     if (nodeParent && nodeParent->IsScale()) {
-        return false;
+        isParentScaling_ = true;
+        if (GetDstRectChanged()) {
+            return false;
+        }
     }
     if (IsTransparent() || GetAnimateState() || IsRotating()) {
         return false;
@@ -2073,7 +2075,8 @@ std::optional<Drawing::Rect> RSSurfaceRenderNode::GetContextClipRegion() const
     return contextClipRect_;
 }
 
-bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
+bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNodes)
 {
     if (!IsLeashWindow()) {
         return false;
@@ -2081,11 +2084,12 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RS
     for (auto& childNode : *GetChildren()) {
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface && childNodeSurface->GetVisibleRegion().IsEmpty()) {
-            appNode = childNodeSurface;
-            return true;
+            appNodes.emplace_back(childNodeSurface);
+        } else {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashWindowNestedSurfaces()
@@ -2375,6 +2379,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     }
     if (IsMainWindowType()) {
         surfaceParams->SetVisibleRegion(visibleRegion_);
+        surfaceParams->SetIsParentScaling(isParentScaling_);
     }
     surfaceParams->absDrawRect_ = GetAbsDrawRect();
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
@@ -2407,6 +2412,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
+    surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;

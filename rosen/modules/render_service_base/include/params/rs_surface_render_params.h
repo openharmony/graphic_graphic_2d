@@ -35,8 +35,8 @@ struct RSLayerInfo {
     GraphicIRect dstRect;
     GraphicIRect boundRect;
     Drawing::Matrix matrix;
-    int32_t gravity;
-    int32_t zOrder;
+    int32_t gravity = 0;
+    int32_t zOrder = 0;
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> preBuffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -59,6 +59,10 @@ public:
     bool IsMainWindowType() const
     {
         return isMainWindowType_;
+    }
+    bool IsLeashWindow() const
+    {
+        return isLeashWindow_;
     }
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -202,6 +206,9 @@ public:
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
+    void SetIsParentScaling(bool isParentScaling);
+    bool IsParentScaling() const;
+
     void SetTransparentRegion(const Occlusion::Region& transparentRegion);
     const Occlusion::Region& GetTransparentRegion() const;
 
@@ -238,6 +245,7 @@ public:
 protected:
 private:
     bool isMainWindowType_ = false;
+    bool isLeashWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
@@ -245,6 +253,7 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
+    bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
@@ -266,6 +275,7 @@ private:
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
@@ -277,6 +287,7 @@ private:
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
+    friend class RSUniRenderThread;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

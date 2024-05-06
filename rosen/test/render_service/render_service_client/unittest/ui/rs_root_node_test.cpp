@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -91,5 +92,101 @@ HWTEST_F(RSRootNodeTest, GetType002, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, GetType003, TestSize.Level1)
 {
     EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(false)->GetType());
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
+{
+    RSRootNode::Create()->OnBoundsSizeChanged();
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged002, TestSize.Level1)
+{
+    RSRootNode::Create(true)->OnBoundsSizeChanged();
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged003, TestSize.Level1)
+{
+    RSRootNode::Create(false)->OnBoundsSizeChanged();
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetEnableRender001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, SetEnableRender001, TestSize.Level1)
+{
+    bool flag = true;
+    auto node = std::make_shared<RSRootNode>(false);
+    node->SetEnableRender(flag);
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetEnableRender002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, SetEnableRender002, TestSize.Level1)
+{
+    bool flag = true;
+    auto node = std::make_shared<RSRootNode>(true);
+    node->SetEnableRender(flag);
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: AttachRSSurfaceNode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, AttachRSSurfaceNode001, TestSize.Level1)
+{
+    Rosen::RSSurfaceNodeConfig config;
+    config.SurfaceNodeName = "WindowScene_";
+    std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
+    auto node = std::make_shared<RSRootNode>(false);
+    node->AttachRSSurfaceNode(surfaceNode);
+    bool res = true;
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: AttachRSSurfaceNode002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRootNodeTest, AttachRSSurfaceNode002, TestSize.Level1)
+{
+    Rosen::RSSurfaceNodeConfig config;
+    config.SurfaceNodeName = "WindowScene_";
+    std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
+    auto node = std::make_shared<RSRootNode>(true);
+    node->AttachRSSurfaceNode(surfaceNode);
+    bool res = true;
+    EXPECT_EQ(res, true);
 }
 } // namespace OHOS::Rosen

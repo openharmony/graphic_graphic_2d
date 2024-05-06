@@ -265,12 +265,12 @@ Drawing::Typeface* JsFontCollection::GetFontFileProperties(const std::string pat
         return nullptr;
     }
 
-    std::ifstream f(path.c_str());
+    std::ifstream f(tmpPath);
     if (!f.good()) {
         return nullptr;
     }
 
-    std::ifstream ifs(path, std::ios_base::in);
+    std::ifstream ifs(tmpPath, std::ios_base::in);
     if (!ifs.is_open()) {
         return nullptr;
     }

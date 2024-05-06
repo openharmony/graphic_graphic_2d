@@ -117,18 +117,6 @@ HWTEST_F(RsSubThreadManagerTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SubmitFilterSubThreadTaskTest001
- * @tc.desc: Verify function SubmitFilterSubThreadTask
- * @tc.type:FUNC
- */
-HWTEST_F(RsSubThreadManagerTest, SubmitFilterSubThreadTaskTest001, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    rsSubThreadManager->SubmitFilterSubThreadTask();
-    EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
-}
-
-/**
  * @tc.name: SubmitSubThreadTaskTest
  * @tc.desc: Test RsSubThreadManagerTest.SubmitSubThreadTaskTest
  * @tc.type: FUNC

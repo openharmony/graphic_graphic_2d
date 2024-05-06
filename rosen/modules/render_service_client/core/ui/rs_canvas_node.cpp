@@ -161,14 +161,13 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    ROSEN_LOGD("RSCanvasNode::SetHDRPresent:%{pubilc}d", hdrPresent);
     hdrPresent_ = hdrPresent;
     if (hdrPresent) {
         RSHDRManager::Instance().IncreaseHDRNum();
     } else {
         RSHDRManager::Instance().ReduceHDRNum();
     }
-    
+    ROSEN_LOGD("SetHDRPresent:%{public}d hdrnum:%{public}d", hdrPresent, RSHDRManager::Instance().getHDRNum());
 }
 
 void RSCanvasNode::OnBoundsSizeChanged() const

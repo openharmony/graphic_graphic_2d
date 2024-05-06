@@ -775,6 +775,77 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LayerScaleFit001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleFit
+ * @tc.type: FUNC
+ * @tc.require: issueI6S774
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit001, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    layer->sbuffer_ = nullptr;
+    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+}
+
+/**
+ * @tc.name: LayerScaleFit002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleFit
+ * @tc.type: FUNC
+ * @tc.require: issueI6S774
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit002, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    layer->cSurface_ = nullptr;
+    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+}
+
+/**
+ * @tc.name: LayerScaleFit003
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleFit
+ * @tc.type: FUNC
+ * @tc.require: issueI7FUVJ
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit003, TestSize.Level1)
+{
+    SetUp();
+    RSSurfaceRenderNodeConfig config;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RectI dstRect{0, 0, 400, 600};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    surfaceNode->SetConsumer(csurf);
+
+    bool statusReady = composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
+    ASSERT_EQ(statusReady, true);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
+
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetConsumer(), &(*surfaceNode));
+
+    composerAdapter_->LayerRotate(layer, *surfaceNode);
+    composerAdapter_->LayerCrop(layer);
+    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+}
+
+/**
  * @tc.name: IsOutOfScreenRegion003
  * @tc.desc: Test RSUniRenderComposerAdapterTest.IsOutOfScreenRegion
  * @tc.type: FUNC

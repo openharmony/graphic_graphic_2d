@@ -31,6 +31,7 @@ public:
     int IncreaseHDRNum();
     int ReduceHDRNum();
     void ResetHDRNum();
+    int getHDRNum();
     void RegisterSetHDRPresent(HDRFunc func);
     
 private:

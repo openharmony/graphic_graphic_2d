@@ -20,10 +20,20 @@ module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/skia_test"
 
 ohos_unittest("2d_engine_rosen_text_skia_test") {
   module_out_path = module_output_path
-  sources = [ "skia_txt_test.cpp" ]
+  sources = [
+    "skia_anyspan_test.cpp",
+    "skia_txt_test.cpp",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
 
   include_dirs = [
     "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/texgine/export",
     "$rosen_2d_engine_root/rosen_text",
     "$rosen_2d_engine_root/rosen_text/export/rosen_text",
     "//third_party/googletest/googletest/include",

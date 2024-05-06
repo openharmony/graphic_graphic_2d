@@ -76,6 +76,8 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
     
+    bool IsCurtainScreenOn() const;
+
     static void SetCaptureParam(const CaptureParam& param);
     static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();
@@ -125,6 +127,8 @@ public:
         return tid_;
     }
 
+    void SetAcquireFence(sptr<SyncFence> acquireFence);
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -148,8 +152,6 @@ private:
     // used for stalling renderThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
-    // Those variable is used to manage memory.
-    bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
@@ -170,6 +172,8 @@ private:
     std::mutex imageReleaseMutex_;
     bool postImageReleaseTaskFlag_;
     int imageReleaseCount_ = 0;
+
+    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
 };
 } // namespace Rosen
 } // namespace OHOS

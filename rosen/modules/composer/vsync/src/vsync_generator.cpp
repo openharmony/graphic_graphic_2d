@@ -34,7 +34,7 @@ namespace OHOS {
 namespace Rosen {
 namespace impl {
 namespace {
-static int64_t systemTime()
+static int64_t SystemTime()
 {
     timespec t = {};
     clock_gettime(CLOCK_MONOTONIC, &t);
@@ -47,7 +47,6 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
-constexpr int64_t REFERENCETIME_CHECK_THRESHOLD = 2000000; // 2000000ns == 2.0ms
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 
@@ -107,7 +106,7 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
     std::vector<Listener> listeners;
     {
         std::unique_lock<std::mutex> locker(mutex_);
-        int64_t newOccurTimestamp = systemTime();
+        int64_t newOccurTimestamp = SystemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
         }
@@ -154,7 +153,7 @@ void VSyncGenerator::ThreadLoop()
                 }
                 continue;
             }
-            occurTimestamp = systemTime();
+            occurTimestamp = SystemTime();
             nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp, occurReferenceTime);
             if (nextTimeStamp == INT64_MAX) {
                 ScopedBytrace func("VSyncGenerator: there has no listener");
@@ -382,7 +381,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     std::vector<VSyncGenerator::Listener> ret;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if (t - systemTime() < errorThreshold) {
+        if (t - SystemTime() < errorThreshold) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -478,7 +477,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = systemTime() - period_ + phase_;
+    listener.lastTime_ = SystemTime() - period_ + phase_;
 
     listeners_.push_back(listener);
 
@@ -659,8 +658,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
     PeriodCheckLocked(hardwareVsyncInterval);
 
     if (rsVSyncDistributor_->IsDVsyncOn() ||
-        ((abs(pendingReferenceTime_ - referenceTime_) < REFERENCETIME_CHECK_THRESHOLD) &&
-        (abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD))) {
+        ((abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD))) {
         // framerate has changed
         frameRateChanging_ = false;
         ScopedBytrace changeEnd("frameRateChanging_ = false");
