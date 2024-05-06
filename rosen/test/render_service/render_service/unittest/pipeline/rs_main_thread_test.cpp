@@ -40,6 +40,7 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
+constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -2997,5 +2998,137 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
     ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId001
+ * @tc.desc: UpdateDisplayNodeScreenId, when rootnode is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->globalRootRenderNode_ = nullptr;
+    mainThread->UpdateDisplayNodeScreenId();
+    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId002
+ * @tc.desc: UpdateDisplayNodeScreenId, root node has no child display node.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    NodeId id = 1;
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id);
+    mainThread->UpdateDisplayNodeScreenId();
+    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId003
+ * @tc.desc: UpdateDisplayNodeScreenId, root node has one child display node.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(rootId);
+    RSDisplayNodeConfig config;
+    NodeId displayId = 1;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    uint64_t screenId = 1;
+    displayNode->SetScreenId(screenId);
+    mainThread->context_->globalRootRenderNode_->AddChild(displayNode);
+    ASSERT_FALSE(mainThread->context_->globalRootRenderNode_->children_.empty());
+    mainThread->UpdateDisplayNodeScreenId();
+}
+
+/**
+ * @tc.name: ProcessScreenHotPlugEvents
+ * @tc.desc: Test ProcessScreenHotPlugEvents
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessScreenHotPlugEvents();
+}
+
+/**
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    mainThread->systemAnimatedScenesList_.clear();
+    mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
+}
+
+/**
+ * @tc.name: CheckSystemSceneStatus001
+ * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::APPEAR_MISSION_CENTER);
+    mainThread->CheckSystemSceneStatus();
+}
+
+/**
+ * @tc.name: CheckSystemSceneStatus002
+ * @tc.desc: Test CheckSystemSceneStatus, ENTER_TFS_WINDOW
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_TFS_WINDOW);
+    mainThread->CheckSystemSceneStatus();
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    mainThread->DoDirectComposition(rootNode, false);
 }
 } // namespace OHOS::Rosen
