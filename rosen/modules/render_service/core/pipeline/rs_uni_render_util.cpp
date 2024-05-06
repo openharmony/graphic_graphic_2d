@@ -49,6 +49,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
+}
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion, bool renderParallel)
 {
@@ -1186,7 +1189,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
 
 void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node)
 {
-    if (!node.GetForceHardwareByUser()) {
+    if (!node.GetForceHardware()) {
         return;
     }
     RectI srcRect = { 0, 0, node.GetBuffer()->GetSurfaceBufferWidth(), node.GetBuffer()->GetSurfaceBufferHeight() };
@@ -1235,7 +1238,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     if (!consumer) {
         return GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
-    int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * node.GetFixedRotationDegree() :
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
+        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
+    int surfaceNodeRotation = node.GetForceHardware() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     int totalRotation = (RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform()))) % 360;

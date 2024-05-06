@@ -639,14 +639,14 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
     }
 }
 
-bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+bool RSSurfaceRenderNode::GetForceHardware() const
 {
-    return isForceHardwareByUser_;
+    return isForceHardware_;
 }
 
-int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+void RSSurfaceRenderNode::SetForceHardware(bool flag)
 {
-    return fixedRotationDegree_;
+    isForceHardware_ = isForceHardwareByUser_ && flag;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
