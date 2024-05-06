@@ -167,12 +167,12 @@ private:
     std::vector<ShaderPointer> shaderPointers_;
     size_t numShaders_ = 0;
 
-    const size_t MAX_MULTIPLE_SIZE = 2;
-    const size_t CLEAN_LEVEL = 2;
+    const size_t maxMultipleSize_ = 2;
+    const size_t cleanLevel_ = 2;
     static const size_t ALIGN_FOUR = 3;
     static const int ERR_NUMBER = -1;
-    const int RAND_SHIFT = 16;
-    const int RAND_LENGTH = 3;
+    const int randShift_ = 16;
+    const int randLength_ = 3;
 
     size_t maxKeySize_;
     size_t maxValueSize_;
