@@ -890,7 +890,7 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 
 bool RSSystemProperties::GetHDRImageEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "1");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);

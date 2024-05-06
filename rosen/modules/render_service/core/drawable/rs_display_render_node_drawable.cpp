@@ -25,6 +25,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "luminance/rs_luminance_control.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -435,10 +436,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
     RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
-    ScreenId screenId = curScreenInfo.id;
     bool hdrPresent = params->GetHDRPresent();
     RS_LOGD("SetHDRPresent: %{public}d OnDraw", hdrPresent);
-    if (hdrPresent) {
+    ScreenId screenId = curScreenInfo.id;
+    RSLuminanceControl::Get().SetHdrStatus(screenId, hdrPresent);
+    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
+    if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
     // displayNodeSp to get  rsSurface witch only used in renderThread
@@ -470,10 +473,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    curCanvas_->SetHDRPresent(hdrPresent);
-    if (hdrPresent) {
-        curCanvas_->SetBrightnessRatio(0.5f);
-        curCanvas_->SetScreenId(screenId);
+    curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
+    curCanvas_->SetScreenId(screenId);
+    if (isHdrOn) {
+        // 0 means defalut hdrBrightnessRatio
+        float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
+        curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
+        curCanvas_->SetHDRPresent(isHdrOn);
     }
 
     // canvas draw

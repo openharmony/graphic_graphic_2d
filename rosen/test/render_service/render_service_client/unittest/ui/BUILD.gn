@@ -28,6 +28,7 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "rs_ext_node_operation_test.cpp",
     "rs_frame_rate_linker_test.cpp",
     "rs_frame_rate_policy_test.cpp",
+    "rs_hdr_manager_test.cpp",
     "rs_node_test.cpp",
     "rs_proxy_node_test.cpp",
     "rs_root_node_test.cpp",
