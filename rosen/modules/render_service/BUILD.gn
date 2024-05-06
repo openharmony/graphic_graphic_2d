@@ -293,7 +293,7 @@ ohos_shared_library("librender_service") {
     "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "libpng:libpng", 
+    "libpng:libpng",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
