@@ -310,6 +310,11 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         }
         canvas_->SetMatrix(relativeMatrix);
     }
+    bool needOffscreen = node.IsForcedDrawInGroup();
+    if (needOffscreen) {
+        Drawing::SaveLayerOps slr(nullptr, nullptr);
+        canvas_->SaveLayer(slr);
+    }
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
@@ -330,6 +335,9 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         node.ProcessRenderContents(*canvas_);
     }
     ProcessChildren(node);
+    if (needOffscreen) {
+        canvas_->Restore();
+    }
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
