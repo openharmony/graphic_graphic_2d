@@ -110,7 +110,7 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
     uint32_t arrayLength = 0;
     napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength);
     if (arrayLength % NUMBER_TWO) { // arrayLength must be an even number
-        //ROSEN_LOGE("JsPathEffect::CreateDashPathEffect count of intervals is not even : %{public}u", arrayLength);
+        ROSEN_LOGE("JsPathEffect::CreateDashPathEffect count of intervals is not even : %{public}u", arrayLength);
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     scalar intervals[arrayLength];
