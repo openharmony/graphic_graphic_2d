@@ -77,7 +77,8 @@ static void test4(OH_Drawing_Canvas *canvas)
     OH_Drawing_Rect *clip = OH_Drawing_RectCreate(0, 130, 772, 531); // 0, 130, 772, 531正方形
     OH_Drawing_CanvasClipRect(canvas, clip, OH_Drawing_CanvasClipOp::INTERSECT, true);
     OH_Drawing_CanvasDrawPath(canvas, path);
-    OH_Drawing_CanvasDetachPen(canvas);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_RectDestroy(clip);
     OH_Drawing_BrushDestroy(brush);
     OH_Drawing_PathDestroy(path);
 }

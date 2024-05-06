@@ -68,6 +68,7 @@ void AddArcMeas::OnTestFunction(OH_Drawing_Canvas *canvas)
 
     OH_Drawing_Rect *oval = OH_Drawing_RectCreate(-R, -R, R, R);
     OH_Drawing_CanvasDrawOval(canvas, oval);
+    OH_Drawing_CanvasDetachPen(canvas);
 
     for (float deg = 0; deg < 360; deg += 10) { // 360,10 cout
         const float rad = (deg) / 180 * M_PI;

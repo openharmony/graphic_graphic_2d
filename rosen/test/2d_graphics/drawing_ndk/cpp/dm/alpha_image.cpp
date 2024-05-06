@@ -64,6 +64,8 @@ OH_Drawing_Image *make_alpha_image(int w, int h)
     }
     OH_Drawing_Image *image = OH_Drawing_ImageCreate();
     OH_Drawing_ImageBuildFromBitmap(image, bm);
+    OH_Drawing_CanvasDestroy(bmpCanvas);
+    OH_Drawing_BitmapDestroy(bm);
     return image;
 }
 
@@ -128,6 +130,7 @@ void AlphaImage::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_ImageDestroy(image);
     OH_Drawing_SamplingOptionsDestroy(option);
     OH_Drawing_MaskFilterDestroy(maskFilter);
+    OH_Drawing_ColorFilterDestroy(make_color_filter());
     OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_BrushDestroy(brush);
 }
