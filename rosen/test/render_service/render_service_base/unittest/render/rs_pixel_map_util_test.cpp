@@ -156,5 +156,26 @@ HWTEST_F(RSPixelMapUtilTest, DrawPixelMap, TestSize.Level1)
 
     RSPixelMapUtil::DrawPixelMap(*canvas, *pixelmap, 0.0f, 0.0f);
 }
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImageTest
+ * @tc.desc: Verify function ConvertYUVPixelMapToDrawingImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImageTest, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GPUContext> gpuContext;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_NE(nullptr, gpuContext);
+    RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    auto image = RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap);
+    EXPECT_EQ(image, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS
