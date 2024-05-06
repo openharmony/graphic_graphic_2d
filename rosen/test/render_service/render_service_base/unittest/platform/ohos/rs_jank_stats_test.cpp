@@ -53,7 +53,7 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.SetEndTime(false);
     rsJankStats.SetStartTime();
-    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL);
+    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL, TIMESTAMP_INITIAL_FLOAT);
     pid_t appPid = 1;
     rsJankStats.SetAppFirstFrame(appPid);
     rsJankStats.SetEndTime(true);
@@ -70,7 +70,7 @@ HWTEST_F(RSJankStatsTest, HandleDirectCompositionTest, TestSize.Level1)
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(true);
-    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL);
+    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL, TIMESTAMP_INITIAL_FLOAT);
     rsJankStats.SetEndTime(false);
     rsJankStats.SetStartTime();
     JankDurationParams rsParams;

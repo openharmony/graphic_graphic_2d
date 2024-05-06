@@ -2314,7 +2314,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     isOnVsync_.store(true);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
-    RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady);
+    const int64_t onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
+    RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -2337,11 +2338,12 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     SetVsyncInfo(timestamp);
 #endif
     ProcessScreenHotPlugEvents();
-    RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady);
+    RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     isOnVsync_.store(false);
 }
 
-void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady)
+void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                                           float onVsyncStartTimeSteadyFloat)
 {
     if (isUniRender_) {
         if (!renderThreadParams_) {
@@ -2351,18 +2353,22 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         renderThreadParams_->SetIsUniRenderAndOnVsync(true);
         renderThreadParams_->SetOnVsyncStartTime(onVsyncStartTime);
         renderThreadParams_->SetOnVsyncStartTimeSteady(onVsyncStartTimeSteady);
+        renderThreadParams_->SetOnVsyncStartTimeSteady(onVsyncStartTimeSteadyFloat);
         SetDiscardJankFrames(false);
         SetSkipJankAnimatorFrame(false);
     }
 }
 
-void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady)
+void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                                         float onVsyncStartTimeSteadyFloat)
 {
     if (isUniRender_ && doDirectComposition_) {
         const JankDurationParams rsParams = { .timeStart_ = onVsyncStartTime,
                                               .timeStartSteady_ = onVsyncStartTimeSteady,
+                                              .timeStartSteadyFloat_ = onVsyncStartTimeSteadyFloat,
                                               .timeEnd_ = GetCurrentSystimeMs(),
                                               .timeEndSteady_ = GetCurrentSteadyTimeMs(),
+                                              .timeEndSteadyFloat_ = GetCurrentSteadyTimeMsFloat(),
                                               .refreshRate_ = GetDynamicRefreshRate(),
                                               .discardJankFrames_ = GetDiscardJankFrames() };
         drawFrame_.PostDirectCompositionJankStats(rsParams);
@@ -3433,6 +3439,14 @@ int64_t RSMainThread::GetCurrentSteadyTimeMs() const
 {
     auto curTime = std::chrono::steady_clock::now().time_since_epoch();
     int64_t curSteadyTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+    return curSteadyTime;
+}
+
+float RSMainThread::GetCurrentSteadyTimeMsFloat() const
+{
+    auto curTime = std::chrono::steady_clock::now().time_since_epoch();
+    int64_t curSteadyTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
+    float curSteadyTime = curSteadyTimeUs / MS_TO_US;
     return curSteadyTime;
 }
 } // namespace Rosen
