@@ -148,9 +148,9 @@ void make_path_star(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
 
     // dumbbell
     OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
-    OH_Drawing_PathMoveTo(path, 50.0, 0);                 // 50.0, 0 gm 要求的图形坐标
-    OH_Drawing_PathCubicTo(path, 100, 25, 60, 50, 50, 0); // 100, 25, 60, 50, 50, 0 gm 要求的图形坐标
-    OH_Drawing_PathCubicTo(path, 0, -25, 40, -50, 50, 0); // 0, -25, 40, -50, 50, 0 gm 要求的图形坐标
+    OH_Drawing_PathMoveTo(path1, 50.0, 0);                 // 50.0, 0 gm 要求的图形坐标
+    OH_Drawing_PathCubicTo(path1, 100, 25, 60, 50, 50, 0); // 100, 25, 60, 50, 50, 0 gm 要求的图形坐标
+    OH_Drawing_PathCubicTo(path1, 0, -25, 40, -50, 50, 0); // 0, -25, 40, -50, 50, 0 gm 要求的图形坐标
     paths.push_back(path1);
     pathsBounds.push_back({ 0, -50, 100, 50 }); // 0, -50, 100, 50  gm 要求的图形坐标
 }
