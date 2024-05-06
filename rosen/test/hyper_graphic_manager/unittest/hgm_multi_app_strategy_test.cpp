@@ -28,18 +28,22 @@ namespace Rosen {
 namespace {
     constexpr int32_t nodeIdOffset = 32;
     const std::string settingStrategyName = "99";
+    const std::string otherPkgName = "com.pkg.other";
+    const std::string defaultPidStr = "0";
 
     constexpr int32_t fps0 = 10;
     constexpr int32_t downFps0 = 90;
     constexpr int32_t pid0 = 10010;
     const std::string strategyName0 = "110";
     const std::string pkgName0 = "com.app10";
+    const std::string appTypeName0 = "appType0";
 
     constexpr int32_t fps1 = 15;
     constexpr int32_t downFps1 = 120;
     constexpr int32_t pid1 = 10015;
     const std::string strategyName1 = "115";
     const std::string pkgName1 = "com.app15";
+    const std::string appTypeName1 = "appType1";
 }
 
 struct PkgParam {
@@ -69,6 +73,7 @@ void HgmMultiAppStrategyTest::SetUp()
     // set app config
     auto &strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
     auto &screenSetting = multiAppStrategy_->GetScreenSetting();
+    auto &appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED };
@@ -89,6 +94,9 @@ void HgmMultiAppStrategyTest::SetUp()
     for (auto &pkgParam : pkgParams_) {
         pkgParam.linker->SetExpectedRange(FrameRateRange(OLED_NULL_HZ, RANGE_MAX_REFRESHRATE, OLED_NULL_HZ));
     }
+
+    appTypes[appTypeName0] = strategyName0;
+    appTypes[appTypeName1] = strategyName1;
 }
 
 void HgmMultiAppStrategyTest::SetMultiAppStrategy(
@@ -132,19 +140,19 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
             ASSERT_EQ(strategyConfig.max, fps0);
         }
         STEP("2. handle touch event") {
-            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::DOWN_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, downFps0);
             ASSERT_EQ(strategyConfig.max, downFps0);
 
-            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::UP);
+            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::UP_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, downFps0);
             ASSERT_EQ(strategyConfig.max, downFps0);
 
-            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(pkgParam.pkgName, TouchState::IDLE_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, fps0);
@@ -178,13 +186,13 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
             ASSERT_EQ(strategyConfig.max, fps0);
         }
         STEP("2. click other pkg which hasn't config") {
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::DOWN_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::UP);
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::UP_STATE);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::IDLE_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
         }
@@ -198,14 +206,14 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
             ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::DOWN_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_NE(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::UP);
-            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::UP_STATE);
+            multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::IDLE_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_NE(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);
@@ -232,39 +240,39 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch, Function | SmallTest | Level1)
             ASSERT_EQ(strategyConfig.max, fps1);
         }
         STEP("2. handle pkg0 touch event") {
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::DOWN_STATE);
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, downFps0);
             ASSERT_EQ(strategyConfig.max, downFps0);
 
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::UP);
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::UP_STATE);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[0].pkgName, TouchState::IDLE_STATE);
 
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, fps1);
             ASSERT_EQ(strategyConfig.max, fps1);
         }
         STEP("3. handle pkg1 touch event") {
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::DOWN_STATE);
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, downFps1);
             ASSERT_EQ(strategyConfig.max, downFps1);
 
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::UP);
-            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::UP_STATE);
+            multiAppStrategy_->HandleTouchInfo(pkgParams_[1].pkgName, TouchState::IDLE_STATE);
 
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, fps1);
             ASSERT_EQ(strategyConfig.max, fps1);
         }
         STEP("4. handle empty pkg touch event") {
-            multiAppStrategy_->HandleTouchInfo("", TouchState::DOWN);
+            multiAppStrategy_->HandleTouchInfo(otherPkgName, TouchState::DOWN_STATE);
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
-            multiAppStrategy_->HandleTouchInfo("", TouchState::UP);
-            multiAppStrategy_->HandleTouchInfo("", TouchState::IDLE);
+            multiAppStrategy_->HandleTouchInfo(otherPkgName, TouchState::UP_STATE);
+            multiAppStrategy_->HandleTouchInfo(otherPkgName, TouchState::IDLE_STATE);
 
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, fps1);
@@ -350,6 +358,28 @@ HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level1)
             ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
         }
+    }
+}
+
+/**
+ * @tc.name: AppType
+ * @tc.desc: Verify the result of AppType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
+{
+    PART("CaseDescription") {
+        PolicyConfigData::StrategyConfig strategyConfig;
+        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + appTypeName0 });
+        multiAppStrategy_->GetVoteRes(strategyConfig);
+        ASSERT_EQ(strategyConfig.min, fps0);
+        ASSERT_EQ(strategyConfig.max, fps0);
+        
+        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + appTypeName1 });
+        multiAppStrategy_->GetVoteRes(strategyConfig);
+        ASSERT_EQ(strategyConfig.min, fps1);
+        ASSERT_EQ(strategyConfig.max, fps1);
     }
 }
 } // namespace Rosen

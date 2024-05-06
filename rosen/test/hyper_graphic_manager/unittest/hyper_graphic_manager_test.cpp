@@ -32,6 +32,10 @@ namespace {
     int32_t phyWidth = 685;
     int32_t phyHeight = 1218;
     ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+
+    constexpr int32_t settingMode1 = 1;
+    constexpr int32_t settingMode2 = 2;
+    constexpr int32_t settingMode3 = 3;
 }
 class HyperGraphicManagerTest : public testing::Test {
 public:
@@ -456,9 +460,9 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
 
     PART("HgmCore") {
         STEP("1. set active mode") {
-            int32_t setResult = instance.SetRefreshRateMode(1);
-            setResult = instance.SetRefreshRateMode(3);
-            setResult = instance.SetRefreshRateMode(1);
+            int32_t setResult = instance.SetRefreshRateMode(settingMode1);
+            setResult = instance.SetRefreshRateMode(settingMode3);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
         }
 
@@ -466,7 +470,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             int32_t setResult = instance.SetScreenRefreshRate(screenId3, 0, rate);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate3);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate2);
-            setResult = instance.SetRefreshRateMode(1);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_GE(setResult, -1);
         }
 
@@ -517,20 +521,20 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
 
     PART("HgmCore") {
         STEP("1. set active mode") {
-            int32_t setResult = instance.SetRefreshRateMode(1);
+            int32_t setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
             auto refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 1);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode1);
 
-            setResult = instance.SetRefreshRateMode(3);
+            setResult = instance.SetRefreshRateMode(settingMode2);
             STEP_ASSERT_EQ(setResult, 0);
             refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 3);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode2);
 
-            setResult = instance.SetRefreshRateMode(1);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
             refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 1);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode1);
         }
     }
 }
