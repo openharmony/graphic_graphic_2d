@@ -45,7 +45,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkPushPopCommandTest, testing::ex
 {
     std::vector<std::string> command { "qwe", "123", "asd", "456" };
     Network::PushCommand(command);
-    EXPECT_EQ(Network::incoming_.front(), command);
+    EXPECT_EQ(Network::incoming_, command);
 
     std::string cmd;
     std::vector<std::string> args;
