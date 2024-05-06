@@ -192,11 +192,11 @@ public:
 private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
-    int blendApplyType_;
+    int blendApplyType_ = 0;
     bool isDangerous_ = false;
 
     std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
-    int stagingBlendApplyType_;
+    int stagingBlendApplyType_ = 0;
     bool stagingIsDangerous_ = false;
 };
 
@@ -212,8 +212,8 @@ public:
 
 private:
     bool needSync_ = false;
-    int blendApplyType_;
-    int stagingBlendApplyType_;
+    int blendApplyType_ = 0;
+    int stagingBlendApplyType_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
