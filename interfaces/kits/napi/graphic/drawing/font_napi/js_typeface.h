@@ -26,7 +26,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsTypeface final {
 public:
-    static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC_Regular.ttf";
+    static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC.ttf";
 
     explicit JsTypeface(std::shared_ptr<Typeface> typeface) : m_typeface(typeface) {};
     ~JsTypeface();
