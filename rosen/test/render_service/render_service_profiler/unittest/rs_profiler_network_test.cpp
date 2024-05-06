@@ -91,7 +91,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkProcessCommandTest, testing::ex
     command = "qwe 123";
     Network::ProcessCommand(command.data(), command.size());
     std::vector<std::string> expected { "qwe", "123" };
-    EXPECT_EQ(Network::incoming_.front(), expected);
+    EXPECT_EQ(Network::incoming_, expected);
 }
 
 /*
