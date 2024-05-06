@@ -159,7 +159,7 @@ void MyXComponent::InitScreenCanvas()
     }
     screenImageInfo_ = {static_cast<int32_t>(screenWidth_), static_cast<int32_t>(screenHeight_),
         COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
-    screenBitmap_ = OH_Drawing_BitmapCreateFromPixels(&screenImageInfo_, mappedAddr_, screenWidth_ * 4); // 4:rgba
+    screenBitmap_ = OH_Drawing_BitmapCreateFromPixels(&screenImageInfo_, mappedAddr_, bufferHandle_->stride);
     screenCanvas_ = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(screenCanvas_, screenBitmap_);
     OH_Drawing_CanvasClear(screenCanvas_, OH_Drawing_ColorSetArgb(0x00, 0x00, 0x00, 0x00));
@@ -167,7 +167,7 @@ void MyXComponent::InitScreenCanvas()
 
 void MyXComponent::BitmapToScreenCanvas(OH_Drawing_Bitmap* bitmap)
 {
-    DRAWING_LOGE("MyXComponent  BitmapToScreenCanvas");
+    DRAWING_LOGE("MyXComponent BitmapToScreenCanvas");
     if (screenCanvas_ == nullptr || bitmap == nullptr) {
         return;
     }
