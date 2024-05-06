@@ -48,8 +48,8 @@ bool IsFileExisted(const std::string& filePath)
     return true;
 }
 
-bool ParseBootConfig(
-    const std::string& path, bool& isCompatible, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs)
+bool ParseBootConfig(const std::string& path, int32_t& duration,
+    bool& isCompatible, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs)
 {
     char newpath[PATH_MAX + 1] = { 0x00 };
     if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == nullptr) {
@@ -76,6 +76,7 @@ bool ParseBootConfig(
     } else {
         ParseNewConfigFile(overallData, isMultiDisplay, configs);
     }
+    ParseBootDuration(overallData, duration);
     cJSON_Delete(overallData);
     return true;
 }
@@ -176,6 +177,15 @@ void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)
         if (extraPath != nullptr && cJSON_IsString(extraPath)) {
             config.videoExtPath.emplace_back(extraPath->valuestring);
         }
+    }
+}
+
+void ParseBootDuration(cJSON* data, int32_t& duration)
+{
+    cJSON* durationJson = cJSON_GetObjectItem(data, "cust.bootanimation.duration");
+    if (durationJson != nullptr && cJSON_IsString(durationJson)) {
+        duration = std::stoi(durationJson->valuestring);
+        LOGI("cust duration: %{public}d", duration);
     }
 }
 

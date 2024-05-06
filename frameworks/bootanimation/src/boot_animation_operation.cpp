@@ -25,6 +25,7 @@
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS;
+static const int DELAY_TIME_MS = 1000;
 
 BootAnimationOperation::~BootAnimationOperation()
 {
@@ -37,12 +38,14 @@ BootAnimationOperation::~BootAnimationOperation()
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
 }
 
-void BootAnimationOperation::Init(const BootAnimationConfig& config, const int32_t width, const int32_t height)
+void BootAnimationOperation::Init(const BootAnimationConfig& config, const int32_t width,
+    const int32_t height, const int32_t duration)
 {
     LOGI("Init enter, width: %{public}d, height: %{public}d, screenId : " BPUBU64 "", width, height, config.screenId);
     currentScreenId_ = config.screenId;
     windowWidth_ = width;
     windowHeight_ = height;
+    duration_ = duration * DELAY_TIME_MS;
 
     eventThread_ = std::thread(&BootAnimationOperation::StartEventHandler, this, config);
     std::unique_lock<std::mutex> lock(eventMutex_);
@@ -58,6 +61,7 @@ void BootAnimationOperation::StartEventHandler(const BootAnimationConfig& config
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainHandler_->PostTask(std::bind(&BootAnimationOperation::InitRsDisplayNode, this));
     mainHandler_->PostTask(std::bind(&BootAnimationOperation::InitRsSurfaceNode, this, config.rotateDegree));
+    mainHandler_->PostTask(std::bind(&BootAnimationOperation::StopBootAnimation, this), duration_);
     eventCon_.notify_all();
 #ifdef PLAYER_FRAMEWORK_ENABLE
     if (IsBootVideoEnabled(config)) {
@@ -94,7 +98,6 @@ bool BootAnimationOperation::InitRsDisplayNode()
     rsDisplayNode_ = OHOS::Rosen::RSDisplayNode::Create(config);
     if (rsDisplayNode_ == nullptr) {
         LOGE("init display node failed");
-        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return false;
     }
     rsDisplayNode_->SetDisplayOffset(0, 0);
@@ -105,7 +108,6 @@ bool BootAnimationOperation::InitRsDisplayNode()
     auto transactionProxy = OHOS::Rosen::RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         LOGE("transactionProxy is nullptr");
-        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return false;
     }
     transactionProxy->FlushImplicitTransaction();
@@ -123,7 +125,6 @@ bool BootAnimationOperation::InitRsSurfaceNode(const int32_t degree)
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {
         LOGE("create rsSurfaceNode failed");
-        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return false;
     }
     LOGI("rotation degree: %{public}d", degree);
@@ -153,7 +154,7 @@ void BootAnimationOperation::PlayVideo(const std::string& path)
     params.resPath = path;
     callback_ = {
         .userData = this,
-        .callback = std::bind(&BootAnimationOperation::CloseVideoPlayer, this),
+        .callback = std::bind(&BootAnimationOperation::StopBootAnimation, this),
     };
     params.callback = &callback_;
     params.screenId = currentScreenId_;
@@ -198,7 +199,6 @@ bool BootAnimationOperation::InitRsSurface()
         Rosen::RenderContextBaseFactory::CreateRenderContext();
     if (renderContext == nullptr) {
         LOGE("create render context failed");
-        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return false;
     }
     renderContext->Init();
@@ -212,7 +212,6 @@ bool BootAnimationOperation::InitRsSurface()
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
-        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return false;
     }
 #ifdef ACE_ENABLE_GL
@@ -221,7 +220,6 @@ bool BootAnimationOperation::InitRsSurface()
         OHOS::Rosen::RenderContext* rc = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
         if (rc == nullptr) {
             LOGE("init egl context failed");
-            mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
             return false;
         } else {
             LOGI("init egl context success");
@@ -247,10 +245,12 @@ bool BootAnimationOperation::IsBootVideoEnabled(const BootAnimationConfig& confi
     return true;
 }
 
-#ifdef PLAYER_FRAMEWORK_ENABLE
-void BootAnimationOperation::CloseVideoPlayer()
+void BootAnimationOperation::StopBootAnimation()
 {
-    LOGI("close video player");
+    LOGI("StopBootAnimation");
+    if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
+        system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+        LOGI("set boot animation started true");
+    }
     mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
 }
-#endif
