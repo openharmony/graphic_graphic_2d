@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -259,6 +259,7 @@ void HgmFrameRateManager::FrameRateReport() const
     auto alignRate = HgmCore::Instance().GetAlignRate();
     rates[UNI_APP_PID] = (alignRate == 0) ? currRefreshRate_ : alignRate;
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+    FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
 }
 
 bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
