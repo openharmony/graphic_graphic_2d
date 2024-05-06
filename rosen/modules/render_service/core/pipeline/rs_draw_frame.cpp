@@ -15,6 +15,9 @@
 
 #include "pipeline/rs_draw_frame.h"
 
+#include <hitrace_meter.h>
+#include <parameters.h>
+
 #include "rs_trace.h"
 
 #include "pipeline/rs_main_thread.h"
@@ -37,8 +40,12 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
     stagingRenderThreadParams_ = std::move(stagingRenderThreadParams);
 }
 
+bool RSDrawFrame::debugTraceEnabled_ =
+    std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+
 void RSDrawFrame::RenderFrame()
 {
+    HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RSRenderStart();

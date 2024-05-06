@@ -177,7 +177,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
@@ -890,7 +890,7 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 
 bool RSSystemProperties::GetHDRImageEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "1");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);

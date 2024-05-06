@@ -125,10 +125,11 @@ public:
 
     void Init(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
+    void InitTouchManager();
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
-    std::unique_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
+    HgmTouchManager& GetTouchManager() { return touchManager_; }
 private:
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -179,10 +180,9 @@ private:
     bool isLtpo_ = true;
     bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
-    bool isTouchEnable_ = false;
-    int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
     HgmMultiAppStrategy multiAppStrategy_;
+    HgmTouchManager touchManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

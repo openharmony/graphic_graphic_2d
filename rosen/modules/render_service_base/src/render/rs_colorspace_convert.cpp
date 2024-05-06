@@ -15,6 +15,7 @@
 #include "render/rs_colorspace_convert.h"
 
 #include "effect/image_filter.h"
+#include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 
@@ -98,9 +99,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     }
 
     // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
-    // DEFALUT 500nit
-    parameter.tmoNits = 500.0f;
-    parameter.currentDisplayNits = 500.0f;
+    parameter.tmoNits = RSLuminanceControl::Get().GetHdrTmoNits(screenId, dynamicRangeMode);
+    parameter.currentDisplayNits = RSLuminanceControl::Get().GetHdrDisplayNits(screenId);
     RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f.", parameter.tmoNits, parameter.currentDisplayNits);
     return true;
 }

@@ -61,12 +61,15 @@ public:
 
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
         const FallbackCallback& cb);
+    bool Init(const RSDisplayRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
+        float mirrorAdaptiveCoefficient, const FallbackCallback& cb);
 
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node) const;
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     /* only used for mock tests */
     void SetHdiBackendDevice(HdiDevice* device);
+    void SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo);
 
 private:
     // check if the node is out of the screen region.
@@ -97,6 +100,7 @@ private:
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;
+    ScreenInfo mirroredScreenInfo_;
 
     // The offset on dst screen for all layers.
     int32_t offsetX_ = 0;

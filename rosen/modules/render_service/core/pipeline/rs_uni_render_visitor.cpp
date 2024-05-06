@@ -1223,7 +1223,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     SendRcdMessage(node);
     ancestorNodeHasAnimation_ = false;
 
-    dirtyFlag_ = isDirty_ || node.IsRotationChanged();
+    displayNodeRotationChanged_ = node.IsRotationChanged();
+    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
     prepareClipRect_ = screenRect_;
     curAlpha_ = 1.0f;
     node.UpdateRotation();
@@ -1541,7 +1542,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     // 5. check compositeType
     auto mirrorNode = node.GetMirrorSource().lock();
     switch (screenInfo_.state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
+        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
             node.SetCompositeType(mirrorNode ?
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
@@ -1634,7 +1635,8 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         }
         node.SetHardwareForcedDisabledState(false);
         node.SetHardwareForcedDisabledByVisibility(false);
-        if ((!node.GetForceHardwareByUser() && !IsHardwareComposerEnabled()) ||
+        node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+        if ((!node.GetForceHardware() && !IsHardwareComposerEnabled()) ||
             curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetBuffer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by param/invisible/no buffer",
                 node.GetName().c_str(), node.GetId());
@@ -1699,6 +1701,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     if (!node.GetBuffer()) {
         return;
     }
+    node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
@@ -3538,7 +3541,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     isSecurityDisplay_ = node.GetSecurityDisplay();
     auto mirrorNode = node.GetMirrorSource().lock();
     switch (screenInfo_.state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
+        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
             node.SetCompositeType(mirrorNode ?
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);

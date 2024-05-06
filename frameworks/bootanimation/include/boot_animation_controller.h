@@ -31,6 +31,7 @@ private:
     void CreateDefaultBootConfig();
     BootStrategyType GetBootType() const;
 
+    int32_t duration_ = 15;
     bool isMultiDisplay_ = false;
     bool isCompatible_ = false;
     std::vector<BootAnimationConfig> animationConfigs_;

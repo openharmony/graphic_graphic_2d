@@ -273,7 +273,7 @@ HWTEST_F(NativeImageTest, OHNativeImageDetachContext001, Function | MediumTest |
 HWTEST_F(NativeImageTest, OHNativeImageDetachContext002, Function | MediumTest | Level1)
 {
     int32_t ret = OH_NativeImage_DetachContext(image);
-    ASSERT_EQ(ret, SURFACE_ERROR_INIT);
+    ASSERT_EQ(ret, SURFACE_ERROR_EGL_STATE_UNKONW);
 }
 
 /*
@@ -408,7 +408,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
 HWTEST_F(NativeImageTest, OHNativeImageGetTimestamp001, Function | MediumTest | Level2)
 {
     int64_t timeStamp = OH_NativeImage_GetTimestamp(nullptr);
-    ASSERT_EQ(timeStamp, SURFACE_ERROR_ERROR);
+    ASSERT_EQ(timeStamp, -1);
 }
 
 /*

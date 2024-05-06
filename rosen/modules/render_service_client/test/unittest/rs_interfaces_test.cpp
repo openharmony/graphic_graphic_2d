@@ -1411,5 +1411,51 @@ HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Lev
 {
     EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
 }
+
+/*
+ * @tc.name: GetActiveScreenId
+ * @tc.desc: Test GetActiveScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, GetActiveScreenId, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetActiveScreenId();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenScaleMode
+ * @tc.desc: Test SetVirtualMirrorScreenScaleMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest | Level2)
+{
+    ASSERT_FALSE(rsInterfaces->SetVirtualMirrorScreenScaleMode(INVALID_SCREEN_ID, ScreenScaleMode::INVALID_MODE));
+}
+
+/*
+ * @tc.name: SetScreenCorrection
+ * @tc.desc: Test SetScreenCorrection
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->SetScreenCorrection(INVALID_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetSystemAnimatedScenes
+ * @tc.desc: Test SetSystemAnimatedScenes
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
+}
 } // namespace Rosen
 } // namespace OHOS

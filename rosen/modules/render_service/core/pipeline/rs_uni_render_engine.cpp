@@ -33,8 +33,7 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, R
     canvas.Restore();
 }
 
-void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
-    float mirrorAdaptiveCoefficient)
+void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU)
 {
     for (const auto& layer : layers) {
         if (layer == nullptr) {

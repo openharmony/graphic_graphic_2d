@@ -100,7 +100,8 @@ void RSDividedRenderUtil::CalculateSurfaceNodeClipRects(
         params.clipRRect = RRect(localBounds, params.cornerRadius);
     } else {
         // in logical screen's coordinate system.
-        const auto& clipRect = node.GetDstRect();
+        auto clipRect = node.GetDstRect();
+        clipRect = clipRect.Offset(node.GetOffSetX() * -1, node.GetOffSetY() * -1);
         params.clipRect = Drawing::Rect(clipRect.GetLeft(), clipRect.GetTop(),
             clipRect.GetWidth() + clipRect.GetLeft(), clipRect.GetHeight() + clipRect.GetTop());
         params.clipRRect = RRect(absBounds, params.cornerRadius);

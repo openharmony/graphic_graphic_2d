@@ -1117,7 +1117,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     } else if (!screen->IsVirtual()) {
         info.state = ScreenState::HDI_OUTPUT_ENABLE;
     } else {
-        info.state = ScreenState::PRODUCER_SURFACE_ENABLE;
+        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
     }
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
     screen->GetPixelFormat(info.pixelFormat);

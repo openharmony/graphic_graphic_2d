@@ -28,8 +28,7 @@ public:
     void operator=(const RSUniRenderEngine&) = delete;
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
-        float mirrorAdaptiveCoefficient) override;
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU) override;
     void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
         BufferDrawParam& params);
 };

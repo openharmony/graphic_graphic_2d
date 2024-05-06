@@ -44,7 +44,8 @@ int RSHDRManager::IncreaseHDRNum()
     return hdrNum_;
 }
 
-int RSHDRManager::ReduceHDRNum()
+int RSHDRManager::ReduceHDRNum
+()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
 
@@ -65,6 +66,11 @@ int RSHDRManager::ReduceHDRNum()
 void RSHDRManager::ResetHDRNum()
 {
     hdrNum_ = 0;
+}
+
+int RSHDRManager::getHDRNum()
+{
+    return hdrNum_;
 }
 
 void RSHDRManager::RegisterSetHDRPresent(HDRFunc func)
