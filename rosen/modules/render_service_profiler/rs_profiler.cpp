@@ -24,6 +24,7 @@
 #include "rs_profiler_file.h"
 #include "rs_profiler_json.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_settings.h"
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
 
@@ -618,6 +619,19 @@ void RSProfiler::RecordUpdate()
 void RSProfiler::Respond(const std::string& message)
 {
     Network::SendMessage(message);
+}
+
+void RSProfiler::SetSystemParameter(const ArgList& args)
+{
+    if (!SystemParameter::Set(args.String(0), args.String(1))) {
+        Respond("There is no such a system parameter");
+    }
+}
+
+void RSProfiler::GetSystemParameter(const ArgList& args)
+{
+    const auto parameter = SystemParameter::Find(args.String());
+    Respond(parameter ? parameter->ToString() : "There is no such a system parameter");
 }
 
 void RSProfiler::DumpConnections(const ArgList& args)
@@ -1308,6 +1322,8 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "save_rdc", SaveRdc },
         { "save_skp", SaveSkp },
         { "info", GetDeviceInfo },
+        { "set", SetSystemParameter },
+        { "get", GetSystemParameter },
         { "get_perf_tree", GetPerfTree },
         { "calc_perf_node", CalcPerfNode },
         { "calc_perf_node_all", CalcPerfNodeAll },

@@ -172,6 +172,9 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
+    #luminance
+    "src/luminance/rs_luminance_control.cpp",
+
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
@@ -518,6 +521,7 @@ ohos_source_set("render_service_base_src") {
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_settings.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_utils.cpp",
     ]
   }

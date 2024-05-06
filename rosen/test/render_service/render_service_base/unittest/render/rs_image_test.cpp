@@ -385,6 +385,16 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     canvas.AttachBrush(brush);
     imageBase.DrawImage(canvas, Drawing::SamplingOptions());
     canvas.DetachBrush();
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto img = std::make_shared<Drawing::Image>();
+    imageBase.SetDmaImage(img);
+#endif
+
+#ifdef ROSEN_OHOS
+    Parcel parcel;
+    EXPECT_TRUE(imageBase.Marshalling(parcel));
+    EXPECT_EQ(imageBase.Unmarshalling(parcel), nullptr);
+#endif
 }
 
 /**
@@ -424,5 +434,12 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().CachePixelMap(0, pixelMap);
     RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(1, nullptr);
     RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(0, nullptr);
+
+    auto img = std::make_shared<Drawing::Image>();
+    RSImageCache::Instance().CacheDrawingImage(0, img);
+
+    EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
+
+    RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
 }
 } // namespace OHOS::Rosen

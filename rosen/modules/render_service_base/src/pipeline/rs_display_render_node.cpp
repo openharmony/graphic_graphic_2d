@@ -272,7 +272,7 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
     if (skipFrameInterval == 0) {
         return false;
     }
-    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
+    if ((frameCount_ - 1) % skipFrameInterval == 0) {
         return false;
     }
     return true;
@@ -335,5 +335,13 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
     }
 }
 
+void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetHDRPresent(hdrPresent);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

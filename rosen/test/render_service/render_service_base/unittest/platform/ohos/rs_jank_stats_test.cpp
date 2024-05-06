@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,6 +74,10 @@ HWTEST_F(RSJankStatsTest, HandleDirectCompositionTest, TestSize.Level1)
     rsJankStats.SetEndTime(false);
     rsJankStats.SetStartTime();
     JankDurationParams rsParams;
+    rsParams.timeStart_ = rsJankStats.GetCurrentSystimeMs();
+    rsParams.timeStartSteady_ = rsJankStats.GetCurrentSteadyTimeMs();
+    rsParams.timeEnd_ = rsJankStats.GetCurrentSystimeMs();
+    rsParams.timeEndSteady_ = rsJankStats.GetCurrentSteadyTimeMs();
     rsJankStats.HandleDirectComposition(rsParams, true);
 }
 
@@ -160,25 +164,60 @@ HWTEST_F(RSJankStatsTest, ConvertTimeToSystimeTest, TestSize.Level1)
     DataBaseRs info1;
     info1.uniqueId = 0;
     rsJankStats.SetReportEventResponse(info1);
-    usleep(50*1000);
+    usleep(50 * 1000);
     rsJankStats.SetEndTime(false);
-    usleep(100*1000);
+    usleep(100 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_6_FREQ
     rsJankStats.SetReportEventResponse(info1);
-    usleep(100*1000);
+    usleep(240 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_15_FREQ
-    usleep(100*1000);
+    usleep(300 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_20_FREQ
-    usleep(300*1000);
+    usleep(500 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_36_FREQ
-    usleep(250*1000);
+    usleep(700 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_48_FREQ
-    usleep(1000*1000);
+    usleep(900 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_60_FREQ
-    usleep(400*1000);
+    usleep(1900 * 1000);
     rsJankStats.SetEndTime(false); // JANK_FRAME_120_FREQ
-    usleep(800*1000);
+    usleep(2900 * 1000);
+    rsJankStats.SetEndTime(false); // JANK_FRAME_180_FREQ
+    usleep(3000 * 1000);
     rsJankStats.SetEndTime(false); // jank frames skip more than 180
 }
+
+/**
+ * @tc.name: RecordJankFrameSingleTest
+ * @tc.desc: test RecordJankFrameSingle
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSJankStatsTest, RecordJankFrameSingleTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStats::GetInstance();
+    JankFrameRecordStats recordStats = {"test", 1};
+    recordStats.isRecorded_ = false;
+    rsJankStats.RecordJankFrameSingle(1, recordStats);
+    ASSERT_EQ(recordStats.isRecorded_, true);
+}
+
+/**
+ * @tc.name: ReportEventCompleteTest
+ * @tc.desc: test ReportEventComplete
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSJankStatsTest, ReportEventCompleteTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStats::GetInstance();
+    DataBaseRs info1;
+    info1.uniqueId = 1;
+    rsJankStats.SetReportEventResponse(info1);
+    rsJankStats.SetReportEventComplete(info1);
+    rsJankStats.SetStartTime();
+    rsJankStats.SetEndTime(false, true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -2026,7 +2026,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnSync, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     surfaceNode->OnSync();
-    ASSERT_FALSE(surfaceNode->lastFrameUifirstFlag_);
+    ASSERT_EQ(surfaceNode->stagingRenderParams_, nullptr);
 }
 
 /**
@@ -2159,7 +2159,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnApplyModifiers, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, LeashWindowRelatedAppWindowOccluded, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    std::shared_ptr<RSSurfaceRenderNode> appNode;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> appNode;
     ASSERT_FALSE(node->LeashWindowRelatedAppWindowOccluded(appNode));
 }
 
@@ -2331,7 +2331,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
     node->UpdateRenderParams();
     node->UpdateAncestorDisplayNodeInRenderParams();
     node->SetUifirstChildrenDirtyRectParam(RectI());
-    node->SetUifirstNodeEnableParam(true);
+    node->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
     node->SetIsParentUifirstNodeEnableParam(true);
     ASSERT_EQ(node->stagingRenderParams_.get(), nullptr);
 }
@@ -2465,7 +2465,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
     bool isFocusWindow = true;
     Vector4<int> cornerRadius;
-    ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect,screenRotation ,isFocusWindow, cornerRadius));
+    ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
     float density = 1.0f;
     node->containerConfig_.Update(hasContainer, density);

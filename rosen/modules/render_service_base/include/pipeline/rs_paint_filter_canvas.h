@@ -25,6 +25,8 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "screen_manager/screen_types.h"
+#include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {
@@ -41,6 +43,8 @@ public:
     Drawing::Rect GetLocalClipBounds() const override;
 
     Drawing::RectI GetDeviceClipBounds() const override;
+
+    Drawing::RectI GetRoundInDeviceClipBounds() const override;
 
     uint32_t GetSaveCount() const override;
 
@@ -274,6 +278,23 @@ public:
     bool GetRecordingState() const override;
     void SetRecordingState(bool flag) override;
 
+    Drawing::DrawingType GetDrawingType() const override
+    {
+        return Drawing::DrawingType::PAINT_FILTER;
+    }
+    bool GetHDRPresent() const;
+    void SetHDRPresent(bool hasHdrPresent);
+    bool IsCapture() const;
+    void SetCapture(bool isCapture);
+    ScreenId GetScreenId() const;
+    void SetScreenId(ScreenId screenId);
+    GraphicColorGamut GetTargetColorGamut() const;
+    void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    float GetBrightnessRatio() const;
+    void SetBrightnessRatio(float brightnessRatio);
+    template <typename T>
+    void PaintFilter(T& paint);
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
@@ -321,11 +342,17 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     Drawing::Rect visibleRect_ = Drawing::Rect();
 
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    ScreenId screenId_ = INVALID_SCREEN_ID;
+
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
+    bool hasHdrPresent_ = false;
+    bool isCapture_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

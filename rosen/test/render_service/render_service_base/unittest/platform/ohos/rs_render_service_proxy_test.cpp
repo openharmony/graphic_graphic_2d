@@ -23,6 +23,8 @@
 #include <unistd.h>
 
 #include "platform/ohos/rs_render_service_proxy.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#include "render_context/render_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,6 +65,39 @@ HWTEST_F(RSProxyTest, CreateConnection_Test, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(nullptr);
     ASSERT_EQ(conn, nullptr);
+}
+
+/**
+ * @tc.name: CreateConnection Test
+ * @tc.desc: CreateConnection Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSProxyTest, CreateConnection, TestSize.Level1)
+{
+    ASSERT_NE(renderService, nullptr);
+    MessageParcel data;
+    auto remoteObj = data.ReadRemoteObject();
+    sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
+    ASSERT_NE(token, nullptr);
+    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
+    ASSERT_NE(conn, nullptr);
+}
+
+/**
+ * @tc.name: SetRenderContext Test
+ * @tc.desc: SetRenderContext Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSProxyTest, SetRenderContext, TestSize.Level1)
+{
+    int32_t width = 1;
+    int32_t height = 1;
+    RSSurfaceFrameOhosRaster raster(width, height);
+    std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
+    raster.SetRenderContext(renderContext.get());
+    ASSERT_NE(raster.renderContext_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

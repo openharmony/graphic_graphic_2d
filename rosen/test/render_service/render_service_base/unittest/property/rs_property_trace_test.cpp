@@ -181,5 +181,28 @@ HWTEST_F(RSPropertyTraceTest, IsNeedPropertyTrace002, TestSize.Level1)
     res = RSPropertyTrace::GetInstance().IsNeedPropertyTrace(nodeName);
     EXPECT_EQ(res, true);
 }
+
+/**
+ * @tc.name: AddTraceFlag001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyTraceTest, AddTraceFlag001, TestSize.Level1)
+{
+    std::string flag = "flag";
+    RSPropertyTrace::GetInstance().AddTraceFlag(flag);
+}
+
+/**
+ * @tc.name: ClearNodeAndPropertyInfo001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyTraceTest, ClearNodeAndPropertyInfo001, TestSize.Level1)
+{
+    RSPropertyTrace::GetInstance().ClearNodeAndPropertyInfo();
+}
 } // namespace Rosen
 } // namespace OHOS

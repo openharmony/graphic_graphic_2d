@@ -135,9 +135,9 @@ bool SyncFenceTracker::CheckGpuSubhealthEventLimit()
 {
     auto now = std::chrono::system_clock::now();
     std::time_t t = std::chrono::system_clock::to_time_t(now);
-    std::tm tm = *std::localtime(&t);
-    if (gpuSubhealthEventNum == 0 || tm.tm_yday > gpuSubhealthEventDay) {
-        gpuSubhealthEventDay = tm.tm_yday;
+    std::tm *tm = std::localtime(&t);
+    if (gpuSubhealthEventNum == 0 || ((tm != nullptr) && tm->tm_yday > gpuSubhealthEventDay)) {
+        gpuSubhealthEventDay = tm->tm_yday;
         gpuSubhealthEventNum = 0;
         HILOG_DEBUG(LOG_CORE, "first event of %{public}" PRId32, gpuSubhealthEventDay);
         gpuSubhealthEventNum++;
@@ -164,22 +164,28 @@ inline void SyncFenceTracker::UpdateFrameQueue(int32_t startTime)
 inline int32_t SyncFenceTracker::GetFrameRate()
 {
     int32_t frameRate = 0;
-    int32_t frameNum = frameStartTimes->size() - 1;
-    if (frameNum > 0) {
-        frameRate = FRAME_PERIOD * frameNum / (frameStartTimes->back() - frameStartTimes->front());
+    auto frameNum = frameStartTimes->size();
+    if (frameNum > 1) {
+        frameRate = FRAME_PERIOD * (frameNum - 1) / (frameStartTimes->back() - frameStartTimes->front());
     }
-    HILOG_DEBUG(LOG_CORE, "frameNum: %{public}" PRId32 ", frameRate: %{public}" PRId32,
+    HILOG_DEBUG(LOG_CORE, "frameNum: %zu, frameRate: %{public}" PRId32,
         frameNum, frameRate);
     return frameRate;
 }
 
 void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
 {
-    auto reportName = "GPU_SUBHEALTH_MONITORING";
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventGpuSubhealth");
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "WAIT_ACQUIRE_FENCE_TIME", duration,
-        "FRAME_RATE", GetFrameRate());
+    if (handler_) {
+        handler_->PostTask([this, duration]() {
+            RS_TRACE_NAME_FMT("report GPU_SUBHEALTH_MONITORING");
+            auto reportName = "GPU_SUBHEALTH_MONITORING";
+            HILOG_DEBUG(LOG_CORE, "report GPU_SUBHEALTH_MONITORING. duration : %{public}"
+                PRId32, duration);
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "WAIT_ACQUIRE_FENCE_TIME",
+                duration, "FRAME_RATE", GetFrameRate());
+        });
+    }
 }
 
 void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)

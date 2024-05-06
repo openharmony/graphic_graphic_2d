@@ -140,6 +140,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
+    RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

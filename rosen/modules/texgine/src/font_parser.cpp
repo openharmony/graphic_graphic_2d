@@ -161,7 +161,7 @@ void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser:
     }
 }
 
-int FontParser::ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('c', 'm', 'a', 'p');
     auto size = typeface->GetTableSize(tag);
@@ -192,7 +192,7 @@ int FontParser::ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontPa
     return SUCCESSED;
 }
 
-int FontParser::ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('n', 'a', 'm', 'e');
     auto size = typeface->GetTableSize(tag);
@@ -227,7 +227,7 @@ int FontParser::ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontPa
     return SUCCESSED;
 }
 
-int FontParser::ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('p', 'o', 's', 't');
     auto size = typeface->GetTableSize(tag);
@@ -258,7 +258,7 @@ int FontParser::ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontPa
     return SUCCESSED;
 }
 
-int FontParser::ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     if (ParseCmapTable(typeface, fontDescriptor) != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "parse cmap failed";
@@ -283,18 +283,14 @@ int FontParser::SetFontDescriptor(const unsigned int languageId)
         fontDescriptor.requestedLid = languageId;
         fontDescriptor.path = fontSet_[i];
         const char* path = fontSet_[i].c_str();
-        auto typeface = TexgineTypeface::MakeFromFile(path);
+        auto typeface = Drawing::Typeface::MakeFromFile(path);
         if (typeface == nullptr) {
             LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
             continue;
         }
         auto fontStyle = typeface->GetFontStyle();
-        if (fontStyle == nullptr) {
-            LOGSO_FUNC_LINE(ERROR) << "fontStyle is nullptr, can not parse: " << fontDescriptor.path;
-            continue;
-        }
-        fontDescriptor.weight = fontStyle->GetWeight();
-        fontDescriptor.width = fontStyle->GetWidth();
+        fontDescriptor.weight = fontStyle.GetWeight();
+        fontDescriptor.width = fontStyle.GetWidth();
         if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return FAILED;
@@ -407,18 +403,14 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         fontDescriptor.requestedLid = languageId;
         fontDescriptor.path = (*systemFontList)[i];
         const char* path = (*systemFontList)[i].c_str();
-        auto typeface = TexgineTypeface::MakeFromFile(path);
+        auto typeface = Drawing::Typeface::MakeFromFile(path);
         if (typeface == nullptr) {
             LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
             continue;
         }
         auto fontStyle = typeface->GetFontStyle();
-        if (fontStyle == nullptr) {
-            LOGSO_FUNC_LINE(ERROR) << "fontStyle is nullptr, can not parse: " << fontDescriptor.path;
-            continue;
-        }
-        fontDescriptor.weight = fontStyle->GetWeight();
-        fontDescriptor.width = fontStyle->GetWidth();
+        fontDescriptor.weight = fontStyle.GetWeight();
+        fontDescriptor.width = fontStyle.GetWidth();
         if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return nullptr;

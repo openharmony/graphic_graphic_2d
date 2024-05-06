@@ -147,7 +147,6 @@ private:
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
-    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     VsyncError SetQosVSyncRateByPid(uint32_t pid, int32_t rate);
 
 #ifdef COMPOSER_SCHED_ENABLE

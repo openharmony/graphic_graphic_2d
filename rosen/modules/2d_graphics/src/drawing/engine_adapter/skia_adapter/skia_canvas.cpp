@@ -117,6 +117,16 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
+RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
+{
+    if (skCanvas_ == nullptr) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return RectI();
+    }
+    auto iRect = skCanvas_->getRoundInDeviceClipBounds();
+    return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
+}
+
 #ifdef ACE_ENABLE_GPU
 std::shared_ptr<GPUContext> SkiaCanvas::GetGPUContext() const
 {
@@ -758,7 +768,7 @@ void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect
     if (cullRect != nullptr) {
         SkiaConvertUtils::DrawingRectCastToSkRect(*cullRect, skCullRect);
     }
-    
+
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
     if (paints.count_ == 0) {
         skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,

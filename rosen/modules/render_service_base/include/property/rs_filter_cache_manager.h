@@ -98,13 +98,13 @@ public:
     {
         return cachedSnapshot_ != nullptr || cachedFilteredSnapshot_ != nullptr;
     }
-    
+
     static bool GetFilterInvalid();
     static void SetFilterInvalid(bool invalidFilter);
 
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
+        const Drawing::RectI& srcRect);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     bool DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,

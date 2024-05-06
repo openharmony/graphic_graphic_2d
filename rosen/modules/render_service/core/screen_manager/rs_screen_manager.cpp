@@ -1254,6 +1254,21 @@ void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
     }
 }
 
+void RSScreenManager::ClearFrameBufferIfNeed()
+{
+    RSHardwareThread::Instance().PostTask([this]() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (const auto& [id, screen] : screens_) {
+            if (!screen) {
+                continue;
+            }
+            if (screen->GetOutput()->GetBufferCacheSize() > 0) {
+                RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
+            }
+        }
+    });
+}
+
 void RSScreenManager::HitchsDump(std::string& dumpString, std::string& arg)
 {
     int32_t index = 0;

@@ -591,6 +591,21 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
     auto rect = skiaCanvas->GetDeviceClipBounds();
 }
 
+/**
+ * @tc.name: GetRoundInDeviceClipBoundsTest001
+ * @tc.desc: Test for geting bounds of clip in device corrdinates.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
+}
+
 #ifdef ACE_ENABLE_GPU
 /**
  * @tc.name: GetGPUContextTest001

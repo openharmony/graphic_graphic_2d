@@ -869,5 +869,10 @@ void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) con
 
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);
 }
+
+int HdiOutput::GetBufferCacheSize()
+{
+    return bufferCache_.size();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -393,7 +393,7 @@ public:
     void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
-    bool CheckParticipateInOcclusion() const;
+    bool CheckParticipateInOcclusion();
 
     void OnApplyModifiers() override;
 
@@ -858,7 +858,7 @@ public:
         bool isUniRender,
         bool filterCacheOcclusionEnabled);
 
-    bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
+    bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
     void OnTreeStateChanged() override;
 
@@ -1187,10 +1187,10 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
-        ScreenRotation screenRotation_;
-        bool isFocusWindow_;
-        bool isTransparent_;
-        bool hasContainerWindow_;
+        ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+        bool isFocusWindow_ = false;
+        bool isTransparent_ = false;
+        bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
     };
 
@@ -1261,6 +1261,7 @@ private:
 
     bool animateState_ = false;
     bool isRotating_ = false;
+    bool isParentScaling_ = false;
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;

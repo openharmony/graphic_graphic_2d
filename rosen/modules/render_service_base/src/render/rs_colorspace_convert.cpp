@@ -23,7 +23,7 @@ namespace Rosen {
 
 RSColorSpaceConvert::RSColorSpaceConvert()
 {
-    colorSpaceConverterDisplay_ = VPE::ColorSpaceConverterDisplay::Create();
+    colorSpaceConverterDisplay_ = VPEConvert::Create();
 }
 
 RSColorSpaceConvert::~RSColorSpaceConvert()
@@ -37,33 +37,103 @@ RSColorSpaceConvert RSColorSpaceConvert::Instance()
 
 bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
     const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
-    ScreenId screenId, int dynamicRangeMode)
+    ScreenId screenId, uint32_t dynamicRangeMode)
 {
-    /**
-     * HDR color converter. Go to the interface first.
-    */
+    RS_LOGD("RSColorSpaceConvertor targetColorSpace:%{public}d. screenId:%{public}lu. dynamicRangeMode%{public}d",
+        targetColorSpace, screenId, dynamicRangeMode);
+    VPEParameter parameter;
+
+    if (inputShader == nullptr) {
+        RS_LOGE("bhdr imageShader is nullptr.");
+        return false;
+    }
+
+    if (!SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter, targetColorSpace, screenId,
+        dynamicRangeMode)) {
+        return false;
+    }
+
+    std::shared_ptr<Drawing::ShaderEffect> outputShader;
+    auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("bhdr failed with %{public}u.", convRet);
+        return false;
+    }
+    if (outputShader == nullptr) {
+        RS_LOGE("bhdr outputShader is nullptr.");
+        return false;
+    }
+    paint.SetShaderEffect(outputShader);
     return true;
 }
 
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
-    VPE::ColorSpaceConverterDisplayParameter& parameter, GraphicColorGamut targetColorSpace,
-    ScreenId screenId, int dynamicRangeMode)
+    VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode)
 {
-    /**
-     * HDR color converter. Go to the interface first.
-    */
+    using namespace HDIV;
+
+    GSError ret = MetadataHelper::GetColorSpaceInfo(surfaceBuffer, parameter.inputColorSpace.colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("bhdr GetColorSpaceInfo failed with %{public}u.", ret);
+        return false;
+    }
+    if (!ConvertColorGamutToSpaceInfo(targetColorSpace, parameter.outputColorSpace.colorSpaceInfo)) {
+        return false;
+    }
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    ret = MetadataHelper::GetHDRMetadataType(surfaceBuffer, hdrMetadataType);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("bhdr GetHDRMetadataType failed with %{public}u.", ret);
+    }
+    parameter.inputColorSpace.metadataType = hdrMetadataType;
+    parameter.outputColorSpace.metadataType = hdrMetadataType;
+
+    ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("bhdr GetHDRStaticMetadata failed with %{public}u.", ret);
+    }
+    ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
+    }
+
+    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
+    // DEFALUT 500nit
+    parameter.tmoNits = 500.0f;
+    parameter.currentDisplayNits = 500.0f;
+    RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f.", parameter.tmoNits, parameter.currentDisplayNits);
     return true;
 }
 
 bool RSColorSpaceConvert::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
-    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo)
+    HDIV::CM_ColorSpaceInfo& colorSpaceInfo)
 {
-    /**
-     * HDR color converter. Go to the interface first.
-    */
+    using namespace HDIV;
+    static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
+        {GRAPHIC_COLOR_GAMUT_SRGB, CM_SRGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, CM_ADOBERGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, CM_P3_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2020, CM_DISPLAY_BT2020_SRGB},
+        {GRAPHIC_COLOR_GAMUT_BT2100_PQ, CM_BT2020_PQ_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2100_HLG, CM_BT2020_HLG_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, CM_DISPLAY_BT2020_SRGB},
+    };
+
+    CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
+    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(colorGamut) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
+    }
+
+    GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("bhdr ConvertColorSpaceTypeToInfo failed with %{public}u.", ret);
+        return false;
+    }
+
     return true;
 }
-
 
 } // namespace Rosen
 } // namespace OHOS

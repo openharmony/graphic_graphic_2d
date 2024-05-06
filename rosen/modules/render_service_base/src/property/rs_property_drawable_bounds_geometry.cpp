@@ -951,14 +951,16 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent()) {
+        if (properties.GetBorderColorIsTransparent() ||
+            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()));
         }
     } else {
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent()) {
+        if (properties.GetBorderColorIsTransparent() ||
+            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
             canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
         } else {
             canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());

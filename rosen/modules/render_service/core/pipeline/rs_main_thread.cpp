@@ -48,6 +48,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -1288,13 +1289,34 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     bool isMultiDisplay = rootNode && rootNode->GetChildrenCount() > 1;
 
+    // check all children of global root node, and only disable hardware composer
+    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE
+    const auto& children = rootNode->GetChildren();
+    auto itr = std::find_if(children->begin(), children->end(), [](const std::shared_ptr<RSRenderNode>& child) -> bool {
+            if (child == nullptr) {
+                return false;
+            }
+            if (child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+                return false;
+            }
+            auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
+            return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    });
+
+    bool isExpandScreenCase = itr != children->end();
+
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
-        (isMultiDisplay && !hasProtectedLayer_) || hasColorFilter;
+        (isMultiDisplay && isExpandScreenCase && !hasProtectedLayer_) || hasColorFilter;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+
+    if (isMultiDisplay && !isHardwareForcedDisabled_) {
+        // Disable direct composition when hardware composer is enabled for virtual screen
+        doDirectComposition_ = false;
+    }
 }
 
 void RSMainThread::ReleaseAllNodesBuffer()
@@ -1780,6 +1802,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
+        renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
         UniRender(rootNode);
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
@@ -1801,6 +1824,26 @@ void RSMainThread::Render()
         CallbackDrawContextStatusToWMS();
         CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
+    }
+
+    if (auto screenManager = CreateOrGetScreenManager()) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        for (const auto& child : *rootNode->GetSortedChildren()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+            if (displayNode == nullptr) {
+                continue;
+            }
+
+            auto screenId = displayNode->GetScreenId();
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+            }
+            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+                screenManager->SetScreenBacklight(screenId, newLevel);
+                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+        }
     }
 }
 
@@ -2235,7 +2278,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
     if (receiver_ != nullptr) {
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
-            RS_LOGW("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
+            RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
     }
@@ -2441,6 +2484,8 @@ void RSMainThread::Animate(uint64_t timestamp)
             needRequestNextVsyncAnimate_ = true;  // set the member variable instead of directly calling rnv
             RS_TRACE_NAME("rs_RequestNextVSync");
         }
+    } else if (isUniRender_) {
+        renderThreadParams_->SetImplicitAnimationEnd(true);
     }
 
     PerfAfterAnim(needRequestNextVsync);

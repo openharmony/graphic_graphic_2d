@@ -23,6 +23,7 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
 #include "native_window.h"
 #endif
@@ -111,6 +112,9 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
+#ifndef ROSEN_ARKUI_X
+            SKResourceManager::Instance().HoldResource(image_);
+#endif
             rsImage_->SetDmaImage(image_);
         }
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
@@ -469,6 +473,7 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    objectHandle_->SetPaint(paint_);
     canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }

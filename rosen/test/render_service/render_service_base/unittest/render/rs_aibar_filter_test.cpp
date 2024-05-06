@@ -106,4 +106,15 @@ HWTEST_F(RSAIBarFilterTest, MakeBinarizationShaderTest, TestSize.Level1)
     EXPECT_NE(runtimeShaderBuilder, nullptr);
 }
 
+/**
+ * @tc.name: testGetDetailedDescription
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarFilterTest, testGetDetailedDescription, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSAIBarFilter>();
+    std::string expectRet = "RSAIBarFilterBlur";
+    EXPECT_EQ(filter->GetDetailedDescription(), expectRet);
+}
 } // namespace OHOS::Rosen

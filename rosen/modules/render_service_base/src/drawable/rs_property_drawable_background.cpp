@@ -222,7 +222,7 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
     canvas.Save();
     Drawing::SaveLayerOps slr(&maskBounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
 
     Drawing::Brush maskfilter;
     Drawing::Filter filter;
@@ -303,7 +303,8 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     canvas.AttachBrush(brush);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType()) {
-        if (properties.GetBorderColorIsTransparent()) {
+        if (properties.GetBorderColorIsTransparent() ||
+            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
