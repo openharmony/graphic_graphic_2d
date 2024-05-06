@@ -99,7 +99,7 @@ public:
     void HandleLightFactorStatus(bool isSafe);
     void HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(int32_t touchStatus);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -181,7 +181,6 @@ private:
     bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
     int32_t idleFps_ = 60;
-    int32_t touchCnt_ = 0;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
 };

@@ -39,7 +39,7 @@ namespace {
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 10;
-    constexpr int32_t LAST_TOUCH_DOWN_CNT = 1;
+    constexpr int32_t LAST_TOUCH_CNT = 1;
 
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
@@ -549,24 +549,17 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
+void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
 
     static std::mutex hgmTouchEventMutex;
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
-    if (touchCnt_ < 0) {
-        touchCnt_ = 0;
-    }
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
-        touchCnt_++;
-        if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {
-            HGM_LOGI("[touch manager] down");
-            touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
-        }
+        HGM_LOGI("[touch manager] down");
+        touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
-        touchCnt_--;
-        if (touchCnt_ == 0) {
+        if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up");
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
@@ -607,7 +600,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d status:%{public}d",
         static_cast<int>(curScreenId_), static_cast<int>(status));
     if (status != ScreenPowerStatus::POWER_STATUS_ON) {
-        touchCnt_ = 0;
         return;
     }
     if (curScreenId_ == id) {
