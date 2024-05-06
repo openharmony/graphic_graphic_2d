@@ -193,7 +193,7 @@ struct Index {
               .onClick(() => {
                 console.log(TAG, "SnapShort click");
                 const context: Context = getContext(this);
-                componentSnapshot.get(this.drawingType == 'gpu-xnode' ? "myXcomponent" : "",
+                componentSnapshot.get(this.drawingType == 'gpu-xnode' ? "myNodeController" : "myXcomponent",
                   (error:Error, pixmap: image.PixelMap) => {
                   if (error) {
                     console.log("error:", JSON.stringify(error))
