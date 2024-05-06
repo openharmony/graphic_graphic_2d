@@ -36,9 +36,9 @@ public:
  */
 HWTEST_F(RSProfilerUtilsTest, UtilsTimeTest, testing::ext::TestSize.Level1)
 {
-    EXPECT_NE(0, Utils::RawNowNano());
-    EXPECT_NE(0, Utils::NowNano());
-    EXPECT_NE(0, Utils::Now());
+    EXPECT_NE(Utils::Now(), 0);
+    EXPECT_DOUBLE_EQ(Utils::ToSeconds(500000000), 0.5);
+    EXPECT_EQ(Utils::ToNanoseconds(0.25), 250000000);
 }
 
 /*
@@ -120,17 +120,11 @@ HWTEST_F(RSProfilerUtilsTest, UtilsArgListTest, testing::ext::TestSize.Level1)
     std::vector<std::string> args { "123", "-5", "45738957893", "837983", "1.5", "678.789", "qwe" };
     ArgList list { args };
 
-    EXPECT_EQ(list.Arg<uint32_t>(0), 123);
     EXPECT_EQ(list.Uint32(0), 123);
-    EXPECT_EQ(list.Arg<int32_t>(1), -5);
     EXPECT_EQ(list.Int32(1), -5);
-    EXPECT_EQ(list.Arg<uint64_t>(2), 45738957893);
     EXPECT_EQ(list.Uint64(2), 45738957893);
-    EXPECT_EQ(list.Arg<int64_t>(3), 837983);
     EXPECT_EQ(list.Int64(3), 837983);
-    EXPECT_EQ(list.Arg<float>(4), 1.5f);
     EXPECT_EQ(list.Fp32(4), 1.5f);
-    EXPECT_EQ(list.Arg<double>(5), 678.789);
     EXPECT_EQ(list.Fp64(5), 678.789);
     EXPECT_EQ(list.String(6), "qwe");
     EXPECT_EQ(list.Count(), 7);

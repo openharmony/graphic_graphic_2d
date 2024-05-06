@@ -41,10 +41,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeFloatTest, testing::ext::TestSize.Level
     DataReader reader(buf);
     float initial = 27.0f;
     float result = 0.0f;
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -61,10 +59,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeDoubleTest, testing::ext::TestSize.Leve
     DataReader reader(buf);
     double initial = 87.0;
     double result = 0.0;
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -81,10 +77,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeInt32Test, testing::ext::TestSize.Level
     DataReader reader(buf);
     int32_t initial = 564;
     int32_t result = 0;
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -101,10 +95,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeUint32Test, testing::ext::TestSize.Leve
     DataReader reader(buf);
     uint32_t initial = 3644;
     uint32_t result = 0;
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -121,10 +113,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeSizeTTest, testing::ext::TestSize.Level
     DataReader reader(buf);
     size_t initial = 1056;
     size_t result = 0;
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -141,10 +131,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeStringTest, testing::ext::TestSize.Leve
     DataReader reader(buf);
     std::string initial = "sample text";
     std::string result = "";
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -161,10 +149,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeVectorFlatTest, testing::ext::TestSize.
     DataReader reader(buf);
     std::vector<int> initial = { 6, 235, 4357, 3245, -656, 34857, 435, -645, 6546, -253, 564 };
     std::vector<int> result = {};
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial);
-    r.Serialize(result);
+    writer.Serialize(initial);
+    reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -176,17 +162,17 @@ struct SomeStruct {
 
     void Serialize(Archive& archive)
     {
-        archive.Serialize(int_);
-        archive.Serialize(string_);
+        archive.Serialize(intData);
+        archive.Serialize(stringData);
     }
 
     bool operator==(const SomeStruct& other) const
     {
-        return int_ == other.int_ && string_ == other.string_;
+        return intData == other.intData && stringData == other.stringData;
     }
 
-    int int_ = 0;
-    std::string string_ = "";
+    int intData = 0;
+    std::string stringData = "";
 };
 
 /*
@@ -202,10 +188,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeVectorNonFlatTest, testing::ext::TestSi
     DataReader reader(buf);
     std::vector<SomeStruct> initial = { { 892, "qwe" }, { 457, "asd" }, { 2065, "zxc" } };
     std::vector<SomeStruct> result = {};
-    Archive& w = writer;
-    Archive& r = reader;
-    w.SerializeNonFlat(initial);
-    r.SerializeNonFlat(result);
+    writer.SerializeNonFlat(initial);
+    reader.SerializeNonFlat(result);
     EXPECT_EQ(initial, result);
 }
 
@@ -222,10 +206,8 @@ HWTEST_F(RSProfilerArchiveTest, SerializeVectorCustomSerializerTest, testing::ex
     DataReader reader(buf);
     std::vector<SomeStruct> initial = { { -546, "ioreh" }, { -135, "gbseg" }, { 968, "gvpwg" } };
     std::vector<SomeStruct> result = {};
-    Archive& w = writer;
-    Archive& r = reader;
-    w.Serialize(initial, SomeStruct::Serialize);
-    r.Serialize(result, SomeStruct::Serialize);
+    writer.Serialize(initial, SomeStruct::Serialize);
+    reader.Serialize(result, SomeStruct::Serialize);
     EXPECT_EQ(initial, result);
 }
 
