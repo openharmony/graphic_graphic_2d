@@ -20,16 +20,20 @@
 
 namespace OHOS::Rosen {
 
-struct GPUInfo {
-    float frequency = 0.0f;
+struct FrequencyLoadInfo final {
+    float current = 0.0f;
+    float min = 0.0f;
+    float max = 0.0f;
     float load = 0.0f;
 };
 
-struct CPUInfo {
-    static constexpr uint32_t MAX_CORE_COUNT = 16u;
+struct GPUInfo final {
+    FrequencyLoadInfo frequencyLoad;
+};
 
-    float coreFrequency[MAX_CORE_COUNT] = {0};
-    float coreLoad[MAX_CORE_COUNT] = {0};
+struct CPUInfo final {
+    static constexpr uint32_t MAX_CORES = 16u;
+    FrequencyLoadInfo coreFrequencyLoad[MAX_CORES];
     uint32_t cores = 0u;
     float temperature = 0.0f;
     float current = 0.0f;
@@ -38,7 +42,7 @@ struct CPUInfo {
     uint64_t ramFree = 0u;
 };
 
-struct DeviceInfo {
+struct DeviceInfo final {
     CPUInfo cpu;
     GPUInfo gpu;
 };
@@ -47,6 +51,8 @@ class RSTelemetry final {
 public:
     static const DeviceInfo& GetDeviceInfo();
     static std::string GetDeviceInfoString();
+    static std::string GetDeviceFrequencyString();
+    static std::string GetCpuAffinityString();
 };
 
 } // namespace OHOS::Rosen
