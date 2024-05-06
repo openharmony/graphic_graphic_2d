@@ -167,7 +167,6 @@ void MyXComponent::InitScreenCanvas()
 
 void MyXComponent::BitmapToScreenCanvas(OH_Drawing_Bitmap* bitmap)
 {
-    DRAWING_LOGE("MyXComponent BitmapToScreenCanvas");
     if (screenCanvas_ == nullptr || bitmap == nullptr) {
         return;
     }
