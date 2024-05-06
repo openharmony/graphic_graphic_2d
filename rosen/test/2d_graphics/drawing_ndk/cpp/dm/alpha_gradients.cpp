@@ -93,7 +93,7 @@ void AlphaGradients::OnTestFunction(OH_Drawing_Canvas *canvas)
         OH_Drawing_CanvasSave(canvas);
         for (size_t i = 0; i < gRec_size; ++i) {
             draw_grad(canvas, r, gRec[i].fColor0, gRec[i].fColor1, (doPreMul));
-            OH_Drawing_CanvasTranslate(canvas, 0, r.Width() + 8); // r.Width() + 8距离
+            OH_Drawing_CanvasTranslate(canvas, 0, r.Height() + 8); // r.Height() + 8距离
         }
         OH_Drawing_CanvasRestore(canvas);
         OH_Drawing_CanvasTranslate(canvas, r.Width() + 10, 0); // r.Width() + 10距离
