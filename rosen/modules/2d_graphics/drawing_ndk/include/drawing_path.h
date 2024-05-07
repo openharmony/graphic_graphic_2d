@@ -421,6 +421,45 @@ void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* path, const OH_Dra
 void OH_Drawing_PathAddOval(OH_Drawing_Path*, const OH_Drawing_Rect*, OH_Drawing_PathDirection);
 
 /**
+ * @brief Adds contour created from point array, adding (count - 1) line segments.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param points Indicates the point array.
+ * @param count Indicates the size of point array.
+ * @param isClosed Indicates Whether to add lines that connect the end and start.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddPolygon(OH_Drawing_Path* path, const OH_Drawing_Point2D* points, uint32_t count, bool isClosed);
+
+/**
+ * @brief  Adds a circle to the path, and wound in the specified direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the center of the circle.
+ * @param y Indicates the y coordinate of the center of the circle.
+ * @param radius Indicates the radius of the circle.
+ * @param OH_Drawing_PathDirection Indicates the path direction.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddCircle(OH_Drawing_Path* path, float x, float y, float radius, OH_Drawing_PathDirection);
+
+/**
+ * @brief Parses the svg path from the string.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param str Indicates the string of the SVG path.
+ * @return Returns true if build path is successful, returns false otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* path, const char* str);
+
+/**
  * @brief Return the status that point (x, y) is contained by path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -482,6 +521,17 @@ void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
  * @version 1.0
  */
 float OH_Drawing_PathGetLength(OH_Drawing_Path*, bool forceClosed);
+
+/**
+ * @brief Gets the smallest bounding box that contains the path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathGetBounds(OH_Drawing_Path*, OH_Drawing_Rect*);
 
 /**
  * @brief Closes a path. A line segment from the start point to the last point of the path is added.

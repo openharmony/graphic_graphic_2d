@@ -37,9 +37,19 @@ static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
     return reinterpret_cast<const Rect&>(cRect);
 }
 
+static Rect* CastToRect(OH_Drawing_Rect* cRect)
+{
+    return reinterpret_cast<Rect*>(cRect);
+}
+
 static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
 {
     return reinterpret_cast<const RoundRect&>(cRoundRect);
+}
+
+static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
+{
+    return reinterpret_cast<const Point*>(cPoint);
 }
 
 OH_Drawing_Path* OH_Drawing_PathCreate()
@@ -305,6 +315,41 @@ void OH_Drawing_PathAddOval(OH_Drawing_Path* cPath, const OH_Drawing_Rect* oval,
     path->AddOval(CastToRect(*oval), static_cast<PathDirection>(dir));
 }
 
+void OH_Drawing_PathAddPolygon(OH_Drawing_Path* cPath, const OH_Drawing_Point2D* cPoints, uint32_t count, bool isClosed)
+{
+    if (cPoints == nullptr || count == 0) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    const Point* points = CastToPoint(cPoints);
+    std::vector<Point> pointsTemp(count);
+    for (int idx = 0; idx < count; idx++) {
+        pointsTemp[idx] = points[idx];
+    }
+    path->AddPoly(pointsTemp, count, isClosed);
+}
+
+void OH_Drawing_PathAddCircle(OH_Drawing_Path* cPath, float x, float y, float radius, OH_Drawing_PathDirection dir)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->AddCircle(x, y, radius, static_cast<PathDirection>(dir));
+}
+
+bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* cPath, const char* str)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return false;
+    }
+    return path->BuildFromSVGString(str);
+}
+
 bool OH_Drawing_PathContains(OH_Drawing_Path* cPath, float x, float y)
 {
     Path* path = CastToPath(cPath);
@@ -387,4 +432,14 @@ float OH_Drawing_PathGetLength(OH_Drawing_Path* cPath, bool forceClosed)
         return -1;
     }
     return path->GetLength(forceClosed);
+}
+
+void OH_Drawing_PathGetBounds(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect)
+{
+    Path* path = CastToPath(cPath);
+    Rect* rect = CastToRect(cRect);
+    if (path == nullptr || rect == nullptr) {
+        return;
+    }
+    *rect = path->GetBounds();
 }
