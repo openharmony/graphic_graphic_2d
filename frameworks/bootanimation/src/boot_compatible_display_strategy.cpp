@@ -20,7 +20,7 @@
 
 using namespace OHOS;
 
-void BootCompatibleDisplayStrategy::Display(const int32_t duration, std::vector<BootAnimationConfig>& configs)
+void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootCompatibleDisplayStrategy START");
     if (configs.size() != 1) {
