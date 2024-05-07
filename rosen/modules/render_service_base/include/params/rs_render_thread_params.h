@@ -238,6 +238,16 @@ public:
         return context_.lock();
     }
 
+    void SetClipRegion(const Drawing::Region& clipRegion)
+    {
+        clipRegion_.Clone(clipRegion);
+    }
+
+    const Drawing::Region& GetClipRegion() const
+    {
+        return clipRegion_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -284,6 +294,7 @@ private:
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
 
+    Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
 
     friend class RSMainThread;

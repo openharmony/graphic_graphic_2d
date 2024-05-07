@@ -275,6 +275,10 @@ public:
     bool GetRecordingState() const override;
     void SetRecordingState(bool flag) override;
 
+    const std::stack<OffscreenData>& GetOffscreenDataList() const
+    {
+        return offscreenDataList_;
+    }
     Drawing::DrawingType GetDrawingType() const override
     {
         return Drawing::DrawingType::PAINT_FILTER;
