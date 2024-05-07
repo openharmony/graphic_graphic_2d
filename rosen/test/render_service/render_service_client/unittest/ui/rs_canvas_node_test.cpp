@@ -3370,4 +3370,21 @@ HWTEST_F(RSCanvasNodeTest, GetType003, TestSize.Level1)
     ASSERT_TRUE(canvasNode != nullptr);
     ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
 }
+
+/**
+ * @tc.name: DrawOnNode
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type:FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSCanvasNodeTest, DrawOnNode, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    ASSERT_FALSE(canvasNode->recordingUpdated_);
+    canvasNode->SetHDRPresent(true);
+    canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
+    ASSERT_NE(canvasNode->boundsChangedCallback_, nullptr);
+}
 } // namespace OHOS::Rosen

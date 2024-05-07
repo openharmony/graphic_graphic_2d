@@ -3904,4 +3904,153 @@ HWTEST_F(RSNodeTest, CalcExpectedFrameRate, TestSize.Level1)
     ASSERT_EQ(rsNode->CalcExpectedFrameRate(scene, speed), 0);
 }
 
+/**
+ * @tc.name: RemoveChildByNodeId Test
+ * @tc.desc: test results of RemoveChildByNodeId
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, RemoveChildByNodeId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId childId = 1;
+    rsNode->RemoveChildByNodeId(childId);
+    auto nodePtr = RSCanvasNode::Create();
+    nodePtr->SetParent(2);
+    RSNodeMap::MutableInstance().nodeMap_.emplace(nodePtr->GetId(), nodePtr);
+    rsNode->RemoveChildByNodeId(nodePtr->GetId());
+    auto list = rsNode->children_;
+    ASSERT_EQ(std::find(list.begin(), list.end(), nodePtr->GetId()), list.end());
+}
+
+/**
+ * @tc.name: SetTakeSurfaceForUIFlag Test
+ * @tc.desc: SetTakeSurfaceForUIFlag and AnimateWithCurrentOptions
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetTakeSurfaceForUIFlag, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTakeSurfaceForUIFlag();
+    PropertyCallback propertyCallback;
+    std::function<void()> finishCallback = []() {};
+    RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true);
+    propertyCallback = []() {};
+    ASSERT_NE(RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true).size(), 0);
+}
+
+/**
+ * @tc.name: DrawOnNode Test
+ * @tc.desc: DrawOnNode and SetFreeze
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, DrawOnNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
+    ASSERT_FALSE(rsNode->recordingUpdated_);
+    rsNode->SetFreeze(true);
+    rsNode->InitUniRenderEnabled();
+    rsNode->SetFreeze(true);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+}
+
+/**
+ * @tc.name: MarkDrivenRender Test
+ * @tc.desc: MarkDrivenRender and MarkDrivenRenderItemIndex and MarkDrivenRenderFramePaintState and MarkContentChanged
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, MarkDrivenRender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkDrivenRender(true);
+    rsNode->MarkDrivenRenderItemIndex(1);
+    rsNode->MarkDrivenRenderFramePaintState(true);
+    rsNode->MarkContentChanged(true);
+    ASSERT_FALSE(rsNode->isNodeGroup_);
+}
+
+/**
+ * @tc.name: SetIsCustomTextType Test
+ * @tc.desc: SetIsCustomTextType and MarkNodeGroup and SetGrayScale and SetLightColor
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetIsCustomTextType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTextType(true);
+    ASSERT_TRUE(rsNode->GetIsCustomTextType());
+    rsNode->MarkNodeGroup(true, true, true);
+    rsNode->MarkNodeGroup(true, true, true);
+    ASSERT_TRUE(rsNode->isNodeGroup_);
+    rsNode->SetGrayScale(1.0f);
+    rsNode->SetLightColor(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: SetBloom Test
+ * @tc.desc: SetBloom and SetBrightness and SetContrast and SetSaturate
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetBloom, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBloom(1.0f);
+    rsNode->SetBrightness(1.0f);
+    rsNode->SetContrast(1.0f);
+    rsNode->SetSaturate(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: SetSepia Test
+ * @tc.desc: SetSepia and SetInvert and SetSystemBarEffect and SetHueRotate
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetSepia, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSepia(1.0f);
+    rsNode->SetInvert(1.0f);
+    rsNode->SetSystemBarEffect();
+    rsNode->SetHueRotate(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: SetColorBlend Test
+ * @tc.desc: SetColorBlend and SetOutOfParent and SetSystemBarEffect and SetHueRotate
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetColorBlend, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetColorBlend(1.0f);
+    rsNode->SetOutOfParent(OutOfParentType::UNKNOWN);
+    rsNode->SetOutOfParent(OutOfParentType::WITHIN);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+    rsNode->SetBoundsChangedCallback([](const Rosen::Vector4f vector4f) {});
+    ASSERT_NE(rsNode->boundsChangedCallback_, nullptr);
+}
+
+/**
+ * @tc.name: SetInstanceId Test
+ * @tc.desc: SetInstanceId and GetInstanceId
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetInstanceId(1);
+    ASSERT_EQ(rsNode->GetInstanceId(), 1);
+}
 } // namespace OHOS::Rosen
