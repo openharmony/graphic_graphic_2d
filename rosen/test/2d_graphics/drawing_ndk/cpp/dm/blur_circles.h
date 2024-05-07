@@ -20,10 +20,10 @@
 class BlurCircles : public TestBase {
 public:
     BlurCircles();
-    ~BlurCircles() = default;
-    
+    ~BlurCircles() override;
+
 protected:
-    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     float ConvertRadiusToSigma(float radius);
 };
 #endif // BLUR_CIRCLES_GM_H

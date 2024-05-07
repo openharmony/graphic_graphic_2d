@@ -33,6 +33,8 @@ ArcOfZorro::ArcOfZorro()
     fileName_ = "arcofzorro";
 }
 
+ArcOfZorro::~ArcOfZorro() {}
+
 void ArcOfZorro::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     // 用例名: arcofzorro 测试 OH_Drawing_CanvasDrawArc

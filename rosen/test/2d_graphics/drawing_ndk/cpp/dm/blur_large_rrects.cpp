@@ -33,6 +33,8 @@ BlurLargeRrects::BlurLargeRrects()
     fileName_ = "blur_large_rrects";
 }
 
+BlurLargeRrects::~BlurLargeRrects() {}
+
 // 用例名: blurlargerrects 测试 OH_Drawing_CanvasDrawRoundRect
 // 迁移基于源码 gm\blurroundrect.cpp->dm\blur_large_rrects.cpp
 void BlurLargeRrects::OnTestFunction(OH_Drawing_Canvas *canvas)

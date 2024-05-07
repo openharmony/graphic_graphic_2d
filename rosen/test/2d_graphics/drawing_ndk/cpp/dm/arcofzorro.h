@@ -20,11 +20,11 @@
 #include <native_drawing/drawing_canvas.h>
 
 class ArcOfZorro : public TestBase {
-  public:
+public:
     ArcOfZorro();
-    ~ArcOfZorro() = default;
+    ~ArcOfZorro() override;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     float x = 10;
     float y = 10;
