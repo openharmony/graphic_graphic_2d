@@ -205,6 +205,9 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
     }
     sptr<IRemoteObject> surfaceObject = reply.ReadRemoteObject();
     sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(surfaceObject);
+    if (bp == nullptr) {
+        return nullptr;
+    }
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
     return surface;
 }
@@ -235,6 +238,9 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
+    if (conn == nullptr) {
+        return nullptr;
+    }
     return conn;
 }
 

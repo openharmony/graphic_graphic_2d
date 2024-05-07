@@ -40,6 +40,7 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
+constexpr int32_t INVALID_VALUE = -1;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
 class RSMainThreadTest : public testing::Test {
 public:
@@ -333,7 +334,32 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str, 0);
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, 0);
+}
+
+/**
+ * @tc.name: SetFocusAppInfo002
+ * @tc.desc: Test SetFocusAppInfo while change focus node
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto oldFocusNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto newFocusNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    mainThread->focusNodeId_ = oldFocusNode->GetId();
+
+    std::string str = "";
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, newFocusNode->GetId());
+    ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
 
 /**
@@ -870,6 +896,7 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId003, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(node, nullptr);
 
+    ASSERT_NE(mainThread->context_, nullptr);
     mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, node->GetId());
@@ -3134,5 +3161,146 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
     auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
     rootNode->AddChild(displayNode);
     mainThread->DoDirectComposition(rootNode, false);
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange001
+ * @tc.desc: test UpdateNeedDrawFocusChange while node don't has parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_TRUE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange002
+ * @tc.desc: test UpdateNeedDrawFocusChange while node's parent isn't leash window
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->AddChild(node);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_TRUE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange003
+ * @tc.desc: test UpdateNeedDrawFocusChange while node's parent is leash window
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->AddChild(node);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_FALSE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId001
+ * @tc.desc: test UpdateFocusNodeId while focusNodeId don't change
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->focusNodeId_ = id;
+    mainThread->UpdateFocusNodeId(id);
+    ASSERT_EQ(mainThread->GetFocusNodeId(), id);
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId002
+ * @tc.desc: test UpdateFocusNodeId while newfocusNodeId is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->focusNodeId_ = id;
+    mainThread->UpdateFocusNodeId(INVALID_NODEID);
+    ASSERT_EQ(mainThread->GetFocusNodeId(), id);
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId003
+ * @tc.desc: test UpdateFocusNodeId while focus node change
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto oldFocusNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto newFocusNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(oldFocusNode, nullptr);
+    ASSERT_NE(newFocusNode, nullptr);
+
+    mainThread->context_->nodeMap.renderNodeMap_[oldFocusNode->GetId()] = oldFocusNode;
+    mainThread->context_->nodeMap.renderNodeMap_[newFocusNode->GetId()] = newFocusNode;
+    mainThread->focusNodeId_ = oldFocusNode->GetId();
+    mainThread->UpdateFocusNodeId(newFocusNode->GetId());
+    ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
 } // namespace OHOS::Rosen

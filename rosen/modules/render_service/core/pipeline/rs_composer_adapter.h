@@ -29,6 +29,7 @@ struct ComposeInfo {
     GraphicIRect dstRect;
     GraphicIRect boundRect;
     GraphicIRect visibleRect;
+    std::vector<GraphicIRect> dirtyRects;
     GraphicMatrix matrix;
     int32_t gravity;
     int32_t zOrder { 0 };

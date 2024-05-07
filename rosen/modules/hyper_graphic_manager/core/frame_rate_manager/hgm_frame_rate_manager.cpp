@@ -131,6 +131,17 @@ void HgmFrameRateManager::InitTouchManager()
     });
 }
 
+void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp)
+{
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.SetTimestamp(timestamp);
+    if (pendingRefreshRate_ != nullptr) {
+        hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
+        pendingRefreshRate_.reset();
+    }
+}
+
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                 const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
@@ -302,10 +313,16 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
 
 void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
 {
-    RSTaskMessage::RSTask task = [this]() {
+    auto lastRefreshRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    // low refresh rate switch to high refresh rate immediately.
+    if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
+        HgmCore::Instance().SetPendingScreenRefreshRate(currRefreshRate_);
+    }
+
+    RSTaskMessage::RSTask task = [this, lastRefreshRate]() {
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (currRefreshRate_ != HgmCore::Instance().GetPendingScreenRefreshRate()) {
+        if (currRefreshRate_ != lastRefreshRate) {
             forceUpdateCallback_(false, true);
             FrameRateReport();
         }

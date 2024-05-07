@@ -59,6 +59,7 @@ constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
 const bool RSPropertiesPainter::BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
+const bool RSPropertiesPainter::FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::binarizationShaderEffect_ = nullptr;

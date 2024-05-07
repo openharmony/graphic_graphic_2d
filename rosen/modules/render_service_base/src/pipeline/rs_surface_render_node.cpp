@@ -1488,7 +1488,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         if (node->GetRenderProperties().GetFilter()) {
             node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
         }
-        node->UpdateFilterCacheWithSelfDirty(clipRect);
+        node->UpdateFilterCacheWithSelfDirty();
     }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {

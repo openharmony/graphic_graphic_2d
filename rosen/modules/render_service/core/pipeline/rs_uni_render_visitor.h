@@ -231,7 +231,7 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, bool isInSkippedSubTree = false);
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);

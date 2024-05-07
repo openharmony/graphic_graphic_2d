@@ -530,6 +530,13 @@ bool RSSystemProperties::GetBlurEnabled()
     return blurEnabled;
 }
 
+bool RSSystemProperties::GetForegroundFilterEnabled()
+{
+    static bool foregroundFilterEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.foregroundFilterEnabled", "1")).c_str()) != 0;
+    return foregroundFilterEnabled;
+}
+
 const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
 {
     // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.

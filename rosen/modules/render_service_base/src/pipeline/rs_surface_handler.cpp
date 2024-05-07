@@ -45,7 +45,7 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry buffer)
+void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 {
     auto& consumer = GetConsumer();
     if (consumer != nullptr && buffer.buffer != nullptr) {
@@ -54,6 +54,7 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry buffer)
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 GetNodeId(), ret);
         }
+        buffer.Reset();
     }
 }
 

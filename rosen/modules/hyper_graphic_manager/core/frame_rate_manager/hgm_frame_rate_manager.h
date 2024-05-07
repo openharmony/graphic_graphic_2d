@@ -128,6 +128,7 @@ public:
     void InitTouchManager();
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
+    void ProcessPendingRefreshRate(uint64_t timestamp);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
 private:

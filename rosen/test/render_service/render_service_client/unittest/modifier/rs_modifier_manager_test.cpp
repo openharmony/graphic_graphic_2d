@@ -102,4 +102,18 @@ HWTEST_F(RSModifierManagerTest, JudgeAnimateWhetherSkip, TestSize.Level1)
     auto isSkip = rsModifierManager.JudgeAnimateWhetherSkip(animId, time, vsyncPeriod);
     ASSERT_EQ(isSkip, false);
 }
+
+/**
+ * @tc.name: UnregisterSpringAnimationTest001
+ * @tc.desc: test results of UnregisterSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, UnregisterSpringAnimationTest001, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    PropertyId propertyId = 0;
+    AnimationId animId = 0;
+    rsModifierManager.UnregisterSpringAnimation(propertyId, animId);
+    ASSERT_NE(propertyId, 10);
+}
 } // namespace OHOS::Rosen

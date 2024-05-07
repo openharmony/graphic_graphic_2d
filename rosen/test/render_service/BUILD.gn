@@ -63,6 +63,7 @@ group("test") {
     "render_service_client/unittest/pipeline:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
+    "render_service_profiler/unittest:unittest",
   ]
 
   if (tp_feature_enable) {

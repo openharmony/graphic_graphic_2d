@@ -1092,6 +1092,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     property->SetUpdateCallback(nullptr);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE);
     std::shared_ptr<RSPropertyBase> targetValue = std::make_shared<RSAnimatableProperty<float>>(0.1f);
     property->AnimateWithInitialVelocity(timingProtocol, timingCurve, targetValue);
 
@@ -1140,6 +1141,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->SetFramePositionX(1.f);
     node->SetFramePositionY(1.f);
     node->GetType();
+    node->AddChild(child, 1);
     node->RemoveChild(child);
     node->ClearChildren();
 
@@ -1152,5 +1154,58 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 end";
 }
 
+class MyNewData : public RSArithmetic<MyNewData> {
+public:
+    MyNewData() : data(0.f) {}
+    explicit MyNewData(const float num) : data(num) {}
+    virtual ~MyNewData() = default;
+    bool IsEqual(const MyNewData& value) const override
+    {
+        return data == value.data;
+    }
+
+    float data;
+};
+
+HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    Vector2f data(1.f, 1.f);
+    RRectT<float> rect1;
+    RRectT<float> rect2;
+    RectT<float> rect3;
+    RectT<float> rect4;
+    rect1.SetValues(rect3, &data);
+    rect2.SetValues(rect4, &data);
+    auto temp1 = rect1 - rect2;
+    rect1 = temp1 + rect2;
+    temp1 = rect1 * (1.f);
+    temp1 = temp1 / (1.f);
+    temp1 += rect1;
+    temp1 -= rect1;
+    temp1 *= (1.f);
+    temp1 = rect1;
+    [[maybe_unused]] bool ret = (temp1 != rect2);
+    ret = (temp1 == rect2);
+
+    auto data1 = MyData();
+    auto data2 = MyData();
+    auto temp2 = data1 + data2;
+    temp2 += data1;
+    temp2 -= data1;
+    data1 = temp2 - data2;
+    temp2 = data1 * (1.f);
+    temp2 *= (1.f);
+
+    auto data3 = MyNewData();
+    auto data4 = MyNewData();
+    ret = (data3 == data4);
+    ret = (data3 != data4);
+
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 end";
+}
 } // namespace Rosen
 } // namespace OHOS

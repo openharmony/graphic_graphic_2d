@@ -94,6 +94,7 @@ public:
     static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static const bool BLUR_ENABLED;
+    static const bool FOREGROUND_FILTER_ENABLED;
 
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);

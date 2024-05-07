@@ -306,19 +306,7 @@ void RSMainThread::Init()
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
         RS_PROFILER_ON_RENDER_END();
-        if (isUniRender_ && !doDirectComposition_) {
-            renderThreadParams_->SetContext(context_);
-            drawFrame_.SetRenderThreadParams(renderThreadParams_);
-            drawFrame_.PostAndWait();
-        }
-        if (isUniRender_ && doDirectComposition_) {
-            UpdateDisplayNodeScreenId();
-            if (!markRenderFlag_) {
-                SetFrameIsRender(true);
-            }
-            markRenderFlag_ = false;
-        }
-
+        OnUniRenderDraw();
         InformHgmNodeInfo();
         if (!isUniRender_) {
             ReleaseAllNodesBuffer();
@@ -588,17 +576,17 @@ void RSMainThread::SetFocusAppInfo(
     focusAppUid_ = uid;
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
-    UpdateFocusNodeId(focusNodeId_, focusNodeId);
+    UpdateFocusNodeId(focusNodeId);
 }
 
-void RSMainThread::UpdateFocusNodeId(NodeId oldFocusNodeId, NodeId newFocusNodeId)
+void RSMainThread::UpdateFocusNodeId(NodeId focusNodeId)
 {
-    if (newFocusNodeId == oldFocusNodeId || newFocusNodeId == INVALID_NODEID) {
+    if (focusNodeId_ == focusNodeId || focusNodeId == INVALID_NODEID) {
         return;
     }
-    UpdateNeedDrawFocusChange(oldFocusNodeId);
-    UpdateNeedDrawFocusChange(newFocusNodeId);
-    focusNodeId_ = newFocusNodeId;
+    UpdateNeedDrawFocusChange(focusNodeId_);
+    UpdateNeedDrawFocusChange(focusNodeId);
+    focusNodeId_ = focusNodeId;
 }
 
 void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
@@ -1537,15 +1525,11 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }
-    // Check and processing refresh rate task.
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.SetTimestamp(timestamp);
-    auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
-    if (pendingRefreshRate != nullptr) {
-        hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
-        frameRateMgr_->ResetPendingRefreshRate();
-        RS_TRACE_NAME_FMT("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate);
+    if (!frameRateMgr_) {
+        return;
     }
+    // Check and processing refresh rate task.
+    frameRateMgr_->ProcessPendingRefreshRate(timestamp);
 
     // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
     if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
@@ -1557,6 +1541,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     if (rsVSyncDistributor_->IsDVsyncOn()) {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
         if (pendingRefreshRate != nullptr) {
             hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
@@ -1830,6 +1815,30 @@ void RSMainThread::Render()
                 rsLuminance.SetNowHdrLuminance(screenId, newLevel);
             }
         }
+    }
+}
+
+void RSMainThread::OnUniRenderDraw()
+{
+    if (!isUniRender_) {
+        return;
+    }
+
+    if (!doDirectComposition_) {
+        renderThreadParams_->SetContext(context_);
+        drawFrame_.SetRenderThreadParams(renderThreadParams_);
+        drawFrame_.PostAndWait();
+        return;
+    }
+
+    UpdateDisplayNodeScreenId();
+    if (!markRenderFlag_) {
+        SetFrameIsRender(true);
+    }
+    markRenderFlag_ = false;
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    if (fr.GetEnable()) {
+        fr.RSRenderEnd();
     }
 }
 

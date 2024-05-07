@@ -36,6 +36,7 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
+    uint8_t MAX_ALPHA = 255;
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
@@ -1051,15 +1052,66 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable001, TestSize.Level2)
  * @tc.name: QuerySubAssignable002
  * @tc.desc: Test QuerySubAssignable while has filter
  * @tc.type: FUNC
- * @tc.require: issueI98VTC
+ * @tc.require: issueI9LOXQ
  */
 HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
+    
+    if (RSUniRenderJudgement::IsUniRender()) {
+        node->InitRenderParams();
+    }
     node->SetHasFilter(true);
     
     ASSERT_EQ(node->QuerySubAssignable(false), false);
+}
+
+/**
+ * @tc.name: QuerySubAssignable003
+ * @tc.desc: Test QuerySubAssignable while node's child has filter and child is transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    if (RSUniRenderJudgement::IsUniRender()) {
+        node->InitRenderParams();
+        childNode->InitRenderParams();
+    }
+    childNode->SetHasFilter(true);
+    node->SetChildHasVisibleFilter(true);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), false);
+}
+
+/**
+ * @tc.name: QuerySubAssignable004
+ * @tc.desc: Test QuerySubAssignable while node's child has filter and is not transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    if (RSUniRenderJudgement::IsUniRender()) {
+        node->InitRenderParams();
+        childNode->InitRenderParams();
+    }
+    childNode->SetHasFilter(true);
+    node->SetChildHasVisibleFilter(true);
+    node->SetAbilityBGAlpha(MAX_ALPHA);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), true);
 }
 
 /**
