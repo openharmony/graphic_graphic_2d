@@ -89,8 +89,8 @@ void AlphaImage::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_MaskFilter *maskFilter = OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType::NORMAL, 10.f, true);
     OH_Drawing_SamplingOptions *option = OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode::FILTER_MODE_NEAREST,
         OH_Drawing_MipmapMode::MIPMAP_MODE_NONE);
-
-    OH_Drawing_FilterSetColorFilter(filter, make_color_filter());
+    OH_Drawing_ColorFilter *colorFilter = make_color_filter();
+    OH_Drawing_FilterSetColorFilter(filter, colorFilter);
     OH_Drawing_BrushSetFilter(brush, filter);
     OH_Drawing_FilterSetMaskFilter(filter, maskFilter);
     OH_Drawing_BrushSetFilter(brush, filter);
@@ -114,7 +114,7 @@ void AlphaImage::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_PointDestroy(endPt);
     OH_Drawing_RectDestroy(dst);
 
-    OH_Drawing_FilterSetColorFilter(filter, make_color_filter());
+    OH_Drawing_FilterSetColorFilter(filter, colorFilter);
     OH_Drawing_BrushSetFilter(brush, filter);
     OH_Drawing_CanvasAttachBrush(canvas, brush);
     dst = DrawCreateRect({ 16, 144, 16 + kSize, 144 + kSize });
@@ -132,7 +132,7 @@ void AlphaImage::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_ImageDestroy(image);
     OH_Drawing_SamplingOptionsDestroy(option);
     OH_Drawing_MaskFilterDestroy(maskFilter);
-    OH_Drawing_ColorFilterDestroy(make_color_filter());
+    OH_Drawing_ColorFilterDestroy(colorFilter);
     OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_BrushDestroy(brush);
 }
