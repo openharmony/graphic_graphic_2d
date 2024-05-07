@@ -214,6 +214,11 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     return hardwareComposerEnabled;
 }
 
+bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
+{
+    return system::GetParameter("rosen.hardwarecomposer.mirror.enabled", "0") != "0";
+}
+
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
     static bool hwcRegionDfxEnabled = system::GetParameter(
