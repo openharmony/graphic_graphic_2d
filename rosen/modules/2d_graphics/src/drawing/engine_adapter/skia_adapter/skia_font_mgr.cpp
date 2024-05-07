@@ -55,6 +55,7 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     if (!typeface) {
         return nullptr;
     }
+    typeface->setIsCustomTypeface(true);
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
     return new Typeface(typefaceImpl);
 }
