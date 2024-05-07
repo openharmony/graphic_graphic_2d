@@ -39,7 +39,12 @@ SkTileMode ConvertToSkTileMode(int32_t skTileModeNum)
     }
 }
 
-sk_sp<SkImageFilter> SKImageFilterFactory::Blur(float radius, int32_t skTileModeNum)
+sk_sp<SkImageFilter> SKImageFilterFactory::Blur(float radius)
+{
+    return SkImageFilters::Blur(radius, radius, nullptr);
+}
+
+sk_sp<SkImageFilter> SKImageFilterFactory::BlurWithMode(float radius, int32_t skTileModeNum)
 {
     SkTileMode skTileMode = ConvertToSkTileMode(skTileModeNum);
     return SkImageFilters::Blur(radius, radius, skTileMode, nullptr);
