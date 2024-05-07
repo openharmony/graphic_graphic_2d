@@ -1836,6 +1836,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, true);
     }
+    UpdateLastFilterCacheRegion();
 }
 
 void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(
@@ -3096,9 +3097,9 @@ RectI RSRenderNode::GetFilterRect() const
 
 void RSRenderNode::CalVisibleFilterRect(const std::optional<RectI>& clipRect)
 {
-    auto filterRect = GetFilterRect();
+    filterRegion_ = GetFilterRect();
     if (clipRect.has_value()) {
-        filterRegion_ = filterRect.IntersectRect(*clipRect);
+        filterRegion_ = filterRegion_.IntersectRect(*clipRect);
     }
 }
 
