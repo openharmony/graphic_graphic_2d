@@ -407,4 +407,17 @@ HWTEST_F(RSMaskTest, CreatePixelMapMask002, TestSize.Level1)
     ASSERT_TRUE(mask != nullptr);
     ASSERT_TRUE(mask->IsPixelMapMask() == false);
 }
+
+/**
+ * @tc.name: GetPixelMapTest
+ * @tc.desc: Verify function GetPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSMaskTest, GetPixelMapTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+    ASSERT_EQ(mask->GetPixelMap(), nullptr);
+}
 } // namespace OHOS::Rosen
