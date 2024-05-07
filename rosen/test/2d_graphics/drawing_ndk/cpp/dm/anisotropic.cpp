@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,16 +43,15 @@ Anisotropic::~Anisotropic() {}
 
 void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
-    OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
     OH_Drawing_BitmapBuild(bitmap, kImageSize, kImageSize, &cFormat);
-    OH_Drawing_Canvas *bimap_canvas = OH_Drawing_CanvasCreate();
+
     OH_Drawing_CanvasBind(bimap_canvas, bitmap);
     OH_Drawing_ImageBuildFromBitmap(image, bitmap);
 
     OH_Drawing_CanvasClear(bimap_canvas, 0xFFFFFFFF);
 
-    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+
     OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_CanvasAttachPen(bimap_canvas, pen);
     OH_Drawing_CanvasTranslate(bimap_canvas, kImageSize / 2.0f, kImageSize / 2.0f); // 2.0f距离
@@ -74,7 +73,7 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
             yOff = (sizeof(g_scales) - i) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer) - height;
         }
 
-        OH_Drawing_Rect *rect =
+        rect =
             OH_Drawing_RectCreate((float)kSpacer, (float)yOff, (float)OH_Drawing_BitmapGetWidth(bitmap), (float)height);
         OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
         OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
@@ -92,12 +91,14 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
             yOff = kSpacer + (sizeof(g_scales) - i - 1) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
         }
 
-        OH_Drawing_Rect *rect =
+        rect =
             OH_Drawing_RectCreate((float)kSpacer, (float)yOff, (float)width, (float)OH_Drawing_BitmapGetHeight(bitmap));
         OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
         OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
         OH_Drawing_CanvasDrawRect(canvas, rect);
     }
     OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_RectDestroy(rect);
     OH_Drawing_SamplingOptionsDestroy(fsampling);
+    OH_Drawing_CanvasDestroy(bimap_canvas);
 }
