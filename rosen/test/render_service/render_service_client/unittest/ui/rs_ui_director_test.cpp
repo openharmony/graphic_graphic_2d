@@ -470,4 +470,46 @@ HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
     };
     director->PostTask(task);
 }
+
+/**
+ * @tc.name: StartTextureExportTest001
+ * @tc.desc: StartTextureExport Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->isUniRenderEnabled_ = true;
+    director->StartTextureExport();
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: SetRTRenderForcedTest002
+ * @tc.desc: SetRTRenderForced Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRTRenderForcedTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->SetRTRenderForced(true);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallbackTest003
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::function<void()> callback = nullptr;
+    director->SetRequestVsyncCallback(callback);
+    EXPECT_TRUE(nullptr == director->requestVsyncCallback_);
+}
 } // namespace OHOS::Rosen
