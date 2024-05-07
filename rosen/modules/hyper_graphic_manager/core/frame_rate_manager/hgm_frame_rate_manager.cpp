@@ -402,9 +402,10 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
-        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, appFrameRate = %d, "\
-            "appRange = (%d, %d, %d)", ExtractPid(linker.first), appFrameRate, linker.second->GetExpectedRange().min_,
-            linker.second->GetExpectedRange().max_, linker.second->GetExpectedRange().preferred_);
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
+            "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
+            appFrameRate, linker.second->GetExpectedRange().min_, linker.second->GetExpectedRange().max_,
+            linker.second->GetExpectedRange().preferred_);
     }
     return frameRateChanged;
 }

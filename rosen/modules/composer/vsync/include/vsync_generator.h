@@ -74,6 +74,7 @@ public:
     virtual VsyncError StartRefresh() = 0;
 
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
+    virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -109,6 +110,7 @@ public:
     VsyncError StartRefresh() override;
 
     void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
+    void SetFrameRateChangingStatus(bool frameRateChanging) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
