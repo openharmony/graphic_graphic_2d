@@ -77,6 +77,8 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     if (mirrorNode && node.IsFirstTimeToProcessor() && !canvasRotation_) {
         if (isPhone_) {
             node.SetOriginScreenRotation(mainScreenRotation_);
+            RS_LOGI("RSUniRenderVirtualProcessor::Init, OriginScreenRotation: %{public}d",
+                node.GetOriginScreenRotation());
         } else {
             auto& boundsGeoPtr = (mirrorNode->GetRenderProperties().GetBoundsGeometry());
             if (boundsGeoPtr != nullptr) {
