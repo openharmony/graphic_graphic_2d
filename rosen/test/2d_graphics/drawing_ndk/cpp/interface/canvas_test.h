@@ -33,7 +33,6 @@ protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
 };
 
-
 class CanvasDrawImageRect : public TestBase {
 public:
     explicit CanvasDrawImageRect(int type) : TestBase(type) {};
@@ -221,7 +220,7 @@ public:
     ~CanvasDrawPoints() = default;
 
 protected:
-    const int n = 30; // 30 可以同时存储的点的数量
+    const int n = 10; // 10 可以同时存储的点的数量
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
 };
 
