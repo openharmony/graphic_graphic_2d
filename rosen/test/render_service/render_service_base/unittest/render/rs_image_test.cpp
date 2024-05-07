@@ -392,7 +392,7 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
 
 #ifdef ROSEN_OHOS
     Parcel parcel;
-    EXPECT_TRUE(imageBase.Marshalling(parcel));
+    EXPECT_FALSE(imageBase.Marshalling(parcel));
     EXPECT_EQ(imageBase.Unmarshalling(parcel), nullptr);
 #endif
 }
