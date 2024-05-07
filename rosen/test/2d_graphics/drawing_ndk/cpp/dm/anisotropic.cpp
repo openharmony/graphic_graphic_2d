@@ -45,13 +45,9 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
     OH_Drawing_BitmapBuild(bitmap, kImageSize, kImageSize, &cFormat);
-
     OH_Drawing_CanvasBind(bimap_canvas, bitmap);
     OH_Drawing_ImageBuildFromBitmap(image, bitmap);
-
     OH_Drawing_CanvasClear(bimap_canvas, 0xFFFFFFFF);
-
-
     OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_CanvasAttachPen(bimap_canvas, pen);
     OH_Drawing_CanvasTranslate(bimap_canvas, kImageSize / 2.0f, kImageSize / 2.0f); // 2.0f距离
