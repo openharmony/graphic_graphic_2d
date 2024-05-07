@@ -521,12 +521,12 @@ void CanvasDrawPoints::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
     OH_Drawing_Point2D pts[n];
     TestRend rand;
+    for (int i = 0; i < n; i++) {
+        pts[i].x = rand.nextULessThan(bitmapWidth_);
+        pts[i].y = rand.nextULessThan(bitmapHeight_);
+    }
     for (int i = 0; i < testCount_; i++) {
-        float x = rand.nextUScalar1() * 640; // 640  用于生成随机点的坐标
-        float y = rand.nextUScalar1() * 480; // 480  用于生成随机点的坐标
-        pts[i].x = x;
-        pts[i].y = y;
-        OH_Drawing_CanvasDrawPoints(canvas, OH_Drawing_PointMode::POINT_MODE_POLYGON, n, pts);
+        OH_Drawing_CanvasDrawPoints(canvas, OH_Drawing_PointMode::POINT_MODE_POINTS, n, pts);
     }
 }
 
