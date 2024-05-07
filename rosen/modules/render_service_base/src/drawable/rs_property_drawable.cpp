@@ -256,9 +256,9 @@ void RSFilterDrawable::CheckClearFilterCache()
     RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d, "
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,  currentClearAfterDrawing:%d, "
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, hasEffectChildren_:%d,"
-        "filterType_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
+        "filterType_:%d, pendingPurge_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
-        cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_);
+        cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_, pendingPurge_);
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -271,8 +271,10 @@ void RSFilterDrawable::CheckClearFilterCache()
         return;
     }
 
-    // filter region changed, clear both two type cache
-    if (forceClearCache_ || (filterRegionChanged_ && !rotationChanged_)) {
+    // clear both two type cache: 1. force clear 2. filter region changed 3.skip-frame finished
+    // 4. background changed and effectNode rotated will enable skip-frame, the last frame need to update.
+    if (forceClearCache_ || (filterRegionChanged_ && !rotationChanged_) || NeedPendingPurge() ||
+        ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ <= 0)) {
         UpdateFlags(FilterCacheType::BOTH, false);
         return;
     }
@@ -283,11 +285,6 @@ void RSFilterDrawable::CheckClearFilterCache()
         return;
     }
 
-    // background changed and last frame when skip-frame enabled
-    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ <= 0) {
-        UpdateFlags(FilterCacheType::BOTH, false);
-        return;
-    }
     // when blur filter changes, we need to clear filtered cache if it valid.
     UpdateFlags(filterHashChanged_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
@@ -301,6 +298,11 @@ bool RSFilterDrawable::IsFilterCacheValid() const
 bool RSFilterDrawable::GetFilterForceClearCache() const
 {
     return forceClearCache_;
+}
+
+bool RSFilterDrawable::NeedPendingPurge() const
+{
+    return !filterInteractWithDirty_ && pendingPurge_;
 }
 
 void RSFilterDrawable::RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter)
@@ -344,13 +346,17 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
 {
     clearType_ = type;
     isFilterCacheValid_ = cacheValid;
-    if (cacheValid) {
-        cacheUpdateInterval_--;
+    if (!cacheValid) {
+        cacheUpdateInterval_ = rotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
+            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL :
+            (isLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0));
+        pendingPurge_ = false;
         return;
     }
-    cacheUpdateInterval_ = rotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
-        (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL :
-        (isLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0));
+    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
+        cacheUpdateInterval_--;
+        pendingPurge_ = true;
+    }
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

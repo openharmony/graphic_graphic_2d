@@ -1321,6 +1321,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
             }
         }
     }
+    CalVisibleFilterRect(clipRect);
     // 3. update dirtyRegion if needed
     if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(dirtyManager);
@@ -1400,6 +1401,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
+    CalVisibleFilterRect(clipRect);
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(dirtyManager);
     }
@@ -1668,17 +1670,9 @@ bool RSRenderNode::IsEffectNodeNeedTakeSnapShot() const
         !lastFrameHasVisibleEffect_ && ChildHasVisibleEffect();
 }
 
-void RSRenderNode::UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect)
+void RSRenderNode::UpdateLastFilterCacheRegion()
 {
-    lastFilterRegion_ = GetFilterRect();
-    if (clipRect.has_value()) {
-        lastFilterRegion_.IntersectRect(*clipRect);
-    }
-}
-
-void RSRenderNode::UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect)
-{
-    lastFilterRegion_ = rect;
+    lastFilterRegion_ = filterRegion_;
 }
 
 inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
@@ -1713,6 +1707,7 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     if (clipRect.has_value()) {
         filterRect = filterRect.IntersectRect(*clipRect);
     }
+    filterRegion_ = filterRect;
     if (filterRect == lastFilterRegion_) {
         return;
     }
@@ -1762,21 +1757,16 @@ void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyMa
 #endif
 }
 
-void RSRenderNode::UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect,
-    bool isInSkippedSubTree, const std::optional<RectI>& filterRectForceUpdated)
+void RSRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
-    RectI filterRect = isInSkippedSubTree ? filterRectForceUpdated.value() : GetFilterRect();
-    if (!isInSkippedSubTree && clipRect.has_value()) {
-        filterRect = filterRect.IntersectRect(*clipRect);
-    }
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-        GetId(), lastFilterRegion_.ToString().c_str(), filterRect.ToString().c_str());
-    if (filterRect.IsInsideOf(lastFilterRegion_)) {
+        GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
+    if (filterRegion_.IsInsideOf(lastFilterRegion_)) {
         return;
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
@@ -1805,7 +1795,8 @@ inline static bool IsLargeArea(int width, int height)
     return width > threshold && height > threshold;
 }
 
-void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode)
+void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
+    RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode)
 {
     if (IsInstanceOf<RSEffectRenderNode>() && ChildHasVisibleEffect()) {
         MarkFilterHasEffectChildren();
@@ -1825,6 +1816,10 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
         if (dirtyBelowContainsFilterNode || bgDirty) {
             filterDrawable->MarkFilterForceClearCache();
         }
+        if (filterDrawable->NeedPendingPurge()) {
+            dirtyManager.MergeDirtyRect(filterRegion_);
+            isDirtyRegionUpdated_ = true;
+        }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, false);
     }
     if (GetRenderProperties().GetFilter()) {
@@ -1834,6 +1829,10 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
         }
         if (dirtyBelowContainsFilterNode || !dirtySlots_.empty()) {
             filterDrawable->MarkFilterForceClearCache();
+        }
+        if (filterDrawable->NeedPendingPurge()) {
+            dirtyManager.MergeDirtyRect(filterRegion_);
+            isDirtyRegionUpdated_ = true;
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, true);
     }
@@ -3092,6 +3091,14 @@ RectI RSRenderNode::GetFilterRect() const
         return {absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight()};
     } else {
         return geoPtr->GetAbsRect();
+    }
+}
+
+void RSRenderNode::CalVisibleFilterRect(const std::optional<RectI>& clipRect)
+{
+    auto filterRect = GetFilterRect();
+    if (clipRect.has_value()) {
+        filterRegion_ = filterRect.IntersectRect(*clipRect);
     }
 }
 
