@@ -90,6 +90,8 @@ void ConicPaths::Makepath()
     Makepath2();
 }
 
+ConicPaths::~ConicPaths() {}
+
 void ConicPaths::DrawSence(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, OH_Drawing_Brush* brush, uint8_t a, int p)
 {
     for (int aa = 0; aa < 2; ++aa) {     // 2 max

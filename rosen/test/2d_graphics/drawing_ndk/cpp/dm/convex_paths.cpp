@@ -344,3 +344,5 @@ void ConvexPaths::MakePath()
     MakePath5();
     MakePath6();
 }
+
+ConvexPaths::~ConvexPaths() {}

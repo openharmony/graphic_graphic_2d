@@ -33,17 +33,17 @@ public:
         bitmapHeight_ = 960; // 960高度
         fileName_ = "conicpaths";
     }
-    ~ConicPaths() = default;
+    ~ConicPaths() override;
     void Makepath();
 
 protected:
-    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     std::vector<DrawRect> pathsBounds;
-    std::vector<OH_Drawing_Path*> fPaths;
+    std::vector<OH_Drawing_Path *> fPaths;
     //    const float w = sqrt(2.0f) / 2; // 2被除数
     void Makepath1();
     void Makepath2();
-    void DrawSence(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, OH_Drawing_Brush* brush, uint8_t a, int p);
+    void DrawSence(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, OH_Drawing_Brush *brush, uint8_t a, int p);
 };
 
 #endif // MyApplication_conic_paths_H

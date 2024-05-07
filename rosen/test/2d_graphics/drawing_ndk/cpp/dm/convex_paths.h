@@ -33,11 +33,11 @@ public:
         bitmapHeight_ = 1100; // 1100高度
         fileName_ = "convexpaths";
     }
-    ~ConvexPaths() = default;
+    ~ConvexPaths() override;
     void MakePath();
 
 protected:
-    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     void MakePath1();
     void MakePath2();
     void MakePath3();
