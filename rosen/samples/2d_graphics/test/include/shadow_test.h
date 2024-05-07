@@ -35,6 +35,7 @@ public:
     }
 
     static void TestDrawShadow(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestDrawShadowStyle(Canvas& canvas, uint32_t width, uint32_t height);
     std::vector<TestFunc> ShadowTestCase();
 
 private:
@@ -57,6 +58,23 @@ void ShadowTest::TestDrawShadow(Canvas& canvas, uint32_t width, uint32_t height)
     ShadowFlags flag = ShadowFlags::TRANSPARENT_OCCLUDER;
     canvas.DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
     LOGI("------- TestDrawShadow");
+}
+
+void ShadowTest::TestDrawShadowStyle(Canvas& canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestDrawShadowStyle");
+
+    Path path;
+    // Add oval to path, bounds of ellipse added is {200, 200, 600, 1000}.
+    path.AddOval({ 200, 200, 600, 1000 });
+    Point3 planeParams = { 540.0, 0.0, 600.0 };
+    Point3 devLightPos = { 0, 0, 0 };
+    scalar lightRadius = 0.5;
+    Drawing::Color ambientColor = Drawing::Color::ColorQuadSetARGB(0, 0, 0, 0);
+    Drawing::Color spotColor = Drawing::Color::COLOR_RED;
+    ShadowFlags flag = ShadowFlags::TRANSPARENT_OCCLUDER;
+    canvas.DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, true);
+    LOGI("------- TestDrawShadowStyle");
 }
 
 std::vector<ShadowTest::TestFunc> ShadowTest::ShadowTestCase()

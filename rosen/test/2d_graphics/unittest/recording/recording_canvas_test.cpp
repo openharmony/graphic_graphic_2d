@@ -540,6 +540,32 @@ HWTEST_F(RecordingCanvasTest, DrawShadow001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadowStyle001
+ * @tc.desc: Test the playback of the DrawShadowStyle function.
+ * @tc.type: FUNC
+ * @tc.require: I7K0BS
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadow001, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    recordingCanvas1->DrawShadowStyle(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE, true);
+    recordingCanvas2->DrawShadowStyle(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE, true);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
  * @tc.name: DrawRegion001
  * @tc.desc: Test the playback of the DrawRegion function.
  * @tc.type: FUNC

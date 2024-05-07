@@ -358,6 +358,25 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawShadowTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadowStyleTest
+ * @tc.desc: DrawShadowStyle Test
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawShadowStyleTest, TestSize.Level1)
+{
+    Drawing::Path path;
+    Drawing::Point3 planeParams;
+    Drawing::Point3 devLightPos;
+    // for test
+    Drawing::Color ambientColor(0, 0, 0, 0);
+    Drawing::Color spotColor(SCALAR_XORY, 0, 0, 0);
+    paintFilterCanvas_->DrawShadowStyle(
+        path, planeParams, devLightPos, 0.0f, ambientColor, spotColor, Drawing::ShadowFlags::NONE, true);
+    EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
  * @tc.name: DrawColorTest
  * @tc.desc: DrawColor Test
  * @tc.type:FUNC
