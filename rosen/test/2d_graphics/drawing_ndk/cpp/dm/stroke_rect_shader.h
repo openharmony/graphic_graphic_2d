@@ -27,7 +27,7 @@ public:
     {
         bitmapWidth_ = K_W;
         bitmapHeight_ = K_H;
-        fileName_ = "stroke_rect_shader";
+        fileName_ = "stroke_rect_shader"; // 对标 stroke_rect_shader.cpp
     }
     ~StrokeRectShader() = default;
 
