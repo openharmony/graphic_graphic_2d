@@ -21,11 +21,11 @@
 #include <native_drawing/drawing_bitmap.h>
 
 class DrawBitmapRect4 : public TestBase {
-  public:
+public:
     explicit DrawBitmapRect4(bool useIRect);
-    ~DrawBitmapRect4() = default;
+    ~DrawBitmapRect4() override;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     bool fUseIRect;
     OH_Drawing_Bitmap *fBigBitmap;

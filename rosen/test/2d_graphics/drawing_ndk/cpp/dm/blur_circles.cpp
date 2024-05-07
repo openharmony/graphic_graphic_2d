@@ -31,6 +31,8 @@ BlurCircles::BlurCircles()
     fileName_ = "blurcircles";
 }
 
+BlurCircles::~BlurCircles() {}
+
 float BlurCircles::ConvertRadiusToSigma(float radius)
 {
     const float r = radius > 0 ? 0.57735f * radius + 0.5f : 0.0f;

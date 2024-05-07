@@ -70,6 +70,8 @@ DrawBitmapRect4::DrawBitmapRect4(bool useIRect) : fUseIRect(useIRect)
     fBigBitmap = make_big_bitmap();
 }
 
+DrawBitmapRect4::~DrawBitmapRect4() {}
+
 void DrawBitmapRect4::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     OH_Drawing_CanvasClear(canvas, 0x88444444);

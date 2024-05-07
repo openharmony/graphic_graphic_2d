@@ -39,7 +39,7 @@ public:
         bitmapHeight_ = kNumVertImages * kImageSize + (kNumVertImages + 1) * kSpacer; // 1高度
         fileName_ = "anisotropic_hq";
     }
-    ~Anisotropic() = default;
+    ~Anisotropic() override;
 
 protected:
     OH_Drawing_Image *image = OH_Drawing_ImageCreate();

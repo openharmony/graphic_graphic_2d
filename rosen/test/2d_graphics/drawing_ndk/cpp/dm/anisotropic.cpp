@@ -39,6 +39,8 @@ enum SkAlphaType : int {
 
 float g_scales[] = {0.9f, 0.8f, 0.75f, 0.6f, 0.5f, 0.4f, 0.25f, 0.2f, 0.1f};
 
+Anisotropic::~Anisotropic() {}
+
 void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();

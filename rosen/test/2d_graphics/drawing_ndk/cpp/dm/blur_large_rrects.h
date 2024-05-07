@@ -24,11 +24,11 @@
 #include "test_common.h"
 
 class BlurLargeRrects : public TestBase {
-  public:
+public:
     BlurLargeRrects();
-    ~BlurLargeRrects() = default;
+    ~BlurLargeRrects() override;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
 };
 #endif // BLUR_LARGE_RRECTS_H
