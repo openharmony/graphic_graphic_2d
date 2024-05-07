@@ -205,11 +205,15 @@ ohos_source_set("rosen_ohos_sources") {
           graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
     }
   }
-
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [

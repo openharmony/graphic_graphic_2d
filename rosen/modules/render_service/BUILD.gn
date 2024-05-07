@@ -53,9 +53,14 @@ ohos_shared_library("librender_service") {
   defines += gpu_defines
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     defines += [ "IS_OHOS" ]
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [

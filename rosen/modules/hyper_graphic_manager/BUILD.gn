@@ -37,7 +37,9 @@ config("libhyper_graphic_manager_config") {
 
   cflags = [ "-g3" ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
   }
 }
 
@@ -57,9 +59,14 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/utils/hgm_one_shot_timer.cpp",
   ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
     }
   }
 
