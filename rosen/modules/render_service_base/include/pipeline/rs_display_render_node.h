@@ -396,6 +396,16 @@ public:
         lastSurfaceIds_ = std::move(lastSurfaceIds);
     }
 
+    const std::vector<RectI>& GetDamageRegion() const
+    {
+        return damageRegion_;
+    }
+
+    void SetDamageRegion(const std::vector<RectI>& rects)
+    {
+        damageRegion_ = rects;
+    }
+
 protected:
     void OnSync() override;
 private:
@@ -456,6 +466,7 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     std::vector<NodeId> lastSurfaceIds_;
+    std::vector<RectI> damageRegion_;
 };
 } // namespace Rosen
 } // namespace OHOS
