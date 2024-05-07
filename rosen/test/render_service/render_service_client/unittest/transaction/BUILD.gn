@@ -20,12 +20,20 @@ module_output_path = "graphic/rosen_engine/render_service_client/transaction"
 ohos_unittest("RSRenderServiceClientTransactionTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_transaction_test.cpp" ]
+  sources = [
+    "rs_interfaces_test.cpp",
+    "rs_transaction_test.cpp",
+  ]
 
   configs = [
     ":ui_test",
     "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   deps = [
