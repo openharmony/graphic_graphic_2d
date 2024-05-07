@@ -32,7 +32,7 @@ class ColorFilterImpl : public BaseImpl {
 public:
     // Color matrix is a 4x5 float type matrix.
     constexpr static int MATRIX_SIZE = 20;
-    constexpr static int OVER_DRAW_COLOR_NUM = 8;
+    constexpr static int OVER_DRAW_COLOR_NUM = 6;
     ColorFilterImpl() noexcept {}
     ~ColorFilterImpl() override {}
 
