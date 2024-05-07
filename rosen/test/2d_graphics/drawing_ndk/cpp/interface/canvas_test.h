@@ -33,7 +33,7 @@ protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
 };
 
-// 林江涛用例
+
 class CanvasDrawImageRect : public TestBase {
 public:
     explicit CanvasDrawImageRect(int type) : TestBase(type) {};
@@ -43,8 +43,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
 };
 
 /*
@@ -59,9 +57,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 // 测试void OH_Drawing_CanvasTranslate
@@ -74,9 +69,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 // void OH_Drawing_CanvasSkew
@@ -89,9 +81,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 class CanvasConcatMatrix : public TestBase {
@@ -103,9 +92,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 // 清理画布
@@ -186,9 +172,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 class CanvasSkew : public TestBase {
@@ -200,9 +183,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 class CanvasDrawVertices : public TestBase {
@@ -214,9 +194,6 @@ protected:
     int rectWidth_ = 0;  // 0 矩形宽度
     int rectHeight_ = 0; // 0 矩形高度
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
-
-private:
-    TestRend renderer;
 };
 
 class CanvasDrawPath : public TestBase {

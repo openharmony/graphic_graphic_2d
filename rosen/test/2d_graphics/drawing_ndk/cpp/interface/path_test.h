@@ -384,4 +384,4 @@ protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
 };
 
-#endif // CANVAS_TEST_H
+#endif // PATH_TEST_H

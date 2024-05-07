@@ -80,4 +80,4 @@ public:
 protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override; // 365 ms 100次
 };
-#endif // TEXT_BLOB_CREATE_FROM_TEXT_H
+#endif // TEXT_BLOB_TEST_H
