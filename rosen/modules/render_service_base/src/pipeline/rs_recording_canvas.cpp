@@ -131,6 +131,10 @@ void ExtendRecordingCanvas::AddDrawOpImmediate(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Drawing::PaintHandle paintHandle;
+        paintHandle.isAntiAlias = true;
+        paintHandle.style = Drawing::Paint::PaintStyle::PAINT_FILL;
+        cmdList_->AddDrawOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Drawing::Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -159,6 +163,10 @@ void ExtendRecordingCanvas::AddDrawOpDeferred(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Drawing::Paint paint;
+        paint.SetAntiAlias(true);
+        paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+        cmdList_->AddDrawOp(std::make_shared<T>(std::forward<Args>(args)..., paint));
         return;
     }
     if (brushValid && penValid && Drawing::Paint::CanCombinePaint(paintBrush_, paintPen_)) {

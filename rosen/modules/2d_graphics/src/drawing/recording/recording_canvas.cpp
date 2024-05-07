@@ -671,6 +671,10 @@ void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        PaintHandle paintHandle;
+        paintHandle.isAntiAlias = true;
+        paintHandle.style = Paint::PaintStyle::PAINT_FILL;
+        cmdList_->AddDrawOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -699,6 +703,10 @@ void RecordingCanvas::AddDrawOpDeferred(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Paint paint;
+        paint.SetAntiAlias(true);
+        paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+        cmdList_->AddDrawOp(std::make_shared<T>(std::forward<Args>(args)..., paint));
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -720,6 +728,10 @@ void RecordingCanvas::GenerateCachedOpForTextblob(const TextBlob* blob, const sc
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Paint paint;
+        paint.SetAntiAlias(true);
+        paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+        GenerateCachedOpForTextblob(blob, x, y, paint);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
