@@ -182,6 +182,7 @@ public:
     static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
+    static bool GetForegroundFilterEnabled();
     static const std::vector<float>& GetAiInvertCoef();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();

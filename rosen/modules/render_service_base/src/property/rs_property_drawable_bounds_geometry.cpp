@@ -756,7 +756,7 @@ bool IsForegroundFilterValid(const RSRenderContent& content)
 // foreground filter
 RSPropertyDrawable::DrawablePtr RSForegroundFilterDrawable::Generate(const RSRenderContent& content)
 {
-    if (!RSPropertiesPainter::BLUR_ENABLED) {
+    if (!RSPropertiesPainter::FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
         return nullptr;
     }
@@ -802,7 +802,7 @@ void RSForegroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFil
 // foreground filter restore
 RSPropertyDrawable::DrawablePtr RSForegroundFilterRestoreDrawable::Generate(const RSRenderContent& content)
 {
-    if (!RSPropertiesPainter::BLUR_ENABLED) {
+    if (!RSPropertiesPainter::FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
         return nullptr;
     }
