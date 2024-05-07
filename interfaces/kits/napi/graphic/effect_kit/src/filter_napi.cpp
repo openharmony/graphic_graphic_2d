@@ -437,14 +437,11 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
             }
         }
     }
-    auto blur;
+    int32_t skTileMode = 0;
     if (argc == ARGS_ONE) {
-        EFFECT_LOG_I("FilterNapi parse input with default skTileMode");
-        blur = Rosen::SKImageFilterFactory::Blur(radius);
+        EFFECT_LOG_I("FilterNapi parse input with default skTileMode.");
     } else if (argc == ARGS_TWO) {
-        int32_t skTileMode = 0;
         napi_get_value_int32(env, argv[PARAM1], &skTileMode);
-        blur = Rosen::SKImageFilterFactory::Blur(radius, skTileMode);
     }
 
     FilterNapi* thisFilter = nullptr;
@@ -453,6 +450,7 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
         EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
         return nullptr;
     }
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, skTileMode);
     thisFilter->AddNextFilter(blur);
     return _this;
 }
