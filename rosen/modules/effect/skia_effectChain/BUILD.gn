@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/multimedia/image_framework/ide/image_decode_config.gni")
 
 ## Build libskeffectchain.so
 

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/screen_manager"
 
