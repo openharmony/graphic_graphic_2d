@@ -27,6 +27,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_common_def_test.cpp",
     "rs_obj_abs_geometry_test.cpp",
     "rs_occlusion_region_test.cpp",
+    "rs_rect_test.cpp",
     "rs_thread_handler_generic_test.cpp",
     "rs_thread_looper_generic_test.cpp",
     "rs_thread_looper_impl_test.cpp",

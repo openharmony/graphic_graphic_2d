@@ -2245,8 +2245,8 @@ void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
     // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
-    constexpr auto FRAME_EMPTY = 1 << 5;
-    constexpr auto ALL_EMPTY = 1 << 6;
+    constexpr uint8_t FRAME_EMPTY = 1 << 5;
+    constexpr uint8_t ALL_EMPTY = 1 << 6;
 
     stagingDrawCmdList_.clear();
     drawCmdListNeedSync_ = true;
