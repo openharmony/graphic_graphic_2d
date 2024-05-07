@@ -83,6 +83,7 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level1)
     fontVariations1.SetAxisValue(str2, value);
     FontVariations fontVariations2;
     EXPECT_EQ(fontVariations1 == fontVariations2, false);
+    fontVariations1.Clear();
 
     auto fontCollection = FontCollection::From(nullptr);
     TypographyStyle typographyStyle1;
