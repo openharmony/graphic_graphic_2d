@@ -163,10 +163,6 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    sources += [ "$graphic_2d_ext_root/chipset_vsync/src/chipset_vsync.cpp" ]
-  }
-
   if (use_memmgr_plugin || use_memmgr) {
     sources += [ "core/memory/rs_app_state_listener.cpp" ]
   }
@@ -198,9 +194,6 @@ ohos_shared_library("librender_service") {
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
-  }
 
   if (graphic_2d_feature_enable_opinc) {
     include_dirs += opinc_adapter_opt_set.opinc_include_set
@@ -214,6 +207,12 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
+
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+    deps += [ "$graphic_2d_ext_root/chipset_vsync:libchipset_vsync" ]
+    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+  }
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
@@ -355,14 +354,6 @@ ohos_shared_library("librender_service") {
     external_deps += [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
-    ]
-  }
-
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
-    external_deps += [
-      "drivers_interface_camera_ext:chipset_vsync_idl_headers",
-      "drivers_interface_camera_ext:libchipset_vsync_proxy_1.0",
     ]
   }
 

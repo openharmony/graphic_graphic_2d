@@ -62,7 +62,6 @@
           "hitrace",
           "ability_runtime",
           "drivers_interface_display",
-          "drivers_interface_camera_ext",
           "c_utils",
           "access_token",
           "safwk",
