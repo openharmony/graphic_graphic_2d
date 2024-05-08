@@ -78,6 +78,7 @@ public:
     bool ApplyPathStyle(Drawing::Pen& pen) const;
     bool ApplyFourLine(Drawing::Pen& pen) const;
     bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
+    bool ApplySimpleBorder(const RRect& rrect) const;
 
     void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
     void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
