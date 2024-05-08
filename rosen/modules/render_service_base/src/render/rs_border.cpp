@@ -262,7 +262,7 @@ bool RSBorder::ApplySimpleBorder(const RRect& rrect) const
         return false;
     }
     constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
-    for(int i = 1; i < NUM_OF_CORNERS_IN_RECT; i++) {
+    for (int i = 1; i < NUM_OF_CORNERS_IN_RECT; i++) {
         if (rrect.radius_[0].x_ != rrect.radius_[i].x_) {
             return false;
         }
