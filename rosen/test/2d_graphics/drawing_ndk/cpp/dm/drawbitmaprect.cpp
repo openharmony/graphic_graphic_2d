@@ -67,7 +67,6 @@ OH_Drawing_Image *PrecondItions()
         0xFFFFFFFF,
         0xFF0000FF,
     };
-    int fCount = 2;
     OH_Drawing_ShaderEffect *shaderEffect =
         OH_Drawing_ShaderEffectCreateLinearGradient(startPt, endPt, Color, nullptr, 2, OH_Drawing_TileMode::CLAMP);
     OH_Drawing_BrushSetShaderEffect(brush, shaderEffect);
@@ -100,8 +99,6 @@ void DrawBitmapRect2::OnTestFunction(OH_Drawing_Canvas *canvas)
 
     // 其中OH_Drawing_CanvasDrawRect接口实现有问题并未用画笔画出而是用画刷，故这边多了画笔的操作
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
-    OH_Drawing_PenSetAntiAlias(pen, true);
-    OH_Drawing_PenSetColor(pen, 0xFF000000);
     OH_Drawing_CanvasAttachPen(canvas, pen);
 
     // 创建矩形指针数组
@@ -130,6 +127,7 @@ void DrawBitmapRect2::OnTestFunction(OH_Drawing_Canvas *canvas)
         OH_Drawing_CanvasDrawRect(canvas, srcR);
         OH_Drawing_CanvasTranslate(canvas, 160, 0); // 160, 0平移距离
     }
+    OH_Drawing_CanvasDetachPen(canvas);
     // 释放内存
     OH_Drawing_RectDestroy(arrayRect[0]);
     OH_Drawing_RectDestroy(arrayRect[1]); // 1数组
@@ -140,7 +138,6 @@ void DrawBitmapRect2::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_RectDestroy(dstR);
     OH_Drawing_ImageDestroy(image);
     // 释放画笔内存
-    OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_PenDestroy(pen);
     DRAWING_LOGI("DrawBitmapRect2::OnTestFunction end");
 }
