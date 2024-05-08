@@ -1982,7 +1982,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 
 #ifdef RS_PROFILER_ENABLED
-    RS_PROFILER_SET_DIRTY(accumulatedDirtyRegion);
+    RS_PROFILER_SET_DIRTY_REGION(accumulatedDirtyRegion);
 #endif
 }
 
