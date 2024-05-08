@@ -261,6 +261,25 @@ HWTEST_F(DrawCmdTest, DrawShadowOpItem001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadowStyleOpItem001
+ * @tc.desc: Test DrawShadowStyleOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawShadowStyleOpItem001, TestSize.Level1)
+{
+    Path path;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor = 0xFF000000;
+    Color spotColor = 0xFF000000;
+    DrawShadowStyleOpItem opItem{path, planeParams, devLightPos,
+        10, ambientColor, spotColor, ShadowFlags::NONE, true}; // 10: lightRadius
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    opItem.Marshalling(*drawCmdList);
+}
+
+/**
  * @tc.name: ClipPathOpItem001
  * @tc.desc: Test ClipPathOpItem
  * @tc.type: FUNC
