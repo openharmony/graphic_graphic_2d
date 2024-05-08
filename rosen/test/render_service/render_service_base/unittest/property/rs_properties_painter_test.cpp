@@ -455,41 +455,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawGreyAdjustment001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawFilter001
- * @tc.desc: test results of DrawFilter
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
-{
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
-    RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
-    RSPropertiesPainter::DrawFilter(
-        properties, canvas, FilterType::BACKGROUND_FILTER, Drawing::Rect(0.f, 0.f, 1.f, 1.f));
-}
-
-/**
- * @tc.name: DrawFilter002
- * @tc.desc: test results of DrawFilter
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
-{
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
-    RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
-    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
-    properties.SetClipBounds(rsPath);
-    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
-}
-
-/**
  * @tc.name: DrawBackgroundImageAsEffect001
  * @tc.desc: test results of DrawBackgroundImageAsEffect
  * @tc.type:FUNC

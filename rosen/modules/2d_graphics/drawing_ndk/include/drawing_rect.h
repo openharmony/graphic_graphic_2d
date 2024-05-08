@@ -70,6 +70,18 @@ OH_Drawing_Rect* OH_Drawing_RectCreate(float left, float top, float right, float
 bool OH_Drawing_RectIntersect(OH_Drawing_Rect* rect, const OH_Drawing_Rect* other);
 
 /**
+ * @brief Sets rect to the union of rect and other.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @return Returns true if rect and other are not nullptr and other is not empty.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_RectJoin(OH_Drawing_Rect* rect, const OH_Drawing_Rect* other);
+
+/**
  * @brief Set the left position of the rect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

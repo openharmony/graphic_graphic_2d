@@ -348,11 +348,14 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
-bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (surfaceHandler->GetConsumer()->QueryIfBufferAvailable()) {
+    if (!displayNode->IsSurfaceCreated()) {
+        return true;
+    }
+    if (displayNode->GetConsumer() && displayNode->GetConsumer()->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +

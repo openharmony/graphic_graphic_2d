@@ -64,9 +64,9 @@ RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRati
 {}
 
 RSAnimationTimingCurve::RSAnimationTimingCurve(
-    float response, float dampingRatio, float initialVelocity, CurveType curveType)
+    float response, float dampingRatio, float initialVelocity, CurveType curveType, float minimumAmplitudeRatio)
     : type_(curveType), response_(response), dampingRatio_(dampingRatio), initialVelocity_(initialVelocity),
-      interpolator_(nullptr), customCurveFunc_(nullptr)
+      minimumAmplitudeRatio_(minimumAmplitudeRatio), interpolator_(nullptr), customCurveFunc_(nullptr)
 {}
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateCustomCurve(const std::function<float(float)>& customCurveFunc)
@@ -94,17 +94,19 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
 }
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(
-    float mass, float stiffness, float damping, float velocity)
+    float mass, float stiffness, float damping, float velocity, float minimumAmplitudeRatio)
 {
     if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
         constexpr float response = 0.55f;
         constexpr float dampingRatio = 0.825f;
         ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
-        return RSAnimationTimingCurve(response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING);
+        return RSAnimationTimingCurve(
+            response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio);
     }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
-    return RSAnimationTimingCurve(response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING);
+    return RSAnimationTimingCurve(
+        response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio);
 }
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, StepsCurvePosition position)

@@ -16,8 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_handler.h"
-
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -25,8 +26,11 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSSurfaceHandlerTest : public testing::Test, public IBufferConsumerListenerClazz {
 public:
+    static inline NodeId id;
+    static inline std::weak_ptr<RSContext> context = {};
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
+    RSSurfaceHandler::SurfaceBufferEntry RequestAndFlushBuffer();
     void SetUp() override;
     void TearDown() override;
     void OnBufferAvailable() override {}
@@ -42,6 +46,9 @@ private:
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
     };
 };
 void RSSurfaceHandlerTest::SetUp()
@@ -60,6 +67,22 @@ static inline void BufferDeleteCbFunc(int32_t seqNum)
 {
     ROSEN_LOGI("%{public}s:%{public}d seqNum=%{public}d", __func__, __LINE__, seqNum);
 };
+
+RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandlerTest::RequestAndFlushBuffer()
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    if (!surfacePtr_) {
+        return buffer;
+    }
+
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = surfacePtr_->RequestBuffer(buffer.buffer, requestFence, requestConfig);
+
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = surfacePtr_->FlushBuffer(buffer.buffer, flushFence, flushConfig);
+
+    return buffer;
+}
 
 /**
  * @tc.name: SetDefaultWidthAndHeight001
@@ -127,4 +150,138 @@ HWTEST_F(RSSurfaceHandlerTest, RegisterDeleteBufferListener001, TestSize.Level1)
 #endif
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
+/**
+ * @tc.name: ReleaseBuffer001
+ * @tc.desc: test ReleaseBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, ReleaseBuffer001, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer = RequestAndFlushBuffer();
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
+    ASSERT_EQ(buffer.buffer, nullptr);
+}
+
+/**
+ * @tc.name: ConsumeAndUpdateBuffer001
+ * @tc.desc: test ConsumeAndUpdateBuffer while buffer is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, ConsumeAndUpdateBuffer001, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->ConsumeAndUpdateBuffer(buffer);
+    ASSERT_FALSE(rSSurfaceHandlerPtr_->IsCurrentFrameBufferConsumed());
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
+}
+
+/**
+ * @tc.name: ConsumeAndUpdateBuffer002
+ * @tc.desc: test ConsumeAndUpdateBuffer while buffer isn't empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, ConsumeAndUpdateBuffer002, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer = RequestAndFlushBuffer();
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->ConsumeAndUpdateBuffer(buffer);
+    ASSERT_TRUE(rSSurfaceHandlerPtr_->IsCurrentFrameBufferConsumed());
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
+}
+
+/**
+ * @tc.name: CacheBuffer001
+ * @tc.desc: test CacheBuffer for add cache
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, CacheBuffer01, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer);
+    ASSERT_TRUE(rSSurfaceHandlerPtr_->HasBufferCache());
+}
+
+/**
+ * @tc.name: GetBufferFromCache001
+ * @tc.desc: test GetBufferFromCache while no cache satisfy render time
+ * @tc.type:FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache001, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
+    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
+    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
+    buffer2.timestamp = 200;
+
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->bufferCache_.clear();
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+
+    uint64_t vsyncTimestamp = 50; // let vsyncTimestamp's timestamp smller than any buffer in cache
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, nullptr);
+
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
+}
+
+/**
+ * @tc.name: GetBufferFromCache002
+ * @tc.desc: test GetBufferFromCache while only one cache satisfy render time
+ * @tc.type:FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache002, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
+    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
+    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
+    buffer2.timestamp = 200;
+
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->bufferCache_.clear();
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+
+    uint64_t vsyncTimestamp = 150; // let vsyncTimestamp's timestamp only bigger than one buffer in cache
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, buffer1.buffer);
+
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
+}
+
+/**
+ * @tc.name: GetBufferFromCache003
+ * @tc.desc: test GetBufferFromCache while more than one cache satisfy render time
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache003, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
+    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
+    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
+    buffer2.timestamp = 200;
+
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->bufferCache_.clear();
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+
+    uint64_t vsyncTimestamp = 250; // let vsyncTimestamp's timestamp bigger than more than one buffer in cache
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, buffer2.buffer);
+
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
+    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
+}
+#endif
 } // namespace OHOS::Rosen

@@ -212,4 +212,34 @@ HWTEST_F(RSImageBaseTest, GetPixelMapTest, TestSize.Level1)
     auto imageBase = std::make_shared<RSImageBase>();
     EXPECT_EQ(imageBase->GetPixelMap(), nullptr);
 }
+
+/**
+ * @tc.name: SetDmaImageTest
+ * @tc.desc: Verify function SetDmaImage
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSImageBaseTest, SetDmaImageTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    imageBase->SetDmaImage(image);
+    EXPECT_EQ(imageBase->image_, image);
+}
+
+/**
+ * @tc.name: UnmarshallingTest
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    Parcel parcel;
+    EXPECT_EQ(imageBase->Unmarshalling(parcel), nullptr);
+}
 } // namespace OHOS::Rosen

@@ -60,8 +60,7 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }
 
-void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
-    float mirrorAdaptiveCoefficient)
+void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU)
 {
     for (const auto& layer : layers) {
         if (layer == nullptr) {
@@ -93,7 +92,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
                 RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
                     iter->x, iter->y, iter->w, iter->h);
             }
-            DrawSurfaceNode(canvas, node, mirrorAdaptiveCoefficient, forceCPU);
+            DrawSurfaceNode(canvas, node, forceCPU);
         } else {
             // Probably never reach this branch.
             RS_LOGE("RSRenderEngine::DrawLayers: unexpected node type!");
@@ -156,24 +155,10 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
         Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 }
 
-void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
-    float mirrorAdaptiveCoefficient, bool forceCPU)
+void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, bool forceCPU)
 {
     // prepare BufferDrawParam
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU); // in display's coordinate.
-    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient;
-    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient;
-    params.dstRect = Drawing::Rect(0, 0, adaptiveDstWidth, adaptiveDstHeight);
-    const float translateX = params.matrix.Get(Drawing::Matrix::Index::TRANS_X) * mirrorAdaptiveCoefficient;
-    const float translateY = params.matrix.Get(Drawing::Matrix::Index::TRANS_Y) * mirrorAdaptiveCoefficient;
-    params.matrix.Set(Drawing::Matrix::Index::TRANS_X, translateX);
-    params.matrix.Set(Drawing::Matrix::Index::TRANS_Y, translateY);
-    const auto& clipRect = params.clipRect;
-    auto clipLeft = clipRect.GetLeft() * mirrorAdaptiveCoefficient;
-    auto clipTop = clipRect.GetTop() * mirrorAdaptiveCoefficient;
-    params.clipRect = Drawing::Rect(
-        clipLeft, clipTop, clipLeft + clipRect.GetWidth() * mirrorAdaptiveCoefficient,
-        clipTop + clipRect.GetHeight() * mirrorAdaptiveCoefficient);
 
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }

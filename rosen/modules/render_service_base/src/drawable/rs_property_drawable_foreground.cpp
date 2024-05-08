@@ -29,7 +29,7 @@ constexpr int PARAM_TWO = 2;
 constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
-const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
+const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 // ====================================
 // Binarization
@@ -226,7 +226,7 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 // foregroundFilter
 RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (!BLUR_ENABLED) {
+    if (!FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterDrawable::OnGenerate close blur.");
         return nullptr;
     }
@@ -273,7 +273,7 @@ void RSForegroundFilterDrawable::OnSync()
 // Restore RSForegroundFilter
 RSDrawable::Ptr RSForegroundFilterRestoreDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (!BLUR_ENABLED) {
+    if (!FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterRestoreDrawable::OnGenerate close blur.");
         return nullptr;
     }

@@ -39,7 +39,7 @@ struct FrameBufferEntry {
     Rect damageRect = {0};
 };
 
-class HdiFramebufferSurface : public IBufferConsumerListener {
+class HdiFramebufferSurface : public RefBase {
 public:
     static sptr<HdiFramebufferSurface> CreateFramebufferSurface();
     sptr<OHOS::Surface> GetSurface();
@@ -62,9 +62,12 @@ private:
     HdiFramebufferSurface();
     virtual ~HdiFramebufferSurface() noexcept;
 
-    void OnBufferAvailable() override;
+    void OnBufferAvailable();
     OHOS::SurfaceError SetBufferQueueSize(uint32_t bufferSize);
-    OHOS::SurfaceError CreateSurface(sptr<HdiFramebufferSurface> &fbSurface);
+    OHOS::SurfaceError CreateSurface();
+
+    friend class BufferConsumerListener;
+    sptr<IBufferConsumerListener> listener_;
 };
 } // namespace Rosen
 } // namespace OHOS

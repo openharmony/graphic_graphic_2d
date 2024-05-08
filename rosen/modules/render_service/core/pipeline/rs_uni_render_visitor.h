@@ -231,7 +231,7 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, bool isInSkippedSubTree = false);
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -472,6 +472,7 @@ private:
     bool isOcclusionEnabled_ = false;
     bool isSkipCanvasNodeOutOfScreen_ = false;
     bool isScreenRotationAnimating_ = false;
+    bool displayNodeRotationChanged_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     QuickSkipPrepareType quickSkipPrepareType_;

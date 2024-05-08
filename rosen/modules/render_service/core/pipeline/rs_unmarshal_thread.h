@@ -41,6 +41,8 @@ private:
     RSUnmarshalThread& operator=(const RSUnmarshalThread&);
     RSUnmarshalThread& operator=(const RSUnmarshalThread&&);
 
+    void SetFrameLoad(int load);
+    void SetFrameParam(int requestId, int load, int frameNum, int value);
     static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -49,6 +51,8 @@ private:
     std::mutex transactionDataMutex_;
     TransactionDataMap cachedTransactionDataMap_;
     bool willHaveCachedData_ = false;
+    int unmarshalTid_ = -1;
+    int unmarshalLoad_ = 0;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

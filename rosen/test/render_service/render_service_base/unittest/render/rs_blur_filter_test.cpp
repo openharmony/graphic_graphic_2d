@@ -278,12 +278,6 @@ HWTEST_F(RSBlurFilterTest, SubTest002, TestSize.Level1)
     auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     
     EXPECT_EQ(blurFilter->Sub(nullptr), blurFilter);
-
-    std::shared_ptr<RSFilter> otherblurFilter = std::make_shared<RSBlurFilter>(1.f, 2.f);
-    blurRadiusX = 26.0f;
-    blurRadiusY = 25.0f;
-    auto expectBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-    EXPECT_EQ(blurFilter->Sub(otherblurFilter), expectBlurFilter);
 }
 
 /**

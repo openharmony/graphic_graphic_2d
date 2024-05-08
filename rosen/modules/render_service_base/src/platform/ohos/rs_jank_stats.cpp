@@ -43,11 +43,15 @@ RSJankStats& RSJankStats::GetInstance()
     return instance;
 }
 
-void RSJankStats::SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady)
+void RSJankStats::SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                                      float onVsyncStartTimeSteadyFloat)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     rsStartTime_ = onVsyncStartTime;
     rsStartTimeSteady_ = onVsyncStartTimeSteady;
+    if (IS_CALCULATE_PRECISE_HITCH_TIME) {
+        rsStartTimeSteadyFloat_ = onVsyncStartTimeSteadyFloat;
+    }
 }
 
 void RSJankStats::SetAccumulatedBufferCount(int accumulatedBufferCount)
@@ -137,12 +141,20 @@ void RSJankStats::UpdateEndTime()
         rtEndTime_ = rtLastEndTime_;
         rtLastEndTimeSteady_ = GetCurrentSteadyTimeMs();
         rtEndTimeSteady_ = rtLastEndTimeSteady_;
+        if (IS_CALCULATE_PRECISE_HITCH_TIME) {
+            rtLastEndTimeSteadyFloat_ = GetCurrentSteadyTimeMsFloat();
+            rtEndTimeSteadyFloat_ = rtLastEndTimeSteadyFloat_;
+        }
         return;
     }
     rtLastEndTime_ = rtEndTime_;
     rtEndTime_ = GetCurrentSystimeMs();
     rtLastEndTimeSteady_ = rtEndTimeSteady_;
     rtEndTimeSteady_ = GetCurrentSteadyTimeMs();
+    if (IS_CALCULATE_PRECISE_HITCH_TIME) {
+        rtLastEndTimeSteadyFloat_ = rtEndTimeSteadyFloat_;
+        rtEndTimeSteadyFloat_ = GetCurrentSteadyTimeMsFloat();
+    }
 }
 
 void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed)
@@ -157,6 +169,11 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
         rtEndTime_ = rsParams.timeEnd_;
         rtLastEndTimeSteady_ = rtEndTimeSteady_;
         rtEndTimeSteady_ = rsParams.timeEndSteady_;
+        if (IS_CALCULATE_PRECISE_HITCH_TIME) {
+            rsStartTimeSteadyFloat_ = rsParams.timeStartSteadyFloat_;
+            rtLastEndTimeSteadyFloat_ = rtEndTimeSteadyFloat_;
+            rtEndTimeSteadyFloat_ = rsParams.timeEndSteadyFloat_;
+        }
     }
     SetStartTime(true);
     SetEndTime(rsParams.skipJankAnimatorFrame_, rsParams.discardJankFrames_,
@@ -252,7 +269,8 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     jankFrames.lastMaxHitchTime_ = jankFrames.maxHitchTime_;
     jankFrames.lastTotalHitchTimeSteady_ = jankFrames.totalHitchTimeSteady_;
     jankFrames.lastTotalFrameTimeSteadyForHTR_ = jankFrames.totalFrameTimeSteadyForHTR_;
-    const int64_t frameTimeForHTR = GetEffectiveFrameTime(true);
+    const float frameTimeForHTR = (IS_CALCULATE_PRECISE_HITCH_TIME ? GetEffectiveFrameTimeFloat(true) :
+                                  static_cast<float>(GetEffectiveFrameTime(true)));
     const float frameHitchTime = std::max<float>(0.f, frameTimeForHTR - standardFrameTime);
     const bool isConsiderRsStartTimeForHTR = jankFrames.isFirstFrame_ || isFirstSetEnd_;
     const int64_t frameDurationForHTR = (isConsiderRsStartTimeForHTR ?
@@ -742,6 +760,18 @@ int64_t RSJankStats::GetEffectiveFrameTime(bool isConsiderRsStartTime) const
     return rtEndTimeSteady_ - rtLastEndTimeSteady_;
 }
 
+float RSJankStats::GetEffectiveFrameTimeFloat(bool isConsiderRsStartTime) const
+{
+    if (isConsiderRsStartTime) {
+        return std::min<float>(rtEndTimeSteadyFloat_ - rtLastEndTimeSteadyFloat_,
+                               rtEndTimeSteadyFloat_ - rsStartTimeSteadyFloat_);
+    }
+    if (isCurrentFrameSwitchToNotDoDirectComposition_) {
+        return rtEndTimeSteadyFloat_ - rsStartTimeSteadyFloat_;
+    }
+    return rtEndTimeSteadyFloat_ - rtLastEndTimeSteadyFloat_;
+}
+
 int64_t RSJankStats::ConvertTimeToSystime(int64_t time) const
 {
     if (time <= 0) {
@@ -772,5 +802,12 @@ int64_t RSJankStats::GetCurrentSteadyTimeMs() const
     return curSteadyTime;
 }
 
+float RSJankStats::GetCurrentSteadyTimeMsFloat() const
+{
+    auto curTime = std::chrono::steady_clock::now().time_since_epoch();
+    int64_t curSteadyTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
+    float curSteadyTime = curSteadyTimeUs / MS_TO_US;
+    return curSteadyTime;
+}
 } // namespace Rosen
 } // namespace OHOS

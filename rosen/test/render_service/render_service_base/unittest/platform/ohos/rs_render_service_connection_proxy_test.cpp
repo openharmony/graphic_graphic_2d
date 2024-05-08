@@ -836,7 +836,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     proxy->NotifyPackageEvent(1, packageList);
     EventInfo eventInfo;
     proxy->NotifyRefreshRateEvent(eventInfo);
-    proxy->NotifyTouchEvent(1);
+    int32_t touchStatus = 1;
+    int32_t touchCnt = 0;
+    proxy->NotifyTouchEvent(touchStatus, touchCnt);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }

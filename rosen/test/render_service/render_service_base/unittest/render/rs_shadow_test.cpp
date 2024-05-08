@@ -291,4 +291,17 @@ HWTEST_F(RSShadowTest, TestRSShadow003, TestSize.Level1)
     shadow.SetColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE);
     EXPECT_EQ(shadow.GetColorStrategy(), 1);
 }
+
+/**
+ * @tc.name: GetColorPickerCacheTask001
+ * @tc.desc: Verify function GetColorPickerCacheTask001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShadowTest, GetColorPickerCacheTask001, TestSize.Level1)
+{
+    RSShadow shadow;
+    auto colorTask = std::shared_ptr<RSColorPickerCacheTask>();
+    shadow.SetColorPickerCacheTask(colorTask);
+    EXPECT_EQ(shadow.GetColorPickerCacheTask(), nullptr);
+}
 } // namespace OHOS::Rosen

@@ -88,7 +88,7 @@ public:
     void Init();
     void Start();
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
-    void UpdateFocusNodeId(NodeId oldFocusNodeId, NodeId newFocusNodeId);
+    void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -329,12 +329,17 @@ private:
     void CollectInfoForHardwareComposer();
     void ReleaseAllNodesBuffer();
     void Render();
+    void OnUniRenderDraw();
     void SetDeviceType();
     void ColorPickerRequestVsyncIfNeed();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
-    void CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces,
-        VisibleData& dstCurVisVec, std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
+    RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedRegion,
+        Occlusion::Region& curRegion, Occlusion::Region& totalRegion);
+    void CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
+        std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
     bool CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
@@ -407,10 +412,13 @@ private:
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
 
-    void RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady);
-    void RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady);
+    void RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                                 float onVsyncStartTimeSteadyFloat);
+    void RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                               float onVsyncStartTimeSteadyFloat);
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
+    float GetCurrentSteadyTimeMsFloat() const;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

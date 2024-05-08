@@ -3372,6 +3372,23 @@ HWTEST_F(RSCanvasNodeTest, GetType003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBoundsChangedCallbackTest
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type:FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    ASSERT_FALSE(canvasNode->recordingUpdated_);
+    canvasNode->SetHDRPresent(true);
+    canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
+    ASSERT_NE(canvasNode->boundsChangedCallback_, nullptr);
+}
+
+/**
  * @tc.name: CreateTextureExportRenderNodeInRT
  * @tc.desc: test results of CreateTextureExportRenderNodeInRT
  * @tc.type: FUNC

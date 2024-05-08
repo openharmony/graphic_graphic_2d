@@ -102,20 +102,20 @@ typedef struct OH_Drawing_Bitmap OH_Drawing_Bitmap;
 typedef struct OH_Drawing_Point OH_Drawing_Point;
 
 /**
- * @brief Defines a pixelmap, which is used to wrap real pixelmap supported by image framework.
- *
- * @since 12
- * @version 1.0
- */
-typedef struct OH_Drawing_PixelMap OH_Drawing_PixelMap;
-
-/**
  * @brief Define color space to determine color information.
  *
  * @since 12
  * @version 1.0
  */
 typedef struct OH_Drawing_ColorSpace OH_Drawing_ColorSpace;
+
+/**
+ * @brief Defines a pixelmap, which is used to wrap real pixelmap supported by image framework.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_PixelMap OH_Drawing_PixelMap;
 
 /**
  * @brief Defines a point of 2d.
@@ -197,7 +197,7 @@ typedef struct OH_Drawing_ShaderEffect OH_Drawing_ShaderEffect;
 typedef struct OH_Drawing_ShadowLayer OH_Drawing_ShadowLayer;
 
 /**
- * @brief Defines a filter, which is used to store maskFilter and colorFilter.
+ * @brief Defines a filter, which is used to store maskFilter, colorFilter and imageFilter.
  *
  * @since 11
  * @version 1.0
@@ -260,6 +260,14 @@ typedef struct OH_Drawing_TextBlob OH_Drawing_TextBlob;
  * @version 1.0
  */
 typedef struct OH_Drawing_Image OH_Drawing_Image;
+
+/**
+ * @brief Defines a image filter, which is used to operate on all the color bits of pixels that make up an image.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_ImageFilter OH_Drawing_ImageFilter;
 
 /**
  * @brief Defines a sampling options, which is used to describe the sampling mode.
@@ -490,6 +498,7 @@ typedef struct OH_Drawing_FontMgr OH_Drawing_FontMgr;
  * @version 1.0
  */
 typedef struct OH_Drawing_FontStyleSet OH_Drawing_FontStyleSet;
+
 #ifdef __cplusplus
 }
 #endif

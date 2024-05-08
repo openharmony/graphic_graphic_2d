@@ -19,6 +19,7 @@
 #include "drawing_color_filter.h"
 #include "drawing_filter.h"
 #include "drawing_pen.h"
+#include "drawing_shadow_layer.h"
 #include "effect/color_filter.h"
 #include "effect/filter.h"
 
@@ -229,6 +230,25 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penGetFilter010, TestSize.Le
     OH_Drawing_ColorFilterDestroy(cColorFilter_);
     OH_Drawing_ColorFilterDestroy(colorFilterTmp);
     OH_Drawing_PenDestroy(pen9);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetShadowLayer011
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer011, TestSize.Level1)
+{
+    // blurRadius:3.f, offset:(-3.f, 3.f), shadowColor:green
+    OH_Drawing_ShadowLayer* shadowLayer = OH_Drawing_ShadowLayerCreate(3.f, -3.f, 3.f, 0xFF00FF00);
+    EXPECT_NE(shadowLayer, nullptr);
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetShadowLayer(nullptr, shadowLayer);
+    OH_Drawing_PenSetShadowLayer(pen, nullptr);
+    OH_Drawing_PenSetShadowLayer(pen, shadowLayer);
+    OH_Drawing_ShadowLayerDestroy(shadowLayer);
+    OH_Drawing_PenDestroy(pen);
 }
 } // namespace Drawing
 } // namespace Rosen

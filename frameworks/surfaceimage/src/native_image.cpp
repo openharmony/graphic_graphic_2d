@@ -62,7 +62,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
     if (image == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->AttachContext(textureId);
 }
@@ -71,7 +71,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
     if (image == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->DetachContext();
 }
@@ -80,7 +80,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
     if (image == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->UpdateSurfaceImage();
 }
@@ -89,7 +89,7 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
     if (image == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return -1;
     }
     return image->consumer->GetTimeStamp();
 }
@@ -98,7 +98,7 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 {
     if (image == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->GetTransformMatrix(matrix);
 }
@@ -107,14 +107,14 @@ int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 {
     if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     *surfaceId = image->consumer->GetUniqueId();
 
     if (image->pSurface == nullptr) {
         image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
     }
-    BLOGE_CHECK_AND_RETURN_RET(image->pSurface != nullptr, SURFACE_ERROR_ERROR, "pSurface is null");
+    BLOGE_CHECK_AND_RETURN_RET(image->pSurface != nullptr, SURFACE_ERROR_UNKOWN, "pSurface is null");
     SurfaceUtils* utils = SurfaceUtils::GetInstance();
     utils->Add(*surfaceId, image->pSurface);
     return SURFACE_ERROR_OK;
@@ -124,7 +124,7 @@ int32_t OH_NativeImage_SetOnFrameAvailableListener(OH_NativeImage* image, OH_OnF
 {
     if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->SetOnBufferAvailableListener(listener.context, listener.onFrameAvailable);
 }
@@ -133,7 +133,7 @@ int32_t OH_NativeImage_UnsetOnFrameAvailableListener(OH_NativeImage* image)
 {
     if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->UnsetOnBufferAvailableListener();
 }

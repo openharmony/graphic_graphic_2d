@@ -33,6 +33,11 @@ Region& Region::operator=(const Region& other)
     return *this;
 }
 
+bool Region::Contains(int32_t x, int32_t y) const
+{
+    return impl_->Contains(x, y);
+}
+
 bool Region::SetRect(const RectI& rectI)
 {
     return impl_->SetRect(rectI);

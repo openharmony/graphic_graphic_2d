@@ -17,6 +17,8 @@
 #include "drawing_canvas_utils.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
+#include "native_pixel_map_manager.h"
+#include "pixelmap_native_impl.h"
 #include "recording/recording_canvas.h"
 
 using namespace OHOS;
@@ -381,8 +383,20 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {
 #ifdef OHOS_PLATFORM
-    DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas),
-        Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap)),
+    std::shared_ptr<Media::PixelMap> p = nullptr;
+    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
+        case NativePixelMapType::OBJECT_FROM_C:
+            if (pixelMap) {
+                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
+            }
+            break;
+        case NativePixelMapType::OBJECT_FROM_JS:
+            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
+            break;
+        default:
+            break;
+    }
+    DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas), p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
 #endif

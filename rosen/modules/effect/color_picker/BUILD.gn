@@ -41,10 +41,7 @@ ohos_shared_library("color_picker") {
     "$graphic_2d_root/utils/log",
   ]
 
-  configs = [
-    ":graphic_napi_color_picker_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  configs = [ ":graphic_napi_color_picker_config" ]
 
   sources = [
     "src/color_extract.cpp",

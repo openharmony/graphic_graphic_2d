@@ -113,7 +113,6 @@ static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
 
 static void OnBinaryFinish(RSFile& file, const char* data, size_t size)
 {
-    file.SetImageCache(reinterpret_cast<FileImageCache*>(&RSProfiler::GetImageCache()));
     file.Close();
 }
 
@@ -233,9 +232,9 @@ void Network::SendSkp(const void* data, size_t size)
     }
 }
 
-void Network::SendTelemetry(double startTime)
+void Network::SendTelemetry(double time)
 {
-    if (startTime < 0.0) {
+    if (time < 0.0) {
         return;
     }
 
@@ -244,24 +243,24 @@ void Network::SendTelemetry(double startTime)
     std::stringstream load;
     std::stringstream frequency;
     for (uint32_t i = 0; i < deviceInfo.cpu.cores; i++) {
-        load << deviceInfo.cpu.coreLoad[i];
+        load << deviceInfo.cpu.coreFrequencyLoad[i].load;
         if (i + 1 < deviceInfo.cpu.cores) {
             load << ";";
         }
-        frequency << deviceInfo.cpu.coreFrequency[i];
+        frequency << deviceInfo.cpu.coreFrequencyLoad[i].current;
         if (i + 1 < deviceInfo.cpu.cores) {
             frequency << ";";
         }
     }
 
     RSCaptureData captureData;
-    captureData.SetTime(Utils::Now() - startTime);
+    captureData.SetTime(time);
     captureData.SetProperty(RSCaptureData::KEY_CPU_TEMP, deviceInfo.cpu.temperature);
     captureData.SetProperty(RSCaptureData::KEY_CPU_CURRENT, deviceInfo.cpu.current);
     captureData.SetProperty(RSCaptureData::KEY_CPU_LOAD, load.str());
     captureData.SetProperty(RSCaptureData::KEY_CPU_FREQ, frequency.str());
-    captureData.SetProperty(RSCaptureData::KEY_GPU_LOAD, deviceInfo.gpu.load);
-    captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequency);
+    captureData.SetProperty(RSCaptureData::KEY_GPU_LOAD, deviceInfo.gpu.frequencyLoad.load);
+    captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequencyLoad.current);
 
     std::vector<char> out;
     captureData.Serialize(out);

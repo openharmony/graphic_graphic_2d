@@ -549,14 +549,17 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
     vsyncMode_ = vsyncMode;
     ChangeConnsRateLocked();
 
-    if (vsyncMode_ == VSYNC_MODE_LTPO) {
-        CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
-    } else {
-        CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
-    }
-    if (!waitForVSync) {
-        DisableVSync();
-        return;
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
+        } else {
+            CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
+        }
+        if (!waitForVSync) {
+            DisableVSync();
+            return;
+        }
     }
 
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
@@ -857,9 +860,7 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate)
         VLOGD("%{public}s:%{public}d pid[%{public}u] can not found", __func__, __LINE__, pid);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-#if defined(RS_ENABLE_DVSYNC)
     bool isNeedNotify = false;
-#endif
     for (auto connection : iter->second) {
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK || tmpPid != pid) {
@@ -870,19 +871,21 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate)
             connection->highPriorityState_ = true;
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
-#if defined(RS_ENABLE_DVSYNC)
             isNeedNotify = true;
-#endif
         }
     }
+
+    if (isNeedNotify) {
 #if defined(RS_ENABLE_DVSYNC)
-    if (isNeedNotify && isRs_ && dvsync_->IsFeatureEnabled()) {
-        con_.notify_all();
-    } else
+        if (isRs_ && dvsync_->IsFeatureEnabled()) {
+            con_.notify_all();
+        } else
 #endif
-    {
-        EnableVSync();
+        {
+            EnableVSync();
+        }
     }
+
     return VSYNC_ERROR_OK;
 }
 
@@ -900,27 +903,25 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
     if (iter == connectionsMap_.end()) {
         return resCode;
     }
-#if defined(RS_ENABLE_DVSYNC)
     bool isNeedNotify = false;
-#endif
     for (auto& connection : iter->second) {
         if (connection && connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = true;
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
-#if defined(RS_ENABLE_DVSYNC)
             isNeedNotify = true;
-#endif
         }
     }
+    if (isNeedNotify) {
 #if defined(RS_ENABLE_DVSYNC)
-    if (isNeedNotify && isRs_ && dvsync_->IsFeatureEnabled()) {
-        con_.notify_all();
-    } else
+        if (isRs_ && dvsync_->IsFeatureEnabled()) {
+            con_.notify_all();
+        } else
 #endif
-    {
-        EnableVSync();
+        {
+            EnableVSync();
+        }
     }
     return VSYNC_ERROR_OK;
 }

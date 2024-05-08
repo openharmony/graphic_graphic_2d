@@ -626,13 +626,18 @@ VKAPI_ATTR VkResult SetWindowBufferUsage(NativeWindow* window, const VkSwapchain
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowScalingMode(NativeWindow* window, OHScalingMode scalingMode)
+VKAPI_ATTR VkResult SetWindowScalingMode(NativeWindow* window, OHScalingModeV2 scalingMode)
 {
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    SWLOGD("NativeWindow Not Support Set ScalingMode now. Set OHScalingMode is [%{public}d]",
-        static_cast<int>(scalingMode));
+    SWLOGD("NativeWindow Set OHScalingMode is [%{public}d]", static_cast<int>(scalingMode));
+    int err = OH_NativeWindow_NativeWindowSetScalingModeV2(window, scalingMode);
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow Set ScalingMode[%{public}d] failed, error: %{public}d",
+            static_cast<int>(scalingMode), err);
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
 
     return VK_SUCCESS;
 }
@@ -688,7 +693,7 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
     }
 
     // Set Scaling mode
-    if (SetWindowScalingMode(window, OHScalingMode::OH_SCALING_MODE_SCALE_TO_WINDOW) != VK_SUCCESS) {
+    if (SetWindowScalingMode(window, OHScalingModeV2::OH_SCALING_MODE_SCALE_TO_WINDOW_V2) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 

@@ -994,7 +994,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
     }
 
     Pen p(pen);
-    if (hasHdrPresent_ && isCapture_) {
+    if (hasHdrPresent_ && !isCapture_) {
         RS_LOGD("hdr PaintFilter %{public}d AttachPen", targetColorGamut_);
         PaintFilter(p);
     }
@@ -1031,7 +1031,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     Brush b(brush);
-    if (hasHdrPresent_ && isCapture_) {
+    if (hasHdrPresent_ && !isCapture_) {
         RS_LOGD("hdr PaintFilter %{public}d AttachBrush", targetColorGamut_);
         PaintFilter(b);
     }
@@ -1087,7 +1087,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
     }
 
     Paint p(paint);
-    if (hasHdrPresent_ && isCapture_ && !paint.IsHDRImage()) {
+    if (hasHdrPresent_ && !isCapture_ && !paint.IsHDRImage()) {
         RS_LOGD("hdr AttachPaint %{public}d AttachPaint", targetColorGamut_);
         PaintFilter(p);
     }
@@ -1233,16 +1233,6 @@ void RSPaintFilterCanvas::RestoreEnvToCount(int count)
     for (int i = 0; i < n; ++i) {
         envStack_.pop();
     }
-}
-
-std::shared_ptr<RSDisplayRenderNode> RSPaintFilterCanvas::GetCurDisplayNode() const
-{
-    return curDisplayNode_;
-}
-
-void RSPaintFilterCanvas::SetCurDisplayNode(std::shared_ptr<RSDisplayRenderNode> curDisplayNode)
-{
-    curDisplayNode_ = curDisplayNode;
 }
 
 int RSPaintFilterCanvas::GetEnvSaveCount() const

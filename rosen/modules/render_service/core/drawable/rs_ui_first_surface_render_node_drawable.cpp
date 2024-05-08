@@ -33,6 +33,8 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "rs_profiler.h"
+#include "rs_frame_report.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #ifdef RS_ENABLE_VK
@@ -496,13 +498,25 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
         return false;
     }
 
+    static constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
+    static constexpr int REQUEST_FRAME_AWARE_LOAD = 90;
+    static constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
     if (!HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lx", canSkipWait, nodeId_);
         if (canSkipWait) {
             return false; // draw nothing
         }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+        bool frameParamEnable = RsFrameReport::GetInstance().GetEnable();
+        if (frameParamEnable) {
+            RsFrameReport::GetInstance().SetFrameParam(
+                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_AWARE_LOAD, 0, GetLastFrameUsedThreadIndex());
+        }
         RSSubThreadManager::Instance()->WaitNodeTask(nodeId_);
+        if (frameParamEnable) {
+            RsFrameReport::GetInstance().SetFrameParam(
+                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_STANDARD_LOAD, 0, GetLastFrameUsedThreadIndex());
+        }
         UpdateCompletedCacheSurface();
 #endif
     }

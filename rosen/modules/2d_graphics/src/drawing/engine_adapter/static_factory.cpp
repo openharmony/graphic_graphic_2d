@@ -218,6 +218,14 @@ std::shared_ptr<Typeface> StaticFactory::DeserializeTypeface(const void* data, s
     return EngineStaticFactory::DeserializeTypeface(data, size);
 }
 
+bool StaticFactory::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    // DDGR need to be adapted
+#endif
+    return EngineStaticFactory::GetFillPath(pen, src, dst, rect, matrix);
+}
+
 bool StaticFactory::CanComputeFastBounds(const Brush& brush)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

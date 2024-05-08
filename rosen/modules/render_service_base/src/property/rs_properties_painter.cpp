@@ -59,6 +59,7 @@ constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
 const bool RSPropertiesPainter::BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
+const bool RSPropertiesPainter::FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::binarizationShaderEffect_ = nullptr;
@@ -1432,7 +1433,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     canvas.Save();
     Drawing::SaveLayerOps slr(&maskBounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
 
     Drawing::Brush maskfilter;
     Drawing::Filter filter;

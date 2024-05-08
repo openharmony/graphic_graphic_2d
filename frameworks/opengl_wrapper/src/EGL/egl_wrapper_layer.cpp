@@ -213,6 +213,10 @@ bool EglWrapperLayer::LoadLayers()
 {
     WLOGD("");
     std::vector<std::string> layers = GetDebugLayers();
+    if (layers.empty()) {
+        WLOGD("layers is empty");
+        return false;
+    }
     for (int32_t i = layers.size() - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
         std::string layerPath = std::string(DEBUG_LAYERS_LIB_DIR) + layerLib;

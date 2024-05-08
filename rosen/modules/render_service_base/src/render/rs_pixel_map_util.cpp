@@ -204,6 +204,11 @@ bool RSPixelMapUtil::IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap)
     if (!pixelMap) {
         return false;
     }
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        return false;
+    }
+#endif
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     return imageInfo.pixelFormat == Media::PixelFormat::NV21 || imageInfo.pixelFormat == Media::PixelFormat::NV12;

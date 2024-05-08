@@ -163,9 +163,13 @@ template("render_service_client_source_set") {
     ]
 
     if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-      cflags += [ "-flto=thin" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-flto=thin" ]
+      }
       if (enhanced_opt) {
-        cflags += [ "-fwhole-program-vtables" ]
+        if (!use_libfuzzer) {
+          cflags += [ "-fwhole-program-vtables" ]
+        }
       }
     }
 

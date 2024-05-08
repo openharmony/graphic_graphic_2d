@@ -255,8 +255,8 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     // Extract srcDest and dstRect from Drawing::Canvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     UpdateSrcRect(canvas, deviceClipRect);
-    RectI dstRect = {
-        deviceClipRect.GetLeft(), deviceClipRect.GetTop(), deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
+    RectI dstRect = { deviceClipRect.GetLeft() + offsetX_, deviceClipRect.GetTop() + offsetY_,
+        deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
     SetDstRect(dstRect);
 
     // Save TotalMatrix and GlobalAlpha for compositor
@@ -639,14 +639,14 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
     }
 }
 
-bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+bool RSSurfaceRenderNode::GetForceHardware() const
 {
-    return isForceHardwareByUser_;
+    return isForceHardware_;
 }
 
-int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+void RSSurfaceRenderNode::SetForceHardware(bool flag)
 {
-    return fixedRotationDegree_;
+    isForceHardware_ = isForceHardwareByUser_ && flag;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -1488,7 +1488,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         if (node->GetRenderProperties().GetFilter()) {
             node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
         }
-        node->UpdateFilterCacheWithSelfDirty(clipRect);
+        node->UpdateFilterCacheWithSelfDirty();
     }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {

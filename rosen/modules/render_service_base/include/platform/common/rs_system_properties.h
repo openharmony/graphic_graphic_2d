@@ -152,6 +152,7 @@ public:
     static SurfaceRegionDebugType GetSurfaceRegionDfxType();
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
+    static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
@@ -182,6 +183,7 @@ public:
     static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
+    static bool GetForegroundFilterEnabled();
     static const std::vector<float>& GetAiInvertCoef();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();

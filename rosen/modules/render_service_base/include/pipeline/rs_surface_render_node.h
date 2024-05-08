@@ -133,8 +133,8 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
-    bool GetForceHardwareByUser() const;
-    int32_t GetFixedRotationDegree() const;
+    bool GetForceHardware() const;
+    void SetForceHardware(bool flag);
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -246,7 +246,7 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
+        if (isForceHardware_ && !isHardwareForcedDisabledByVisibility_) {
             return false;
         }
         return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
@@ -350,7 +350,7 @@ public:
         offsetX_ = offset;
     }
 
-    int32_t GetOffSetX()
+    int32_t GetOffSetX() const
     {
         return offsetX_;
     }
@@ -360,7 +360,7 @@ public:
         offsetY_ = offset;
     }
 
-    int32_t GetOffSetY()
+    int32_t GetOffSetY() const
     {
         return offsetY_;
     }
@@ -969,7 +969,9 @@ public:
 
     bool GetUifirstSupportFlag() override
     {
-        return RSRenderNode::GetUifirstSupportFlag();
+        return RSRenderNode::GetUifirstSupportFlag() &&
+            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE ||
+            name_.find("SceneViewer Model") == std::string::npos);
     }
 
     void UpdateSurfaceCacheContentStaticFlag();
@@ -1236,9 +1238,9 @@ private:
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
     bool isForceHardwareByUser_ = false;
+    bool isForceHardware_ = false;
     bool isHardwareForcedDisabledByVisibility_ = false;
     RectI originalDstRect_;
-    int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;

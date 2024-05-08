@@ -359,9 +359,13 @@ ohos_source_set("render_service_base_src") {
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [
@@ -519,6 +523,7 @@ ohos_source_set("render_service_base_src") {
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_cache.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_settings.cpp",

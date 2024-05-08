@@ -26,7 +26,7 @@
 namespace OHOS::Rosen {
 enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,
-    PRODUCER_SURFACE_ENABLE,
+    SOFTWARE_OUTPUT_ENABLE,
     DISABLED,
     NOT_EXISTED,
     UNKNOWN,

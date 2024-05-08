@@ -2025,7 +2025,7 @@ float RSProperties::GetBackgroundBlurSaturation() const
 
 bool RSProperties::IsBackgroundBlurSaturationValid() const
 {
-    return ROSEN_GE(GetBackgroundBlurSaturation(), 1.0);
+    return (!ROSEN_EQ(GetBackgroundBlurSaturation(), 1.0f)) && ROSEN_GE(GetBackgroundBlurSaturation(), 0.0f);
 }
 
 void RSProperties::SetBackgroundBlurBrightness(float backgroundBlurBrightness)
@@ -2046,7 +2046,7 @@ float RSProperties::GetBackgroundBlurBrightness() const
     
 bool RSProperties::IsBackgroundBlurBrightnessValid() const
 {
-    return ROSEN_GE(GetBackgroundBlurBrightness(), 1.0);
+    return (!ROSEN_EQ(GetBackgroundBlurBrightness(), 1.0f)) && ROSEN_GE(GetBackgroundBlurBrightness(), 0.0f);
 }
 
 void RSProperties::SetBackgroundBlurMaskColor(Color backgroundMaskColor)
@@ -2266,7 +2266,7 @@ bool RSProperties::IsForegroundBlurRadiusYValid() const
 
 bool RSProperties::IsBackgroundMaterialFilterValid() const
 {
-    return IsBackgroundBlurRadiusValid();
+    return IsBackgroundBlurRadiusValid() || IsBackgroundBlurBrightnessValid() || IsBackgroundBlurSaturationValid();
 }
 
 bool RSProperties::IsForegroundMaterialFilterVaild() const
