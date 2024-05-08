@@ -188,6 +188,16 @@ public:
         return onVsyncStartTimeSteady_;
     }
 
+    void SetOnVsyncStartTimeSteadyFloat(float timeSteadyFloat)
+    {
+        onVsyncStartTimeSteadyFloat_ = timeSteadyFloat;
+    }
+
+    float GetOnVsyncStartTimeSteadyFloat() const
+    {
+        return onVsyncStartTimeSteadyFloat_;
+    }
+
     void SetIsUniRenderAndOnVsync(bool isUniRenderAndOnVsync)
     {
         isUniRenderAndOnVsync_ = isUniRenderAndOnVsync;
@@ -290,6 +300,7 @@ private:
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
+    float onVsyncStartTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
