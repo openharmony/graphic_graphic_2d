@@ -192,7 +192,6 @@ HWTEST_F(RSFilterTest, SetFilterType, TestSize.Level1)
 {
     RSFilter rSFilter;
     rSFilter.SetFilterType(RSFilter::MATERIAL);
-    
     EXPECT_EQ(rSFilter.GetFilterType(), RSFilter::MATERIAL);
 }
 
@@ -217,7 +216,6 @@ HWTEST_F(RSFilterTest, SetSnapshotOutset, TestSize.Level1)
 {
     RSFilter rSFilter;
     rSFilter.SetSnapshotOutset(1);
-    
     EXPECT_EQ(rSFilter.NeedSnapshotOutset(), 1);
 }
 } // namespace OHOS::Rosen
