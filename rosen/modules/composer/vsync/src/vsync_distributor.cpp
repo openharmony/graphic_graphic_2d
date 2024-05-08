@@ -454,12 +454,12 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
         int64_t periodAfterDelay = 0L;
         {
             std::unique_lock<std::mutex> locker(mutex_);
-            periodBeforeDelay = dvsync_->GetPeriod();
+            periodBeforeDelay = event_.period;
             dvsync_->MarkDistributorSleep(true);
             dvsync_->RNVNotify();
             dvsync_->DelayBeforePostEvent(timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
-            periodAfterDelay = dvsync_->GetPeriod();
+            periodAfterDelay = event_.period;
         }
         // if getting switched into vsync mode after sleep
         if (!IsDVsyncOn() && isRs_) {
@@ -469,7 +469,7 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
                 RequestNextVSync(conn);
             }  // resend RNV for vsync
             return false;  // do not accumulate frame;
-        } else if (std::abs(periodAfterDelay - periodBeforeDelay) > MAX_PERIOD_BIAS) {
+        } else if (!IsUiDvsyncOn() && std::abs(periodAfterDelay - periodBeforeDelay) > MAX_PERIOD_BIAS) {
             timestamp = timestamp + periodAfterDelay - periodBeforeDelay;
             dvsync_->SetLastVirtualVSyncTS(timestamp);
         }
