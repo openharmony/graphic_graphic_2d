@@ -36,6 +36,9 @@ namespace {
     constexpr int32_t settingMode1 = 1;
     constexpr int32_t settingMode2 = 2;
     constexpr int32_t settingMode3 = 3;
+    constexpr int32_t IDEAL_30_PERIOD = 33333333;
+    constexpr int32_t IDEAL_60_PERIOD = 16666666;
+
 }
 class HyperGraphicManagerTest : public testing::Test {
 public:
@@ -576,8 +579,8 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
 HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
 {
     auto &instance = HgmCore::Instance();
-    EXPECT_EQ(instance.GetIdealPeriod(30), 0);
-    EXPECT_EQ(instance.GetIdealPeriod(60), 16666666);
+    EXPECT_EQ(instance.GetIdealPeriod(30), IDEAL_30_PERIOD);
+    EXPECT_EQ(instance.GetIdealPeriod(60), IDEAL_60_PERIOD);
 }
 
 /**
