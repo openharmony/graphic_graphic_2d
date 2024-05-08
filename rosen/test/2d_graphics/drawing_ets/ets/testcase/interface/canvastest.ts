@@ -169,8 +169,8 @@ export class CanvasDrawPath extends TestBase {
     let path: drawing.Path = new drawing.Path();
     path.moveTo(0, 0);
     let rand: OHRandom = new OHRandom();
+    path.lineTo(rand.nextRangeF(0, 720), rand.nextRangeF(0, 720));
     for (let i = 0; i < this.testCount_; i++) {
-      path.lineTo(rand.nextRangeF(0, 720), rand.nextRangeF(0, 720));
       canvas.drawPath(path);
     }
   }
