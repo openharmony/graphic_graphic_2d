@@ -222,6 +222,24 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     }
 }
 
+void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
+{
+    if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
+            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo); // alpha 0.2 by default
+        }
+    }
+
+    if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
+        for (const auto& info : autoCacheRenderNodeInfos_) {
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
+        }
+    }
+}
+
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
 {
     cacheType_ = cacheType;

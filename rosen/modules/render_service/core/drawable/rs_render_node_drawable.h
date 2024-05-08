@@ -110,6 +110,9 @@ public:
         return isOpincRootNode_;
     }
 
+    // dfx
+    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;

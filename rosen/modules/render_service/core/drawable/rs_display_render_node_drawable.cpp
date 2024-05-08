@@ -121,8 +121,6 @@ private:
         curCanvas_->AttachBrush(brush);
         curCanvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
         curCanvas_->DetachBrush();
-        overdrawSurface_ = nullptr;
-        overdrawCanvas_ = nullptr;
     }
 
     bool enable_;
@@ -519,60 +517,51 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // canvas draw
     {
-        RSOverDrawDfx rsOverDrawDfx(curCanvas_);
-        RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
+        RSOverDrawDfx rsOverDrawDfx(curCanvas_);
+        {
+            RSSkpCaptureDfx capture(curCanvas_);
+            Drawing::AutoCanvasRestore acr(*curCanvas_, true);
 
-        bool isOpDropped = uniParam->IsOpDropped();
-        bool needOffscreen = params->GetNeedOffscreen();
-        if (needOffscreen) {
-            uniParam->SetOpDropped(false);
-            // draw black background in rotation for camera
-            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-            ClearTransparentBeforeSaveLayer();
-            PrepareOffscreenRender(*displayNodeSp);
-        }
+            bool isOpDropped = uniParam->IsOpDropped();
+            bool needOffscreen = params->GetNeedOffscreen();
+            if (needOffscreen) {
+                uniParam->SetOpDropped(false);
+                // draw black background in rotation for camera
+                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+                ClearTransparentBeforeSaveLayer();
+                PrepareOffscreenRender(*displayNodeSp);
+            }
 
-        if (uniParam->IsOpDropped()) {
-            uniParam->SetClipRegion(clipRegion);
-            ClipRegion(*curCanvas_, clipRegion);
-        } else {
-            curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-        }
+            if (uniParam->IsOpDropped()) {
+                uniParam->SetClipRegion(clipRegion);
+                ClipRegion(*curCanvas_, clipRegion);
+            } else {
+                curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            }
 
-        if (!needOffscreen) {
-            curCanvas_->ConcatMatrix(params->GetMatrix());
-        }
+            if (!needOffscreen) {
+                curCanvas_->ConcatMatrix(params->GetMatrix());
+            }
 
-        SetHighContrastIfEnabled(*curCanvas_);
-        RSRenderNodeDrawable::OnDraw(*curCanvas_);
-        DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
-        DrawCurtainScreen();
-        // switch color filtering
-        SwitchColorFilter(*curCanvas_);
-        if (needOffscreen) {
-            Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
-            canvasBackup_->ConcatMatrix(params->GetMatrix());
-            FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
-            uniParam->SetOpDropped(isOpDropped);
+            SetHighContrastIfEnabled(*curCanvas_);
+            RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
+            DrawCurtainScreen();
+            // switch color filtering
+            SwitchColorFilter(*curCanvas_);
+            if (needOffscreen) {
+                Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+                canvasBackup_->ConcatMatrix(params->GetMatrix());
+                FinishOffscreenRender(
+                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
+                uniParam->SetOpDropped(isOpDropped);
+            }
         }
+        rsDirtyRectsDfx.OnDraw(curCanvas_);
     }
     PostClearMemoryTask();
-    rsDirtyRectsDfx.OnDraw(curCanvas_);
     RSMainThread::Instance()->SetDirtyFlag(false);
-    if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
-        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
-            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
-            RSUniRenderUtil::DrawRectForDfx(*curCanvas_, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo);
-        }
-    }
-
-    if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
-        for (const auto& info : autoCacheRenderNodeInfos_) {
-            RSUniRenderUtil::DrawRectForDfx(*curCanvas_,
-                info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
-        }
-    }
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
