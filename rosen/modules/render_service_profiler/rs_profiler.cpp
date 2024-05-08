@@ -100,10 +100,10 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     const double maxPercentValue = 100.0;
     g_dirtyRegionPercentage = maxPercentValue;
 
-    if (!g_context) {
+    if (!g_renderServiceContext) {
         return;
     }
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*g_context);
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*g_renderServiceContext);
     if (!displayNode) {
         return;
     }
