@@ -198,7 +198,8 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
     }
     RSJankStats::GetInstance().SetOnVsyncStartTime(
         unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTime(),
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady());
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady(),
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteadyFloat());
     RSJankStats::GetInstance().SetImplicitAnimationEnd(
         unirenderInstance_.GetRSRenderThreadParams()->GetImplicitAnimationEnd());
     RSJankStats::GetInstance().SetEndTime(unirenderInstance_.GetSkipJankAnimatorFrame(),
