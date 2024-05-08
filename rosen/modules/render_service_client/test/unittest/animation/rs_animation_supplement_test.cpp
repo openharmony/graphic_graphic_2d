@@ -1060,10 +1060,17 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
 
     RSModifierManager modifierManager;
     modifierManager.HasUIAnimation();
+    auto animatablProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto value = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto springAnimation = std::make_shared<RSSpringAnimationMock>(animatablProperty, value);
+    modifierManager.RegisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
+    modifierManager.UnregisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
 
     std::string str;
     RSMotionPathOption option(str);
+    option.SetRotationMode(RotationMode::ROTATE_AUTO);
     option.GetRotationMode();
+    option.SetPathNeedAddOrigin(true);
     option.GetPathNeedAddOrigin();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
@@ -1180,6 +1187,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
     RectT<float> rect4;
     rect1.SetValues(rect3, &data);
     rect2.SetValues(rect4, &data);
+    rect1.IsNearEqual(rect2);
     auto temp1 = rect1 - rect2;
     rect1 = temp1 + rect2;
     temp1 = rect1 * (1.f);
