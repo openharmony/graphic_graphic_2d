@@ -33,6 +33,7 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(NodeId nodeId)
     }
     auto recordingCanvas = new ExtendRecordingCanvas(node->GetPaintWidth(), node->GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(node->GetIsCustomTextType());
+    recordingCanvas->SetIsCustomTypeface(node->GetIsCustomTypeface());
     return { recordingCanvas, node->GetPaintWidth(), node->GetPaintHeight() };
 }
 
