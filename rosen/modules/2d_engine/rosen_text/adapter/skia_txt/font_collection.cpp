@@ -107,10 +107,15 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     return typeface;
 }
 
-void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
+    const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-    dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen);
+    std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen));
+    if (!RegisterTypeface(typeface)) {
+        LOGE("register typeface failed.");
+    }
     fontCollection_->ClearFontFamilyCache();
+    return typeface;
 }
 } // namespace AdapterTxt
 } // namespace Rosen

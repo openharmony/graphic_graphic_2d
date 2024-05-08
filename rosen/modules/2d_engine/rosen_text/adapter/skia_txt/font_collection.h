@@ -41,7 +41,8 @@ public:
     void DisableSystemFont() override;
     std::shared_ptr<Drawing::Typeface> LoadFont(
         const std::string &familyName, const uint8_t *data, size_t datalen) override;
-    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    std::shared_ptr<Drawing::Typeface> LoadThemeFont(
+        const std::string &familyName, const uint8_t *data, size_t datalen) override;
     std::shared_ptr<Drawing::FontMgr> GetFontMgr() override;
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface) override;
 private:

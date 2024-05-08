@@ -37,7 +37,8 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
     const uint8_t* data = nullptr;
     auto typeface = fontCollection->LoadFont("familyname", data, 0);
     EXPECT_EQ(typeface == nullptr, true);
-    fontCollection->LoadThemeFont("familynametest", data, 0);
+    typeface = fontCollection->LoadThemeFont("familynametest", data, 0);
+    EXPECT_EQ(typeface == nullptr, true);
     std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
     EXPECT_EQ(fontMgr != nullptr, true);
 }
