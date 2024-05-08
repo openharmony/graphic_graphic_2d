@@ -292,6 +292,26 @@ HWTEST_F(SkiaCanvasTest, DrawShadow001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: DrawShadowStyle001
+ * @tc.desc: Draw ShadowStyle Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, DrawShadowStyle001, TestSize.Level2)
+{
+    Path path;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.DrawShadowStyle(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE, true);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawShadowStyle(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE, true);
+}
+
+/**
  * @tc.name: DrawBitmap001
  * @tc.desc:
  * @tc.type: FUNC
