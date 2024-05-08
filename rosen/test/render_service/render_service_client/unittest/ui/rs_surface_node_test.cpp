@@ -1439,4 +1439,18 @@ HWTEST_F(RSSurfaceNodeTest, SplitSurfaceNodeName, TestSize.Level1)
     EXPECT_EQ(res.first, "0");
     EXPECT_EQ(res.second, "1");
 }
+
+/**
+ * @tc.name: SetColorSpace Test
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetColorSpace, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(surfaceNode->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
 } // namespace OHOS::Rosen
