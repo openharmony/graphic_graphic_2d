@@ -53,6 +53,9 @@ __attribute__((constructor)) void init()
 } // namespace
 #endif
 
+#define CHENGQIANG(fmt, ...)               \
+    ::OHOS::HiviewDFX::HiLog::Error(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 static std::shared_ptr<OHOS::Rosen::Drawing::ObjectMgr> objectMgr = OHOS::Rosen::Drawing::ObjectMgr::GetInstance();
 
 template<typename T1, typename T2>
@@ -1449,6 +1452,20 @@ OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadows(OH_Drawing_TextStyle* styl
         return (OH_Drawing_TextShadow*)originalShadows;
     }
     return nullptr;
+}
+
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius)
+{
+    if (!shadow || !offset) {
+        return;
+    }
+
+    auto* tailoredShadow = reinterpret_cast<TextShadow*>(shadow);
+    tailoredShadow->blurRadius = blurRadius;
+    tailoredShadow->color = Drawing::Color(color);
+    tailoredShadow->offset = *reinterpret_cast<Drawing::Point*>(offset);
+    return;
 }
 
 void OH_Drawing_TextStyleAddShadow(OH_Drawing_TextStyle* style, OH_Drawing_TextShadow* shadow)

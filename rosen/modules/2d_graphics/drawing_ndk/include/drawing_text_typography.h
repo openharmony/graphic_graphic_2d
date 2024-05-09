@@ -43,6 +43,7 @@
 #include "drawing_font.h"
 #include "drawing_text_declaration.h"
 #include "drawing_types.h"
+#include "drawing_point.h"
 
 #include "stdint.h"
 
@@ -2648,6 +2649,20 @@ OH_Drawing_TextAlign OH_Drawing_TypographyStyleGetEffectiveAlignment(OH_Drawing_
  * @version 1.0
  */
 bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style);
+
+/**
+ * @brief Resetting original parameter of text-shadow.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextShadow The original hand form text-shadow.
+ * @param color The color-paramter is already dealt by function of OH_Drawing_ColorSetArgb.
+ * @param OH_Drawing_Point Hope the offset value of text-shadow.
+ * @param blurRadius Expectation radius value of blur.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius);
 
 #ifdef __cplusplus
 }
