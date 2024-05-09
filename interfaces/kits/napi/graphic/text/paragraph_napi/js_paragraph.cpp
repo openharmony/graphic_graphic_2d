@@ -162,7 +162,7 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
     double x = 0.0;
     double y = 0.0;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
-    if (jsCanvas == nullptr ||
+    if (!jsCanvas || !jsCanvas->GetCanvas() ||
         !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         ROSEN_LOGE("JsParagraph::OnPaint Argv is invalid");
         return NapiGetUndefined(env);
@@ -170,11 +170,8 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
     if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
         Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
         recordingCanvas->SetIsCustomTypeface(true);
-        recordingCanvas->SetIsCustomTextType(true);
-        paragraph_->Paint(recordingCanvas, x, y);
-    } else {
-        paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
     }
+    paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
 
     return NapiGetUndefined(env);
 }

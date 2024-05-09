@@ -71,27 +71,11 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
         return ERROR_NULL_FONT_COLLECTION;
     }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    Drawing::Typeface* typeface = nullptr;
 #ifndef USE_GRAPHIC_TEXT_GINE
     fc->LoadFontFromList(data, dataLength, familyName);
 #else
-    typeface = fc->LoadFont(familyName, data, dataLength);
+    fc->LoadFont(familyName, data, dataLength);
 #endif
-    if (typeface) {
-        std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
-        std::string name = familyName;
-        if (name.empty()) {
-            name = drawingTypeface->GetFamilyName();
-        }
-        fc->AddLoadedFamilyName(name);
-        if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-            bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(drawingTypeface);
-            if (!ret) {
-                LOGE("LoadFromFontCollection: register typeface failed.");
-                return ERROR_REGISTER_FAILED;
-            }
-        }
-    }
     return 0;
 }
 

@@ -15,9 +15,9 @@
 
 #include "font_collection.h"
 
-#include "include/core/SkTypeface.h"
 #include "convert.h"
 #include "text/typeface.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,21 +50,12 @@ FontCollection::~FontCollection()
     if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
         return;
     }
-    for (auto& name : familyNames_) {
-        auto styleSet = dfmanager_->MatchFamily(name.c_str());
-        if (!styleSet) {
-            continue;
-        }
-        int count = styleSet->Count();
-        for (int i = 0; i < count; ++i) {
-            Drawing::Typeface* typeface = styleSet->CreateTypeface(i);
-            if (!typeface) {
-                continue;
-            }
-            std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
-            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(drawingTypeface);
-        }
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (const auto& [id, typeface] : typefaces_) {
+        Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
     }
+    typefaces_.clear();
 }
 
 std::shared_ptr<txt::FontCollection> FontCollection::Get()
@@ -87,22 +78,44 @@ std::shared_ptr<Drawing::FontMgr> FontCollection::GetFontMgr()
     return dfmanager_;
 }
 
-void FontCollection::AddLoadedFamilyName(const std::string& name)
+bool FontCollection::RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface)
 {
-    familyNames_.emplace_back(name);
+    if (!typeface || !Drawing::Typeface::GetTypefaceRegisterCallBack()) {
+        return false;
+    }
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (typefaces_.find(typeface->GetUniqueID()) != typefaces_.end()) {
+        return true;
+    }
+    if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface)) {
+        return false;
+    }
+
+    typefaces_.emplace(typeface->GetUniqueID(), typeface);
+    return true;
 }
 
-Drawing::Typeface* FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
+    const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-    Drawing::Typeface* typeface = dfmanager_->LoadDynamicFont(familyName, data, datalen);
+    std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
+    if (!RegisterTypeface(typeface)) {
+        LOGE("register typeface failed.");
+    }
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
 
-void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
+    const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-    dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen);
+    std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen));
+    if (!RegisterTypeface(typeface)) {
+        LOGE("register typeface failed.");
+    }
     fontCollection_->ClearFontFamilyCache();
+    return typeface;
 }
 } // namespace AdapterTxt
 } // namespace Rosen

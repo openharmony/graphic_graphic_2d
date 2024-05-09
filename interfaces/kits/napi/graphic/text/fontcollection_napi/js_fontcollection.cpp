@@ -244,8 +244,7 @@ bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const s
         if (state >= GLOBAL_ERROR || state < 0) {
             return false;
         }
-        Drawing::Typeface* typeface = fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen);
-        if (typeface == nullptr || !AddTypefaceInformation(typeface, familyName)) {
+        if (!fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen)) {
             return false;
         }
         return true;
@@ -256,77 +255,54 @@ bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const s
     return true;
 }
 
-Drawing::Typeface* JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
+bool JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
 {
     size_t datalen;
 
     char tmpPath[PATH_MAX] = {0};
     if (realpath(path.c_str(), tmpPath) == nullptr) {
-        return nullptr;
+        return false;
     }
 
     std::ifstream f(tmpPath);
     if (!f.good()) {
-        return nullptr;
+        return false;
     }
 
     std::ifstream ifs(tmpPath, std::ios_base::in);
     if (!ifs.is_open()) {
-        return nullptr;
+        return false;
     }
 
     ifs.seekg(0, ifs.end);
     if (!ifs.good()) {
         ifs.close();
-        return nullptr;
+        return false;
     }
 
     datalen = static_cast<size_t>(ifs.tellg());
     if (ifs.fail()) {
         ifs.close();
-        return nullptr;
+        return false;
     }
 
     ifs.seekg(ifs.beg);
     if (!ifs.good()) {
         ifs.close();
-        return nullptr;
+        return false;
     }
 
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(datalen);
     ifs.read(buffer.get(), datalen);
     if (!ifs.good()) {
         ifs.close();
-        return nullptr;
+        return false;
     }
     ifs.close();
     const uint8_t* rawData = reinterpret_cast<uint8_t*>(buffer.get());
-    Drawing::Typeface* typeface = nullptr;
-    typeface = fontcollection_->LoadFont(familyName.c_str(), rawData, datalen);
-    if (typeface == nullptr) {
-        return nullptr;
+    if (!fontcollection_->LoadFont(familyName.c_str(), rawData, datalen)) {
+        return false;
     }
-    if (!AddTypefaceInformation(typeface, familyName)) {
-        return nullptr;
-    }
-    return typeface;
-}
-
-bool JsFontCollection::AddTypefaceInformation(Drawing::Typeface* typeface, const std::string familyName)
-{
-    std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
-    std::string name = familyName;
-    if (name.empty()) {
-        name = drawingTypeface->GetFamilyName();
-    }
-    fontcollection_->AddLoadedFamilyName(name);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(drawingTypeface);
-        if (!ret) {
-            return false;
-        }
-    }
-
     return true;
 }
 

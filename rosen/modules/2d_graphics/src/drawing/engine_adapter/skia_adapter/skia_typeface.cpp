@@ -133,9 +133,18 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) con
     if (!cloned) {
         return nullptr;
     }
-
+    cloned->setIsCustomTypeface(skTypeface_->isCustomTypeface());
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(cloned);
     return std::make_shared<Typeface>(typefaceImpl);
+}
+
+bool SkiaTypeface::IsCustomTypeface() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isCustomTypeface();
 }
 
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
@@ -165,6 +174,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+    skTypeface->setIsCustomTypeface(true);
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -177,6 +187,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
         LOGD("SkiaTypeface::MakeFromStream, skTypeface nullptr");
         return nullptr;
     }
+    skTypeface->setIsCustomTypeface(true);
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }

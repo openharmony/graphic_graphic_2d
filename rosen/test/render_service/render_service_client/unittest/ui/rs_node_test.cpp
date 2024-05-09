@@ -5493,6 +5493,32 @@ HWTEST_F(RSNodeTest, SetIsCustomTextType, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsCustomTypeface
+ * @tc.desc: test results of SetIsCustomTypeface
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetIsCustomTypeface, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTypeface(true);
+    ASSERT_TRUE(rsNode->GetIsCustomTypeface());
+}
+
+/**
+ * @tc.name: GetIsCustomTypeface
+ * @tc.desc: test results of GetIsCustomTypeface
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetIsCustomTypeface, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTypeface(false);
+    ASSERT_TRUE(!rsNode->GetIsCustomTypeface());
+}
+
+/**
  * @tc.name: SetBloom Test
  * @tc.desc: SetBloom and SetBrightness and SetContrast and SetSaturate
  * @tc.type: FUNC
