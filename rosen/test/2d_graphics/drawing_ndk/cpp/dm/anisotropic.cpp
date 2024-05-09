@@ -41,15 +41,57 @@ float g_scales[] = {0.9f, 0.8f, 0.75f, 0.6f, 0.5f, 0.4f, 0.25f, 0.2f, 0.1f};
 
 Anisotropic::~Anisotropic() {}
 
+void Anisotropic::DrawImage(OH_Drawing_Canvas *canvas, OH_Drawing_Image *image, OH_Drawing_Bitmap *bitmap)
+{
+    OH_Drawing_SamplingOptions *fsampling = OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode::FILTER_MODE_NEAREST,
+        OH_Drawing_MipmapMode::MIPMAP_MODE_LINEAR);
+    int size = sizeof(g_scales) / sizeof(g_scales[0]);
+    OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
+   
+    for (int i = 0; i < size; ++i) {
+        int height = (int)(OH_Drawing_BitmapGetHeight(bitmap) * g_scales[i]);
+        if (i <= size / 2) { // 2cout
+            yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
+        } else {
+            yOff = (size - i) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer) - height;
+        }
+
+        OH_Drawing_Rect *rect = OH_Drawing_RectCreate((float)kSpacer, (float)yOff,
+            (float)OH_Drawing_BitmapGetWidth(bitmap) + (float)kSpacer, (float)height + (float)yOff);
+        OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
+        OH_Drawing_RectDestroy(rect);
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int width = (int)(OH_Drawing_BitmapGetWidth(bitmap) * g_scales[i]);
+        if (i <= size / 2) { // 2被除数
+            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer;              // 2 cout
+            yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
+        } else {
+            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer + OH_Drawing_BitmapGetWidth(bitmap) - width; // 2cout
+            yOff = kSpacer + (size - i - 1) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
+        }
+
+        OH_Drawing_Rect *rect = OH_Drawing_RectCreate((float)xOff, (float)yOff,
+            (float)width + (float)xOff, (float)OH_Drawing_BitmapGetHeight(bitmap) + (float)yOff);
+        OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
+        OH_Drawing_RectDestroy(rect);
+    }
+    OH_Drawing_SamplingOptionsDestroy(fsampling);
+}
+
 void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
+    OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_Canvas *bimap_canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
     OH_Drawing_BitmapBuild(bitmap, kImageSize, kImageSize, &cFormat);
     OH_Drawing_CanvasBind(bimap_canvas, bitmap);
-    OH_Drawing_ImageBuildFromBitmap(image, bitmap);
     OH_Drawing_CanvasClear(bimap_canvas, 0xFFFFFFFF);
-    OH_Drawing_PenSetAntiAlias(pen, true);
-    OH_Drawing_CanvasAttachPen(bimap_canvas, pen);
+    OH_Drawing_Image *image = OH_Drawing_ImageCreate();
+    OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetAntiAlias(brush, true);
+    OH_Drawing_CanvasAttachBrush(bimap_canvas, brush);
     OH_Drawing_CanvasTranslate(bimap_canvas, kImageSize / 2.0f, kImageSize / 2.0f); // 2.0f距离
     for (int i = 0; i < kNumLines; ++i, angle += kAngleStep) {
         float sin = sinf(angle);
@@ -58,43 +100,12 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
             cos * kImageSize / 2, sin * kImageSize / 2); // 2 cout
     }
 
-    OH_Drawing_SamplingOptions *fsampling = OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode::FILTER_MODE_NEAREST,
-        OH_Drawing_MipmapMode::MIPMAP_MODE_LINEAR);
+    OH_Drawing_CanvasDetachBrush(bimap_canvas);
+    OH_Drawing_ImageBuildFromBitmap(image, bitmap);
+    DrawImage(canvas, image, bitmap);
 
-    for (int i = 0; i < sizeof(g_scales); ++i) {
-        int height = (int)(OH_Drawing_BitmapGetHeight(bitmap) * g_scales[i]);
-        if (i <= static_cast<int>(sizeof(g_scales) / sizeof(g_scales[0])) / 2) { // 2cout
-            yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
-        } else {
-            yOff = (sizeof(g_scales) - i) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer) - height;
-        }
-
-        rect =
-            OH_Drawing_RectCreate((float)kSpacer, (float)yOff, (float)OH_Drawing_BitmapGetWidth(bitmap), (float)height);
-        OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
-        OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
-
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-    }
-
-    for (int i = 0; i < sizeof(g_scales); ++i) {
-        int width = (int)(OH_Drawing_BitmapGetWidth(bitmap) * g_scales[i]);
-        if (i <= static_cast<int>(sizeof(g_scales) / sizeof(g_scales[0])) / 2) { // 2被除数
-            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer;              // 2 cout
-            yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
-        } else {
-            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer + OH_Drawing_BitmapGetWidth(bitmap) - width; // 2cout
-            yOff = kSpacer + (sizeof(g_scales) - i - 1) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
-        }
-
-        rect =
-            OH_Drawing_RectCreate((float)kSpacer, (float)yOff, (float)width, (float)OH_Drawing_BitmapGetHeight(bitmap));
-        OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
-        OH_Drawing_CanvasDrawImageRect(canvas, image, rect, fsampling);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-    }
     OH_Drawing_BitmapDestroy(bitmap);
-    OH_Drawing_RectDestroy(rect);
-    OH_Drawing_SamplingOptionsDestroy(fsampling);
+    OH_Drawing_ImageDestroy(image);
+    OH_Drawing_BrushDestroy(brush);
     OH_Drawing_CanvasDestroy(bimap_canvas);
 }
