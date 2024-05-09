@@ -136,7 +136,7 @@ bool SyncFenceTracker::CheckGpuSubhealthEventLimit()
     auto now = std::chrono::system_clock::now();
     std::time_t t = std::chrono::system_clock::to_time_t(now);
     std::tm *tm = std::localtime(&t);
-    if (gpuSubhealthEventNum == 0 || ((tm != nullptr) && tm->tm_yday > gpuSubhealthEventDay)) {
+    if (tm != nullptr && (gpuSubhealthEventNum == 0 || tm->tm_yday > gpuSubhealthEventDay)) {
         gpuSubhealthEventDay = tm->tm_yday;
         gpuSubhealthEventNum = 0;
         HILOG_DEBUG(LOG_CORE, "first event of %{public}" PRId32, gpuSubhealthEventDay);
