@@ -426,7 +426,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 
 bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
 {
-    if (RSBaseRenderUtil::IsForceClient()) {
+    if (RSSystemProperties::IsForceClient()) {
         RS_LOGD("RSUniRenderUtil::IsNeedClient: force client.");
         return true;
     }
