@@ -18,6 +18,11 @@
 
 #include <cstdint>
 #include "common/rs_macros.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "iconsumer_surface.h"
+#include "surface_buffer.h"
+#include "sync_fence.h"
+#endif
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 
@@ -40,6 +45,14 @@ public:
     RSContext(const RSContext&&) = delete;
     RSContext& operator=(const RSContext&) = delete;
     RSContext& operator=(const RSContext&&) = delete;
+
+#ifndef ROSEN_CROSS_PLATFORM
+    struct BufferInfo {
+        const sptr<SurfaceBuffer> buffer;
+        const sptr<IConsumerSurface> consumer;
+        bool useFence = false;
+    };
+#endif
 
     enum PurgeType {
         NONE,
@@ -71,6 +84,13 @@ public:
     {
         return globalRootRenderNode_;
     }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    std::vector<BufferInfo>& GetMutableSkipSyncBuffer()
+    {
+        return skipSyncBuffer_;
+    }
+#endif
 
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
     void UnregisterAnimatingRenderNode(NodeId id);
@@ -150,6 +170,9 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
+#ifndef ROSEN_CROSS_PLATFORM
+    std::vector<BufferInfo> skipSyncBuffer_;
+#endif
 
     friend class RSRenderThread;
     friend class RSMainThread;

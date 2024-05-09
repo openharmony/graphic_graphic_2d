@@ -40,7 +40,7 @@ void RSSurfaceFrameOhosRasterTest::TearDown() {}
  * @tc.name: SetDamageRegion001
  * @tc.desc: test results of SetDamageRegion
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, SetDamageRegion001, TestSize.Level1)
 {
@@ -57,7 +57,7 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetDamageRegion001, TestSize.Level1)
  * @tc.name: GetCanvas001
  * @tc.desc: test results of GetCanvas
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetCanvas001, TestSize.Level1)
 {
@@ -78,7 +78,7 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, GetCanvas001, TestSize.Level1)
  * @tc.name: GetSurface001
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurface001, TestSize.Level1)
 {
@@ -99,7 +99,7 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurface001, TestSize.Level1)
  * @tc.name: GetReleaseFence001
  * @tc.desc: test results of GetReleaseFence
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetReleaseFence001, TestSize.Level1)
 {
@@ -113,7 +113,7 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, GetReleaseFence001, TestSize.Level1)
  * @tc.name: SetReleaseFence001
  * @tc.desc: test results of SetReleaseFence
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, SetReleaseFence001, TestSize.Level1)
 {
@@ -129,7 +129,7 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetReleaseFence001, TestSize.Level1)
  * @tc.name: GetSurfaceTest
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurfaceTest, TestSize.Level1)
 {

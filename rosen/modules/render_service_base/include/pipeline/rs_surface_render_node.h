@@ -969,9 +969,7 @@ public:
 
     bool GetUifirstSupportFlag() override
     {
-        return RSRenderNode::GetUifirstSupportFlag() &&
-            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE ||
-            name_.find("SceneViewer Model") == std::string::npos);
+        return RSRenderNode::GetUifirstSupportFlag();
     }
 
     void UpdateSurfaceCacheContentStaticFlag();
@@ -1063,6 +1061,7 @@ public:
 
 protected:
     void OnSync() override;
+    void OnSkipSync() override;
 
 private:
     void OnResetParent() override;

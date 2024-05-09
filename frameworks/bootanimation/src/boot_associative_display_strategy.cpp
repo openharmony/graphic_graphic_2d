@@ -20,7 +20,7 @@
 
 using namespace OHOS;
 
-void BootAssociativeDisplayStrategy::Display(const int32_t duration, std::vector<BootAnimationConfig>& configs)
+void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootAssociativeDisplayStrategy START");
     if (configs.size() <= 1) {

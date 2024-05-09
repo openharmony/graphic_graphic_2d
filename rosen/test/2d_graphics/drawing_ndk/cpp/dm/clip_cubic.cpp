@@ -41,6 +41,7 @@ void DoDraw(OH_Drawing_Canvas* canvas, const OH_Drawing_Path* path)
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
 
     OH_Drawing_BrushSetAntiAlias(brush, true);
+    OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(0xFF, 0xCC, 0xCC, 0xCC));
     OH_Drawing_CanvasAttachBrush(canvas, brush);
     OH_Drawing_CanvasDrawPath(canvas, path);
@@ -64,21 +65,17 @@ void DrawAndClip(OH_Drawing_Canvas* canvas, const OH_Drawing_Path* path, float d
     OH_Drawing_CanvasSave(canvas);
 
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, H / 4, W, H / 4 + H / 2); // 4,2正方形
-    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_PenSetColor(pen, color_to_565(0xFF8888FF));
     OH_Drawing_BrushSetColor(brush, color_to_565(0xFF8888FF));
-    OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasAttachBrush(canvas, brush);
 
     OH_Drawing_CanvasDrawRect(canvas, rect);
-    OH_Drawing_CanvasDetachPen(canvas);
+    OH_Drawing_CanvasDetachBrush(canvas);
     DoDraw(canvas, path);
 
     OH_Drawing_CanvasTranslate(canvas, dx, dy);
 
     OH_Drawing_CanvasAttachBrush(canvas, brush);
-    OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasDrawRect(canvas, rect);
     OH_Drawing_CanvasClipRect(canvas, rect, OH_Drawing_CanvasClipOp::INTERSECT, false);
     OH_Drawing_CanvasDetachBrush(canvas);
@@ -88,7 +85,6 @@ void DrawAndClip(OH_Drawing_Canvas* canvas, const OH_Drawing_Path* path, float d
     DRAWING_LOGI("ClipCubicGm::GetSaveCount count=%{public}d", fSaveCount);
 
     OH_Drawing_RectDestroy(rect);
-    OH_Drawing_PenDestroy(pen);
     OH_Drawing_BrushDestroy(brush);
 }
 

@@ -786,7 +786,7 @@ void RSBaseRenderUtil::SetNeedClient(bool flag)
 
 bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
 {
-    if (IsForceClient()) {
+    if (RSSystemProperties::IsForceClient()) {
         RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
         return true;
     }
@@ -826,13 +826,6 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
         return true;
     }
     return false;
-}
-
-bool RSBaseRenderUtil::IsForceClient()
-{
-    static bool forceClient =
-        std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0;
-    return forceClient;
 }
 
 BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,

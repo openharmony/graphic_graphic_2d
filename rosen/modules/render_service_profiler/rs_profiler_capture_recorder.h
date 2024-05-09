@@ -16,52 +16,73 @@
 #ifndef RS_PROFILER_CAPTURE_RECORDER_H
 #define RS_PROFILER_CAPTURE_RECORDER_H
 
-#include <cstdio>
-#include <cstdlib>
+#ifdef RS_PROFILER_ENABLED
 
-#include "platform/common/rs_system_properties.h"
-#include "transaction/rs_marshalling_helper.h"
-#include "benchmarks/file_utils.h"
-#include "common/rs_common_def.h"
-#include "draw/canvas.h"
-#include "drawing/engine_adapter/skia_adapter/skia_canvas.h"
-#include "pipeline/rs_recording_canvas.h"
+#include "include/core/SkRefCnt.h"
 
-#include "include/core/SkPictureRecorder.h"
-#include "include/core/SkPicture.h"
-#include "include/core/SkSerialProcs.h"
-#include "include/utils/SkNWayCanvas.h"
+class SkDocument;
+class SkPicture;
+class SkPictureRecorder;
+class SkFILEWStream;
+struct SkSharingSerialContext;
 
-#include "rs_profiler_network.h"
-#include "rs_profiler_packet.h"
-#include "rs_profiler_utils.h"
+namespace OHOS::Rosen::Drawing {
+class Canvas;
+} // namespace OHOS::Rosen::Drawing
 
 namespace OHOS::Rosen {
 
+class ExtendRecordingCanvas;
+
 class RSCaptureRecorder final {
 public:
-    RSCaptureRecorder() = default;
-    ~RSCaptureRecorder() = default;
-    
+    static RSCaptureRecorder& GetInstance()
+    {
+        static RSCaptureRecorder instance;
+        return instance;
+    }
+
     Drawing::Canvas* TryInstantCapture(float width, float height);
-    void EndInstantCapture() const;
-    
+    void EndInstantCapture();
+
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
     static std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
+
 private:
+    RSCaptureRecorder();
+    ~RSCaptureRecorder();
+
+    void InitMSKP();
     ExtendRecordingCanvas* TryInstantCaptureDrawing(float width, float height);
-    void EndInstantCaptureDrawing() const;
+    void EndInstantCaptureDrawing();
     Drawing::Canvas* TryInstantCaptureSKP(float width, float height);
-    void EndInstantCaptureSKP() const;
+    void EndInstantCaptureSKP();
+    Drawing::Canvas* TryCaptureMSKP(float width, float height);
+    void EndCaptureMSKP();
 
     // used for .rdc capturing
     std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
     // used for .skp capturing
     std::unique_ptr<SkPictureRecorder> skRecorder_;
     std::shared_ptr<Drawing::Canvas> recordingSkpCanvas_;
+    // to make sure the capture start/finish happen for the same frame / thread
+    bool recordingTriggered_ = false;
+
+    sk_sp<SkPicture> picture_;
+
+    std::unique_ptr<SkSharingSerialContext> serialContext_;
+    std::unique_ptr<SkFILEWStream> openMultiPicStream_;
+
+    sk_sp<SkDocument> multiPic_;
+    int32_t mskpMaxLocal_ = 0;
+    int32_t mskpIdxCurrent_ = -1;
+    int32_t mskpIdxNext_ = -1;
+    bool isPageActive_ = false;
 };
 
 } // namespace OHOS::Rosen
+
+#endif // RS_PROFILER_ENABLED
 
 #endif // RS_PROFILER_CAPTURE_RECORDER_H

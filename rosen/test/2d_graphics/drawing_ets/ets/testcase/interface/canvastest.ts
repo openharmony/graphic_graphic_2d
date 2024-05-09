@@ -325,19 +325,9 @@ export class CanvasDrawImage extends TestBase {
     super();
     this.styleType_ = styleType;
   }
-  public async OnTestPerformance(canvas: drawing.Canvas) {
+  public OnTestPerformance(canvas: drawing.Canvas) {
     let rand: OHRandom = new OHRandom();
-    const colors: ArrayBuffer = new ArrayBuffer(200 * 200 * 4);
-    let opts: image.InitializationOptions = {
-      alphaType: image.AlphaType.OPAQUE,
-      pixelFormat: image.PixelMapFormat.BGRA_8888,
-      size: { width: 200, height: 200 }
-    }
-
-    let pixelMap: image.PixelMap = await image.createPixelMap(colors, opts);
-    let canvasBitmap: drawing.Canvas = new drawing.Canvas(pixelMap);
-    const backgroundColor: common2D.Color = { alpha: 0xff, red: 0, green: 0xff, blue: 0 };
-    canvasBitmap.drawColor(backgroundColor);
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg")
     for (let i = 0; i < this.testCount_; i++) {
       let x: number = rand.nextULessThan(this.width_);
       let y: number = rand.nextULessThan(this.height_);
@@ -352,7 +342,7 @@ export class CanvasDrawImage extends TestBase {
       let pen = new drawing.Pen();
       this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3)
       canvas.attachPen(pen)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg")
       canvas.drawImage(pixelMap, 0, 0);
       canvas.detachPen()
     }
@@ -364,7 +354,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle(brush, TestFunctionStyleType.DRAW_STYLE_TYPE_2)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_2.jpg")
       canvas.drawImage(pixelMap, 100, 150);
       canvas.detachPen()
       canvas.detachBrush()
@@ -377,7 +367,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg")
       canvas.drawImage(pixelMap, 200, 233.97);
       canvas.detachPen()
       canvas.detachBrush()
@@ -390,7 +380,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_4)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_4.jpg")
       canvas.drawImage(pixelMap, 140, 17.8);
       canvas.detachPen()
       canvas.detachBrush()
@@ -572,21 +562,14 @@ export class CanvasDrawPixelMapMesh extends TestBase {
     super();
     this.styleType_ = styleType;
   }
-  public async OnTestPerformance(canvas: drawing.Canvas) {
-    const colorBuffer: ArrayBuffer = new ArrayBuffer(500 * 500 * 4);
-    let opts: image.InitializationOptions = {
-      alphaType: image.AlphaType.OPAQUE,
-      editable: true,
-      pixelFormat: image.PixelMapFormat.BGRA_8888,
-      size: { width: 500, height: 500 }
-    }
-    let pixelMap: image.PixelMap = await image.createPixelMap(colorBuffer, opts);
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg")
     const brush = new drawing.Brush();
     canvas.attachBrush(brush);
     for (let i = 0; i < this.testCount_; i++) {
       let verts: Array<number> = [100, 100, 200, 100, 150, 200, 200, 200];
-      // let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
-      // canvas.drawPixelMapMesh(pixelMap, 1, 1, verts, 0, null, 0);
+      let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
+      canvas.drawPixelMapMesh(pixelMap, 1, 1, verts, 0, null, 0);
     }
     canvas.detachBrush();
   }

@@ -77,6 +77,12 @@
 
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
+
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#include "rs_profiler.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -1982,6 +1988,10 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckMergeDebugRectforRefreshRate();
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
+
+#ifdef RS_PROFILER_ENABLED
+    RS_PROFILER_SET_DIRTY_REGION(accumulatedDirtyRegion);
+#endif
 }
 
 void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
@@ -4298,7 +4308,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
 
 #ifdef RS_PROFILER_ENABLED
     RS_LOGD("CalcDirtyRegion RSSystemProperties::GetFullDirtyScreenEnabled()");
-    std::pair<uint32_t, uint32_t> resolution = captureRecorder_.GetDirtyRect(screenInfo_.width, screenInfo_.height);
+    auto resolution = RSCaptureRecorder::GetInstance().GetDirtyRect(screenInfo_.width, screenInfo_.height);
     displayDirtyManager->MergeDirtyRect(RectI { 0, 0, resolution.first, resolution.second });
 #endif
 }
@@ -6008,7 +6018,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
 {
     if (!RSSystemProperties::GetRecordingEnabled()) {
 #ifdef RS_PROFILER_ENABLED
-        if (auto canvas = captureRecorder_.TryInstantCapture(width, height)) {
+        if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(width, height)) {
             canvas_->AddCanvas(canvas);
         }
 #endif
@@ -6028,7 +6038,7 @@ void RSUniRenderVisitor::endCapture() const
 {
     if (!RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetRecordingEnabled()) {
 #ifdef RS_PROFILER_ENABLED
-        captureRecorder_.EndInstantCapture();
+        RSCaptureRecorder::GetInstance().EndInstantCapture();
 #endif
         return;
     }

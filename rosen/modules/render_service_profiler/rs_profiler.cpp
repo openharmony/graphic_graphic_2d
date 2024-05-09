@@ -19,6 +19,7 @@
 #include <list>
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
@@ -28,6 +29,7 @@
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
 
+#include "params/rs_display_render_params.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -90,28 +92,45 @@ NodeId GetNodeId(const std::shared_ptr<RSRenderNode>& node)
     To visualize the damage region (as it's set for KHR_partial_update), you can set the following variable:
     'hdc shell param set rosen.dirtyregiondebug.enabled 6'
 */
-double RSProfiler::GetDirtyRegionRelative(RSContext& context)
+void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 {
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(context);
-    if (!displayNode) {
-        return -1;
+    if (!IsRecording()) {
+        return;
     }
 
-    const RectI displayResolution = displayNode->GetDirtyManager()->GetSurfaceRect();
-    const double displayWidth = displayResolution.GetWidth();
-    const double displayHeight = displayResolution.GetHeight();
-    const uint32_t bufferAge = 3;
-    // not to update the RSRenderFrame/DirtyManager and just calculate dirty region
-    const bool isAlignedDirtyRegion = false;
-    RSUniRenderUtil::MergeDirtyHistory(displayNode, bufferAge, isAlignedDirtyRegion);
-    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
+    const double maxPercentValue = 100.0;
+    g_dirtyRegionPercentage = maxPercentValue;
 
-    double accumulatedArea = 0.0;
+    if (!g_renderServiceContext) {
+        return;
+    }
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*g_renderServiceContext);
+    if (!displayNode) {
+        return;
+    }
+    auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
+    if (!params) {
+        return;
+    }
 
-    // PLANNING: temporary remove dirty region dump, add back later
+    auto screenInfo = params->GetScreenInfo();
+    const uint64_t displayWidth = screenInfo.width;
+    const uint64_t displayHeight = screenInfo.height;
+    const uint64_t displayArea = displayWidth * displayHeight;
 
-    const double dirtyRegionPercentage = accumulatedArea / (displayWidth * displayHeight);
-    return dirtyRegionPercentage;
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    uint64_t dirtyRegionArea = 0;
+    for (const auto& rect : rects) {
+        dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth()) * rect.GetHeight();
+    }
+
+    if (displayArea > 0) {
+        g_dirtyRegionPercentage =
+            maxPercentValue * static_cast<double>(dirtyRegionArea) / static_cast<double>(displayArea);
+    }
+    if (g_dirtyRegionPercentage > maxPercentValue) {
+        g_dirtyRegionPercentage = maxPercentValue;
+    }
 }
 
 void RSProfiler::Init(RSRenderService* renderService)
@@ -288,10 +307,6 @@ void RSProfiler::OnRenderBegin()
 {
     if (!IsEnabled()) {
         return;
-    }
-    if (IsRecording()) {
-        constexpr double ratioToPercent = 100.0;
-        g_dirtyRegionPercentage = GetDirtyRegionRelative(*g_renderServiceContext) * ratioToPercent;
     }
 }
 
@@ -586,6 +601,15 @@ void RSProfiler::ProcessSendingRdc()
     g_rdcSent = true;
 }
 
+static uint32_t GetImagesAdded()
+{
+    static std::atomic<uint32_t> lastCount = 0;
+    const size_t count = ImageCache::Size();
+    const uint32_t added = count - lastCount;
+    lastCount = count;
+    return added;
+}
+
 void RSProfiler::RecordUpdate()
 {
     if (!IsRecording() || (g_recordStartTime <= 0.0)) {
@@ -602,7 +626,7 @@ void RSProfiler::RecordUpdate()
         captureData.SetTime(timeSinceRecordStart);
         captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_LEN, frameLengthNanosecs);
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_COUNT, GetCommandCount());
-        captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImageCount());
+        captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImagesAdded());
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
 
         std::vector<char> out;
@@ -1015,7 +1039,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 {
     g_recordStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     g_recordFile.Create(RSFile::GetDefaultPath());
     g_recordFile.AddLayer(); // add 0 layer
@@ -1071,23 +1095,14 @@ void RSProfiler::RecordStop(const ArgList& args)
     stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
     stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
 
-    auto& imageMap = GetImageCache();
-
-    const uint32_t imageMapCount = imageMap.size();
-    stream.write(reinterpret_cast<const char*>(&imageMapCount), sizeof(imageMapCount));
-    for (auto item : imageMap) {
-        stream.write(reinterpret_cast<const char*>(&item.first), sizeof(item.first));
-        stream.write(reinterpret_cast<const char*>(&item.second.skipBytes), sizeof(item.second.skipBytes));
-        stream.write(reinterpret_cast<const char*>(&item.second.imageSize), sizeof(item.second.imageSize));
-        stream.write(reinterpret_cast<const char*>(item.second.image.get()), item.second.imageSize);
-    }
+    ImageCache::Serialize(stream);
 
     Network::SendBinary(stream.str().data(), stream.str().size());
 
     g_recordFile.Close();
     g_recordStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     Respond("Network: Record stop (" + std::to_string(stream.str().size()) + ")");
 }
@@ -1097,7 +1112,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     g_playbackFile.Open(RSFile::GetDefaultPath());
     if (!g_playbackFile.IsOpen()) {

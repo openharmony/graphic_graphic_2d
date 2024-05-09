@@ -19,7 +19,7 @@
 #include <memory>
 #include <thread>
 
-#include "rs_profiler.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
@@ -82,24 +82,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
     file.AddHeaderFirstFrame(dataFirstFrame);
 
-    ImageCache& cache = RSProfiler::GetImageCache();
-    RSProfiler::ClearImageCache();
-
-    uint32_t imageCount = 0u;
-    stream.read(reinterpret_cast<char*>(&imageCount), sizeof(imageCount));
-    for (uint32_t i = 0; i < imageCount; i++) {
-        uint64_t key = 0u;
-        stream.read(reinterpret_cast<char*>(&key), sizeof(key));
-
-        ImageCacheRecord record;
-        stream.read(reinterpret_cast<char*>(&record.skipBytes), sizeof(record.skipBytes));
-        stream.read(reinterpret_cast<char*>(&record.imageSize), sizeof(record.imageSize));
-
-        std::shared_ptr<uint8_t[]> image = std::make_unique<uint8_t[]>(record.imageSize);
-        stream.read(reinterpret_cast<char*>(image.get()), record.imageSize);
-        record.image = image;
-        cache.insert({ key, record });
-    }
+    ImageCache::Deserialize(stream);
 }
 
 static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
@@ -216,6 +199,16 @@ void Network::SendDclPath(const std::string& path)
     if (!path.empty()) {
         std::string out;
         out += static_cast<char>(PackageID::RS_PROFILER_DCL_BINARY);
+        out += path;
+        SendBinary(out.data(), out.size());
+    }
+}
+
+void Network::SendMskpPath(const std::string& path)
+{
+    if (!path.empty()) {
+        std::string out;
+        out += static_cast<char>(PackageID::RS_PROFILER_MSKP_FILEPATH);
         out += path;
         SendBinary(out.data(), out.size());
     }

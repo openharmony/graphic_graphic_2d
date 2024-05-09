@@ -214,7 +214,7 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
     auto position = particle->GetPosition();
     auto fieldForce = Vector2f(0.f, 0.f);
     if (particleNoiseFields != nullptr) {
-        fieldForce = particleNoiseFields->ApplyAllFields(position);
+        fieldForce = particleNoiseFields->ApplyAllFields(position, deltaTime);
     }
     auto accelerationValue = particle->GetAccelerationValue();
     auto accelerationAngle = particle->GetAccelerationAngle();
@@ -229,7 +229,7 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
         velocity.y_ += acceleration.y_ * deltaTime;
         particle->SetVelocity(velocity);
     }
-    velocity += fieldForce * 10.f; // 10 is tenfold fieldForce applied to the velocity
+    velocity += fieldForce;
     if (!(ROSEN_EQ(velocity.x_, 0.f) && ROSEN_EQ(velocity.y_, 0.f))) {
         position.x_ += velocity.x_ * deltaTime;
         position.y_ += velocity.y_ * deltaTime;

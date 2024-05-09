@@ -407,5 +407,10 @@ bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

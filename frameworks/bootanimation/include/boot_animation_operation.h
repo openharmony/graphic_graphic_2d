@@ -40,8 +40,7 @@ public:
 
     virtual ~BootAnimationOperation();
 
-    void Init(const BootAnimationConfig& config,
-        const int32_t width, const int32_t height, const int32_t duration);
+    void Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration);
 
     void SetSoundEnable(bool isEnabled);
 
@@ -51,7 +50,7 @@ private:
     void StartEventHandler(const BootAnimationConfig& config);
     bool IsBootVideoEnabled(const BootAnimationConfig& config);
     bool InitRsDisplayNode();
-    bool InitRsSurfaceNode(const int32_t degree);
+    bool InitRsSurfaceNode(int32_t degree);
     bool InitRsSurface();
     void PlayVideo(const std::string& path);
     void PlayPicture(const std::string& path);

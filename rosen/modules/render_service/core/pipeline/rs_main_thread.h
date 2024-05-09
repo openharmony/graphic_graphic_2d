@@ -186,7 +186,8 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
-    void SetDirtyFlag();
+    void SetDirtyFlag(bool isDirty = true);
+    bool GetDirtyFlag();
     void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
@@ -498,7 +499,7 @@ private:
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
     bool qosPidCal_ = false;
-    bool isDirty_ = false;
+    std::atomic<bool> isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
     std::atomic<int32_t> focusAppPid_ = -1;

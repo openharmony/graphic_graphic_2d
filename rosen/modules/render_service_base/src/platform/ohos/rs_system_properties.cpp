@@ -907,5 +907,13 @@ bool RSSystemProperties::GetHDRImageEnable()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
+
+bool RSSystemProperties::IsForceClient()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.client_composition.enabled", "0");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -41,6 +41,7 @@ public:
 
     static void SendRdcPath(const std::string& path);
     static void SendDclPath(const std::string& path);
+    static void SendMskpPath(const std::string& path);
     static void SendSkp(const void* data, size_t size);
     static void SendTelemetry(double time);
     static void SendRSTreeDumpJSON(const std::string& jsonstr);

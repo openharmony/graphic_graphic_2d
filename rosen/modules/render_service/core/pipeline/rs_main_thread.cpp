@@ -1698,7 +1698,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
-    isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
     idleTimerExpiredFlag_ = false;
 }
@@ -2451,8 +2450,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
-    bool isDisplaySyncEnabled =
-        HgmCore::Instance().GetCurrentRefreshRateMode() == HGM_REFRESHRATE_MODE_AUTO ? true : false;
+    bool isDisplaySyncEnabled = true;
     int64_t period = 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
@@ -2982,9 +2980,14 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
     effectiveTransactionDataIndexMap_[remotePid].first = 0;
 }
 
-void RSMainThread::SetDirtyFlag()
+void RSMainThread::SetDirtyFlag(bool isDirty)
 {
-    isDirty_ = true;
+    isDirty_ = isDirty;
+}
+
+bool RSMainThread::GetDirtyFlag()
+{
+    return isDirty_;
 }
 
 void RSMainThread::SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync)

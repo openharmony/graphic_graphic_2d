@@ -214,12 +214,8 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void**>(&jsCanvas));
-    if (jsCanvas == nullptr) {
+    if (!jsCanvas || !jsCanvas->GetCanvas()) {
         ROSEN_LOGE("JsTextLine::OnPaint jsCanvas is nullptr");
-        return NapiGetUndefined(env);
-    }
-    if (jsCanvas->GetCanvas() == nullptr) {
-        ROSEN_LOGE("JsTextLine::OnPaint canvas is nullptr");
         return NapiGetUndefined(env);
     }
     double x = 0.0;
@@ -230,11 +226,8 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
         Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
         recordingCanvas->SetIsCustomTypeface(true);
-        recordingCanvas->SetIsCustomTextType(true);
-        textLine_->Paint(recordingCanvas, x, y);
-    } else {
-        textLine_->Paint(jsCanvas->GetCanvas(), x, y);
     }
+    textLine_->Paint(jsCanvas->GetCanvas(), x, y);
 
     return NapiGetUndefined(env);
 }
