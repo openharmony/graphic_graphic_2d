@@ -75,7 +75,7 @@ protected:
     void CreateBitmapCanvas();
     void CreateGpuCanvas();
     void BitmapCanvasToFile(napi_env env);
-    void GpuCanvasToFile(napi_env env);
+    void GpuCanvasToFile(napi_env env, bool saveFile = true);
     void Pixmap2File(napi_env env, napi_value pixelMap);
 
     std::chrono::high_resolution_clock::time_point LogStart();

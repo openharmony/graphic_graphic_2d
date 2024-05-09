@@ -235,8 +235,10 @@ struct Index {
     try {
       let resourceMgr: resourceManager.ResourceManager = getContext(this).resourceManager
       let imageResources: string[] = []
-      imageResources.push("test.jpg")
-
+      imageResources.push("test_1.jpg")
+      imageResources.push("test_2.jpg")
+      imageResources.push("test_3.jpg")
+      imageResources.push("test_4.jpg")
       for (let i = 0; i < imageResources.length; i++) {
         let imagePath = imageResources[i]
         let fileData = await resourceMgr.getRawFileContent(imagePath)
