@@ -23,8 +23,10 @@
 #include <system_ability_definition.h>
 #include "util.h"
 
-using namespace OHOS;
-const std::string BOOT_CUSTOM_CONFIG_PATH_SUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
+namespace OHOS {
+namespace {
+    const std::string BOOT_CUSTOM_CONFIG_PATH_SUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
+}
 
 void BootAnimationController::Start()
 {
@@ -96,3 +98,4 @@ BootStrategyType BootAnimationController::GetBootType() const
 
     return BootStrategyType::ASSOCIATIVE;
 }
+} // namespace OHOS

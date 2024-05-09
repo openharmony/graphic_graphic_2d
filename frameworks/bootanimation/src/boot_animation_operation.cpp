@@ -38,8 +38,7 @@ BootAnimationOperation::~BootAnimationOperation()
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
 }
 
-void BootAnimationOperation::Init(const BootAnimationConfig& config, const int32_t width,
-    const int32_t height, const int32_t duration)
+void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration)
 {
     LOGI("Init enter, width: %{public}d, height: %{public}d, screenId : " BPUBU64 "", width, height, config.screenId);
     currentScreenId_ = config.screenId;
@@ -114,7 +113,7 @@ bool BootAnimationOperation::InitRsDisplayNode()
     return true;
 }
 
-bool BootAnimationOperation::InitRsSurfaceNode(const int32_t degree)
+bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
 {
     LOGI("InitRsSurfaceNode start");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;

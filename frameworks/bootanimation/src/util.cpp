@@ -48,8 +48,8 @@ bool IsFileExisted(const std::string& filePath)
     return true;
 }
 
-bool ParseBootConfig(const std::string& path, int32_t& duration,
-    bool& isCompatible, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs)
+bool ParseBootConfig(const std::string& path, int32_t& duration, bool& isCompatible, bool& isMultiDisplay,
+    std::vector<BootAnimationConfig>& configs)
 {
     char newpath[PATH_MAX + 1] = { 0x00 };
     if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == nullptr) {
@@ -199,9 +199,8 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& imgVec, FrameRa
 
     unz_global_info globalInfo;
     if (unzGetGlobalInfo(zipFile, &globalInfo) != UNZ_OK) {
-        unzClose(zipFile);
         LOGE("Get ZipGlobalInfo fail");
-        return false;
+        return CloseZipFile(zipFile, false);
     }
 
     LOGD("read zip file num: %{public}ld", globalInfo.number_entry);
@@ -209,13 +208,15 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& imgVec, FrameRa
         unz_file_info fileInfo;
         char filename[MAX_FILE_NAME] = {0};
         if (unzGetCurrentFileInfo(zipFile, &fileInfo, filename, MAX_FILE_NAME, nullptr, 0, nullptr, 0) != UNZ_OK) {
-            unzClose(zipFile);
-            return false;
+            return CloseZipFile(zipFile, false);
         }
-        if (filename[strlen(filename) - 1] != '/') {
+        size_t length = strlen(filename);
+        if (length > MAX_FILE_NAME || length == 0) {
+            return CloseZipFile(zipFile, false);
+        }
+        if (filename[length - 1] != '/') {
             if (unzOpenCurrentFile(zipFile) != UNZ_OK) {
-                unzClose(zipFile);
-                return false;
+                return CloseZipFile(zipFile, false);
             }
             std::string name = std::string(filename);
             size_t npos = name.find_last_of("//");
@@ -225,19 +226,23 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& imgVec, FrameRa
             if (!ReadImageFile(zipFile, name, imgVec, frameConfig, fileInfo.uncompressed_size)) {
                 LOGE("read zip deal single file failed");
                 unzCloseCurrentFile(zipFile);
-                unzClose(zipFile);
-                return false;
+                return CloseZipFile(zipFile, false);
             }
             unzCloseCurrentFile(zipFile);
         }
         if (i < (globalInfo.number_entry - 1)) {
             if (unzGoToNextFile(zipFile) != UNZ_OK) {
-                unzClose(zipFile);
-                return false;
+                return CloseZipFile(zipFile, false);
             }
         }
     }
-    return true;
+    return CloseZipFile(zipFile, true);
+}
+
+bool CloseZipFile(const unzFile zipFile, bool ret)
+{
+    unzClose(zipFile);
+    return ret;
 }
 
 void SortZipFile(ImageStructVec& imgVec)
@@ -251,8 +256,8 @@ void SortZipFile(ImageStructVec& imgVec)
         -> bool {return image1->fileName < image2->fileName;});
 }
 
-bool ReadImageFile(const unzFile zipFile, const std::string& fileName,
-    ImageStructVec& imgVec, FrameRateConfig& frameConfig, unsigned long fileSize)
+bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStructVec& imgVec,
+    FrameRateConfig& frameConfig, unsigned long fileSize)
 {
     if (zipFile == nullptr) {
         LOGE("ReadImageFile failed, zip is null");
@@ -301,7 +306,7 @@ bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& fr
         return false;
     }
     cJSON* frameRate = cJSON_GetObjectItem(overallData, "FrameRate");
-    if (frameRate != nullptr) {
+    if (frameRate != nullptr && cJSON_IsNumber(frameRate)) {
         frameConfig.frameRate = frameRate->valueint;
         LOGI("freq: %{public}d", frameConfig.frameRate);
     }
@@ -309,8 +314,8 @@ bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& fr
     return true;
 }
 
-bool CheckImageData(const std::string& fileName,
-    std::shared_ptr<ImageStruct> imageStruct, int32_t bufferLen, ImageStructVec& imgVec)
+bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> imageStruct,
+    int32_t bufferLen, ImageStructVec& imgVec)
 {
     if (imageStruct->memPtr.memBuffer == nullptr) {
         LOGE("json file buffer is null");
