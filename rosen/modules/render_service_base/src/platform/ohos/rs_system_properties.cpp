@@ -163,7 +163,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
-    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "0") != "0";
+    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
     return isNeedScreenRCD;
 }
 

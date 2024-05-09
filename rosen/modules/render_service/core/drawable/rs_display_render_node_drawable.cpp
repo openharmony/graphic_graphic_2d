@@ -133,9 +133,9 @@ private:
 };
 
 void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    ScreenInfo& screenInfo_)
+    ScreenInfo& screenInfo)
 {
-    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
@@ -292,7 +292,7 @@ static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool cl
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode,
     RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
 {
-    if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() ||
+    if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() || params == nullptr ||
         (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode())) {
         return false;
     }
@@ -327,7 +327,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
         RS_LOGW("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessDisplaySurface(*displayNode);
-    // planning: commit RCD layers
+    // commit RCD layers
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    auto screenInfo = params->GetScreenInfo();
+    DoScreenRcdTask(processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
 }
@@ -709,7 +712,7 @@ void RSDisplayRenderNodeDrawable::ResetRotateIfNeed(RSDisplayRenderNode& mirrore
         mirroredProcessor.GetScreenTransformMatrix().Invert(invertMatrix)) {
         // If both canvas and skImage have rotated, we need to reset the canvas
         curCanvas_->ConcatMatrix(invertMatrix);
-        
+
         // If both canvas and clipRegion have rotated, we need to reset the clipRegion
         Drawing::Path path;
         if (clipRegion.GetBoundaryPath(&path)) {

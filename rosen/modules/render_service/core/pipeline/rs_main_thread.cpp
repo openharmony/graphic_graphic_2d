@@ -55,6 +55,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -198,6 +199,25 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
     RS_LOGD("RSMainThread::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
 #endif
+}
+
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    ScreenInfo& screenInfo)
+{
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
+        return;
+    }
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
+            [&processor, &rcdInfo]() {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
+            }
+        );
+    }
 }
 std::string g_dumpStr = "";
 std::mutex g_dumpMutex;
@@ -608,7 +628,7 @@ void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
     // while node's parent is LEASH_WINDOW_NODE, parent need SetNeedDrawFocusChange
     parentNode->SetNeedDrawFocusChange(true);
 }
- 
+
 void RSMainThread::Start()
 {
     if (runner_) {
@@ -1725,6 +1745,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             processor->CreateLayer(*surfaceNode, *params);
         }
     }
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    DoScreenRcdTask(processor, rcdInfo, screenInfo);
     if (waitForRT) {
         RSUniRenderThread::Instance().PostSyncTask([processor]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
@@ -1962,7 +1984,7 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
     if (!surfaceNode) {
         return RSVisibleLevel::RS_INVISIBLE;
     }
-    
+
     if (!isUniRender_) {
         if (displayNode) {
             surfaceNode->SetDstRect(displayNode->GetSurfaceDstRect(surfaceNode->GetId()));
