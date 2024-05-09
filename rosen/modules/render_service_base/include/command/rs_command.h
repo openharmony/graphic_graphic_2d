@@ -78,11 +78,13 @@ public:
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
-
 #ifdef RS_PROFILER_ENABLED
+protected:
+    using PatchFunction = NodeId (*)(NodeId);
+
 private:
     friend class RSProfiler;
-    virtual void Patch() {}
+    virtual void Patch(PatchFunction function) {};
 #endif
 };
 

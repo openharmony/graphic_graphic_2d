@@ -33,7 +33,7 @@ namespace OHOS::Rosen {
 bool Network::isRunning_ = false;
 
 std::mutex Network::incomingMutex_ {};
-std::vector<std::string> Network::incoming_ {};
+std::queue<std::vector<std::string>> Network::incoming_ {};
 
 std::mutex Network::outgoingMutex_ {};
 std::queue<std::vector<char>> Network::outgoing_ {};
@@ -312,23 +312,24 @@ void Network::SendMessage(const std::string& message)
 
 void Network::PushCommand(const std::vector<std::string>& args)
 {
-    const std::lock_guard<std::mutex> guard(incomingMutex_);
-    incoming_ = args;
+    if (!args.empty()) {
+        const std::lock_guard<std::mutex> guard(incomingMutex_);
+        incoming_.emplace(args);
+    }
 }
 
-void Network::PopCommand(std::string& command, std::vector<std::string>& args)
+bool Network::PopCommand(std::vector<std::string>& args)
 {
-    command.clear();
     args.clear();
 
-    const std::lock_guard<std::mutex> guard(incomingMutex_);
+    incomingMutex_.lock();
     if (!incoming_.empty()) {
-        command = incoming_[0];
-        if (incoming_.size() > 1) {
-            args = std::vector<std::string>(incoming_.begin() + 1, incoming_.end());
-        }
-        incoming_.clear();
+        args.swap(incoming_.front());
+        incoming_.pop();
     }
+    incomingMutex_.unlock();
+
+    return !args.empty();
 }
 
 void Network::ProcessCommand(const char* data, size_t size)
@@ -348,14 +349,13 @@ void Network::ProcessOutgoing(Socket& socket)
 
     bool nothingToSend = false;
     while (!nothingToSend) {
-        {
-            const std::lock_guard<std::mutex> guard(outgoingMutex_);
-            nothingToSend = outgoing_.empty();
-            if (!nothingToSend) {
-                data.swap(outgoing_.front());
-                outgoing_.pop();
-            }
+        outgoingMutex_.lock();
+        nothingToSend = outgoing_.empty();
+        if (!nothingToSend) {
+            data.swap(outgoing_.front());
+            outgoing_.pop();
         }
+        outgoingMutex_.unlock();
 
         if (!nothingToSend) {
             socket.SendWhenReady(data.data(), data.size());

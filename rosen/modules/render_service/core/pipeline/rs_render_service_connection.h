@@ -50,10 +50,6 @@ public:
         return token_;
     }
 
-#ifdef RS_PROFILER_ENABLED
-    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-#endif
-
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;

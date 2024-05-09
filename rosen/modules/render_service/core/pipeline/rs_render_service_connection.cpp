@@ -22,7 +22,6 @@
 #include "luminance/rs_luminance_control.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
-#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
@@ -1351,15 +1350,6 @@ void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreen
     }
     return;
 }
-
-#ifdef RS_PROFILER_ENABLED
-int RSRenderServiceConnection::OnRemoteRequest(
-    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
-{
-    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
-    return RSRenderServiceConnectionStub::OnRemoteRequest(code, data, reply, option);
-}
-#endif
 
 void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {

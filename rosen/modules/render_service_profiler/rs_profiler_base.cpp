@@ -24,7 +24,9 @@
 
 #include "message_parcel.h"
 #include "rs_profiler.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_network.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -44,7 +46,26 @@ static Mode g_mode;
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
-static std::atomic<uint32_t> g_commandCount = 0;
+static std::atomic<uint32_t> g_commandCount = 0;        // UNMARSHALLING RSCOMMAND COUNT
+static std::atomic<uint32_t> g_commandExecuteCount = 0; // EXECUTE RSCOMMAND COUNT
+constexpr uint32_t COMMAND_PARSE_LIST_COUNT = 1024;
+constexpr uint32_t COMMAND_PARSE_LIST_SIZE = COMMAND_PARSE_LIST_COUNT * 2 + 5;
+
+#pragma pack(push, 1)
+struct PacketParsedCommandList {
+    double packetTime;
+    uint32_t packetSize;
+    uint16_t cmdCount;
+    uint32_t cmdCode[COMMAND_PARSE_LIST_SIZE];
+};
+#pragma pack(pop)
+
+static thread_local PacketParsedCommandList g_commandParseBuffer;
+constexpr uint32_t COMMAND_LOOP_SIZE = 32;
+static PacketParsedCommandList g_commandLoop[COMMAND_LOOP_SIZE];
+static std::atomic<uint32_t> g_commandLoopIndexStart = 0;
+static std::atomic<uint32_t> g_commandLoopIndexEnd = 0;
+
 static uint64_t g_pauseAfterTime = 0;
 static uint64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
@@ -66,6 +87,13 @@ uint32_t RSProfiler::GetCommandCount()
 {
     const uint32_t count = g_commandCount;
     g_commandCount = 0;
+    return count;
+}
+
+uint32_t RSProfiler::GetCommandExecuteCount()
+{
+    const uint32_t count = g_commandExecuteCount;
+    g_commandExecuteCount = 0;
     return count;
 }
 
@@ -94,29 +122,6 @@ std::shared_ptr<MessageParcel> RSProfiler::CopyParcel(const MessageParcel& parce
     }
 
     return std::make_shared<MessageParcel>();
-}
-
-NodeId RSProfiler::ReadNodeId(Parcel& parcel)
-{
-    return PatchPlainNodeId(parcel, static_cast<NodeId>(parcel.ReadUint64()));
-}
-
-pid_t RSProfiler::ReadPid(Parcel& parcel)
-{
-    return PatchPlainPid(parcel, static_cast<pid_t>(parcel.ReadUint32()));
-}
-
-void RSProfiler::PatchCommand(const Parcel& parcel, RSCommand* command)
-{
-    if (!IsEnabled()) {
-        return;
-    }
-
-    g_commandCount++;
-
-    if (command && IsParcelMock(parcel)) {
-        command->Patch();
-    }
 }
 
 NodeId RSProfiler::PatchPlainNodeId(const Parcel& parcel, NodeId id)
@@ -203,6 +208,16 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
     if (!IsEnabled()) {
         return time;
     }
+
+    if (g_mode == Mode::WRITE) {
+        g_commandParseBuffer.packetTime = Utils::ToSeconds(time);
+        g_commandParseBuffer.packetSize = parcel.GetDataSize();
+        int index = g_commandLoopIndexEnd++;
+        index %= COMMAND_LOOP_SIZE;
+        g_commandLoop[index] = g_commandParseBuffer;
+        g_commandParseBuffer.cmdCount = 0;
+    }
+
     if (g_mode != Mode::READ) {
         return time;
     }
@@ -242,7 +257,7 @@ void RSProfiler::TimePauseClear()
     g_pauseAfterTime = 0;
 }
 
-std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(RSContext& context)
+std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext& context)
 {
     const std::shared_ptr<RSBaseRenderNode>& root = context.GetGlobalRootRenderNode();
     // without these checks device might get stuck on startup
@@ -253,7 +268,7 @@ std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(RSContext& conte
     return RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(root->GetSortedChildren()->front());
 }
 
-Vector4f RSProfiler::GetScreenRect(RSContext& context)
+Vector4f RSProfiler::GetScreenRect(const RSContext& context)
 {
     std::shared_ptr<RSDisplayRenderNode> node = GetDisplayNode(context);
     if (!node) {
@@ -264,8 +279,10 @@ Vector4f RSProfiler::GetScreenRect(RSContext& context)
     return { rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() };
 }
 
-void RSProfiler::FilterForPlayback(RSRenderNodeMap& map, pid_t pid)
+void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
 {
+    auto& map = context.GetMutableNodeMap();
+
     auto canBeRemoved = [](NodeId node, pid_t pid) -> bool {
         return (ExtractPid(node) == pid) && (Utils::ExtractNodeId(node) != 1);
     };
@@ -296,8 +313,10 @@ void RSProfiler::FilterForPlayback(RSRenderNodeMap& map, pid_t pid)
     }
 }
 
-void RSProfiler::FilterMockNode(RSRenderNodeMap& map)
+void RSProfiler::FilterMockNode(RSContext& context)
 {
+    auto& map = context.GetMutableNodeMap();
+
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     EraseIf(map.renderNodeMap_, [](const auto& pair) -> bool {
         if (!Utils::IsNodeIdPatched(pair.first)) {
@@ -321,27 +340,31 @@ void RSProfiler::FilterMockNode(RSRenderNodeMap& map)
 }
 
 void RSProfiler::GetSurfacesTrees(
-    const RSRenderNodeMap& map, std::map<std::string, std::tuple<NodeId, std::string>>& list)
+    const RSContext& context, std::map<std::string, std::tuple<NodeId, std::string>>& list)
 {
     constexpr uint32_t treeDumpDepth = 2;
 
     list.clear();
+
+    const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     for (const auto& item : map.renderNodeMap_) {
         if (item.second->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            const auto surfaceNode = item.second->ReinterpretCastTo<RSSurfaceRenderNode>();
-
             std::string tree;
             item.second->DumpTree(treeDumpDepth, tree);
-            list.insert({ surfaceNode->GetName(), { surfaceNode->GetId(), tree } });
+
+            const auto node = item.second->ReinterpretCastTo<RSSurfaceRenderNode>();
+            list.insert({ node->GetName(), { node->GetId(), tree } });
         }
     }
 }
 
-void RSProfiler::GetSurfacesTreesByPid(const RSRenderNodeMap& map, pid_t pid, std::map<NodeId, std::string>& list)
+void RSProfiler::GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<NodeId, std::string>& list)
 {
     constexpr uint32_t treeDumpDepth = 2;
 
     list.clear();
+
+    const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     for (const auto& item : map.renderNodeMap_) {
         if (item.second->GetId() == Utils::GetRootNodeId(pid)) {
             std::string tree;
@@ -351,13 +374,14 @@ void RSProfiler::GetSurfacesTreesByPid(const RSRenderNodeMap& map, pid_t pid, st
     }
 }
 
-size_t RSProfiler::GetRenderNodeCount(const RSRenderNodeMap& map)
+size_t RSProfiler::GetRenderNodeCount(const RSContext& context)
 {
-    return map.renderNodeMap_.size();
+    return const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_.size();
 }
 
-NodeId RSProfiler::GetRandomSurfaceNode(const RSRenderNodeMap& map)
+NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
 {
+    const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     for (const auto& item : map.surfaceNodeMap_) {
         return item.first;
     }
@@ -743,9 +767,72 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
     });
 }
 
-void RSProfiler::SetReplayTimes(double replayStartTime, double recordStartTime)
+void RSProfiler::SetTransactionTimeCorrection(double replayStartTime, double recordStartTime)
 {
     g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
+}
+
+std::string RSProfiler::GetCommandParcelList(double recordStartTime)
+{
+    if (g_commandLoopIndexStart >= g_commandLoopIndexEnd) {
+        return "";
+    }
+
+    int index = g_commandLoopIndexStart;
+    g_commandLoopIndexStart++;
+    index %= COMMAND_LOOP_SIZE;
+
+    std::string retStr;
+
+    uint16_t cmdCount = g_commandLoop[index].cmdCount;
+    if (cmdCount > 0) {
+        uint16_t copyBytes = sizeof(PacketParsedCommandList) - (COMMAND_PARSE_LIST_SIZE - cmdCount) * sizeof(uint32_t);
+        retStr.resize(copyBytes, ' ');
+        Utils::Move(retStr.data(), copyBytes, &g_commandLoop[index], copyBytes);
+        g_commandLoop[index].cmdCount = 0;
+    }
+
+    return retStr;
+}
+
+void RSProfiler::PatchCommand(const Parcel& parcel, RSCommand* command)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    if (command == nullptr) {
+        return;
+    }
+
+    if (g_mode == Mode::WRITE) {
+        g_commandCount++;
+        uint16_t cmdCount = g_commandParseBuffer.cmdCount;
+        if (cmdCount < COMMAND_PARSE_LIST_COUNT) {
+            constexpr uint32_t bits = 16u;
+            g_commandParseBuffer.cmdCode[cmdCount] =
+                command->GetType() + (static_cast<uint32_t>(command->GetSubType()) << bits);
+        }
+        g_commandParseBuffer.cmdCount++;
+    }
+
+    if (command && IsParcelMock(parcel)) {
+        command->Patch(Utils::PatchNodeId);
+    }
+}
+
+void RSProfiler::ExecuteCommand(const RSCommand* command)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    if (g_mode != Mode::WRITE && g_mode != Mode::READ) {
+        return;
+    }
+    if (command == nullptr) {
+        return;
+    }
+
+    g_commandExecuteCount++;
 }
 
 int RSProfiler::PerfTreeFlatten(
@@ -790,7 +877,7 @@ int RSProfiler::PerfTreeFlatten(
 
     if (drawCmdListCount > 0) {
         mapNode2Count[node.id_] = drawCmdListCount;
-        if (!(valuableChildrenCount == 1 && nodeCmdListCount == 0)) {
+        if (valuableChildrenCount != 1 || nodeCmdListCount != 0) {
             nodeSet.insert(node.id_);
         }
     }
