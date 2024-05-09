@@ -1188,6 +1188,7 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
+        RectI oldDirty_;
         ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
         bool isFocusWindow_ = false;
         bool isTransparent_ = false;
