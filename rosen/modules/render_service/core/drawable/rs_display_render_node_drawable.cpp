@@ -293,7 +293,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
 {
     if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() ||
-        (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode())) {
+        (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode()) ||
+        RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
 
@@ -527,7 +528,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     PostClearMemoryTask();
     rsDirtyRectsDfx.OnDraw(curCanvas_);
-
+    RSMainThread::Instance()->SetDirtyFlag(false);
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
         for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
