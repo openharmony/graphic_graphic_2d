@@ -250,7 +250,6 @@ std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()
     return EngineImplFactory::CreateSurface();
 }
 
-// opinc_begin
 std::unique_ptr<OpListHandleImpl> ImplFactory::CreateOplistHandleImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -260,7 +259,6 @@ std::unique_ptr<OpListHandleImpl> ImplFactory::CreateOplistHandleImpl()
 #endif
     return EngineImplFactory::CreateOplistHandle();
 }
-// opinc_end
 
 std::unique_ptr<PathEffectImpl> ImplFactory::CreatePathEffectImpl()
 {

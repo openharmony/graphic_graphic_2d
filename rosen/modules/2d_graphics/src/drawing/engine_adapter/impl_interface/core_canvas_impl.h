@@ -25,9 +25,7 @@
 #include "draw/paint.h"
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
-// opinc_begin
 #include "draw/OpListHandle.h"
-// opinc_end
 #include "effect/filter.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
@@ -113,14 +111,9 @@ public:
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
 
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false) = 0;
-    virtual Drawing::OpListHandle EndOpRecording() = 0;
-    virtual void DrawOpList(Drawing::OpListHandle handle) = 0;
-    virtual int CanDrawOpList(Drawing::OpListHandle handle) = 0;
+    // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) = 0;
-    // opinc_end
 
     // image
     virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],

@@ -17,10 +17,8 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_canvas.h"
 #include "draw/core_canvas.h"
-// opinc_begin
 #include "skia_adapter/skia_canvas_autocache.h"
 #include "skia_adapter/skia_oplist_handle.h"
-// opinc_end
 
 using namespace testing;
 using namespace testing::ext;
@@ -981,32 +979,6 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
     Brush brush;
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, &brush);
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, nullptr);
-}
-
-/**
- * @tc.name: BeginOpRecordingTest001
- * @tc.desc: Test BeginOpRecording
- * @tc.type: FUNC
- * @tc.require: I9B0X4
- */
-HWTEST_F(SkiaCanvasTest, BeginOpRecordingTest001, TestSize.Level1)
-{
-    SkiaCanvas skiaCanvas;
-    Rect rect = {0, 0, 0, 0};
-    bool isDynamic = false;
-    ASSERT_EQ(skiaCanvas.BeginOpRecording(&rect, isDynamic), false);
-}
-
-/**
- * @tc.name: CanDrawOpListTest001
- * @tc.desc: Test CanDrawOpList
- * @tc.type: FUNC
- * @tc.require: I9B0X4
- */
-HWTEST_F(SkiaCanvasTest, CanDrawOpListTest001, TestSize.Level1)
-{
-    SkiaCanvas skiaCanvas;
-    ASSERT_EQ(skiaCanvas.CanDrawOpList({}), -1);
 }
 
 /**

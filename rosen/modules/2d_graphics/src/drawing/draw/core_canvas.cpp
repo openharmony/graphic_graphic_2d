@@ -200,27 +200,6 @@ void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
     impl_->DrawVertices(vertices, mode);
 }
 
-// opinc_begin
-bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
-{
-    return impl_->BeginOpRecording(bound, isDynamic);
-}
-
-Drawing::OpListHandle CoreCanvas::EndOpRecording()
-{
-    return impl_->EndOpRecording();
-}
-
-void CoreCanvas::DrawOpList(Drawing::OpListHandle handle)
-{
-    impl_->DrawOpList(handle);
-}
-
-int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    return impl_->CanDrawOpList(handle);
-}
-
 bool CoreCanvas::OpCalculateBefore(const Matrix& matrix)
 {
     return impl_->OpCalculateBefore(matrix);
@@ -230,7 +209,6 @@ std::shared_ptr<Drawing::OpListHandle> CoreCanvas::OpCalculateAfter(const Rect& 
 {
     return impl_->OpCalculateAfter(bound);
 }
-// opinc_end
 
 void CoreCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)

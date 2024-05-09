@@ -358,38 +358,6 @@ void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Dr
 #endif
 }
 
-// opinc_begin
-bool RSPaintFilterCanvasBase::BeginOpRecording(const Drawing::Rect* bound, bool isDynamic)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->BeginOpRecording(bound, isDynamic);
-    }
-    return false;
-}
-
-Drawing::OpListHandle RSPaintFilterCanvasBase::EndOpRecording()
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->EndOpRecording();
-    }
-    return {};
-}
-
-void RSPaintFilterCanvasBase::DrawOpList(Drawing::OpListHandle handle)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawOpList(handle);
-    }
-}
-
-int RSPaintFilterCanvasBase::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->CanDrawOpList(handle);
-    }
-    return -1;
-}
-
 bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
 {
     if (canvas_ != nullptr && OnFilter()) {
@@ -405,7 +373,6 @@ std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter
     }
     return nullptr;
 }
-// opinc_end
 
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {

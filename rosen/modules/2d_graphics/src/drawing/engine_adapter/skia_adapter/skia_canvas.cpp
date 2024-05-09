@@ -32,10 +32,8 @@
 #include "skia_text_blob.h"
 #include "skia_surface.h"
 #include "include/effects/SkRuntimeEffect.h"
-// opinc_begin
 #include "skia_canvas_autocache.h"
 #include "skia_oplist_handle.h"
-// opinc_end
 
 #include "draw/core_canvas.h"
 #include "draw/canvas.h"
@@ -633,49 +631,24 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     skCanvas_->drawImageLattice(img.get(), skLattice, skDst, skFilterMode, paint.get());
 }
 
-// opinc_begin
-bool SkiaCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return false;
-}
-
-Drawing::OpListHandle SkiaCanvas::EndOpRecording()
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return {};
-}
-
-void SkiaCanvas::DrawOpList(Drawing::OpListHandle handle)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return;
-}
-
-int SkiaCanvas::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return -1;
-}
-
 bool SkiaCanvas::OpCalculateBefore(const Matrix& matrix)
 {
     if (!skCanvas_) {
-        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        LOGD("opinc before is null");
         return false;
     }
     if (skiaCanvasOp_ || skCanvasBackup_) {
-        LOGD("PreOpListDrawArea is nested %{public}d", __LINE__);
+        LOGD("opinc PreOpListDrawArea is nested");
         return false;
     }
     auto m = matrix.GetImpl<SkiaMatrix>();
     if (!m) {
-        LOGD("get matrix null, return on line, %{public}d", __LINE__);
+        LOGD("opinc get matrix null");
         return false;
     }
     auto tmp = std::make_shared<SkiaCanvasAutoCache>(skCanvas_);
     if (!tmp) {
-        LOGD("create opinccanvas null, return on line, %{public}d", __LINE__);
+        LOGD("opinc create opinccanvas null");
         return false;
     }
     tmp->Init(m->ExportSkiaMatrix());
@@ -689,13 +662,14 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
 {
     std::shared_ptr<Drawing::OpListHandle> handle = nullptr;
     if (!skCanvas_ || !skiaCanvasOp_) {
-        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        LOGD("opinc after is null");
         return handle;
     }
 
     do {
         auto nodeBound = SkRect::MakeLTRB(bound.GetLeft(), bound.GetTop(), bound.GetRight(), bound.GetBottom());
         if (!skiaCanvasOp_->OpCanCache(nodeBound)) {
+            LOGD("opinc opCanCache false");
             break;
         }
 
@@ -704,6 +678,7 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
         auto& skUnionRect = skiaCanvasOp_->GetOpUnionRect();
         auto& skOpListDrawArea = skiaCanvasOp_->GetOpListDrawArea();
         if (skUnionRect.isEmpty() || opNum == 0 || percent == 0 || skOpListDrawArea.size() == 0) {
+            LOGD("opinc opNum is zero");
             break;
         }
         Drawing::Rect unionRect(skUnionRect.left(), skUnionRect.top(), skUnionRect.right(), skUnionRect.bottom());
@@ -720,7 +695,6 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
     skCanvasBackup_ = nullptr;
     return handle;
 }
-// opinc_end
 
 void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
