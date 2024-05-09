@@ -445,7 +445,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
     auto rsRootRenderNode = std::make_shared<RSRootRenderNode>(0, rsContext->weak_from_this());
     rsRootRenderNode->InitRenderParams();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-
+    rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     rsUniRenderVisitor->PrepareRootRenderNode(*rsRootRenderNode);
     rsUniRenderVisitor->ProcessRootRenderNode(*rsRootRenderNode);
 
