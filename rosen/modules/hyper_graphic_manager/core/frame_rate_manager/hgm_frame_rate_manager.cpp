@@ -186,14 +186,14 @@ void HgmFrameRateManager::SetAnimationVote(const std::shared_ptr<RSRenderFrameRa
 
 void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 {
-
     if (!idleDetector_.GetAppSupportStatus()) {
         return;
     }
     RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AnimationIdleStatus = [%d]",
-        touchManager_.GetState(), idleDetector_.GetSurFaceIdleStatus(timestamp), idleDetector_.GetAnimationIdleStatus());
+        touchManager_.GetState(), idleDetector_.GetSurFaceIdleStatus(timestamp),
+        idleDetector_.GetAnimationIdleStatus());
 
-    if(touchManager_.GetState() != TouchState::UP_STATE) {
+    if (touchManager_.GetState() != TouchState::UP_STATE) {
         prepareCheck_ = false;
         startCheck_ = false;
     }
