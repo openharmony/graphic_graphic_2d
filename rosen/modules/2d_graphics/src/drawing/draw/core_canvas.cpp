@@ -172,9 +172,10 @@ void CoreCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
 }
 
 void CoreCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-    impl_->DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    impl_->DrawShadowStyle(
+        path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isLimitElevation);
 }
 
 void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)

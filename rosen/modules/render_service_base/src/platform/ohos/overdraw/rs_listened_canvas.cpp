@@ -129,13 +129,13 @@ void RSListenedCanvas::DrawShadow(const Path& path, const Point3& planeParams, c
 }
 
 void RSListenedCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
     RSPaintFilterCanvas::DrawShadowStyle(
-        path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+        path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isLimitElevation);
     if (listener_ != nullptr) {
         listener_->DrawShadowStyle(
-            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isLimitElevation);
     }
 }
 

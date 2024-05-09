@@ -322,7 +322,7 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle);
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation);
 
     // color
     /**

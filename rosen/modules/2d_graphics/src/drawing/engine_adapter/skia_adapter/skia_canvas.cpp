@@ -454,7 +454,7 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
 }
 
 void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
@@ -468,7 +468,7 @@ void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, co
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
     if (skPathImpl != nullptr) {
         SkShadowUtils::DrawShadowStyle(
-            skCanvas_, skPathImpl->GetPath(), point1, point2, lightRadius, color1, color2, flags, isShadowStyle);
+            skCanvas_, skPathImpl->GetPath(), point1, point2, lightRadius, color1, color2, flags, isLimitElevation);
     }
 }
 

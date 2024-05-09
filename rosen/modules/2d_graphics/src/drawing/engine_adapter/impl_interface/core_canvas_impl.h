@@ -99,7 +99,7 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle) = 0;
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation) = 0;
     virtual void DrawRegion(const Region& region) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) = 0;
