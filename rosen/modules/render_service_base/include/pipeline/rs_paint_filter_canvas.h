@@ -81,14 +81,8 @@ public:
     void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
 
-    // opinc_begin
-    bool BeginOpRecording(const Drawing::Rect* bound = nullptr, bool isDynamic = false) override;
-    Drawing::OpListHandle EndOpRecording() override;
-    void DrawOpList(Drawing::OpListHandle handle) override;
-    int CanDrawOpList(Drawing::OpListHandle handle) override;
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
-    // opinc_end
 
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,

@@ -49,10 +49,6 @@ config("export_config") {
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
   }
-
-  if (graphic_2d_feature_enable_opinc) {
-    defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
-  }
 }
 
 if (enable_text_gine) {
@@ -199,10 +195,6 @@ template("graphics2d_source_set") {
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
-    }
-
-    if (graphic_2d_feature_enable_opinc) {
-      defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
     }
 
     include_dirs = [

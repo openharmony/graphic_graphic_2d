@@ -35,9 +35,7 @@
 #include "skia_picture.h"
 #include "skia_region.h"
 #include "skia_vertices.h"
-// opinc_begin
 #include "skia_canvas_op.h"
-// opinc_end
 
 #include "common/rs_macros.h"
 #include "impl_interface/core_canvas_impl.h"
@@ -106,14 +104,8 @@ public:
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;
 
-    // opinc_begin
-    bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false) override;
-    Drawing::OpListHandle EndOpRecording() override;
-    void DrawOpList(Drawing::OpListHandle handle) override;
-    int CanDrawOpList(Drawing::OpListHandle handle) override;
     bool OpCalculateBefore(const Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) override;
-    // opinc_end
 
     // image
     void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[], int count,
@@ -183,10 +175,8 @@ private:
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
-    // opinc_begin
     SkCanvas* skCanvasBackup_ = nullptr;
     std::shared_ptr<SkiaCanvasOp> skiaCanvasOp_ = nullptr;
-    // opinc_end
     SkiaPaint skiaPaint_;
 };
 } // namespace Drawing

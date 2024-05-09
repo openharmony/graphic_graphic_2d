@@ -431,60 +431,6 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawVerticesTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: BeginOpRecordingTest
- * @tc.desc: BeginOpRecording Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, BeginOpRecordingTest, TestSize.Level1)
-{
-    Drawing::Rect bound;
-    EXPECT_FALSE(paintFilterCanvas_->BeginOpRecording(&bound, true));
-    paintFilterCanvas_->SetAlpha(0.0f);
-    EXPECT_FALSE(paintFilterCanvas_->BeginOpRecording(&bound, false));
-}
-
-/**
- * @tc.name: EndOpRecordingTest
- * @tc.desc: EndOpRecording Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, EndOpRecordingTest, TestSize.Level1)
-{
-    EXPECT_TRUE(paintFilterCanvas_->EndOpRecording().opImpl_);
-    paintFilterCanvas_->SetAlpha(SET_ALPHA);
-    EXPECT_TRUE(paintFilterCanvas_->EndOpRecording().opImpl_);
-}
-
-/**
- * @tc.name: DrawOpListTest
- * @tc.desc: DrawOpList Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, DrawOpListTest, TestSize.Level1)
-{
-    Drawing::OpListHandle handle;
-    paintFilterCanvas_->DrawOpList(handle);
-    EXPECT_TRUE(paintFilterCanvas_);
-}
-
-/**
- * @tc.name: CanDrawOpListTest
- * @tc.desc: CanDrawOpList Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, CanDrawOpListTest, TestSize.Level1)
-{
-    Drawing::OpListHandle handle;
-    EXPECT_EQ(paintFilterCanvas_->CanDrawOpList(handle), -1);
-    paintFilterCanvas_->SetAlpha(0.0f);
-    EXPECT_EQ(paintFilterCanvas_->CanDrawOpList(handle), -1);
-}
-
-/**
  * @tc.name: OpCalculateBeforeTest
  * @tc.desc: OpCalculateBefore Test
  * @tc.type:FUNC
