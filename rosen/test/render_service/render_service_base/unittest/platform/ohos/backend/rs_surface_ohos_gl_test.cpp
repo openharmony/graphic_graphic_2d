@@ -42,7 +42,7 @@ void RSSurfaceOhosGlTest::TearDown() {}
  * @tc.name: FlushFrame001
  * @tc.desc: test results of FlushFrame
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, FlushFrame001, TestSize.Level1)
 {
@@ -65,7 +65,7 @@ HWTEST_F(RSSurfaceOhosGlTest, FlushFrame001, TestSize.Level1)
  * @tc.name: ClearBuffer001
  * @tc.desc: test results of ClearBuffer
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
 {
@@ -86,7 +86,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
  * @tc.name: ClearBuffer002
  * @tc.desc: test results of ClearBuffer
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
 {
@@ -130,7 +130,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
  * @tc.name: ResetBufferAge001
  * @tc.desc: test results of ResetBufferAge
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge001, TestSize.Level1)
 {
@@ -152,7 +152,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge001, TestSize.Level1)
  * @tc.name: ResetBufferAge002
  * @tc.desc: test results of ResetBufferAge
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
 {
@@ -197,7 +197,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
  * @tc.name: RequestFrame001
  * @tc.desc: test results of RequestFrame
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosGlTest, RequestFrame001, TestSize.Level1)
 {
