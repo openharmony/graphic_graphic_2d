@@ -49,7 +49,7 @@ public:
         return mirrorScaleY_;
     }
 private:
-    void CanvasRotation(ScreenRotation screenRotation, float width, float height);
+    void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node);
     void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation);
     void CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation);
@@ -60,7 +60,6 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
-    bool isPhone_ = false;
     float mirrorWidth_ = 0.f;
     float mirrorHeight_ = 0.f;
     float mainWidth_ = 0.f;
