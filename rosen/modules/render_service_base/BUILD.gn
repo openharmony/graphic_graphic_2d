@@ -406,6 +406,13 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/utils/log",
   ]
 
+  if (is_arkui_x) {
+    include_dirs += [
+      "$graphic_2d_root/utils/color_manager/export",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
+  }
+
   include_dirs += [ "//third_party/skia/src" ]
 
   deps = [
