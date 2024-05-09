@@ -148,6 +148,18 @@ std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkg
     return NULL_STRATEGY_CONFIG_NAME;
 }
 
+HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes)
+{
+    auto &strategyConfigs = GetStrategyConfigs();
+    auto &strategyName = GetScreenSetting().strategy;
+    if (strategyConfigs.find(strategyName) != strategyConfigs.end()) {
+        strategyRes = strategyConfigs.at(strategyName);
+        return EXEC_SUCCESS;
+    }
+
+    return HGM_ERROR;
+}
+
 HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes)
 {
     if (pkgs_.empty()) {

@@ -1105,6 +1105,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             return;
         }
         auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
+        if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
+            frameRateMgr_->TimeUpdate(surfaceNode->GetName(), timestamp_);
+        }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
@@ -1537,7 +1540,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 
     // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
     if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
-        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
+        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_, timestamp);
     } else {
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,

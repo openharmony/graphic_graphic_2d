@@ -41,6 +41,7 @@ namespace {
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 10;
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
+    constexpr uint32_t FIRST_FRAME_TIME_OUT = 50000000; // 50ms
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     // CAUTION: with priority
@@ -128,6 +129,13 @@ void HgmFrameRateManager::InitTouchManager()
             [this] (TouchState lastState, TouchState newState) {
             multiAppStrategy_.HandleTouchInfo(touchManager_.GetPkgName(), newState);
         });
+        touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
+            [this] (TouchState lastState, TouchState newState) {
+            uint64_t curTime = static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            idleDetector_.SetTouchUpTime(curTime);
+        });
     });
 }
 
@@ -142,6 +150,80 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp)
     }
 }
 
+void HgmFrameRateManager::TimeUpdate(const std::string& name, uint64_t timestamp)
+{
+    idleDetector_.SurfaceTimeUpdate(name, timestamp);
+}
+
+void HgmFrameRateManager::UpdateAppSupportStatus()
+{
+    bool flag = false;
+    PolicyConfigData::StrategyConfig config;
+    if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS) {
+        if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
+            flag = true;
+        }
+    } else {
+        if (multiAppStrategy_.GetScreenSettingMode(config) == EXEC_SUCCESS) {
+            if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
+                flag = true;
+            }
+        }
+    }
+    idleDetector_.SetAppSupportStatus(flag);
+}
+
+void HgmFrameRateManager::SetAnimationVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
+    bool& needCheckAnimation)
+{
+    if (linker->GetAnimationStatus() == false) {
+        needCheckAnimation = false;
+        idleDetector_.SetAnimationStatus(false);
+        return;
+    }
+    idleDetector_.SetAnimationStatus(true);
+}
+
+void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
+{
+
+    if (!idleDetector_.GetAppSupportStatus()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AnimationIdleStatus = [%d]",
+        touchManager_.GetState(), idleDetector_.GetSurFaceIdleStatus(timestamp), idleDetector_.GetAnimationIdleStatus());
+
+    if(touchManager_.GetState() != TouchState::UP_STATE) {
+        prepareCheck_ = false;
+        startCheck_ = false;
+    }
+
+    if (touchManager_.GetState() == TouchState::UP_STATE && lastTouchState_ == TouchState::DOWN_STATE) {
+        prepareCheck_ = true;
+        if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
+            prepareCheck_ = false;
+            startCheck_ = true;
+        }
+    }
+
+    if (prepareCheck_) {
+        if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
+            prepareCheck_ = false;
+            startCheck_ = true;
+        }
+    }
+    lastTouchState_ = touchManager_.GetState();
+
+    if (!startCheck_) {
+        return;
+    }
+
+    if (idleDetector_.GetSurFaceIdleStatus(timestamp) && idleDetector_.GetAnimationIdleStatus()) {
+        RS_TRACE_NAME_FMT("HgmFrameRateManager:: HandleThirdFrameIdle");
+        touchManager_.HandleThirdFrameIdle();
+    }
+}
+
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                 const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
@@ -150,6 +232,8 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     RS_TRACE_FUNC();
     Reset();
 
+    bool needCheckAnimation = true;
+    UpdateGuaranteedPlanVote(timestamp);
     auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
     FrameRateVoteInfo frameRateVoteInfo;
@@ -160,6 +244,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             frameRateVoteInfo.SetLtpoInfo(0, "ANIMATE");
         }
         for (auto linker : appFrameRateLinkers) {
+            if (needCheckAnimation) {
+                SetAnimationVote(linker.second, needCheckAnimation);
+            }
             if (finalRange.Merge(linker.second->GetExpectedRange())) {
                 frameRateVoteInfo.SetLtpoInfo(linker.second->GetId(), "APP_LINKER");
             }
@@ -227,11 +314,12 @@ void HgmFrameRateManager::ReportHiSysEvent(const FrameRateVoteInfo& frameRateVot
     }
 }
 
-void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
+void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired, uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     Reset();
 
+    UpdateGuaranteedPlanVote(timestamp);
     if (idleTimerExpired) {
         // idle in ltps
         HandleIdleEvent(ADD_VOTE);
@@ -543,6 +631,7 @@ void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vecto
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
         }
+        UpdateAppSupportStatus();
     });
 }
 

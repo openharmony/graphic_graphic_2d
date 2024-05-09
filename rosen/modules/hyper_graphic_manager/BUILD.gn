@@ -52,6 +52,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
     "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",
+    "core/frame_rate_manager/hgm_additional_touch_strategy.cpp",
     "core/frame_rate_manager/hgm_touch_manager.cpp",
     "core/frame_rate_manager/hgm_vsync_generator_controller.cpp",
     "core/hgm_screen_manager/hgm_core.cpp",

@@ -35,6 +35,7 @@
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "hgm_additional_touch_strategy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -110,7 +111,7 @@ public:
     bool IsLtpo() const { return isLtpo_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, bool isDvsyncOn);
-    void UniProcessDataForLtps(bool idleTimerExpired);
+    void UniProcessDataForLtps(bool idleTimerExpired, uint64_t timestamp);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
     std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
@@ -131,8 +132,13 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
+    void TimeUpdate(const std::string& name, uint64_t timestamp);
 private:
     void Reset();
+    void UpdateAppSupportStatus();
+    void UpdateGuaranteedPlanVote(uint64_t timestamp);
+    void SetAnimationVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
+        bool& needCheckAnimation);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);
@@ -184,6 +190,10 @@ private:
     int32_t idleFps_ = 60;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    int32_t lastTouchState_ = IDLE_STATE;
+    bool startCheck_ = false;
+    bool prepareCheck_;
+    HgmIdleDetector idleDetector_;
 };
 } // namespace Rosen
 } // namespace OHOS
