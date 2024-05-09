@@ -15,6 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 module_output_path = "graphic_2d/graphic_2d"
+
 ##############################fuzztest##########################################
 ohos_fuzztest("RSCpuOverdrawCanvasListenerFuzzTest") {
   module_out_path = module_output_path
