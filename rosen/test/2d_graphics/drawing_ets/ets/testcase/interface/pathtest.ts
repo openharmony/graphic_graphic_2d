@@ -119,9 +119,13 @@ export class PathClose extends TestBase {
       path.lineTo(rand.nextULessThan(this.width_), rand.nextULessThan(this.height_));
       path.lineTo(rand.nextULessThan(this.width_), rand.nextULessThan(this.height_));
       path.close();
-      canvas.drawPath(path);
       path.reset();
     }
+    path.moveTo(rand.nextULessThan(this.width_), rand.nextULessThan(this.height_));
+    path.lineTo(rand.nextULessThan(this.width_), rand.nextULessThan(this.height_));
+    path.lineTo(rand.nextULessThan(this.width_), rand.nextULessThan(this.height_));
+    path.close();
+    canvas.drawPath(path);
   }
 }
 
@@ -133,14 +137,17 @@ export class PathReset extends TestBase {
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rand: OHRandom = new OHRandom();
+    let path: drawing.Path = new drawing.Path();
+    let x: number = rand.nextULessThan(this.width_);
+    let y: number = rand.nextULessThan(this.height_);
     for (let i = 0; i < this.testCount_; i++) {
-      let path: drawing.Path = new drawing.Path();
       path.moveTo(0, 0);
-      let x: number = rand.nextULessThan(this.width_);
-      let y: number = rand.nextULessThan(this.height_);
       path.lineTo(x, y);
-      canvas.drawPath(path);
       path.reset();
     }
+    path.moveTo(0, 0);
+    path.lineTo(x, y);
+    path.close();
+    canvas.drawPath(path);
   }
 }
