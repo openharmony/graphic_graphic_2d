@@ -97,10 +97,8 @@ enum class RSDrawableSlot : int8_t {
     BG_PROPERTIES_BEGIN         = BLENDER,
     BG_PROPERTIES_END           = ENV_FOREGROUND_COLOR_STRATEGY,
     // content properties, can be clipped by ClipToFrame and ClipToBounds
-    CONTENT_TRANSFORM_BEGIN     = FRAME_OFFSET,
-    CONTENT_TRANSFORM_END       = CLIP_TO_FRAME,
-    CONTENT_PROPERTIES_BEGIN    = CONTENT_STYLE,
-    CONTENT_PROPERTIES_END      = FOREGROUND_STYLE,
+    CONTENT_BEGIN               = FRAME_OFFSET,
+    CONTENT_END                 = FOREGROUND_STYLE,
     // foreground properties, clipped by bounds by default
     FG_PROPERTIES_BEGIN         = BINARIZATION,
     FG_PROPERTIES_END           = FOREGROUND_COLOR,

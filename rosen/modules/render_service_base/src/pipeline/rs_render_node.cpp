@@ -2245,14 +2245,14 @@ void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
     // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
-    constexpr uint8_t FRAME_EMPTY = 1 << 5;
-    constexpr uint8_t ALL_EMPTY = 1 << 6;
+    constexpr auto FRAME_NOT_EMPTY = 1 << 4;
+    constexpr auto NODE_NOT_EMPTY = 1 << 5;
 
     stagingDrawCmdList_.clear();
     drawCmdListNeedSync_ = true;
 
-    if (drawableVecStatus_ & ALL_EMPTY) {
-        // Nothing to draw
+    if (UNLIKELY((drawableVecStatus_ & NODE_NOT_EMPTY) == 0)) {
+        // NODE_NOT_EMPTY is not set, so nothing to draw, just skip
         stagingRenderParams_->SetContentEmpty(IsInstanceOf<RSCanvasRenderNode>());
         return;
     }
@@ -2289,7 +2289,7 @@ void RSRenderNode::UpdateDisplayList()
 
     AppendDrawFunc(RSDrawableSlot::BG_RESTORE_BOUNDS);
 
-    if (!(drawableVecStatus_ & FRAME_EMPTY)) {
+    if (drawableVecStatus_ & FRAME_NOT_EMPTY) {
         // Update index of CONTENT_STYLE
         stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::CONTENT_STYLE);
 

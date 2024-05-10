@@ -242,15 +242,14 @@ enum DrawableVecStatus : uint8_t {
     CLIP_TO_BOUNDS     = 1 << 0,
     BG_BOUNDS_PROPERTY = 1 << 1,
     FG_BOUNDS_PROPERTY = 1 << 2,
-    FRAME_TRANSFORM    = 1 << 3,
-    ENV_CHANGED        = 1 << 4,
+    ENV_CHANGED        = 1 << 3,
     // Used by skip logic in RSRenderNode::UpdateDisplayList
-    FRAME_EMPTY        = 1 << 5,
-    ALL_EMPTY          = 1 << 6,
-
+    FRAME_NOT_EMPTY    = 1 << 4,
+    NODE_NOT_EMPTY     = 1 << 5,
+ 
     // masks
     BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
-    FRAME_MASK   = FRAME_TRANSFORM | FRAME_EMPTY,
+    FRAME_MASK   = FRAME_NOT_EMPTY,
     OTHER_MASK   = ENV_CHANGED,
 };
 
@@ -266,8 +265,7 @@ inline static bool HasPropertyDrawableInRange(
 static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::Vec& drawableVec)
 {
     uint8_t result = 0;
-    bool frameEmpty = true;
-    bool boundsEmpty = true;
+    bool nodeNotEmpty = false;
     auto& properties = node.GetRenderProperties();
 
     // ClipToBounds if either 1. is surface node, 2. has explicit clip properties, 3. has blend mode
@@ -280,35 +278,30 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     }
 
     if (HasPropertyDrawableInRange(
-        drawableVec, RSDrawableSlot::CONTENT_TRANSFORM_BEGIN, RSDrawableSlot::CONTENT_TRANSFORM_END)) {
-        result |= DrawableVecStatus::FRAME_TRANSFORM;
-    }
-    if (!HasPropertyDrawableInRange(
-        drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
-        // Node has nothing to draw inside frame, we can skip its frame.
-        result |= DrawableVecStatus::FRAME_EMPTY;
-    } else {
-        frameEmpty = false;
+        drawableVec, RSDrawableSlot::CONTENT_BEGIN, RSDrawableSlot::CONTENT_END)) {
+        nodeNotEmpty = true;
+        result |= DrawableVecStatus::FRAME_NOT_EMPTY;
     }
 
     if (HasPropertyDrawableInRange(
         drawableVec, RSDrawableSlot::BG_PROPERTIES_BEGIN, RSDrawableSlot::BG_PROPERTIES_END)) {
         result |= DrawableVecStatus::BG_BOUNDS_PROPERTY;
-        boundsEmpty = false;
+        nodeNotEmpty = true;
     }
     if (HasPropertyDrawableInRange(
         drawableVec, RSDrawableSlot::FG_PROPERTIES_BEGIN, RSDrawableSlot::FG_PROPERTIES_END)) {
         result |= DrawableVecStatus::FG_BOUNDS_PROPERTY;
-        boundsEmpty = false;
+        nodeNotEmpty = true;
     }
-    bool allEmpty = frameEmpty && boundsEmpty &&
-        !HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN, RSDrawableSlot::TRANSITION_PROPERTIES_END) &&
-        !HasPropertyDrawableInRange(
+
+    nodeNotEmpty = nodeNotEmpty ||
+        HasPropertyDrawableInRange(
+            drawableVec, RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN, RSDrawableSlot::TRANSITION_PROPERTIES_END) ||
+        HasPropertyDrawableInRange(
             drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END);
-    if (allEmpty) {
-        // This node has nothing to draw in TRANSITION/BG/CONTENT/FG/EXTRA, we can skip drawing it.
-        result |= DrawableVecStatus::ALL_EMPTY;
+    if (nodeNotEmpty) {
+        // Set NODE_NOT_EMPTY flag if any drawable (include frame/bg/fg/transition/extra) is set
+        result |= DrawableVecStatus::NODE_NOT_EMPTY;
     }
 
     // Foreground color & Background Effect & Blend Mode should be processed here
@@ -413,7 +406,7 @@ static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawab
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
 
-    if (flags & DrawableVecStatus::FRAME_TRANSFORM) {
+    if (flags & DrawableVecStatus::FRAME_NOT_EMPTY) {
         SaveRestoreHelper(
             drawableVec, RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::RESTORE_FRAME, RSPaintFilterCanvas::kCanvas);
     }
