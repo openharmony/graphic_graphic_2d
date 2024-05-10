@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,29 +14,22 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_graphics/image"
+module_output_path = "graphic_2d/rosen/modules/2d_graphics/bitmap"
 
-ohos_unittest("2d_graphics_image_test") {
+ohos_unittest("2d_graphics_bitmap_test") {
   module_out_path = module_output_path
 
-  sources = [
-    "image_test.cpp",
-    "picture_test.cpp",
-  ]
-
-  if (ace_enable_gpu) {
-    sources += [ "gpu_context_test.cpp" ]
-  }
+  sources = [ "bitmap_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
   ]
 
   deps = [
     "$graphic_2d_root:libgl",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -57,5 +50,5 @@ ohos_unittest("2d_graphics_image_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":2d_graphics_image_test" ]
+  deps = [ ":2d_graphics_bitmap_test" ]
 }
