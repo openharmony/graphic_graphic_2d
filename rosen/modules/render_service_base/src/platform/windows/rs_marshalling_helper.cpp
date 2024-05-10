@@ -165,6 +165,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     return {};
 }
 
+// MotionBlurPara
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBlurParam>& val)
+{
+    return {};
+}
+
+// Particle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterUpdater>& val)
 {
     return {};
@@ -205,18 +217,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     return {};
 }
 
-// MotionBlurPara
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBlurParam>& val)
-{
-    return {};
-}
-
-// RSParticle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
 {
     return {};

@@ -20,7 +20,7 @@ namespace Rosen {
 constexpr float EPSILON = 1e-3;
 constexpr float HALF = 0.5f;
 constexpr float FEATHERMAX = 100.f;
-bool ParticleNoiseField::isPointInField(
+bool ParticleNoiseField::IsPointInField(
     const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
 {
     if (fieldShape == ShapeType::RECT) {
@@ -35,7 +35,7 @@ bool ParticleNoiseField::isPointInField(
     return false;
 }
 
-float ParticleNoiseField::calculateDistanceToRectangleEdge(
+float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     const Vector2f& position, const Vector2f& direction, const Vector2f& center, const Vector2f& size)
 {
     if (ROSEN_EQ(direction.x_, 0.f) && ROSEN_EQ(direction.y_, 0.f)) {
@@ -77,7 +77,7 @@ float ParticleNoiseField::calculateDistanceToRectangleEdge(
     return distance;
 }
 
-float ParticleNoiseField::calculateFeatherEffect(float distanceToEdge, float featherWidth)
+float ParticleNoiseField::CalculateFeatherEffect(float distanceToEdge, float featherWidth)
 {
     float normalizedDistance = 1.0f;
     if (featherWidth > 0.f && !ROSEN_EQ(featherWidth, 0.f) && distanceToEdge >= 0) {
@@ -95,19 +95,19 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
         fieldSize_.x_ = std::min(fieldSize_.x_, fieldSize_.y_);
         fieldSize_.y_ = fieldSize_.x_;
     }
-    if (isPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_) && fieldStrength_ != 0) {
+    if (IsPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_) && fieldStrength_ != 0) {
         Vector2f direction = position - fieldCenter_;
         float distance = direction.GetLength();
         float forceMagnitude = static_cast<float>(fieldStrength_);
         float featherWidth = fieldSize_.x_ * (fieldFeather_ / FEATHERMAX);
-        float edgeDistance = calculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
+        float edgeDistance = CalculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
 
         if (fieldStrength_ < 0 && !ROSEN_EQ(deltaTime, 0.f)) {
             forceMagnitude = std::max(forceMagnitude, -1.f * distance / deltaTime);
         } else if (fieldStrength_ > 0 && !ROSEN_EQ(deltaTime, 0.f)) {
             forceMagnitude = std::min(forceMagnitude, edgeDistance / deltaTime);
         }
-        float featherEffect = calculateFeatherEffect(edgeDistance, featherWidth);
+        float featherEffect = CalculateFeatherEffect(edgeDistance, featherWidth);
         forceMagnitude *= featherEffect;
         Vector2f force = direction.Normalized() * forceMagnitude;
         return force;
@@ -117,26 +117,26 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
 
 Vector2f ParticleNoiseField::ApplyCurlNoise(const Vector2f& position)
 {
-    if (isPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_)) {
+    if (IsPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_)) {
         PerlinNoise2D noise(noiseScale_, noiseFrequency_, noiseAmplitude_);
-        return noise.curl(position.x_, position.y_) * noiseScale_;
+        return noise.Curl(position.x_, position.y_) * noiseScale_;
     }
     return Vector2f { 0.f, 0.f };
 }
 
-float PerlinNoise2D::fade(float t)
+float PerlinNoise2D::Fade(float t)
 {
     // Fade function as defined by Ken Perlin: 6t^5 - 15t^4 + 10t^3
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-float PerlinNoise2D::lerp(float t, float a, float b)
+float PerlinNoise2D::Lerp(float t, float a, float b)
 {
     // Linear interpolate between a and b
     return a + t * (b - a);
 }
 
-float PerlinNoise2D::grad(int hash, float x, float y)
+float PerlinNoise2D::Grad(int hash, float x, float y)
 {
     // Convert low 4 bits of hash code into 12 gradient directions.
     // Use a bitwise AND operation (&) to get the lowest 4 bits of the hash value.
@@ -168,7 +168,7 @@ PerlinNoise2D::PerlinNoise2D(float noiseScale, float noiseFrequency, float noise
     p.insert(p.end(), p.begin(), p.end());
 }
 
-float PerlinNoise2D::noise(float x, float y)
+float PerlinNoise2D::Noise(float x, float y)
 {
     x *= noiseFrequency_;
     y *= noiseFrequency_;
@@ -181,8 +181,8 @@ float PerlinNoise2D::noise(float x, float y)
     y -= floor(y);
 
     // Compute fade curves for each of x, y
-    float u = fade(x);
-    float v = fade(y);
+    float u = Fade(x);
+    float v = Fade(y);
 
     // Hash coordinates of the 4 square corners
     int A = p[X] + static_cast<int>(Y);
@@ -193,18 +193,18 @@ float PerlinNoise2D::noise(float x, float y)
     int BB = p[B + 1];
 
     // And add blended results from the 4 corners of the square
-    float res = lerp(v, lerp(u, grad(p[AA], x, y), grad(p[BA], x - 1, y)),
-        lerp(u, grad(p[AB], x, y - 1), grad(p[BB], x - 1, y - 1)));
+    float res = Lerp(v, Lerp(u, Grad(p[AA], x, y), Grad(p[BA], x - 1, y)),
+        Lerp(u, Grad(p[AB], x, y - 1), Grad(p[BB], x - 1, y - 1)));
 
     return noiseAmplitude_ * (res + 1.f) / 2.f; // Normalize the result
 }
 
 // In the two-dimensional mode, curl actually returns a vector instead of a scalar.
-Vector2f PerlinNoise2D::curl(float x, float y)
+Vector2f PerlinNoise2D::Curl(float x, float y)
 {
     // Calculate the partial derivative of the noise field.
-    float noise_dx = noise(x + EPSILON, y) - noise(x - EPSILON, y);
-    float noise_dy = noise(x, y + EPSILON) - noise(x, y - EPSILON);
+    float noise_dx = Noise(x + EPSILON, y) - Noise(x - EPSILON, y);
+    float noise_dy = Noise(x, y + EPSILON) - Noise(x, y - EPSILON);
 
     // The result of the two-dimensional curl is the vector obtained by rotating the gradient by 90 degrees.
     // Assume that Curl has a value only in the Z component (rotation in the two-dimensional plane).

@@ -44,7 +44,7 @@ public:
     ParticleNoiseField(const ParticleNoiseField& config) = default;
     ParticleNoiseField& operator=(const ParticleNoiseField& config) = default;
     ~ParticleNoiseField() = default;
-    float calculateFeatherEffect(float distanceToEdge, float featherWidth);
+    float CalculateFeatherEffect(float distanceToEdge, float featherWidth);
     Vector2f ApplyField(const Vector2f& position, float deltaTime);
     Vector2f ApplyCurlNoise(const Vector2f& position);
 
@@ -58,26 +58,26 @@ public:
     }
 
 private:
-    bool isPointInField(
+    bool IsPointInField(
         const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height);
-    float calculateDistanceToRectangleEdge(
+    float CalculateDistanceToRectangleEdge(
         const Vector2f& position, const Vector2f& direction, const Vector2f& center, const Vector2f& size);
 };
 
 class RSB_EXPORT PerlinNoise2D {
 private:
     std::vector<int> p; // Permutation vector
-    float fade(float t);
-    float lerp(float t, float a, float b);
-    float grad(int hash, float x, float y);
+    float Fade(float t);
+    float Lerp(float t, float a, float b);
+    float Grad(int hash, float x, float y);
     float noiseScale_;
     float noiseFrequency_;
     float noiseAmplitude_;
 
 public:
     PerlinNoise2D(float noiseScale, float noiseFrequency, float noiseAmplitude);
-    float noise(float x, float y);
-    Vector2f curl(float x, float y);
+    float Noise(float x, float y);
+    Vector2f Curl(float x, float y);
 };
 
 class ParticleNoiseFields {
