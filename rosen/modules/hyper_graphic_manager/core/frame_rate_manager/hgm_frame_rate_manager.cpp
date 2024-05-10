@@ -222,7 +222,6 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     }
 
     if (idleDetector_.GetSurFaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
-        RS_TRACE_NAME_FMT("HgmFrameRateManager:: HandleThirdFrameIdle");
         touchManager_.HandleThirdFrameIdle();
     }
 }
