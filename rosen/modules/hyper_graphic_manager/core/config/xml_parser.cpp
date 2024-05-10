@@ -253,6 +253,8 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
                 setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
             } else if (name == "app_list") {
                 ParseMultiAppStrategy(*thresholdNode, screenSetting);
+            } else if (name == "app_types") {
+                setResult = ParseSimplex(*thresholdNode, screenSetting.appTypes, "strategy");
             } else {
                 setResult = 0;
             }

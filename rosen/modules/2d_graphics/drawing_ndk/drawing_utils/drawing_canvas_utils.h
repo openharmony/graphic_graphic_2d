@@ -33,7 +33,7 @@ public:
 };
 
 // Default typeface does not support chinese characters, needs to load chinese character ttf file.
-static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC_Regular.ttf";
+static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC.ttf";
 
 inline std::shared_ptr<OHOS::Rosen::Drawing::Typeface> g_LoadZhCnTypeface()
 {

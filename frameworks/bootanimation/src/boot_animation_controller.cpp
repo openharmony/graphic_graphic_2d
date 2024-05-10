@@ -23,15 +23,17 @@
 #include <system_ability_definition.h>
 #include "util.h"
 
-using namespace OHOS;
-const std::string BOOT_CUSTOM_CONFIG_PATH_SUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
+namespace OHOS {
+namespace {
+    const std::string BOOT_CUSTOM_CONFIG_PATH_SUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
+}
 
 void BootAnimationController::Start()
 {
     LOGI("BootAnimationController START");
     WaitRenderServiceInit();
     std::string path = GetConfigFilePath();
-    if (!ParseBootConfig(path, isCompatible_, isMultiDisplay_, animationConfigs_)) {
+    if (!ParseBootConfig(path, duration_, isCompatible_, isMultiDisplay_, animationConfigs_)) {
         LOGI("parse config json error, create default config");
         isCompatible_ = true;
         CreateDefaultBootConfig();
@@ -40,7 +42,7 @@ void BootAnimationController::Start()
     BootStrategyType bootType = GetBootType();
     strategy_ = BootAnimationFactory::GetBootStrategy(bootType);
     if (strategy_) {
-        strategy_->Display(animationConfigs_);
+        strategy_->Display(duration_, animationConfigs_);
     }
 }
 
@@ -96,3 +98,4 @@ BootStrategyType BootAnimationController::GetBootType() const
 
     return BootStrategyType::ASSOCIATIVE;
 }
+} // namespace OHOS

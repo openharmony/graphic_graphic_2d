@@ -25,9 +25,7 @@
 #include "draw/paint.h"
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
-// opinc_begin
 #include "draw/OpListHandle.h"
-// opinc_end
 #include "effect/filter.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
@@ -99,7 +97,7 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle) = 0;
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation) = 0;
     virtual void DrawRegion(const Region& region) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) = 0;
@@ -113,14 +111,9 @@ public:
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
 
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false) = 0;
-    virtual Drawing::OpListHandle EndOpRecording() = 0;
-    virtual void DrawOpList(Drawing::OpListHandle handle) = 0;
-    virtual int CanDrawOpList(Drawing::OpListHandle handle) = 0;
+    // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) = 0;
-    // opinc_end
 
     // image
     virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],

@@ -158,4 +158,64 @@ HWTEST_F(RSFilterTest, CreateLightUpEffectFilter, TestSize.Level1)
     auto filter = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
     ASSERT_NE(filter, nullptr);
 }
+
+/**
+ * @tc.name: GetDetailedDescriptionTest
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    EXPECT_EQ(filter->GetDetailedDescription(), "RSFilter 0");
+}
+
+/**
+ * @tc.name: IsValidTest
+ * @tc.desc: Verify function IsValid
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSFilterTest, IsValidTest, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    EXPECT_FALSE(filter->IsValid());
+}
+
+/**
+ * @tc.name: SetFilterType
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, SetFilterType, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    rSFilter.SetFilterType(RSFilter::MATERIAL);
+    EXPECT_EQ(rSFilter.GetFilterType(), RSFilter::MATERIAL);
+}
+
+/**
+ * @tc.name: RadiusVp2SigmaTest001
+ * @tc.desc: Verify function RadiusVp2Sigma
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, RadiusVp2SigmaTest001, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    auto rsFilter = std::make_shared<RSFilter>();
+    EXPECT_EQ(rsFilter->RadiusVp2Sigma(0.f, 0.f), 0.0f);
+}
+
+/**
+ * @tc.name: SetSnapshotOutset
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, SetSnapshotOutset, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    rSFilter.SetSnapshotOutset(1);
+    EXPECT_EQ(rSFilter.NeedSnapshotOutset(), 1);
+}
 } // namespace OHOS::Rosen

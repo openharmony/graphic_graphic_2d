@@ -58,6 +58,7 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
+    recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -115,6 +116,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
+    recordingCanvas->SetIsCustomTypeface(isCustomTypeface_);
     func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -161,14 +163,13 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    ROSEN_LOGD("RSCanvasNode::SetHDRPresent:%{pubilc}d", hdrPresent);
     hdrPresent_ = hdrPresent;
     if (hdrPresent) {
         RSHDRManager::Instance().IncreaseHDRNum();
     } else {
         RSHDRManager::Instance().ReduceHDRNum();
     }
-    
+    ROSEN_LOGD("SetHDRPresent:%{public}d hdrnum:%{public}d", hdrPresent, RSHDRManager::Instance().getHDRNum());
 }
 
 void RSCanvasNode::OnBoundsSizeChanged() const

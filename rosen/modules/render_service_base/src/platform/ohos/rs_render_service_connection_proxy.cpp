@@ -205,6 +205,9 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
     }
     sptr<IRemoteObject> surfaceObject = reply.ReadRemoteObject();
     sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(surfaceObject);
+    if (bp == nullptr) {
+        return nullptr;
+    }
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
     return surface;
 }
@@ -235,6 +238,9 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
+    if (conn == nullptr) {
+        return nullptr;
+    }
     return conn;
 }
 
@@ -2091,7 +2097,7 @@ void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eve
     }
 }
 
-void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2100,6 +2106,9 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus)
         return;
     }
     if (!data.WriteUint32(touchStatus)) {
+        return;
+    }
+    if (!data.WriteUint32(touchCnt)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

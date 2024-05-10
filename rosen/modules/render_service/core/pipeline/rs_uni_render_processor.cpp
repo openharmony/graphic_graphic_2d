@@ -81,7 +81,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    layer->SetCompositionType(RSBaseRenderUtil::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+    layer->SetCompositionType(RSSystemProperties::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
     std::vector<GraphicIRect> visibleRegions;
@@ -140,6 +140,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
+    RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

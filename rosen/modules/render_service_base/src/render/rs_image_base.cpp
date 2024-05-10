@@ -91,9 +91,12 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
-#ifndef ROSEN_ARKUI_X
-    SKResourceManager::Instance().HoldResource(image);
-#endif
+}
+
+void RSImageBase::MarkYUVImage()
+{
+    isDrawn_ = false;
+    isYUVImage_ = true;
 }
 #endif
 
@@ -302,7 +305,7 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
     // paraUpload only enable in render_service or UnmarshalThread
     pid_t tid = paraUpload ? getpid() : gettid();
 #endif
-    if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !RSPixelMapUtil::IsYUVFormat(pixelMap_)) {
+    if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
         if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, tid);

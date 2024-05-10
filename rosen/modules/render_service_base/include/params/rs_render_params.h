@@ -94,6 +94,11 @@ public:
         return isSkipLayer_;
     }
 
+    inline bool IsLayerDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);

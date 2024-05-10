@@ -35,7 +35,7 @@ using DynamicRangeMode = enum {
     HIGH = 0,
     CONSTRAINT = 1,
     STANDARD = 2,
-}
+};
 
 using VPEConvert = Media::VideoProcessingEngine::ColorSpaceConverterDisplay;
 using VPEParameter = Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter;

@@ -53,6 +53,7 @@ constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr uint32_t TIME_OF_TWENTY_FRAMES = 20000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
+constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 };
 
 thread_local CaptureParam RSUniRenderThread::captureParam_ = {};
@@ -255,28 +256,65 @@ void RSUniRenderThread::Render()
     RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
+void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto& bufferToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
+    if (bufferToRelease.empty()) {
+        return;
+    }
+    for (auto& item : bufferToRelease) {
+        if (!item.buffer || !item.consumer) {
+            continue;
+        }
+        auto releaseTask = [buffer = item.buffer, consumer = item.consumer,
+            useReleaseFence = item.useFence, acquireFence = acquireFence_]() mutable {
+            auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
+                RSHardwareThread::Instance().releaseFence_ : acquireFence);
+            if (ret != OHOS::SURFACE_ERROR_OK) {
+                RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+            }
+        };
+        tasks.emplace_back(releaseTask);
+    }
+    bufferToRelease.clear();
+#endif
+}
+
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!params->GetHardwareEnabled() && params->GetLastFrameHardwareEnabled()) {
+            params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
+        }
         if (!params->GetHardwareEnabled()) {
             auto& preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
+                if (params->releaseInHardwareThreadTaskNum_ > 0) {
+                    params->releaseInHardwareThreadTaskNum_--;
+                }
                 continue;
             }
             auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer(),
-                useReleaseFence = params->GetLastFrameHardwareEnabled()]() mutable {
+                useReleaseFence = params->GetLastFrameHardwareEnabled(), acquireFence = acquireFence_]() mutable {
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
-                    RSHardwareThread::Instance().releaseFence_ : SyncFence::INVALID_FENCE);
+                    RSHardwareThread::Instance().releaseFence_ : acquireFence);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
             preBuffer = nullptr;
-            releaseTasks.emplace_back(releaseTask);
+            if (params->releaseInHardwareThreadTaskNum_ > 0) {
+                releaseTasks.emplace_back(releaseTask);
+                params->releaseInHardwareThreadTaskNum_--;
+            } else {
+                releaseTask();
+            }
         }
     }
+    ReleaseSkipSyncBuffer(releaseTasks);
     if (releaseTasks.empty()) {
         return;
     }
@@ -336,11 +374,14 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
-bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (surfaceHandler->GetConsumer()->QueryIfBufferAvailable()) {
+    if (!displayNode->IsSurfaceCreated()) {
+        return true;
+    }
+    if (displayNode->GetConsumer() && displayNode->GetConsumer()->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
@@ -547,6 +588,11 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
         return STANDARD_REFRESH_RATE;
     }
     return refreshRate;
+}
+
+void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
+{
+    acquireFence_ = acquireFence;
 }
 } // namespace Rosen
 } // namespace OHOS

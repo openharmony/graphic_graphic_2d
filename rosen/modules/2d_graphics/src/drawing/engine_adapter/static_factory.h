@@ -67,6 +67,7 @@ public:
         size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);
     static std::shared_ptr<Typeface> DeserializeTypeface(const void* data, size_t size);
+    static bool GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
     static bool AsBlendMode(const Brush& brush);

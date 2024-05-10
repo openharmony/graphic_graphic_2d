@@ -32,6 +32,8 @@ namespace Rosen {
 constexpr uint32_t STANDARD_REFRESH_RATE = 60;
 constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
+constexpr float TIMESTAMP_INITIAL_FLOAT = -1.f;
+constexpr float MS_TO_US = 1000.f; // ms to us
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
@@ -47,6 +49,7 @@ struct JankFrames {
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
+    bool isImplicitAnimationEnd_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
@@ -96,8 +99,10 @@ struct TraceIdRemainderStats {
 struct JankDurationParams {
     int64_t timeStart_ = TIMESTAMP_INITIAL;
     int64_t timeStartSteady_ = TIMESTAMP_INITIAL;
+    float timeStartSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
     int64_t timeEnd_ = TIMESTAMP_INITIAL;
     int64_t timeEndSteady_ = TIMESTAMP_INITIAL;
+    float timeEndSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
     uint32_t refreshRate_ = 0;
     bool discardJankFrames_ = false;
     bool skipJankAnimatorFrame_ = false;
@@ -106,7 +111,8 @@ struct JankDurationParams {
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
-    void SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady);
+    void SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
+                             float onVsyncStartTimeSteadyFloat);
     void SetStartTime(bool doDirectComposition = false);
     void SetEndTime(bool skipJankAnimatorFrame = false, bool discardJankFrames = false,
                     uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE,
@@ -117,6 +123,8 @@ public:
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
     void SetAppFirstFrame(pid_t appPid);
+    void SetImplicitAnimationEnd(bool needReport);
+    void SetAccumulatedBufferCount(int accumulatedBufferCount);
 
 private:
     RSJankStats() = default;
@@ -145,14 +153,17 @@ private:
     int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);
     int64_t ConvertTimeToSystime(int64_t time) const;
     int64_t GetEffectiveFrameTime(bool isConsiderRsStartTime) const;
+    float GetEffectiveFrameTimeFloat(bool isConsiderRsStartTime) const;
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
+    float GetCurrentSteadyTimeMsFloat() const;
 
     static constexpr uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
     static constexpr uint32_t JANK_RANGE_VERSION = 1;
     static constexpr size_t JANK_STATS_SIZE = 8;
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
     static constexpr bool IS_FOLD_DISP = false;
+    static constexpr bool IS_CALCULATE_PRECISE_HITCH_TIME = true;
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
     std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_1F", 1},
                                                                           {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };
@@ -163,6 +174,9 @@ private:
     bool isNeedReportJankStats_ = false;
     bool isLastFrameDoDirectComposition_ = false;
     bool isCurrentFrameSwitchToNotDoDirectComposition_ = false;
+    float rsStartTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
+    float rtEndTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
+    float rtLastEndTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
     int64_t rsStartTime_ = TIMESTAMP_INITIAL;
     int64_t rsStartTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t rtStartTime_ = TIMESTAMP_INITIAL;
@@ -183,6 +197,7 @@ private:
     std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
+    std::atomic<int> accumulatedBufferCount_ = 0;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

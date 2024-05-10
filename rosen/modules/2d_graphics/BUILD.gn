@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
@@ -48,10 +48,6 @@ config("export_config") {
 
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
-  }
-
-  if (graphic_2d_feature_enable_opinc) {
-    defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 }
 
@@ -199,10 +195,6 @@ template("graphics2d_source_set") {
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
-    }
-
-    if (graphic_2d_feature_enable_opinc) {
-      defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
     }
 
     include_dirs = [
@@ -366,6 +358,11 @@ foreach(item, ace_platforms) {
 if (!is_arkui_x) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
     platform = current_os
     if (platform == "mingw") {
       platform = "windows"
@@ -405,6 +402,11 @@ if (enable_text_gine) {
 
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics_canvaskit0310") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "$drawing_core_src_dir/draw/brush.cpp",
     "$drawing_core_src_dir/draw/color.cpp",

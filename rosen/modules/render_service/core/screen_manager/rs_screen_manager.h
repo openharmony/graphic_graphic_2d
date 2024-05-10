@@ -104,7 +104,7 @@ public:
 
     virtual ScreenInfo QueryScreenInfo(ScreenId id) const = 0;
 
-    // Can only be called after QueryScreenState and the state is ScreenState::PRODUCER_SURFACE_ENABLE;
+    // Can only be called after QueryScreenState and the state is ScreenState::SOFTWARE_OUTPUT_ENABLE;
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
 
     virtual bool GetCanvasRotation(ScreenId id) const = 0;

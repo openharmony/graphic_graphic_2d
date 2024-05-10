@@ -60,7 +60,7 @@ public:
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyDisplayNodeBufferReleased();
-    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode);
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
@@ -127,10 +127,13 @@ public:
         return tid_;
     }
 
+    void SetAcquireFence(sptr<SyncFence> acquireFence);
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
+    void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -170,6 +173,8 @@ private:
     std::mutex imageReleaseMutex_;
     bool postImageReleaseTaskFlag_;
     int imageReleaseCount_ = 0;
+
+    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
 };
 } // namespace Rosen
 } // namespace OHOS

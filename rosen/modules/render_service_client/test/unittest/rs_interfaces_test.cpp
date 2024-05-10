@@ -19,6 +19,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing::ext;
@@ -1257,7 +1258,8 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus);
+    int32_t touchCnt = 0;
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1409,6 +1411,75 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level2)
 {
     EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 300,
+        .h = 300,
+    };
+    uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, cSurface);
+    rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
+}
+
+/*
+ * @tc.name: GetActiveScreenId
+ * @tc.desc: Test GetActiveScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, GetActiveScreenId, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetActiveScreenId();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenScaleMode
+ * @tc.desc: Test SetVirtualMirrorScreenScaleMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest | Level2)
+{
+    ASSERT_FALSE(rsInterfaces->SetVirtualMirrorScreenScaleMode(INVALID_SCREEN_ID, ScreenScaleMode::INVALID_MODE));
+}
+
+/*
+ * @tc.name: SetScreenCorrection
+ * @tc.desc: Test SetScreenCorrection
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->SetScreenCorrection(INVALID_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetSystemAnimatedScenes
+ * @tc.desc: Test SetSystemAnimatedScenes
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
 }
 } // namespace Rosen
 } // namespace OHOS

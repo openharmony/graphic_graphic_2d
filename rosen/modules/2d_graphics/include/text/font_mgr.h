@@ -60,8 +60,9 @@ public:
      * @param themeName   Theme name.
      * @param data        Font data.
      * @param dataLength  The size of font data.
+     * @return  A pointer to typeface.
      */
-    void LoadThemeFont(const std::string& familyName, const std::string& themeName,
+    Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength);
 #endif
 

@@ -407,6 +407,14 @@ public:
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
+    bool GetCurFrameHasAnimation() const
+    {
+        return curFrameHasAnimation_;
+    }
+    void SetCurFrameHasAnimation(bool b)
+    {
+        curFrameHasAnimation_ = b;
+    }
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
@@ -465,16 +473,15 @@ public:
     void MarkFilterHasEffectChildren();
 
     // for blur filter cache
-    void UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect = std::nullopt);
-    void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
+    void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
-    virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
-        bool isInSkippedSubTree = false, const std::optional<RectI>& filterRectForceUpdated = std::nullopt);
+    virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode = false);
+    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
+        RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode = false);
     bool IsFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
@@ -538,6 +545,7 @@ public:
     void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
+    void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
     void SetIsUsedBySubThread(bool isUsedBySubThread);
     bool GetIsUsedBySubThread() const;
 
@@ -637,6 +645,7 @@ public:
         lastFrameSynced_ = false;
         // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
         addedToPendingSyncList_ = false;
+        OnSkipSync();
     }
     void Sync()
     {
@@ -684,6 +693,7 @@ protected:
 
     virtual void InitRenderParams();
     virtual void OnSync();
+    virtual void OnSkipSync() {};
     virtual void ClearResource() {};
 
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -726,6 +736,7 @@ protected:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false);
     std::atomic<bool> isStaticCached_ = false;
     bool lastFrameHasVisibleEffect_ = false;
+    RectI filterRegion_;
 
 private:
     NodeId id_;
@@ -915,6 +926,7 @@ private:
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;
+    bool curFrameHasAnimation_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;

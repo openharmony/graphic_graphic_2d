@@ -280,4 +280,236 @@ HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
     director->PostFrameRateTask([](){return;});
     ASSERT_EQ(hasRunningAnimation, false);
 }
+
+/**
+ * @tc.name: GetCurrentRefreshRateMode
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetCurrentRefreshRateMode, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    int32_t res = director->GetCurrentRefreshRateMode();
+    ASSERT_TRUE(res == 0);
+}
+
+/**
+ * @tc.name: PostFrameRateTask
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, PostFrameRateTask, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    director->PostFrameRateTask(task);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const std::function<void()>& callback = []() {
+        std::cout << "for test" << std::endl;
+    };
+    director->SetRequestVsyncCallback(callback);
+}
+
+/**
+ * @tc.name: FlushAnimationStartTime
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, FlushAnimationStartTime, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    uint64_t timeStamp = 0;
+    director->FlushAnimationStartTime(timeStamp);
+}
+
+/**
+ * @tc.name: HasUIAnimation
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, HasUIAnimation, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool res = director->HasUIAnimation();
+    ASSERT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: SetCacheDir
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // for test
+    const std::string& cacheFilePath = "1";
+    director->SetCacheDir(cacheFilePath);
+}
+
+/**
+ * @tc.name: SetRTRenderForced
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetRTRenderForced, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // for test
+    bool isRenderForced = true;
+    director->SetRTRenderForced(isRenderForced);
+}
+
+/**
+ * @tc.name: StartTextureExport
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, StartTextureExport, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->StartTextureExport();
+}
+
+/**
+ * @tc.name: GoGround
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->GoForeground();
+    director->GoBackground();
+}
+
+/**
+ * @tc.name: AttachSurface
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, AttachSurface, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->AttachSurface();
+}
+
+/**
+ * @tc.name: RecvMessages
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, RecvMessages, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->RecvMessages();
+}
+
+/**
+ * @tc.name: ProcessMessages
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessMessages, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    director->ProcessMessages(cmds);
+}
+
+/**
+ * @tc.name: AnimationCallbackProcessor
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // for test
+    NodeId nodeId = 0;
+    AnimationId animId = 0;
+    AnimationCallbackEvent event = REPEAT_FINISHED;
+    director->AnimationCallbackProcessor(nodeId, animId, event);
+}
+
+/**
+ * @tc.name: PostTask
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    director->PostTask(task);
+}
+
+/**
+ * @tc.name: StartTextureExportTest001
+ * @tc.desc: StartTextureExport Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->isUniRenderEnabled_ = true;
+    director->StartTextureExport();
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: SetRTRenderForcedTest002
+ * @tc.desc: SetRTRenderForced Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRTRenderForcedTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->SetRTRenderForced(true);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallbackTest003
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::function<void()> callback = nullptr;
+    director->SetRequestVsyncCallback(callback);
+    EXPECT_TRUE(nullptr == director->requestVsyncCallback_);
+}
 } // namespace OHOS::Rosen

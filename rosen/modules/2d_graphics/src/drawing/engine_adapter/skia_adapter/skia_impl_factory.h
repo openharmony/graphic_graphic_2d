@@ -80,9 +80,7 @@ public:
     static std::unique_ptr<RuntimeBlenderBuilderImpl> CreateRuntimeBlenderBuilder(
         std::shared_ptr<RuntimeEffect> runtimeEffect);
     static std::unique_ptr<SurfaceImpl> CreateSurface();
-    // opinc_begin
     static std::unique_ptr<OpListHandleImpl> CreateOplistHandle();
-    // opinc_end
     static std::unique_ptr<PathEffectImpl> CreatePathEffect();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();

@@ -41,23 +41,34 @@ class ShaderEffectImpl : public BaseImpl {
 public:
     ShaderEffectImpl() noexcept {}
     ~ShaderEffectImpl() override {}
+
     virtual void InitWithColor(ColorQuad color) = 0;
+
     virtual void InitWithColorSpace(const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) = 0;
+
     virtual void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) = 0;
-    virtual void InitWithImage(
-        const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix) = 0;
+
+    virtual void InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling, const Matrix& matrix) = 0;
+
     virtual void InitWithPicture(const Picture& picture, TileMode tileX, TileMode tileY, FilterMode mode,
         const Matrix& matrix, const Rect& rect) = 0;
+
     virtual void InitWithLinearGradient(const Point& startPt, const Point& endPt, const std::vector<ColorQuad>& colors,
-        const std::vector<scalar>& pos, TileMode mode) = 0;
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) = 0;
+
     virtual void InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,
-        const std::vector<scalar>& pos, TileMode mode) = 0;
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) = 0;
+
     virtual void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr,
         scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
         const Matrix *matrix) = 0;
+
     virtual void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) = 0;
+
     virtual void InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader) = 0;
+
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };

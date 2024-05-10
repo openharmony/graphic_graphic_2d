@@ -62,6 +62,7 @@ private:
 
     void LayerCrop(const LayerInfoPtr& layer) const;
     static void LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node);
+    void LayerScaleFit(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);

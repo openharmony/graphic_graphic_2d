@@ -322,7 +322,7 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle);
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation);
 
     // color
     /**
@@ -406,14 +406,9 @@ public:
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
 
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false);
-    virtual Drawing::OpListHandle EndOpRecording();
-    virtual void DrawOpList(Drawing::OpListHandle handle);
-    virtual int CanDrawOpList(Drawing::OpListHandle handle);
+    // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix);
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound);
-    // opinc_end
 
     // image
     /**

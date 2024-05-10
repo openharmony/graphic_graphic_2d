@@ -187,8 +187,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             hdiBackend_->Repaint(output);
         }
         output->ReleaseLayers(releaseFence_);
-        RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
-        // TO-DO
+        RSBaseRenderUtil::DecAcquiredBufferCount();
         RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
         if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -574,6 +573,12 @@ void RSHardwareThread::AddRefreshRateCount()
         iter->second++;
     }
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
+
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    frameRateMgr->GetTouchManager().HandleRsFrame();
 }
 
 void RSHardwareThread::SubScribeSystemAbility()

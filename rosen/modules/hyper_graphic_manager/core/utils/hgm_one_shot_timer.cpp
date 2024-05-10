@@ -47,17 +47,21 @@ HgmOneShotTimer::HgmOneShotTimer(std::string name, const Interval& interval,
       name_(std::move(name)),
       interval_(interval),
       resetCallback_(resetCallback),
-      expiredCallback_(expiredCallback) {};
+      expiredCallback_(expiredCallback)
+{
+    int result = sem_init(&semaphone_, 0, 0);
+    HGM_LOGD("HgmOneShotTimer::sem_init result: %{public}d", result);
+};
 
 HgmOneShotTimer::~HgmOneShotTimer()
 {
     Stop();
+    int result = sem_destroy(&semaphone_);
+    HGM_LOGD("HgmOneShotTimer::sem_destroy result: %{public}d", result);
 }
 
 void HgmOneShotTimer::Start()
 {
-    int result = sem_init(&semaphone_, 0, 0);
-    HGM_LOGD("HgmOneShotTimer::sem_init result: %{public}d", result);
     if (!thread_.joinable()) {
         thread_ = std::thread(&HgmOneShotTimer::Loop, this);
     }
@@ -70,8 +74,6 @@ void HgmOneShotTimer::Stop()
     HGM_LOGD("HgmOneShotTimer::sem_post result: %{public}d", result);
     if (thread_.joinable()) {
         thread_.join();
-        result = sem_destroy(&semaphone_);
-        HGM_LOGD("HgmOneShotTimer::sem_destroy result: %{public}d", result);
     }
 }
 

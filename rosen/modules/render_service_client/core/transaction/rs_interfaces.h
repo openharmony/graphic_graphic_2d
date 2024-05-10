@@ -220,7 +220,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyTouchEvent(int32_t touchStatus);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void ReportEventResponse(DataBaseRs info);
 

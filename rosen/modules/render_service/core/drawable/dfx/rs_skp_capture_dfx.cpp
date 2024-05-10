@@ -22,11 +22,25 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+
 namespace OHOS::Rosen {
 
 void RSSkpCaptureDfx::TryCapture() const
 {
-    if (!RSSystemProperties::GetRecordingEnabled() || !curCanvas_) {
+    if (!curCanvas_) {
+        return;
+    }
+    if (!RSSystemProperties::GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        auto width = curCanvas_->GetWidth();
+        auto height = curCanvas_->GetHeight();
+        if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(width, height)) {
+            curCanvas_->AddCanvas(canvas);
+        }
+#endif
         return;
     }
     recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(curCanvas_->GetWidth(), curCanvas_->GetHeight());
@@ -60,6 +74,9 @@ void RSSkpCaptureDfx::EndCapture() const
         return;
     }
     if (!RSRecordingThread::Instance(renderContext.get()).GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        RSCaptureRecorder::GetInstance().EndInstantCapture();
+#endif
         return;
     }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();

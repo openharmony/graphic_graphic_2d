@@ -42,12 +42,13 @@ Typeface* FontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t*
     return nullptr;
 }
 
-void FontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
+Typeface* FontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
     const uint8_t* data, size_t dataLength)
 {
     if (fontMgrImpl_) {
-        fontMgrImpl_->LoadThemeFont(familyName, themeName, data, dataLength);
+        return fontMgrImpl_->LoadThemeFont(familyName, themeName, data, dataLength);
     }
+    return nullptr;
 }
 #endif
 

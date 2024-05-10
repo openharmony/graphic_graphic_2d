@@ -42,7 +42,7 @@ void RSSurfaceOhosRasterTest::TearDown() {}
  * @tc.name: SetSurfaceBufferUsage001
  * @tc.desc: test results of SetSurfaceBufferUsage
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, SetSurfaceBufferUsage001, TestSize.Level1)
 {
@@ -58,7 +58,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, SetSurfaceBufferUsage001, TestSize.Level1)
  * @tc.name: RequestFrame001
  * @tc.desc: test results of RequestFrame
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame001, TestSize.Level1)
 {
@@ -77,7 +77,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame001, TestSize.Level1)
  * @tc.name: RequestFrame002
  * @tc.desc: test results of RequestFrame
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame002, TestSize.Level1)
 {
@@ -98,7 +98,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame002, TestSize.Level1)
  * @tc.name: FlushFrame001
  * @tc.desc: test results of FlushFrame
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, FlushFrame001, TestSize.Level1)
 {
@@ -123,7 +123,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, FlushFrame001, TestSize.Level1)
  * @tc.name: ResetBufferAge001
  * @tc.desc: test results of ResetBufferAge
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, ResetBufferAge001, TestSize.Level1)
 {
@@ -137,7 +137,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, ResetBufferAge001, TestSize.Level1)
  * @tc.name: ClearBuffer001
  * @tc.desc: test results of ClearBuffer
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, ClearBuffer001, TestSize.Level1)
 {
@@ -161,7 +161,7 @@ HWTEST_F(RSSurfaceOhosRasterTest, ClearBuffer001, TestSize.Level1)
  * @tc.name: SetSurfacePixelFormat001
  * @tc.desc: test results of SetSurfacePixelFormat
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceOhosRasterTest, SetSurfacePixelFormat001, TestSize.Level1)
 {

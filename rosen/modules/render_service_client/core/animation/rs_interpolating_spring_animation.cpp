@@ -75,7 +75,8 @@ void RSInterpolatingSpringAnimation::OnStart()
     // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.initialVelocity_);
+    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.initialVelocity_,
+        timingCurve_.minimumAmplitudeRatio_);
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
         animation->SetZeroThreshold(zeroThreshold_);

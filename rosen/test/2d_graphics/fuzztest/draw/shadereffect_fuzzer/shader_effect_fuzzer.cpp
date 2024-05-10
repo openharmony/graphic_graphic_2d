@@ -39,8 +39,6 @@ bool ShaderEffectFuzzTest(const uint8_t* data, size_t size)
     shaderEffect->Serialize();
     shaderEffect->GetType();
     shaderEffect->GetDrawingType();
-    shaderEffect->ExportSkShader();
-    shaderEffect->SetSkShader(nullptr);
 
     return true;
 }

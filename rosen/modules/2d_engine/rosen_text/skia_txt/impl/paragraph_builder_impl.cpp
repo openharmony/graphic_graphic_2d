@@ -63,7 +63,7 @@ RSFontStyle MakeFontStyle(FontWeight fontWeight, FontWidth fontWidth, FontStyle 
     return RSFontStyle(weight, width, slant);
 }
 
-SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
+void MakeFontArguments(skt::TextStyle& skStyle, const FontVariations& fontVariations)
 {
     constexpr size_t axisLen = 4;
 
@@ -80,7 +80,7 @@ SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 
     SkFontArguments arguments;
     arguments.setVariationDesignPosition(position);
-    return arguments;
+    skStyle.setFontArguments(arguments);
 }
 
 skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
@@ -251,7 +251,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     }
 
     if (!txt.fontVariations.GetAxisValues().empty()) {
-        skStyle.setFontArguments(MakeFontArguments(txt.fontVariations));
+        MakeFontArguments(skStyle, txt.fontVariations);
     }
 
     skStyle.resetShadows();

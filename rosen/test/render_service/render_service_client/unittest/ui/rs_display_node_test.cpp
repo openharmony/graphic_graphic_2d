@@ -311,4 +311,52 @@ HWTEST_F(RSDisplayNodeTest, SetScreenRotation, TestSize.Level1)
     displayNode->SetScreenRotation(rotation);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
+
+/**
+ * @tc.name: UnmarshallingTest001
+ * @tc.desc: Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSDisplayNodeTest, UnmarshallingTest001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+
+    Parcel parcel;
+    auto displayNodeTest1 = displayNode->Unmarshalling(parcel);
+    EXPECT_EQ(displayNodeTest1, nullptr);
+
+    uint32_t id = 100;
+    uint32_t screenId = 0;
+    bool isMirrored = true;
+    parcel.WriteUint64(id);
+    parcel.WriteUint64(screenId);
+    parcel.WriteBool(isMirrored);
+    auto displayNodeTest2 = displayNode->Unmarshalling(parcel);
+    EXPECT_TRUE(displayNodeTest2 != nullptr);
+    EXPECT_EQ(displayNodeTest2->GetId(), id);
+    EXPECT_EQ(displayNodeTest2->IsMirrorDisplay(), isMirrored);
+}
+
+/**
+ * @tc.name: SetScreenRotationTest003
+ * @tc.desc: SetScreenRotation Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSDisplayNodeTest, SetScreenRotationTest003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    EXPECT_TRUE(displayNode != nullptr);
+    displayNode->SetId(0);
+    EXPECT_EQ(displayNode->GetId(), 0);
+    displayNode->SetScreenRotation(0);
+    displayNode->SetScreenRotation(1);
+    displayNode->SetScreenRotation(2);
+    displayNode->SetScreenRotation(3);
+    displayNode->SetScreenRotation(4);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
 } // namespace OHOS::Rosen

@@ -32,9 +32,7 @@
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
 #include "impl_interface/vertices_impl.h"
-// opinc_begin
 #include "impl_interface/OpListHandleImpl.h"
-// opinc_end
 #include "impl_interface/mask_filter_impl.h"
 #include "impl_interface/matrix_impl.h"
 #include "impl_interface/matrix44_impl.h"
@@ -82,9 +80,7 @@ public:
     static std::unique_ptr<RuntimeShaderBuilderImpl> CreateRuntimeShaderBuilderImpl(std::shared_ptr<RuntimeEffect>);
     static std::unique_ptr<RuntimeBlenderBuilderImpl> CreateRuntimeBlenderBuilderImpl(std::shared_ptr<RuntimeEffect>);
     static std::unique_ptr<SurfaceImpl> CreateSurfaceImpl();
-    // opinc_begin
     static std::unique_ptr<OpListHandleImpl> CreateOplistHandleImpl();
-    // opinc_end
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
     static std::unique_ptr<MatrixImpl> CreateMatrixImpl();

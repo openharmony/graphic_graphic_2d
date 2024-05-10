@@ -37,11 +37,11 @@ enum class DumpType {
 class VariantSpan {
 public:
     VariantSpan() noexcept(true) = default;
-    VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true);
-    VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true);
-    VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true);
-    VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true);
-    VariantSpan(std::nullptr_t) noexcept(true);
+    explicit VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true);
+    explicit VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true);
+    explicit VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true);
+    explicit VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true);
+    explicit VariantSpan(std::nullptr_t) noexcept(true);
 
     template<typename Type,
              typename = std::enable_if_t<std::is_convertible_v<Type, std::shared_ptr<AnySpan>>>>

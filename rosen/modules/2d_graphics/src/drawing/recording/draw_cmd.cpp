@@ -609,7 +609,7 @@ DrawShadowStyleOpItem::DrawShadowStyleOpItem(
       ambientColor_(handle->ambientColor),
       spotColor_(handle->spotColor),
       flag_(handle->flag),
-      isShadowStyle_(handle->isShadowStyle)
+      isLimitElevation_(handle->isLimitElevation)
 {
     path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
 }
@@ -624,7 +624,7 @@ void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
 {
     auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
     cmdList.AddOp<ConstructorHandle>(
-        pathHandle, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isShadowStyle_);
+        pathHandle, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isLimitElevation_);
 }
 
 void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -634,7 +634,7 @@ void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->DrawShadowStyle(
-        *path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isShadowStyle_);
+        *path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isLimitElevation_);
 }
 
 /* DrawShadowOpItem */

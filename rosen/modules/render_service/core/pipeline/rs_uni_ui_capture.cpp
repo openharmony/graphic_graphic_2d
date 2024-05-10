@@ -24,6 +24,8 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -312,19 +314,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     }
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        if (!canvasDrawingNode->IsOnTheTree()) {
-            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
-                // The second param is null, 0 is an invalid value.
-                RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
-            };
-            canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
-            canvasDrawingNode->ProcessRenderContents(*canvas_);
-        } else {
-            auto image = canvasDrawingNode->GetImage(UNI_MAIN_THREAD_INDEX);
-            if (image) {
-                canvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
-            }
+        auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(node.GetId());
+        if (!drawable) {
+            return;
+        }
+        auto bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawable.get())->GetBitmap();
+        if (!bitmap.IsEmpty()) {
+            canvas_->DrawBitmap(bitmap, 0, 0);
         }
     } else {
         node.ProcessRenderContents(*canvas_);

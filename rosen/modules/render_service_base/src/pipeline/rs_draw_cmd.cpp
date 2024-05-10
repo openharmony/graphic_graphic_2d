@@ -23,6 +23,7 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
 #include "native_window.h"
 #endif
@@ -111,37 +112,15 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
+#ifndef ROSEN_ARKUI_X
+            SKResourceManager::Instance().HoldResource(image_);
+#endif
             rsImage_->SetDmaImage(image_);
         }
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
         return;
     }
-    if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
-#if defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
-        }
-#endif
-#if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
-        }
-#endif
-    } else {
-        if (pixelmap && pixelmap->IsAstc()) {
-            const void* data = pixelmap->GetPixels();
-            std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-            const int seekSize = 16;
-            if (pixelmap->GetCapacity() > seekSize) {
-                fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelmap->GetCapacity() - seekSize);
-            }
-            rsImage_->SetCompressData(fileData);
-        }
-    }
+    PreProcessPixelMap(canvas, pixelmap);
 #endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
@@ -161,6 +140,48 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
     }
     return object;
 }
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+#if defined(RS_ENABLE_GL)
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+                rsImage_->SetDmaImage(image_);
+            }
+        }
+#endif
+#if defined(RS_ENABLE_VK)
+        if (RSSystemProperties::IsUseVukan()) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+                rsImage_->SetDmaImage(image_);
+            }
+        }
+#endif
+        return;
+    }
+
+    if (pixelMap->IsAstc()) {
+        const void* data = pixelMap->GetPixels();
+        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+        const int seekSize = 16;
+        if (pixelMap->GetCapacity() > seekSize) {
+            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        }
+        rsImage_->SetCompressData(fileData);
+        return;
+    }
+
+    if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
+        rsImage_->MarkYUVImage();
+    }
+}
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)

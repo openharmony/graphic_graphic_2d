@@ -19,13 +19,15 @@
 #include <parameters.h>
 #include "util.h"
 
-using namespace OHOS;
-constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
-const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
-const std::string DUE_UPDATE_TYPE_NIGHT = "night";
-constexpr const char* OTA_BMS_COMPILE_SWITCH = "const.bms.optimizing_apps.switch";
-const std::string OTA_BMS_COMPILE_SWITCH_OFF = "off";
-const std::string OTA_BMS_COMPILE_SWITCH_ON = "on";
+namespace OHOS {
+namespace {
+    constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
+    const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
+    const std::string DUE_UPDATE_TYPE_NIGHT = "night";
+    constexpr const char* OTA_BMS_COMPILE_SWITCH = "const.bms.optimizing_apps.switch";
+    const std::string OTA_BMS_COMPILE_SWITCH_OFF = "off";
+    const std::string OTA_BMS_COMPILE_SWITCH_ON = "on";
+}
 
 bool BootAnimationStrategy::CheckExitAnimation()
 {
@@ -64,3 +66,4 @@ bool BootAnimationStrategy::CheckNeedOtaCompile() const
     }
     return false;
 }
+} // namespace OHOS

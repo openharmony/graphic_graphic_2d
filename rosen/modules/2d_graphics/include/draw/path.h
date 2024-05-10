@@ -63,6 +63,12 @@ enum class PathAddMode {
     EXTEND_PATH_ADD_MODE,
 };
 
+enum class PathMeasureMatrixFlags {
+    GET_POSITION_MATRIX,
+    GET_TANGENT_MATRIX,
+    GET_POS_AND_TAN_MATRIX,
+};
+
 class DRAWING_API Path {
 public:
     Path() noexcept;
@@ -483,6 +489,16 @@ public:
      * @return Returns true if succeeded, otherwise false.
      */
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const;
+
+    /**
+     * @brief Determines whether the current contour is closed.
+     * @param forceClosed  Whether to close the Path.
+     * @return Returns true if the current contour is closed, otherwise false.
+     */
+    bool IsClosed(bool forceClosed) const;
+
+    bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
+        PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);

@@ -168,6 +168,22 @@ void RSDrawingFilter::InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderF
     shaderFilters_.emplace_back(shaderFilter);
 }
 
+void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::Rect& src, const Drawing::Rect& dst)
+{
+    Drawing::Brush brush;
+    if (imageFilter_) {
+        Drawing::Filter filter;
+        filter.SetImageFilter(imageFilter_);
+        brush.SetFilter(filter);
+    }
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return;
+}
+
 void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
@@ -187,6 +203,13 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
+
+        static constexpr float epsilon = 0.999f;
+        if (ROSEN_LE(radius, epsilon)) {
+            ApplyColorFilter(canvas, outImage, src, dst);
+            return;
+        }
+
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
             canvas.DrawBlurImage(*outImage, Drawing::HpsBlurParameter(
                 src, dst, radius, saturationForHPS_, brightnessForHPS_))) {

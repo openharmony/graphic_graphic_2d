@@ -504,7 +504,7 @@ SimpleColorSpace& GetColorSpaceOfCertainGamut(GraphicColorGamut colorGamut,
     }
 }
 
-const uint16_t maxUint10 = 1023;
+const uint16_t MAX_UINT10 = 1023;
 float RGBUint8ToFloat(uint8_t val)
 {
     return val * 1.0f / 255.0f; // 255.0f is the max value.
@@ -513,7 +513,7 @@ float RGBUint8ToFloat(uint8_t val)
 // Used to transfer integers of pictures with color depth of 10 bits to float
 float RGBUint10ToFloat(uint16_t val)
 {
-    return val * 1.0f / maxUint10; // 1023.0f is the max value
+    return val * 1.0f / MAX_UINT10; // 1023.0f is the max value
 }
 
 uint8_t RGBFloatToUint8(float val)
@@ -525,7 +525,7 @@ uint8_t RGBFloatToUint8(float val)
 uint16_t RGBFloatToUint10(float val)
 {
     // 1023.0 is the max value, + 0.5f to avoid negative.
-    return static_cast<uint16_t>(Saturate(val) * maxUint10 + 0.5f);
+    return static_cast<uint16_t>(Saturate(val) * MAX_UINT10 + 0.5f);
 }
 
 Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f &srcColor,
@@ -786,7 +786,7 @@ void RSBaseRenderUtil::SetNeedClient(bool flag)
 
 bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
 {
-    if (IsForceClient()) {
+    if (RSSystemProperties::IsForceClient()) {
         RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
         return true;
     }
@@ -826,13 +826,6 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
         return true;
     }
     return false;
-}
-
-bool RSBaseRenderUtil::IsForceClient()
-{
-    static bool forceClient =
-        std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0;
-    return forceClient;
 }
 
 BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,
@@ -1630,5 +1623,23 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
         return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
 }
+
+int RSBaseRenderUtil::GetAccumulatedBufferCount()
+{
+    return std::max(acquiredBufferCount_ -  1, 0);
+}
+
+void RSBaseRenderUtil::IncAcquiredBufferCount()
+{
+    ++acquiredBufferCount_;
+    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
+void RSBaseRenderUtil::DecAcquiredBufferCount()
+{
+    --acquiredBufferCount_;
+    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
 } // namespace Rosen
 } // namespace OHOS

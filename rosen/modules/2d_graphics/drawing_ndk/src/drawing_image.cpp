@@ -15,6 +15,7 @@
 
 #include "drawing_image.h"
 #include "image/image.h"
+#include "utils/data.h"
 
 using namespace OHOS;
 using namespace Rosen;

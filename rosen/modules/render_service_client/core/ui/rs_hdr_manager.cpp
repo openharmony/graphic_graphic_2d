@@ -36,9 +36,9 @@ int RSHDRManager::IncreaseHDRNum()
     std::lock_guard<std::mutex> lockGuard(mutex_);
 
     hdrNum_++;
-    if (hdrNum_ == 1 && setHDRPresent_ != nullptr) {
+    if (hdrNum_ == 1 && setHDRPresent_ != nullptr && nodeId_ != INVALID_NODEID) {
         ROSEN_LOGD("SetHDRPresent true");
-        setHDRPresent_(true);
+        setHDRPresent_(true, nodeId_);
     }
 
     return hdrNum_;
@@ -54,9 +54,9 @@ int RSHDRManager::ReduceHDRNum()
     }
 
     hdrNum_--;
-    if (hdrNum_ == 0 && setHDRPresent_ != nullptr) {
+    if (hdrNum_ == 0 && setHDRPresent_ != nullptr && nodeId_ != INVALID_NODEID) {
         ROSEN_LOGD("SetHDRPresent false");
-        setHDRPresent_(false);
+        setHDRPresent_(false, nodeId_);
     }
 
     return hdrNum_;
@@ -67,13 +67,33 @@ void RSHDRManager::ResetHDRNum()
     hdrNum_ = 0;
 }
 
-void RSHDRManager::RegisterSetHDRPresent(HDRFunc func)
+int RSHDRManager::getHDRNum()
 {
-    if (func == nullptr || setHDRPresent_ != nullptr) {
-        ROSEN_LOGE("RegisterSetHDRPresent fail, func is null");
+    return hdrNum_;
+}
+
+void RSHDRManager::RegisterSetHDRPresent(HDRFunc func, NodeId id)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+
+    if (func == nullptr || setHDRPresent_ != nullptr || id == INVALID_NODEID) {
+        ROSEN_LOGE("RegisterSetHDRPresent fail");
         return;
     }
+    nodeId_ = id;
     setHDRPresent_ = func;
+}
+
+void RSHDRManager::UnRegisterSetHDRPresent(NodeId id)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+
+    if (nodeId_ != id) {
+        return;
+    }
+    nodeId_ = INVALID_NODEID;
+    setHDRPresent_ = nullptr;
+    ResetHDRNum();
 }
 
 } // namespace Rosen

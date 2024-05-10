@@ -60,6 +60,7 @@ protected:
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);
     void SetMirrorScreenSwap(const RSDisplayRenderNode& node);
+    void CalculateMirrorAdaptiveMatrix();
 
     void MultiLayersPerf(size_t layerNum);
     void RequestPerf(uint32_t layerLevel, bool onOffTag);
@@ -71,9 +72,11 @@ protected:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
+    ScreenInfo mirroredScreenInfo_;
     float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     Drawing::Matrix screenTransformMatrix_;
+    Drawing::Matrix mirrorAdaptiveMatrix_;
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;

@@ -29,14 +29,6 @@
 
 namespace OHOS::Rosen {
 
-struct FileImageCacheRecord {
-    std::shared_ptr<void> image;
-    uint32_t imageSize = 0u;
-    uint32_t skipBytes = 0u;
-};
-
-using FileImageCache = std::map<uint64_t, FileImageCacheRecord>;
-
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
 
@@ -75,7 +67,6 @@ public:
 
     void AddHeaderPid(pid_t pid);
     const std::vector<pid_t>& GetHeaderPids() const;
-    void SetImageCache(FileImageCache* cache);
 
     uint32_t AddLayer();
     void LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value);
@@ -106,6 +97,9 @@ public:
 
     bool HasLayer(uint32_t layer) const;
 
+    void SetPreparedHeader(const std::vector<uint8_t>& headerData);
+    void GetPreparedHeader(std::vector<uint8_t>& headerData);
+    void SetPreparedHeaderMode(bool mode);
     void Close();
 
     static const std::string& GetDefaultPath();
@@ -142,8 +136,6 @@ private:
         }
     }
 
-    void ReadTextureFromFile();
-
     using LayerTrackIndexPtr = uint32_t RSFileLayer::*;
     using LayerTrackMarkupPtr = RSFileLayer::TrackMarkup RSFileLayer::*;
     struct LayerTrackPtr {
@@ -164,10 +156,11 @@ private:
     std::vector<pid_t> headerPidList_;
     std::vector<RSFileLayer> layerData_;
     uint32_t writeDataOff_ = 0u; // last byte of file where we can continue writing
-    FileImageCache* imageCache_ = nullptr;
     std::string headerFirstFrame_;
     std::mutex writeMutex_;
     bool wasChanged_ = false;
+    std::vector<uint8_t> preparedHeader_;
+    bool preparedHeaderMode_ = false;
 };
 
 } // namespace OHOS::Rosen

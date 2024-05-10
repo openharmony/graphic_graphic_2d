@@ -16,10 +16,7 @@
 #ifndef SKIA_OPLIST_HANDLE_H
 #define SKIA_OPLIST_HANDLE_H
 
-#include "SkRect.h"
-// opinc_begin
 #include "draw/OpListHandle.h"
-// opinc_end
 
 namespace OHOS {
 namespace Rosen {

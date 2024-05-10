@@ -110,6 +110,14 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.boundRect = { 0, 0,
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
+    std::vector<GraphicIRect> dirtyRects;
+    for (auto& rect : node.GetDamageRegion()) {
+        dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
+    }
+    if (dirtyRects.empty()) {
+        dirtyRects.emplace_back(info.srcRect);
+    }
+    info.dirtyRects = dirtyRects;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
@@ -117,7 +125,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = RSBaseRenderUtil::IsForceClient();
+    info.needClient = RSSystemProperties::IsForceClient();
     auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
@@ -142,6 +150,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
         static_cast<int32_t>(dstRect.height_ * screenInfo_.GetRogHeightRatio())};
     info.boundRect = info.dstRect;
     info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    dirtyRects.emplace_back(GraphicIRect {0, 0, 0, 0});
+    info.dirtyRects = dirtyRects;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = 255; // 255 means not transparent
@@ -176,9 +187,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
-    std::vector<GraphicIRect> dirtyRegions;
-    dirtyRegions.emplace_back(info.srcRect);
-    layer->SetDirtyRegions(dirtyRegions);
+    layer->SetDirtyRegions(info.dirtyRects);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
@@ -488,6 +497,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_));
     info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_));
     info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    const Rect& dirtyRect = node.GetDamageRegion();
+    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
+    info.dirtyRects = dirtyRects;
     auto totalMatrix = node.GetTotalMatrix();
     info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
         totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
@@ -565,65 +578,118 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
 // private func, guarantee the layer is valid
 void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node)
 {
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
-        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        GraphicIRect dstRect = layer->GetLayerSize();
-        GraphicIRect srcRect = layer->GetCropRect();
+    GraphicIRect dstRect = layer->GetLayerSize();
+    GraphicIRect srcRect = layer->GetCropRect();
 
-        uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
-        uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
-        uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
-        uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
+    uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
+    uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
+    uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
+    uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
 
-        // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
-        // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
-        int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-            RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
-        if (surfaceRotation % FLAT_ANGLE != 0) {
-            std::swap(dstWidth, dstHeight);
-        }
-
-        if (newWidth * dstHeight > newHeight * dstWidth) {
-            // too wide
-            newWidth = dstWidth * newHeight / dstHeight;
-        } else if (newWidth * dstHeight < newHeight * dstWidth) {
-            // too tall
-            newHeight = dstHeight * newWidth / dstWidth;
-        } else {
-            return;
-        }
-
-        uint32_t currentWidth = static_cast<uint32_t>(srcRect.w);
-        uint32_t currentHeight = static_cast<uint32_t>(srcRect.h);
-
-        if (newWidth < currentWidth) {
-            // the crop is too wide
-            uint32_t dw = currentWidth - newWidth;
-            auto halfdw = dw / 2;
-            srcRect.x += static_cast<int32_t>(halfdw);
-            srcRect.w = static_cast<int32_t>(newWidth);
-        } else {
-            // thr crop is too tall
-            uint32_t dh = currentHeight - newHeight;
-            auto halfdh = dh / 2;
-            srcRect.y += static_cast<int32_t>(halfdh);
-            srcRect.h = static_cast<int32_t>(newHeight);
-        }
-        std::vector<GraphicIRect> dirtyRegions;
-        dirtyRegions.emplace_back(srcRect);
-        layer->SetDirtyRegions(dirtyRegions);
-        layer->SetCropRect(srcRect);
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
-            " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
-            dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+    // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
+    // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
+    int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+    if (surfaceRotation % FLAT_ANGLE != 0) {
+        std::swap(dstWidth, dstHeight);
     }
+
+    uint32_t newWidthDstHeight = newWidth * dstHeight;
+    uint32_t newHeightDstWidth = newHeight * dstWidth;
+
+    if (newWidthDstHeight > newHeightDstWidth) {
+        // too wide
+        newWidth = dstWidth * newHeight / dstHeight;
+    } else if (newWidthDstHeight < newHeightDstWidth) {
+        // too tall
+        newHeight = dstHeight * newWidth / dstWidth;
+    } else {
+        return;
+    }
+
+    uint32_t currentWidth = static_cast<uint32_t>(srcRect.w);
+    uint32_t currentHeight = static_cast<uint32_t>(srcRect.h);
+
+    if (newWidth < currentWidth) {
+        // the crop is too wide
+        uint32_t dw = currentWidth - newWidth;
+        auto halfdw = dw / 2;
+        srcRect.x += static_cast<int32_t>(halfdw);
+        srcRect.w = static_cast<int32_t>(newWidth);
+    } else {
+        // thr crop is too tall
+        uint32_t dh = currentHeight - newHeight;
+        auto halfdh = dh / 2;
+        srcRect.y += static_cast<int32_t>(halfdh);
+        srcRect.h = static_cast<int32_t>(newHeight);
+    }
+    std::vector<GraphicIRect> dirtyRegions;
+    dirtyRegions.emplace_back(srcRect);
+    layer->SetDirtyRegions(dirtyRegions);
+    layer->SetCropRect(srcRect);
+    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
+        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
+        dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+}
+
+// private func, guarantee the layer is valid
+void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const
+{
+    const auto& buffer = layer->GetBuffer();
+    const auto& surface = layer->GetSurface();
+    if (buffer == nullptr || surface == nullptr) {
+        RS_LOGE("buffer or surface is nullptr");
+        return;
+    }
+
+    GraphicIRect srcRect = layer->GetCropRect();
+    GraphicIRect dstRect = layer->GetLayerSize();
+
+    ScreenRotation rotation = screenInfo_.rotation;
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        std::swap(srcRect.w, srcRect.h);
+    }
+
+    uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
+    uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
+    uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
+    uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
+
+    uint32_t newWidthDstHeight = newWidth * dstHeight;
+    uint32_t newHeightDstWidth = newHeight * dstWidth;
+
+    if (newWidthDstHeight > newHeightDstWidth) {
+        newWidth = dstWidth;
+        newHeight = srcRect.h * newWidth / srcRect.w;
+    } else if (newWidthDstHeight < newHeightDstWidth) {
+        newHeight = dstHeight;
+        newWidth = srcRect.w * newHeight / srcRect.h;
+    } else {
+        newHeight = dstHeight;
+        newWidth = dstWidth;
+    }
+
+    if (newWidth < dstWidth) {
+        uint32_t dw = dstWidth - newWidth;
+        auto halfdw = dw / 2;
+        dstRect.x += halfdw;
+    } else if (newHeight < dstHeight) {
+        uint32_t dh = dstHeight - newHeight;
+        auto halfdh = dh / 2;
+        dstRect.y += halfdh;
+    }
+    dstRect.h = static_cast<int32_t>(newHeight);
+    dstRect.w = static_cast<int32_t>(newWidth);
+    layer->SetLayerSize(dstRect);
+    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleFit layer has been scalefit dst[%{public}d %{public}d"
+        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
+        dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
 
 // private func
@@ -675,7 +741,21 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
     LayerCrop(layer);
-    LayerScaleDown(layer, node);
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    const auto& buffer = layer->GetBuffer();
+    const auto& surface = layer->GetSurface();
+    if (buffer == nullptr || surface == nullptr) {
+        RS_LOGE("buffer or surface is nullptr");
+        return layer;
+    }
+
+    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+            LayerScaleDown(layer, node);
+        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+            LayerScaleFit(layer, node);
+        }
+    }
     return layer;
 }
 
@@ -703,7 +783,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_OPTIONAL_TRACE_END();
         return nullptr;
     }
-
+    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(node);
     RS_LOGD("RSUniRenderComposerAdapter::ProcessSurface displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
         " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"

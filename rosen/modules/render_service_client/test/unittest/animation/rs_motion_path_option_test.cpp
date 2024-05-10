@@ -114,15 +114,32 @@ HWTEST_F(RSMotionPathOptionTest, GetRotationModeTest001, TestSize.Level1)
      * @tc.steps: step1. init GetRotationMode
      */
     auto motionPathOption = std::make_unique<RSMotionPathOption>(ANIMATION_PATH);
-
-    for (const auto& data : END_FRACTION_DATA) {
-        motionPathOption->SetEndFraction(data);
-        EXPECT_EQ(data, motionPathOption->GetEndFraction());
-    }
+    motionPathOption->SetRotationMode(RotationMode::ROTATE_NONE);
+    EXPECT_EQ(RotationMode::ROTATE_NONE, motionPathOption->GetRotationMode());
     /**
      * @tc.steps: step2. start GetRotationMode test
      */
     GTEST_LOG_(INFO) << "RSMotionPathOptionTest GetRotationModeTest001 end";
+}
+
+/**
+ * @tc.name: GetPathNeedAddOrigin001
+ * @tc.desc: Verify the GetPathNeedAddOrigin of MotionPathOptionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMotionPathOptionTest, GetPathNeedAddOrigin001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMotionPathOptionTest GetPathNeedAddOrigin001 start";
+    /**
+     * @tc.steps: step1. init GetPathNeedAddOrigin
+     */
+    auto motionPathOption = std::make_unique<RSMotionPathOption>(ANIMATION_PATH);
+    motionPathOption->SetPathNeedAddOrigin(true);
+    ASSERT_TRUE(motionPathOption->GetPathNeedAddOrigin());
+    /**
+     * @tc.steps: step2. start GetPathNeedAddOrigin test
+     */
+    GTEST_LOG_(INFO) << "RSMotionPathOptionTest GetPathNeedAddOrigin001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -227,7 +227,7 @@ public:
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
-    void ReleaseBuffer(SurfaceBufferEntry buffer);
+    void ReleaseBuffer(SurfaceBufferEntry& buffer);
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);

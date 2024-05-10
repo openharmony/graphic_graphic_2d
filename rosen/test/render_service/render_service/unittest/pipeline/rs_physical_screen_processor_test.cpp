@@ -83,7 +83,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsHardwareProcessor);
-    ASSERT_EQ(nullptr, renderEngine);
+    ASSERT_EQ(uniRenderThread.uniRenderEngine_, renderEngine);
     ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
     RSUniRenderThread::Instance().InitGrContext();
     renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -303,48 +303,6 @@ HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
         rsHardwareProcessor->RequestPerf(level, onOffTag);
     }
     ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: InitForRenderThread
- * @tc.desc: test results of InitForRenderThread
- * @tc.type: FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSPhysicalScreenProcessorTest, InitForRenderThread, TestSize.Level1)
-{
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode node(id, config);
-    node.InitRenderParams();
-    ScreenId mirroredId = INVALID_SCREEN_ID;
-    std::shared_ptr<RSBaseRenderEngine> renderEngine;
-    ASSERT_FALSE(rsHardwareProcessor->InitForRenderThread(node, mirroredId, renderEngine));
-    renderEngine = std::make_shared<RSUniRenderEngine>();
-    ASSERT_TRUE(rsHardwareProcessor->InitForRenderThread(node, mirroredId, renderEngine));
-}
-
-/**
- * @tc.name: SetMirrorScreenSwap
- * @tc.desc: test results of SetMirrorScreenSwap
- * @tc.type: FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSPhysicalScreenProcessorTest, SetMirrorScreenSwap, TestSize.Level1)
-{
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode node(id, config);
-    node.InitRenderParams();
-    rsHardwareProcessor->SetMirrorScreenSwap(node);
-    auto mirrorSource = std::make_shared<RSDisplayRenderNode>(id + 1, config);
-    node.mirrorSource_ = mirrorSource;
-    rsHardwareProcessor->SetMirrorScreenSwap(node);
-    ASSERT_EQ(rsHardwareProcessor->screenInfo_.width, 0);
 }
 
 /**

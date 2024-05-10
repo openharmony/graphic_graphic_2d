@@ -334,8 +334,6 @@ public:
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
     bool IsValid(GPUContext* context) const;
-
-    bool pinAsTexture(GPUContext& context);
 #endif
 
     /**
@@ -445,8 +443,6 @@ public:
     // using for recording, should to remove after using shared memory
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
-
-    const sk_sp<SkImage> ExportSkImage();
 
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;

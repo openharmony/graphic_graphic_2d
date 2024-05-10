@@ -16,7 +16,6 @@
 #include "drawing_painter_impl.h"
 
 #include <array>
-#include "common.h"
 
 #include "include/core/SkBlurTypes.h"
 #include "include/core/SkMaskFilter.h"
@@ -35,9 +34,6 @@ const bool G_IS_HM_SYMBOL_TXT_ENABLE =
 const bool G_IS_HM_SYMBOL_TXT_ENABLE = true;
 #endif
 
-namespace {
-    constexpr int TRACE_LEVEL_TWO = 2;
-}
 
 namespace OHOS {
 namespace Rosen {
@@ -184,11 +180,6 @@ void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
 void RSCanvasParagraphPainter::drawTextShadow(const std::shared_ptr<RSTextBlob>& blob, SkScalar x, SkScalar y,
     SkColor color, SkScalar blurSigma)
 {
-    std::vector<uint16_t> glyphIds;
-    RSTextBlob::GetDrawingGlyphIDforTextBlob(blob.get(), glyphIds);
-    DRAWING_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-        "drawTextShadow: glyphIds.Size = %d, x = %f, y = %f, color = 0x%08X, blurSigma = %f.",
-        glyphIds.size(), x, y, color, blurSigma);
     Drawing::Filter filter;
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, blurSigma, false));
 

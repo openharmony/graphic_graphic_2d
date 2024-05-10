@@ -38,8 +38,17 @@ bool OH_Drawing_RectIntersect(OH_Drawing_Rect* cRect, const OH_Drawing_Rect* oth
     if (rect == nullptr || otherRect == nullptr) {
         return false;
     }
-
     return rect->Intersect(*otherRect);
+}
+
+bool OH_Drawing_RectJoin(OH_Drawing_Rect* cRect, const OH_Drawing_Rect* other)
+{
+    Rect* rect = CastToRect(cRect);
+    const Rect* otherRect = reinterpret_cast<const Rect*>(other);
+    if (rect == nullptr || otherRect == nullptr) {
+        return false;
+    }
+    return rect->Join(*otherRect);
 }
 
 void OH_Drawing_RectSetTop(OH_Drawing_Rect* cRect, float top)

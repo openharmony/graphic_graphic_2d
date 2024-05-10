@@ -41,7 +41,7 @@ inline std::pair<RSPropertyDrawable::DrawablePtr, RSPropertyDrawable::DrawablePt
     if (type == RSPaintFilterCanvas::kNone) {
         return {};
     } else if (type == RSPaintFilterCanvas::kCanvas) {
-        auto count = std::make_shared<int>(-1);
+        auto count = std::make_shared<uint32_t>(0);
         return { std::make_unique<RSSaveDrawable>(count), std::make_unique<RSRestoreDrawable>(count) };
     } else {
         auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();

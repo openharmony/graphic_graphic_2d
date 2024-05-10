@@ -125,6 +125,8 @@ public:
         std::unordered_map<std::string, std::string> appList;
         MultiAppStrategyType multiAppStrategyType;
         std::string multiAppStrategyName;
+        // <pkgName, appType>
+        std::unordered_map<std::string, std::string> appTypes;
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
