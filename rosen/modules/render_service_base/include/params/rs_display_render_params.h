@@ -100,6 +100,8 @@ public:
     bool HasSkipLayer();
     bool HasProtectedLayer();
     bool HasCaptureWindow();
+    void SetNeedOffscreen(bool needOffscreen);
+    bool GetNeedOffscreen() const;
 
     void SetRotationChanged(bool changed);
     bool IsRotationChanged() const;
@@ -131,6 +133,7 @@ private:
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     bool isMainAndLeashSurfaceDirty_ = false;
+    bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
 

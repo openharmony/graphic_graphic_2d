@@ -480,8 +480,8 @@ public:
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
-        RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode = false);
+    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
+        bool dirtyBelowContainsFilterNode = false, bool rotationChanged = false);
     bool IsFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 

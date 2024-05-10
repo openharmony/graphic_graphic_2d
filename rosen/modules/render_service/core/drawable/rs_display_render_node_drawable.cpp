@@ -510,7 +510,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        curCanvas_->ConcatMatrix(params->GetMatrix());
+
+        bool isOpDropped = uniParam->IsOpDropped();
+        bool needOffscreen = params->GetNeedOffscreen();
+        if (needOffscreen) {
+            uniParam->SetOpDropped(false);
+            PrepareOffscreenRender(*displayNodeSp);
+        } else {
+            curCanvas_->ConcatMatrix(params->GetMatrix());
+        }
+
         if (uniParam->IsOpDropped()) {
             auto region = GetFilpedRegion(damageRegionrects, screenInfo);
             uniParam->SetClipRegion(region);
@@ -528,6 +537,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         DrawCurtainScreen(*displayNodeSp, *curCanvas_);
         // switch color filtering
         SwitchColorFilter(*curCanvas_);
+        if (needOffscreen) {
+            Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+            canvasBackup_->ConcatMatrix(params->GetMatrix());
+            canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
+            uniParam->SetOpDropped(isOpDropped);
+        }
     }
     PostClearMemoryTask();
     rsDirtyRectsDfx.OnDraw(curCanvas_);

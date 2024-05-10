@@ -1795,8 +1795,8 @@ inline static bool IsLargeArea(int width, int height)
     return width > threshold && height > threshold;
 }
 
-void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
-    RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode)
+void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
+    bool dirtyBelowContainsFilterNode, bool rotationChanged)
 {
     if (IsInstanceOf<RSEffectRenderNode>() && ChildHasVisibleEffect()) {
         MarkFilterHasEffectChildren();
@@ -1804,6 +1804,10 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare filter cache is disabled.");
         return;
+    }
+    bool rotationClear = false;
+    if (!IsInstanceOf<RSEffectRenderNode>() && rotationChanged) {
+        rotationClear = true;
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
@@ -1813,7 +1817,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
         auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
-        if (dirtyBelowContainsFilterNode || bgDirty) {
+        if (dirtyBelowContainsFilterNode || bgDirty || rotationClear) {
             filterDrawable->MarkFilterForceClearCache();
         }
         if (filterDrawable->NeedPendingPurge()) {
