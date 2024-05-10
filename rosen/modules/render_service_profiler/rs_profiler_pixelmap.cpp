@@ -269,7 +269,7 @@ PixelMap* ImageSource::Unmarshalling(uint64_t id, Parcel& parcel)
         return nullptr;
     }
 
-#if !defined(_WIN32) && !defined(_APPLE) && !defined(IOS_PLATFORM) && !defined(A_PLATFORM)
+#if !defined(_WIN32) && !defined(_APPLE) && !defined(IOS_PLATFORM) && !defined(ANDROID_PLATFORM)
     if (context.allocType == AllocatorType::SHARE_MEM_ALLOC) {
         if (!UnmarshallFromSharedMem(context)) {
             return nullptr;
