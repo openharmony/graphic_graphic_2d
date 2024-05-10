@@ -35,6 +35,12 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int SHADER_FILTERS_SIZE = 10;
+const std::map<int, std::string> FILTER_TYPE_MAP {
+    { RSFilter::BLUR, "RSBlurFilterBlur" },
+    { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
+    { RSFilter::AIBAR, "RSAIBarFilterBlur" },
+    { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
+};
 }
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
     : RSFilter(), imageFilter_(imageFilter)
@@ -76,8 +82,7 @@ RSDrawingFilter::~RSDrawingFilter() {};
 std::string RSDrawingFilter::GetDescription()
 {
     std::string filterString;
-    std::map<int, std::string> filterTypeMap = RSFilter::filterTypeMap_;
-    filterString = filterTypeMap[RSFilter::type_];
+    filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
 
     for (const auto& shaderFilter : shaderFilters_) {
         switch (shaderFilter->GetShaderFilterType()) {
@@ -104,8 +109,7 @@ std::string RSDrawingFilter::GetDescription()
 std::string RSDrawingFilter::GetDetailedDescription()
 {
     std::string filterString;
-    std::map<int, std::string> filterTypeMap = RSFilter::filterTypeMap_;
-    filterString = filterTypeMap[RSFilter::type_];
+    filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
 
     for (const auto& shaderFilter : shaderFilters_) {
         switch (shaderFilter->GetShaderFilterType()) {

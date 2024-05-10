@@ -24,12 +24,7 @@ namespace OHOS {
 namespace Rosen {
 RSFilter::RSFilter()
     : type_(FilterType::NONE)
-{
-    filterTypeMap_[FilterType::BLUR] = "RSBlurFilterBlur";
-    filterTypeMap_[FilterType::MATERIAL] = "RSMaterialFilterBlur";
-    filterTypeMap_[FilterType::AIBAR] = "RSAIBarFilterBlur";
-    filterTypeMap_[FilterType::LINEAR_GRADIENT_BLUR] = "RSLinearGradientBlurFilterBlur";
-}
+{}
 
 RSFilter::~RSFilter() {}
 
