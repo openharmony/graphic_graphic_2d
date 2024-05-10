@@ -50,7 +50,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
-    "core/frame_rate_manager/hgm_idle_detector_strategy.cpp",
+    "core/frame_rate_manager/hgm_idle_detector.cpp",
     "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",
     "core/frame_rate_manager/hgm_touch_manager.cpp",

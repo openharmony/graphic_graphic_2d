@@ -25,6 +25,7 @@
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "hgm_command.h"
+#include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_one_shot_timer.h"
 #include "hgm_screen.h"
@@ -35,7 +36,6 @@
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
-#include "hgm_idle_detector_strategy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -111,7 +111,7 @@ public:
     bool IsLtpo() const { return isLtpo_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, bool isDvsyncOn);
-    void UniProcessDataForLtps(bool idleTimerExpired, uint64_t timestamp);
+    void UniProcessDataForLtps(bool idleTimerExpired);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
     std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;

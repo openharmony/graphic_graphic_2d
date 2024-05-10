@@ -47,7 +47,7 @@ public:
 
     std::string GetAppStrategyConfigName(const std::string& pkgName) const;
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const;
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
     void UpdateXmlConfigCache();
     PolicyConfigData::ScreenSetting& GetScreenSetting() const { return screenSettingCache_; }

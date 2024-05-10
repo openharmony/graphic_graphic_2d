@@ -176,7 +176,7 @@ void HgmFrameRateManager::UpdateAppSupportStatus()
 void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
     bool& needCheckAceAnimatorStatus)
 {
-    if (!needCheckAceAnimatorStatus) {
+    if (!needCheckAceAnimatorStatus || linker == nullptr) {
         return;
     }
     if (linker->GetAceAnimatorStatus() == false) {
@@ -314,12 +314,11 @@ void HgmFrameRateManager::ReportHiSysEvent(const FrameRateVoteInfo& frameRateVot
     }
 }
 
-void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired, uint64_t timestamp)
+void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
 {
     RS_TRACE_FUNC();
     Reset();
 
-    UpdateGuaranteedPlanVote(timestamp);
     if (idleTimerExpired) {
         // idle in ltps
         HandleIdleEvent(ADD_VOTE);

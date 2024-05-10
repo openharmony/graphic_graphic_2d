@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#include "hgm_additional_touch_strategy.h"
-
+#include "hgm_idle_detector.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr uint64_t SURFACE_TIME_OUT = 200000000; // 200ms
+    constexpr uint64_t MAX_BUFFER_COUNT = 10;
 }
 
 void HgmIdleDetector::SurfaceTimeUpdate(const std::string& name, uint64_t timestamp)
 {
-    if (!GetAppSupportStatus()) {
+    if (!GetAppSupportStatus() || frameTimeMap_.size() > MAX_BUFFER_COUNT) {
         if (!frameTimeMap_.empty()) {
             frameTimeMap_.clear();
         }
@@ -45,7 +45,7 @@ bool HgmIdleDetector::GetSurFaceIdleStatus(uint64_t timestamp)
     }
 
     for (auto it = frameTimeMap_.begin(); it != frameTimeMap_.end();) {
-        if (timestamp - it->second > SURFACE_TIME_OUT) {
+        if ((timestamp - it->second) > SURFACE_TIME_OUT) {
             it = frameTimeMap_.erase(it);
         } else {
             idle = false;

@@ -87,7 +87,7 @@ void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range, bool i
 
 void RSFrameRateLinker::UpdateFrameRateRangeImme(const FrameRateRange& range, bool isAnimatorStopped)
 {
-    if (currentRange_ != range || isAnimatorStopped != currAnimationStatus_) {
+    if (currentRange_ != range || currAnimationStatus_ != isAnimatorStopped) {
         currentRange_ = range;
         currAnimationStatus_ = isAnimatorStopped;
         RSInterfaces::GetInstance().SyncFrameRateRange(GetId(), range, isAnimatorStopped);

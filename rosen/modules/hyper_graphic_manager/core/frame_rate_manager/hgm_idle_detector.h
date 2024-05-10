@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef HGM_IDLE_DETECTOR_STRATEGY_H
-#define HGM_IDLE_DETECTOR_STRATEGY_H
+#ifndef HGM_IDLE_DETECTOR_H
+#define HGM_IDLE_DETECTOR_H
 
 #include <mutex>
 #include <unordered_map>
@@ -33,7 +33,7 @@ public:
         appSupported_ = appSupported;
     }
 
-    bool GetAppSupportStatus()
+    bool GetAppSupportStatus() const
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         return appSupported_;
@@ -44,34 +44,35 @@ public:
         aceAnimatorIdleState_ = aceAnimatorIdleState;
     }
 
-    bool GetAceAnimatorIdleStatus()
+    bool GetAceAnimatorIdleStatus() const
     {
         return aceAnimatorIdleState_;
     }
 
     void SetTouchUpTime(uint64_t touchUpTime)
     {
-        std::lock_guard<std::mutex> lock(touchUpTimeTimeMutex_);
+        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
         touchUpTime_ = touchUpTime;
     }
 
-    uint64_t GetTouchUpTime()
+    uint64_t GetTouchUpTime() const
     {
-        std::lock_guard<std::mutex> lock(touchUpTimeTimeMutex_);
+        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
         return touchUpTime_;
     }
 
     void SurfaceTimeUpdate(const std::string& name, uint64_t timestamp);
-    bool GetSurFaceIdleState(uint64_t timestamp);
+    bool GetSurFaceIdleState(uint64_t timestamp) const;
  
 private:
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
     uint64_t touchUpTime_ = 0;
     std::mutex appSupportedMutex_;
-    std::mutex touchUpTimeTimeMutex_;
+    std::mutex touchUpTimeMutex_;
+    // FORMAT: <buffername, time>
     std::unordered_map<std::string, uint64_t> frameTimeMap_;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // HGM_IDLE_DETECTOR_STRATEGY_H
+#endif // HGM_IDLE_DETECTOR_H

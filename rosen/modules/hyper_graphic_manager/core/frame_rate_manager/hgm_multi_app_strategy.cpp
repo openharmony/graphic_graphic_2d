@@ -150,8 +150,8 @@ std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkg
 
 HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes)
 {
-    auto &strategyConfigs = GetStrategyConfigs();
-    auto &strategyName = GetScreenSetting().strategy;
+    auto& strategyConfigs = GetStrategyConfigs();
+    auto& strategyName = GetScreenSetting().strategy;
     if (strategyConfigs.find(strategyName) != strategyConfigs.end()) {
         strategyRes = strategyConfigs.at(strategyName);
         return EXEC_SUCCESS;

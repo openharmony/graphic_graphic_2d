@@ -1540,7 +1540,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 
     // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
     if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
-        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_, timestamp);
+        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
     } else {
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,

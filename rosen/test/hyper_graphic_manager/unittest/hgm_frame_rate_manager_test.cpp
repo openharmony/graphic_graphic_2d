@@ -112,11 +112,10 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
 HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtps, Function | SmallTest | Level1)
 {
     bool flag = false;
-    uint64_t timestamp = 10000000;
     std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
     PART("CaseDescription") {
         STEP("1. check the result of UniProcessDataForLtps") {
-            frameRateMgr->UniProcessDataForLtps(flag, timestamp);
+            frameRateMgr->UniProcessDataForLtps(flag);
         }
     }
 }

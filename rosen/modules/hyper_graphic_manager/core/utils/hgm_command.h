@@ -76,11 +76,11 @@ enum class SceneType {
 enum DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
-    TOUCH_EXT_ENABLED = 2,
+    TOUCH_EXT_ENABLED = 2, // touch extend program
 };
 
 enum MultiAppStrategyType {
-    USE_MAX,
+    USE_MAX, 
     FOLLOW_FOCUS,
     USE_STRATEGY_NUM,
 };

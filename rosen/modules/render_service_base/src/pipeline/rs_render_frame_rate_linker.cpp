@@ -58,7 +58,6 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 }
 
 void RSRenderFrameRateLinker::SetAnimationIdle(bool status){
-    ROSEN_LOGD("Set IsAnimationIdle : %{public}d", status);
     isAnimationIdle_ = status;
 }
 
