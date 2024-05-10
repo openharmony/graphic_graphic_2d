@@ -33,7 +33,7 @@ public:
         appSupported_ = appSupported;
     }
 
-    bool GetAppSupportStatus() const
+    bool GetAppSupportStatus()
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         return appSupported_;
@@ -55,14 +55,14 @@ public:
         touchUpTime_ = touchUpTime;
     }
 
-    uint64_t GetTouchUpTime() const
+    uint64_t GetTouchUpTime()
     {
         std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
         return touchUpTime_;
     }
 
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
-    bool GetSurFaceIdleState(uint64_t timestamp) const;
+    bool GetSurFaceIdleState(uint64_t timestamp);
  
 private:
     bool appSupported_ = false;

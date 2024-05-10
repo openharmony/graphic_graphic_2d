@@ -36,7 +36,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& name, uint64_t timest
     frameTimeMap_[name] = timestamp;
 }
 
-bool HgmIdleDetector::GetSurFaceIdleStatus(uint64_t timestamp)
+bool HgmIdleDetector::GetSurFaceIdleState(uint64_t timestamp)
 {
     bool idle = true;
 
