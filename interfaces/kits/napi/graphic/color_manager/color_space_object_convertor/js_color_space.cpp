@@ -89,8 +89,8 @@ napi_value JsColorSpace::OnGetColorSpaceName(napi_env env, napi_callback_info in
         return CreateJsValue(env, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
     }
     CMLOGE("[NAPI]get color space name %{public}u, but not in api type", csName);
-    std::string errMsg = "Parameter check fails. Color space type " + std::to_string(static_cast<int32_t>(csName)) +
-        "does not in supported type list.";
+    std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +
+        std::to_string(static_cast<int32_t>(csName)) + "must be in supported type list.";
     napi_throw(env,
         CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
         errMsg));
