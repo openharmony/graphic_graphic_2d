@@ -73,7 +73,7 @@ bool RSFrameRateLinker::IsUniRenderEnabled() const
 
 void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range, bool isAnimatorStopped)
 {
-    if (currentRange_ != range || isAnimatorStopped != currAnimationStatus_) {
+    if (currentRange_ != range || currAnimationStatus_ != isAnimatorStopped) {
         currentRange_ = range;
         currAnimationStatus_ = isAnimatorStopped;
         std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(),

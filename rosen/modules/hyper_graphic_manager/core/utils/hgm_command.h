@@ -80,7 +80,7 @@ enum DynamicModeType : int32_t {
 };
 
 enum MultiAppStrategyType {
-    USE_MAX, 
+    USE_MAX,
     FOLLOW_FOCUS,
     USE_STRATEGY_NUM,
 };
