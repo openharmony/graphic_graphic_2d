@@ -103,30 +103,16 @@ void JsColorFilter::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO) {
-        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
-    napi_value tempValue = nullptr;
-    int32_t alpha = 0;
-    int32_t red = 0;
-    int32_t green = 0;
-    int32_t blue = 0;
-    napi_get_named_property(env, argv[0], "alpha", &tempValue);
-    bool isAlphaOk = ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[0], "red", &tempValue);
-    bool isRedOk = ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[0], "green", &tempValue);
-    bool isGreenOk = ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[0], "blue", &tempValue);
-    bool isBlueOk = ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
-    if (!(isAlphaOk && isRedOk && isGreenOk && isBlueOk)) {
-        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[0] is invalid");
-        return NapiGetUndefined(env);
+    int32_t argb[ARGC_FOUR] = {0};
+    if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+        ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The range of color channels must be [0, 255].");
     }
 
     uint32_t jsMode = 0;
@@ -135,20 +121,17 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
         return NapiGetUndefined(env);
     }
 
-    auto color = Color::ColorQuadSetARGB(alpha, red, green, blue);
+    auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateBlendModeColorFilter(color, BlendMode(jsMode));
     return JsColorFilter::Create(env, colorFilter);
 }
 
 napi_value JsColorFilter::CreateComposeColorFilter(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO) {
-        ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_object);
 
     JsColorFilter *jsColorFilter1 = nullptr;
     JsColorFilter *jsColorFilter2 = nullptr;

@@ -89,13 +89,12 @@ JsShadowLayer::~JsShadowLayer()
 
 napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_FOUR;
     napi_value argv[ARGC_FOUR] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc != ARGC_FOUR) {
-        ROSEN_LOGE("JsShadowLayer::Create argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
+    CHECK_EACH_PARAM(ARGC_TWO, napi_number);
+    CHECK_EACH_PARAM(ARGC_THREE, napi_object);
 
     double blurRadius = 0.0;
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], blurRadius)) {
@@ -115,26 +114,14 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    napi_value tempValue = nullptr;
-    int32_t alpha = 0;
-    int32_t red = 0;
-    int32_t green = 0;
-    int32_t blue = 0;
-    napi_get_named_property(env, argv[ARGC_THREE], "alpha", &tempValue);
-    bool isAlphaOk = ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[ARGC_THREE], "red", &tempValue);
-    bool isRedOk = ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[ARGC_THREE], "green", &tempValue);
-    bool isGreenOk = ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
-    napi_get_named_property(env, argv[ARGC_THREE], "blue", &tempValue);
-    bool isBlueOk = ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
-    if (!(isAlphaOk && isRedOk && isGreenOk && isBlueOk)) {
-        ROSEN_LOGE("JsShadowLayer::Create argv[3] is invalid");
-        return NapiGetUndefined(env);
+    int32_t argb[ARGC_FOUR] = {0};
+    if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+        ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The range of color channels must be [0, 255].");
     }
 
-    ColorQuad color = Color::ColorQuadSetARGB(alpha, red, green, blue);
-
+    ColorQuad color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     std::shared_ptr<BlurDrawLooper> looper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
     return JsShadowLayer::CreateLooper(env, looper);
 }

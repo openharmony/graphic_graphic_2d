@@ -99,13 +99,10 @@ void JsMaskFilter::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc != ARGC_TWO) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     uint32_t blurType = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], blurType)) {
