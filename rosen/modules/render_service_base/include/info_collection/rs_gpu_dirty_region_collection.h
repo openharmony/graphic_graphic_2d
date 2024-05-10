@@ -58,7 +58,7 @@ public:
     void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage);
     void UpdateGlobalDirtyInfoForDFX(RectI rect);
     void AddSkipProcessFramesNumberForDFX();
-    std::vector<ActiveDirtyRegionInfo>& GetActiveDirtyRegionInfo() const;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
     void ResetActiveDirtyRegionInfo();
     void ResetGlobalDirtyRegionInfo();
