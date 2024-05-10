@@ -435,13 +435,13 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
             }
         }
     }
-    Rosen::SKImageFilterFactory::TileMode tileMode = Rosen::SKImageFilterFactory::TileMode::DECAL;
+    TileMode tileMode = TileMode::DECAL;
     if (argc == ARGS_ONE) {
         EFFECT_LOG_I("FilterNapi parse input with default skTileMode.");
     } else if (argc == ARGS_TWO) {
         int32_t skTileMode = 0;
         napi_get_value_int32(env, argv[1], &skTileMode);
-        tileMode = <Rosen::SKImageFilterFactory::TileMode>(skTileMode);
+        tileMode = static_cast<TileMode>(skTileMode);
     }
 
     FilterNapi* thisFilter = nullptr;
@@ -450,7 +450,7 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
         EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
         return nullptr;
     }
-    blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
     thisFilter->AddNextFilter(blur);
     return _this;
 }
