@@ -76,7 +76,7 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
     FrameRateRange newRange = {60, 144, 120};
     frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
     frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, false);
-    frameRateLinker->UpdateFrameRateRangeImme(newRange,false);
+    frameRateLinker->UpdateFrameRateRangeImme(newRange, false);
 }
 
 /**
