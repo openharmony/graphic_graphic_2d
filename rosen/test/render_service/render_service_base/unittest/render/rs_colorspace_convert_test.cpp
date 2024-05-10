@@ -102,7 +102,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor003, TestSize.Level1)
     std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
     ASSERT_TRUE(img != nullptr);
 
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Creat().GetRefPtr();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
     ASSERT_TRUE(surfaceBuffer != nullptr);
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *img, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, sampling, matrix);
@@ -125,7 +125,7 @@ HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter001, Tes
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
 
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Creat().GetRefPtr();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
     ASSERT_TRUE(surfaceBuffer != nullptr);
     VPEParameter parameter;
 

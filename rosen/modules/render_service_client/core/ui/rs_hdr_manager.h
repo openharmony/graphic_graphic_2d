@@ -19,10 +19,12 @@
 #include <functional>
 #include <mutex>
 
+#include "ui/rs_node.h"
+
 namespace OHOS {
 namespace Rosen {
 
-using HDRFunc = std::function<void(bool)>;
+using HDRFunc = std::function<void(bool, NodeId)>;
 class RSHDRManager {
 public:
     ~RSHDRManager();
@@ -32,13 +34,15 @@ public:
     int ReduceHDRNum();
     void ResetHDRNum();
     int getHDRNum();
-    void RegisterSetHDRPresent(HDRFunc func);
+    void RegisterSetHDRPresent(HDRFunc func, NodeId id);
+    void UnRegisterSetHDRPresent(NodeId id);
     
 private:
     RSHDRManager();
     HDRFunc setHDRPresent_ = nullptr;
     int hdrNum_ = 0;
     std::mutex mutex_;
+    NodeId nodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS
