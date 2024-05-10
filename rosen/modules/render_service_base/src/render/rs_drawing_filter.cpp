@@ -81,9 +81,7 @@ RSDrawingFilter::~RSDrawingFilter() {};
 
 std::string RSDrawingFilter::GetDescription()
 {
-    std::string filterString;
-    filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
-
+    std::string filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
     for (const auto& shaderFilter : shaderFilters_) {
         switch (shaderFilter->GetShaderFilterType()) {
             case RSShaderFilter::KAWASE: {
@@ -108,9 +106,7 @@ std::string RSDrawingFilter::GetDescription()
 
 std::string RSDrawingFilter::GetDetailedDescription()
 {
-    std::string filterString;
-    filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
-
+    std::string filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
     for (const auto& shaderFilter : shaderFilters_) {
         switch (shaderFilter->GetShaderFilterType()) {
             case RSShaderFilter::KAWASE: {

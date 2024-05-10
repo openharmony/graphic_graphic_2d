@@ -902,8 +902,6 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
         canvas.SetBlender(blender);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-        "RSPropertyDrawableUtils::BeginBlender, blendModeApplyType: %d", blendModeApplyType);
 
     // save layer mode
     CeilMatrixTrans(&canvas);
