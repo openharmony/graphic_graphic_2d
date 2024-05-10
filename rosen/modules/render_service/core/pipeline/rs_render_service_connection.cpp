@@ -509,7 +509,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             return;
         }
         linker->SetExpectedRange(range);
-        linker->IsAnimationIdle(isAnimatorStopped);
+        linker->SetAnimationIdle(isAnimatorStopped);
     }).wait();
 }
 

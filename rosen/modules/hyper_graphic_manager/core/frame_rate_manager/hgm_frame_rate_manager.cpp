@@ -173,18 +173,18 @@ void HgmFrameRateManager::UpdateAppSupportStatus()
     idleDetector_.SetAppSupportStatus(flag);
 }
 
-void HgmFrameRateManager::SetAnimationVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
-    bool& needCheckAnimationStatus)
+void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
+    bool& needCheckAceAnimatorStatus)
 {
-    if (!needCheckAnimationStatus) {
+    if (!needCheckAceAnimatorStatus) {
         return;
     }
-    if (linker->GetAnimationStatus() == false) {
-        needCheckAnimationStatus = false;
-        idleDetector_.SetAnimationStatus(false);
+    if (linker->GetAceAnimatorStatus() == false) {
+        needCheckAceAnimatorStatus = false;
+        idleDetector_.SetAceAnimatorIdleStatus(false);
         return;
     }
-    idleDetector_.SetAnimationStatus(true);
+    idleDetector_.SetAceAnimatorIdleStatus(true);
 }
 
 void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
@@ -192,9 +192,9 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!idleDetector_.GetAppSupportStatus()) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AnimationIdleStatus = [%d]",
-        touchManager_.GetState(), idleDetector_.GetSurFaceIdleStatus(timestamp),
-        idleDetector_.GetAnimationIdleStatus());
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleStatus = [%d]",
+        touchManager_.GetState(), idleDetector_.GetSurFaceIdleState(timestamp),
+        idleDetector_.GetAceAnimatorIdleStatus());
 
     if (touchManager_.GetState() != TouchState::UP_STATE) {
         prepareCheck_ = false;
@@ -221,7 +221,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
         return;
     }
 
-    if (idleDetector_.GetSurFaceIdleStatus(timestamp) && idleDetector_.GetAnimationIdleStatus()) {
+    if (idleDetector_.GetSurFaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
         RS_TRACE_NAME_FMT("HgmFrameRateManager:: HandleThirdFrameIdle");
         touchManager_.HandleThirdFrameIdle();
     }
@@ -244,9 +244,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         if (finalRange.IsValid()) {
             frameRateVoteInfo.SetLtpoInfo(0, "ANIMATE");
         }
-        bool needCheckAnimationStatus = true;
+        bool needCheckAceAnimatorStatus = true;
         for (auto linker : appFrameRateLinkers) {
-            SetAnimationVote(linker.second, needCheckAnimationStatus);
+            SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
             if (finalRange.Merge(linker.second->GetExpectedRange())) {
                 frameRateVoteInfo.SetLtpoInfo(linker.second->GetId(), "APP_LINKER");
             }

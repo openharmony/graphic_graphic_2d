@@ -39,7 +39,7 @@ public:
         return id_;
     }
 
-    inline bool GetAnimationStatus() {
+    inline bool GetAceAnimatorStatus() {
         return isAnimationIdle_;
     }
 

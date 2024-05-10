@@ -35,7 +35,7 @@
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
-#include "hgm_additional_touch_strategy.h"
+#include "hgm_idle_detector_strategy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -137,7 +137,7 @@ private:
     void Reset();
     void UpdateAppSupportStatus();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
-    void SetAnimationVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAnimationStatus);
+    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAnimationStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);

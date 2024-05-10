@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef HGM_ADDITIONAL_TOUCH_STRATEGY_H
-#define HGM_ADDITIONAL_TOUCH_STRATEGY_H
+#ifndef HGM_IDLE_DETECTOR_STRATEGY_H
+#define HGM_IDLE_DETECTOR_STRATEGY_H
 
 #include <mutex>
 #include <unordered_map>
@@ -39,14 +39,14 @@ public:
         return appSupported_;
     }
 
-    void SetAnimationStatus(bool animationIdleState)
+    void SetAceAnimatorIdleStatus(bool aceAnimatorIdleState)
     {
-        animationIdleState_ = animationIdleState;
+        aceAnimatorIdleState_ = aceAnimatorIdleState;
     }
 
-    bool GetAnimationIdleStatus()
+    bool GetAceAnimatorIdleStatus()
     {
-        return animationIdleState_;
+        return aceAnimatorIdleState_;
     }
 
     void SetTouchUpTime(uint64_t touchUpTime)
@@ -62,11 +62,11 @@ public:
     }
 
     void SurfaceTimeUpdate(const std::string& name, uint64_t timestamp);
-    bool GetSurFaceIdleStatus(uint64_t timestamp);
+    bool GetSurFaceIdleState(uint64_t timestamp);
  
 private:
     bool appSupported_ = false;
-    bool animationIdleState_ = true;
+    bool aceAnimatorIdleState_ = true;
     uint64_t touchUpTime_ = 0;
     std::mutex appSupportedMutex_;
     std::mutex touchUpTimeTimeMutex_;
@@ -74,4 +74,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // HGM_ADDITIONAL_TOUCH_STRATEGY_H
+#endif // HGM_IDLE_DETECTOR_STRATEGY_H
