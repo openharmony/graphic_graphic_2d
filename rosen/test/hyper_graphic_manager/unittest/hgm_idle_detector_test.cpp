@@ -24,7 +24,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr std::string bufferName = "frameBuffer";
+    const std::string bufferName = "frameBuffer";
     constexpr uint64_t  currTime = 100000000;
     constexpr uint64_t  lastTime = 200000000;
 }
@@ -52,11 +52,13 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAppSupportStatus, Function | SmallTest | 
     std::unique_ptr<HgmIdleDetector> idledetector = std::make_unique<HgmIdleDetector>();
 
     PART("CaseDescription") {
-        STEP_ASSERT_NE(idledetector, nullptr);
-        STEP("1. set app support status") {
+        STEP("1. set an idledetector") {
+            STEP_ASSERT_NE(idledetector, nullptr);
+        }
+        STEP("2. set app support status") {
             idledetector->SetAppSupportStatus(false);
         }
-        STEP("2. get app support status") {
+        STEP("3. get app support status") {
             bool ret = idledetector->GetAppSupportStatus();
             STEP_ASSERT_EQ(ret, false);
         }
@@ -74,11 +76,13 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleStatus, Function | SmallTe
     std::unique_ptr<HgmIdleDetector> idledetector = std::make_unique<HgmIdleDetector>();
 
     PART("CaseDescription") {
-        STEP_ASSERT_NE(idledetector, nullptr);
-        STEP("1. set aceAnimator idle status") {
+        STEP("1. set an idledetector") {
+            STEP_ASSERT_NE(idledetector, nullptr);
+        }
+        STEP("2. set aceAnimator idle status") {
             idledetector->SetAceAnimatorIdleStatus(false);
         }
-        STEP("2. get aceAnimator idle status") {
+        STEP("3. get aceAnimator idle status") {
             bool ret = idledetector->GetAceAnimatorIdleStatus();
             STEP_ASSERT_EQ(ret, false);
         }
@@ -96,11 +100,13 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetTouchUpTime, Function | SmallTest | Level
     std::unique_ptr<HgmIdleDetector> idledetector = std::make_unique<HgmIdleDetector>();
 
     PART("CaseDescription") {
-        STEP_ASSERT_NE(idledetector, nullptr);
-        STEP("1. set app support status") {
+        STEP("1. set an idledetector") {
+            STEP_ASSERT_NE(idledetector, nullptr);
+        }
+        STEP("2. set app support status") {
             idledetector->SetTouchUpTime(currTime);
         }
-        STEP("2. get app support status") {
+        STEP("3. get app support status") {
             uint64_t time = idledetector->GetTouchUpTime();
             STEP_ASSERT_GE(time, 0);
         }
@@ -118,14 +124,16 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeStatus, Function | SmallTest |
     std::unique_ptr<HgmIdleDetector> idledetector = std::make_unique<HgmIdleDetector>();
 
     PART("CaseDescription") {
-        STEP_ASSERT_NE(idledetector, nullptr);
-        STEP("1. set app support status") {
+        STEP("1. set an idledetector") {
+            STEP_ASSERT_NE(idledetector, nullptr);
+        }
+        STEP("2. set app support status") {
             idledetector->SetAppSupportStatus(true);
         }
-        STEP("2. set buffer renew time") {
-            idledetector->SurfaceTimeUpdate(bufferName, currTime);
+        STEP("3. set buffer renew time") {
+            idledetector->UpdateSurfaceTime(bufferName, currTime);
         }
-        STEP("3. get buffer idle state") {
+        STEP("4. get buffer idle state") {
             bool ret = idledetector->GetSurFaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, false);
         }
