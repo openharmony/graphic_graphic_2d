@@ -48,6 +48,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
@@ -1098,10 +1099,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
-    if (isUniRender_) {
-        ResetHardwareEnabledState();
-        hasProtectedLayer_ = false;
-    }
+    ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
     bufferTimestamps_.clear();
@@ -1129,6 +1127,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
+            if (surfaceNode->IsCurrentFrameBufferConsumed() && surfaceNode->IsHardwareEnabledType()) {
+                GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
+                    surfaceNode->GetName(), surfaceHandler.GetDamageRegion());
+            }
             if (surfaceNode->IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
@@ -3251,14 +3253,17 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
     }
 }
 
-void RSMainThread::ResetHardwareEnabledState()
+void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 {
-    isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
-    isLastFrameDirectComposition_ = doDirectComposition_;
-    doDirectComposition_ = !isHardwareForcedDisabled_;
-    isHardwareEnabledBufferUpdated_ = false;
-    hardwareEnabledNodes_.clear();
-    selfDrawingNodes_.clear();
+    if (isUniRender) {
+        isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
+        isLastFrameDirectComposition_ = doDirectComposition_;
+        doDirectComposition_ = !isHardwareForcedDisabled_;
+        isHardwareEnabledBufferUpdated_ = false;
+        hasProtectedLayer_ = false;
+        hardwareEnabledNodes_.clear();
+        selfDrawingNodes_.clear();
+    }
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)

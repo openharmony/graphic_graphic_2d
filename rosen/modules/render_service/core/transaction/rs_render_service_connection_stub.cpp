@@ -1427,20 +1427,44 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_DIRTY_REGION_INFO) : {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            ScreenId id = data.ReadUint64();
-            GpuDirtyRegionInfo gpuDirtyRegionInfo = GetCurrentDirtyRegionInfo(id);
-            reply.WriteInt64(gpuDirtyRegionInfo.activeGpuDirtyRegionAreas);
-            reply.WriteInt64(gpuDirtyRegionInfo.globalGpuDirtyRegionAreas);
-            reply.WriteInt32(gpuDirtyRegionInfo.skipProcessFramesNumber);
-            reply.WriteInt32(gpuDirtyRegionInfo.activeFramesNumber);
-            reply.WriteInt32(gpuDirtyRegionInfo.globalFramesNumber);
-            reply.WriteString("");
+            const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
+            reply.WriteInt32(activeDirtyRegionInfos.size());
+            for (const auto& activeDirtyRegionInfo : activeDirtyRegionInfos) {
+                reply.WriteInt64(activeDirtyRegionInfo.activeDirtyRegionArea);
+                reply.WriteInt32(activeDirtyRegionInfo.activeFramesNumber);
+                reply.WriteInt32(activeDirtyRegionInfo.pidOfBelongsApp);
+                reply.WriteString(activeDirtyRegionInfo.windowName);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
+            reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas);
+            reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber);
+            reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_SYNTHESIS_MODE_INFO) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            const auto& LayerComposeInfo = GetLayerComposeInfo();
+            reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber);
+            reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber);
+            reply.WriteInt32(LayerComposeInfo.redrawFrameNumber);
             break;
         }
 #ifdef TP_FEATURE_ENABLE

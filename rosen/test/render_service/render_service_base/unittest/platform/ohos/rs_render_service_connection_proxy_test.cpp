@@ -856,20 +856,5 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RunOnRemoteDiedCallback, TestSize.L
     proxy->RunOnRemoteDiedCallback();
     ASSERT_NE(proxy->OnRemoteDiedCallback_, nullptr);
 }
-
-/**
- * @tc.name: GetCurrentDirtyRegionInfo Test
- * @tc.desc: GetCurrentDirtyRegionInfo Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSRenderServiceConnectionProxyTest, GetCurrentDirtyRegionInfo, TestSize.Level1)
-{
-    ScreenId id = 1;
-    ASSERT_EQ(proxy->GetCurrentDirtyRegionInfo(id).windowName, "");
-    proxy->SetVirtualScreenUsingStatus(true);
-    proxy->SetCurtainScreenUsingStatus(true);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
-}
 } // namespace Rosen
 } // namespace OHOS

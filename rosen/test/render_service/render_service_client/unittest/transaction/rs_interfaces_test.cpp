@@ -214,20 +214,6 @@ HWTEST_F(RSInterfacesTest, SetOnRemoteDiedCallback001, TestSize.Level1)
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
-/**
- * @tc.name: GetCurrentDirtyRegionInfo001
- * @tc.desc: test results of GetCurrentDirtyRegionInfo
- * @tc.type: FUNC
- * @tc.require: issueI9N0I9
- */
-HWTEST_F(RSInterfacesTest, GetCurrentDirtyRegionInfo001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.GetCurrentDirtyRegionInfo(1);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
 #ifdef TP_FEATURE_ENABLE
 /**
  * @tc.name: SetTpFeatureConfig001

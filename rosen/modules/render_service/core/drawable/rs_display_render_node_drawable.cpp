@@ -186,6 +186,8 @@ static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRend
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
         rects.emplace_back(rect);
+        RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
+        GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
 
     return rects;
@@ -300,6 +302,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
+    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX();
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif

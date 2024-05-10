@@ -27,6 +27,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -112,8 +113,12 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::vector<RSBaseRen
             Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
             surfaceNode->SetAlignedVisibleDirtyRegion(alignedRegion);
             allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
+                surfaceNode->GetName(), alignedRegion);
         } else {
             allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
+                surfaceNode->GetName(), surfaceVisibleDirtyRegion);
         }
     }
     return allSurfaceVisibleDirtyRegion;

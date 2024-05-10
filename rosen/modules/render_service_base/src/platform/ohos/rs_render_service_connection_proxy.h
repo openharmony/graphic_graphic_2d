@@ -216,7 +216,11 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
+
+    LayerComposeInfo GetLayerComposeInfo() override;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;

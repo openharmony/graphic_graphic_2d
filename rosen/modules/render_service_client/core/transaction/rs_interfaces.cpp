@@ -537,9 +537,22 @@ void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
 }
 
-GpuDirtyRegionInfo RSInterfaces::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSInterfaces::GetActiveDirtyRegionInfo()
 {
-    return renderServiceClient_->GetCurrentDirtyRegionInfo(id);
+    const auto& activeDirtyRegionInfo = renderServiceClient_->GetActiveDirtyRegionInfo();
+    return activeDirtyRegionInfo;
+}
+
+GlobalDirtyRegionInfo RSInterfaces::GetGlobalDirtyRegionInfo()
+{
+    const auto& globalDirtyRegionInfo = renderServiceClient_->GetGlobalDirtyRegionInfo();
+    return globalDirtyRegionInfo;
+}
+
+LayerComposeInfo RSInterfaces::GetLayerComposeInfo()
+{
+    const auto& layerComposeInfo = renderServiceClient_->GetLayerComposeInfo();
+    return layerComposeInfo;
 }
 
 #ifdef TP_FEATURE_ENABLE
