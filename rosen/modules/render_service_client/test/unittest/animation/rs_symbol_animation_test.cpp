@@ -126,7 +126,9 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase001, TestSize.Level1)
     auto symbolAnimation = RSSymbolAnimation();
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     auto bounceSecondPhaseParas = BOUNCE_SECOND_PHASE_PARAS;
-    symbolAnimation.ScaleAnimationBase(canvasNode, bounceSecondPhaseParas, groupAnimation);
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
+    symbolAnimation.AddScaleBaseModifier(canvasNode, bounceSecondPhaseParas, scaleProperty);
+    symbolAnimation.ScaleAnimationBase(scaleProperty, bounceSecondPhaseParas, groupAnimation);
         /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
@@ -152,7 +154,9 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase002, TestSize.Level1)
     auto symbolAnimation = RSSymbolAnimation();
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     Drawing::DrawingPiecewiseParameter testParas = {};
-    symbolAnimation.ScaleAnimationBase(canvasNode, testParas, groupAnimation);
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
+    symbolAnimation.AddScaleBaseModifier(canvasNode, testParas, scaleProperty);
+    symbolAnimation.ScaleAnimationBase(scaleProperty, testParas, groupAnimation);
         /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
@@ -499,7 +503,8 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
      */
     auto symbolAnimation = RSSymbolAnimation();
     auto newCanvasNode = RSCanvasNode::Create();
-    auto pivotProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.1f, 0.1f));
+    Vector2f pivotOffset = Vector2f(0.1f, 0.1f); // 0.1f is offset on x-axis and y-axis
+    auto pivotProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(pivotOffset);
     auto pivotModifier = std::make_shared<RSPivotModifier>(pivotProperty);
     newCanvasNode->AddModifier(pivotModifier);
     symbolAnimation.SetNodePivot(newCanvasNode);
