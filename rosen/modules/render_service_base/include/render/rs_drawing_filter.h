@@ -41,6 +41,7 @@ public:
         std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters, uint32_t hash);
     ~RSDrawingFilter() override;
 
+    std::string GetDescription() override;
     std::string GetDetailedDescription() override;
     Drawing::Brush GetBrush() const;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,

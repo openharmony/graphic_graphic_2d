@@ -16,6 +16,7 @@
 #ifndef ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
 #define ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
 
+#include <map>
 #include <memory>
 #include <stdint.h>
 
@@ -114,6 +115,7 @@ protected:
     FilterType type_;
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;
+    std::map<int, std::string> filterTypeMap_;
     RSFilter();
     virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
