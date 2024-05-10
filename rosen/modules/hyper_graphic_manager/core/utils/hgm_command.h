@@ -147,6 +147,7 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
+    bool videoFrameRateVoteSwitch_ = false;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

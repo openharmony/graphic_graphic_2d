@@ -98,7 +98,8 @@
           "libuv",
           "icu",
           "libpng",
-          "libxml2"
+          "libxml2",
+          "ffrt"
         ],
         "third_party": [
           "flutter",

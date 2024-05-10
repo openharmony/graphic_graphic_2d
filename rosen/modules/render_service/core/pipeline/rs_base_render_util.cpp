@@ -26,6 +26,7 @@
 #include "include/utils/SkCamera.h"
 #include "platform/common/rs_log.h"
 #include "png.h"
+#include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data.h"
 
@@ -979,6 +980,8 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
     surfaceHandler.ReduceAvailableBuffer();
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(consumer->GetUniqueId(),
+        consumer->GetSurfaceSourceType(), surfaceBuffer->timestamp);
     surfaceBuffer = nullptr;
     return true;
 }

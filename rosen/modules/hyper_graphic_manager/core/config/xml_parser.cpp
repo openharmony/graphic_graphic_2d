@@ -164,6 +164,8 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
     } else if (paraName == "screen_config") {
         setResult = ParseScreenConfig(node);
+    } else if (paraName == "rs_video_frame_rate_vote_config") {
+        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
     } else {
         setResult = 0;
     }
