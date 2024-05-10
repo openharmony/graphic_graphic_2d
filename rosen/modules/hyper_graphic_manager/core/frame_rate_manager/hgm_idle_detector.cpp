@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint64_t SURFACE_TIME_OUT = 200000000; // 200ms
+    constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr uint64_t MAX_BUFFER_COUNT = 10;
 }
 
@@ -45,7 +45,7 @@ bool HgmIdleDetector::GetSurFaceIdleState(uint64_t timestamp)
     }
 
     for (auto it = frameTimeMap_.begin(); it != frameTimeMap_.end();) {
-        if ((timestamp - it->second) > SURFACE_TIME_OUT) {
+        if ((timestamp - it->second) > BUFFER_IDLE_TIME_OUT) {
             it = frameTimeMap_.erase(it);
         } else {
             idle = false;

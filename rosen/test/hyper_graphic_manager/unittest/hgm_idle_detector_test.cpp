@@ -24,7 +24,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr std::string bufferName = "surface";
+    constexpr std::string bufferName = "frameBuffer";
     constexpr uint64_t  currTime = 100000000;
     constexpr uint64_t  lastTime = 200000000;
 }
@@ -122,10 +122,10 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeStatus, Function | SmallTest |
         STEP("1. set app support status") {
             idledetector->SetAppSupportStatus(true);
         }
-        STEP("2. set surface time") {
+        STEP("2. set buffer renew time") {
             idledetector->SurfaceTimeUpdate(bufferName, currTime);
         }
-        STEP("3. get surface time state") {
+        STEP("3. get buffer idle state") {
             bool ret = idledetector->GetSurFaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, false);
         }

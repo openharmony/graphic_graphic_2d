@@ -164,7 +164,8 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
+    const FrameRateRange& range, bool isAnimatorStopped)
 {
 }
 
