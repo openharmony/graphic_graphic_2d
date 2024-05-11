@@ -102,14 +102,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMat
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradient(const OH_Drawing_Point* cCenterPt, float radius,
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
-    if (cCenterPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (cCenterPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT,
         *CastToPoint(cCenterPt), radius, colorsVector, posVector, static_cast<TileMode>(cTileMode));
@@ -119,14 +121,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
     const OH_Drawing_Point2D* centerPt, float radius, const uint32_t* colors, const float* pos, uint32_t size,
     OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
 {
-    if (centerPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (centerPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(
         ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, *CastToPoint(centerPt), radius, colorsVector, posVector,
@@ -136,14 +140,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Drawing_Point* cCenterPt,
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
-    if (cCenterPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (cCenterPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
         *CastToPoint(cCenterPt), colorsVector, posVector, static_cast<TileMode>(cTileMode), 0,

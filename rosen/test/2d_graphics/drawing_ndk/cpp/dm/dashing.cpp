@@ -42,6 +42,7 @@ static void drawline(OH_Drawing_Canvas *canvas, int on, int off, OH_Drawing_Pen 
     OH_Drawing_PenSetPathEffect(pen, effect);
     OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasDrawLine(canvas, dashings.startX, dashings.startY, dashings.finalX, dashings.finalY);
+    OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_PathEffectDestroy(effect);
 }
 
@@ -55,7 +56,6 @@ static void show_zero_len_dash(OH_Drawing_Canvas *canvas)
     OH_Drawing_PenSetWidth(pen, width);
     OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
     drawline(canvas, 4, 4, pen, dashings);     // 4, 4int on, int off
-    OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_PenDestroy(pen);
 }
 
@@ -217,12 +217,13 @@ Dashing4::Dashing4()
 
 Dashing4::~Dashing4() {}
 
-void Dashing4::DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings)
+void Dashing4::DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen)
 {
     struct Intervals {
         int fOnInterval;
         int fOffInterval;
     };
+    Dashings dashings;
     for (int width = 0; width <= 2; ++width) { // 2 max
         for (const Intervals &data : { Intervals { 1, 1 }, Intervals { 4, 2 }, Intervals { 0, 4 } }) {
             // test for zero length on interval.zero length intervals should draw.a line of squares or circles
@@ -242,66 +243,96 @@ void Dashing4::DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashin
     }
 }
 
-void Dashing4::DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings)
+void Dashing4::DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen)
 {
     for (int aa = 0; aa <= 1; ++aa) {
         OH_Drawing_PenSetAntiAlias(pen, aa);
         OH_Drawing_PenSetWidth(pen, 8.f);
         OH_Drawing_PenSetCap(pen, LINE_SQUARE_CAP);
         // Single dash element that is cut off at start and end
-        dashings.finalX = 20.0;                    // 20.0 坐标
-        dashings.phase = 5.0;                      // 5.0 坐标
-        drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 20.0, 0, 5.0 画线
-        OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 56.0;                    // 56.0 坐标
-        // Two dash elements where each one is cut off at beginning and end respectively
-        drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 56.0, 0, 5.0 画线
-        OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 584.0;                   // 584.0 坐标
-        // Many dash elements where first and last are cut off at beginning and end respectively
-        drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 584.0, 0, 5.0 画线
-        OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        {
+            Dashings dashings;
+            dashings.finalX = 20.0;                    // 20.0 坐标
+            dashings.phase = 5.0;                      // 5.0 坐标
+            drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 20.0, 0, 5.0 画线
+            OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        }
 
-        // Diagonal dash line where src pnts are not axis aligned (as apposed to being diagonal from
-        // a canvas rotation)
-        dashings.finalX = 600.0;                   // 600.0 坐标
-        dashings.finalY = 30.0;                    // 30.0 坐标
-        drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 600.0, 30.0 画线
-        OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 8.0;                     // 8.0 坐标
-        dashings.finalY = 0.0;
-        dashings.phase = 40.0; // 40.0 坐标
-        // Case where only the off interval exists on the line. Thus nothing should be drawn
-        drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 8.0, 0.0, 40.0 画线
-        OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        {
+            Dashings dashings;
+            dashings.finalX = 56.0;                    // 56.0 坐标
+            dashings.phase = 5.0;                      // 5.0 坐标
+            // Two dash elements where each one is cut off at beginning and end respectively
+            drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 56.0, 0, 5.0 画线
+        }
+
+        {
+            OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+            dashings.finalX = 584.0;                   // 584.0 坐标
+            dashings.phase = 5.0;                      // 5.0 坐标
+            // Many dash elements where first and last are cut off at beginning and end respectively
+            drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 584.0, 0, 5.0 画线
+            OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        }
+        
+        {
+            Dashings dashings;
+            // Diagonal dash line where src pnts are not axis aligned (as apposed to being diagonal from
+            // a canvas rotation)
+            dashings.finalX = 600.0;                   // 600.0 坐标
+            dashings.finalY = 30.0;                    // 30.0 坐标
+            drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 600.0, 30.0 画线
+            OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        }
+
+        {
+            Dashings dashings;
+            dashings.finalX = 8.0;                     // 8.0 坐标
+            dashings.finalY = 0.0;
+            dashings.phase = 40.0; // 40.0 坐标
+            // Case where only the off interval exists on the line. Thus nothing should be drawn
+            drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 8.0, 0.0, 40.0 画线
+            OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
+        }
     }
 }
 
-void Dashing4::DashingThree(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings)
+void Dashing4::DashingThree(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen)
 {
-    OH_Drawing_CanvasTranslate(canvas, 5, 20); // 5, 20平移坐标
-    OH_Drawing_PenSetAntiAlias(pen, true);
-    OH_Drawing_PenSetCap(pen, LINE_ROUND_CAP);
-    OH_Drawing_PenSetColor(pen, 0x44000000);
-    OH_Drawing_PenSetWidth(pen, 40);        // 40宽度
-    drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
+    {
+        Dashings dashings;
+        OH_Drawing_CanvasTranslate(canvas, 5, 20); // 5, 20平移坐标
+        OH_Drawing_PenSetAntiAlias(pen, true);
+        OH_Drawing_PenSetCap(pen, LINE_ROUND_CAP);
+        OH_Drawing_PenSetColor(pen, 0x44000000);
+        OH_Drawing_PenSetWidth(pen, 40);        // 40宽度
+        drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
+    }
+    
+    {
+        Dashings dashings;
+        OH_Drawing_CanvasTranslate(canvas, 0, 50); // 0, 50平移坐标
+        OH_Drawing_PenSetCap(pen, LINE_SQUARE_CAP);
+        drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
+    }
 
-    OH_Drawing_CanvasTranslate(canvas, 0, 50); // 0, 50平移坐标
-    OH_Drawing_PenSetCap(pen, LINE_SQUARE_CAP);
-    drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
+    {
+        Dashings dashings;
+        // Test we draw the cap when the line length is zero.
+        OH_Drawing_CanvasTranslate(canvas, 0, 50); // 0, 50平移坐标
+        OH_Drawing_PenSetCap(pen, LINE_ROUND_CAP);
+        OH_Drawing_PenSetColor(pen, 0xFF000000);
+        OH_Drawing_PenSetWidth(pen, 11); // 11宽度
+        dashings.finalX = 0.0;
+        drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
+    }
 
-    // Test we draw the cap when the line length is zero.
-    OH_Drawing_CanvasTranslate(canvas, 0, 50); // 0, 50平移坐标
-    OH_Drawing_PenSetCap(pen, LINE_ROUND_CAP);
-    OH_Drawing_PenSetColor(pen, 0xFF000000);
-    OH_Drawing_PenSetWidth(pen, 11); // 11宽度
-    dashings.finalX = 0.0;
-    drawline(canvas, 0, 30, pen, dashings); // 0, 30 int on, int off
-
-    OH_Drawing_CanvasTranslate(canvas, 100, 0); // 100, 0平移坐标
-    drawline(canvas, 1, 30, pen, dashings);     // 1, 30 int on, int off
-
-    OH_Drawing_PenDestroy(pen);
+    {
+        Dashings dashings;
+        dashings.finalX = 0.0;
+        OH_Drawing_CanvasTranslate(canvas, 100, 0); // 100, 0平移坐标
+        drawline(canvas, 1, 30, pen, dashings);     // 1, 30 int on, int off
+    }
 }
 
 void Dashing4::OnTestFunction(OH_Drawing_Canvas *canvas)
@@ -309,8 +340,8 @@ void Dashing4::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
     OH_Drawing_CanvasTranslate(canvas, 20, 20);   // 20, 20平移坐标
     OH_Drawing_CanvasTranslate(canvas, 0.5, 0.5); // 0.5, 0.5平移坐标
-    Dashings dashings;
-    DashingNum(canvas, pen, dashings);
-    DashingTow(canvas, pen, dashings);
-    DashingThree(canvas, pen, dashings);
+    DashingNum(canvas, pen);
+    DashingTow(canvas, pen);
+    DashingThree(canvas, pen);
+    OH_Drawing_PenDestroy(pen);
 }
