@@ -216,9 +216,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers " \
             "expectCommitTime: %lu, currTime: %lu, delayTime: %ld, pipelineOffset: %ld, period: %ld",
             expectCommitTime, currTime, delayTime, pipelineOffset, period);
-        if (RSMainThread::Instance()->rsVSyncDistributor_->IsUiDvsyncOn()) {
-            PostTask(task);
-        } else if (period == 0 || delayTime <= 0) {
+        if (RSMainThread::Instance()->rsVSyncDistributor_->IsUiDvsyncOn() || period == 0 || delayTime <= 0) {
             PostTask(task);
         } else {
             PostDelayTask(task, delayTime);
