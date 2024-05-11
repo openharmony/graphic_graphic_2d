@@ -407,7 +407,8 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
     renderService->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
+    const FrameRateRange& range, bool isAnimatorStopped)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -415,7 +416,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const Frame
         return;
     }
 
-    return renderService->SyncFrameRateRange(id, range);
+    return renderService->SyncFrameRateRange(id, range, isAnimatorStopped);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
@@ -1222,13 +1223,31 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
     }
 }
 
-GpuDirtyRegionInfo RSRenderServiceClient::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return GpuDirtyRegionInfo {};
+        return {};
     }
-    return renderService->GetCurrentDirtyRegionInfo(id);
+    return renderService->GetActiveDirtyRegionInfo();
+}
+
+GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return GlobalDirtyRegionInfo {};
+    }
+    return renderService->GetGlobalDirtyRegionInfo();
+}
+
+LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return LayerComposeInfo {};
+    }
+    return renderService->GetLayerComposeInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE

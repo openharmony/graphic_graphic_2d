@@ -635,24 +635,6 @@ HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: HandleSubThreadNodeTest
- * @tc.desc: Verify function HandleSubThreadNode
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, HandleSubThreadNodeTest, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSSurfaceRenderNode node(id);
-    auto canva = std::make_shared<Drawing::Canvas>();
-    RSPaintFilterCanvas canvas(canva.get());
-    EXPECT_FALSE(RSUniRenderUtil::HandleSubThreadNode(node, canvas));
-    node.SetIsMainThreadNode(false);
-    RSMainThread::Instance()->deviceType_ = DeviceType::PC;
-    EXPECT_TRUE(RSUniRenderUtil::HandleSubThreadNode(node, canvas));
-}
-
-/**
  * @tc.name: ReleaseColorPickerResourceTest
  * @tc.desc: Verify function ReleaseColorPickerResource
  * @tc.type:FUNC

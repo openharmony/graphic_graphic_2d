@@ -445,7 +445,7 @@ HWTEST_F(RSClientTest, SetScreenRefreshRate001, TestSize.Level1)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     FrameRateLinkerId id = 0;
     FrameRateRange range;
-    rsClient->SyncFrameRateRange(id, range);
+    rsClient->SyncFrameRateRange(id, range, false);
     uint32_t rateToSet = 990; // 990 for test
     rsClient->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);

@@ -27,6 +27,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -112,8 +113,12 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::vector<RSBaseRen
             Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
             surfaceNode->SetAlignedVisibleDirtyRegion(alignedRegion);
             allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
+                surfaceNode->GetName(), alignedRegion);
         } else {
             allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
+                surfaceNode->GetName(), surfaceVisibleDirtyRegion);
         }
     }
     return allSurfaceVisibleDirtyRegion;
@@ -426,7 +431,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 
 bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
 {
-    if (RSBaseRenderUtil::IsForceClient()) {
+    if (RSSystemProperties::IsForceClient()) {
         RS_LOGD("RSUniRenderUtil::IsNeedClient: force client.");
         return true;
     }
@@ -1282,53 +1287,109 @@ void RSUniRenderUtil::LayerScaleDown(RSSurfaceRenderNode& node)
         return;
     }
     constexpr uint32_t FLAT_ANGLE = 180;
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    auto ret = surface->GetScalingMode(buffer->GetSeqNum(), scalingMode);
-    if (ret == GSERROR_OK &&
-        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        auto dstRect = node.GetDstRect();
-        auto srcRect = node.GetSrcRect();
- 
-        uint32_t newWidth = static_cast<uint32_t>(srcRect.width_);
-        uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
-        uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
-        uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
- 
-        // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
-        // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
-        int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-            RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
-        if (surfaceRotation % FLAT_ANGLE != 0) {
-            std::swap(dstWidth, dstHeight);
-        }
-        if (newWidth * dstHeight > newHeight * dstWidth) {
-            // too wide
-            newWidth = dstWidth * newHeight / dstHeight;
-        } else if (newWidth * dstHeight < newHeight * dstWidth) {
-            // too tall
-            newHeight = dstHeight * newWidth / dstWidth;
-        } else {
-            return;
-        }
- 
-        uint32_t currentWidth = static_cast<uint32_t>(srcRect.width_);
-        uint32_t currentHeight = static_cast<uint32_t>(srcRect.height_);
- 
-        if (newWidth < currentWidth) {
-            // the crop is too wide
-            uint32_t dw = currentWidth - newWidth;
-            auto halfdw = dw / 2;
-            srcRect.left_ += static_cast<int32_t>(halfdw);
-            srcRect.width_ = static_cast<int32_t>(newWidth);
-        } else {
-            // thr crop is too tall
-            uint32_t dh = currentHeight - newHeight;
-            auto halfdh = dh / 2;
-            srcRect.top_ += static_cast<int32_t>(halfdh);
-            srcRect.height_ = static_cast<int32_t>(newHeight);
-        }
-        node.SetSrcRect(srcRect);
+    auto dstRect = node.GetDstRect();
+    auto srcRect = node.GetSrcRect();
+
+    uint32_t newWidth = static_cast<uint32_t>(srcRect.width_);
+    uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
+    uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
+    uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
+
+    // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
+    // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
+    int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+    if (surfaceRotation % FLAT_ANGLE != 0) {
+        std::swap(dstWidth, dstHeight);
     }
+
+    uint32_t newWidthDstHeight = newWidth * dstHeight;
+    uint32_t newHeightDstWidth = newHeight * dstWidth;
+
+    if (newWidthDstHeight > newHeightDstWidth) {
+        // too wide
+        newWidth = dstWidth * newHeight / dstHeight;
+    } else if (newWidthDstHeight < newHeightDstWidth) {
+        // too tall
+        newHeight = dstHeight * newWidth / dstWidth;
+    } else {
+        return;
+    }
+
+    uint32_t currentWidth = static_cast<uint32_t>(srcRect.width_);
+    uint32_t currentHeight = static_cast<uint32_t>(srcRect.height_);
+
+    if (newWidth < currentWidth) {
+        // the crop is too wide
+        uint32_t dw = currentWidth - newWidth;
+        auto halfdw = dw / 2;
+        srcRect.left_ += static_cast<int32_t>(halfdw);
+        srcRect.width_ = static_cast<int32_t>(newWidth);
+    } else {
+        // thr crop is too tall
+        uint32_t dh = currentHeight - newHeight;
+        auto halfdh = dh / 2;
+        srcRect.top_ += static_cast<int32_t>(halfdh);
+        srcRect.height_ = static_cast<int32_t>(newHeight);
+    }
+    node.SetSrcRect(srcRect);
+}
+
+void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
+{
+    const auto& buffer = node.GetBuffer();
+    const auto& surface = node.GetConsumer();
+    if (buffer == nullptr || surface == nullptr) {
+        return;
+    }
+    constexpr uint32_t FLAT_ANGLE = 180;
+    auto dstRect = node.GetDstRect();
+    auto srcRect = node.GetSrcRect();
+
+    // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
+    // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
+    int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+    if (surfaceRotation % FLAT_ANGLE != 0) {
+        std::swap(srcRect.width_, srcRect.height_);
+    }
+
+    uint32_t newWidth = static_cast<uint32_t>(srcRect.width_);
+    uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
+    uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
+    uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
+    
+    uint32_t newWidthDstHeight = newWidth * dstHeight;
+    uint32_t newHeightDstWidth = newHeight * dstWidth;
+
+    if (newWidthDstHeight > newHeightDstWidth) {
+        newWidth = dstWidth;
+        newHeight = srcRect.height_ * newWidth / srcRect.width_;
+    } else if (newWidthDstHeight < newHeightDstWidth) {
+        newHeight = dstHeight;
+        newWidth = srcRect.width_ * newHeight / srcRect.height_;
+    } else {
+        newHeight = dstHeight;
+        newWidth = dstWidth;
+    }
+
+    if (newWidth < dstWidth) {
+        uint32_t dw = dstWidth - newWidth;
+        auto halfdw = dw / 2;
+        dstRect.left_ += halfdw;
+    } else if (newHeight < dstHeight) {
+        uint32_t dh = dstHeight - newHeight;
+        auto halfdh = dh / 2;
+        dstRect.top_ += halfdh;
+    }
+    dstRect.height_ = static_cast<int32_t>(newHeight);
+    dstRect.width_ = static_cast<int32_t>(newWidth);
+    node.SetDstRect(dstRect);
+
+    RS_LOGD("RsDebug RSUniRenderUtil::LayerScaleFit layer has been scalefit dst[%{public}d %{public}d"
+        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
+        dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_, srcRect.left_,
+        srcRect.top_, srcRect.width_, srcRect.height_);
 }
 
 } // namespace Rosen

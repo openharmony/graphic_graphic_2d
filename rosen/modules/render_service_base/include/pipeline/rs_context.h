@@ -157,6 +157,7 @@ private:
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 

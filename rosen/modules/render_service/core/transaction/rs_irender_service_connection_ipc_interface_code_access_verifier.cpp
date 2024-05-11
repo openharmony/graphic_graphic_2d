@@ -45,18 +45,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
-            hasPermission = CheckPermission(code);
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CURRENT_DIRTY_REGION_INFO): {
-            hasPermission = CheckPermission(code);
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_POWER_STATUS): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
-            break;
-        }
         default: {
             break;
         }

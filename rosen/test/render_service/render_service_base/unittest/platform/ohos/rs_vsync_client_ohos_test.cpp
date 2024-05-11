@@ -57,18 +57,5 @@ HWTEST_F(RSVsyncClientTest, SetVsyncCallback_Test, TestSize.Level1)
     ASSERT_NE(vsyncClient, nullptr);
     vsyncClient->SetVsyncCallback(cb);
 }
-
-/**
- * @tc.name: RequestNextVsync Test
- * @tc.desc: RequestNextVsync Test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSVsyncClientTest, RequestNextVsync_Test, TestSize.Level1)
-{
-    ASSERT_NE(vsyncClient, nullptr);
-    vsyncClient->SetVsyncCallback(cb);
-    vsyncClient->RequestNextVsync();
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -27,6 +27,16 @@ RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColo
 
 RSMaskColorShaderFilter::~RSMaskColorShaderFilter() = default;
 
+int RSMaskColorShaderFilter::GetColorMode() const
+{
+    return colorMode_;
+}
+
+RSColor RSMaskColorShaderFilter::GetMaskColor() const
+{
+    return maskColor_;
+}
+
 void RSMaskColorShaderFilter::InitColorMod()
 {
     if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled) {

@@ -76,6 +76,7 @@ enum class SceneType {
 enum DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
+    TOUCH_EXT_ENABLED = 2, // touch extend program
 };
 
 enum MultiAppStrategyType {
@@ -127,6 +128,8 @@ public:
         std::string multiAppStrategyName;
         // <pkgName, appType>
         std::unordered_map<std::string, std::string> appTypes;
+        // <bufferName, fps>
+        std::unordered_map<std::string, std::string> appBufferList;
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;

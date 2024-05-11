@@ -1259,7 +1259,7 @@ void RSScreenManager::ClearFrameBufferIfNeed()
     RSHardwareThread::Instance().PostTask([this]() {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& [id, screen] : screens_) {
-            if (!screen) {
+            if (!screen || !screen->GetOutput()) {
                 continue;
             }
             if (screen->GetOutput()->GetBufferCacheSize() > 0) {

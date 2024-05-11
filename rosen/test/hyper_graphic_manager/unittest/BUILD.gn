@@ -32,6 +32,7 @@ ohos_unittest("hyper_graphic_manager_test") {
 
   sources = [
     "hgm_frame_rate_manager_test.cpp",
+    "hgm_idle_detector_test.cpp",
     "hgm_multi_app_strategy_test.cpp",
     "hgm_task_handle_thread_test.cpp",
     "hgm_touch_manager_test.cpp",

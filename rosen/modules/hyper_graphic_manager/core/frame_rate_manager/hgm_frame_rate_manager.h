@@ -25,6 +25,7 @@
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "hgm_command.h"
+#include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_one_shot_timer.h"
 #include "hgm_screen.h"
@@ -131,8 +132,13 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
+    void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
 private:
     void Reset();
+    void UpdateAppSupportStatus();
+    void UpdateGuaranteedPlanVote(uint64_t timestamp);
+    void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
+    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAnimationStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);
@@ -184,6 +190,10 @@ private:
     int32_t idleFps_ = 60;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    int32_t lastTouchState_ = IDLE_STATE;
+    bool startCheck_ = false;
+    bool prepareCheck_;
+    HgmIdleDetector idleDetector_;
 };
 } // namespace Rosen
 } // namespace OHOS

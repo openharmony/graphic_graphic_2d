@@ -100,7 +100,7 @@ public:
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
 
-    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) = 0;
+    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) = 0;
 
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 
@@ -246,7 +246,11 @@ public:
 
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
-    virtual GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) = 0;
+    virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
+
+    virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
+
+    virtual LayerComposeInfo GetLayerComposeInfo() = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

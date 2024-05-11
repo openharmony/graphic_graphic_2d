@@ -61,6 +61,26 @@ public:
         return disp_;
     };
 
+    inline const char *GetVendorValue() const
+    {
+        return vendorValue_.c_str();
+    }
+
+    inline const char *GetVersionValue() const
+    {
+        return versionValue_.c_str();
+    }
+
+    inline const char *GetClientApiValue() const
+    {
+        return clientApiValue_.c_str();
+    }
+
+    inline const char *GetExtensionValue() const
+    {
+        return extensionValue_.c_str();
+    }
+
     EGLBoolean QueryContext(EGLContext ctx, EGLint attribute, EGLint *value);
     EGLBoolean QuerySurface(EGLSurface surf, EGLint attribute, EGLint *value);
     EGLBoolean SwapBuffers(EGLSurface surf);
@@ -97,6 +117,7 @@ public:
 private:
     EglWrapperDisplay() noexcept;
     ~EglWrapperDisplay();
+    void UpdateQueryValue(EGLint *major, EGLint *minor);
     EGLDisplay GetEglNativeDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
     EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
     bool CheckObject(EglWrapperObject *obj);
@@ -115,7 +136,11 @@ private:
     std::mutex  lockMutex_;
     std::mutex  refLockMutex_;
     std::unordered_set<EglWrapperObject *> objects_;
-    uint32_t    refCnt_;
+    uint32_t refCnt_;
+    std::string versionValue_ {};
+    std::string vendorValue_ {};
+    std::string clientApiValue_ {};
+    std::string extensionValue_ {};
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H

@@ -44,6 +44,7 @@ public:
     {
         isOffscreenCanvas_ = isOffscreenCanvas;
     }
+    float GetLinearGradientBlurRadius() const;
 private:
     friend class RSMarshallingHelper;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;

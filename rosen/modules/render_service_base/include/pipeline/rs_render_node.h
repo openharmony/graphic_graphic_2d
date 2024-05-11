@@ -407,6 +407,14 @@ public:
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
+    bool GetCurFrameHasAnimation() const
+    {
+        return curFrameHasAnimation_;
+    }
+    void SetCurFrameHasAnimation(bool b)
+    {
+        curFrameHasAnimation_ = b;
+    }
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
@@ -918,6 +926,7 @@ private:
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;
+    bool curFrameHasAnimation_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;

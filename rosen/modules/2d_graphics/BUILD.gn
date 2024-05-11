@@ -358,6 +358,11 @@ foreach(item, ace_platforms) {
 if (!is_arkui_x) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
     platform = current_os
     if (platform == "mingw") {
       platform = "windows"
@@ -397,6 +402,11 @@ if (enable_text_gine) {
 
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics_canvaskit0310") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "$drawing_core_src_dir/draw/brush.cpp",
     "$drawing_core_src_dir/draw/color.cpp",

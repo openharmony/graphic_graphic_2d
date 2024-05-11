@@ -85,12 +85,11 @@ void RSTransactionData::AlarmRsNodeLog() const
 
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
     parcel.SetMaxCapacity(PARCEL_MAX_CPACITY);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);
-    success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
+    bool success = parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     success = success && parcel.WriteBool(isUniRender);
@@ -114,7 +113,9 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
+        if ((RSSystemProperties::GetUnmarshParallelFlag() &&
+            parcel.GetDataSize() > RSSystemProperties::GetUnMarshParallelSize()) ||
+            parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
             break;
         }
     }

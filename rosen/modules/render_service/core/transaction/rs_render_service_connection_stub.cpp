@@ -113,6 +113,8 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
+
     pid_t callingPid = GetCallingPid();
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     auto accessCount = securityUtils_.GetCodeAccessCounter(code);
@@ -166,7 +168,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
-            auto nodeId = RS_PROFILER_READ_NODE_ID(data);
+            auto nodeId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
             auto bundleName = data.ReadString();
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
@@ -174,7 +177,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
-            auto nodeId = RS_PROFILER_READ_NODE_ID(data);
+            auto nodeId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
             auto bundleName = data.ReadString();
@@ -199,11 +203,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            int32_t pid = RS_PROFILER_READ_PID(data);
+            int32_t pid = data.ReadInt32();
+            RS_PROFILER_PATCH_PID(data, pid);
             int32_t uid = data.ReadInt32();
             std::string bundleName = data.ReadString();
             std::string abilityName = data.ReadString();
-            uint64_t focusNodeId = RS_PROFILER_READ_NODE_ID(data);
+            uint64_t focusNodeId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, focusNodeId);
             int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
             reply.WriteInt32(status);
             break;
@@ -369,7 +375,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t min = data.ReadUint32();
             uint32_t max = data.ReadUint32();
             uint32_t preferred = data.ReadUint32();
-            SyncFrameRateRange(id, {min, max, preferred});
+            bool isAnimatorStopped = data.ReadBool();
+            SyncFrameRateRange(id, {min, max, preferred}, isAnimatorStopped);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
@@ -467,7 +474,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE): {
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -491,7 +499,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            uint32_t pid = static_cast<uint32_t>(RS_PROFILER_READ_PID(data));
+            uint32_t pid = data.ReadInt32();
+            RS_PROFILER_PATCH_PID(data, pid);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -547,7 +556,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            auto pid = RS_PROFILER_READ_PID(data);
+            auto pid = data.ReadInt32();
+            RS_PROFILER_PATCH_PID(data, pid);
             MemoryGraphic memoryGraphic = GetMemoryGraphic(pid);
             reply.WriteParcelable(&memoryGraphic);
             break;
@@ -644,7 +654,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             bool isFromRenderThread = data.ReadBool();
             if (remoteObject == nullptr) {
@@ -665,7 +676,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -1038,7 +1050,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             Drawing::Bitmap bm;
             bool result = GetBitmap(id, bm);
             reply.WriteBool(result);
@@ -1053,7 +1066,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             std::shared_ptr<Media::PixelMap> pixelmap =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             Drawing::Rect rect;
@@ -1134,7 +1148,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -1163,7 +1178,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            NodeId id = RS_PROFILER_READ_NODE_ID(data);
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
             int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
             reply.WriteInt32(status);
             break;
@@ -1427,20 +1443,44 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_DIRTY_REGION_INFO) : {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            ScreenId id = data.ReadUint64();
-            GpuDirtyRegionInfo gpuDirtyRegionInfo = GetCurrentDirtyRegionInfo(id);
-            reply.WriteInt64(gpuDirtyRegionInfo.activeGpuDirtyRegionAreas);
-            reply.WriteInt64(gpuDirtyRegionInfo.globalGpuDirtyRegionAreas);
-            reply.WriteInt32(gpuDirtyRegionInfo.skipProcessFramesNumber);
-            reply.WriteInt32(gpuDirtyRegionInfo.activeFramesNumber);
-            reply.WriteInt32(gpuDirtyRegionInfo.globalFramesNumber);
-            reply.WriteString("");
+            const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
+            reply.WriteInt32(activeDirtyRegionInfos.size());
+            for (const auto& activeDirtyRegionInfo : activeDirtyRegionInfos) {
+                reply.WriteInt64(activeDirtyRegionInfo.activeDirtyRegionArea);
+                reply.WriteInt32(activeDirtyRegionInfo.activeFramesNumber);
+                reply.WriteInt32(activeDirtyRegionInfo.pidOfBelongsApp);
+                reply.WriteString(activeDirtyRegionInfo.windowName);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
+            reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas);
+            reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber);
+            reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_SYNTHESIS_MODE_INFO) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            const auto& LayerComposeInfo = GetLayerComposeInfo();
+            reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber);
+            reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber);
+            reply.WriteInt32(LayerComposeInfo.redrawFrameNumber);
             break;
         }
 #ifdef TP_FEATURE_ENABLE

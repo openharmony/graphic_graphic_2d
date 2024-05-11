@@ -82,9 +82,14 @@ private:
     void AppearAnimation(
         const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
 
+    // add scaleModifier to rsNode
+    bool AddScaleBaseModifier(const std::shared_ptr<RSNode>& rsNode,
+        Drawing::DrawingPiecewiseParameter& scaleParameter,
+        std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty);
+
     // atomizated animation construct
-    void ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode, Drawing::DrawingPiecewiseParameter& scaleParamter,
-        std::vector<std::shared_ptr<RSAnimation>>& animations);
+    void ScaleAnimationBase(std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
+        Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations);
     void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode, Drawing::DrawingPiecewiseParameter& alphaParamter,
         std::vector<std::shared_ptr<RSAnimation>>& animations);
 

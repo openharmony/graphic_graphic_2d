@@ -478,7 +478,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
     rootnode->Prepare(rsRenderThreadVisitor);
     rootnode->Process(rsRenderThreadVisitor);
     rsRenderThreadVisitor->SetPartialRenderStatus(PartialRenderType::SET_DAMAGE, true);
-    rootnode->UpdateSuggestedBufferSize(10, 10);
     constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[1];
     auto canvasnode = std::make_shared<RSCanvasRenderNode>(nodeId2);
     canvasnode->InitRenderParams();

@@ -394,7 +394,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
         if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-            canvas.Clear(Drawing::Color::COLOR_WHITE);
+            Drawing::Brush rectBrush;
+            rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
+            canvas.AttachBrush(rectBrush);
+            canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+                surfaceParams.GetBounds().GetHeight()));
+            canvas.DetachBrush();
         }
         return;
     }
@@ -403,7 +408,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
             surfaceParams.GetId(), name_.c_str());
-        canvas.Clear(Drawing::Color::COLOR_BLACK);
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+            surfaceParams.GetBounds().GetHeight()));
+        canvas.DetachBrush();
         return;
     }
 

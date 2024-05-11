@@ -1324,7 +1324,7 @@ HWTEST_F(RSSurfaceNodeTest, SetForeground, TestSize.Level1)
     surfaceNode->SetForeground(true);
     surfaceNode->SetForceUIFirst(true);
     surfaceNode->SetAncoForceDoDirect(true);
-    surfaceNode->SetHDRPresent(true);
+    surfaceNode->SetHDRPresent(true, 0);
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
     //for test
     bool ret = true;

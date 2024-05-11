@@ -31,6 +31,8 @@ public:
     RSMaskColorShaderFilter operator=(const RSMaskColorShaderFilter&) = delete;
     ~RSMaskColorShaderFilter() override;
 
+    int GetColorMode() const;
+    RSColor GetMaskColor() const;
     void InitColorMod();
     void CaclMaskColor(std::shared_ptr<Drawing::Image>& image);
     const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;

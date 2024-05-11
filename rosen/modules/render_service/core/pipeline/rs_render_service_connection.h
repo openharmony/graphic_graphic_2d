@@ -50,10 +50,6 @@ public:
         return token_;
     }
 
-#ifdef RS_PROFILER_ENABLED
-    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-#endif
-
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
@@ -114,7 +110,7 @@ private:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -251,7 +247,11 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
+
+    LayerComposeInfo GetLayerComposeInfo() override;
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif

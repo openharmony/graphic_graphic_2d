@@ -66,11 +66,11 @@ HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange, TestSize.Level1)
     RSContext context;
     FrameRateLinkerId linkerId = 1;
     FrameRateRange range = { 0, 0, 0 };
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range);
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range, false);
 
     std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
     context.GetMutableFrameRateLinkerMap().RegisterFrameRateLinker(linkerPtr);
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range);
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range, false);
 }
 
 } // namespace Rosen

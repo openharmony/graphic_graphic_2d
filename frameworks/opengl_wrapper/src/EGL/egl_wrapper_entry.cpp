@@ -393,24 +393,23 @@ EGLBoolean EglQueryContextImpl(EGLDisplay dpy, EGLContext ctx,
 const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name)
 {
     ClearError();
-    WLOGD("");
-    EGLDisplay actualDpy = EGL_NO_DISPLAY;
-    if (dpy != EGL_NO_DISPLAY) {
-        EglWrapperDisplay *display = ValidateDisplay(dpy);
-        if (!display) {
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return nullptr;
+    }
+
+    switch (name) {
+        case EGL_VENDOR:
+            return display->GetVendorValue();
+        case EGL_VERSION:
+            return display->GetVersionValue();
+        case EGL_EXTENSIONS:
+            return display->GetExtensionValue();
+        case EGL_CLIENT_APIS:
+            return display->GetClientApiValue();
+        default:
             return nullptr;
-        }
-        actualDpy = display->GetEglDisplay();
     }
-
-    EglWrapperDispatchTablePtr table = &gWrapperHook;
-    if (table->isLoad && table->egl.eglQueryString) {
-        return table->egl.eglQueryString(actualDpy, name);
-    } else {
-        WLOGE("eglQueryString is not found.");
-    }
-
-    return nullptr;
 }
 
 EGLBoolean EglQuerySurfaceImpl(EGLDisplay dpy, EGLSurface surf,
