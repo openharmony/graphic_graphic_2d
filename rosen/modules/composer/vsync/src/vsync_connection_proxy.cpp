@@ -103,7 +103,8 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
     arg.WriteBool(dvsyncSwitch);
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, arg, ret, opt);
     if (res != NO_ERROR) {
-        return VSYNC_ERROR_BINDER_ERROR;
+        VLOGE("ipc send fail, error:%{public}d", res);
+        return VSYNC_ERROR_UNKOWN;
     }
     return VSYNC_ERROR_OK;
 }

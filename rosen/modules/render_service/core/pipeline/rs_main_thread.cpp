@@ -884,7 +884,7 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 #else
     if (rsVSyncDistributor_->IsUiDvsyncOn()) {
         transactionFlags += " cache (" + std::to_string(pid) + "," + std::to_string(curIndex) + ")";
-        RS_OPTIONAL_TRACE_NAME_FMT("trigger NextVsync for Dvsync-Cached command");
+        RS_TRACE_NAME("trigger NextVsync for Dvsync-Cached command");
         RequestNextVSync("fromRsMainCommand", timestamp_);
     }
 #endif
@@ -1566,8 +1566,11 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_) {
         return;
     }
+    DvsyncInfo info;
+    info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
+    info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
     // Check and processing refresh rate task.
-    frameRateMgr_->ProcessPendingRefreshRate(timestamp);
+    frameRateMgr_->ProcessPendingRefreshRate(timestamp, rsVSyncDistributor_->GetRefreshRate(), info);
 
     // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
     if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
@@ -1575,14 +1578,14 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     } else {
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
-            idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
+            idleTimerExpiredFlag_, info);
     }
 
     if (rsVSyncDistributor_->IsDVsyncOn()) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
         if (pendingRefreshRate != nullptr
-            && (!rsVSyncDistributor_->IsUiDvsyncOn() || rsVSyncDistributor_->GetRefreshRate() == *pendingRefreshRate)) {
+            && (!info.isUiDvsyncOn || rsVSyncDistributor_->GetRefreshRate() == *pendingRefreshRate)) {
             hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
             frameRateMgr_->ResetPendingRefreshRate();
         }

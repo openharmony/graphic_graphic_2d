@@ -92,13 +92,14 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
         std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
     ASSERT_NE(controller, nullptr);
     std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    DvsyncInfo info;
     PART("CaseDescription") {
         STEP("1. get a HgmFrameRateManager and check the result of UniProcessDataForLtpo") {
             ASSERT_NE(frameRateMgr, nullptr);
             HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(pid, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
             frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, false);
+            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, info);
         }
     }
 }

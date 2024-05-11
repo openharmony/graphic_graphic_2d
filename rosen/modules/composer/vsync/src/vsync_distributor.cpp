@@ -345,7 +345,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 #if defined(RS_ENABLE_DVSYNC)
     dvsync_->RNVNotify();
     if (!isRs_ && IsDVsyncOn()) {
-        con_.wait(locker, [this] {return dvsync_->WaitCond();})
+        con_.wait(locker, [this] {return dvsync_->WaitCond();});
     } else {
         con_.wait(locker);
     }
@@ -513,7 +513,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
         ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
     }
 
-    dvsync_->RecordVSync(now, period);
+    dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
 
     int64_t lastDVsyncTS = lastDVsyncTS_.load();
