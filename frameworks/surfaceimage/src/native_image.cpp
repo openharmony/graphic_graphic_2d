@@ -103,6 +103,15 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
     return image->consumer->GetTransformMatrix(matrix);
 }
 
+int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16])
+{
+    if (image == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->GetTransformMatrixV2(matrix);
+}
+
 int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 {
     if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
