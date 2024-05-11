@@ -2539,7 +2539,9 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         containerFilter_.insert({node.GetId(), globalFilterRect});
     }
     if (curSurfaceNode_ && !isNodeAddedToTransparentCleanFilters) {
-        node.MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(dirtyManager);
+        bool rotationChanged = curDisplayNode_ ?
+            curDisplayNode_->IsRotationChanged() || curDisplayNode_->IsLastRotationChanged() : false;
+        node.MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(dirtyManager, false, rotationChanged);
     }
 }
 

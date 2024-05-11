@@ -273,6 +273,9 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
+    bool IsLastRotationChanged() const {
+        return lastRotationChanged_;
+    }
     bool IsFirstTimeToProcessor() const {
         return isFirstTimeToProcessor_;
     }
@@ -425,6 +428,7 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+    bool lastRotationChanged_ = false;
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
