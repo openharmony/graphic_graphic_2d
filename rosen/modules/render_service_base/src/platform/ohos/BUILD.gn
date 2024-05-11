@@ -148,10 +148,6 @@ ohos_source_set("rosen_ohos_sources") {
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-  }
-
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",

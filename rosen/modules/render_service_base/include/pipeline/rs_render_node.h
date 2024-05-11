@@ -380,12 +380,6 @@ public:
         return isCacheSurfaceNeedUpdate_;
     }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    Vector4f GetOptionBufferBound() const;
-    Vector2f GetOpincBufferSize() const;
-    Drawing::Rect GetOpincBufferBound() const;
-#endif
-
     int GetShadowRectOffsetX() const;
     int GetShadowRectOffsetY() const;
 
@@ -492,12 +486,7 @@ public:
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
     enum NodeGroupType : uint8_t {
         NONE = 0,
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        GROUPED_BY_AUTO = 1,
-        GROUPED_BY_ANIM = GROUPED_BY_AUTO << 1,
-#else
         GROUPED_BY_ANIM = 1,
-#endif
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUP_TYPE_BUTT = GROUPED_BY_USER,
@@ -508,6 +497,30 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
+
+    // mark stable node
+    void OpincSetInAppStateStart(bool& unchangeMarkInApp);
+    void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
+    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable);
+    bool IsOpincUnchangeState();
+    std::string QuickGetNodeDebugInfo();
+
+    // mark support node
+    void OpincUpdateNodeSupportFlag(bool supportFlag);
+    virtual bool OpincGetNodeSupportFlag()
+    {
+        return isOpincNodeSupportFlag_;
+    }
+    bool IsMarkedRenderGroup();
+    bool OpincForcePrepareSubTree();
+
+    // sync to drawable
+    void OpincUpdateRootFlag(bool& unchangeMarkEnable);
+    bool OpincGetRootFlag() const;
+
+    // arkui mark
+    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
+    bool GetSuggestOpincNode() const;
 
     /////////////////////////////////////////////
 
@@ -556,14 +569,6 @@ public:
     {
         isTextureExportNode_ = isTextureExportNode;
     }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    class RSAutoCache;
-    const std::shared_ptr<RSAutoCache>& GetAutoCache();
-    bool isOpincRectOutParent_ = false;
-    bool isOpincPrepareDis_ = false;
-    bool isOpincRootNode_ = false;
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
@@ -816,9 +821,24 @@ private:
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    std::shared_ptr<RSAutoCache> autoCache_;
-#endif
+
+    // opinc state
+    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
+    int unchangeCount_ = 0;
+    int unchangeCountUpper_ = 3; // 3 time is the default to cache
+    int tryCacheTimes_ = 0;
+    bool isUnchangeMarkInApp_ = false;
+    bool isUnchangeMarkEnable_ = false;
+
+    bool isOpincNodeSupportFlag_ = true;
+    bool isSuggestOpincNode_ = false;
+    bool isNeedCalculate_ = false;
+    bool isOpincRootFlag_ = false;
+
+    // opinc state func
+    void NodeCacheStateChange(NodeChangeType type);
+    void SetCacheStateByRetrytime();
+    void NodeCacheStateReset(NodeCacheState nodeCacheState);
 
     std::shared_ptr<Drawing::Image> GetCompletedImage(
         RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);

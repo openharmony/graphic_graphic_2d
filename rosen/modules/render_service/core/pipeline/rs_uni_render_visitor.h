@@ -38,10 +38,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-#include "rs_auto_cache.h"
-#endif
-
 class SkPicture;
 namespace OHOS {
 namespace Rosen {
@@ -198,9 +194,6 @@ private:
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawCacheRegionForDFX(std::map<NodeId, RectI>& cacheRects);
     void DrawHwcRegionForDFX(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes);
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    void DrawAutoCacheRegionForDFX(std::vector<RectI, std::string> cacheRegionInfo);
-#endif
     void DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region);
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
@@ -482,16 +475,12 @@ private:
     std::stack<bool> isDrawingCacheChanged_ = {};
     std::vector<RectI> accumulatedDirtyRegions_ = {};
     bool isSubSurfaceEnabled_ = false;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
+
+    // opinc feature
     bool autoCacheEnable_ = false;
     bool autoCacheDrawingEnable_ = false;
-    RSRenderNode::RSAutoCache::NodeStragyType nodeCacheType_ = RSRenderNode::RSAutoCache::CACHE_NONE;
-    bool unchangeMark_ = false;
     bool unchangeMarkEnable_ = false;
-    bool isDiscardSurface_ = true;
-    std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
-    bool isOpincDropNodeExt_ = true;
-#endif
+    bool unchangeMarkInApp_ = false;
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

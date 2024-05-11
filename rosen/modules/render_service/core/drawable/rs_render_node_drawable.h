@@ -83,6 +83,15 @@ protected:
     static inline std::mutex drawingCacheInfoMutex_;
     static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
 
+    // opinc global state
+    static inline bool autoCacheEnable_ = false;
+    static inline bool autoCacheDrawingEnable_ = false;
+    static inline NodeStragyType nodeCacheType_ = NodeStragyType::CACHE_NONE;
+    static inline bool isDiscardSurface_ = true;
+    static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
+    static inline bool isOpincDropNodeExt_ = true;
+    static inline int opincRootTotalCount_ = 0;
+
     // used foe render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;

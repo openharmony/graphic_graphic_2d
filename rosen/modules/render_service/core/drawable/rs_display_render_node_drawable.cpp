@@ -379,6 +379,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         drawingCacheInfos_.clear();
     }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    autoCacheEnable_ = RSSystemProperties::IsDdgrOpincEnable();
+    autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
+    autoCacheRenderNodeInfos_.clear();
+    opincRootTotalCount_ = 0;
+#endif
+
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
     auto screenRotation = params->GetScreenRotation();
@@ -539,6 +546,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
             RSUniRenderUtil::DrawRectForDfx(*curCanvas_, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo);
+        }
+    }
+
+    if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
+        for (const auto& info : autoCacheRenderNodeInfos_) {
+            RSUniRenderUtil::DrawRectForDfx(*curCanvas_,
+                info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
         }
     }
 

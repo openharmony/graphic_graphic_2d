@@ -1966,6 +1966,20 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
     }
 }
 
+void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
+{
+    if (isSuggestOpincNode_ == isOpincNode) {
+        return;
+    }
+    isSuggestOpincNode_ = isOpincNode;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkSuggestOpincNode>(GetId(),
+        isOpincNode, isNeedCalculate);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);

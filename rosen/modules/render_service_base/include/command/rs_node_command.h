@@ -64,6 +64,7 @@ enum RSNodeCommandType : uint16_t {
 
     MARK_NODE_GROUP,
     MARK_NODE_SINGLE_FRAME_COMPOSER,
+    MARK_SUGGEST_OPINC_NODE,
 
     SET_NODE_NAME,
 };
@@ -126,6 +127,7 @@ public:
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
+    static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
@@ -227,6 +229,8 @@ ADD_COMMAND(RSMarkNodeGroup,
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer,
         NodeId, bool, pid_t))
+ADD_COMMAND(RSMarkSuggestOpincNode,
+    ARG(RS_NODE, MARK_SUGGEST_OPINC_NODE, RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,

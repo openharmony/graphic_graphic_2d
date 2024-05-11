@@ -195,10 +195,6 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
 
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-  }
-
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",

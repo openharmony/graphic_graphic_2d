@@ -796,9 +796,8 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return blurExtraFilterEnabled;
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
-    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
+    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "0")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
     static_cast<DdgrOpincDfxType>(std::atoi((
         system::GetParameter("persist.rosen.ddgr.opinctype.debugtype", "0")).c_str()));
@@ -810,13 +809,8 @@ DdgrOpincType RSSystemProperties::GetDdgrOpincType()
 
 bool RSSystemProperties::IsDdgrOpincEnable()
 {
-    return ((GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_RENDERCACHE ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_OPINCUPDATE) &&
-        (RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR)) ||
-        (GetDdgrOpincType() == DdgrOpincType::DDGR_UNRESTRICTED_MODE) ||
-        (GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW);
+    return (GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW ||
+        GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE);
 }
 
 bool RSSystemProperties::IsOpincRealDrawCacheEnable()
@@ -833,7 +827,6 @@ bool RSSystemProperties::GetAutoCacheDebugEnabled()
 {
     return GetDdgrOpincDfxType() == DdgrOpincDfxType::DDGR_OPINC_DFX_AUTO;
 }
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
 bool RSSystemProperties::GetViewOcclusionCullingEnabled()

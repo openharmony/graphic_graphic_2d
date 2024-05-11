@@ -48,10 +48,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-#include "rs_auto_cache.h"
-#endif
-
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -834,25 +830,6 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
     SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-void RSRenderNode::SetDirtyByOnTree(bool forceAddToActiveList)
-{
-    bool dirtyEmpty = dirtyTypes_.none();
-    if (isOnTheTree_ && (dirtyStatus_ < NodeDirty::ON_TREE_DIRTY || dirtyEmpty || forceAddToActiveList)) {
-        if (auto context = GetContext().lock()) {
-            context->AddActiveNode(shared_from_this());
-        }
-        SetParentSubTreeDirty();
-    }
-    dirtyStatus_ = NodeDirty::ON_TREE_DIRTY;
-}
-
-bool RSRenderNode::IsOnTreeDirty()
-{
-    return dirtyStatus_ == NodeDirty::ON_TREE_DIRTY && !GetRenderProperties().IsDirty();
-}
-#endif
 
 void RSRenderNode::CollectSurface(
     const std::shared_ptr<RSRenderNode>& node, std::vector<RSRenderNode::SharedPtr>& vec, bool isUniRender,
@@ -2447,21 +2424,9 @@ bool RSRenderNode::NeedInitCacheSurface()
         width = shadowRect.GetWidth();
         height = shadowRect.GetHeight();
     } else {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
-            auto& unionRect = GetAutoCache()->GetOpListUnionArea();
-            width = unionRect.GetWidth();
-            height = unionRect.GetHeight();
-        } else {
-            Vector2f size = GetOptionalBufferSize();
-            width =  size.x_;
-            height = size.y_;
-        }
-#else
         Vector2f size = GetOptionalBufferSize();
         width =  size.x_;
         height = size.y_;
-#endif
     }
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheSurface_ == nullptr) {
@@ -2476,23 +2441,9 @@ bool RSRenderNode::NeedInitCacheSurface()
 
 bool RSRenderNode::NeedInitCacheCompletedSurface()
 {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    int width = 0;
-    int height = 0;
-    if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
-        auto& unionRect = GetAutoCache()->GetOpListUnionArea();
-        width = static_cast<int>(unionRect.GetWidth());
-        height = static_cast<int>(unionRect.GetHeight());
-    } else {
-        Vector2f size = GetOptionalBufferSize();
-        width = static_cast<int>(size.x_);
-        height = static_cast<int>(size.y_);
-    }
-#else
     Vector2f size = GetOptionalBufferSize();
     int width = static_cast<int>(size.x_);
     int height = static_cast<int>(size.y_);
-#endif
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheCompletedSurface_ == nullptr) {
         return true;
@@ -2543,19 +2494,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         shadowRectOffsetX_ = -shadowRect.GetLeft();
         shadowRectOffsetY_ = -shadowRect.GetTop();
     } else {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
-            auto& unionRect = GetAutoCache()->GetOpListUnionArea();
-            width = unionRect.GetWidth();
-            height = unionRect.GetHeight();
-        } else {
-            width = boundsWidth_;
-            height = boundsHeight_;
-        }
-#else
         width = std::ceil(boundsWidth_);
         height = std::ceil(boundsHeight_);
-#endif
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -2629,31 +2569,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-Vector4f RSRenderNode::GetOptionBufferBound() const
-{
-    const auto& modifier = boundsModifier_ ? boundsModifier_ : frameModifier_;
-    if (!modifier) {
-        return {0.0f, 0.0f, 0.0f, 0.0f};
-    }
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
-    // bounds vector4f: x y z w -> left top width height
-    return renderProperty->Get();
-}
-
-Vector2f RSRenderNode::GetOpincBufferSize() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-
-Drawing::Rect RSRenderNode::GetOpincBufferBound() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_, vector4f.y_, vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-#endif
-
 void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
     if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
@@ -2662,17 +2577,8 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     auto cacheType = GetCacheType();
     canvas.Save();
     Vector2f size = GetOptionalBufferSize();
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    float scaleX = 1.0f;
-    float scaleY = 1.0f;
-    if (!(RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc())) {
-        scaleX = size.x_ / boundsWidth_;
-        scaleY = size.y_ / boundsHeight_;
-    }
-#else
     float scaleX = size.x_ / boundsWidth_;
     float scaleY = size.y_ / boundsHeight_;
-#endif
     canvas.Scale(scaleX, scaleY);
     auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
     if (cacheImage == nullptr) {
@@ -2700,16 +2606,6 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX + gravityTranslate.x_,
             -shadowRectOffsetY_ * scaleY + gravityTranslate.y_, samplingOptions);
     } else {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc() &&
-            GetAutoCache()->DrawAutoCache(canvas, *cacheImage, samplingOptions,
-            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
-            canvas.DetachBrush();
-            GetAutoCache()->DrawAutoCacheDfx(canvas);
-            canvas.Restore();
-            return;
-        }
-#endif
         if (canvas.GetTotalMatrix().HasPerspective()) {
             // In case of perspective transformation, make dstRect 1px outset to anti-alias
             Drawing::Rect dst(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight());
@@ -2907,11 +2803,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ & (NodeGroupType::GROUPED_BY_USER | NodeGroupType::GROUPED_BY_AUTO);
-#else
     return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER;
-#endif
 }
 
 bool RSRenderNode::IsSuggestedDrawInGroup() const
@@ -2934,13 +2826,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         } else {
             nodeGroupType_ &= ~type;
         }
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (type != NodeGroupType::GROUPED_BY_AUTO)) {
-            SetDirty();
-        }
-#else
         SetDirty();
-#endif
     }
     nodeGroupIncludeProperty_ = includeProperty;
 }
@@ -2965,26 +2851,12 @@ void RSRenderNode::CheckDrawingCacheType()
 {
     if (nodeGroupType_ == NodeGroupType::NONE) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    } else if (IsForcedDrawInGroup()) {
-#else
     } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_USER) {
-#endif
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
         SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     }
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-const std::shared_ptr<RSRenderNode::RSAutoCache>& RSRenderNode::GetAutoCache()
-{
-    if (autoCache_ == nullptr) {
-        autoCache_ = std::make_shared<RSRenderNode::RSAutoCache>(*this);
-    }
-    return autoCache_;
-}
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
 void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam)

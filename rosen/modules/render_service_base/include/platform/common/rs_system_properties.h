@@ -97,21 +97,16 @@ enum class SubTreePrepareCheckType {
     ENABLED = 2,                        // 2, Enable the IsSubTreeNeedPrepare check
 };
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
 enum class DdgrOpincType {
     DDGR_OPINC_NONE = 0,
     DDGR_AUTOCACHE,
     DDGR_AUTOCACHE_REALDRAW,
-    DDGR_RENDERCACHE,
-    DDGR_OPINCUPDATE,
-    DDGR_UNRESTRICTED_MODE,
 };
 
 enum class DdgrOpincDfxType {
     DDGR_OPINC_DFX_NONE,
     DDGR_OPINC_DFX_AUTO,
 };
-#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
@@ -228,13 +223,11 @@ public:
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
@@ -263,10 +256,8 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static const GpuApiType systemGpuApiType_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;
-#endif
 };
 
 } // namespace Rosen
