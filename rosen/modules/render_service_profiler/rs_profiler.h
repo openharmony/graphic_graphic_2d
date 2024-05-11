@@ -21,6 +21,8 @@
 
 #include "common/rs_vector4.h"
 
+#include "params/rs_display_render_params.h"
+
 #ifdef RS_PROFILER_ENABLED
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN() RSProfiler::OnFrameBegin()
@@ -42,6 +44,7 @@
 #define RS_PROFILER_PATCH_COMMAND(parcel, command) RSProfiler::PatchCommand(parcel, command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
+#define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -62,6 +65,7 @@
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
 #define RS_PROFILER_PATCH_COMMAND(parcel, command)
+#define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -96,14 +100,6 @@ class ArgList;
 class JsonWriter;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
-
-struct ImageCacheRecord {
-    std::shared_ptr<void> image;
-    uint32_t imageSize = 0u;
-    uint32_t skipBytes = 0u;
-};
-
-using ImageCache = std::map<uint64_t, ImageCacheRecord>;
 
 class RSProfiler {
 public:
@@ -148,13 +144,9 @@ public:
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
+    RSB_EXPORT static void SetDirtyRegion(const Occlusion::Region& dirtyRegion);
 
-// temporary
 public:
-    RSB_EXPORT static ImageCache& GetImageCache();
-    RSB_EXPORT static void ClearImageCache();
-    RSB_EXPORT static void AddImage(uint64_t id, void* image, uint32_t size, uint32_t skipBytes);
-    RSB_EXPORT static ImageCacheRecord* GetImage(uint64_t id);
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
 
 private:
@@ -171,12 +163,7 @@ private:
     RSB_EXPORT static void SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent);
     RSB_EXPORT static pid_t GetSubstitutingPid();
 
-    RSB_EXPORT static uint32_t GenerateImageId();
-    RSB_EXPORT static uint32_t GetImageCount();
-
 private:
-    RSB_EXPORT static std::string DumpImageCache();
-
     RSB_EXPORT static void SetReplayTimes(double replayStartTime, double recordStartTime);
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
@@ -254,8 +241,6 @@ private:
 
     static std::shared_ptr<RSRenderNode> GetRenderNode(uint64_t id);
     static void ProcessSendingRdc();
-
-    static double GetDirtyRegionRelative(RSContext& context);
 
     // Network interface
     using Command = void (*)(const ArgList&);

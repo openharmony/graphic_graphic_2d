@@ -52,6 +52,7 @@ public:
     SortedPaints& GetSortedPaints();
     void Reset();
 
+    static bool GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
 

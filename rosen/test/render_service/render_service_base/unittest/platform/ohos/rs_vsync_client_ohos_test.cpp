@@ -70,21 +70,5 @@ HWTEST_F(RSVsyncClientTest, RequestNextVsync_Test, TestSize.Level1)
     vsyncClient->SetVsyncCallback(cb);
     vsyncClient->RequestNextVsync();
 }
-
-/**
- * @tc.name: OnVsync_Test
- * @tc.desc: OnVsync Test
- * @tc.type:FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSVsyncClientTest, OnVsync_Test, TestSize.Level1)
-{
-    int64_t nanoTimestamp = 1;
-    RSVsyncClientOhos* clien = nullptr;
-    RSVsyncClientOhos::OnVsync(nanoTimestamp, clien);
-    RSVsyncClientOhos clienTwo;
-    RSVsyncClientOhos::OnVsync(nanoTimestamp, &clienTwo);
-    ASSERT_TRUE(true);
-}
 } // namespace Rosen
 } // namespace OHOS

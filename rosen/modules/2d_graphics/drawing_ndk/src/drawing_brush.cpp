@@ -56,6 +56,15 @@ OH_Drawing_Brush* OH_Drawing_BrushCreate()
     return (OH_Drawing_Brush*)new Brush;
 }
 
+OH_Drawing_Brush* OH_Drawing_BrushCopy(OH_Drawing_Brush* cBrush)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_Brush*)new Brush(*brush);
+}
+
 void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
 {
     delete CastToBrush(cBrush);

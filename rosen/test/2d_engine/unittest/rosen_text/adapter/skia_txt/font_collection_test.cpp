@@ -35,12 +35,33 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
     fontCollection->DisableFallback();
     fontCollection->DisableSystemFont();
     const uint8_t* data = nullptr;
-    OHOS::Rosen::Drawing::Typeface* typeface = fontCollection->LoadFont("familyname", data, 0);
+    auto typeface = fontCollection->LoadFont("familyname", data, 0);
     EXPECT_EQ(typeface == nullptr, true);
-    fontCollection->LoadThemeFont("familynametest", data, 0);
+    typeface = fontCollection->LoadThemeFont("familynametest", data, 0);
+    EXPECT_EQ(typeface == nullptr, true);
     std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
     EXPECT_EQ(fontMgr != nullptr, true);
-    fontCollection->AddLoadedFamilyName("familyname");
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest002
+ * @tc.desc: test for RegisterTypeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
+{
+    auto fontCollection = OHOS::Rosen::FontCollection::From(nullptr);
+    auto typeface = OHOS::Rosen::Drawing::Typeface::MakeDefault();
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface) {
+        return false;
+    });
+    EXPECT_EQ(fontCollection->RegisterTypeface(typeface), false);
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface) {
+        return typeface != nullptr;
+    });
+    EXPECT_EQ(fontCollection->RegisterTypeface(nullptr), false);
+    EXPECT_EQ(fontCollection->RegisterTypeface(typeface), true);
+    EXPECT_EQ(fontCollection->RegisterTypeface(typeface), true);
 }
 } // namespace Rosen
 } // namespace OHOS

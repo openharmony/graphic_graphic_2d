@@ -61,10 +61,7 @@ ohos_executable("bootanimation") {
     "src/util.cpp",
   ]
 
-  configs = [
-    ":bootanimation_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  configs = [ ":bootanimation_config" ]
 
   deps = [
     "$graphic_2d_root:libbootanimation_utils",
@@ -73,7 +70,6 @@ ohos_executable("bootanimation") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/cJSON:cjson_static",
   ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
@@ -83,6 +79,8 @@ ohos_executable("bootanimation") {
   }
 
   external_deps = [
+    "cJSON:cjson_static",
+    "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
     "hitrace:hitrace_meter",

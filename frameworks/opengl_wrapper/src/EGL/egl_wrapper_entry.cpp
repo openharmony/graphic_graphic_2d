@@ -300,7 +300,7 @@ EGLint EglGetErrorImpl(void)
 static __eglMustCastToProperFunctionPointerType FindBuiltinWrapper(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+    static void* dlglv3Handle = dlopen("/system/lib64/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
 #else
     static void* dlglv3Handle = dlopen("/system/lib/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
 #endif
@@ -393,24 +393,23 @@ EGLBoolean EglQueryContextImpl(EGLDisplay dpy, EGLContext ctx,
 const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name)
 {
     ClearError();
-    WLOGD("");
-    EGLDisplay actualDpy = EGL_NO_DISPLAY;
-    if (dpy != EGL_NO_DISPLAY) {
-        EglWrapperDisplay *display = ValidateDisplay(dpy);
-        if (!display) {
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return nullptr;
+    }
+
+    switch (name) {
+        case EGL_VENDOR:
+            return display->GetVendorValue();
+        case EGL_VERSION:
+            return display->GetVersionValue();
+        case EGL_EXTENSIONS:
+            return display->GetExtensionValue();
+        case EGL_CLIENT_APIS:
+            return display->GetClientApiValue();
+        default:
             return nullptr;
-        }
-        actualDpy = display->GetEglDisplay();
     }
-
-    EglWrapperDispatchTablePtr table = &gWrapperHook;
-    if (table->isLoad && table->egl.eglQueryString) {
-        return table->egl.eglQueryString(actualDpy, name);
-    } else {
-        WLOGE("eglQueryString is not found.");
-    }
-
-    return nullptr;
 }
 
 EGLBoolean EglQuerySurfaceImpl(EGLDisplay dpy, EGLSurface surf,

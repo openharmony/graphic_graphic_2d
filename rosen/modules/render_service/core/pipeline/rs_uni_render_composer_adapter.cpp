@@ -110,6 +110,14 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.boundRect = { 0, 0,
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
+    std::vector<GraphicIRect> dirtyRects;
+    for (auto& rect : node.GetDamageRegion()) {
+        dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
+    }
+    if (dirtyRects.empty()) {
+        dirtyRects.emplace_back(info.srcRect);
+    }
+    info.dirtyRects = dirtyRects;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
@@ -117,7 +125,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = RSBaseRenderUtil::IsForceClient();
+    info.needClient = RSSystemProperties::IsForceClient();
     auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
@@ -142,6 +150,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
         static_cast<int32_t>(dstRect.height_ * screenInfo_.GetRogHeightRatio())};
     info.boundRect = info.dstRect;
     info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    dirtyRects.emplace_back(GraphicIRect {0, 0, 0, 0});
+    info.dirtyRects = dirtyRects;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = 255; // 255 means not transparent
@@ -176,9 +187,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
-    std::vector<GraphicIRect> dirtyRegions;
-    dirtyRegions.emplace_back(info.srcRect);
-    layer->SetDirtyRegions(dirtyRegions);
+    layer->SetDirtyRegions(info.dirtyRects);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
@@ -488,6 +497,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_));
     info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_));
     info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    const Rect& dirtyRect = node.GetDamageRegion();
+    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
+    info.dirtyRects = dirtyRects;
     auto totalMatrix = node.GetTotalMatrix();
     info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
         totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),

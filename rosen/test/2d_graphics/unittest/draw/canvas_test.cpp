@@ -339,6 +339,23 @@ HWTEST_F(CanvasTest, CanvasDrawShadowTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasDrawShadowStyleTest001
+ * @tc.desc: Test for DrawShadowStyle function.
+ * @tc.type: FUNC
+ * @tc.require: I719NQ
+ */
+HWTEST_F(CanvasTest, CanvasDrawShadowStyleTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    canvas->DrawShadowStyle(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE, true);
+}
+
+/**
  * @tc.name: CanvasDrawRegionTest001
  * @tc.desc: Test for drawing Region on the Canvas.
  * @tc.type: FUNC

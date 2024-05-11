@@ -30,26 +30,25 @@
 #include "transaction/rs_transaction.h"
 #include "util.h"
 
-constexpr const char* OTA_COMPILE_TIME_LIMIT = "persist.bms.optimizing_apps.timing";
-constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
-
-constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
-const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
-
-const std::string FONTS_PATH = "/system/fonts/HarmonyOS_Sans_SC_Black.ttf";
-constexpr const int32_t WAITING_SECONDS = 30;
-constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
-constexpr const int32_t SEC_MS = 1000;
-constexpr const int32_t CIRCLE_NUM = 3;
-constexpr const float RADIUS = 10.0f;
-constexpr const float OFFSET_Y_PERCENT = 0.85;
-constexpr const float HEIGHT_PERCENT = 0.05;
-constexpr const int TEXT_BLOB_OFFSET = 5;
-constexpr const int FONT_SIZE = 50;
-constexpr const int32_t MAX_RETRY_TIMES = 5;
-constexpr const int32_t WAIT_MS = 500;
-
-using namespace OHOS;
+namespace OHOS {
+namespace {
+    constexpr const char* OTA_COMPILE_TIME_LIMIT = "persist.bms.optimizing_apps.timing";
+    constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
+    constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
+    const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
+    const std::string FONTS_PATH = "/system/fonts/HarmonyOS_Sans_SC_Black.ttf";
+    constexpr const int32_t WAITING_SECONDS = 30;
+    constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
+    constexpr const int32_t SEC_MS = 1000;
+    constexpr const int32_t CIRCLE_NUM = 3;
+    constexpr const float RADIUS = 10.0f;
+    constexpr const float OFFSET_Y_PERCENT = 0.85f;
+    constexpr const float HEIGHT_PERCENT = 0.05f;
+    constexpr const int TEXT_BLOB_OFFSET = 5;
+    constexpr const int FONT_SIZE = 50;
+    constexpr const int32_t MAX_RETRY_TIMES = 5;
+    constexpr const int32_t WAIT_MS = 500;
+}
 
 void BootCompileProgress::Init(const BootAnimationConfig& config)
 {
@@ -218,7 +217,7 @@ void BootCompileProgress::DrawCompileProgress()
     whiteBrush.SetAntiAlias(true);
     canvas->AttachBrush(whiteBrush);
 
-    double scale = windowWidth_ >= windowHeight_ ? 0.55: 0.6;
+    double scale = windowWidth_ >= windowHeight_ ? 0.55 : 0.6;
     float scalarX = windowWidth_ * scale - textBlob->Bounds()->GetWidth() / NUMBER_TWO;
     float scalarY = TEXT_BLOB_OFFSET + textBlob->Bounds()->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
@@ -235,7 +234,7 @@ void BootCompileProgress::DrawCompileProgress()
         } else {
             canvas->AttachBrush(grayBrush);
         }
-        int pointX = windowWidth_/2 + 4 * RADIUS * (i - 1);
+        int pointX = windowWidth_/ 2.0f + 4 * RADIUS * (i - 1);
         int pointY = rsCanvasNode_->GetPaintHeight() - 2 * RADIUS;
         canvas->DrawCircle({pointX, pointY}, RADIUS);
         canvas->DetachBrush();
@@ -264,3 +263,4 @@ void BootCompileProgress::UpdateCompileProgress()
 
     LOGD("update progress: %{public}d", progress_);
 }
+} // namespace OHOS

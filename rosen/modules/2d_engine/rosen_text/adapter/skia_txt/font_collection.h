@@ -16,6 +16,9 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 #define ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 
+#include <mutex>
+#include <unordered_map>
+
 #include "rosen_text/font_collection.h"
 
 #include "txt/font_collection.h"
@@ -36,14 +39,17 @@ public:
 
     void DisableFallback() override;
     void DisableSystemFont() override;
-    Drawing::Typeface* LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
-    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    std::shared_ptr<Drawing::Typeface> LoadFont(
+        const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    std::shared_ptr<Drawing::Typeface> LoadThemeFont(
+        const std::string &familyName, const uint8_t *data, size_t datalen) override;
     std::shared_ptr<Drawing::FontMgr> GetFontMgr() override;
-    void AddLoadedFamilyName(const std::string& name) override;
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface) override;
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
-    std::vector<std::string> familyNames_;
+    std::unordered_map<uint32_t, std::shared_ptr<Drawing::Typeface>> typefaces_;
+    std::mutex mutex_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

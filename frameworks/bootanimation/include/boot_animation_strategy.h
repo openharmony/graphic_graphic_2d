@@ -26,7 +26,7 @@ public:
 
     virtual ~BootAnimationStrategy() = default;
 
-    virtual void Display(std::vector<BootAnimationConfig>& configs) {};
+    virtual void Display(int32_t duration, std::vector<BootAnimationConfig>& configs) {};
 
     bool CheckExitAnimation();
 

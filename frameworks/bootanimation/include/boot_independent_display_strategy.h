@@ -27,7 +27,7 @@ public:
 
     virtual ~BootIndependentDisplayStrategy() = default;
 
-    void Display(std::vector<BootAnimationConfig>& configs) override;
+    void Display(int32_t duration, std::vector<BootAnimationConfig>& configs) override;
 
 private:
     std::vector<std::shared_ptr<BootAnimationOperation>> operators_;

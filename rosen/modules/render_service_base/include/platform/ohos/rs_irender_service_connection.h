@@ -224,7 +224,7 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual void NotifyTouchEvent(int32_t touchStatus) = 0;
+    virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 
@@ -246,7 +246,11 @@ public:
 
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
-    virtual GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) = 0;
+    virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
+
+    virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
+
+    virtual LayerComposeInfo GetLayerComposeInfo() = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

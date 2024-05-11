@@ -35,25 +35,6 @@ bool ParticleNoiseField::isPointInField(
     return false;
 }
 
-float ParticleNoiseField::calculateEllipseEdgeDistance(const Vector2f& direction)
-{
-    // direction is the direction vector from the center to the particle location.
-    // Check whether the direction is zero vector.
-    if ((ROSEN_EQ(direction.x_, 0.f) && ROSEN_EQ(direction.y_, 0.f)) ||
-        ROSEN_EQ(fieldSize_.x_, 0.f) || ROSEN_EQ(fieldSize_.y_, 0.f)) {
-        return 0;
-    }
-    // Implicit equation of the ellipse edge: (x/a)^2 + (y/b)^2 = 1
-    // Solve the equation and find the edge point that is the same as the direction of the direction vector.
-    // Because the direction vector may not be aligned with the elliptic axis, the parameter equation and elliptic
-    // equation are used together to solve the problem.
-    // The parameter equation is x = cx + t * dx, y = cy + t * dy.
-    // Substituting the parameter equation into the elliptic equation to solve t
-    float t = std::sqrt(1 / ((direction.x_ * direction.x_) / (fieldSize_.x_ * fieldSize_.x_ / 4) +
-                                (direction.y_ * direction.y_) / (fieldSize_.y_ * fieldSize_.y_ / 4)));
-    return t; // t is the distance from the center point to the edge.
-}
-
 float ParticleNoiseField::calculateDistanceToRectangleEdge(
     const Vector2f& position, const Vector2f& direction, const Vector2f& center, const Vector2f& size)
 {
@@ -96,24 +77,38 @@ float ParticleNoiseField::calculateDistanceToRectangleEdge(
     return distance;
 }
 
-Vector2f ParticleNoiseField::ApplyField(const Vector2f& position)
+float ParticleNoiseField::calculateFeatherEffect(float distanceToEdge, float featherWidth)
 {
-    // If the position is in the field, calculate the field force.
-    Vector2f direction = position - fieldCenter_;
-    float distance = direction.GetLength();
-    float forceMagnitude = fieldStrength_;
-    if (isPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_)) {
-        if (fieldFeather_ > 0) {
-            float edgeDistance = fieldSize_.x_ * HALF;
-            if (fieldShape_ == ShapeType::RECT) {
-                edgeDistance = calculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
-            } else if (fieldShape_ == ShapeType::ELLIPSE) {
-                edgeDistance = calculateEllipseEdgeDistance(direction);
-            }
-            if (edgeDistance != 0 && !ROSEN_EQ(fieldSize_.GetLength(), 0.f)) {
-                forceMagnitude *= (1.0f - ((float)fieldFeather_ / FEATHERMAX) * (distance / fieldSize_.GetLength()));
-            }
+    float normalizedDistance = 1.0f;
+    if (featherWidth > 0.f && !ROSEN_EQ(featherWidth, 0.f) && distanceToEdge >= 0) {
+        normalizedDistance = distanceToEdge / featherWidth;
+    }
+    if (normalizedDistance >= 1.0f - std::numeric_limits<float>::epsilon()) {
+        return 1.0f;
+    }
+    return normalizedDistance;
+}
+
+Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTime)
+{
+    if (fieldShape_ == ShapeType::CIRCLE) {
+        fieldSize_.x_ = std::min(fieldSize_.x_, fieldSize_.y_);
+        fieldSize_.y_ = fieldSize_.x_;
+    }
+    if (isPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_) && fieldStrength_ != 0) {
+        Vector2f direction = position - fieldCenter_;
+        float distance = direction.GetLength();
+        float forceMagnitude = static_cast<float>(fieldStrength_);
+        float featherWidth = fieldSize_.x_ * (fieldFeather_ / FEATHERMAX);
+        float edgeDistance = calculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
+
+        if (fieldStrength_ < 0 && !ROSEN_EQ(deltaTime, 0.f)) {
+            forceMagnitude = std::max(forceMagnitude, -1.f * distance / deltaTime);
+        } else if (fieldStrength_ > 0 && !ROSEN_EQ(deltaTime, 0.f)) {
+            forceMagnitude = std::min(forceMagnitude, edgeDistance / deltaTime);
         }
+        float featherEffect = calculateFeatherEffect(edgeDistance, featherWidth);
+        forceMagnitude *= featherEffect;
         Vector2f force = direction.Normalized() * forceMagnitude;
         return force;
     }
@@ -190,10 +185,10 @@ float PerlinNoise2D::noise(float x, float y)
     float v = fade(y);
 
     // Hash coordinates of the 4 square corners
-    int A = p[X] + Y;
+    int A = p[X] + static_cast<int>(Y);
     int AA = p[A];
     int AB = p[A + 1];
-    int B = p[X + 1] + Y;
+    int B = p[X + 1] + static_cast<int>(Y);
     int BA = p[B];
     int BB = p[B + 1];
 

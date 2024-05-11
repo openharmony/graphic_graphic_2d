@@ -163,7 +163,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
-    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "0") != "0";
+    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
     return isNeedScreenRCD;
 }
 
@@ -177,7 +177,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
@@ -212,6 +212,11 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     static bool hardwareComposerEnabled = system::GetParameter(
         "persist.rosen.hardwarecomposer.enabled", "1") != "0";
     return hardwareComposerEnabled;
+}
+
+bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
+{
+    return system::GetParameter("rosen.hardwarecomposer.mirror.enabled", "0") != "0";
 }
 
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
@@ -528,6 +533,13 @@ bool RSSystemProperties::GetBlurEnabled()
     static bool blurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.blurEnabled", "1")).c_str()) != 0;
     return blurEnabled;
+}
+
+bool RSSystemProperties::GetForegroundFilterEnabled()
+{
+    static bool foregroundFilterEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.foregroundFilterEnabled", "1")).c_str()) != 0;
+    return foregroundFilterEnabled;
 }
 
 const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
@@ -890,7 +902,15 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 
 bool RSSystemProperties::GetHDRImageEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
+
+bool RSSystemProperties::IsForceClient()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.client_composition.enabled", "0");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);

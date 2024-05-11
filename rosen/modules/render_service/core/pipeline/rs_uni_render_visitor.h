@@ -41,9 +41,6 @@
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 #include "rs_auto_cache.h"
 #endif
-#ifdef RS_PROFILER_ENABLED
-#include "rs_profiler_capture_recorder.h"
-#endif
 
 class SkPicture;
 namespace OHOS {
@@ -231,7 +228,7 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, bool isInSkippedSubTree = false);
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -596,9 +593,6 @@ private:
     void tryCapture(float width, float height);
     void endCapture() const;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
-#endif
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder captureRecorder_;
 #endif
     bool isNodeSingleFrameComposer_ = false;
     // use for screen recording optimization

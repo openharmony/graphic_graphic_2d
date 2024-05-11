@@ -86,11 +86,6 @@ public:
         if (bottom_ < MIN_REGION_VALUE || bottom_ > MAX_REGION_VALUE) {
             hasAbnormalValue = true;
         }
-        if (hasAbnormalValue) {
-            RS_LOGE("Occlusion::Rect initialized with invalid value, [%{public}d, %{public}d, %{public}d, %{public}d], \
-                should in range [%{public}d, %{public}d]",
-                left_, top_, right_, bottom_, MIN_REGION_VALUE, MAX_REGION_VALUE);
-        }
         return hasAbnormalValue;
     }
 

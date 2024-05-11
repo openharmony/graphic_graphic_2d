@@ -50,5 +50,10 @@ void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
 
     visualEffectContainer->AddToChainedFilter(gelinearGradientBlurFilter);
 }
+
+float RSLinearGradientBlurShaderFilter::GetLinearGradientBlurRadius() const
+{
+    return linearGradientBlurPara_->blurRadius_;
+}
 } // namespace Rosen
 } // namespace OHOS

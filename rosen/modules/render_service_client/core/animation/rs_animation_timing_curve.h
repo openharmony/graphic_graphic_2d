@@ -26,6 +26,14 @@ namespace OHOS {
 namespace Rosen {
 class RSInterpolator;
 enum class StepsCurvePosition;
+
+namespace {
+// minimumAmplitudeRatio_ is used for interpointSpring to determine the ending accuracy of spring animation.
+// the smaller the minimumAmplitudeRatio_, the closer it is to the endpoint at the end of the animation,
+// and the longer the animation duration.
+constexpr float DEFAULT_AMPLITUDE_RATIO = 0.00025f;
+} // namespace
+
 class RSC_EXPORT RSAnimationTimingCurve final {
 public:
     static const RSAnimationTimingCurve DEFAULT;
@@ -45,7 +53,8 @@ public:
     static RSAnimationTimingCurve CreateSpringCurve(float velocity, float mass, float stiffness, float damping);
     // Create interpolating spring, which duration is determined by the spring model. Multiple animations on the same
     // property will run simultaneously and act additively.
-    static RSAnimationTimingCurve CreateInterpolatingSpring(float mass, float stiffness, float damping, float velocity);
+    static RSAnimationTimingCurve CreateInterpolatingSpring(float mass, float stiffness, float damping, float velocity,
+        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO);
     // Create physical spring, which duration is determined by the spring model. When mixed with other physical spring
     // animations on the same property, each animation will be replaced by their successor, preserving velocity from one
     // animation to the next.
@@ -63,12 +72,14 @@ private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);
     RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration);
-    RSAnimationTimingCurve(float response, float dampingRatio, float initialVelocity, CurveType curveType);
+    RSAnimationTimingCurve(
+        float response, float dampingRatio, float initialVelocity, CurveType curveType, float minimumAmplitudeRatio);
 
     float response_ { 0.0f };
     float dampingRatio_ { 0.0f };
     float blendDuration_ { 0.0f };
     float initialVelocity_ { 0.0f };
+    float minimumAmplitudeRatio_ { DEFAULT_AMPLITUDE_RATIO };
 
     std::shared_ptr<RSInterpolator> GetInterpolator(int duration) const;
 

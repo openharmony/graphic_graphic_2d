@@ -40,6 +40,7 @@ public:
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
+    void MarkYUVImage();
 #endif
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     void SetSrcRect(const RectF& dstRect);
@@ -79,6 +80,7 @@ protected:
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;
+    bool isYUVImage_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

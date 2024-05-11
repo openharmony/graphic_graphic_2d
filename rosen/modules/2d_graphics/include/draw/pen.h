@@ -271,7 +271,16 @@ public:
     /**
      * @brief Gets BlurDrawLooper.
      */
-    std::shared_ptr<BlurDrawLooper> GetLooper() const;;
+    std::shared_ptr<BlurDrawLooper> GetLooper() const;
+
+    /**
+     * @brief Returns the filled equivalent of the stroked path.
+     * @param src Path read to create a filled version
+     * @param dst resulting Path; may be the same as src
+     * @param rect optional limit passed to PathEffect
+     * @param matrix tranform passed to PathEffect
+     */
+    bool GetFillPath(const Path& src, Path& dst, const Rect* rect, const Matrix& matrix);
 
     friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
     friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);

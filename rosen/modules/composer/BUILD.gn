@@ -25,7 +25,9 @@ config("composer_config") {
     "-g3",
   ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
   }
 }
 

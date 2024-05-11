@@ -15,6 +15,9 @@
 
 #include "pipeline/rs_draw_frame.h"
 
+#include <hitrace_meter.h>
+#include <parameters.h>
+
 #include "rs_trace.h"
 
 #include "pipeline/rs_main_thread.h"
@@ -37,8 +40,12 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
     stagingRenderThreadParams_ = std::move(stagingRenderThreadParams);
 }
 
+bool RSDrawFrame::debugTraceEnabled_ =
+    std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+
 void RSDrawFrame::RenderFrame()
 {
+    HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RSRenderStart();
@@ -191,7 +198,8 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
     }
     RSJankStats::GetInstance().SetOnVsyncStartTime(
         unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTime(),
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady());
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady(),
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteadyFloat());
     RSJankStats::GetInstance().SetImplicitAnimationEnd(
         unirenderInstance_.GetRSRenderThreadParams()->GetImplicitAnimationEnd());
     RSJankStats::GetInstance().SetEndTime(unirenderInstance_.GetSkipJankAnimatorFrame(),

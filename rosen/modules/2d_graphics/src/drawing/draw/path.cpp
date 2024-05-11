@@ -275,6 +275,16 @@ bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangen
     return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
 }
 
+bool Path::IsClosed(bool forceClosed) const
+{
+    return impl_->IsClosed(forceClosed);
+}
+
+bool Path::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag)
+{
+    return impl_->GetMatrix(forceClosed, distance, matrix, flag);
+}
+
 std::shared_ptr<Data> Path::Serialize() const
 {
     return impl_->Serialize();

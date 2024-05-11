@@ -20,7 +20,7 @@
 
 using namespace OHOS;
 
-void BootAssociativeDisplayStrategy::Display(std::vector<BootAnimationConfig>& configs)
+void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootAssociativeDisplayStrategy START");
     if (configs.size() <= 1) {
@@ -53,7 +53,7 @@ void BootAssociativeDisplayStrategy::Display(std::vector<BootAnimationConfig>& c
         int screenWidth = modeInfo.GetScreenWidth();
         int screenHeight = modeInfo.GetScreenHeight();
         operator_ = std::make_shared<BootAnimationOperation>();
-        operator_->Init(config, screenWidth, screenHeight);
+        operator_->Init(config, screenWidth, screenHeight, duration);
         operator_->GetThread().join();
 
         if (CheckNeedOtaCompile()) {

@@ -188,7 +188,7 @@ void RSGPUOverdrawCanvasListener::DrawShadow(const Drawing::Path& path, const Dr
 
 void RSGPUOverdrawCanvasListener::DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
     const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
-    Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isShadowStyle)
+    Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation)
 {
     // need know shadow rect region
 }

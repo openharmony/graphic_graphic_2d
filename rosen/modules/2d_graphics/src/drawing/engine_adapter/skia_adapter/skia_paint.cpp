@@ -21,6 +21,7 @@
 #include "skia_convert_utils.h"
 #include "skia_image_filter.h"
 #include "skia_mask_filter.h"
+#include "skia_matrix.h"
 #include "skia_path.h"
 #include "skia_path_effect.h"
 #include "skia_shader_effect.h"
@@ -281,6 +282,25 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
         sk_sp<SkMaskFilter> maskFilter = (skMaskFilterImpl != nullptr) ? skMaskFilterImpl->GetMaskFilter() : nullptr;
         paint.setMaskFilter(maskFilter);
     }
+}
+
+bool SkiaPaint::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
+{
+    SkPaint skPaint;
+    PenToSkPaint(pen, skPaint);
+    auto srcPathImpl = src.GetImpl<SkiaPath>();
+    auto dstPathImpl = dst.GetImpl<SkiaPath>();
+    auto matrixImpl = matrix.GetImpl<SkiaMatrix>();
+    if (!srcPathImpl || !dstPathImpl || !matrixImpl) {
+        return false;
+    }
+    if (!rect) {
+        return skPaint.getFillPath(srcPathImpl->GetMutablePath(), &dstPathImpl->GetMutablePath(),
+                                   nullptr, matrixImpl->ExportMatrix());
+    }
+    SkRect skRect = SkRect::MakeLTRB(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
+    return skPaint.getFillPath(srcPathImpl->GetMutablePath(), &dstPathImpl->GetMutablePath(),
+                               &skRect, matrixImpl->ExportMatrix());
 }
 
 bool SkiaPaint::CanComputeFastBounds(const Brush& brush)

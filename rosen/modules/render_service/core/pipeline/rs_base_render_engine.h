@@ -185,8 +185,8 @@ public:
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
 
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
-        float mirrorAdaptiveCoefficient = 1.0f) = 0;
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers,
+        bool forceCPU = false) = 0;
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 

@@ -350,7 +350,7 @@ public:
         offsetX_ = offset;
     }
 
-    int32_t GetOffSetX()
+    int32_t GetOffSetX() const
     {
         return offsetX_;
     }
@@ -360,7 +360,7 @@ public:
         offsetY_ = offset;
     }
 
-    int32_t GetOffSetY()
+    int32_t GetOffSetY() const
     {
         return offsetY_;
     }
@@ -1061,6 +1061,7 @@ public:
 
 protected:
     void OnSync() override;
+    void OnSkipSync() override;
 
 private:
     void OnResetParent() override;
@@ -1187,6 +1188,7 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
+        RectI oldDirty_;
         ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
         bool isFocusWindow_ = false;
         bool isTransparent_ = false;

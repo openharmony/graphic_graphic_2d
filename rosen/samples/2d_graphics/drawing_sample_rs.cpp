@@ -448,6 +448,23 @@ void TestDrawShadow(Canvas &canvas, uint32_t width, uint32_t height)
     LOGI("------- TestDrawShadow");
 }
 
+void TestDrawShadowStyle(Canvas &canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestDrawShadowStyle");
+
+    Path path;
+    // Add oval to path, bounds of ellipse added is {200, 200, 600, 1000}.
+    path.AddOval({200, 200, 600, 1000});
+    Point3 planeParams = { 540.0, 0.0, 600.0 };
+    Point3 devLightPos = {0, 0, 0};
+    scalar lightRadius = 0.5;
+    Drawing::Color ambientColor = Drawing::Color::ColorQuadSetARGB(0, 0, 0, 0);
+    Drawing::Color spotColor = Drawing::Color::COLOR_RED;
+    ShadowFlags flag = ShadowFlags::TRANSPARENT_OCCLUDER;
+    canvas.DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, true);
+    LOGI("------- TestDrawShadowStyle");
+}
+
 std::unique_ptr<PixelMap> ConstructPixmap()
 {
     uint32_t pixelMapWidth = 50;

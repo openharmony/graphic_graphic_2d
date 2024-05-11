@@ -341,6 +341,10 @@ public:
 
     bool GetIsCustomTextType();
 
+    void SetIsCustomTypeface(bool isCustomTypeface);
+
+    bool GetIsCustomTypeface();
+
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     // Mark preferentially draw node and childrens
@@ -439,6 +443,7 @@ protected:
 
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
+    bool isCustomTypeface_ = false;
 
     std::recursive_mutex& GetPropertyMutex() const
     {

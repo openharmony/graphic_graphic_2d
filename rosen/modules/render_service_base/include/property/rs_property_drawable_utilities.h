@@ -36,22 +36,22 @@ private:
 // Save and Restore
 class RSSaveDrawable : public RSPropertyDrawable {
 public:
-    explicit RSSaveDrawable(std::shared_ptr<int> content);
+    explicit RSSaveDrawable(std::shared_ptr<uint32_t> content);
     ~RSSaveDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 private:
-    std::shared_ptr<int> content_;
+    std::shared_ptr<uint32_t> content_;
 };
 
 class RSRestoreDrawable : public RSPropertyDrawable {
 public:
-    explicit RSRestoreDrawable(std::shared_ptr<int> content);
+    explicit RSRestoreDrawable(std::shared_ptr<uint32_t> content);
     ~RSRestoreDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 private:
-    std::shared_ptr<int> content_;
+    std::shared_ptr<uint32_t> content_;
 };
 
 class RSCustomSaveDrawable : public RSPropertyDrawable {

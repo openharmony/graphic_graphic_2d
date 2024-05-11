@@ -272,6 +272,11 @@ bool RSSystemProperties::GetBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetForegroundFilterEnabled()
+{
+    return true;
+}
+
 const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
 {
     // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
@@ -399,6 +404,11 @@ bool RSSystemProperties::GetUIFirstForceEnabled()
 }
 
 bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::IsForceClient()
 {
     return false;
 }

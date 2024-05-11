@@ -110,7 +110,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithLinearGradient001, TestSize.Level1)
     std::vector<ColorQuad> color { colorQuad };
     std::vector<scalar> pos { 30.0f };
     SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithLinearGradient(startPt, endPt, color, pos, TileMode::MIRROR);
+    skiaShaderEffect.InitWithLinearGradient(startPt, endPt, color, pos, TileMode::MIRROR, nullptr);
 }
 
 /**
@@ -127,7 +127,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithRadialGradient001, TestSize.Level1)
     std::vector<ColorQuad> color { colorQuad };
     std::vector<scalar> pos { 16.0f };
     SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithRadialGradient(centerPt, radius, color, pos, TileMode::REPEAT);
+    skiaShaderEffect.InitWithRadialGradient(centerPt, radius, color, pos, TileMode::REPEAT, nullptr);
 }
 
 /**

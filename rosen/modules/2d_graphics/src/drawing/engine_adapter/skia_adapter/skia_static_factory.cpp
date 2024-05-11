@@ -139,6 +139,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::DeserializeTypeface(const void* dat
     return SkiaTypeface::Deserialize(data, size);
 }
 
+bool SkiaStaticFactory::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
+{
+    return SkiaPaint::GetFillPath(pen, src, dst, rect, matrix);
+}
+
 bool SkiaStaticFactory::CanComputeFastBounds(const Brush& brush)
 {
     return SkiaPaint::CanComputeFastBounds(brush);

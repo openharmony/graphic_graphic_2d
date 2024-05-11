@@ -19,7 +19,7 @@
 #include <memory>
 #include <thread>
 
-#include "rs_profiler.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
@@ -82,24 +82,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
     file.AddHeaderFirstFrame(dataFirstFrame);
 
-    ImageCache& cache = RSProfiler::GetImageCache();
-    RSProfiler::ClearImageCache();
-
-    uint32_t imageCount = 0u;
-    stream.read(reinterpret_cast<char*>(&imageCount), sizeof(imageCount));
-    for (uint32_t i = 0; i < imageCount; i++) {
-        uint64_t key = 0u;
-        stream.read(reinterpret_cast<char*>(&key), sizeof(key));
-
-        ImageCacheRecord record;
-        stream.read(reinterpret_cast<char*>(&record.skipBytes), sizeof(record.skipBytes));
-        stream.read(reinterpret_cast<char*>(&record.imageSize), sizeof(record.imageSize));
-
-        std::shared_ptr<uint8_t[]> image = std::make_unique<uint8_t[]>(record.imageSize);
-        stream.read(reinterpret_cast<char*>(image.get()), record.imageSize);
-        record.image = image;
-        cache.insert({ key, record });
-    }
+    ImageCache::Deserialize(stream);
 }
 
 static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
@@ -113,7 +96,6 @@ static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
 
 static void OnBinaryFinish(RSFile& file, const char* data, size_t size)
 {
-    file.SetImageCache(reinterpret_cast<FileImageCache*>(&RSProfiler::GetImageCache()));
     file.Close();
 }
 
@@ -222,6 +204,16 @@ void Network::SendDclPath(const std::string& path)
     }
 }
 
+void Network::SendMskpPath(const std::string& path)
+{
+    if (!path.empty()) {
+        std::string out;
+        out += static_cast<char>(PackageID::RS_PROFILER_MSKP_FILEPATH);
+        out += path;
+        SendBinary(out.data(), out.size());
+    }
+}
+
 void Network::SendSkp(const void* data, size_t size)
 {
     if (data && (size > 0)) {
@@ -233,9 +225,9 @@ void Network::SendSkp(const void* data, size_t size)
     }
 }
 
-void Network::SendTelemetry(double startTime)
+void Network::SendTelemetry(double time)
 {
-    if (startTime < 0.0) {
+    if (time < 0.0) {
         return;
     }
 
@@ -244,24 +236,24 @@ void Network::SendTelemetry(double startTime)
     std::stringstream load;
     std::stringstream frequency;
     for (uint32_t i = 0; i < deviceInfo.cpu.cores; i++) {
-        load << deviceInfo.cpu.coreLoad[i];
+        load << deviceInfo.cpu.coreFrequencyLoad[i].load;
         if (i + 1 < deviceInfo.cpu.cores) {
             load << ";";
         }
-        frequency << deviceInfo.cpu.coreFrequency[i];
+        frequency << deviceInfo.cpu.coreFrequencyLoad[i].current;
         if (i + 1 < deviceInfo.cpu.cores) {
             frequency << ";";
         }
     }
 
     RSCaptureData captureData;
-    captureData.SetTime(Utils::Now() - startTime);
+    captureData.SetTime(time);
     captureData.SetProperty(RSCaptureData::KEY_CPU_TEMP, deviceInfo.cpu.temperature);
     captureData.SetProperty(RSCaptureData::KEY_CPU_CURRENT, deviceInfo.cpu.current);
     captureData.SetProperty(RSCaptureData::KEY_CPU_LOAD, load.str());
     captureData.SetProperty(RSCaptureData::KEY_CPU_FREQ, frequency.str());
-    captureData.SetProperty(RSCaptureData::KEY_GPU_LOAD, deviceInfo.gpu.load);
-    captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequency);
+    captureData.SetProperty(RSCaptureData::KEY_GPU_LOAD, deviceInfo.gpu.frequencyLoad.load);
+    captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequencyLoad.current);
 
     std::vector<char> out;
     captureData.Serialize(out);

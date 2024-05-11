@@ -284,6 +284,9 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 {
 #ifdef RS_ENABLE_VK
     skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    if (renderContext_ == nullptr) {
+        return nullptr;
+    }
     renderContext_->SetUpGpuContext(skContext_);
 #endif
     if (rsSurface == nullptr) {
@@ -724,6 +727,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.AttachBrush(params.paint);
 #ifndef USE_VIDEO_PROCESSING_ENGINE
     Drawing::SamplingOptions drawingSamplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        drawingSamplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR);
+    }
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 #else

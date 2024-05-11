@@ -422,6 +422,10 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     EXPECT_TRUE(result2.has_value());
     EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
+    canvasNode->SetDynamicDimDegree(SHOWING_FLOAT_NUM);
+    auto result3 = canvasNode->GetShowingProperties().GetDynamicDimDegree();
+    EXPECT_TRUE(result3.has_value());
+    EXPECT_TRUE(result3.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
 }
 } // namespace Rosen

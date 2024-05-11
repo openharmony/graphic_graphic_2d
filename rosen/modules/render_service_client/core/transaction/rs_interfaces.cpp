@@ -522,9 +522,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    renderServiceClient_->NotifyTouchEvent(touchStatus);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -537,9 +537,22 @@ void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
 }
 
-GpuDirtyRegionInfo RSInterfaces::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSInterfaces::GetActiveDirtyRegionInfo()
 {
-    return renderServiceClient_->GetCurrentDirtyRegionInfo(id);
+    const auto& activeDirtyRegionInfo = renderServiceClient_->GetActiveDirtyRegionInfo();
+    return activeDirtyRegionInfo;
+}
+
+GlobalDirtyRegionInfo RSInterfaces::GetGlobalDirtyRegionInfo()
+{
+    const auto& globalDirtyRegionInfo = renderServiceClient_->GetGlobalDirtyRegionInfo();
+    return globalDirtyRegionInfo;
+}
+
+LayerComposeInfo RSInterfaces::GetLayerComposeInfo()
+{
+    const auto& layerComposeInfo = renderServiceClient_->GetLayerComposeInfo();
+    return layerComposeInfo;
 }
 
 #ifdef TP_FEATURE_ENABLE

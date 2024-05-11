@@ -150,7 +150,8 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
-        return VSYNC_ERROR_API_FAILED;
+        VLOGE("%{public}s not init", __func__);
+        return VSYNC_ERROR_NOT_INIT;
     }
     listener_->SetCallback(callback);
     listener_->SetRNVFlag(true);
@@ -181,18 +182,20 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
-        return VSYNC_ERROR_API_FAILED;
+        VLOGE("%{public}s not init", __func__);
+        return VSYNC_ERROR_NOT_INIT;
     }
     if (isThreadShared == false) {
         if (listener_->period_ == 0 || listener_->timeStamp_ == 0) {
             VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
-            return VSYNC_ERROR_API_FAILED;
+            return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->period_;
         timeStamp = listener_->timeStamp_;
     } else {
         if (listener_->periodShared_ == 0 || listener_->timeStampShared_ == 0) {
-            return VSYNC_ERROR_API_FAILED;
+            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->periodShared_;
         timeStamp = listener_->timeStampShared_;

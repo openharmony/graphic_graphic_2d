@@ -34,7 +34,7 @@ void UploadTextureWithDrawing(bool paraUpload, const std::shared_ptr<Drawing::Im
             if (grContext && image && pixelMap && instance.TaskIsValid(count)) {
                 RS_TRACE_NAME_FMT("parallel upload texture w%d h%d", image->GetWidth(), image->GetHeight());
 #ifdef ACE_ENABLE_GPU
-                image->pinAsTexture(*grContext);
+                // Need To Pin Image here.
 #endif
 #ifdef RS_ENABLE_VK
                 if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||

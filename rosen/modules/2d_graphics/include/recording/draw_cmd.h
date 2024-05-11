@@ -158,7 +158,7 @@ class DrawShadowStyleOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& path, const Point3& planeParams, const Point3& devLightPos,
-            scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+            scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
             : OpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
               path(path),
               planeParams(planeParams),
@@ -167,7 +167,7 @@ public:
               ambientColor(ambientColor),
               spotColor(spotColor),
               flag(flag),
-              isShadowStyle(isShadowStyle)
+              isLimitElevation(isLimitElevation)
         {}
         ~ConstructorHandle() override = default;
         OpDataHandle path;
@@ -177,11 +177,11 @@ public:
         Color ambientColor;
         Color spotColor;
         ShadowFlags flag;
-        bool isShadowStyle;
+        bool isLimitElevation;
     };
     DrawShadowStyleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawShadowStyleOpItem(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
-        Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+        Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
         : DrawOpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
           planeParams_(planeParams),
           devLightPos_(devLightPos),
@@ -189,7 +189,7 @@ public:
           ambientColor_(ambientColor),
           spotColor_(spotColor),
           flag_(flag),
-          isShadowStyle_(isShadowStyle),
+          isLimitElevation_(isLimitElevation),
           path_(std::make_shared<Path>(path))
     {}
     ~DrawShadowStyleOpItem() override = default;
@@ -204,7 +204,7 @@ private:
     Color ambientColor_;
     Color spotColor_;
     ShadowFlags flag_;
-    bool isShadowStyle_;
+    bool isLimitElevation_;
     std::shared_ptr<Path> path_;
 };
 

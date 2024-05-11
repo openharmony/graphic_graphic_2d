@@ -107,6 +107,14 @@ std::shared_ptr<Typeface> Typeface::MakeClone(const FontArguments& args) const
     return nullptr;
 }
 
+bool Typeface::IsCustomTypeface() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->IsCustomTypeface();
+    }
+    return false;
+}
+
 std::shared_ptr<Data> Typeface::Serialize() const
 {
     if (!typefaceImpl_) {

@@ -198,7 +198,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus) override;
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void ReportEventResponse(DataBaseRs info) override;
 
@@ -216,7 +216,11 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
+
+    LayerComposeInfo GetLayerComposeInfo() override;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;

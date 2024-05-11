@@ -255,8 +255,8 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     // Extract srcDest and dstRect from Drawing::Canvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     UpdateSrcRect(canvas, deviceClipRect);
-    RectI dstRect = {
-        deviceClipRect.GetLeft(), deviceClipRect.GetTop(), deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
+    RectI dstRect = { deviceClipRect.GetLeft() + offsetX_, deviceClipRect.GetTop() + offsetY_,
+        deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
     SetDstRect(dstRect);
 
     // Save TotalMatrix and GlobalAlpha for compositor
@@ -858,6 +858,24 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
         texture->UpdateSurfaceDefaultSize(width, height);
     }
 #endif
+#endif
+}
+
+void RSSurfaceRenderNode::OnSkipSync()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams && surfaceParams->IsLayerDirty()) {
+        auto& preBuffer = surfaceParams->GetPreBuffer();
+        if (!preBuffer) {
+            return;
+        }
+        auto context = GetContext().lock();
+        if (context && !surfaceParams->GetHardwareEnabled()) {
+            context->GetMutableSkipSyncBuffer().push_back(
+                { preBuffer, GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+        }
+    }
 #endif
 }
 
@@ -1488,7 +1506,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         if (node->GetRenderProperties().GetFilter()) {
             node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
         }
-        node->UpdateFilterCacheWithSelfDirty(clipRect);
+        node->UpdateFilterCacheWithSelfDirty();
     }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
@@ -1842,6 +1860,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
@@ -1870,6 +1889,7 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
 {
     opaqueRegionBaseInfo_.screenRect_ = screeninfo;
     opaqueRegionBaseInfo_.absRect_ = absRect;
+    opaqueRegionBaseInfo_.oldDirty_ = GetOldDirty();
     opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
     opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
     opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;

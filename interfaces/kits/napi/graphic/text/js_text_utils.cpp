@@ -128,6 +128,11 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
         textStyle.fontWeight = FontWeight(fontWeight);
     }
+    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
+    uint32_t fontStyle = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
+        textStyle.fontStyle = FontStyle(fontStyle);
+    }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {

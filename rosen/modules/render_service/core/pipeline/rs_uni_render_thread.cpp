@@ -256,6 +256,31 @@ void RSUniRenderThread::Render()
     RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
+void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto& bufferToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
+    if (bufferToRelease.empty()) {
+        return;
+    }
+    for (auto& item : bufferToRelease) {
+        if (!item.buffer || !item.consumer) {
+            continue;
+        }
+        auto releaseTask = [buffer = item.buffer, consumer = item.consumer,
+            useReleaseFence = item.useFence, acquireFence = acquireFence_]() mutable {
+            auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
+                RSHardwareThread::Instance().releaseFence_ : acquireFence);
+            if (ret != OHOS::SURFACE_ERROR_OK) {
+                RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+            }
+        };
+        tasks.emplace_back(releaseTask);
+    }
+    bufferToRelease.clear();
+#endif
+}
+
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
@@ -289,6 +314,7 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             }
         }
     }
+    ReleaseSkipSyncBuffer(releaseTasks);
     if (releaseTasks.empty()) {
         return;
     }
@@ -348,11 +374,14 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
-bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (surfaceHandler->GetConsumer()->QueryIfBufferAvailable()) {
+    if (!displayNode->IsSurfaceCreated()) {
+        return true;
+    }
+    if (displayNode->GetConsumer() && displayNode->GetConsumer()->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +

@@ -31,6 +31,11 @@ namespace Drawing {
 
 SkiaRegion::SkiaRegion() noexcept : skRegion_(std::make_shared<SkRegion>()) {}
 
+bool SkiaRegion::Contains(int32_t x, int32_t y) const
+{
+    return skRegion_->contains(x, y);
+}
+
 bool SkiaRegion::SetRect(const RectI& rectI)
 {
     auto skIRect = SkIRect::MakeLTRB(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());

@@ -87,6 +87,9 @@ public:
             bufsize = ibufsize + 1;
             memBuffer = static_cast<char *>(malloc(bufsize + 1));
         }
+        if (memBuffer == nullptr) {
+            LOGE("MemStruct malloc memBuffer failed!");
+        }
     }
 };
 
@@ -132,8 +135,8 @@ void PostTask(std::function<void()> func, uint32_t delayTime = 0);
 
 bool IsFileExisted(const std::string& filePath);
 
-bool ParseBootConfig(const std::string& path,
-    bool& isCompatible, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs);
+bool ParseBootConfig(const std::string& path, int32_t& duration, bool& isCompatible,
+    bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs);
 
 void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnimationConfig>& configs);
 
@@ -141,17 +144,21 @@ void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs);
 
 void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config);
 
+void ParseBootDuration(cJSON* data, int32_t& duration);
+
 bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& imgVec, FrameRateConfig& frameConfig);
 
 void SortZipFile(ImageStructVec& imgVec);
 
-bool ReadImageFile(const unzFile zipFile, const std::string& fileName,
-    ImageStructVec& imgVec, FrameRateConfig& frameConfig, unsigned long fileSize);
+bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStructVec& imgVec,
+    FrameRateConfig& frameConfig, unsigned long fileSize);
 
 bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& frameConfig);
 
-bool CheckImageData(const std::string& fileName,
-    std::shared_ptr<ImageStruct> imageStruct, int32_t bufferLen, ImageStructVec& imgVec);
+bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> imageStruct,
+    int32_t bufferLen, ImageStructVec& imgVec);
+
+bool CloseZipFile(const unzFile zipFile, bool ret);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

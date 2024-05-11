@@ -62,7 +62,6 @@
           "hitrace",
           "ability_runtime",
           "drivers_interface_display",
-          "drivers_interface_camera_ext",
           "c_utils",
           "access_token",
           "safwk",
@@ -122,6 +121,7 @@
             "//third_party/libpng:libpng",
             "//third_party/vulkan-loader:vulkan_loader",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
+            "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_packages",
@@ -430,6 +430,18 @@
                 "buffer_handle_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/buffer_handle/export"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
+            "header": {
+              "header_files": [
+                "cj_color_manager.h",
+                "cj_color_mgr_utils.h",
+                "color_mgr_ffi.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
             }
           }
         ],

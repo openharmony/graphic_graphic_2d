@@ -1198,11 +1198,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->NotifyTouchEvent(touchStatus);
+        renderService->NotifyTouchEvent(touchStatus, touchCnt);
     }
 }
 
@@ -1222,13 +1222,31 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
     }
 }
 
-GpuDirtyRegionInfo RSRenderServiceClient::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return GpuDirtyRegionInfo {};
+        return {};
     }
-    return renderService->GetCurrentDirtyRegionInfo(id);
+    return renderService->GetActiveDirtyRegionInfo();
+}
+
+GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return GlobalDirtyRegionInfo {};
+    }
+    return renderService->GetGlobalDirtyRegionInfo();
+}
+
+LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return LayerComposeInfo {};
+    }
+    return renderService->GetLayerComposeInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE

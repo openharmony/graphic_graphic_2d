@@ -44,10 +44,7 @@ static Mode g_mode;
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
-static std::map<uint64_t, ImageCacheRecord> g_imageCache;
 static std::atomic<uint32_t> g_commandCount = 0;
-static std::atomic<uint32_t> g_lastImageCount = 0;
-
 static uint64_t g_pauseAfterTime = 0;
 static uint64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
@@ -63,23 +60,6 @@ bool RSProfiler::IsEnabled()
 {
     static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
     return ENABLED;
-}
-
-ImageCache& RSProfiler::GetImageCache()
-{
-    return g_imageCache;
-}
-
-void RSProfiler::ClearImageCache()
-{
-    g_imageCache.clear();
-}
-
-uint32_t RSProfiler::GetImageCount()
-{
-    const uint32_t count = g_imageCache.size() - g_lastImageCount;
-    g_lastImageCount = g_imageCache.size();
-    return count;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -201,51 +181,6 @@ pid_t RSProfiler::GetSubstitutingPid()
     return g_pid;
 }
 
-void RSProfiler::AddImage(uint64_t uniqueId, void* image, uint32_t size, uint32_t skipBytes)
-{
-    if ((g_mode != Mode::WRITE && g_mode != Mode::WRITE_EMUL) || (g_imageCache.count(uniqueId) > 0)) {
-        return;
-    }
-
-    if (image && (size > 0)) {
-        auto imageData = std::make_unique<uint8_t[]>(size);
-        if (memmove_s(imageData.get(), size, image, size) == 0) {
-            ImageCacheRecord record;
-            record.image = std::move(imageData);
-            record.imageSize = size;
-            record.skipBytes = skipBytes;
-            g_imageCache.insert({ uniqueId, record });
-        }
-    }
-}
-
-ImageCacheRecord* RSProfiler::GetImage(uint64_t uniqueId)
-{
-    if (g_mode != Mode::READ && g_mode != Mode::READ_EMUL) {
-        return nullptr;
-    }
-
-    if (g_imageCache.count(uniqueId) == 0) {
-        return nullptr;
-    }
-
-    return &g_imageCache[uniqueId];
-}
-
-std::string RSProfiler::DumpImageCache()
-{
-    if (g_mode != Mode::READ && g_mode != Mode::READ_EMUL) {
-        return "";
-    }
-
-    std::string out;
-    for (const auto& it : g_imageCache) {
-        out += std::to_string(Utils::ExtractPid(it.first)) + ":" + std::to_string(Utils::ExtractNodeId(it.first)) + " ";
-    }
-
-    return out;
-}
-
 uint64_t RSProfiler::PatchTime(uint64_t time)
 {
     if (!IsEnabled()) {
@@ -305,12 +240,6 @@ void RSProfiler::TimePauseClear()
 {
     g_pauseCumulativeTime = 0;
     g_pauseAfterTime = 0;
-}
-
-uint32_t RSProfiler::GenerateImageId()
-{
-    static uint32_t uniqueImageId = 0u;
-    return uniqueImageId++;
 }
 
 std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(RSContext& context)

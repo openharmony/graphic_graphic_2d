@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ namespace {
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 10;
-    constexpr int32_t LAST_TOUCH_DOWN_CNT = 1;
+    constexpr int32_t LAST_TOUCH_CNT = 1;
 
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
@@ -108,11 +108,38 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote(DEFAULT_PID, "VOTER_XML", ADD_VOTE, strategy.min, strategy.max);
 
-        isTouchEnable_ = (strategy.dynamicMode == DynamicModeType::TOUCH_ENABLED);
-        touchFps_ = strategy.max;
         idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
         HandleIdleEvent(true);
     });
+    InitTouchManager();
+}
+
+void HgmFrameRateManager::InitTouchManager()
+{
+    static std::once_flag createFlag;
+    std::call_once(createFlag, [this]() {
+        touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
+            [this] (TouchState lastState, TouchState newState) {
+            if (lastState == TouchState::IDLE_STATE) {
+                multiAppStrategy_.HandleTouchInfo(touchManager_.GetPkgName(), newState);
+            }
+        });
+        touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
+            [this] (TouchState lastState, TouchState newState) {
+            multiAppStrategy_.HandleTouchInfo(touchManager_.GetPkgName(), newState);
+        });
+    });
+}
+
+void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp)
+{
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.SetTimestamp(timestamp);
+    if (pendingRefreshRate_ != nullptr) {
+        hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
+        pendingRefreshRate_.reset();
+    }
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
@@ -165,7 +192,6 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
             forceUpdateCallback_(false, true);
-            touchMgr_->rsIdleUpdateCallback_(false);
             FrameRateReport();
         }
     }
@@ -232,7 +258,6 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
         forceUpdateCallback_(false, true);
-        touchMgr_->rsIdleUpdateCallback_(false);
         FrameRateReport();
     }
     ReportHiSysEvent(frameRateVoteInfo);
@@ -245,6 +270,7 @@ void HgmFrameRateManager::FrameRateReport() const
     auto alignRate = HgmCore::Instance().GetAlignRate();
     rates[UNI_APP_PID] = (alignRate == 0) ? currRefreshRate_ : alignRate;
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+    FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
 }
 
 bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
@@ -269,7 +295,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
 
     for (auto linker : appFrameRateLinkers) {
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, linker.second->GetExpectedRange());
-        if (touchMgr_->touchMachine_.GetState() != TouchState::IDLE) {
+        if (touchManager_.GetState() != TouchState::IDLE_STATE) {
             appFrameRate = OLED_NULL_HZ;
         }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
@@ -288,12 +314,17 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
 
 void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
 {
-    RSTaskMessage::RSTask task = [this]() {
+    auto lastRefreshRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    // low refresh rate switch to high refresh rate immediately.
+    if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
+        HgmCore::Instance().SetPendingScreenRefreshRate(currRefreshRate_);
+    }
+
+    RSTaskMessage::RSTask task = [this, lastRefreshRate]() {
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (currRefreshRate_ != HgmCore::Instance().GetPendingScreenRefreshRate()) {
+        if (currRefreshRate_ != lastRefreshRate) {
             forceUpdateCallback_(false, true);
-            touchMgr_->rsIdleUpdateCallback_(false);
             FrameRateReport();
         }
     };
@@ -536,39 +567,19 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
+void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
-    if (!isTouchEnable_) {
-        return;
-    }
-    static auto downEventTask = [this]() {
-        touchMgr_->StopRSTimer(curScreenId_);
-        touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::DOWN);
-    };
-    static auto upEventTask = [this]() {
-        touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::UP);
-        touchMgr_->StartRSTimer(curScreenId_, TOUCH_RS_IDLE_TIMER_EXPIRED, nullptr, [this]() {
-            touchMgr_->rsIdleUpdateCallback_(true);
-        });
-    };
 
     static std::mutex hgmTouchEventMutex;
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
-    if (touchCnt_ < 0) {
-        touchCnt_ = 0;
-    }
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
-        touchCnt_++;
-        if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {
-            HGM_LOGI("[touch manager] update to target %{public}d fps", touchFps_);
-            HgmTaskHandleThread::Instance().PostTask(downEventTask);
-        }
+        HGM_LOGI("[touch manager] down");
+        touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
-        touchCnt_--;
-        if (touchCnt_ == 0) {
-            HGM_LOGI("[touch manager] touch up detect");
-            HgmTaskHandleThread::Instance().PostTask(upEventTask);
+        if (touchCnt == LAST_TOUCH_CNT) {
+            HGM_LOGI("[touch manager] up");
+            touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
@@ -607,7 +618,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d status:%{public}d",
         static_cast<int>(curScreenId_), static_cast<int>(status));
     if (status != ScreenPowerStatus::POWER_STATUS_ON) {
-        touchCnt_ = 0;
         return;
     }
     if (curScreenId_ == id) {
@@ -687,7 +697,6 @@ void HgmFrameRateManager::MarkVoteChange()
     isRefreshNeed_ = true;
     if (forceUpdateCallback_ != nullptr) {
         forceUpdateCallback_(false, true);
-        touchMgr_->rsIdleUpdateCallback_(false);
     }
 }
 

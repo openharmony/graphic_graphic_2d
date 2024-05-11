@@ -60,7 +60,7 @@ public:
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyDisplayNodeBufferReleased();
-    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode);
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
@@ -133,6 +133,7 @@ private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
+    void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

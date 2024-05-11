@@ -77,8 +77,7 @@ public:
 
 protected:
     RectI GetFilterRect() const override;
-    void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
-        bool isInSkippedSubTree = false, const std::optional<RectI>& filterRectForceUpdated = std::nullopt) override;
+    void UpdateFilterCacheWithSelfDirty() override;
     void MarkFilterCacheFlagsAfterPrepare(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false) override;
 

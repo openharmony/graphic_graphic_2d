@@ -131,7 +131,6 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
-    "src/common/rs_gpu_dirty_region.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
@@ -283,6 +282,10 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_props.cpp",
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
+
+    #info_collection
+    "src/info_collection/rs_gpu_dirty_region_collection.cpp",
+    "src/info_collection/rs_layer_compose_collection.cpp",
   ]
 
   if (is_cross_platform) {
@@ -359,9 +362,13 @@ ohos_source_set("render_service_base_src") {
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [
@@ -519,6 +526,7 @@ ohos_source_set("render_service_base_src") {
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_cache.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_settings.cpp",

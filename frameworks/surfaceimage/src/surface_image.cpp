@@ -130,11 +130,6 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
     Rect damage;
     ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        if (ret == SURFACE_ERROR_NO_BUFFER) {
-            BLOGE("AcquireBuffer no buffer");
-        } else {
-            BLOGE("AcquireBuffer failed");
-        }
         return ret;
     }
 
@@ -162,9 +157,18 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
     if (imageCacheSeqs_.count(currentSurfaceImage_) > 0) {
         const auto &image = imageCacheSeqs_.at(currentSurfaceImage_).eglImage_;
         glBindTexture(textureTarget_, textureId);
+        int32_t error = glGetError();
+        if (error != GL_NO_ERROR) {
+            BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
+                textureTarget_, textureId_, error);
+            return SURFACE_ERROR_EGL_API_FAILED;
+        }
         glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(image));
-        if (glGetError() != GL_NO_ERROR) {
-            return SURFACE_ERROR_API_FAILED;
+        error = glGetError();
+        if (error != GL_NO_ERROR) {
+            BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d",
+                textureTarget_, error);
+            return SURFACE_ERROR_EGL_API_FAILED;
         }
     }
 
@@ -184,6 +188,12 @@ SurfaceError SurfaceImage::DetachContext()
 
     textureId_ = 0;
     glBindTexture(textureTarget_, 0);
+    int32_t error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d",
+            textureTarget_, textureId_, error);
+        return SURFACE_ERROR_EGL_API_FAILED;
+    }
     return SURFACE_ERROR_OK;
 }
 
@@ -200,7 +210,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_UNKOWN;
     }
     return SURFACE_ERROR_OK;
 }
@@ -212,11 +222,11 @@ SurfaceError SurfaceImage::ValidateEglState()
 
     if ((eglDisplay_ != disp && eglDisplay_ != EGL_NO_DISPLAY) || (disp == EGL_NO_DISPLAY)) {
         BLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
-        return SURFACE_ERROR_INIT;
+        return SURFACE_ERROR_EGL_STATE_UNKONW;
     }
     if ((eglContext_ != context && eglContext_ != EGL_NO_CONTEXT) || (context == EGL_NO_CONTEXT)) {
         BLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
-        return SURFACE_ERROR_INIT;
+        return SURFACE_ERROR_EGL_STATE_UNKONW;
     }
 
     eglDisplay_ = disp;
@@ -252,16 +262,25 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     if (imageCacheSeqs_.count(seqNum) == 0) {
         EGLImageKHR eglImage = CreateEGLImage(eglDisplay_, buffer);
         if (eglImage == EGL_NO_IMAGE_KHR) {
-            return SURFACE_ERROR_INIT;
+            return SURFACE_ERROR_EGL_API_FAILED;
         }
         imageCacheSeqs_[seqNum].eglImage_ = eglImage;
     }
 
     const auto &image = imageCacheSeqs_.at(seqNum).eglImage_;
     glBindTexture(textureTarget_, textureId_);
+    int32_t error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
+            textureTarget_, textureId_, error);
+        return SURFACE_ERROR_EGL_API_FAILED;
+    }
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(image));
-    if (glGetError() != GL_NO_ERROR) {
-        return SURFACE_ERROR_API_FAILED;
+    error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d",
+            textureTarget_, error);
+        return SURFACE_ERROR_EGL_API_FAILED;
     }
 
     auto sync = imageCacheSeqs_.at(seqNum).eglSync_;
@@ -278,7 +297,7 @@ SurfaceError SurfaceImage::SetOnBufferAvailableListener(void *context, OnBufferA
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (listener == nullptr) {
         BLOGE("listener is nullptr");
-        return SURFACE_ERROR_ERROR;
+        return SURFACE_ERROR_INVALID_PARAM;
     }
 
     listener_ = listener;

@@ -14,8 +14,21 @@
  */
 
 #include "drawing_pixel_map.h"
+#include "native_pixel_map_manager.h"
 
 OH_Drawing_PixelMap* OH_Drawing_PixelMapGetFromNativePixelMap(NativePixelMap_* nativePixelMap)
 {
+    NativePixelMapManager::GetInstance().Register(nativePixelMap, NativePixelMapType::OBJECT_FROM_JS);
     return reinterpret_cast<OH_Drawing_PixelMap*>(nativePixelMap);
+}
+
+OH_Drawing_PixelMap* OH_Drawing_PixelMapGetFromOhPixelMapNative(OH_PixelmapNative* ohPixelMapNative)
+{
+    NativePixelMapManager::GetInstance().Register(ohPixelMapNative, NativePixelMapType::OBJECT_FROM_C);
+    return reinterpret_cast<OH_Drawing_PixelMap*>(ohPixelMapNative);
+}
+
+void OH_Drawing_PixelMapDissolve(OH_Drawing_PixelMap* pixelMap)
+{
+    NativePixelMapManager::GetInstance().Unregister(pixelMap);
 }

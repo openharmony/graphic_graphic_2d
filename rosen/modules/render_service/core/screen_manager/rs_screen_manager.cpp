@@ -1117,7 +1117,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     } else if (!screen->IsVirtual()) {
         info.state = ScreenState::HDI_OUTPUT_ENABLE;
     } else {
-        info.state = ScreenState::PRODUCER_SURFACE_ENABLE;
+        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
     }
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
     screen->GetPixelFormat(info.pixelFormat);
@@ -1259,7 +1259,7 @@ void RSScreenManager::ClearFrameBufferIfNeed()
     RSHardwareThread::Instance().PostTask([this]() {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& [id, screen] : screens_) {
-            if (!screen) {
+            if (!screen || !screen->GetOutput()) {
                 continue;
             }
             if (screen->GetOutput()->GetBufferCacheSize() > 0) {
