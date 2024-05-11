@@ -861,6 +861,24 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 #endif
 }
 
+void RSSurfaceRenderNode::OnSkipSync()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams && surfaceParams->IsLayerDirty()) {
+        auto& preBuffer = surfaceParams->GetPreBuffer();
+        if (!preBuffer) {
+            return;
+        }
+        auto context = GetContext().lock();
+        if (context && !surfaceParams->GetHardwareEnabled()) {
+            context->GetMutableSkipSyncBuffer().push_back(
+                { preBuffer, GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+        }
+    }
+#endif
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
     const sptr<SurfaceBuffer>& preBuffer)
@@ -1842,6 +1860,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
@@ -1870,6 +1889,7 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
 {
     opaqueRegionBaseInfo_.screenRect_ = screeninfo;
     opaqueRegionBaseInfo_.absRect_ = absRect;
+    opaqueRegionBaseInfo_.oldDirty_ = GetOldDirty();
     opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
     opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
     opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;

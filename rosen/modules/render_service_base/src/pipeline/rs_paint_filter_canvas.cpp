@@ -280,19 +280,19 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 }
 
 void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawShadowStyle(
-                path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+                path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isLimitElevation);
         }
     }
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawShadowStyle(
-            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isLimitElevation);
     }
 #endif
 }
@@ -358,38 +358,6 @@ void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Dr
 #endif
 }
 
-// opinc_begin
-bool RSPaintFilterCanvasBase::BeginOpRecording(const Drawing::Rect* bound, bool isDynamic)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->BeginOpRecording(bound, isDynamic);
-    }
-    return false;
-}
-
-Drawing::OpListHandle RSPaintFilterCanvasBase::EndOpRecording()
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->EndOpRecording();
-    }
-    return {};
-}
-
-void RSPaintFilterCanvasBase::DrawOpList(Drawing::OpListHandle handle)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawOpList(handle);
-    }
-}
-
-int RSPaintFilterCanvasBase::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->CanDrawOpList(handle);
-    }
-    return -1;
-}
-
 bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
 {
     if (canvas_ != nullptr && OnFilter()) {
@@ -405,7 +373,6 @@ std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter
     }
     return nullptr;
 }
-// opinc_end
 
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
@@ -994,7 +961,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
     }
 
     Pen p(pen);
-    if (hasHdrPresent_ && isCapture_) {
+    if (hasHdrPresent_ && !isCapture_) {
         RS_LOGD("hdr PaintFilter %{public}d AttachPen", targetColorGamut_);
         PaintFilter(p);
     }
@@ -1031,7 +998,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     Brush b(brush);
-    if (hasHdrPresent_ && isCapture_) {
+    if (hasHdrPresent_ && !isCapture_) {
         RS_LOGD("hdr PaintFilter %{public}d AttachBrush", targetColorGamut_);
         PaintFilter(b);
     }
@@ -1087,7 +1054,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
     }
 
     Paint p(paint);
-    if (hasHdrPresent_ && isCapture_ && !paint.IsHDRImage()) {
+    if (hasHdrPresent_ && !isCapture_ && !paint.IsHDRImage()) {
         RS_LOGD("hdr AttachPaint %{public}d AttachPaint", targetColorGamut_);
         PaintFilter(p);
     }

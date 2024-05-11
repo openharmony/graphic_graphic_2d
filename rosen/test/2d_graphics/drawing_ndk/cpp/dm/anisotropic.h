@@ -43,14 +43,10 @@ public:
     ~Anisotropic() override;
 
 protected:
-    OH_Drawing_Image *image = OH_Drawing_ImageCreate();
-    OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_Canvas *bimap_canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
-    OH_Drawing_Rect *rect;
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     void BeforeDraw(OH_Drawing_Canvas *canvas);
     void Draw(OH_Drawing_Canvas *canvas, int x, int y, int xSize, int ySize);
+    void DrawImage(OH_Drawing_Canvas *canvas, OH_Drawing_Image *image, OH_Drawing_Bitmap *bitmap);
 };
 
 #endif // ANISOTROPIC_H

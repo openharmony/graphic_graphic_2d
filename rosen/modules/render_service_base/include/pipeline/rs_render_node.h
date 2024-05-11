@@ -407,6 +407,14 @@ public:
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
+    bool GetCurFrameHasAnimation() const
+    {
+        return curFrameHasAnimation_;
+    }
+    void SetCurFrameHasAnimation(bool b)
+    {
+        curFrameHasAnimation_ = b;
+    }
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
@@ -472,8 +480,8 @@ public:
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
-        RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode = false);
+    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
+        bool dirtyBelowContainsFilterNode = false, bool rotationChanged = false);
     bool IsFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
@@ -637,6 +645,7 @@ public:
         lastFrameSynced_ = false;
         // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
         addedToPendingSyncList_ = false;
+        OnSkipSync();
     }
     void Sync()
     {
@@ -684,6 +693,7 @@ protected:
 
     virtual void InitRenderParams();
     virtual void OnSync();
+    virtual void OnSkipSync() {};
     virtual void ClearResource() {};
 
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -916,6 +926,7 @@ private:
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;
+    bool curFrameHasAnimation_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;

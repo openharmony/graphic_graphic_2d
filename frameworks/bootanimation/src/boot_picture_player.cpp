@@ -19,8 +19,10 @@
 #include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
 
-using namespace OHOS;
-const std::string BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+namespace OHOS {
+namespace {
+    const std::string BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+}
 
 BootPicturePlayer::BootPicturePlayer(const PlayerParams& params)
 {
@@ -46,7 +48,7 @@ void BootPicturePlayer::Play()
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
     if (ReadPicZipFile(imageVector_, freq_)) {
-        imgVecSize_ = imageVector_.size();
+        imgVecSize_ = static_cast<int32_t> (imageVector_.size());
     } else {
         LOGE("read pic zip failed");
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
@@ -69,7 +71,7 @@ void BootPicturePlayer::Play()
     }
 }
 
-void BootPicturePlayer::InitPicCoordinates(const Rosen::ScreenId screenId)
+void BootPicturePlayer::InitPicCoordinates(Rosen::ScreenId screenId)
 {
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(screenId);
@@ -142,12 +144,12 @@ bool BootPicturePlayer::Draw()
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
     auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     if (frame == nullptr) {
         LOGE("draw frame is nullptr");
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
         return false;
     }
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 #ifdef NEW_RENDER_CONTEXT
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
@@ -199,3 +201,4 @@ bool BootPicturePlayer::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return true;
 }
+} // namespace OHOS

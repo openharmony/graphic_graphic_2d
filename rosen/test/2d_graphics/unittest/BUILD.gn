@@ -15,6 +15,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    "bitmap:unittest",
     "draw:unittest",
     "effect:unittest",
     "image:unittest",

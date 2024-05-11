@@ -58,9 +58,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRange(initialRange);
-    frameRateLinker->UpdateFrameRateRange({30, 144, 60});
-    frameRateLinker->UpdateFrameRateRange(newRange);
+    frameRateLinker->UpdateFrameRateRange(initialRange, false);
+    frameRateLinker->UpdateFrameRateRange({30, 144, 60}, false);
+    frameRateLinker->UpdateFrameRateRange(newRange, false);
 }
 
 /**
@@ -74,9 +74,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRangeImme(initialRange);
-    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60});
-    frameRateLinker->UpdateFrameRateRangeImme(newRange);
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
+    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, false);
+    frameRateLinker->UpdateFrameRateRangeImme(newRange, false);
 }
 
 /**

@@ -224,6 +224,7 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
     displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
+    displayParams->SetNeedOffscreen(IsRotationChanged());
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()
@@ -310,6 +311,7 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
+    lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
 }
 

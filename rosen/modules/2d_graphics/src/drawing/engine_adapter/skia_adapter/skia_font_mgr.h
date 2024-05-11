@@ -40,7 +40,7 @@ public:
 #ifndef USE_TEXGINE
     static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgr();
     Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) override;
-    void LoadThemeFont(const std::string& familyName, const std::string& themeName,
+    Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) override;
 #endif
     Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,

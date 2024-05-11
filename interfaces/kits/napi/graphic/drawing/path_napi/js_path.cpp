@@ -92,7 +92,10 @@ void JsPath::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 JsPath::~JsPath()
 {
-    m_path = nullptr;
+    if (m_path != nullptr) {
+        delete m_path;
+        m_path = nullptr;
+    }
 }
 
 napi_value JsPath::MoveTo(napi_env env, napi_callback_info info)

@@ -78,7 +78,7 @@ void FillType::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     // 使用指定颜色设置清空画布底色:
     // sk源代码色度是0xFFDDDDDD为RGB221图像出来0xFFD9D9D9灰度RGB217，测试功能代码设置xFFD9D9D9
-    OH_Drawing_CanvasClear(canvas, 0xFFD9D9D9);
+    OH_Drawing_CanvasClear(canvas, 0xFFDDDDDD);
     // 创建矩形对象并将弧添加到路径中
     float x = 50; // 50 矩阵创建参数
     float y = 50; // 50 矩阵创建参数

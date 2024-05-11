@@ -1795,8 +1795,8 @@ inline static bool IsLargeArea(int width, int height)
     return width > threshold && height > threshold;
 }
 
-void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
-    RSDirtyRegionManager& dirtyManager, bool dirtyBelowContainsFilterNode)
+void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
+    bool dirtyBelowContainsFilterNode, bool rotationChanged)
 {
     if (IsInstanceOf<RSEffectRenderNode>() && ChildHasVisibleEffect()) {
         MarkFilterHasEffectChildren();
@@ -1804,6 +1804,10 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare filter cache is disabled.");
         return;
+    }
+    bool rotationClear = false;
+    if (!IsInstanceOf<RSEffectRenderNode>() && rotationChanged) {
+        rotationClear = true;
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
@@ -1813,7 +1817,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(
         auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
-        if (dirtyBelowContainsFilterNode || bgDirty) {
+        if (dirtyBelowContainsFilterNode || bgDirty || rotationClear) {
             filterDrawable->MarkFilterForceClearCache();
         }
         if (filterDrawable->NeedPendingPurge()) {
@@ -2245,14 +2249,14 @@ void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
     // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
-    constexpr uint8_t FRAME_EMPTY = 1 << 5;
-    constexpr uint8_t ALL_EMPTY = 1 << 6;
+    constexpr auto FRAME_NOT_EMPTY = 1 << 4;
+    constexpr auto NODE_NOT_EMPTY = 1 << 5;
 
     stagingDrawCmdList_.clear();
     drawCmdListNeedSync_ = true;
 
-    if (drawableVecStatus_ & ALL_EMPTY) {
-        // Nothing to draw
+    if (UNLIKELY((drawableVecStatus_ & NODE_NOT_EMPTY) == 0)) {
+        // NODE_NOT_EMPTY is not set, so nothing to draw, just skip
         stagingRenderParams_->SetContentEmpty(IsInstanceOf<RSCanvasRenderNode>());
         return;
     }
@@ -2289,7 +2293,7 @@ void RSRenderNode::UpdateDisplayList()
 
     AppendDrawFunc(RSDrawableSlot::BG_RESTORE_BOUNDS);
 
-    if (!(drawableVecStatus_ & FRAME_EMPTY)) {
+    if (drawableVecStatus_ & FRAME_NOT_EMPTY) {
         // Update index of CONTENT_STYLE
         stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::CONTENT_STYLE);
 

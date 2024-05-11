@@ -50,6 +50,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
+    "core/frame_rate_manager/hgm_idle_detector.cpp",
     "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",
     "core/frame_rate_manager/hgm_touch_manager.cpp",
@@ -57,6 +58,8 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
+    "frame_rate_vote/rs_frame_rate_vote.cpp",
+    "frame_rate_vote/rs_video_frame_rate_vote.cpp",
   ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags = []
@@ -79,6 +82,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",

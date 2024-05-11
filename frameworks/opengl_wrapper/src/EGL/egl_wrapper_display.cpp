@@ -29,6 +29,36 @@
 #include "window.h"
 
 namespace OHOS {
+static constexpr const char *VENDOR_VALUE = "OpenHarmony";
+static constexpr const char *VERSION_VALUE_1_4 = "1.4 OpenHarmony EGL";
+static constexpr const char *VERSION_VALUE_1_5 = "1.5 OpenHarmony EGL";
+static constexpr const char *CLIENT_API_VALUE = "OpenGL_ES";
+static constexpr const char *EXTENSION_VALUE =
+    "EGL_KHR_mutable_render_buffer "
+    "EGL_KHR_config_attribs "
+    "EGL_KHR_image_base "
+    "EGL_KHR_gl_colorspace "
+    "EGL_KHR_get_all_proc_addresses "
+    "EGL_KHR_no_config_context "
+    "EGL_IMG_context_priority "
+    "EGL_EXT_pixel_format_float "
+    "EGL_ARM_pixmap_multisample_discard "
+    "EGL_EXT_protected_content "
+    "EGL_ARM_implicit_external_sync "
+    "EGL_KHR_gl_texture_2D_image "
+    "EGL_KHR_gl_renderbuffer_image "
+    "EGL_KHR_create_context "
+    "EGL_KHR_surfaceless_context "
+    "EGL_KHR_gl_texture_cubemap_image "
+    "EGL_EXT_create_context_robustness "
+    "EGL_EXT_image_gl_colorspace "
+    "EGL_EXT_platform_base "
+    "EGL_EXT_swap_buffers_with_damage "
+    "EGL_ANDROID_get_frame_timestamps "
+    "EGL_ANDROID_presentation_time "
+    "EGL_ANDROID_get_native_client_buffer "
+;
+
 EglWrapperDisplay EglWrapperDisplay::wrapperDisp_;
 
 EglWrapperDisplay::EglWrapperDisplay() noexcept : disp_(EGL_NO_DISPLAY), refCnt_(0)
@@ -41,9 +71,19 @@ EglWrapperDisplay::~EglWrapperDisplay()
     WLOGD("");
 }
 
+void EglWrapperDisplay::UpdateQueryValue(EGLint *major, EGLint *minor)
+{
+    if (minor != nullptr && major != nullptr) {
+        // 1 is major version, 5 is minor version.
+        versionValue_ = (*major == 1 && *minor == 5) ? VERSION_VALUE_1_5 : VERSION_VALUE_1_4;
+    }
+    vendorValue_ = VENDOR_VALUE;
+    clientApiValue_ = CLIENT_API_VALUE;
+    extensionValue_ = EXTENSION_VALUE;
+}
+
 EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
 {
-    WLOGD("");
     std::lock_guard<std::mutex> lock(refLockMutex_);
     if (refCnt_ > 0) { // wait other thread init.
         EglWrapperDispatchTablePtr table = &gWrapperHook;
@@ -54,10 +94,10 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
             *minor = table->minor;
         }
         refCnt_++;
+        UpdateQueryValue(major, minor);
         return EGL_TRUE;
     }
 
-    EGLBoolean ret = EGL_FALSE;
     ThreadPrivateDataCtl::SetGlHookTable(&gGlHookNoContext);
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     table->major = -1;
@@ -65,7 +105,6 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
     if (table->isLoad && table->egl.eglInitialize) {
         if (table->egl.eglInitialize(disp_, &table->major, &table->minor)) {
             WLOGI("initialized ver=%{public}d.%{public}d", table->major, table->minor);
-            ret = EGL_TRUE;
             if (major != nullptr) {
                 *major = table->major;
             }
@@ -74,13 +113,15 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
             }
             refCnt_++;
             BlobCache::Get()->Init(this);
+            UpdateQueryValue(major, minor);
+            return EGL_TRUE;
         } else {
             WLOGE("eglInitialize Error.");
         }
-        return ret;
+    } else {
+        WLOGE("eglInitialize is invalid.");
     }
-    WLOGE("eglInitialize is invalid.");
-    return ret;
+    return EGL_FALSE;
 }
 
 EGLBoolean EglWrapperDisplay::Terminate()

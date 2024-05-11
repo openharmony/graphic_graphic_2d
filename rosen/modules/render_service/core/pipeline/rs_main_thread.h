@@ -103,6 +103,8 @@ public:
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
+    void UpdateAnimateNodeFlag();
+    void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
 
@@ -186,7 +188,8 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
-    void SetDirtyFlag();
+    void SetDirtyFlag(bool isDirty = true);
+    bool GetDirtyFlag();
     void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
@@ -377,7 +380,7 @@ private:
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
-    void ResetHardwareEnabledState();
+    void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
@@ -433,7 +436,6 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
-    bool isNeedCloseSync_ = false;
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
@@ -499,7 +501,7 @@ private:
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
     bool qosPidCal_ = false;
-    bool isDirty_ = false;
+    std::atomic<bool> isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
     std::atomic<int32_t> focusAppPid_ = -1;

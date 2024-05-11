@@ -125,7 +125,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = RSBaseRenderUtil::IsForceClient();
+    info.needClient = RSSystemProperties::IsForceClient();
     auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),

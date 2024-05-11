@@ -32,8 +32,8 @@ public:
 
     FrameRateLinkerId GetId() const;
     bool IsUniRenderEnabled() const;
-    void UpdateFrameRateRange(const FrameRateRange& range);
-    void UpdateFrameRateRangeImme(const FrameRateRange& range);
+    void UpdateFrameRateRange(const FrameRateRange& range, bool isAnimatorStopped = true);
+    void UpdateFrameRateRangeImme(const FrameRateRange& range, bool isAnimatorStopped = true);
     void SetEnable(bool enabled);
     bool IsEnable();
     static std::shared_ptr<RSFrameRateLinker> Create();
@@ -42,6 +42,7 @@ private:
     static FrameRateLinkerId GenerateId();
     const FrameRateLinkerId id_;
     FrameRateRange currentRange_;
+    bool currAnimationStatus_ = true;
     bool isEnabled_ = true;
 };
 } // namespace Rosen

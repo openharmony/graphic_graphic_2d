@@ -62,7 +62,6 @@
           "hitrace",
           "ability_runtime",
           "drivers_interface_display",
-          "drivers_interface_camera_ext",
           "c_utils",
           "access_token",
           "safwk",
@@ -99,6 +98,7 @@
           "libuv",
           "icu",
           "libpng",
+          "ffrt",
           "libxml2"
         ],
         "third_party": [
@@ -452,7 +452,8 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
-          "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test"
+          "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
+          "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo"
         ]
       }
     }

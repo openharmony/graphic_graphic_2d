@@ -68,8 +68,8 @@ public:
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
     void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
-        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
-        Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isShadowStyle) override;
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
+        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
@@ -81,14 +81,8 @@ public:
     void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
 
-    // opinc_begin
-    bool BeginOpRecording(const Drawing::Rect* bound = nullptr, bool isDynamic = false) override;
-    Drawing::OpListHandle EndOpRecording() override;
-    void DrawOpList(Drawing::OpListHandle handle) override;
-    int CanDrawOpList(Drawing::OpListHandle handle) override;
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
-    // opinc_end
 
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,

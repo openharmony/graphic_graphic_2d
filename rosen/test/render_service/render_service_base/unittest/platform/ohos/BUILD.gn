@@ -28,6 +28,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "rs_innovation_test.cpp",
     "rs_jank_stats_test.cpp",
     "rs_log_test.cpp",
+    "rs_marshalling_helper_test.cpp",
     "rs_node_stats_test.cpp",
     "rs_render_service_client_test.cpp",
     "rs_render_service_connect_hub_test.cpp",

@@ -86,10 +86,11 @@ export class MyNodeController extends NodeController {
     const renderNode = this.rootNode.getRenderNode();
     if (renderNode !== null) {
       this.myRenderNode.backgroundColor = 0xffffffff;
-      this.myRenderNode.frame = { x: 0, y: 0, width: 480, height: 480 }; //2:3 = 480:720
+      this.myRenderNode.frame = { x: 0, y: 0, width: 4800, height: 4800 }; //2:3 = 480:720  4800代表足够大，覆盖整个控件
       this.myRenderNode.pivot = { x: 0.2, y: 0.8 }
       this.myRenderNode.scale = { x: 1, y: 1 }
       renderNode.appendChild(this.myRenderNode);
+      renderNode.clipToFrame = true
       console.info(TAG, 'MyNodeController appendChild end');
     }
 

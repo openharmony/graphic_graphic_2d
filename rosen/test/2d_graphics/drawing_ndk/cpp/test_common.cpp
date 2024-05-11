@@ -91,30 +91,23 @@ uint32_t TestRend::nextBits(unsigned bitCount)
 
 uint32_t color_to_565(uint32_t color)
 {
-    //这个接口按照32位图转565格式，再用32位来显示的方式运行，但是和dm的出图有色差 参见 addarc case
-    uint8_t r = (color >> 16) & 0xFF;  // 16 for r
-    uint8_t g = (color >> 8) & 0xFF; // 8 for g
-    uint8_t b = color & 0xFF;
+    unsigned r = ((color >> 19) & 0x1F) << 11;
+    unsigned g = ((color >> 10) & 0x3F) << 5;
+    unsigned b = ((color >> 3) & 0x1F);
 
-    // 预乘 RGB 分量  由于目前代码中alpha为255 ，所以忽略此过程， dm中有此过程，代码不同
+    uint16_t rgb565 = r | g | b;
+
     // 将RGB通道的值缩放到565格式
-    r = (r >> 3) & 0x1F; // 3:8位到5位
-    g = (g >> 2) & 0x3F; // 2:8位到6位
-    b = (b >> 3) & 0x1F; // 3:8位到5位
+    unsigned r1 = ((unsigned)rgb565 >> 11) & 0x1F;
+    unsigned g1 = ((unsigned)rgb565 >> 5) & 0x3F;
+    unsigned b1 = (unsigned)rgb565 & 0x1F;
 
-    uint16_t rgb565 = (r << 11) | (g << 5) | b; // 11:r, 5:g
-    
-    //还原成32位用于api绘制，其中色彩信息在压缩过程中有所缺失
-    uint8_t r2 = (rgb565 >> 11) & 0x1F; // 11:r
-    uint8_t g2 = (rgb565 >> 5) & 0x3F; // 5:g
-    uint8_t b2 = rgb565 & 0x1F;
-    
-    r2 = r2<<3 | r2>>3; // 3: 8 to 565
-    g2 = g2<<2 | g2>>2; // 2: 8 to 565
-    b2 = b2<<3 | b2>>3; // 3: 8 to 565
-    
-    uint32_t argb = 0xFF000000 | (r2<<16) | (g2<<8) | b2; // 16, 8 : argb
-    return  argb;
+    unsigned r2 = (r1 << 3) | (r1 >> 2);
+    unsigned g2 = (g1 << 2) | (g1 >> 4);
+    unsigned b2 = (b1 << 3) | (b1 >> 2);
+
+    uint32_t argb = (0xFF << 24) | (r2 << 16) | (g2 << 8) | b2;
+    return argb;
 }
 
 OH_Drawing_Rect* DrawCreateRect(DrawRect r)

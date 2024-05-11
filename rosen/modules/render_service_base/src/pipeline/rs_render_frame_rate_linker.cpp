@@ -56,5 +56,11 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 {
     return frameRate_;
 }
+
+void RSRenderFrameRateLinker::SetAnimationIdle(bool status)
+{
+    isAnimationIdle_ = status;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -133,9 +133,9 @@ private:
 };
 
 void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    ScreenInfo& screenInfo_)
+    ScreenInfo& screenInfo)
 {
-    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
@@ -186,6 +186,8 @@ static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRend
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
         rects.emplace_back(rect);
+        RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
+        GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
 
     return rects;
@@ -292,13 +294,15 @@ static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool cl
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode,
     RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
 {
-    if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() ||
-        (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode())) {
+    if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() || params == nullptr ||
+        (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode()) ||
+        RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
+    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX();
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
@@ -327,7 +331,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
         RS_LOGW("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessDisplaySurface(*displayNode);
-    // planning: commit RCD layers
+    // commit RCD layers
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    auto screenInfo = params->GetScreenInfo();
+    DoScreenRcdTask(processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
 }
@@ -462,6 +469,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
+    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
     if (!renderFrame) {
@@ -505,7 +513,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        curCanvas_->ConcatMatrix(params->GetMatrix());
+
+        bool isOpDropped = uniParam->IsOpDropped();
+        bool needOffscreen = params->GetNeedOffscreen();
+        if (needOffscreen) {
+            uniParam->SetOpDropped(false);
+            PrepareOffscreenRender(*displayNodeSp);
+        } else {
+            curCanvas_->ConcatMatrix(params->GetMatrix());
+        }
+
         if (uniParam->IsOpDropped()) {
             auto region = GetFilpedRegion(damageRegionrects, screenInfo);
             uniParam->SetClipRegion(region);
@@ -523,10 +540,17 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         DrawCurtainScreen(*displayNodeSp, *curCanvas_);
         // switch color filtering
         SwitchColorFilter(*curCanvas_);
+        if (needOffscreen) {
+            Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+            canvasBackup_->ConcatMatrix(params->GetMatrix());
+            canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
+            uniParam->SetOpDropped(isOpDropped);
+        }
     }
     PostClearMemoryTask();
     rsDirtyRectsDfx.OnDraw(curCanvas_);
-
+    RSMainThread::Instance()->SetDirtyFlag(false);
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
         for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
@@ -708,7 +732,7 @@ void RSDisplayRenderNodeDrawable::ResetRotateIfNeed(RSDisplayRenderNode& mirrore
         mirroredProcessor.GetScreenTransformMatrix().Invert(invertMatrix)) {
         // If both canvas and skImage have rotated, we need to reset the canvas
         curCanvas_->ConcatMatrix(invertMatrix);
-        
+
         // If both canvas and clipRegion have rotated, we need to reset the clipRegion
         Drawing::Path path;
         if (clipRegion.GetBoundaryPath(&path)) {

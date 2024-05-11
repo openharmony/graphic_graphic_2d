@@ -162,6 +162,20 @@ public:
         bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
                              buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
+
+    bool CheckScalingModeChanged()
+    {
+        if (!HasConsumer() || buffer_.buffer == nullptr) {
+            return false;
+        }
+
+        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+
+        consumer_->GetScalingMode(buffer_.buffer->GetSeqNum(), scalingMode);
+        bool ScalingModeChanged_ = scalingMode != scalingModePre;
+        scalingModePre = scalingMode;
+        return ScalingModeChanged_;
+    }
 #endif
 
     SurfaceBufferEntry& GetPreBuffer()
@@ -241,6 +255,9 @@ protected:
     bool isCurrentFrameBufferConsumed_ = false;
 
 private:
+#ifndef ROSEN_CROSS_PLATFORM
+    ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+#endif
     NodeId id_ = 0;
     SurfaceBufferEntry buffer_;
     SurfaceBufferEntry preBuffer_;

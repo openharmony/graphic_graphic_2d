@@ -48,7 +48,8 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "rs_hgm_config_data.h"
 #include "rs_occlusion_data.h"
-#include "common/rs_gpu_dirty_region.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_layer_compose_collection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -159,7 +160,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -297,7 +298,11 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id);
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
+ 
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
+
+    LayerComposeInfo GetLayerComposeInfo();
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

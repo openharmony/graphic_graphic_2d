@@ -1514,7 +1514,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to a typography object <b>OH_Drawing_Typography</b>.
- * @return Indicates the pointer to a lime metrics object <b>OH_Drawing_LineMetrics</b>.
+ * @return Indicates the pointer to a line metrics object <b>OH_Drawing_LineMetrics</b>.
  * @since 12
  * @version 1.0
  */
@@ -1524,7 +1524,7 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
  * @brief Get the number of lines.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_LineMetrics Indicates the pointer to a lime metrics object <b>OH_Drawing_LineMetrics</b>.
+ * @param OH_Drawing_LineMetrics Indicates the pointer to a line metrics object <b>OH_Drawing_LineMetrics</b>.
  * @return Returns the number of lines.
  * @since 12
  * @version 1.0
@@ -1535,7 +1535,7 @@ size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics*);
  * @brief Releases the memory occupied by line metrics.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_LineMetrics Indicates the pointer to a lime metrics object <b>OH_Drawing_LineMetrics</b>.
+ * @param OH_Drawing_LineMetrics Indicates the pointer to a line metrics object <b>OH_Drawing_LineMetrics</b>.
  * @since 12
  * @version 1.0
  */
@@ -1547,7 +1547,7 @@ void OH_Drawing_DestroyLineMetrics(OH_Drawing_LineMetrics*);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to a typography object <b>OH_Drawing_Typography</b>.
  * @param int Line number.
- * @param OH_Drawing_LineMetrics Indicates the pointer to a lime metrics object <b>OH_Drawing_LineMetrics</b>.
+ * @param OH_Drawing_LineMetrics Indicates the pointer to a line metrics object <b>OH_Drawing_LineMetrics</b>.
  * @return Whether the line metrics was obtained.
  * @since 12
  * @version 1.0
@@ -2492,7 +2492,7 @@ bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param hintsEnabled Indicates the hinting of text typography..
+ * @param hintsEnabled Indicates the hinting of text typography.
  * @since 12
  * @version 1.0
  */
@@ -2648,6 +2648,29 @@ OH_Drawing_TextAlign OH_Drawing_TypographyStyleGetEffectiveAlignment(OH_Drawing_
  * @version 1.0
  */
 bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style);
+
+/**
+ * @brief Releases the memory occupied by text box.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextBox Indicates the pointer to a text box object <b>OH_Drawing_TextBox</b>.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox*);
+
+/** @brief Sets the parameter of text-shadow.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextShadow Indicates the pointer to an <b>OH_Drawing_TextShadow</b> object.
+ * @param color Indicates the color setting of text-shadow.
+ * @param OH_Drawing_Point Indicates the pointer to an <b>OH_Drawing_Point</b> object.
+ * @param blurRadius Indicates the radius of blur for text-shadow.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius);
 
 #ifdef __cplusplus
 }

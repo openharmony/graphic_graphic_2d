@@ -30,7 +30,7 @@ public:
 
 #ifndef USE_TEXGINE
     virtual Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) = 0;
-    virtual void LoadThemeFont(const std::string& familyName, const std::string& themeName,
+    virtual Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) = 0;
 #endif
     virtual Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,

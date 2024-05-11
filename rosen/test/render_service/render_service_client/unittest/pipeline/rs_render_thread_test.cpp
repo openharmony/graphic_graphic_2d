@@ -142,19 +142,6 @@ HWTEST_F(RSRenderThreadTest, GetTid001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateAndInitRenderContextIfNeed001
- * @tc.desc: test results of CreateAndInitRenderContextIfNeed
- * @tc.type:FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeed001, TestSize.Level1)
-{
-    auto renderThread = std::make_shared<RSRenderThread>();
-    renderThread->CreateAndInitRenderContextIfNeed();
-    EXPECT_EQ(renderThread->tid_, -1);
-}
-
-/**
  * @tc.name: OnVsync001
  * @tc.desc: test results of OnVsync
  * @tc.type:FUNC

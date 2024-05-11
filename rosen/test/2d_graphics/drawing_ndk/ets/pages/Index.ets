@@ -225,6 +225,7 @@ struct Index {
         Text(this.information)
           .fontSize(20)
           .textAlign(TextAlign.Center)
+          .id('infoText')
       }
       .height('7%')
     }

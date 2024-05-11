@@ -47,6 +47,8 @@ public:
         return DrawingType::COMMON;
     }
 
+    virtual bool Contains(int32_t x, int32_t y) const;
+
     /**
      * @brief Constructs a rectangular Region matching the bounds of rect.
      * @param rectI Bounds of constructed Region.

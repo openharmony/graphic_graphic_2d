@@ -30,6 +30,7 @@ class RegionImpl : public BaseImpl {
 public:
     RegionImpl() {}
     ~RegionImpl() override {}
+    virtual bool Contains(int32_t x, int32_t y) const = 0;
     virtual bool SetRect(const RectI& rectI) = 0;
     virtual bool SetPath(const Path& path, const Region& clip) = 0;
     virtual bool GetBoundaryPath(Path* path) const = 0;

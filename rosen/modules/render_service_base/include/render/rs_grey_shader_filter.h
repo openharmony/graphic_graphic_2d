@@ -24,6 +24,8 @@ public:
     RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh);
     ~RSGreyShaderFilter() override;
 
+    float GetGreyCoefLow() const;
+    float GetGreyCoefHigh() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 private:
     float greyCoefLow_ = 0.f;

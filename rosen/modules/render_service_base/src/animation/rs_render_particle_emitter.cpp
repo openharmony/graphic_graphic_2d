@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int MAX_EMIT_RATE = 5000;
 RSRenderParticleEmitter::RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams)
     : particleParams_(particleParams)
 {}
@@ -69,7 +70,7 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     if (emitFinish_ == true) {
         return;
     }
-    auto emitRate = particleParams_->GetEmitRate();
+    auto emitRate = std::min(particleParams_->GetEmitRate(), MAX_EMIT_RATE);
     auto maxParticle = particleParams_->GetParticleCount();
     auto lifeTimeStart = particleParams_->GetLifeTimeStartValue();
     auto lifeTimeEnd = particleParams_->GetLifeTimeEndValue();
@@ -78,8 +79,7 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     if (maxParticle == -1) {
         maxParticle = INT32_MAX;
     }
-    if (maxParticle <= 0 || (lifeTimeStart == 0 && lifeTimeEnd == 0) || emitRate == 0 ||
-        last > static_cast<float>(maxParticle)) {
+    if (maxParticle <= 0 || (lifeTimeStart == 0 && lifeTimeEnd == 0) || last > static_cast<float>(maxParticle)) {
         emitFinish_ = true;
         return;
     }

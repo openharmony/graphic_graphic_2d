@@ -41,7 +41,7 @@ void RSSurfaceFrameOhosGlTest::TearDown() {}
  * @tc.name: SetDamageRegion001
  * @tc.desc: test results of SetDamageRegion
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, SetDamageRegion001, TestSize.Level1)
 {
@@ -58,7 +58,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, SetDamageRegion001, TestSize.Level1)
  * @tc.name: GetCanvas001
  * @tc.desc: test results of GetCanvas
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
 {
@@ -80,7 +80,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
  * @tc.name: GetCanvas002
  * @tc.desc: test results of GetCanvas
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas002, TestSize.Level1)
 {
@@ -97,7 +97,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas002, TestSize.Level1)
  * @tc.name: GetSurface001
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
 {
@@ -119,7 +119,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
  * @tc.name: GetSurface002
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface002, TestSize.Level1)
 {
@@ -137,7 +137,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface002, TestSize.Level1)
  * @tc.name: GetReleaseFence001
  * @tc.desc: test results of GetReleaseFence
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetReleaseFence001, TestSize.Level1)
 {
@@ -151,7 +151,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetReleaseFence001, TestSize.Level1)
  * @tc.name: SetReleaseFence001
  * @tc.desc: test results of SetReleaseFence
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, SetReleaseFence001, TestSize.Level1)
 {
@@ -167,7 +167,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, SetReleaseFence001, TestSize.Level1)
  * @tc.name: GetBufferAge001
  * @tc.desc: test results of GetBufferAge
  * @tc.type:FUNC
- * @tc.require: SR20240111372440
+ * @tc.require: issueI9K9FU
  */
 HWTEST_F(RSSurfaceFrameOhosGlTest, GetBufferAge001, TestSize.Level1)
 {

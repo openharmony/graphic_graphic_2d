@@ -46,8 +46,11 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo001, TestSize.Level
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
-    auto info = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(DEFAULT_Z_ORDER, nullptr, screenInfo, DEFAULT_FPS);
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(
+        DEFAULT_Z_ORDER, nullptr, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, false);
 }
 
 /**
@@ -64,8 +67,11 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level
     NodeId id = 0;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
-    auto info = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(DEFAULT_Z_ORDER, displayNode, screenInfo, DEFAULT_FPS);
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(
+        DEFAULT_Z_ORDER, displayNode, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, false);
 }
 
 /**
@@ -78,8 +84,10 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
-    auto info = uniHwcPrevalidateUtil.CreateRCDLayerInfo(nullptr, screenInfo, DEFAULT_FPS);
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateRCDLayerInfo(nullptr, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, false);
 }
 
 /**
@@ -95,7 +103,9 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
     auto node = std::make_shared<RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
     ASSERT_NE(node, nullptr);
     ScreenInfo screenInfo;
-    auto info = uniHwcPrevalidateUtil.CreateRCDLayerInfo(node, screenInfo, DEFAULT_FPS);
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateRCDLayerInfo(node, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, false);
 }
 }

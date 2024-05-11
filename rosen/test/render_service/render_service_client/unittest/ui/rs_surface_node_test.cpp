@@ -1324,7 +1324,7 @@ HWTEST_F(RSSurfaceNodeTest, SetForeground, TestSize.Level1)
     surfaceNode->SetForeground(true);
     surfaceNode->SetForceUIFirst(true);
     surfaceNode->SetAncoForceDoDirect(true);
-    surfaceNode->SetHDRPresent(true);
+    surfaceNode->SetHDRPresent(true, 0);
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
     //for test
     bool ret = true;
@@ -1532,5 +1532,19 @@ HWTEST_F(RSSurfaceNodeTest, SplitSurfaceNodeName, TestSize.Level1)
     std::pair<std::string, std::string> res = surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
     EXPECT_EQ(res.first, "0");
     EXPECT_EQ(res.second, "1");
+}
+
+/**
+ * @tc.name: SetColorSpace Test
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetColorSpace, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(surfaceNode->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 } // namespace OHOS::Rosen

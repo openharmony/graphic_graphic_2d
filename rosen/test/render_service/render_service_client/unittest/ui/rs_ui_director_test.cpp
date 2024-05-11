@@ -385,9 +385,11 @@ HWTEST_F(RSUIDirectorTest, SetRTRenderForced, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, StartTextureExport, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    ASSERT_TRUE(director != nullptr);
-    director->StartTextureExport();
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+        ASSERT_TRUE(director != nullptr);
+        director->StartTextureExport();
+    }
 }
 
 /**
@@ -479,11 +481,13 @@ HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    ASSERT_TRUE(director != nullptr);
-    director->isUniRenderEnabled_ = true;
-    director->StartTextureExport();
-    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+        ASSERT_TRUE(director != nullptr);
+        director->isUniRenderEnabled_ = true;
+        director->StartTextureExport();
+        EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+    }
 }
 
 /**

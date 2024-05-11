@@ -224,6 +224,9 @@ public:
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
+    static bool IsForceClient();
+    static bool GetUnmarshParallelFlag();
+    static uint32_t GetUnMarshParallelSize();
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();

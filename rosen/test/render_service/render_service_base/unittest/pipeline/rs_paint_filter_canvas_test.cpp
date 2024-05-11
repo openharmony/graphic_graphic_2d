@@ -358,6 +358,25 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawShadowTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadowStyleTest
+ * @tc.desc: DrawShadowStyle Test
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawShadowStyleTest, TestSize.Level1)
+{
+    Drawing::Path path;
+    Drawing::Point3 planeParams;
+    Drawing::Point3 devLightPos;
+    // for test
+    Drawing::Color ambientColor(0, 0, 0, 0);
+    Drawing::Color spotColor(SCALAR_XORY, 0, 0, 0);
+    paintFilterCanvas_->DrawShadowStyle(
+        path, planeParams, devLightPos, 0.0f, ambientColor, spotColor, Drawing::ShadowFlags::NONE, true);
+    EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
  * @tc.name: DrawColorTest
  * @tc.desc: DrawColor Test
  * @tc.type:FUNC
@@ -409,60 +428,6 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawVerticesTest, TestSize.Level1)
     Drawing::Vertices vertices;
     paintFilterCanvas_->DrawVertices(vertices, Drawing::BlendMode::CLEAR);
     EXPECT_TRUE(paintFilterCanvas_);
-}
-
-/**
- * @tc.name: BeginOpRecordingTest
- * @tc.desc: BeginOpRecording Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, BeginOpRecordingTest, TestSize.Level1)
-{
-    Drawing::Rect bound;
-    EXPECT_FALSE(paintFilterCanvas_->BeginOpRecording(&bound, true));
-    paintFilterCanvas_->SetAlpha(0.0f);
-    EXPECT_FALSE(paintFilterCanvas_->BeginOpRecording(&bound, false));
-}
-
-/**
- * @tc.name: EndOpRecordingTest
- * @tc.desc: EndOpRecording Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, EndOpRecordingTest, TestSize.Level1)
-{
-    EXPECT_TRUE(paintFilterCanvas_->EndOpRecording().opImpl_);
-    paintFilterCanvas_->SetAlpha(SET_ALPHA);
-    EXPECT_TRUE(paintFilterCanvas_->EndOpRecording().opImpl_);
-}
-
-/**
- * @tc.name: DrawOpListTest
- * @tc.desc: DrawOpList Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, DrawOpListTest, TestSize.Level1)
-{
-    Drawing::OpListHandle handle;
-    paintFilterCanvas_->DrawOpList(handle);
-    EXPECT_TRUE(paintFilterCanvas_);
-}
-
-/**
- * @tc.name: CanDrawOpListTest
- * @tc.desc: CanDrawOpList Test
- * @tc.type:FUNC
- * @tc.require:issuesI9J2YE
- */
-HWTEST_F(RSPaintFilterCanvasTest, CanDrawOpListTest, TestSize.Level1)
-{
-    Drawing::OpListHandle handle;
-    EXPECT_EQ(paintFilterCanvas_->CanDrawOpList(handle), -1);
-    paintFilterCanvas_->SetAlpha(0.0f);
-    EXPECT_EQ(paintFilterCanvas_->CanDrawOpList(handle), -1);
 }
 
 /**
@@ -1172,5 +1137,47 @@ HWTEST_F(RSPaintFilterCanvasTest, GetLocalClipBoundsTest, TestSize.Level1)
     result = paintFilterCanvas_->GetLocalClipBounds(canvas, &rectI);
     EXPECT_TRUE(result.has_value());
 }
+
+
+/**
+ * @tc.name: PaintFilter001
+ * @tc.desc: Test has not filter before PaintFilter
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSPaintFilterCanvasTest, PaintFilter001, TestSize.Level1)
+{
+    Drawing::Paint paint;
+
+    paintFilterCanvas_->PaintFilter(paint);
+    EXPECT_TRUE(paint.HasFilter());
+}
+
+/**
+ * @tc.name: PaintFilter002
+ * @tc.desc: Test has filter before PaintFilter
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSPaintFilterCanvasTest, PaintFilter002, TestSize.Level1)
+{
+    Drawing::Paint paint;
+
+    Drawing::Filter filter = paint.GetFilter();
+    Drawing::ColorMatrix luminanceMatrix;
+    // 0.5 means half discount
+    luminanceMatrix.SetScale(0.5f, 0.5f, 0.5f, 1.0f);
+    auto luminanceColorFilter =
+        std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
+    EXPECT_TRUE(luminanceColorFilter != nullptr);
+
+    auto colorFilter = filter.GetColorFilter();
+    filter.SetColorFilter(luminanceColorFilter);
+    paint.SetFilter(filter);
+
+    paintFilterCanvas_->PaintFilter(paint);
+    EXPECT_TRUE(paint.GetFilter() == filter);
+}
+
 } // namespace Rosen
 } // namespace OHOS

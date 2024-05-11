@@ -63,10 +63,6 @@ SkiaCanvasAutoCache::SkiaCanvasAutoCache(SkCanvas* canvas)
 
 void SkiaCanvasAutoCache::Init(const SkMatrix& m)
 {
-    if (!m.invert(&nodeMatrix_)) {
-        LOGE("opinc originMatrix cannot invert");
-        opCanCache_ = false;
-    }
     nodeMatrix_.preConcat(originMatrixInvert_);
 }
 

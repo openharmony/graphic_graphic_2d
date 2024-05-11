@@ -63,6 +63,10 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
+    if (type == RSSurfaceNodeType::APP_WINDOW_NODE) {
+        auto callback = std::bind(&RSSurfaceNode::SetHDRPresent, std::placeholders::_1, std::placeholders::_2);
+        RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
+    }
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
@@ -586,16 +590,9 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
     return std::make_pair("", surfaceNodeName);
 }
 
-void RSSurfaceNode::RegisterHDRPresentCallback()
-{
-    auto callback = std::bind(&RSSurfaceNode::SetHDRPresent, this, std::placeholders::_1);
-    RSHDRManager::Instance().RegisterSetHDRPresent(callback);
-}
-
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode, config.isTextureExportNode)
 {
-    RegisterHDRPresentCallback();
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;
     name_ = result.second;
@@ -604,7 +601,6 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
     : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
 {
-    RegisterHDRPresentCallback();
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;
     name_ = result.second;
@@ -612,6 +608,7 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
+    RSHDRManager::Instance().UnRegisterSetHDRPresent(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -792,10 +789,10 @@ void RSSurfaceNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
         transactionProxy->AddCommand(command, true);
     }
 }
-void RSSurfaceNode::SetHDRPresent(bool hdrPresent)
+void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetHDRPresent>(GetId(), hdrPresent);
+        std::make_unique<RSSurfaceNodeSetHDRPresent>(id, hdrPresent);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         ROSEN_LOGD("SetHDRPresent  RSSurfaceNode");

@@ -71,6 +71,9 @@ void CanvasDrawBitmapRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
     OH_Drawing_BitmapBuild(bm, bitmapWidth_, bitmapHeight_, &cFormat);
+    OH_Drawing_Canvas* bitmapCanvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_CanvasBind(bitmapCanvas, bm);
+    OH_Drawing_CanvasClear(bitmapCanvas, OH_Drawing_ColorSetArgb(0xff, 0x00, 0xff, 0x00));
     OH_Drawing_Rect* dst = OH_Drawing_RectCreate(l_1, t_1, r_1, b_1); // 指定区域
     for (int i = 0; i < testCount_; i++) {
         // 将位图的指定区域绘制到画布的指定区域，指定区域
@@ -80,6 +83,7 @@ void CanvasDrawBitmapRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_BitmapDestroy(bm);
     OH_Drawing_RectDestroy(dst);
     OH_Drawing_RectDestroy(rect);
+    OH_Drawing_CanvasDestroy(bitmapCanvas);
 }
 
 void CanvasDrawCircle::OnTestPerformance(OH_Drawing_Canvas* canvas)

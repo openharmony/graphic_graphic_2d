@@ -15,8 +15,6 @@ group("test") {
   testonly = true
 
   deps = [
-    "drawing:drawing_demo",
-    "drawing:libdrawing_demo",
     "fuzztest:fuzztest",
     "unittest:unittest",
   ]

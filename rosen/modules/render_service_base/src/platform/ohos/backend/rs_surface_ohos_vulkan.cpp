@@ -123,13 +123,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
     }
-    if (isProtected && mNativeWindow) {
-        mNativeWindow->config.usage |= BUFFER_USAGE_PROTECTED;
-        bufferUsage_ |= BUFFER_USAGE_PROTECTED;
-    } else {
-        mNativeWindow->config.usage &= (~BUFFER_USAGE_PROTECTED);
-        bufferUsage_ &= (~BUFFER_USAGE_PROTECTED);
-    }
 
     if (!mSkContext) {
         ROSEN_LOGE("RSSurfaceOhosVulkan: skia context is nullptr");

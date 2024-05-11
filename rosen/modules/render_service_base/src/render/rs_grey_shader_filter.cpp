@@ -29,6 +29,16 @@ RSGreyShaderFilter::RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh)
 
 RSGreyShaderFilter::~RSGreyShaderFilter() {};
 
+float RSGreyShaderFilter::GetGreyCoefLow() const
+{
+    return greyCoefLow_;
+}
+
+float RSGreyShaderFilter::GetGreyCoefHigh() const
+{
+    return greyCoefHigh_;
+}
+
 void RSGreyShaderFilter::GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
     auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);

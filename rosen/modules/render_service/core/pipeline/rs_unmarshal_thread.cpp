@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_unmarshal_thread.h"
 
+#include "ffrt.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -86,7 +87,11 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         }
     };
     {
-        PostTask(task);
+        if (RSSystemProperties::GetUnmarshParallelFlag()) {
+            ffrt::task_handle handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+        } else {
+            PostTask(task);
+        }
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */

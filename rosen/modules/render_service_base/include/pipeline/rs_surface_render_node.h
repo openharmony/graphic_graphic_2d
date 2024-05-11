@@ -969,9 +969,7 @@ public:
 
     bool GetUifirstSupportFlag() override
     {
-        return RSRenderNode::GetUifirstSupportFlag() &&
-            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE ||
-            name_.find("SceneViewer Model") == std::string::npos);
+        return RSRenderNode::GetUifirstSupportFlag();
     }
 
     void UpdateSurfaceCacheContentStaticFlag();
@@ -1063,6 +1061,7 @@ public:
 
 protected:
     void OnSync() override;
+    void OnSkipSync() override;
 
 private:
     void OnResetParent() override;
@@ -1189,6 +1188,7 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
+        RectI oldDirty_;
         ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
         bool isFocusWindow_ = false;
         bool isTransparent_ = false;

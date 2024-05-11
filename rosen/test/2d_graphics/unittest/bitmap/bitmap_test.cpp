@@ -281,8 +281,8 @@ HWTEST_F(BitmapTest, BitmapReadPixelsTest, TestSize.Level1)
     EXPECT_TRUE(bitmap2->GetPixels() != nullptr);
     EXPECT_FALSE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), 0, 0, 0));
     EXPECT_TRUE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w, 0, 0));
-    EXPECT_TRUE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w*2, 0, 0));
-    EXPECT_TRUE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w*4, 0, 0));
+    EXPECT_FALSE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w/2, 0, 0));
+    EXPECT_FALSE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w/4, 0, 0));
     EXPECT_FALSE(bitmap1->ReadPixels(info, bitmap2->GetPixels(), w, 200, 200));
 }
 

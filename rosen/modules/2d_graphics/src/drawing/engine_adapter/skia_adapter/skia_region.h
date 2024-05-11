@@ -34,6 +34,7 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
+    bool Contains(int32_t x, int32_t y) const override;
     bool SetRect(const RectI& rectI) override;
     bool SetPath(const Path& path, const Region& clip) override;
     bool GetBoundaryPath(Path* path) const override;

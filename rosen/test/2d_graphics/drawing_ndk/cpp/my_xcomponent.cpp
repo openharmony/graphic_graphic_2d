@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include "my_xcomponent.h"
+#include "plugin/plugin_manager.h"
 #include "testcasefactory.h"
 #include "test_common.h"
 
@@ -676,6 +677,7 @@ MyXComponent::~MyXComponent()
 
 void MyXComponent::Release(std::string &id)
 {
+    PluginManager::GetInstance()->ReleaseRender(id);
     auto map = g_instance.find(id);
     if (map == g_instance.end()) {
         return;
