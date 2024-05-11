@@ -37,6 +37,7 @@ config("libtexgine_public_config") {
   include_dirs = [
     "export",
     "texgine_drawing",
+    "//third_party/icu/icu4c/source/common",
     "//third_party/skia/third_party/externals/harfbuzz/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
@@ -115,6 +116,12 @@ ohos_source_set("libtexgine_source") {
     public_deps = [ "texgine_drawing:libtexgine_drawing" ]
 
     defines = []
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+      public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
+    } else {
+      public_deps += [ "//third_party/jsoncpp:jsoncpp" ]
+    }
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
       if (ace_enable_gpu) {
@@ -124,10 +131,15 @@ ohos_source_set("libtexgine_source") {
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
-    external_deps = [
-      "bounds_checking_function:libsec_static",
-      "cJSON:cjson_static",
-    ]
+    if (is_arkui_x) {
+      deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+      deps += [ "//third_party/cJSON:cjson_static" ]
+    } else {
+      external_deps = [
+        "bounds_checking_function:libsec_static",
+        "cJSON:cjson_static",
+      ]
+    }
 
     if (platform == "ohos") {
       defines += [ "BUILD_NON_SDK_VER" ]
@@ -158,6 +170,12 @@ ohos_source_set("libtexgine_source") {
       } else {
         public_deps +=
             [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+      }
+      if (platform == "android") {
+        defines += [ "BUILD_SDK_ANDROID" ]
+      }
+      if (platform == "ios") {
+        defines += [ "BUILD_SDK_IOS" ]
       }
     }
   }
