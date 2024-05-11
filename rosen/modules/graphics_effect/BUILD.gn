@@ -19,56 +19,97 @@ config("export_config") {
   cflags_cc = [ "-std=c++17" ]
 }
 
-ohos_shared_library("libgraphics_effect") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
+if (is_arkui_x) {
+  ohos_source_set("libgraphics_effect") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    cflags = [
+      "-O2",
+      "-ftrapv",
+      "-FPIC",
+      "-FS",
+      "-D_FORTIFY_SOURCE=2",
+    ]
+    cflags_cc = [
+      "-O2",
+      "-ftrapv",
+      "-FPIC",
+      "-FS",
+      "-D_FORTIFY_SOURCE=2",
+    ]
+
+    public_configs = [ ":export_config" ]
+    include_dirs = [
+      "$graphic_2d_root/rosen/modules/graphics_effect/src",
+      "$graphic_2d_root/rosen/modules/utils",
+      "$graphic_2d_root/utils/color_manager/export",
+    ]
+
+    sources = [
+      "src/ge_aibar_shader_filter.cpp",
+      "src/ge_grey_shader_filter.cpp",
+      "src/ge_kawase_blur_shader_filter.cpp",
+      "src/ge_linear_gradient_blur_shader_filter.cpp",
+      "src/ge_render.cpp",
+      "src/ge_system_properties.cpp",
+      "src/ge_visual_effect.cpp",
+      "src/ge_visual_effect_container.cpp",
+      "src/ge_visual_effect_impl.cpp",
+    ]
+
+    deps = [
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+    ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
-  cflags = [
-    "-O2",
-    "-ftrapv",
-    "-FPIC",
-    "-FS",
-    "-D_FORTIFY_SOURCE=2",
-  ]
-  cflags_cc = [
-    "-O2",
-    "-ftrapv",
-    "-FPIC",
-    "-FS",
-    "-D_FORTIFY_SOURCE=2",
-  ]
+} else {
+  ohos_shared_library("libgraphics_effect") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    cflags = [
+      "-O2",
+      "-ftrapv",
+      "-FPIC",
+      "-FS",
+      "-D_FORTIFY_SOURCE=2",
+    ]
+    cflags_cc = [
+      "-O2",
+      "-ftrapv",
+      "-FPIC",
+      "-FS",
+      "-D_FORTIFY_SOURCE=2",
+    ]
 
-  public_configs = [ ":export_config" ]
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/graphics_effect/src",
-    "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/utils/color_manager/export",
-  ]
+    public_configs = [ ":export_config" ]
+    include_dirs = [
+      "$graphic_2d_root/rosen/modules/graphics_effect/src",
+      "$graphic_2d_root/rosen/modules/utils",
+      "$graphic_2d_root/utils/color_manager/export",
+    ]
 
-  sources = [
-    "src/ge_aibar_shader_filter.cpp",
-    "src/ge_grey_shader_filter.cpp",
-    "src/ge_kawase_blur_shader_filter.cpp",
-    "src/ge_linear_gradient_blur_shader_filter.cpp",
-    "src/ge_render.cpp",
-    "src/ge_system_properties.cpp",
-    "src/ge_visual_effect.cpp",
-    "src/ge_visual_effect_container.cpp",
-    "src/ge_visual_effect_impl.cpp",
-  ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
-  external_deps = [ "hilog:libhilog" ]
+    external_deps = [ "hilog:libhilog" ]
 
-  if (current_os == "ohos") {
-    defines = [ "GE_OHOS" ]
-    external_deps += [ "init:libbegetutil" ]
+    if (current_os == "ohos") {
+      defines = [ "GE_OHOS" ]
+      external_deps += [ "init:libbegetutil" ]
+    }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
 }
