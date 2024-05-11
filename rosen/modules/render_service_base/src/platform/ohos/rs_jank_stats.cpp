@@ -251,7 +251,8 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     const float standardFrameTime = S_TO_MS / dynamicRefreshRate;
     const bool isConsiderRsStartTime =
         jankFrames.isDisplayAnimator_ || jankFrames.isFirstFrame_ || isFirstSetEnd_;
-    const int64_t frameDuration = GetEffectiveFrameTime(isConsiderRsStartTime);
+    const float accumulatedTime = accumulatedBufferCount_ * standardFrameTime;
+    const int64_t frameDuration = std::max<int64_t>(0, GetEffectiveFrameTime(isConsiderRsStartTime) - accumulatedTime);
     const int32_t missedFramesToReport = static_cast<int32_t>(frameDuration / VSYNC_PERIOD);
     jankFrames.totalFrames_++;
     jankFrames.totalFrameTimeSteady_ += frameDuration;
