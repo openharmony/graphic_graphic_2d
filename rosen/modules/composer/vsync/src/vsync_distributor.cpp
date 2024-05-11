@@ -525,8 +525,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
         ScopedBytrace func("skip DVSync prerendered frame, now: " + std::to_string(now) +
             ",lastDVsyncTS: " + std::to_string(lastDVsyncTS));
         return;
-    } else {
-        lastDVsyncTS_.store(0);
     }
 
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
