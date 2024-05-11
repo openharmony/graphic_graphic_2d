@@ -113,7 +113,7 @@ private:
     static EglWrapperDisplay wrapperDisp_;
     EGLDisplay  disp_;
     std::mutex  lockMutex_;
-    std::mutex  refLockMutex_;
+    std::recursive_mutex refLockMutex_;
     std::unordered_set<EglWrapperObject *> objects_;
     uint32_t    refCnt_;
 };
