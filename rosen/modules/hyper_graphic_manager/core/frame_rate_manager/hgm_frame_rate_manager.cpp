@@ -226,6 +226,23 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     }
 }
 
+void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired)
+{
+    if (finalRange.IsValid()) {
+        ResetScreenTimer(curScreenId_);
+        CalcRefreshRate(curScreenId_, finalRange);
+        DeliverRefreshRateVote(0, "VOTER_LTPO", ADD_VOTE, currRefreshRate_, currRefreshRate_);
+    } else if (idleTimerExpired) {
+        // idle in ltpo
+        HandleIdleEvent(ADD_VOTE);
+        DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
+    } else {
+        StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
+            forceUpdateCallback_(true, false);
+        });
+    }
+}
+
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                 const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
@@ -250,20 +267,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                 frameRateVoteInfo.SetLtpoInfo(linker.second->GetId(), "APP_LINKER");
             }
         }
-
-        if (finalRange.IsValid()) {
-            ResetScreenTimer(curScreenId_);
-            CalcRefreshRate(curScreenId_, finalRange);
-            DeliverRefreshRateVote(0, "VOTER_LTPO", ADD_VOTE, currRefreshRate_, currRefreshRate_);
-        } else if (idleTimerExpired) {
-            // idle in ltpo
-            HandleIdleEvent(ADD_VOTE);
-            DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
-        } else {
-            StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-                forceUpdateCallback_(true, false);
-            });
-        }
+        ProcessLtpoVote(finalRange, idleTimerExpired);
     }
 
     UpdateGuaranteedPlanVote(timestamp);
