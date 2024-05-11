@@ -947,6 +947,11 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
         }
+        // Flip damage because the rect is specified relative to the bottom-left of the surface in gl,
+        // but the damages is specified relative to the top-left in rs.
+        // The damages in vk is also transformed to the same as gl now.
+        // [planning]: Unify the damage's coordinate systems of vk and gl.
+        damageAfterMerge.y = surfaceBuffer->buffer->GetHeight() - damageAfterMerge.y - damageAfterMerge.h;
         surfaceBuffer->damageRect = damageAfterMerge;
         if (consumer->IsBufferHold()) {
             surfaceHandler.SetHoldBuffer(surfaceBuffer);
