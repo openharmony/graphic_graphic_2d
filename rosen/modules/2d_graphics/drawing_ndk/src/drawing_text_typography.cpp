@@ -1480,6 +1480,20 @@ OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadows(OH_Drawing_TextStyle* styl
     return nullptr;
 }
 
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius)
+{
+    if (!shadow || !offset) {
+        return;
+    }
+
+    auto* tailoredShadow = reinterpret_cast<TextShadow*>(shadow);
+    tailoredShadow->blurRadius = blurRadius;
+    tailoredShadow->color = Drawing::Color(color);
+    tailoredShadow->offset = *reinterpret_cast<Drawing::Point*>(offset);
+    return;
+}
+
 void OH_Drawing_TextStyleAddShadow(OH_Drawing_TextStyle* style, OH_Drawing_TextShadow* shadow)
 {
     if (shadow == nullptr || style == nullptr) {

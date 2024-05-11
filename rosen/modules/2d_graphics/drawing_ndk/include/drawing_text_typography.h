@@ -2492,7 +2492,7 @@ bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param hintsEnabled Indicates the hinting of text typography..
+ * @param hintsEnabled Indicates the hinting of text typography.
  * @since 12
  * @version 1.0
  */
@@ -2658,6 +2658,19 @@ bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style);
  * @version 1.0
  */
 void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox*);
+
+/** @brief Sets the parameter of text-shadow.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextShadow Indicates the pointer to an <b>OH_Drawing_TextShadow</b> object.
+ * @param color Indicates the color setting of text-shadow.
+ * @param OH_Drawing_Point Indicates the pointer to an <b>OH_Drawing_Point</b> object.
+ * @param blurRadius Indicates the radius of blur for text-shadow.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius);
 
 #ifdef __cplusplus
 }
