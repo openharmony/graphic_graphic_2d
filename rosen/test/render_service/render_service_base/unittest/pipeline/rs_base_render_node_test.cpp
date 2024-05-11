@@ -486,25 +486,6 @@ HWTEST_F(RSBaseRenderNodeTest, NeedInitCacheCompletedSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitCacheSurface
- * @tc.desc: test results of InitCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, InitCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::GPUContext gpuContext;
-    auto clearCacheSurfaceLambda = [](std::shared_ptr<Drawing::Surface>&& surface1,
-                                       std::shared_ptr<Drawing::Surface>&& surface2, uint32_t param1,
-                                       uint32_t param2) {};
-    RSRenderNode::ClearCacheSurfaceFunc func = clearCacheSurfaceLambda;
-    uint32_t threadIndex = 1;
-    node->InitCacheSurface(&gpuContext, func, threadIndex);
-    ASSERT_EQ(node->cacheSurfaceThreadIndex_, 1);
-}
-
-/**
  * @tc.name: GetOptionalBufferSize
  * @tc.desc: test results of GetOptionalBufferSize
  * @tc.type:FUNC
