@@ -922,5 +922,12 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
             (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
     return size;
 }
+
+int RSSystemProperties::GetRSNodeLimit()
+{
+    static int rsNodeLimit =
+        std::atoi((system::GetParameter("persist.sys.graphic.rsNodeLimit", "500")).c_str());
+    return rsNodeLimit;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -24,6 +24,7 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,7 +67,8 @@ void RSNodeStats::ClearNodeStats()
 void RSNodeStats::ReportRSNodeLimitExceeded()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (rsNodeCountTotal_ < RS_NODE_REPORT_LIMIT) {
+    const auto [rsNodeLimit, rsNodeReportLimit] = GetCurrentRSNodeLimit();
+    if (rsNodeCountTotal_ < rsNodeReportLimit) {
         return;
     }
     int64_t curSysTime = GetCurrentSystimeMs();
@@ -87,7 +89,7 @@ void RSNodeStats::ReportRSNodeLimitExceeded()
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC,
                     RS_NODE_LIMIT_EXCEEDED_EVENT_NAME,
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
-                    "RS_NODE_LIMIT", RS_NODE_LIMIT,
+                    "RS_NODE_LIMIT", rsNodeLimit,
                     "RS_ACTUAL_NODE", rsNodeCountTotal_,
                     "TIMESTAMP", static_cast<uint64_t>(curSysTime),
                     "RS_APP_WINDOW_TOTAL", static_cast<uint32_t>(rsNodeStatsVec_.size()),
@@ -127,6 +129,15 @@ RSNodeDescription RSNodeStats::CheckEmptyAndReviseNodeDescription(const RSNodeDe
         return EMPTY_NODE_DESCRIPTION;
     }
     return nodeDescription;
+}
+
+std::pair<uint32_t, uint32_t> RSNodeStats::GetCurrentRSNodeLimit() const
+{
+    int rsNodeLimitProperty = std::clamp(
+        RSSystemProperties::GetRSNodeLimit(), RS_NODE_LIMIT_PROPERTY_MIN, RS_NODE_LIMIT_PROPERTY_MAX);
+    uint32_t rsNodeLimit = static_cast<uint32_t>(rsNodeLimitProperty);
+    uint32_t rsNodeReportLimit = static_cast<uint32_t>(rsNodeLimitProperty * RS_NODE_LIMIT_REPORT_RATIO);
+    return std::make_pair(rsNodeLimit, rsNodeReportLimit);
 }
 
 int64_t RSNodeStats::GetCurrentSystimeMs() const

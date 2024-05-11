@@ -249,6 +249,8 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static int GetRSNodeLimit();
+
 private:
     RSSystemProperties() = default;
 

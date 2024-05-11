@@ -123,7 +123,7 @@ public:
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
     void SetAppFirstFrame(pid_t appPid);
-    void SetImplicitAnimationEnd(bool needReport);
+    void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
 
 private:
