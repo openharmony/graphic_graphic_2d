@@ -337,7 +337,7 @@ void OH_Drawing_PathAddPolygon(OH_Drawing_Path* cPath, const OH_Drawing_Point2D*
     }
     const Point* points = CastToPoint(cPoints);
     std::vector<Point> pointsTemp(count);
-    for (int idx = 0; idx < count; idx++) {
+    for (uint32_t idx = 0; idx < count; idx++) {
         pointsTemp[idx] = points[idx];
     }
     path->AddPoly(pointsTemp, count, isClosed);
