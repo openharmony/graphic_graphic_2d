@@ -972,6 +972,11 @@ public:
         return RSRenderNode::GetUifirstSupportFlag();
     }
 
+    bool OpincGetNodeSupportFlag() override
+    {
+        return false;
+    }
+
     void UpdateSurfaceCacheContentStaticFlag();
 
     void UpdateSurfaceSubTreeDirtyFlag();
