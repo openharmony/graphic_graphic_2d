@@ -110,7 +110,7 @@ public:
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     bool IsLtpo() const { return isLtpo_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-        const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, bool isDvsyncOn);
+        const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, bool isDvsyncOn, bool isUiDVsyncOn);
     void UniProcessDataForLtps(bool idleTimerExpired);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
@@ -129,7 +129,7 @@ public:
     void InitTouchManager();
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
-    void ProcessPendingRefreshRate(uint64_t timestamp);
+    void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, bool isUiDVsyncOn);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
@@ -156,7 +156,7 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo);
+    VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, bool isUiDVsyncOn);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
 
