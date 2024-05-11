@@ -792,7 +792,6 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 #if defined(RS_ENABLE_DVSYNC)
     if (dvsync_->IsFeatureEnabled()) {
         con_.notify_all();
-        connection->rnvTrigger_ = true;
     } else
 #endif
     {
