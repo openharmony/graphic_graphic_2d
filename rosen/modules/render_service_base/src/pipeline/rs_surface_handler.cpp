@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_surface_handler.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,6 +74,7 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 {
     bufferCache_[static_cast<uint64_t>(buffer.timestamp)] = buffer;
+    RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
 }
 
 bool RSSurfaceHandler::HasBufferCache() const
@@ -91,6 +93,11 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
         } else {
             break;
         }
+    }
+    if (buffer.buffer != nullptr) {
+        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, id = %" PRIu64 " cacheCount = %zu",
+            GetNodeId(), bufferCache_.size());
+        RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
     }
     return buffer;
 }

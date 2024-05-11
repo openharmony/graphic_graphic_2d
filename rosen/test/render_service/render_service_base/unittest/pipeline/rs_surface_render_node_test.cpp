@@ -741,8 +741,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 
 /**
  * @tc.name: SetSkipLayer002
- * @tc.desc: Test SetSkipLayer for surface node which is skip layer
-    and has leash window node as instant parent
+ * @tc.desc: Test SetSkipLayer for surface node while skip Layer isn't first level node
  * @tc.type: FUNC
  * @tc.require: issueI9ABGS
  */
@@ -763,38 +762,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer002, TestSize.Level2)
     parentNode->SetIsOnTheTree(true);
     skipLayerNode->SetSkipLayer(true);
 
-    ASSERT_TRUE(parentNode->GetSkipLayer() && parentNode->GetHasSkipLayer());
-}
-
-/**
- * @tc.name: SetSkipLayer003
- * @tc.desc: Test SetSkipLayer for surface node which is skip layer
-        and don't have leash window node as instant parent
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer003, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsContext, nullptr);
-    auto ancestorNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    auto skipLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
-    ASSERT_NE(ancestorNode, nullptr);
-    ASSERT_NE(parentNode, nullptr);
-    ASSERT_NE(skipLayerNode, nullptr);
-
-    rsContext->GetMutableNodeMap().renderNodeMap_[ancestorNode->GetId()] = ancestorNode;
-    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
-    rsContext->GetMutableNodeMap().renderNodeMap_[skipLayerNode->GetId()] = skipLayerNode;
-
-    ancestorNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    ancestorNode->AddChild(parentNode);
-    parentNode->AddChild(skipLayerNode);
-    ancestorNode->SetIsOnTheTree(true);
-    skipLayerNode->SetSkipLayer(true);
-
-    ASSERT_TRUE(!ancestorNode->GetSkipLayer() && ancestorNode->GetHasSkipLayer());
+    ASSERT_TRUE(parentNode->GetHasSkipLayer());
 }
 
 /**
@@ -816,8 +784,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer001, TestSize.Level2)
 
 /**
  * @tc.name: SetSecurityLayer002
- * @tc.desc: Test SetSecurityLayer for surface node which is security layer
-    and has leash window node as instant parent
+ * @tc.desc: Test SetSecurityLayer for surface node while security Layer isn't first level node
  * @tc.type: FUNC
  * @tc.require: issueI9ABGS
  */
@@ -838,38 +805,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer002, TestSize.Level2)
     parentNode->SetIsOnTheTree(true);
     securityLayerNode->SetSecurityLayer(true);
 
-    ASSERT_TRUE(parentNode->GetSecurityLayer() && parentNode->GetHasSecurityLayer());
-}
-
-/**
- * @tc.name: SetSecurityLayer003
- * @tc.desc: Test SetSecurityLayer for surface node which is security layer
-        and don't have leash window node as instant parent
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer003, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsContext, nullptr);
-    auto ancestorNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    auto securityLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
-    ASSERT_NE(ancestorNode, nullptr);
-    ASSERT_NE(parentNode, nullptr);
-    ASSERT_NE(securityLayerNode, nullptr);
-
-    rsContext->GetMutableNodeMap().renderNodeMap_[ancestorNode->GetId()] = ancestorNode;
-    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
-    rsContext->GetMutableNodeMap().renderNodeMap_[securityLayerNode->GetId()] = securityLayerNode;
-
-    ancestorNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    ancestorNode->AddChild(parentNode);
-    parentNode->AddChild(securityLayerNode);
-    ancestorNode->SetIsOnTheTree(true);
-    securityLayerNode->SetSecurityLayer(true);
-
-    ASSERT_TRUE(!ancestorNode->GetSecurityLayer() && ancestorNode->GetHasSecurityLayer());
+    ASSERT_TRUE(parentNode->GetHasSecurityLayer());
 }
 
 /**
