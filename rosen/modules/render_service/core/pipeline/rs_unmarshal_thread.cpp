@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_unmarshal_thread.h"
 
-#include "ffrt.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -87,8 +86,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         }
     };
     {
+        ffrt::task_handle handle;
         if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            ffrt::task_handle handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+            handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
         } else {
             PostTask(task);
         }
@@ -97,6 +97,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
          */
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         willHaveCachedData_ = true;
+        if (RSSystemProperties::GetUnmarshParallelFlag()) {
+            cachedDeps_.push_back(std::move(handle));
+        }
     }
 
     if (!isPendingUnmarshal) {
@@ -138,5 +141,15 @@ void RSUnmarshalThread::SetFrameLoad(int load)
     }
     SetFrameParam(REQUEST_SET_FRAME_LOAD_ID, load, 0, unmarshalTid_);
     unmarshalLoad_ = load;
+}
+
+void RSUnmarshalThread::Wait()
+{
+    std::vector<ffrt::dependence> deps;
+    {
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        std::swap(deps, cachedDeps_);
+    }
+    ffrt::wait(deps);
 }
 }

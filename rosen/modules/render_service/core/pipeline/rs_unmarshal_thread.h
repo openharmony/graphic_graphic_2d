@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include "event_handler.h"
+#include "ffrt_inner.h"
 #include "message_parcel.h"
 
 #include "transaction/rs_transaction_data.h"
@@ -32,6 +33,7 @@ public:
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
+    void Wait();
 
 private:
     RSUnmarshalThread() = default;
@@ -53,6 +55,7 @@ private:
     bool willHaveCachedData_ = false;
     int unmarshalTid_ = -1;
     int unmarshalLoad_ = 0;
+    std::vector<ffrt::dependence> cachedDeps_;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H
