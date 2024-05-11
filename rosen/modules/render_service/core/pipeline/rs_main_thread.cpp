@@ -1071,13 +1071,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
     syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
-    if (isNeedCloseSync) {
-        isNeedCloseSync_ = true;
-    } else {
+    if (!isNeedCloseSync) {
         syncTransactionCount_ -= 1;
     }
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0 && isNeedCloseSync_) {
+    if (syncTransactionCount_ == 0) {
         ProcessAllSyncTransactionData();
     }
 }
@@ -1093,7 +1091,6 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
-    isNeedCloseSync_ = false;
     RequestNextVSync();
 }
 
