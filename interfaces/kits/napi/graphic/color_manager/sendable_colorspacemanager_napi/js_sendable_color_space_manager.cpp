@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_color_space_manager.h"
+#include "js_sendable_color_space_manager.h"
 
 #include <memory>
 
@@ -26,14 +26,14 @@ namespace ColorManager {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t PRIMARIES_PARAMS_NUM = 8;
 
-void JsColorSpaceManager::Finalizer(napi_env env, void* data, void* hint)
+void JsSendableColorSpaceManager::Finalizer(napi_env env, void* data, void* hint)
 {
-    std::unique_ptr<JsColorSpaceManager>(static_cast<JsColorSpaceManager*>(data));
+    std::unique_ptr<JsSendableColorSpaceManager>(static_cast<JsSendableColorSpaceManager*>(data));
 }
 
-napi_value JsColorSpaceManager::CreateColorSpace(napi_env env, napi_callback_info info)
+napi_value JsSendableColorSpaceManager::CreateSendableColorSpace(napi_env env, napi_callback_info info)
 {
-    JsColorSpaceManager* me = CheckParamsAndGetThis<JsColorSpaceManager>(env, info);
+    JsSendableColorSpaceManager* me = CheckParamsAndGetThis<JsSendableColorSpaceManager>(env, info);
     return (me != nullptr) ? me->OnCreateColorSpace(env, info) : nullptr;
 }
 
@@ -59,7 +59,7 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
     return true;
 }
 
-napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_info info)
+napi_value JsSendableColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_info info)
 {
     size_t argvSize = 2;
     std::vector<napi_value> argvArr(argvSize);
@@ -71,7 +71,7 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
     ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
     napi_value object = nullptr;
     napi_get_undefined(env, &object);
-
+    
     if (ConvertFromJsValue(env, argvArr[0], csType)) {
         if (!CheckColorSpaceTypeRange(env, csType)) {
             return object;
@@ -104,7 +104,7 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
 
     if (colorSpace != nullptr) {
         CMLOGI("[NAPI]OnCreateColorSpace CreateJsColorSpaceObject is called");
-        return CreateJsColorSpaceObject(env, colorSpace);
+        return CreateJsSendableColorSpaceObject(env, colorSpace);
     }
     napi_throw(env,
         CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
@@ -113,7 +113,7 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
     return object;
 }
 
-bool JsColorSpaceManager::ParseColorSpacePrimaries(
+bool JsSendableColorSpaceManager::ParseColorSpacePrimaries(
     napi_env env, napi_value jsObject, ColorSpacePrimaries& primaries)
 {
     double val;
@@ -153,22 +153,15 @@ bool JsColorSpaceManager::ParseColorSpacePrimaries(
     return (parseTimes == PRIMARIES_PARAMS_NUM);
 }
 
-napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj)
+napi_value JsSendableColorSpaceManagerInit(napi_env env, napi_value exportObj)
 {
     if (env == nullptr || exportObj == nullptr) {
-        CMLOGE("[NAPI]JsColorSpaceManagerInit engine or exportObj is nullptr");
+        CMLOGE("[NAPI]JsSendableColorSpaceManagerInit engine or exportObj is nullptr");
         return nullptr;
     }
 
-    std::unique_ptr<JsColorSpaceManager> jsColorSpaceManager = std::make_unique<JsColorSpaceManager>();
-    napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr, nullptr);
-    auto valueColorSpace = ColorSpaceTypeInit(env);
-    auto valueCmError = CMErrorInit(env);
-    auto valueCmErrorCode = CMErrorCodeInit(env);
-    napi_set_named_property(env, exportObj, "ColorSpace", valueColorSpace);
-    napi_set_named_property(env, exportObj, "CMError", valueCmError);
-    napi_set_named_property(env, exportObj, "CMErrorCode", valueCmErrorCode);
-    BindNativeFunction(env, exportObj, "create", nullptr, JsColorSpaceManager::CreateColorSpace);
+    std::unique_ptr<JsSendableColorSpaceManager> jsColorSpaceManager = std::make_unique<JsSendableColorSpaceManager>();
+    napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsSendableColorSpaceManager::Finalizer, nullptr, nullptr);
     return exportObj;
 }
 }  // namespace ColorManager

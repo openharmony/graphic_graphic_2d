@@ -195,6 +195,27 @@ T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char
     return nullptr;
 }
 
+template<class T>
+T* CheckSendableParamsAndGetThis(const napi_env env, napi_callback_info info, const char* name = nullptr)
+{
+    if (env == nullptr || info == nullptr) {
+        return nullptr;
+    }
+    napi_value object = nullptr;
+    napi_value propertyNameValue = nullptr;
+    napi_value pointerValue = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr);
+    if (object != nullptr && name != nullptr) {
+        napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue);
+    }
+    napi_value& resObject = propertyNameValue ? propertyNameValue : object;
+    if (resObject) {
+        return napi_unwrap(env, resObject, (void **)(&pointerValue)) == napi_ok ?
+            reinterpret_cast<T*>(pointerValue) : nullptr;
+    }
+    return nullptr;
+}
+
 template<typename T, size_t N>
 inline constexpr size_t ArraySize(T (&)[N]) noexcept
 {
