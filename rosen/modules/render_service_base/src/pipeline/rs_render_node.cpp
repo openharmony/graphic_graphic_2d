@@ -3729,7 +3729,8 @@ void RSRenderNode::OnSync()
         }
         uifirstSkipPartialSync_ = false;
     }
-    if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && clearSurfaceTask_ && needClearSurface_) {
+    if ((GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_)
+        && clearSurfaceTask_ && needClearSurface_) {
         clearSurfaceTask_();
         needClearSurface_ = false;
     }

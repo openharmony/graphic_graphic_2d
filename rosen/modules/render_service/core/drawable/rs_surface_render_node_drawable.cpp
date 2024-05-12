@@ -170,6 +170,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // remove imagecahce when its bufferQueue gobackground
         renderEngine_->ClearCacheSet(unmappedCache);
     }
+    if (autoCacheEnable_) {
+        nodeCacheType_ = NodeStragyType::CACHE_NONE;
+    }
     bool isuifirstNode = rscanvas->GetIsParallelCanvas();
     if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
