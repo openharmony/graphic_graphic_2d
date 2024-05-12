@@ -173,7 +173,7 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
         " hasVisibleEffect:%d", GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_,
         preStaticStatus_, IsStaticCached(), ChildHasVisibleEffect());
     return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
-        (preStaticStatus_ != IsStaticCached()) || !ChildHasVisibleEffect();
+        (preStaticStatus_ != IsStaticCached()) || (!ChildHasVisibleEffect() && lastFrameHasVisibleEffect_);
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)

@@ -480,8 +480,7 @@ public:
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
-        bool dirtyBelowContainsFilterNode = false, bool rotationChanged = false);
+    void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool rotationChanged = false);
     bool IsFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
@@ -660,6 +659,8 @@ public:
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
+    bool IsEffectNodeShouldNotPaint() const;
+    bool HasBlurFilter() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
 
