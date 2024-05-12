@@ -984,8 +984,8 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
     double degree = 0.0;
     double sx = 0.0;
     double sy = 0.0;
-    if (!(ConvertFromJsValue(env, argv[ARGC_ZERO], degree) && ConvertFromJsValue(env, argv[ARGC_ONE], sx)) &&
-        ConvertFromJsValue(env, argv[ARGC_TWO], sy)) {
+    if (!(ConvertFromJsValue(env, argv[ARGC_ZERO], degree) && ConvertFromJsValue(env, argv[ARGC_ONE], sx) &&
+        ConvertFromJsValue(env, argv[ARGC_TWO], sy))) {
         ROSEN_LOGE("JsCanvas::OnRotate argv is invalid");
         return NapiGetUndefined(env);
     }
