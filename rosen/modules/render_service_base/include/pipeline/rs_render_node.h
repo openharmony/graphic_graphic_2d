@@ -141,10 +141,11 @@ public:
     }
 
     bool IsFirstLevelNode();
-    bool IsSubSurfaceNode();
     bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
     void AddSubSurfaceNode(SharedPtr parent);
     void RemoveSubSurfaceNode(SharedPtr parent);
+    void UpdateChildSubSurfaceNode();
+    bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
     inline static const bool isSubSurfaceEnabled_ =
         RSSystemProperties::GetSubSurfaceEnabled() && RSSystemProperties::IsPhoneType();
 
@@ -670,6 +671,7 @@ public:
 
 protected:
     virtual void OnApplyModifiers() {}
+    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
     enum class NodeDirty {
         CLEAN = 0,

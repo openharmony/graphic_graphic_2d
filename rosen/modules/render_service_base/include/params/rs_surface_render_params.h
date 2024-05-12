@@ -232,6 +232,9 @@ public:
     void SetOverDrawBufferNodeCornerRadius(const Vector4f& radius);
     const Vector4f& GetOverDrawBufferNodeCornerRadius() const;
 
+    void SetIsSubSurfaceNode(bool isSubSurfaceNode);
+    bool IsSubSurfaceNode() const;
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
     sptr<SurfaceBuffer> GetBuffer() const;
@@ -283,6 +286,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
+    bool isSubSurfaceNode_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};

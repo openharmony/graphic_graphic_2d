@@ -235,6 +235,16 @@ const Vector4f& RSSurfaceRenderParams::GetOverDrawBufferNodeCornerRadius() const
     return overDrawBufferNodeCornerRadius_;
 }
 
+void RSSurfaceRenderParams::SetIsSubSurfaceNode(bool isSubSurfaceNode)
+{
+    isSubSurfaceNode_ = isSubSurfaceNode;
+}
+
+bool RSSurfaceRenderParams::IsSubSurfaceNode() const
+{
+    return isSubSurfaceNode_;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -283,6 +293,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
     targetSurfaceParams->overDrawBufferNodeCornerRadius_ = overDrawBufferNodeCornerRadius_;
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
+    targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     RSRenderParams::OnSync(target);
 }
 

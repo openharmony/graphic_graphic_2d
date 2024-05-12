@@ -1278,6 +1278,16 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     curCornerRadius_ = curCornerRadius;
 }
 
+void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
+{
+    Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
+    Occlusion::Region selfDrawRegion { selfDrawRect };
+    if (needRecalculateOcclusion_) {
+        Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
+        node.SetVisibleRegion(subResult);
+    }
+}
+
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
 {
     // CheckAndUpdateOpaqueRegion only in mainWindow
@@ -1285,19 +1295,15 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     if (!needRecalculateOcclusion_) {
         needRecalculateOcclusion_ = node.CheckIfOcclusionChanged();
     }
-    // Update node visbleRegion
-    Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
-    Occlusion::Region selfDrawRegion { selfDrawRect };
-    if (needRecalculateOcclusion_) {
-        Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
-        node.SetVisibleRegion(subResult);
-    }
+    // Update node visibleRegion
+    UpdateNodeVisibleRegion(node);
     // check current surface Participate In Occlusion
     if (node.CheckParticipateInOcclusion()) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
     }
 
     // collect surface occlusion visibleLevel
+    Occlusion::Region selfDrawRegion { node.GetSurfaceOcclusionRect(true) };
     auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
     // wms default all visible about sefdrawing node and AbilityComponent node
     auto instanceNode = node.GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -2280,6 +2286,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (subTreeSkipped && !isOccluded) {
         CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
         UpdateHwcNodeRectInSkippedSubTree(node);
+        UpdateSubSurfaceNodeRectInSkippedSubTree(node);
     }
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
@@ -2470,6 +2477,55 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
             }
         }
     }
+}
+
+inline static void ResetSubSurfaceNodesCalState(
+    std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>>& subSurfaceNodes)
+{
+    for (auto& [id, node] : subSurfaceNodes) {
+        auto subSurfaceNodePtr = node.lock();
+        if (!subSurfaceNodePtr) {
+            continue;
+        }
+        subSurfaceNodePtr->SetCalcRectInPrepare(false);
+    }
+}
+
+void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
+{
+    if (!curSurfaceNode_) {
+        return;
+    }
+    auto rootGeo = rootNode.GetRenderProperties().GetBoundsGeometry();
+    if (!rootGeo) {
+        return;
+    }
+
+    std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
+    curSurfaceNode_->GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    for (auto& [_, subSurfaceNode] : allSubSurfaceNodes) {
+        auto subSurfaceNodePtr = subSurfaceNode.lock();
+        Drawing::Matrix absMatrix;
+        if (!subSurfaceNodePtr || subSurfaceNodePtr->GetCalcRectInPrepare() ||
+            !subSurfaceNodePtr->GetAbsMatrixReverse(rootNode, absMatrix)) {
+            continue;
+        }
+
+        Drawing::RectF absDrawRect;
+        absMatrix.MapRect(absDrawRect, RSPropertiesPainter::Rect2DrawingRect(subSurfaceNodePtr->GetSelfDrawRect()));
+        RectI subSurfaceRect = RectI(absDrawRect.GetLeft(), absDrawRect.GetTop(),
+            absDrawRect.GetWidth(), absDrawRect.GetHeight());
+
+        subSurfaceNodePtr->SetOldDirtyInSurface(subSurfaceRect.IntersectRect(prepareClipRect_));
+        UpdateNodeVisibleRegion(*subSurfaceNodePtr);
+        UpdateDstRect(*subSurfaceNodePtr, subSurfaceRect, prepareClipRect_);
+        subSurfaceNodePtr->SetCalcRectInPrepare(true);
+        if (subSurfaceNodePtr->IsLeashOrMainWindow()) {
+            curMainAndLeashWindowNodesIds_.push(subSurfaceNodePtr->GetId());
+            curDisplayNode_->RecordMainAndLeashSurfaces(subSurfaceNodePtr);
+        }
+    }
+    ResetSubSurfaceNodesCalState(allSubSurfaceNodes);
 }
 
 RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
@@ -6196,7 +6252,8 @@ void RSUniRenderVisitor::CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNod
     }
 
     for (auto& child : *(node.GetChildren())) {
-        if (!child || !child->IsSubSurfaceNode()) {
+        if (!child || !(child->IsInstanceOf<RSSurfaceRenderNode>() &&
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)->IsLeashOrMainWindow())) {
             continue;
         }
         auto rootNode = child->GetFirstChild();

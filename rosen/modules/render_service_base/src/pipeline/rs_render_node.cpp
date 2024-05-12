@@ -494,21 +494,14 @@ void RSRenderNode::ResetParent()
         parentNode->SetContentDirty();
         UpdateSubSurfaceCnt(nullptr, parentNode);
     }
-    parent_.reset();
     SetIsOnTheTree(false);
+    parent_.reset();
     OnResetParent();
 }
 
 bool RSRenderNode::IsFirstLevelNode()
 {
     return id_ == firstLevelNodeId_;
-}
-
-bool RSRenderNode::IsSubSurfaceNode()
-{
-    return IsInstanceOf<RSSurfaceRenderNode>() &&
-        (RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(shared_from_this())->IsMainWindowType() ||
-        RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(shared_from_this())->IsLeashWindow());
 }
 
 bool RSRenderNode::SubSurfaceNodeNeedDraw(PartialRenderType opDropType)
@@ -532,7 +525,8 @@ void RSRenderNode::AddSubSurfaceNode(SharedPtr parent)
         return;
     }
     std::vector<WeakPtr> subSurfaceNodes;
-    if (IsSubSurfaceNode()) {
+    if (IsInstanceOf<RSSurfaceRenderNode>() &&
+        RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(shared_from_this())->IsLeashOrMainWindow()) {
         subSurfaceNodes.push_back(weak_from_this());
     } else {
         for (auto &node : subSurfaceNodes_) {
@@ -559,7 +553,8 @@ void RSRenderNode::AddSubSurfaceNode(SharedPtr parent)
                 first.lock()->GetRenderProperties().GetPositionZ() <
                 second.lock()->GetRenderProperties().GetPositionZ();
         });
-        if (parentNode->IsSubSurfaceNode()) {
+        if (parentNode->IsInstanceOf<RSSurfaceRenderNode>() &&
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode)->IsLeashOrMainWindow()) {
             break;
         }
         childNode = parentNode;
@@ -577,7 +572,8 @@ void RSRenderNode::RemoveSubSurfaceNode(SharedPtr parent)
     SharedPtr childNode;
     SharedPtr parentNode = parent;
     while (parentNode && !parentNode->IsInstanceOf<RSDisplayRenderNode>()) {
-        if (parentNode->IsSubSurfaceNode()) {
+        if (parentNode->IsInstanceOf<RSSurfaceRenderNode>() &&
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode)->IsLeashOrMainWindow()) {
             break;
         }
         childNode = parentNode;
@@ -611,6 +607,11 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpNodeType(GetType(), out);
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
+    if (auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        if (surfaceNode->HasSubSurfaceNodes()) {
+            out += surfaceNode->SubSurfaceNodesDump();
+        }
+    }
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
     }
@@ -1652,6 +1653,30 @@ void RSRenderNode::UpdateLastFilterCacheRegion()
     lastFilterRegion_ = filterRegion_;
 }
 
+bool RSRenderNode::GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix)
+{
+    auto& rootProperties = rootNode.GetRenderProperties();
+    auto rootGeo = rootProperties.GetBoundsGeometry();
+    auto selfGeo = GetRenderProperties().GetBoundsGeometry();
+    if (!rootGeo || !selfGeo) {
+        return false;
+    }
+    Drawing::Matrix selfMatrix = selfGeo->GetMatrix();
+    auto directParent = GetParent().lock();
+    while (directParent && directParent->GetId() != rootNode.GetId()) {
+        if (auto parentGeo = directParent->GetRenderProperties().GetBoundsGeometry()) {
+            selfMatrix.PostConcat(parentGeo->GetMatrix());
+        }
+        directParent = directParent->GetParent().lock();
+    }
+    if (!directParent) {
+        return false;
+    }
+    selfMatrix.PostConcat(rootGeo->GetAbsMatrix());
+    absMatrix = selfMatrix;
+    return true;
+}
+
 inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
 {
     return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
@@ -1660,24 +1685,10 @@ inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
 void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
     const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect)
 {
-    auto& rootProperties = subTreeRoot.GetRenderProperties();
-    auto rootGeo = rootProperties.GetBoundsGeometry();
-    auto selfGeo = GetRenderProperties().GetBoundsGeometry();
-    if (!rootGeo || !selfGeo) {
+    Drawing::Matrix absMatrix;
+    if (!GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
         return;
     }
-    Drawing::Matrix absMatrix = selfGeo->GetMatrix();
-    auto directParent = GetParent().lock();
-    while (directParent && directParent->GetId() != subTreeRoot.GetId()) {
-        if (auto parentGeo = directParent->GetRenderProperties().GetBoundsGeometry()) {
-            absMatrix.PostConcat(parentGeo->GetMatrix());
-        }
-        directParent = directParent->GetParent().lock();
-    }
-    if (!directParent) {
-        return;
-    }
-    absMatrix.PostConcat(rootGeo->GetAbsMatrix());
     Drawing::RectF absRect;
     absMatrix.MapRect(absRect, Rect2DrawingRect(GetRenderProperties().GetBoundsRect()));
     filterRect = RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight());
@@ -3266,6 +3277,10 @@ RectI RSRenderNode::GetOldDirty() const
 RectI RSRenderNode::GetOldDirtyInSurface() const
 {
     return oldDirtyInSurface_;
+}
+void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
+{
+    oldDirtyInSurface_ = oldDirtyInSurface;
 }
 bool RSRenderNode::IsDirtyRegionUpdated() const
 {
