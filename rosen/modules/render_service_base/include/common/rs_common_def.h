@@ -198,6 +198,7 @@ struct RSSurfaceRenderNodeConfig {
 enum class RSSurfaceExtType : uint8_t {
     NONE,
     SURFACE_TEXTURE,
+    SURFACE_PLATFORM_TEXTURE,
 };
 
 struct RSSurfaceExtConfig {
