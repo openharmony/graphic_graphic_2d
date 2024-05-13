@@ -38,6 +38,8 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, std::set<pid_t> exitedPidSet);
+    static void PurgeResourcesEveryFrame(Drawing::GPUContext* gpuContext, bool scratchResourceOnly,
+        std::set<pid_t>& exitedPidSet, std::set<pid_t>& protectedPidSet);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);

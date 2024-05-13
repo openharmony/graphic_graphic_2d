@@ -205,6 +205,15 @@ public:
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
 
     /**
+     * @brief                       Purge unlocked resources in every frame
+     * @param scratchResourcesOnly  Whether to scratch the resources only or not.
+     * @param exitedPidSet          GPU resource of exited PidSet used to purge unlocked resources.
+     * @param protectedPidSet       GPU resource of protectedPidSet will not be purged.
+     */
+    void PurgeResourcesEveryFrame(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
+        const std::set<pid_t>& protectedPidSet);
+
+    /**
      * @brief                   Purge unlocked resources from the safe cache until
      *                          the provided byte count has been reached or we have purged all unlocked resources.
      */

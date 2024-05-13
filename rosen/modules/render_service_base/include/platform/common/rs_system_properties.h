@@ -188,6 +188,7 @@ public:
 
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
+    static bool GetPurgeResourcesEveryEnabled();
 
     static bool GetAnimationCacheEnabled();
 

@@ -115,6 +115,18 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, st
     gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
 #endif
 }
+void MemoryManager::PurgeResourcesEveryFrame(Drawing::GPUContext* gpuContext, bool scratchResourceOnly,
+    std::set<pid_t>& exitedPidSet, std::set<pid_t>& protectedPidSet)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("PurgeResourcesEveryFrame fail, gpuContext is nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("PurgeResourcesEveryFrame exitedPidSet size: %d",exitedPidSet.size());
+    gpuContext->PurgeResourcesEveryFrame(scratchResourceOnly, exitedPidSet, protectedPidSet);
+#endif
+}
 
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
