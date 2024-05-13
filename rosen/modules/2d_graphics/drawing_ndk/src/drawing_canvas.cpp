@@ -535,9 +535,6 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    if (canvas->GetDrawingType() == DrawingType::RECORDING) {
-        (static_cast<RecordingCanvas*>(canvas))->SetIsCustomTypeface(true);
-    }
     canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
 }
 

@@ -48,6 +48,7 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
     };
 
@@ -87,6 +88,33 @@ JsFontCollection::JsFontCollection()
 std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
 {
     return fontcollection_;
+}
+
+napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info info)
+{
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok || !constructor) {
+        ROSEN_LOGE("Failed to get constructor object");
+        return nullptr;
+    }
+
+    napi_value object = nullptr;
+    status = napi_new_instance(env, constructor, 0, nullptr, &object);
+    if (status != napi_ok || !object) {
+        ROSEN_LOGE("Failed to instantiate instance");
+        return nullptr;
+    }
+
+    JsFontCollection* jsFontCollection = nullptr;
+    status = napi_unwrap(env, object, reinterpret_cast<void**>(&jsFontCollection));
+    if (status != napi_ok || !jsFontCollection) {
+        ROSEN_LOGE("Failed to unwrap JsFontCollection");
+        return nullptr;
+    }
+    jsFontCollection->fontcollection_ = OHOS::Rosen::FontCollection::Create();
+
+    return object;
 }
 
 napi_value JsFontCollection::LoadFontSync(napi_env env, napi_callback_info info)
