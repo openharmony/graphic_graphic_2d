@@ -796,19 +796,28 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
+void RSRenderNode::MergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
+{
+    dirtyManager.MergeDirtyRect(clipRect.IntersectRect(absChildrenRect_));
+    lastFrameSubTreeSkipped_ = false;
+}
+
 void RSRenderNode::SubTreeSkipPrepare(
     RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    if (HasChildrenOutOfRect() && (isDirty || clipAbsDrawRectChange_)) {
+    if (isDirty || clipAbsDrawRectChange_) {
         auto dirtyRect = absChildrenRect_;
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
             dirtyRect = dirtyRect.JoinRect(absChildrenRect_);
         }
-        dirtyManager.MergeDirtyRect(clipRect.IntersectRect(dirtyRect));
+        if (HasChildrenOutOfRect()) {
+            dirtyManager.MergeDirtyRect(clipRect.IntersectRect(dirtyRect));
+        }
     }
     SetGeoUpdateDelay(accumGeoDirty);
+    lastFrameSubTreeSkipped_ = true;
 }
 
 // attention: current all base node's dirty ops causing content dirty

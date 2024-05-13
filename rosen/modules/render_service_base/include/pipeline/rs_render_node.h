@@ -120,8 +120,13 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
+    void MergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
+    inline bool LastFrameSubTreeSkipped() const
+    {
+        return lastFrameSubTreeSkipped_;
+    }
 
     inline WeakPtr GetParent() const
     {
@@ -783,6 +788,7 @@ private:
     std::atomic<bool> isTunnelHandleChange_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
+    bool lastFrameSubTreeSkipped_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     RectI absChildrenRect_;
