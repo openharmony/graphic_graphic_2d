@@ -358,5 +358,10 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = true;
     }
 }
+
+bool RSFilterDrawable::IsAIBarCacheValid() const
+{
+    return (filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0;
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -2468,14 +2468,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
                 continue;
             }
             if (cleanFilter != transparentCleanFilter_.end()) {
-                for (auto filter = cleanFilter->second.begin(); filter != cleanFilter->second.end(); ++filter) {
-                    if (hwcNodePtr->GetDstRect().Intersect(filter->second)) {
-                        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by transparentCleanFilter",
-                            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-                        hwcNodePtr->SetHardwareForcedDisabledState(true);
-                        break;
-                    }
-                }
+                UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter->second, *hwcNodePtr);
                 if (hwcNodePtr->IsHardwareForcedDisabled()) {
                     continue;
                 }
@@ -2490,6 +2483,25 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
                     }
                 }
             }
+        }
+    }
+}
+
+void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
+    const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNodePtr)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
+        auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
+        if (rendernode->IsAIBarFilterCacheValid()) {
+            ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
+            continue;
+        }
+        if (hwcNodePtr.GetDstRect().Intersect(filter->second)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by transparentCleanFilter",
+                hwcNodePtr.GetName().c_str(), hwcNodePtr.GetId());
+            hwcNodePtr.SetHardwareForcedDisabledState(true);
+            break;
         }
     }
 }

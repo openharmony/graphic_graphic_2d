@@ -477,6 +477,7 @@ public:
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool rotationChanged = false);
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);

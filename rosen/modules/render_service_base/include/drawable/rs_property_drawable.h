@@ -130,6 +130,7 @@ public:
     bool IsFilterCacheValid() const;
     bool GetFilterForceClearCache() const;
     bool NeedPendingPurge() const;
+    bool IsAIBarCacheValid() const;
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
