@@ -295,9 +295,14 @@ bool RSFilterDrawable::IsFilterCacheValid() const
     return isFilterCacheValid_;
 }
 
-bool RSFilterDrawable::GetFilterForceClearCache() const
+bool RSFilterDrawable::IsForceClearFilterCache() const
 {
     return forceClearCache_;
+}
+
+bool RSFilterDrawable::IsForceUseFilterCache() const
+{
+    return forceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const

@@ -128,7 +128,8 @@ public:
     void CheckClearFilterCache();
 
     bool IsFilterCacheValid() const;
-    bool GetFilterForceClearCache() const;
+    bool IsForceClearFilterCache() const;
+    bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
  
     void OnSync() override;

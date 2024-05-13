@@ -51,6 +51,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
     // record if there is filter cache for occlusion before this effect node
@@ -83,8 +84,8 @@ public:
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheWithSelfDirty() override;
-    void MarkFilterCacheFlagsAfterPrepare(
-        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false) override;
+    void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        RSDirtyRegionManager& dirtyManager, bool isForeground = false) override;
 
 private:
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
