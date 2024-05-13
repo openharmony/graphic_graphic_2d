@@ -86,6 +86,13 @@ int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface
 }
 #endif
 
+#ifdef RS_ENABLE_VK
+bool RSInterfaces::Set2DRenderCtrl(bool enable)
+{
+    return renderServiceClient_->Set2DRenderCtrl(enable);
+}
+#endif
+
 void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 {
     renderServiceClient_->RemoveVirtualScreen(id);
@@ -571,5 +578,13 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
+
+#ifdef RS_ENABLE_VK
+extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
+{
+    RSInterfaces::GetInstance().Set2DRenderCtrl(enable);
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

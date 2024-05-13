@@ -994,6 +994,23 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | 
 }
 
 /*
+ * @tc.name: Set2DRenderCtrl Test
+ * @tc.desc: Set2DRenderCtrl Test
+ * @tc.type: FUNC
+ * @tc.require:I9NA1T
+ */
+#ifdef RS_ENABLE_VK
+HWTEST_F(RSInterfacesTest, Set2DRenderCtrl_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool ret = rsInterfaces->Set2DRenderCtrl(false);
+    ASSERT_EQ(ret, true);
+    ret = rsInterfaces->Set2DRenderCtrl(true);
+    ASSERT_EQ(ret, true);
+}
+#endif
+
+/*
  * @tc.name: GetScreenCurrentRefreshRate001
  * @tc.desc: Verify the function of getting the current refreshrate via rs interfaces
  * @tc.type: FUNC

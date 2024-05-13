@@ -455,6 +455,30 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
     return status;
 }
 
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceConnectionProxy::Set2DRenderCtrl(bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteBool(enable);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::Set2DRenderCtrl: Send Request err.");
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
+}
+#endif
+
 void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 {
     MessageParcel data;
