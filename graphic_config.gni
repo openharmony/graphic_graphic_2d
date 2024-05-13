@@ -62,6 +62,7 @@ declare_args() {
 }
 
 if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "pc" ||
     graphic_2d_feature_product == "tablet") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
