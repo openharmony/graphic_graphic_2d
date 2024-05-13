@@ -68,7 +68,6 @@ public:
 
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) override
     {
-        PaintBackgroundRect(canvas, offsetX, offsetY);
     }
 
 private:
@@ -97,9 +96,7 @@ HWTEST_F(OHSkiaAnySpanTest, OHSkiaAnySpanTest001, TestSize.Level1)
     EXPECT_EQ(mySpan.GetTopInGroup(), 10);
     EXPECT_EQ(mySpan.GetBottomInGroup(), 10);
     EXPECT_EQ(mySpan.GetMaxRoundRectRadius(), 10);
-    TexgineCanvas canvas;
-    // 0 is used for initialization
-    mySpan.PaintBackgroundRect(canvas, 0, 0);
+
     TextAlign textAlign1 = TextAlign::DEFAULT | TextAlign::START;
     textAlign1 = TextAlign::DEFAULT & TextAlign::START;
     textAlign1 = ~TextAlign::DEFAULT;

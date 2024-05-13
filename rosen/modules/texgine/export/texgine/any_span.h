@@ -83,39 +83,6 @@ public:
      */
     virtual void Paint(TexgineCanvas& canvas, double offsetx, double offsety) = 0;
 
-    void PaintBackgroundRect(TexgineCanvas& canvas, double offsetX, double offsetY)
-    {
-        if (xs_.backgroundRect.color == 0) {
-            return;
-        }
-
-        TexginePaint paint;
-        paint.SetAntiAlias(false);
-#ifndef USE_GRAPHIC_TEXT_GINE
-        paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
-#else
-        paint.SetAlpha(MAXALPHA);
-#endif
-        paint.SetColor(xs_.backgroundRect.color);
-        double ltRadius = 0.0;
-        double rtRadius = 0.0;
-        double rbRadius = 0.0;
-        double lbRadius = 0.0;
-        if (roundRectType_ == RoundRectType::ALL || roundRectType_ == RoundRectType::LEFT_ONLY) {
-            ltRadius = xs_.backgroundRect.leftTopRadius;
-            lbRadius = xs_.backgroundRect.leftBottomRadius;
-        }
-        if (roundRectType_ == RoundRectType::ALL || roundRectType_ == RoundRectType::RIGHT_ONLY) {
-            rtRadius = xs_.backgroundRect.rightTopRadius;
-            rbRadius = xs_.backgroundRect.rightBottomRadius;
-        }
-        const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
-            {lbRadius, lbRadius}};
-        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + topInGroup_, (float)GetWidth(),
-            bottomInGroup_ - topInGroup_, fRadii);
-        canvas.DrawRRect(rect, paint);
-    }
-
     void SetTextStyle(const TextStyle& style)
     {
         xs_ = style;
