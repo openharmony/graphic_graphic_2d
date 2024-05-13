@@ -108,7 +108,7 @@ public:
     VsyncError StartRefresh() override;
 
     void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
-    void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
+    void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
