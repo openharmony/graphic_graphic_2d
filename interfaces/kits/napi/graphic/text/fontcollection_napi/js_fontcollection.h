@@ -32,6 +32,7 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
     static napi_value LoadFontSync(napi_env env, napi_callback_info info);
+    static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:

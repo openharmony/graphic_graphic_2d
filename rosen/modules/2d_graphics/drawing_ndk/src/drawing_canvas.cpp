@@ -492,9 +492,6 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
     if (canvas == nullptr) {
         return;
     }
-    if (canvas->GetDrawingType() == DrawingType::RECORDING) {
-        (static_cast<RecordingCanvas*>(canvas))->SetIsCustomTypeface(true);
-    }
     canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
 }
 
