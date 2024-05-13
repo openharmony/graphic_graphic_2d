@@ -133,6 +133,7 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
     bool GetForceHardware() const;
     void SetForceHardware(bool flag);
 

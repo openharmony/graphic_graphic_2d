@@ -24,6 +24,8 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "include/utils/SkCamera.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
@@ -37,6 +39,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
+constexpr int32_t ROTATION_90 = 90;
+}
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
 using PixelTransformFunc = std::function<float(float)>;
@@ -1138,10 +1144,16 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params)
+    RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
+    int extraRotation = 0;
+    if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
+        extraRotation = degree - FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN;
+    }
+    rotationTransform = static_cast<GraphicTransformType>((rotationTransform + extraRotation / ROTATION_90) % 4);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
