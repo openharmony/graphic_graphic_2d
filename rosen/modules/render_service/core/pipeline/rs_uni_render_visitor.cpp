@@ -1199,7 +1199,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     prepareClipRect_ = screenRect_;
     curAlpha_ = 1.0f;
     node.UpdateRotation();
-
+    RSUifirstManager::Instance().SetRotationChanged(node.IsRotationChanged());
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         QuickPrepareChildren(node);
     }
@@ -1768,6 +1768,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     Drawing::Matrix totalMatrix;
     float alpha = 1.f;
     AccumulateMatrixAndAlpha(hwcNode, totalMatrix, alpha);
+    hwcNode->SetTotalMatrix(totalMatrix);
     if (!ROSEN_EQ(alpha, 1.f)) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by accumulated alpha:%.2f",
             hwcNode->GetName().c_str(), hwcNode->GetId(), alpha);
@@ -1783,7 +1784,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
         hwcNode->SetHardwareForcedDisabledState(true);
         return;
     }
-    hwcNode->SetTotalMatrix(totalMatrix);
 }
 
 void RSUniRenderVisitor::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,

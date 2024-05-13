@@ -86,6 +86,11 @@ public:
 
     void MergeOldDirty(RSSurfaceRenderNode& node);
 
+    void SetRotationChanged(bool rotationChanged)
+    {
+        rotationChanged_ = rotationChanged;
+    }
+
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -123,6 +128,7 @@ private:
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
+    bool rotationChanged_ = false;
 
     // only use in RT
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;

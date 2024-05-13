@@ -73,6 +73,7 @@ private:
     void ProcessCacheImage(Drawing::Image& cacheImageProcessed);
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
+    void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSRenderNode& node);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
 
