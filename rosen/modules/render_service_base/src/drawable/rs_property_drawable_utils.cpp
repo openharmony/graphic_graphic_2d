@@ -515,7 +515,8 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeDynamicDimSh
         half4 main(float2 coord)
         {
             vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
-            hsv.y = hsv.y * 0.8;
+            float value = max(0.8, dynamicDimDeg); // 0.8 is min saturation ratio.
+            hsv.y = hsv.y * value;
             hsv.z = min(hsv.z * dynamicDimDeg, 1.0);
             return vec4(hsv2rgb(hsv), 1.0);
         }
