@@ -719,7 +719,7 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
 #if defined(RS_ENABLE_DVSYNC)
     {
         std::unique_lock<std::mutex> locker(mutex_);
-        dvsync_->RecordPostVsync(conns, timestamp);
+        dvsync_->RecordPostEvent(conns, timestamp);
     }
 #endif
     for (uint32_t i = 0; i < conns.size(); i++) {
