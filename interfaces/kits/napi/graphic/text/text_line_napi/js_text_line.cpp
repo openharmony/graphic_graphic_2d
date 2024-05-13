@@ -223,10 +223,6 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     if (!(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         return NapiGetUndefined(env);
     }
-    if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
-        recordingCanvas->SetIsCustomTypeface(true);
-    }
     textLine_->Paint(jsCanvas->GetCanvas(), x, y);
 
     return NapiGetUndefined(env);
