@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_background_thread_test.cpp",
     "rs_color_test.cpp",
     "rs_common_def_test.cpp",
+    "rs_common_tools_test.cpp",
     "rs_obj_abs_geometry_test.cpp",
     "rs_occlusion_region_test.cpp",
     "rs_rect_test.cpp",
@@ -33,6 +34,11 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_thread_looper_impl_test.cpp",
     "rs_vector3_test.cpp",
     "rs_vector4_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   configs = [
