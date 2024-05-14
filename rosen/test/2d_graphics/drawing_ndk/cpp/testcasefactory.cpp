@@ -96,7 +96,7 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
     { "stroke_rect_shader", []() -> std::shared_ptr<TestBase> { return std::make_shared<StrokeRectShader>(); } },
     { "lumafilter",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<LumaFilter>(); } }, // 字体粗细、位置有差异
-    { "pointsmaskfilter",
+    { "points_maskfilter",
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<PointsMaskFilter>();
         } }, // drawpoints argb参数存在部分偏差
