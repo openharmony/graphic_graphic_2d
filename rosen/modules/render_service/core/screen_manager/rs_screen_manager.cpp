@@ -1212,6 +1212,7 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
         if (screen == nullptr) {
@@ -1224,6 +1225,7 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
 
 void RSScreenManager::SurfaceDump(std::string& dumpString)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
         if (screen == nullptr) {
@@ -1236,6 +1238,7 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
 
 void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t index = 0;
     dumpString += "\n-- The recently fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
@@ -1246,6 +1249,7 @@ void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 
 void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t index = 0;
     dumpString += "\n-- Clear fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
@@ -1271,6 +1275,7 @@ void RSScreenManager::ClearFrameBufferIfNeed()
 
 void RSScreenManager::HitchsDump(std::string& dumpString, std::string& arg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t index = 0;
     dumpString += "\n-- The recently window hitchs records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
