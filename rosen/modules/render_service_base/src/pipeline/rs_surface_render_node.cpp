@@ -715,10 +715,16 @@ bool RSSurfaceRenderNode::GetBootAnimation() const
 
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetForceHardwareByUser(flag);
+    AddToPendingSyncList();
+
     isForceHardwareByUser_ = flag;
-    if (isForceHardwareByUser_) {
-        originalDstRect_ = GetDstRect();
-    }
+}
+
+bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
 }
 
 bool RSSurfaceRenderNode::GetForceHardware() const
@@ -728,6 +734,9 @@ bool RSSurfaceRenderNode::GetForceHardware() const
 
 void RSSurfaceRenderNode::SetForceHardware(bool flag)
 {
+    if (isForceHardwareByUser_ && !isForceHardware_ && flag) {
+        originalDstRect_ = dstRect_;
+    }
     isForceHardware_ = isForceHardwareByUser_ && flag;
 }
 

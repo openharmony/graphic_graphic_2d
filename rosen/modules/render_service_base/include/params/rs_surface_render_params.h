@@ -227,6 +227,9 @@ public:
     bool GetHardwareEnabled() const;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const;
+    void SetForceHardwareByUser(bool flag);
+    bool GetForceHardwareByUser() const;
+
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
     void SetOverDrawBufferNodeCornerRadius(const Vector4f& radius);
@@ -282,6 +285,7 @@ private:
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isForceHardwareByUser_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;

@@ -527,6 +527,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         bool needOffscreen = params->GetNeedOffscreen();
         if (needOffscreen) {
             uniParam->SetOpDropped(false);
+            // draw black background in rotation for camera
+            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+            ClearTransparentBeforeSaveLayer();
             PrepareOffscreenRender(*displayNodeSp);
         }
 
@@ -541,10 +544,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curCanvas_->ConcatMatrix(params->GetMatrix());
         }
 
-        if (params->IsRotationChanged()) {
-            // draw black background in rotation for camera
-            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-        }
         SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
@@ -554,7 +553,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (needOffscreen) {
             Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
             canvasBackup_->ConcatMatrix(params->GetMatrix());
-            canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
             uniParam->SetOpDropped(isOpDropped);
         }
@@ -1156,6 +1154,30 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen(
     canvas.AttachBrush(brush);
     canvas.DrawRect(Drawing::Rect(0, 0, screenWidth, screenHeight));
     canvas.DetachBrush();
+}
+
+void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
+{
+    RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
+    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
+    for (const auto& surfaceNode : hardwareNodes) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!params || !params->GetHardwareEnabled()) {
+            continue;
+        }
+        auto& layerInfo = params->GetLayerInfo();
+        auto& dstRect = layerInfo.boundRect;
+        curCanvas_->Save();
+        curCanvas_->ConcatMatrix(layerInfo.matrix);
+        curCanvas_->ClipRect({ static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+            static_cast<float>(dstRect.x + dstRect.w), static_cast<float>(dstRect.y + dstRect.h) },
+            Drawing::ClipOp::INTERSECT, false);
+        curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        curCanvas_->Restore();
+    }
 }
 
 void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSRenderNode& node)

@@ -327,9 +327,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
 
-    auto buoundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
-    auto buoundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
-    params.dstRect = Drawing::Rect(0, 0, buoundWidth, buoundHeight);
+    auto boundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
+    auto boundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
+    params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
 
     const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
     if (buffer == nullptr) {
@@ -344,9 +344,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
         return params;
     }
     auto transform = consumer->GetTransform();
-    RectF localBounds = { 0.0f, 0.0f, buoundWidth, buoundHeight };
+    RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
     auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, nodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
@@ -1201,9 +1201,6 @@ void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& no
     node.SetSrcRect(srcRect);
     auto dstRect = node.GetDstRect();
     auto originalDstRect = node.GetOriginalDstRect();
-    if (originalDstRect.IsEmpty()) {
-        originalDstRect = dstRect;
-    }
     dstRect.left_ += (dstRect.width_ - originalDstRect.width_) / 2;
     dstRect.top_ += (dstRect.height_ - originalDstRect.height_) / 2;
     dstRect.width_ = originalDstRect.width_;
@@ -1245,7 +1242,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     }
     static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
-    int surfaceNodeRotation = node.GetForceHardware() ? -1 * rotationDegree :
+    int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     int totalRotation = (RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform()))) % 360;

@@ -130,6 +130,20 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
     return isLastFrameHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetForceHardwareByUser(bool flag)
+{
+    if (isForceHardwareByUser_ == flag) {
+        return;
+    }
+    isForceHardwareByUser_ = flag;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 {
@@ -276,6 +290,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->isForceHardwareByUser_ = isForceHardwareByUser_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;

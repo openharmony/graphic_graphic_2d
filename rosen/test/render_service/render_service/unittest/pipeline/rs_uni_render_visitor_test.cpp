@@ -1421,24 +1421,6 @@ HWTEST_F(RSUniRenderVisitorTest, GenerateNodeContentCache002, TestSize.Level1)
 }
 
 /**
- * @tc.name: OpincSetInAppStartTest01
- * @tc.desc: autocache prepare mark
- * @tc.type: FUNC
- * @tc.require: I9B0X4
- */
-HWTEST_F(RSUniRenderVisitorTest, OpincSetInAppStartTest01, TestSize.Level1)
-{
-    NodeId id = 0;
-    auto node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    bool unchangeMarkInApp = false;
-    node->OpincSetInAppStateStart(unchangeMarkInApp);
-    ASSERT_EQ(unchangeMarkInApp, true);
-    node->OpincSetInAppStateEnd(unchangeMarkInApp);
-    ASSERT_EQ(unchangeMarkInApp, false);
-}
-
-/**
  * @tc.name: PrepareEffectRenderNode001
  * @tc.desc: Test RSUniRenderVisitorTest.PrepareEffectRenderNode api
  * @tc.type: FUNC

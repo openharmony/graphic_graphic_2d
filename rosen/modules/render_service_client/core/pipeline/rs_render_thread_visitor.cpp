@@ -812,6 +812,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetContextAlpha(canvas_->GetAlpha());
     }
 
+    if (node.GetIsTextureExportNode()) {
+        canvas_->Save();
+        auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        RSPropertiesPainter::DrawBackground(node.GetRenderProperties(), *canvas_);
+        canvas_->Restore();
+    }
+
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());

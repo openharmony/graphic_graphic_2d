@@ -19,6 +19,7 @@
 #include <vector>
 #include <atomic>
 #include "image/bitmap.h"
+#include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
 #include "draw/pen.h"
@@ -33,6 +34,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
@@ -129,7 +131,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF& localBounds, BufferDrawParam& params);
+        RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately

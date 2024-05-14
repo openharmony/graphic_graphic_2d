@@ -295,9 +295,14 @@ bool RSFilterDrawable::IsFilterCacheValid() const
     return isFilterCacheValid_;
 }
 
-bool RSFilterDrawable::GetFilterForceClearCache() const
+bool RSFilterDrawable::IsForceClearFilterCache() const
 {
     return forceClearCache_;
+}
+
+bool RSFilterDrawable::IsForceUseFilterCache() const
+{
+    return forceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const
@@ -357,6 +362,11 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         cacheUpdateInterval_--;
         pendingPurge_ = true;
     }
+}
+
+bool RSFilterDrawable::IsAIBarCacheValid() const
+{
+    return (filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
