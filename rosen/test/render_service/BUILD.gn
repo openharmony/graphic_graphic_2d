@@ -31,6 +31,8 @@ group("test") {
     "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommondef_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommontools_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslistenedcanvas_fuzzer:fuzztest",
