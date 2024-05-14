@@ -1229,4 +1229,24 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmapTest, TestSize.Level2)
     Drawing::Bitmap bitmap;
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
+
+/*
+ * @tc.name: GetAccumulatedBufferCount_001
+ * @tc.desc: Test GetAccumulatedBufferCount with increase and decrease the value of BufferCount
+ * @tc.type: FUNC
+ * @tc.require: issueI9OKU5
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
+{
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    ASSERT_GT(RSBaseRenderUtil::GetAccumulatedBufferCount(), 0);
+
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+}
+
 } // namespace OHOS::Rosen
