@@ -2185,12 +2185,13 @@ void RSRenderNode::ApplyModifiers()
 
     // Apply modifiers
     for (auto& [id, modifier] : modifiers_) {
-        if (!dirtyTypes_.test(static_cast<size_t>(modifier->GetType()))) {
+        auto modifierType = modifier->GetType();
+        if (!dirtyTypes_.test(static_cast<size_t>(modifierType))) {
             continue;
         }
         modifier->Apply(context);
         isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ &&
-            BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType());
+            BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifierType);
     }
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
