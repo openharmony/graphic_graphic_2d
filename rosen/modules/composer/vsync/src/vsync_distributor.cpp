@@ -41,6 +41,7 @@ constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
+constexpr int32_t DEFAULT_VSYNC_RATE = 1;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 128;
 #if defined(RS_ENABLE_DVSYNC)
@@ -853,8 +854,12 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate)
+VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bool isSystemAnimateScene)
 {
+    // only set vsync rate by pid in SystemAnimateSecne
+    if (!isSystemAnimateScene && rate != DEFAULT_VSYNC_RATE) {
+        return VSYNC_ERROR_OK;
+    }
     auto iter = connectionsMap_.find(pid);
     if (iter == connectionsMap_.end()) {
         VLOGD("%{public}s:%{public}d pid[%{public}u] can not found", __func__, __LINE__, pid);
@@ -895,10 +900,10 @@ constexpr pid_t VSyncDistributor::ExtractPid(uint64_t id)
     return static_cast<pid_t>(id >> bits);
 }
 
-VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate)
+VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    VsyncError resCode = SetQosVSyncRateByPid(ExtractPid(windowNodeId), rate);
+    VsyncError resCode = SetQosVSyncRateByPid(ExtractPid(windowNodeId), rate, isSystemAnimateScene);
     auto iter = connectionsMap_.find(windowNodeId);
     if (iter == connectionsMap_.end()) {
         return resCode;

@@ -156,7 +156,7 @@ constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
-constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
+constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
@@ -2199,7 +2199,7 @@ void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& 
         if (iter.second == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
             appVSyncDistributor_->SetQosVSyncRate(iter.first, SIMI_VISIBLE_RATE);
         } else if (iter.second == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
-            appVSyncDistributor_->SetQosVSyncRate(iter.first, SYSTEM_ANIMATED_SECNES_RATE);
+            appVSyncDistributor_->SetQosVSyncRate(iter.first, SYSTEM_ANIMATED_SCENES_RATE, true);
         } else if (iter.second == RSVisibleLevel::RS_INVISIBLE) {
             appVSyncDistributor_->SetQosVSyncRate(iter.first, INVISBLE_WINDOW_RATE);
         } else {
