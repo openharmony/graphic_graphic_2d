@@ -431,4 +431,64 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceId001, TestSize.Level1)
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetSurfaceId(context, id2, available);
 }
+
+/**
+ * @tc.name: CreateWithConfigTest
+ * @tc.desc: Verify function CreateWithConfig
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
+{
+    RSContext context;
+    std::string name = "name";             // for test
+    std::string bundleName = "bundleName"; // for test
+    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, bundleName);
+}
+
+/**
+ * @tc.name: SetForceHardwareAndFixRotationTest
+ * @tc.desc: Verify function SetForceHardwareAndFixRotation
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetForceHardwareAndFixRotationTest, TestSize.Level1)
+{
+    RSContext context;
+
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetForceUIFirstTest
+ * @tc.desc: Verify function SetForceUIFirst
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetForceUIFirstTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetForceUIFirst(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetForceUIFirst(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetAncoForceDoDirectTest
+ * @tc.desc: Verify function SetAncoForceDoDirect
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAncoForceDoDirectTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
 } // namespace OHOS::Rosen
