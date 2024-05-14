@@ -1827,7 +1827,7 @@ void RSMainThread::Render()
     }
 
     if (auto screenManager = CreateOrGetScreenManager()) {
-        auto& rsLuminance = RSLuminanceControl::Get();
+        auto& rsLuminance = RSLuminanceControl::Instance();
         for (const auto& child : *rootNode->GetSortedChildren()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
             if (displayNode == nullptr) {
