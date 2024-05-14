@@ -98,14 +98,14 @@ enum class SubTreePrepareCheckType {
 };
 
 enum class DdgrOpincType {
-    DDGR_OPINC_NONE = 0,
-    DDGR_AUTOCACHE,
-    DDGR_AUTOCACHE_REALDRAW,
+    OPINC_NONE = 0,
+    OPINC_AUTOCACHE,
+    OPINC_AUTOCACHE_REALDRAW,
 };
 
 enum class DdgrOpincDfxType {
-    DDGR_OPINC_DFX_NONE,
-    DDGR_OPINC_DFX_AUTO,
+    OPINC_DFX_NONE,
+    OPINC_DFX_AUTO,
 };
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);

@@ -490,7 +490,6 @@ private:
 
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool autoCacheDrawingEnable_ = false;
     bool unchangeMarkEnable_ = false;
     bool unchangeMarkInApp_ = false;
 

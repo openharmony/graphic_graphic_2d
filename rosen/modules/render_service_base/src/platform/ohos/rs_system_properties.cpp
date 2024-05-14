@@ -797,7 +797,7 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
-    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
+    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "0")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
     static_cast<DdgrOpincDfxType>(std::atoi((
         system::GetParameter("persist.rosen.ddgr.opinctype.debugtype", "0")).c_str()));
@@ -809,13 +809,13 @@ DdgrOpincType RSSystemProperties::GetDdgrOpincType()
 
 bool RSSystemProperties::IsDdgrOpincEnable()
 {
-    return (GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE);
+    return (GetDdgrOpincType() == DdgrOpincType::OPINC_AUTOCACHE_REALDRAW ||
+        GetDdgrOpincType() == DdgrOpincType::OPINC_AUTOCACHE);
 }
 
 bool RSSystemProperties::IsOpincRealDrawCacheEnable()
 {
-    return  GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW;
+    return  GetDdgrOpincType() == DdgrOpincType::OPINC_AUTOCACHE_REALDRAW;
 }
 
 DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
@@ -825,7 +825,7 @@ DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 
 bool RSSystemProperties::GetAutoCacheDebugEnabled()
 {
-    return GetDdgrOpincDfxType() == DdgrOpincDfxType::DDGR_OPINC_DFX_AUTO;
+    return GetDdgrOpincDfxType() == DdgrOpincDfxType::OPINC_DFX_AUTO;
 }
 
 #ifdef RS_ENABLE_STACK_CULLING

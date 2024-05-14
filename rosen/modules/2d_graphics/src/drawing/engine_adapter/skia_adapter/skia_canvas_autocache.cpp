@@ -68,7 +68,7 @@ void SkiaCanvasAutoCache::Init(const SkMatrix& m)
 
 bool SkiaCanvasAutoCache::OpCanCache(const SkRect& bound)
 {
-#ifdef DDGR_ENABLE_FEATURE_OP_INC_DFX
+#ifdef OPINC_ENABLE_FEATURE_DEBUG
     MergeDrawAreaRects();
 #endif
     do {
@@ -78,14 +78,15 @@ bool SkiaCanvasAutoCache::OpCanCache(const SkRect& bound)
             break;
         }
         MergeDrawAreaRects(); // get unionDrawArea_
-        if (((int)(unionDrawArea_.width()) > (int)(bound.width())) ||
-            ((int)(unionDrawArea_.height()) > (int)(bound.height()))) {
+        if ((static_cast<int>(unionDrawArea_.width()) > static_cast<int>(bound.width())) ||
+            (static_cast<int>(unionDrawArea_.height()) > static_cast<int>(bound.height()))) {
             opCanCache_ = false;
             calNotSupport_ = __LINE__;
             break;
         }
 
-        percent_ = (totalDrawAreas_ * PERCENT) / ((int)(unionDrawArea_.width()) * (int)(unionDrawArea_.height()));
+        percent_ = (totalDrawAreas_ * PERCENT) /
+            (static_cast<int>(unionDrawArea_.width()) * static_cast<int>(unionDrawArea_.height()));
         if (totalOpNums_ >= MAX_OPS_NUM ||
             (percent_ > MAX_PERCENTAGE && totalOpNums_ > MIN_OPS_NUM)) {
             opCanCache_ = true;
@@ -94,7 +95,7 @@ bool SkiaCanvasAutoCache::OpCanCache(const SkRect& bound)
         opCanCache_ = false;
         calNotSupport_ = __LINE__;
     } while (false);
-#ifdef DDGR_ENABLE_FEATURE_OP_INC_DFX
+#ifdef OPINC_ENABLE_FEATURE_DEBUG
     ShowDrawResult(bound);
 #endif
     return opCanCache_;
@@ -123,7 +124,7 @@ void SkiaCanvasAutoCache::RecordUnsupportOp(const char* name)
 
 void SkiaCanvasAutoCache::RecordUnsupportOp(const char* name, const SkPaint& paint)
 {
-#ifdef DDGR_ENABLE_FEATURE_OP_INC_DFX
+#ifdef OPINC_ENABLE_FEATURE_DEBUG
     if (name != nullptr) {
         std::string ret(name);
         ret.append("_");
@@ -185,7 +186,7 @@ void SkiaCanvasAutoCache::MergeDrawAreaRects()
     drawAreaRects.erase(std::unique(drawAreaRects.begin(), drawAreaRects.end()), drawAreaRects.end());
 
     for (uint32_t i = 0; i < drawAreaRects.size(); i++) {
-        for (uint32_t j = 0; j < drawAreaRects.size(); j++) {
+        for (uint32_t j = i + 1; j < drawAreaRects.size(); j++) {
             if (drawAreaRects[i].intersects(drawAreaRects[j])) {
                 opCanCache_ = false;
                 return;
@@ -203,24 +204,23 @@ void SkiaCanvasAutoCache::MergeDrawAreaRects()
 
 void SkiaCanvasAutoCache::ShowDrawResult(const SkRect& bound)
 {
-#ifdef DDGR_ENABLE_FEATURE_OP_INC_DFX
+#ifdef OPINC_ENABLE_FEATURE_DEBUG
     std::vector<SkRect>& drawAreaRects = drawAreaRects_;
-    LOGI("DDGR draw result %d, canvas w%d h%d, opNum%d, percent%d, cal%d, "
+    LOGD("opinc draw result %d, canvas w%d h%d, opNum%d, percent%d, cal%d, "
         "node[%.2f %.2f %.2f %.2f] bound[%.2f %.2f %.2f %.2f] reject[%.2f %.2f %.2f %.2f]"
         "rect num %d not support %d",
         opCanCache_, proxy()->imageInfo().width(), proxy()->imageInfo().height(),
         totalOpNums_, percent_, calNotSupport_,
         bound.x(), bound.y(), bound.width(), bound().height(),
         unionDrawArea_.x(), unionDrawArea_.y(), unionDrawArea_.width(), unionDrawArea_.height(),
-        (int)drawAreaRects.size(), (int)debugNotSupportOps_.size());
+        static_cast<int>(drawAreaRects.size()), static_cast<int>(debugNotSupportOps_.size()));
     for (uint32_t i = 0; i < drawAreaRects.size(); i++) {
         SkRect &rect = drawAreaRects[i];
-        LOGI("DDGR rect[%u], [%.2f %.2f %.2f %.2f]", i, rect.x(), rect.y(), rect.width(), rect.height());
+        LOGD("opinc rect[%u], [%.2f %.2f %.2f %.2f]", i, rect.x(), rect.y(), rect.width(), rect.height());
     }
-
     int j = 0;
     for (auto& iter : debugNotSupportOps_) {
-        LOGI("DDGR ops[%d] [%s %d]", j, iter.first.c_str(), iter.second);
+        LOGD("opinc ops[%d] [%s %d]", j, iter.first.c_str(), iter.second);
         j++;
     }
 #endif
@@ -266,12 +266,12 @@ bool SkiaCanvasAutoCache::RecordDrawArea(const SkRect& bounds, const SkPaint& pa
     }
 
     if (PaintCanCache(paint) && paint.canComputeFastBounds()) {
-        SkRect tmp = matrix ? matrix->mapRect(bounds) : bounds;
-        SkRect devRect = getTotalMatrix().mapRect(paint.computeFastBounds(tmp, &tmp));
+        SkRect oriBound = matrix ? matrix->mapRect(bounds) : bounds;
+        SkRect devRect = getTotalMatrix().mapRect(paint.computeFastBounds(oriBound, &oriBound));
         if (!devRect.isEmpty()) {
             drawAreaRects_.push_back(devRect);
             totalOpNums_++;
-            totalDrawAreas_ += (int)(devRect.width()) * (int)(devRect.height());
+            totalDrawAreas_ += static_cast<int>(devRect.width()) * static_cast<int>(devRect.height());
         }
         return true;
     }
