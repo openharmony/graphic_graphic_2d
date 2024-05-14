@@ -225,7 +225,6 @@ void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
 void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds)
 {
     // todo fix
-    RS_LOGE("RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread error.");
     return;
     auto surface = surface_;
     auto nodeId = GetId();
