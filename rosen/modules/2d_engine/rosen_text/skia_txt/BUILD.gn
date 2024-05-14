@@ -272,4 +272,6 @@ ohos_source_set("skia_shaper") {
     ":skia_unicode",
     "//third_party/skia:skia_$platform",
   ]
+
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
