@@ -167,9 +167,9 @@ ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
   sources = [ "render_service_client_gesture_interrupt_animation_demo.cpp" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "./../../2d_graphics:2d_graphics",
+    "./../../render_service_base:librender_service_base",
+    "./../../render_service_client:librender_service_client",
   ]
 
   public_deps = [ "$public_deps_skia" ]
@@ -216,8 +216,8 @@ ohos_executable("render_service_client_ui_capture_demo") {
   sources = [ "render_service_client_ui_capture_demo.cpp" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "../../render_service_base:librender_service_base",
+    "../../render_service_client:librender_service_client",
   ]
 
   external_deps = [
