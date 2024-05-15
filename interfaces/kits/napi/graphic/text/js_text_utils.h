@@ -434,7 +434,7 @@ inline napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "heightOnly", CreateJsNumber(env, textStyle.heightOnly));
         napi_set_named_property(env, objValue, "ellipsis", CreateStringJsValue(env, textStyle.ellipsis));
         napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
-            env,static_cast<uint32_t>(textStyle.ellipsisModal)));
+            env, static_cast<uint32_t>(textStyle.ellipsisModal)));
         napi_set_named_property(env, objValue, "locale", CreateJsValue(env, textStyle.locale));
     }
     return objValue;
@@ -492,18 +492,25 @@ inline napi_value CreateLineMetricsJsValue(napi_env env, LineMetrics lineMetrics
         napi_set_named_property(env, objValue, "height", CreateJsNumber(env, lineMetrics.height));
         napi_set_named_property(env, objValue, "width", CreateJsNumber(env, lineMetrics.width));
         napi_set_named_property(env, objValue, "left", CreateJsNumber(env, lineMetrics.x));
+        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.xHeight));
+        napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.capHeight));
         napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.capHeight));
         napi_value tempMapRunMetrics = nullptr;
         uint32_t runMetricsCount = 0;
         napi_get_array_length(env, tempMapRunMetrics, &runMetricsCount);
         size_t index = 0;
-        for (const auto& pair : lineMetrics.runMetrics) {
-        napi_value jsPair;
-        napi_create_array_with_length(env, 2, &jsPair);
+        if (lineMetrics.runMetrics.size() > 0) {
+            for (const auto& pair : lineMetrics.runMetrics) {
+                napi_value jsPair;
+                napi_create_array_with_length(env, 2, &jsPair);
 
-        napi_set_element(env, jsPair, 0, CreateJsNumber(env, (uint32_t)pair.first));
-        napi_set_element(env, jsPair, 1, CreateRunMetricsJsValue(env, pair.second));
-        napi_set_element(env, tempMapRunMetrics, index++, jsPair);
+                napi_set_element(env, jsPair, 0, CreateJsNumber(env, (uint32_t)pair.first));
+                napi_set_element(env, jsPair, 1, CreateRunMetricsJsValue(env, pair.second));
+                napi_set_element(env, tempMapRunMetrics, index++, jsPair);
+            }
+        } else {
+            napi_create_array_with_length(env, 0, &tempMapRunMetrics);
+            ROSEN_LOGE("yqf-Napi: CreateLineMetricsJsValue null map %{public}p", tempMapRunMetrics);
         }
         napi_set_named_property(env, objValue, "runMetrics", tempMapRunMetrics);
     }
