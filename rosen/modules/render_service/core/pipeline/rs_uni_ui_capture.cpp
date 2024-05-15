@@ -248,8 +248,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
         RS_LOGE("RSUniUICaptureVisitor::SetCanvas: canvas == nullptr");
         return;
     }
-    auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
-    canvas->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
+    std::shared_ptr<Drawing::GPUContext> sharedContext = nullptr;
+    if (isUniRender_) {
+        sharedContext = RSOffscreenRenderThread::Instance().GetRenderContext()->GetSharedDrGPUContext();
+    } else {
+        sharedContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+    }
+    canvas->SetGrRecordingContext(sharedContext);
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);
     canvas_->SetDisableFilterCache(true);
