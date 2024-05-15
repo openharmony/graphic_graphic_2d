@@ -709,7 +709,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = !params.useBilinearInterpolation
+            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                                 ? Drawing::SamplingOptions()
                                 : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
         }

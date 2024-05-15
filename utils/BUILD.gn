@@ -95,6 +95,13 @@ ohos_shared_library("libgraphic_utils") {
 
   public_deps = [ "color_manager:color_manager" ]
 
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   deps = [
     ":buffer_handle",
     ":cpudraw",
