@@ -283,7 +283,7 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
     bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
-        modifierManager->SetDisplaySyncEnable(GetCurrentRefreshRateMode() == HGM_REFRESHRATE_MODE_AUTO);
+        modifierManager->SetDisplaySyncEnable(true);
         modifierManager->SetFrameRateGetFunc([](const RSPropertyUnit unit, float velocity) -> int32_t {
             return RSFrameRatePolicy::GetInstance()->GetExpectedFrameRate(unit, velocity);
         });
