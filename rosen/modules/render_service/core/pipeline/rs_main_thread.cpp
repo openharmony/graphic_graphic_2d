@@ -375,7 +375,7 @@ void RSMainThread::Init()
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     qosPidCal_ = deviceType_ == DeviceType::PC;
-    isFoldScreenDevice_ = system::GetParameter("const.window.foldscreen.type", "") == "true";
+    isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
