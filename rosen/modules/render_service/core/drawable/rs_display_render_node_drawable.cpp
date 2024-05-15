@@ -547,7 +547,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
-        DrawCurtainScreen(*displayNodeSp, *curCanvas_);
+        DrawCurtainScreen();
         // switch color filtering
         SwitchColorFilter(*curCanvas_);
         if (needOffscreen) {
@@ -1137,23 +1137,13 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(
     }
 }
 
-void RSDisplayRenderNodeDrawable::DrawCurtainScreen(
-    RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const
+void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
 {
-    if (!RSUniRenderThread::Instance().IsCurtainScreenOn()) {
+    if (!RSUniRenderThread::Instance().IsCurtainScreenOn() || !curCanvas_) {
         return;
     }
     RS_TRACE_FUNC();
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    auto screenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-    float screenWidth = static_cast<float>(screenInfo.width);
-    float screenHeight = static_cast<float>(screenInfo.height);
-    Drawing::Brush brush;
-    int maxAlpha = 255;
-    brush.SetARGB(maxAlpha, 0, 0, 0); // not transparent black
-    canvas.AttachBrush(brush);
-    canvas.DrawRect(Drawing::Rect(0, 0, screenWidth, screenHeight));
-    canvas.DetachBrush();
+    curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
 }
 
 void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()

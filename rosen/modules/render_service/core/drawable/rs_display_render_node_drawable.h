@@ -63,7 +63,7 @@ private:
     void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, std::shared_ptr<RSProcessor> processor);
     void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
-    void DrawCurtainScreen(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
+    void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(

@@ -1683,6 +1683,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             rootNode->Prepare(uniVisitor);
         }
         isAccessibilityConfigChanged_ = false;
+        isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
@@ -3042,6 +3043,11 @@ bool RSMainThread::IsAccessibilityConfigChanged() const
     return isAccessibilityConfigChanged_;
 }
 
+bool RSMainThread::IsCurtainScreenUsingStatusChanged() const
+{
+    return isCurtainScreenUsingStatusChanged_;
+}
+
 void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 {
     if (!isUniRender_) {
@@ -3516,7 +3522,12 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
 
 void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
+    if (isCurtainScreenOn_ == isCurtainScreenOn) {
+        RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
+        return;
+    }
     isCurtainScreenOn_ = isCurtainScreenOn;
+    isCurtainScreenUsingStatusChanged_ = true;
     SetDirtyFlag();
     RequestNextVSync();
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);

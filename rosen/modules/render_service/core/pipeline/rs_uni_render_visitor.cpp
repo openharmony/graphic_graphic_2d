@@ -1184,13 +1184,25 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
 
 void RSUniRenderVisitor::ResetDisplayDirtyRegion()
 {
+    if (!curDisplayDirtyManager_) {
+        return;
+    }
     ResetDisplayDirtyRegionForScreenPowerChange();
     ResetDisplayDirtyRegionForColorFilterSwitch();
+    ResetDisplayDirtyRegionForCurtainScreenUsingStatusChange();
 }
 
 void RSUniRenderVisitor::ResetDisplayDirtyRegionForScreenPowerChange()
 {
     if (!RSMainThread::Instance()->GetScreenPowerOnChanged()) {
+        return;
+    }
+    curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
+}
+
+void RSUniRenderVisitor::ResetDisplayDirtyRegionForCurtainScreenUsingStatusChange()
+{
+    if (!RSMainThread::Instance()->IsCurtainScreenUsingStatusChanged()) {
         return;
     }
     curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
