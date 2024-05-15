@@ -63,6 +63,10 @@
 #endif
 
 namespace OHOS::Rosen {
+namespace {
+const std::string RCD_TOP_LAYER_NAME = "RCDTopSurfaceNode";
+const std::string RCD_BOTTOM_LAYER_NAME = "RCDBottomSurfaceNode";
+}
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -380,8 +384,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif
 #endif // RS_ENABLE_EGLIMAGE
-    bool isTopGpuDraw = false;
-    bool isBottomGpuDraw = false;
+    std::map<std::string, bool> rcdLayersEnableMap = {{RCD_TOP_LAYER_NAME, false}, {RCD_BOTTOM_LAYER_NAME, false}};
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -392,13 +395,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             continue;
         }
 
-        if (layer->GetSurface()->GetName() == "RCDTopSurfaceNode") {
-            isTopGpuDraw = true;
-            continue;
-        }
-        if (layer->GetSurface()->GetName() == "RCDBottomSurfaceNode") {
-            isBottomGpuDraw = true;
-            continue;
+        if (layer->GetSurface() != nullptr) {
+            if (rcdLayersEnableMap.count(layer->GetSurface()->GetName()) > 0) {
+                rcdLayersEnableMap[layer->GetSurface()->GetName()] = true;
+                continue;
+            }
         }
 
         Drawing::AutoCanvasRestore acr(*canvas, true);
@@ -539,11 +540,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 
-    if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_TOP_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(canvas.get());
     }
 
-    if (isBottomGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_BOTTOM_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(canvas.get());
     }
     renderFrame->Flush();
