@@ -452,8 +452,6 @@ ohos_executable("render_service_display_mode_demo") {
     # render_service_base include
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/include",
-    "//drivers/peripheral/display/interfaces/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
 
   deps = [
