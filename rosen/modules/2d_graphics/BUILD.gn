@@ -229,7 +229,6 @@ template("graphics2d_source_set") {
         defines += [ "USE_TEXGINE" ]
       }
       include_dirs += [
-        "$flutter_root/engine",
         "$rosen_root/modules/2d_engine/rosen_text",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
         "$rosen_root/modules/2d_engine/rosen_text/export",
@@ -252,7 +251,6 @@ template("graphics2d_source_set") {
         "$rosen_text_root/ui/typography_create.cpp",
       ]
       include_dirs += [
-        "$ace_napi_frameworks/frameworks",
         "$rosen_2d_engine_root",
       ]
     }
@@ -270,20 +268,14 @@ template("graphics2d_source_set") {
       deps = [ "//third_party/skia:skia_$platform" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       deps += [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
-      include_dirs += [ "$flutter_root/engine" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
       ]
 
-      if (enable_text_gine && use_texgine) {
-        include_dirs -= [ "$flutter_root/engine" ]
-      }
-
       if (defined(use_new_skia) && use_new_skia) {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]
         include_dirs += [
-          "$flutter_root/txt/src",
           "//",
           root_gen_dir,
         ]
