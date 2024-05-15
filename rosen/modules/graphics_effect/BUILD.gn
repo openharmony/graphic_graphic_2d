@@ -61,6 +61,9 @@ ohos_shared_library("libgraphics_effect") {
   ]
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  if (is_arkui_x) {
+    deps += [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
+  }
 
   external_deps = [ "hilog:libhilog" ]
 
