@@ -156,6 +156,7 @@ private:
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
+    mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
 

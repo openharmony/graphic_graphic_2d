@@ -398,6 +398,7 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 bool RSUniRenderThread::GetClearMemDeeply() const
 {
+    std::lock_guard<std::mutex> lock(clearMemoryMutex_);
     return clearMemDeeply_;
 }
 
@@ -408,6 +409,7 @@ void RSUniRenderThread::SetClearMoment(ClearMemoryMoment moment)
 
 ClearMemoryMoment RSUniRenderThread::GetClearMoment() const
 {
+    std::lock_guard<std::mutex> lock(clearMemoryMutex_);
     return clearMoment_;
 }
 
@@ -502,9 +504,12 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
-    this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
-    this->SetClearMoment(moment);
-    this->exitedPidSet_.emplace(pid);
+    {
+        std::lock_guard<std::mutex> lock(clearMemoryMutex_);
+        this->clearMemDeeply_ = clearMemDeeply_ || deeply;
+        this->SetClearMoment(moment);
+        this->exitedPidSet_.emplace(pid);
+    }
     auto task =
         [this, moment, deeply]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
@@ -513,6 +518,7 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
             }
             RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
             RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+            std::lock_guard<std::mutex> lock(clearMemoryMutex_);
             SKResourceManager::Instance().ReleaseResource();
             grContext->Flush();
             SkGraphics::PurgeAllCaches(); // clear cpu cache
