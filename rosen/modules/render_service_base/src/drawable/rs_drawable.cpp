@@ -481,12 +481,29 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     }
 
     // if frame changed, mark affected drawables as dirty
+    static constexpr std::array frameDirtyTypes = {
+        RSDrawableSlot::CLIP_TO_FRAME,
+        RSDrawableSlot::FOREGROUND_FILTER,
+    };
     if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
-            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
+        for (auto slot : frameDirtyTypes) {
+            if (drawableVec[static_cast<size_t>(slot)]) {
+                dirtySlots.emplace(slot);
+            }
         }
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
-            dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+    }
+
+    // if border changed, mark affected drawables as dirty
+    static constexpr std::array borderDirtyTypes = {
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BACKGROUND_SHADER,
+        RSDrawableSlot::BACKGROUND_IMAGE,
+    };
+    if (dirtySlots.count(RSDrawableSlot::BORDER)) {
+        for (auto slot : borderDirtyTypes) {
+            if (drawableVec[static_cast<size_t>(slot)]) {
+                dirtySlots.emplace(slot);
+            }
         }
     }
 
