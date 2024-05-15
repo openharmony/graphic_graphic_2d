@@ -49,6 +49,7 @@ protected:
     void OnDetach() override;
     void OnInitialize(int64_t time) override;
     void InitValueEstimator() override;
+    void DumpFraction(float fraction, int64_t time) override;
 
 private:
 #ifdef ROSEN_OHOS

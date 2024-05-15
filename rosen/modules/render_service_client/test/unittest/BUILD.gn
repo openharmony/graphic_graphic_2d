@@ -26,9 +26,21 @@ group("unittest") {
     ":RSInterfacesTest",
     ":RSJankDetectorTest",
     ":RSRegionTest",
+    ":RSScreenSkipFrameTest",
     ":RSTransactionsTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
+  ]
+}
+
+## Build RSScreenSkipFrameTest
+ohos_unittest("RSScreenSkipFrameTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_screen_skipframe_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 
@@ -48,6 +60,7 @@ ohos_unittest("RSInterfacesTest") {
   module_out_path = module_out_path
   sources = [ "rs_interfaces_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
+  external_deps = [ "graphic_surface:surface" ]
 }
 
 ## Build RSTransactionsTest

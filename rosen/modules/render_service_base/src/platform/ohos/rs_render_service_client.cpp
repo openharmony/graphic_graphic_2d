@@ -14,6 +14,8 @@
  */
 
 #include "transaction/rs_render_service_client.h"
+#include "surface_type.h"
+#include "surface_utils.h"
 
 #include "backend/rs_surface_ohos_gl.h"
 #include "backend/rs_surface_ohos_raster.h"
@@ -169,6 +171,21 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return nullptr;
+    }
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
@@ -390,7 +407,8 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
     renderService->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
+    const FrameRateRange& range, bool isAnimatorStopped)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -398,7 +416,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const Frame
         return;
     }
 
-    return renderService->SyncFrameRateRange(id, range);
+    return renderService->SyncFrameRateRange(id, range, isAnimatorStopped);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
@@ -444,7 +462,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
     return renderService->GetShowRefreshRateEnabled();
 }
-    
+
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1181,11 +1199,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->NotifyTouchEvent(touchStatus);
+        renderService->NotifyTouchEvent(touchStatus, touchCnt);
     }
 }
 
@@ -1205,13 +1223,31 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
     }
 }
 
-GpuDirtyRegionInfo RSRenderServiceClient::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return GpuDirtyRegionInfo {};
+        return {};
     }
-    return renderService->GetCurrentDirtyRegionInfo(id);
+    return renderService->GetActiveDirtyRegionInfo();
+}
+
+GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return GlobalDirtyRegionInfo {};
+    }
+    return renderService->GetGlobalDirtyRegionInfo();
+}
+
+LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return LayerComposeInfo {};
+    }
+    return renderService->GetLayerComposeInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE

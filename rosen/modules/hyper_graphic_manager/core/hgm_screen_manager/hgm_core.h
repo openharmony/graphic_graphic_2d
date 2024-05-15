@@ -173,6 +173,7 @@ private:
     HgmCore& operator=(const HgmCore&&) = delete;
 
     bool Init();
+    void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
 

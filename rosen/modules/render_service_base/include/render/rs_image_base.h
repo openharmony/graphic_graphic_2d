@@ -40,6 +40,7 @@ public:
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
+    void MarkYUVImage();
 #endif
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     void SetSrcRect(const RectF& dstRect);
@@ -58,6 +59,9 @@ public:
 
 protected:
     void GenUniqueId(uint32_t id);
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+#endif
     static bool UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useDrawingImage,
         std::shared_ptr<Drawing::Image>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
     static void IncreaseCacheRefCount(uint64_t uniqueId,
@@ -76,6 +80,7 @@ protected:
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;
+    bool isYUVImage_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

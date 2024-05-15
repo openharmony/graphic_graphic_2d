@@ -53,6 +53,31 @@ static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInf
     }
 }
 
+/**
+ * @brief check if the symbol group is a mask layer, that it has only mask indexes
+ * @param multPath (output paramer) combine all paths of mask indexes in groupInfos
+ * @param groupInfos the groupsInfos of symbol
+ * @param pathLayers the all paths of symbol
+ * @return true if the group is a mask layer
+ */
+static bool IsMaskLayer(RSPath& multPath, const std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
+{
+    for (const auto& groupInfo : groupInfos) {
+        RSPath pathTemp;
+        if (groupInfo.layerIndexes.size() > 0) {
+            return false;
+        }
+        for (auto k : groupInfo.maskIndexes) {
+            if (k >= pathLayers.size()) {
+                continue;
+            }
+            pathTemp.AddPath(pathLayers[k]);
+        }
+        multPath.AddPath(pathTemp);
+    }
+    return true;
+}
+
 SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
     const RSEffectStrategy effectStrategy,
     const std::pair<double, double> offset) : animationSetting_(animationSetting),
@@ -82,12 +107,19 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
     auto renderGroups = symbolData.symbolInfo_.renderGroups;
     for (auto& groupSetting: groupSettings) {
         RSPath multPath;
-        MergePath(multPath, groupSetting.groupInfos, pathLayers);
-        if (i < renderGroups.size()) {
-            color = renderGroups[i].color;
-            i++;
+        RSPath maskPath;
+        bool isMask = IsMaskLayer(maskPath, groupSetting.groupInfos, pathLayers);
+        if (!isMask) {
+            MergePath(multPath, groupSetting.groupInfos, pathLayers);
+            if (i < renderGroups.size()) {
+                color = renderGroups[i].color;
+                i++;
+            }
+        } else {
+            multPath = maskPath;
         }
-        TextEngine::SymbolNode symbolNode = {multPath, color, nodeBounds, symbolData, groupSetting.animationIndex};
+        TextEngine::SymbolNode symbolNode = {multPath, color, nodeBounds, symbolData,
+            groupSetting.animationIndex, isMask};
         symbolAnimationConfig->SymbolNodes.push_back(symbolNode);
     }
     symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
@@ -136,7 +168,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     }
     symbolAnimationConfig->repeatCount = repeatCount_;
     symbolAnimationConfig->animationMode = animationMode_;
-    symbolAnimationConfig->aminationStart = aminationStart_;
+    symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
     animationFunc_(symbolAnimationConfig);

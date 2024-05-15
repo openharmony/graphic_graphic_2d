@@ -15,12 +15,17 @@
 
 #include "pipeline/rs_draw_frame.h"
 
+#include <hitrace_meter.h>
+#include <parameters.h>
+
 #include "rs_trace.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "property/rs_filter_cache_manager.h"
+#include "rs_frame_report.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,9 +40,16 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
     stagingRenderThreadParams_ = std::move(stagingRenderThreadParams);
 }
 
+bool RSDrawFrame::debugTraceEnabled_ =
+    std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+
 void RSDrawFrame::RenderFrame()
 {
+    HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RSRenderStart();
+    }
     JankStatsRenderFrameStart();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
@@ -48,7 +60,11 @@ void RSDrawFrame::RenderFrame()
     Render();
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RSRenderEnd();
+    }
     JankStatsRenderFrameEnd(doJankStats);
+    RSRenderNodeGC::Instance().ReleaseDrawableMemory();
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -72,12 +88,14 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostSyncTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
             RenderFrame();
+            unirenderInstance_.RunImageReleaseTask();
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
@@ -87,6 +105,7 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
 
@@ -168,6 +187,7 @@ void RSDrawFrame::JankStatsRenderFrameAfterSync(bool doJankStats)
         return;
     }
     RSJankStats::GetInstance().SetStartTime();
+    RSJankStats::GetInstance().SetAccumulatedBufferCount(RSBaseRenderUtil::GetAccumulatedBufferCount());
     unirenderInstance_.UpdateDisplayNodeScreenId();
 }
 
@@ -178,7 +198,10 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
     }
     RSJankStats::GetInstance().SetOnVsyncStartTime(
         unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTime(),
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady());
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady(),
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteadyFloat());
+    RSJankStats::GetInstance().SetImplicitAnimationEnd(
+        unirenderInstance_.GetRSRenderThreadParams()->GetImplicitAnimationEnd());
     RSJankStats::GetInstance().SetEndTime(unirenderInstance_.GetSkipJankAnimatorFrame(),
         unirenderInstance_.GetDiscardJankFrames(), unirenderInstance_.GetDynamicRefreshRate());
 }

@@ -25,6 +25,7 @@
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_particle.h"
+#include "animation/rs_particle_noise_field.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
@@ -164,16 +165,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterUpdater>& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterUpdater>& val)
-{
-    return {};
-}
-
 // MotionBlurPara
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
 {
@@ -185,7 +176,47 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
     return {};
 }
 
-// RSParticle
+// Particle
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterUpdater>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterUpdater>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<EmitterUpdater>>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_ptr<EmitterUpdater>>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleNoiseField>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseField>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleNoiseFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseFields>& val)
+{
+    return {};
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
 {
     return {};
@@ -413,6 +444,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSDynamicBrightnessPara)      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
@@ -426,6 +458,9 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseField>)           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \

@@ -53,8 +53,14 @@ FrameSaver::FrameSaver()
     }
 
     std::stringstream ss;
+
+    char tmpPath[PATH_MAX] = {0};
     ss << saveDirectory << "/" << GetRealPid() << ".log";
-    ofs_.open(ss.str(), ofs_.out | ofs_.app);
+    if (realpath(ss.str().c_str(), tmpPath) == nullptr) {
+        return;
+    }
+
+    ofs_.open(tmpPath, ofs_.out | ofs_.app);
 }
 
 FrameSaver::~FrameSaver()

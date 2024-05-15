@@ -103,11 +103,9 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO || argc > ARGC_THREE) {
-        ROSEN_LOGE("JsTextBlob::MakeFromRunBuffer Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_object);
 
     napi_value array = argv[0];
     uint32_t size = 0;
@@ -156,27 +154,16 @@ bool JsTextBlob::OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawin
 {
     napi_typeof(env, argv, &isRectNullptr);
     if (isRectNullptr != napi_null) {
-        napi_value tempValue = nullptr;
-        double left = 0.0;
-        double top = 0.0;
-        double right = 0.0;
-        double bottom = 0.0;
-        napi_get_named_property(env, argv, "left", &tempValue);
-        bool isLeftOk = ConvertFromJsValue(env, tempValue, left);
-        napi_get_named_property(env, argv, "right", &tempValue);
-        bool isRightOk = ConvertFromJsValue(env, tempValue, right);
-        napi_get_named_property(env, argv, "top", &tempValue);
-        bool isTopOk = ConvertFromJsValue(env, tempValue, top);
-        napi_get_named_property(env, argv, "bottom", &tempValue);
-        bool isBottomOk = ConvertFromJsValue(env, tempValue, bottom);
-        if (!(isLeftOk && isRightOk && isTopOk && isBottomOk)) {
-            return false;
+        double ltrb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsRect(env, argv, ltrb, ARGC_FOUR)) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
         }
 
-        drawingRect.SetLeft(left);
-        drawingRect.SetRight(right);
-        drawingRect.SetTop(top);
-        drawingRect.SetBottom(bottom);
+        drawingRect.SetLeft(ltrb[ARGC_ZERO]);
+        drawingRect.SetTop(ltrb[ARGC_ONE]);
+        drawingRect.SetRight(ltrb[ARGC_TWO]);
+        drawingRect.SetBottom(ltrb[ARGC_THREE]);
     }
     return true;
 }
@@ -211,11 +198,9 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO || argc > ARGC_THREE) {
-        ROSEN_LOGE("JsTextBlob::MakeFromString Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_string);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_object);
 
     void* pointerResult = nullptr;
     napi_unwrap(env, argv[1], &pointerResult);

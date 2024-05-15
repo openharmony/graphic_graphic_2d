@@ -27,7 +27,7 @@ namespace Rosen {
 namespace {
 constexpr float FLOAT_NEAR_ZERO_THRESHOLD = 1e-6f;
 constexpr double DOUBLE_NEAR_ZERO_THRESHOLD = 1e-6;
-constexpr float SPRING_MIN_THRESHOLD = 1.0f / 4096.0f;
+constexpr float SPRING_MIN_THRESHOLD = 5e-5f;
 
 template<>
 float toFloat(float value)

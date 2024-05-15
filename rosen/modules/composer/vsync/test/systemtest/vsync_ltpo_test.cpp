@@ -45,7 +45,6 @@ typedef struct VSyncTimeStamps {
 VSyncTimeStamps g_timeStamps = {};
 int32_t g_appVSyncFlag = 0;
 int32_t g_rsVSyncFlag = 0;
-constexpr int32_t SOFT_VSYNC_PERIOD = 16666667;
 constexpr int32_t SAMPLER_NUMBER = 6;
 static void OnVSyncApp(int64_t time, void *data)
 {
@@ -62,67 +61,47 @@ static void OnVSyncRs(int64_t time, void *data)
 }
 class VSyncLTPOTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp();
-    void TearDown();
-    pid_t ChildProcessMain();
-    static void SamplerThread();
     int32_t JudgeRefreshRate(int64_t period);
+    void Process1();
+    void Process2();
 
+    sptr<VSyncSampler> vsyncSampler = nullptr;
     sptr<VSyncController> appController = nullptr;
     sptr<VSyncController> rsController = nullptr;
     sptr<VSyncDistributor> appDistributor = nullptr;
     sptr<VSyncDistributor> rsDistributor = nullptr;
     sptr<VSyncGenerator> vsyncGenerator = nullptr;
-    static inline sptr<VSyncSampler> vsyncSampler = nullptr;
-    std::thread samplerThread;
-
-    static inline int32_t pipeFd[2] = {};
-    static inline int32_t ipcSystemAbilityIDApp = 34156;
-    static inline int32_t ipcSystemAbilityIDRs = 34157;
     sptr<VSyncReceiver> receiverApp = nullptr;
     sptr<VSyncReceiver> receiverRs = nullptr;
+
+    static inline pid_t pid = 0;
+    static inline int pipeFd[2] = {};
+    static inline int pipe1Fd[2] = {};
+    static inline int32_t ipcSystemAbilityIDApp = 34156;
+    static inline int32_t ipcSystemAbilityIDRs = 34157;
 };
 
-void VSyncLTPOTest::SetUpTestCase()
+static void InitNativeTokenInfo()
 {
-    vsyncSampler = CreateVSyncSampler();
-}
-
-void VSyncLTPOTest::TearDownTestCase()
-{
-    vsyncSampler = nullptr;
-}
-
-void VSyncLTPOTest::SetUp()
-{
-    vsyncGenerator = CreateVSyncGenerator();
-    appController = new VSyncController(vsyncGenerator, 0);
-    rsController = new VSyncController(vsyncGenerator, 0);
-
-    appDistributor = new VSyncDistributor(appController, "app");
-    rsDistributor = new VSyncDistributor(rsController, "rs");
-
-    vsyncGenerator->SetVSyncMode(VSYNC_MODE_LTPO);
-
-    samplerThread = std::thread(std::bind(&VSyncLTPOTest::SamplerThread));
-    samplerThread.join();
-
-    std::cout << "pulse:" << vsyncGenerator->GetVSyncPulse() << std::endl;
-}
-
-void VSyncLTPOTest::TearDown()
-{
-    vsyncGenerator = nullptr;
-    appController = nullptr;
-    rsController = nullptr;
-    appDistributor = nullptr;
-    rsDistributor = nullptr;
-
-    if (samplerThread.joinable()) {
-        samplerThread.join();
-    }
+    uint64_t tokenId;
+    const char *perms[2];
+    perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
+    perms[1] = "ohos.permission.CAMERA";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 2,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "dcamera_client_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+    ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
 }
 
 int32_t VSyncLTPOTest::JudgeRefreshRate(int64_t period)
@@ -145,159 +124,38 @@ int32_t VSyncLTPOTest::JudgeRefreshRate(int64_t period)
     return refreshRate;
 }
 
-pid_t VSyncLTPOTest::ChildProcessMain()
+void VSyncLTPOTest::Process1()
 {
-    pipe(pipeFd);
-    pid_t pid = fork();
-    if (pid != 0) {
-        return pid;
-    }
-
-    g_timeStamps = {};
-    g_appVSyncFlag = 0;
-    g_rsVSyncFlag = 0;
-    sptr<IRemoteObject> robjApp = nullptr;
-    sptr<IRemoteObject> robjRs = nullptr;
-    while (true) {
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        robjApp = sam->GetSystemAbility(ipcSystemAbilityIDApp);
-        robjRs = sam->GetSystemAbility(ipcSystemAbilityIDRs);
-        if (robjApp != nullptr || robjRs != nullptr) {
-            break;
-        }
-        sleep(0);
-    }
-
-    auto connApp = iface_cast<IVSyncConnection>(robjApp);
-    auto connRs = iface_cast<IVSyncConnection>(robjRs);
-    receiverApp = new VSyncReceiver(connApp);
-    receiverRs = new VSyncReceiver(connRs);
-    receiverApp->Init();
-    receiverRs->Init();
-
-    VSyncReceiver::FrameCallback fcbApp = {
-        .userData_ = nullptr,
-        .callback_ = OnVSyncApp,
-    };
-    VSyncReceiver::FrameCallback fcbRs = {
-        .userData_ = nullptr,
-        .callback_ = OnVSyncRs,
-    };
-
-    // change refresh rate to 120hz
-    int changeRefreshRate = 0;
-    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
-    int num = 3; // RequestNextVSync 3 times
-    while (num--) {
-        receiverApp->RequestNextVSync(fcbApp);
-        receiverRs->RequestNextVSync(fcbRs);
-        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
-            usleep(100); // 100us
-        }
-        g_appVSyncFlag = 0;
-        g_rsVSyncFlag = 0;
-    }
-    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
-
-    // change refresh rate to 90hz
-    changeRefreshRate = 0;
-    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
-    num = 3; // RequestNextVSync 3 times
-    while (num--) {
-        receiverApp->RequestNextVSync(fcbApp);
-        receiverRs->RequestNextVSync(fcbRs);
-        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
-            usleep(100); // 100us
-        }
-        g_appVSyncFlag = 0;
-        g_rsVSyncFlag = 0;
-    }
-    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
-
-    // change refresh rate to 60hz
-    changeRefreshRate = 0;
-    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
-    num = 3; // RequestNextVSync 3 times
-    while (num--) {
-        receiverApp->RequestNextVSync(fcbApp);
-        receiverRs->RequestNextVSync(fcbRs);
-        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
-            usleep(100); // 100us
-        }
-        g_appVSyncFlag = 0;
-        g_rsVSyncFlag = 0;
-    }
-    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
-
-    // change refresh rate to 30hz
-    changeRefreshRate = 0;
-    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
-    num = 3; // RequestNextVSync 3 times
-    while (num--) {
-        receiverApp->RequestNextVSync(fcbApp);
-        receiverRs->RequestNextVSync(fcbRs);
-        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
-            usleep(100); // 100us
-        }
-        g_appVSyncFlag = 0;
-        g_rsVSyncFlag = 0;
-    }
-    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
-
-    close(pipeFd[0]);
-    close(pipeFd[1]);
-    exit(0);
-    return 0;
-}
-
-void VSyncLTPOTest::SamplerThread()
-{
-    bool ret = true;
-    std::condition_variable con;
-    std::mutex mtx;
-    std::unique_lock<std::mutex> locker(mtx);
+    InitNativeTokenInfo();
+    vsyncGenerator = CreateVSyncGenerator();
+    vsyncSampler = CreateVSyncSampler();
     int32_t count = 0;
-    int64_t timestamp = SOFT_VSYNC_PERIOD;
+    int64_t timestamp = 16666667; // 16666667ns
     while (count <= SAMPLER_NUMBER) {
-        ret = vsyncSampler->AddSample(timestamp);
+        vsyncSampler->AddSample(timestamp);
         usleep(1000); // 1000us
-        timestamp += SOFT_VSYNC_PERIOD;
+        timestamp += 16666667; // 16666667ns
         count++;
     }
-}
-
-HWTEST_F(VSyncLTPOTest, ChangeRefreshRateTest, Function | MediumTest | Level2)
-{
-    auto pid = ChildProcessMain();
-    ASSERT_GE(pid, 0);
-
-    uint64_t tokenId;
-    const char *perms[2];
-    perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
-    perms[1] = "ohos.permission.CAMERA";
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 2,
-        .aclsNum = 0,
-        .dcaps = NULL,
-        .perms = perms,
-        .acls = NULL,
-        .processName = "dcamera_client_demo",
-        .aplStr = "system_basic",
-    };
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-    ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
-
-    sptr<VSyncConnection> connServerApp = new VSyncConnection(appDistributor, "app", nullptr, 1);
-    sptr<VSyncConnection> connServerRs = new VSyncConnection(rsDistributor, "rs", nullptr, 2);
+    vsyncGenerator->SetVSyncMode(VSYNC_MODE_LTPO);
+    std::cout << "pulse:" << vsyncGenerator->GetVSyncPulse() << std::endl;
+    appController = new VSyncController(vsyncGenerator, 0);
+    rsController = new VSyncController(vsyncGenerator, 0);
+    appDistributor = new VSyncDistributor(appController, "app");
+    rsDistributor = new VSyncDistributor(rsController, "rs");
+    sptr<VSyncConnection> connServerApp = new VSyncConnection(appDistributor, "app", nullptr, 1); // id:1
+    sptr<VSyncConnection> connServerRs = new VSyncConnection(rsDistributor, "rs", nullptr, 2); // id:2
     appDistributor->AddConnection(connServerApp);
     rsDistributor->AddConnection(connServerRs);
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityIDApp, connServerApp->AsObject());
     sam->AddSystemAbility(ipcSystemAbilityIDRs, connServerRs->AsObject());
     VSyncTimeStamps timeStamps = {};
+
+    close(pipeFd[1]);
+    close(pipe1Fd[0]);
+    char buf[10] = "start";
+    write(pipe1Fd[1], buf, sizeof(buf));
 
     // change refresh rate to 120hz
     int changeRefreshRate = 0;
@@ -487,10 +345,117 @@ HWTEST_F(VSyncLTPOTest, ChangeRefreshRateTest, Function | MediumTest | Level2)
             ", rsPeriod:" << rsPeriod <<
             ", rsRefreshRate:" << rsRefreshRate << std::endl;
 
-    close(pipeFd[0]);
-    close(pipeFd[1]);
+    read(pipeFd[0], buf, sizeof(buf));
     sam->RemoveSystemAbility(ipcSystemAbilityIDApp);
     sam->RemoveSystemAbility(ipcSystemAbilityIDRs);
-    waitpid(pid, nullptr, 0);
+    close(pipeFd[0]);
+    close(pipe1Fd[1]);
+    exit(0);
+}
+
+void VSyncLTPOTest::Process2()
+{
+    close(pipeFd[0]);
+    close(pipe1Fd[1]);
+    char buf[10];
+    read(pipe1Fd[0], buf, sizeof(buf));
+    auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto robjApp = sam->GetSystemAbility(ipcSystemAbilityIDApp);
+    auto robjRs = sam->GetSystemAbility(ipcSystemAbilityIDRs);
+    std::cout << "(robjApp == nullptr):" << (robjApp == nullptr) << std::endl;
+    std::cout << "(robjRs == nullptr):" << (robjRs == nullptr) << std::endl;
+    auto connApp = iface_cast<IVSyncConnection>(robjApp);
+    auto connRs = iface_cast<IVSyncConnection>(robjRs);
+    receiverApp = new VSyncReceiver(connApp);
+    receiverRs = new VSyncReceiver(connRs);
+    receiverApp->Init();
+    receiverRs->Init();
+    VSyncReceiver::FrameCallback fcbApp = {
+        .userData_ = nullptr,
+        .callback_ = OnVSyncApp,
+    };
+    VSyncReceiver::FrameCallback fcbRs = {
+        .userData_ = nullptr,
+        .callback_ = OnVSyncRs,
+    };
+
+    // change refresh rate to 120hz
+    int changeRefreshRate = 0;
+    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
+    int num = 3; // RequestNextVSync 3 times
+    while (num--) {
+        receiverApp->RequestNextVSync(fcbApp);
+        receiverRs->RequestNextVSync(fcbRs);
+        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
+            usleep(100); // 100us
+        }
+        g_appVSyncFlag = 0;
+        g_rsVSyncFlag = 0;
+    }
+    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
+
+    // change refresh rate to 90hz
+    changeRefreshRate = 0;
+    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
+    num = 3; // RequestNextVSync 3 times
+    while (num--) {
+        receiverApp->RequestNextVSync(fcbApp);
+        receiverRs->RequestNextVSync(fcbRs);
+        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
+            usleep(100); // 100us
+        }
+        g_appVSyncFlag = 0;
+        g_rsVSyncFlag = 0;
+    }
+    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
+
+    // change refresh rate to 60hz
+    changeRefreshRate = 0;
+    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
+    num = 3; // RequestNextVSync 3 times
+    while (num--) {
+        receiverApp->RequestNextVSync(fcbApp);
+        receiverRs->RequestNextVSync(fcbRs);
+        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
+            usleep(100); // 100us
+        }
+        g_appVSyncFlag = 0;
+        g_rsVSyncFlag = 0;
+    }
+    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
+
+    // change refresh rate to 30hz
+    changeRefreshRate = 0;
+    write(pipeFd[1], &changeRefreshRate, sizeof(changeRefreshRate));
+    num = 3; // RequestNextVSync 3 times
+    while (num--) {
+        receiverApp->RequestNextVSync(fcbApp);
+        receiverRs->RequestNextVSync(fcbRs);
+        while (g_appVSyncFlag == 0 || g_rsVSyncFlag == 0) {
+            usleep(100); // 100us
+        }
+        g_appVSyncFlag = 0;
+        g_rsVSyncFlag = 0;
+    }
+    write(pipeFd[1], &g_timeStamps, sizeof(g_timeStamps));
+}
+
+HWTEST_F(VSyncLTPOTest, ChangeRefreshRateTest, Function | MediumTest | Level2)
+{
+    if (pipe(pipeFd) < 0) {
+        exit(1);
+    }
+    if (pipe(pipe1Fd) < 0) {
+        exit(0);
+    }
+    pid = fork();
+    if (pid < 0) {
+        exit(1);
+    }
+    if (pid != 0) {
+        Process1();
+    } else {
+        Process2();
+    }
 }
 }

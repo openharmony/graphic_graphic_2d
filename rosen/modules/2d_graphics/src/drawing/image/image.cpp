@@ -72,6 +72,11 @@ std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_
 }
 
 #ifdef ACE_ENABLE_GPU
+std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+}
+
 bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
     return imageImplPtr->BuildFromBitmap(gpuContext, bitmap);
@@ -115,17 +120,6 @@ BackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOri
 bool Image::IsValid(GPUContext* context) const
 {
     return imageImplPtr->IsValid(context);
-}
-
-bool Image::pinAsTexture(GPUContext& context)
-{
-    auto image = ExportSkImage().get();
-    auto skGpuContext = context.GetImpl<SkiaGPUContext>();
-    if (skGpuContext == nullptr) {
-        return false;
-    }
-    auto skContext = skGpuContext->GetGrContext().get();
-    return image != nullptr && skContext != nullptr && SkImage_pinAsTexture(image, skContext);
 }
 #endif
 
@@ -238,11 +232,6 @@ std::shared_ptr<Data> Image::Serialize() const
 bool Image::Deserialize(std::shared_ptr<Data> data)
 {
     return imageImplPtr->Deserialize(data);
-}
-
-const sk_sp<SkImage> Image::ExportSkImage()
-{
-    return GetImpl<SkiaImage>()->GetImage();
 }
 } // namespace Drawing
 } // namespace Rosen

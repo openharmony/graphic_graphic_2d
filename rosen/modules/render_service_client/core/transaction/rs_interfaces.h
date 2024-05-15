@@ -112,7 +112,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -186,6 +186,8 @@ public:
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
         NodeId windowNodeId = 0);
 
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -218,7 +220,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyTouchEvent(int32_t touchStatus);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -227,7 +229,7 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
-    
+
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
@@ -236,7 +238,11 @@ public:
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id);
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
+
+    LayerComposeInfo GetLayerComposeInfo();
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

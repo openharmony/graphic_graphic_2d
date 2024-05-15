@@ -45,6 +45,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
         dlclose(preValidateHandle_);
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
+    loadSuccess = true;
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -54,22 +55,27 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     }
 }
 
+bool RSUniHwcPrevalidateUtil::IsLoadSuccess() const
+{
+    return loadSuccess;
+}
+
 bool RSUniHwcPrevalidateUtil::PreValidate(
     ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy)
 {
     if (!preValidateFunc_) {
+        RS_LOGD("RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
         return false;
     }
     int32_t ret = preValidateFunc_(id, infos, strategy);
     return ret == 0;
 }
 
-RequestLayerInfo RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(
-    RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps)
+bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(
+    RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
 {
-    RequestLayerInfo info;
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
-        return info;
+        return false;
     }
     info.id = node->GetId();
     auto src = node->GetSrcRect();
@@ -81,15 +87,14 @@ RequestLayerInfo RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;
     info.transform = static_cast<int>(transform);
-    return info;
+    return true;
 }
 
-RequestLayerInfo RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(
-    uint32_t zorder, RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps)
+bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
+    RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
-    RequestLayerInfo info;
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
-        return info;
+        return false;
     }
     info.id = node->GetId();
     info.srcRect = {0, 0, node->GetBuffer()->GetSurfaceBufferWidth(), node->GetBuffer()->GetSurfaceBufferHeight()};
@@ -99,16 +104,15 @@ RequestLayerInfo RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;
     LayerRotate(info, node->GetConsumer(), screenInfo);
-    return info;
+    return true;
 }
 
 
-RequestLayerInfo RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
-    RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps)
+bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
+    RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
-    RequestLayerInfo info;
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
-        return info;
+        return false;
     }
     
     info.id = node->GetId();
@@ -125,7 +129,7 @@ RequestLayerInfo RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
     LayerRotate(info, node->GetConsumer(), screenInfo);
-    return info;
+    return true;
 }
 
 void RSUniHwcPrevalidateUtil::LayerRotate(

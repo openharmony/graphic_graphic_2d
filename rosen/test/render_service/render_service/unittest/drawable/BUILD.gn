@@ -1,0 +1,184 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic/rosen_engine/render_service/drawable"
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":RSCanvasDrawingRenderNodeDrawableTest",
+    ":RSCanvasRenderNodeDrawableTest",
+    ":RSDisplayRenderNodeDrawableTest",
+    ":RSEffectRenderNodeDrawableTest",
+    ":RSRenderNodeDrawableTest",
+    ":RSRootRenderNodeDrawableTest",
+    ":RSSurfaceRenderNodeDrawableTest",
+  ]
+}
+
+###############################################################################
+config("drawable_test") {
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+}
+
+## Build RSCanvasDrawingRenderNodeDrawableTest
+ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_canvas_drawing_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSCanvasRenderNodeDrawableTest
+ohos_unittest("RSCanvasRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_canvas_render_node_drawable_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## Build RSDisplayRenderNodeDrawableTest
+ohos_unittest("RSDisplayRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_display_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSEffectRenderNodeDrawableTest
+ohos_unittest("RSEffectRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_effect_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## Build RSRenderNodeDrawableTest
+ohos_unittest("RSRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## Build RSRootRenderNodeDrawableTest
+ohos_unittest("RSRootRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_root_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## Build RSSurfaceRenderNodeDrawableTest
+ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_surface_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## Build rs_test_common.a {{{
+config("rs_test_common_public_config") {
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include",
+    "$memmgr_plugin_root/interface/innerkits/include",
+    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
+    "$memmgr_root/interface/innerkits/include",
+    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("rs_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  defines = []
+  defines += gpu_defines
+  sources = [ "../pipeline/rs_test_util.cpp" ]
+  public_configs = [ ":rs_test_common_public_config" ]
+
+  public_deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+
+  external_deps = []
+
+  public_external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}

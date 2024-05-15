@@ -19,6 +19,7 @@
 #include <unordered_map>
 
 #include "include/core/SkPath.h"
+#include "include/core/SkPathMeasure.h"
 
 #include "impl_interface/path_impl.h"
 
@@ -99,12 +100,23 @@ public:
 
     const SkPath& GetPath() const;
 
-    scalar GetLength(bool forceClosed) const override;
-    bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const override;
+    SkPath& GetMutablePath();
+
+    void PathMeasureUpdate(bool forceClosed);
+    scalar GetLength(bool forceClosed) override;
+    bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) override;
+    bool IsClosed(bool forceClosed) override;
+    bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) override;
+
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     SkPath path_;
+    std::unique_ptr<SkPathMeasure> pathMeasure_ = nullptr;
+
+    // Records if Path has changed, and if it is true, update pathmeasure if needed.
+    bool isChanged_ = true;
+    bool forceClosed_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen

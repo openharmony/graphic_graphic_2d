@@ -68,12 +68,13 @@ public:
     static RSUniHwcPrevalidateUtil& GetInstance();
     bool PreValidate(
         ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy);
-    RequestLayerInfo CreateSurfaceNodeLayerInfo(
-        RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps);
-    RequestLayerInfo CreateDisplayNodeLayerInfo(
-        uint32_t zorder, RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
-    RequestLayerInfo CreateRCDLayerInfo(
-        RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
+    bool CreateSurfaceNodeLayerInfo(
+        RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
+    bool CreateDisplayNodeLayerInfo(uint32_t zorder,
+        RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
+    bool CreateRCDLayerInfo(
+        RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
+    bool IsLoadSuccess() const;
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
@@ -84,6 +85,7 @@ private:
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
+    bool loadSuccess = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace OHOS::Rosen {
 
@@ -40,13 +41,17 @@ public:
 
     static void SendRdcPath(const std::string& path);
     static void SendDclPath(const std::string& path);
+    static void SendMskpPath(const std::string& path);
     static void SendSkp(const void* data, size_t size);
-    static void SendTelemetry(double startTime);
+    static void SendTelemetry(double time);
+    static void SendRSTreeDumpJSON(const std::string& jsonstr);
+    static void SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList);
+    static void SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec);
 
     static void SendBinary(const void* data, size_t size);
     static void SendMessage(const std::string& message);
 
-    static void PopCommand(std::string& command, std::vector<std::string>& args);
+    static bool PopCommand(std::vector<std::string>& args);
 
 private:
     static void ReportStats();
@@ -56,12 +61,11 @@ private:
     static void ProcessIncoming(Socket& socket);
     static void ProcessOutgoing(Socket& socket);
 
-public:
-    static std::mutex incomingMutex_;
-    static std::vector<std::string> incoming_;
-
 private:
     static bool isRunning_;
+
+    static std::mutex incomingMutex_;
+    static std::queue<std::vector<std::string>> incoming_;
 
     static std::mutex outgoingMutex_;
     static std::queue<std::vector<char>> outgoing_;

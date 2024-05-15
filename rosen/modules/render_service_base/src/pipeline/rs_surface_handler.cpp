@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_surface_handler.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,5 +44,63 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 {
     return globalZOrder_;
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
+{
+    auto& consumer = GetConsumer();
+    if (consumer != nullptr && buffer.buffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
+        if (ret != OHOS::SURFACE_ERROR_OK) {
+            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
+                GetNodeId(), ret);
+        }
+        buffer.Reset();
+    }
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
+{
+    if (!buffer.buffer) {
+        return;
+    }
+    SetBufferSizeChanged(buffer.buffer);
+    SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
+    SetCurrentFrameBufferConsumed();
+    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
+        "buffer timestamp = %{public}" PRIu64 " .", GetNodeId(), static_cast<uint64_t>(buffer.timestamp));
+}
+
+void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
+{
+    bufferCache_[static_cast<uint64_t>(buffer.timestamp)] = buffer;
+    RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
+}
+
+bool RSSurfaceHandler::HasBufferCache() const
+{
+    return bufferCache_.size() != 0;
+}
+
+RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
+        if (iter->first < vsyncTimestamp) {
+            ReleaseBuffer(buffer);
+            buffer = iter->second;
+            iter = bufferCache_.erase(iter);
+        } else {
+            break;
+        }
+    }
+    if (buffer.buffer != nullptr) {
+        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, id = %" PRIu64 " cacheCount = %zu",
+            GetNodeId(), bufferCache_.size());
+        RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
+    }
+    return buffer;
+}
+#endif
 }
 }

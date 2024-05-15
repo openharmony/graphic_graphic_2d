@@ -152,6 +152,20 @@ HWTEST_F(SkiaTypefaceTest, MakeFromFile001, TestSize.Level1)
 {
     ASSERT_TRUE(SkiaTypeface::MakeFromFile("path", 0) == nullptr);
 }
+
+/**
+ * @tc.name: IsCustomTypeface001
+ * @tc.desc: Test IsCustomTypeface
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaTypefaceTest, IsCustomTypeface001, TestSize.Level1)
+{
+    auto typeface1 = SkiaTypeface::MakeDefault();
+    ASSERT_TRUE(!typeface1->IsCustomTypeface());
+    auto typeface2 = SkiaTypeface(nullptr);
+    ASSERT_TRUE(!typeface2.IsCustomTypeface());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -58,4 +58,121 @@ HWTEST_F(RSProxyNodeTest, LifeCycle001, TestSize.Level1)
 
     node->ResetContextVariableCache();
 }
+
+/**
+ * @tc.name: LifeCycle002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSProxyNodeTest, LifeCycle002, TestSize.Level1)
+{
+	// return shared_ptr
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
+    auto node = RSProxyNode::Create(nodeId);
+    ASSERT_TRUE(node != nullptr);
+
+    RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
+    RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
+    ASSERT_FALSE(child2 != nullptr);
+
+    node->GetName();
+}
+
+/**
+ * @tc.name: LifeCycle003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSProxyNodeTest, LifeCycle003, TestSize.Level1)
+{
+	// return shared_ptr
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
+    auto node = RSProxyNode::Create(nodeId);
+    ASSERT_TRUE(node != nullptr);
+
+    RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
+    RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
+    ASSERT_FALSE(child2 != nullptr);
+
+    //for test
+    int index = 1;
+    node->AddChild(child1, index);
+    node->RemoveChild(child1);
+    node->ClearChildren();
+}
+
+/**
+ * @tc.name: LifeCycle004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSProxyNodeTest, LifeCycle004, TestSize.Level1)
+{
+	// return shared_ptr
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
+    auto node = RSProxyNode::Create(nodeId);
+    ASSERT_TRUE(node != nullptr);
+
+    RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
+    RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
+    ASSERT_FALSE(child2 != nullptr);
+
+    const Vector4f& bounds = {0.1};
+    float positionX = 0.1;
+    float positionY = 0.1;
+    float width = 0.1;
+    float height = 0.1;
+    node->SetBounds(bounds);
+    node->SetBounds(positionX, positionY, width, height);
+    node->SetBoundsWidth(width);
+    node->SetBoundsHeight(height);
+}
+
+/**
+ * @tc.name: LifeCycle005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSProxyNodeTest, LifeCycle005, TestSize.Level1)
+{
+	// return shared_ptr
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
+    auto node = RSProxyNode::Create(nodeId);
+    ASSERT_TRUE(node != nullptr);
+
+    RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
+    RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
+    ASSERT_FALSE(child2 != nullptr);
+
+    const Vector4f& frame = {0.1};
+    float positionX = 0.1;
+    float positionY = 0.1;
+    float width = 0.1;
+    float height = 0.1;
+    node->SetFrame(frame);
+    node->SetFrame(positionX, positionY, width, height);
+    node->SetFramePositionX(positionX);
+    node->SetFramePositionY(positionY);
+}
+
+/**
+ * @tc.name: LifeCycle007
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSProxyNodeTest, LifeCycle007, TestSize.Level1)
+{
+	// return shared_ptr
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
+    auto node = RSProxyNode::Create(nodeId);
+    ASSERT_TRUE(node != nullptr);
+
+    RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
+    RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
+    ASSERT_FALSE(child2 != nullptr);
+
+    node->proxyNodeId_ = 0;
+    NodeId res = node->GetHierarchyCommandNodeId();
+    ASSERT_FALSE(res != 0);
+}
 }

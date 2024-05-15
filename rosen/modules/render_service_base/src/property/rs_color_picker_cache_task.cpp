@@ -32,13 +32,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#define CHECK_CACHE_PROCESS_STATUS                                       \
-    do {                                                                 \
-        if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) { \
-            return false;                                                \
-        }                                                                \
-    } while (false)
-
 const bool RSColorPickerCacheTask::ColorPickerPartialEnabled =
     RSSystemProperties::GetColorPickerPartialEnabled() && RSUniRenderJudgement::IsUniRender();
 
@@ -157,9 +150,13 @@ bool RSColorPickerCacheTask::Render()
         ROSEN_LOGE("RSColorPickerCacheTask cacheSurface is null");
         return false;
     }
-    CHECK_CACHE_PROCESS_STATUS;
+    if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) {
+        return false;
+    }
     std::shared_ptr<RSPaintFilterCanvas> cacheCanvas = std::make_shared<RSPaintFilterCanvas>(cacheSurface_.get());
-    CHECK_CACHE_PROCESS_STATUS;
+    if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) {
+        return false;
+    }
     auto threadImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
         Drawing::ALPHATYPE_PREMUL };
@@ -177,12 +174,16 @@ bool RSColorPickerCacheTask::Render()
             return false;
         }
     }
-    CHECK_CACHE_PROCESS_STATUS;
+    if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) {
+        return false;
+    }
     Drawing::ColorQuad color;
     std::shared_ptr<Drawing::Pixmap> dst;
     if (GpuScaleImage(cacheCanvas, threadImage, dst)) {
         uint32_t errorCode = 0;
-        CHECK_CACHE_PROCESS_STATUS;
+        if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) {
+            return false;
+        }
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
             if (isShadow_ && shadowColorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN) {
@@ -206,7 +207,9 @@ bool RSColorPickerCacheTask::Render()
         pixelPtr_ = nullptr;
     }
 
-    CHECK_CACHE_PROCESS_STATUS;
+    if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) {
+        return false;
+    }
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     cacheProcessStatus_.store(CacheProcessStatus::DONE);
     Notify();
@@ -223,7 +226,7 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
 {
     // black color defination
     RSColor black = RSColor(0, 0, 0, 255);
-    int colorArrayLen = colorArray_.size();
+    int colorArrayLen = static_cast<int>(colorArray_.size());
     int colorArraySize = 20;
     int continueBlackColorNum = 5;
     if (colorArrayLen >= colorArraySize) {
@@ -236,7 +239,7 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
     int B = 0;
     int mark = 0;
 
-    for (int i = 0; i < static_cast<int>(colorArray_.size()); i++) {
+    for (size_t i = 0; i < colorArray_.size(); i++) {
         if (colorArray_[i].GetRed() == 0 && colorArray_[i].GetGreen() == 0 && colorArray_[i].GetBlue() == 0) {
             ++mark;
         } else {

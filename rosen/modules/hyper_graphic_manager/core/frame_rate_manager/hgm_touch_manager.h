@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,87 +16,40 @@
 #ifndef HGM_TOUCH_MANAGER_H
 #define HGM_TOUCH_MANAGER_H
 
-#include <mutex>
-#include <unordered_map>
+#include <memory>
 
 #include "hgm_one_shot_timer.h"
-#include "hgm_screen.h"
+#include "hgm_state_machine.h"
 
-namespace OHOS {
-namespace Rosen {
-constexpr int32_t TOUCH_RS_IDLE_TIMER_EXPIRED = 600; // ms
-constexpr int32_t TOUCH_UP_TIMEOUT_TIMER_EXPIRED = 3000; // ms
-
-enum class TouchState : uint32_t {
-    DOWN = 1,
-    UP = 2,
-    IDLE = 3
+namespace OHOS::Rosen {
+enum TouchEvent : int32_t {
+    DOWN_EVENT,
+    UP_EVENT,
 };
 
-enum class TouchEvent {
-    DOWN,
-    UP,
-    THREE_SECONDS_TIMEOUT,
-    RS_TIMEOUT
+enum TouchState : int32_t {
+    IDLE_STATE,
+    DOWN_STATE,
+    UP_STATE,
 };
 
-using IdleEventCallback = std::function<void()>;
-
-class TouchStateMachine {
+class HgmTouchManager final : public HgmStateMachine<TouchState, TouchEvent> {
 public:
-    TouchStateMachine() : currentState_(TouchState::IDLE) {}
+    HgmTouchManager();
+    ~HgmTouchManager() override = default;
 
-    void RegisterIdleEventCallback(IdleEventCallback idleEventCallback)
-    {
-        idleEventCallback_ = idleEventCallback;
-    }
+    void HandleTouchEvent(TouchEvent event, const std::string& pkgName = "");
+    void HandleRsFrame();
+    void HandleThirdFrameIdle();
 
-    void TouchEventHandle(TouchEvent event);
-    
-    void TouchDown();
-    void TouchUp();
-    void TouchUpTimeout();
-    void RSIdleTimeout();
-
-    void StartTouchTimer(ScreenId screenId, int32_t interval,
-        std::function<void()> resetCallback, std::function<void()> expiredCallback);
-    void StopTouchTimer(ScreenId screenId);
-
-    TouchState GetState() const
-    {
-        return currentState_;
-    }
+    std::string GetPkgName() const { return pkgName_; }
+protected:
+    bool CheckChangeStateValid(State lastState, State newState) override;
+    void ExecuteCallback(const std::function<void()>& callback) override;
 private:
-    TouchState currentState_;
-    std::mutex touchStateMutex_;
-    std::mutex touchTimerMapMutex_;
-    std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> touchTimerMap_;
-    IdleEventCallback idleEventCallback_ = nullptr;
+    std::string pkgName_;
+    HgmOneShotTimer upTimeoutTimer_;
+    HgmOneShotTimer rsIdleTimeoutTimer_;
 };
-
-class HgmTouchManager {
-public:
-    HgmTouchManager() = default;
-    ~HgmTouchManager() = default;
-
-    void HandleRSFrameUpdate(bool idleTimerExpired);
-    std::shared_ptr<HgmOneShotTimer> GetRSTimer(ScreenId screenId) const;
-    void ResetRSTimer(ScreenId screenId) const;
-    void StartRSTimer(ScreenId screenId, int32_t interval,
-        std::function<void()> resetCallback, std::function<void()> expiredCallback);
-    void StopRSTimer(ScreenId screenId);
-
-    void SetRSIdleUpdateCallback(std::function<void(bool)> rsIdleUpdateCallback)
-    {
-        rsIdleUpdateCallback_ = rsIdleUpdateCallback;
-    }
-    std::function<void(bool)> rsIdleUpdateCallback_;
-
-    TouchStateMachine touchMachine_;
-private:
-    std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> rsTimerMap_;
-    mutable std::mutex timerMapMutex_;
-};
-} // namespace Rosen
-} // namespace OHOS
+} // OHOS::Rosen
 #endif // HGM_TOUCH_MANAGER_H

@@ -18,6 +18,8 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_physical_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_uni_render_engine.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -77,9 +79,15 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsHardwareProcessor);
+    ASSERT_EQ(uniRenderThread.uniRenderEngine_, renderEngine);
+    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    RSUniRenderThread::Instance().InitGrContext();
+    renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    ASSERT_NE(nullptr, renderEngine);
     ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
 
@@ -241,5 +249,147 @@ HWTEST_F(RSPhysicalScreenProcessorTest, PostProcess001, TestSize.Level1)
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
     rsHardwareProcessor->PostProcess();
+}
+
+/**
+ * @tc.name: ProcessRcdSurface
+ * @tc.desc: call ProcessRcdSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessRcdSurface, TestSize.Level1)
+{
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    NodeId id = 1;
+    RCDSurfaceType type = RCDSurfaceType::BOTTOM;
+    RSRcdSurfaceRenderNode node(id, type);
+    rsHardwareProcessor->ProcessRcdSurface(node);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Redraw
+ * @tc.desc: call Redraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, Redraw, TestSize.Level1)
+{
+    std::shared_ptr<RSPhysicalScreenProcessor> rsHardwareProcessor = std::make_shared<RSPhysicalScreenProcessor>();
+    sptr<Surface> surface;
+    std::vector<LayerInfoPtr> layers;
+    rsHardwareProcessor->Redraw(surface, layers);
+    surface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(surface, nullptr);
+    rsHardwareProcessor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
+    rsHardwareProcessor->Redraw(surface, layers);
+    ASSERT_NE(rsHardwareProcessor->renderEngine_, nullptr);
+}
+
+/**
+ * @tc.name: RequestPerf
+ * @tc.desc: test results of RequestPerf
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
+{
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    uint32_t layerLevel[] = { 0, 1, 2, 3 };
+    bool onOffTag = true;
+    for (uint32_t level : layerLevel) {
+        rsHardwareProcessor->RequestPerf(level, onOffTag);
+    }
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: CalculateScreenTransformMatrix
+ * @tc.desc: test results of CalculateScreenTransformMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, CalculateScreenTransformMatrix, TestSize.Level1)
+{
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    RSDisplayRenderNode node(id, config);
+    rsHardwareProcessor->CalculateScreenTransformMatrix(node);
+    ASSERT_EQ(rsHardwareProcessor->screenInfo_.width, 0);
+}
+
+/**
+ * @tc.name: CalculateMirrorAdaptiveCoefficient
+ * @tc.desc: test results of CalculateMirrorAdaptiveCoefficient
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, TestSize.Level1)
+{   
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    float curWidth = 2.0f;
+    float curHeight = 1.0f;
+    float mirroredWidth = .0f;
+    float mirroredHeight = .0f;
+    processor->CalculateMirrorAdaptiveCoefficient(curWidth, curHeight, mirroredWidth, mirroredHeight);
+    mirroredHeight =1.0f;
+    processor->CalculateMirrorAdaptiveCoefficient(curWidth, curHeight, mirroredWidth, mirroredHeight);
+    mirroredWidth = 1.0f;
+    processor->CalculateMirrorAdaptiveCoefficient(curWidth, curHeight, mirroredWidth, mirroredHeight);
+    ASSERT_EQ(processor->mirrorAdaptiveCoefficient_, 1);
+}
+
+/**
+ * @tc.name: MirrorScenePerf
+ * @tc.desc: test results of MirrorScenePerf
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, MirrorScenePerf, TestSize.Level1)
+{   
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    processor->MirrorScenePerf();
+    ASSERT_TRUE(processor->needDisableMultiLayersPerf_);
+}
+
+/**
+ * @tc.name: MultiLayersPerf
+ * @tc.desc: test results of MultiLayersPerf
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, MultiLayersPerf, TestSize.Level1)
+{   
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    size_t layerNum = 1;
+    processor->needDisableMultiLayersPerf_ = true;
+    processor->MultiLayersPerf(layerNum);
+    processor->needDisableMultiLayersPerf_ = false;
+    processor->MultiLayersPerf(layerNum);
+    ASSERT_FALSE(processor->needDisableMultiLayersPerf_);
+}
+
+/**
+ * @tc.name: SetDisplayHasSecSurface
+ * @tc.desc: test results of SetDisplayHasSecSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, SetDisplayHasSecSurface, TestSize.Level1)
+{   
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    processor->SetSecurityDisplay(true);
+    ASSERT_TRUE(processor->isSecurityDisplay_);
+
+    processor->SetDisplayHasSecSurface(true);
+    ASSERT_TRUE(processor->displayHasSecSurface_);
 }
 } // namespace OHOS::Rosen

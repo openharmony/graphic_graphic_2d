@@ -70,6 +70,7 @@ public:
     SurfaceError DetachContext();
 
     SurfaceError GetTransformMatrix(float matrix[16]);
+    SurfaceError GetTransformMatrixV2(float matrix[16]);
     SurfaceError SetOnBufferAvailableListener(void *context, OnBufferAvailableListener listener);
     SurfaceError UnsetOnBufferAvailableListener();
     OnBufferAvailableListener listener_ = nullptr;
@@ -98,6 +99,7 @@ private:
     Rect currentCrop_ = {};
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
+    float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

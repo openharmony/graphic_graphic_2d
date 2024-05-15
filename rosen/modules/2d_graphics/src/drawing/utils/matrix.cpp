@@ -236,6 +236,11 @@ bool Matrix::HasPerspective() const
 {
     return matrixImplPtr->HasPerspective();
 }
+
+void Matrix::Swap(Matrix& target)
+{
+    std::swap(matrixImplPtr, target.matrixImplPtr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

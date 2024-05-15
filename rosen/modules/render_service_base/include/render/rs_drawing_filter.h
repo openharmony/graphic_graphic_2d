@@ -33,14 +33,16 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSDrawingFilter : public RSFilter {
 public:
-    RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter);
+    RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash);
     RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-        std::shared_ptr<RSShaderFilter> shaderFilter);
+        std::shared_ptr<RSShaderFilter> shaderFilter, uint32_t hash);
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-        std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters);
+        std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters, uint32_t hash);
     ~RSDrawingFilter() override;
 
+    std::string GetDescription() override;
+    std::string GetDetailedDescription() override;
     Drawing::Brush GetBrush() const;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst);
@@ -48,51 +50,54 @@ public:
     void InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
     void SetImageFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter);
-    void SetColorMode(int colorMode)
+    std::shared_ptr<RSShaderFilter> GetShaderFilterWithType(RSShaderFilter::ShaderFilterType type)
     {
-        colorMode_ = colorMode;
+        for (const auto& shaderFilter : shaderFilters_) {
+            if (shaderFilter->GetShaderFilterType() == type) {
+                return shaderFilter;
+            }
+        }
+        return nullptr;
     }
 
-    int GetColorMode()
-    {
-        return colorMode_;
-    }
-
-    void SetMaskCOlor(Color maskColor)
-    {
-        maskColor_ = maskColor;
-    }
-
-    RSColor GetMaskCOlor()
-    {
-        return maskColor_;
-    }
-
-    void SetNeedMaskCOlor(bool needMaskColor)
-    {
-        needMaskColor_ = needMaskColor;
-    }
-
-    std::shared_ptr<RSShaderFilter> FindLinearGradientBlurShaderFilter();
+    uint32_t Hash() const override;
+    uint32_t ShaderHash() const;
+    uint32_t ImageHash() const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other) const;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSShaderFilter> other) const;
-    
-    bool CanSkipFrame() const { return false; }
-    bool CanSkipFrame(float radius) const;
-    void CaclMaskColor(std::shared_ptr<Drawing::Image>& image);
+    bool CanSkipFrame() const
+    {
+        return canSkipFrame_;
+    }
+
+    void SetSkipFrame(bool canSkipFrame)
+    {
+        canSkipFrame_ = canSkipFrame;
+    }
+
+    static bool CanSkipFrame(float radius);
+    void SetSaturationForHPS(float saturationForHPS)
+    {
+        saturationForHPS_ = saturationForHPS;
+    }
+    void SetBrightnessForHPS(float brightnessForHPS)
+    {
+        brightnessForHPS_ = brightnessForHPS;
+    }
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
-    void PostProcess(RSPaintFilterCanvas& canvas);
-    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
-    void ReleaseColorPickerFilter();
-    
+    void PostProcess(Drawing::Canvas& canvas);
+
+    void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst);
+
 private:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
-    bool needMaskColor_ = false;
-    int colorMode_;
-    RSColor maskColor_;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
+    uint32_t imageFilterHash_ = 0;
+    bool canSkipFrame_ = false;
+    float saturationForHPS_ = 1.f;
+    float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

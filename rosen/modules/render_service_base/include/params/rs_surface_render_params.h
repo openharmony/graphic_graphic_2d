@@ -35,8 +35,8 @@ struct RSLayerInfo {
     GraphicIRect dstRect;
     GraphicIRect boundRect;
     Drawing::Matrix matrix;
-    int32_t gravity;
-    int32_t zOrder;
+    int32_t gravity = 0;
+    int32_t zOrder = 0;
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> preBuffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -59,6 +59,10 @@ public:
     bool IsMainWindowType() const
     {
         return isMainWindowType_;
+    }
+    bool IsLeashWindow() const
+    {
+        return isLeashWindow_;
     }
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -110,6 +114,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsProtectedLayer() const
+    {
+        return isProtectedLayer_;
+    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -126,13 +134,17 @@ public:
     {
         return skipLayerIds_.size() != 0;
     }
+    bool HasProtectedLayer()
+    {
+        return protectedLayerIds_.size() != 0;
+    }
 
     std::string GetName() const
     {
         return name_;
     }
 
-    void SetUifirstNodeEnableParam(bool isUifirst)
+    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
             return;
@@ -141,7 +153,7 @@ public:
         needSync_ = true;
     }
 
-    bool GetUifirstNodeEnableParam()
+    MultiThreadCacheType GetUifirstNodeEnableParam()
     {
         return uiFirstFlag_;
     }
@@ -194,8 +206,11 @@ public:
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
-    void SetIsTransparent(bool isTransparent);
-    bool GetIsTransparent() const;
+    void SetIsParentScaling(bool isParentScaling);
+    bool IsParentScaling() const;
+
+    void SetTransparentRegion(const Occlusion::Region& transparentRegion);
+    const Occlusion::Region& GetTransparentRegion() const;
 
     void SetOldDirtyInSurface(const RectI& oldDirtyInSurface);
     RectI GetOldDirtyInSurface() const;
@@ -212,6 +227,16 @@ public:
     bool GetHardwareEnabled() const;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const;
+    void SetForceHardwareByUser(bool flag);
+    bool GetForceHardwareByUser() const;
+
+    void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
+    bool IsGpuOverDrawBufferOptimizeNode() const;
+    void SetOverDrawBufferNodeCornerRadius(const Vector4f& radius);
+    const Vector4f& GetOverDrawBufferNodeCornerRadius() const;
+
+    void SetIsSubSurfaceNode(bool isSubSurfaceNode);
+    bool IsSubSurfaceNode() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
@@ -230,6 +255,7 @@ public:
 protected:
 private:
     bool isMainWindowType_ = false;
+    bool isLeashWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
@@ -237,8 +263,9 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
+    bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
-    bool uiFirstFlag_ = false;
+    MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 
@@ -246,6 +273,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Occlusion::Region transparentRegion_;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;
@@ -257,15 +285,23 @@ private:
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isForceHardwareByUser_ = false;
+    int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
+    bool isSubSurfaceNode_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
+    Vector4f overDrawBufferNodeCornerRadius_;
+    bool isGpuOverDrawBufferOptimizeNode_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
+    friend class RSUniRenderThread;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

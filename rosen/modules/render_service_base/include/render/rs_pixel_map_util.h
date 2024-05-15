@@ -25,6 +25,7 @@
 
 #include "draw/canvas.h"
 #include "image/image.h"
+#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +38,9 @@ public:
                                         Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);
     static void DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
                              const Drawing::scalar px, const Drawing::scalar py);
+    static bool IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap);
+    static std::shared_ptr<Drawing::Image> ConvertYUVPixelMapToDrawingImage(
+        std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
 };
 } // namespace Rosen
 } // namespace OHOS

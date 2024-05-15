@@ -18,6 +18,7 @@
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hgm_config_callback_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,7 +68,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
     instance.AddScreenInfo(id, width, height, rate, mode);
     instance.AddScreenInfo(id, width, height, rate2, mode2);
     instance.AddScreenInfo(id, width, height, rate3, mode3);
-
+    instance.SetActiveScreenId(id);
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     ASSERT_NE(rsFrameRateLinker, nullptr);
     rsFrameRateLinker->SetExpectedRange({0, 120, 60});
@@ -83,6 +84,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
 
     uint64_t timestamp = 10000000;
     bool flag = false;
+    pid_t pid = 0;
     sptr<VSyncGenerator> vsyncGenerator = CreateVSyncGenerator();
     sptr<VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
     sptr<VSyncController> appController = new VSyncController(vsyncGenerator, 0);
@@ -91,11 +93,10 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
     ASSERT_NE(controller, nullptr);
     std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
     PART("CaseDescription") {
-        STEP("1. get a HgmFrameRateManager") {
+        STEP("1. get a HgmFrameRateManager and check the result of UniProcessDataForLtpo") {
             ASSERT_NE(frameRateMgr, nullptr);
+            HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(pid, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
-        }
-        STEP("2. check the result of UniProcessDataForLtpo") {
             frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, false);
         }
@@ -112,6 +113,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtps, Function | SmallTest | Leve
 {
     bool flag = false;
     std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
     PART("CaseDescription") {
         STEP("1. check the result of UniProcessDataForLtps") {
             frameRateMgr->UniProcessDataForLtps(flag);

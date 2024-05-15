@@ -39,16 +39,23 @@ public:
         return id_;
     }
 
+    inline bool GetAceAnimatorStatus() {
+        return isAnimationIdle_;
+    }
+
+    void SetAnimationIdle(bool status);
+
     void SetExpectedRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);
     uint32_t GetFrameRate() const;
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
 private:
     static FrameRateLinkerId GenerateId();
     FrameRateLinkerId id_ = 0;
     FrameRateRange expectedRange_;
     uint32_t frameRate_ = 0;
+    bool isAnimationIdle_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

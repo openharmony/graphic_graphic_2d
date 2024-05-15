@@ -17,10 +17,8 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_canvas.h"
 #include "draw/core_canvas.h"
-// opinc_begin
 #include "skia_adapter/skia_canvas_autocache.h"
 #include "skia_adapter/skia_oplist_handle.h"
-// opinc_end
 
 using namespace testing;
 using namespace testing::ext;
@@ -289,6 +287,26 @@ HWTEST_F(SkiaCanvasTest, DrawShadow001, TestSize.Level2)
 
     skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE);
+}
+
+/**
+ * @tc.name: DrawShadowStyle001
+ * @tc.desc: Draw ShadowStyle Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, DrawShadowStyle001, TestSize.Level2)
+{
+    Path path;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.DrawShadowStyle(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE, true);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawShadowStyle(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE, true);
 }
 
 /**
@@ -589,6 +607,21 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
 
     skiaCanvas->ImportSkCanvas(nullptr);
     auto rect = skiaCanvas->GetDeviceClipBounds();
+}
+
+/**
+ * @tc.name: GetRoundInDeviceClipBoundsTest001
+ * @tc.desc: Test for geting bounds of clip in device corrdinates.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -966,32 +999,6 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
     Brush brush;
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, &brush);
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, nullptr);
-}
-
-/**
- * @tc.name: BeginOpRecordingTest001
- * @tc.desc: Test BeginOpRecording
- * @tc.type: FUNC
- * @tc.require: I9B0X4
- */
-HWTEST_F(SkiaCanvasTest, BeginOpRecordingTest001, TestSize.Level1)
-{
-    SkiaCanvas skiaCanvas;
-    Rect rect = {0, 0, 0, 0};
-    bool isDynamic = false;
-    ASSERT_EQ(skiaCanvas.BeginOpRecording(&rect, isDynamic), false);
-}
-
-/**
- * @tc.name: CanDrawOpListTest001
- * @tc.desc: Test CanDrawOpList
- * @tc.type: FUNC
- * @tc.require: I9B0X4
- */
-HWTEST_F(SkiaCanvasTest, CanDrawOpListTest001, TestSize.Level1)
-{
-    SkiaCanvas skiaCanvas;
-    ASSERT_EQ(skiaCanvas.CanDrawOpList({}), -1);
 }
 
 /**

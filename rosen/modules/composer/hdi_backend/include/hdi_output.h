@@ -93,6 +93,7 @@ public:
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
+    int32_t GetBufferCacheSize();
 
 private:
     HdiDevice *device_ = nullptr;
@@ -119,7 +120,12 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    std::mutex layerMutex_;
+    mutable std::mutex layerMutex_;
+
+    std::vector<uint32_t> layersId_;
+    std::vector<sptr<SyncFence>> fences_;
+
+    int32_t skipState_ = -1;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();

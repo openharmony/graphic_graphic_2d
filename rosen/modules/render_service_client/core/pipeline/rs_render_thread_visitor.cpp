@@ -491,6 +491,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #else
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface.get());
 #endif
+    canvas_->Save();
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
 
@@ -555,7 +556,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 
-    if ((dfxDirtyType_ != DirtyRegionDebugType::DISABLED) && curDirtyManager_->IsDirty()) {
+    if ((dfxDirtyType_ != DirtyRegionDebugType::DISABLED) && curDirtyManager_->IsDirty() &&
+        partialRenderStatus_ != PartialRenderType::DISABLED) {
         ROSEN_LOGD("ProcessRootRenderNode %{public}s [%{public}" PRIu64 "] draw dirtyRect",
             ptr->GetName().c_str(), node.GetId());
         DrawDirtyRegion();
@@ -585,6 +587,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     RS_TRACE_END();
 
+    canvas_->Restore();
     canvas_ = nullptr;
     isIdle_ = true;
 }
@@ -733,7 +736,7 @@ Drawing::Matrix RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTrans
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
+    auto& geoPtr = property.GetBoundsGeometry();
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
     canvas_->Save();
 #ifdef ROSEN_OHOS
@@ -809,6 +812,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetContextAlpha(canvas_->GetAlpha());
     }
 
+    if (node.GetIsTextureExportNode()) {
+        canvas_->Save();
+        auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        RSPropertiesPainter::DrawBackground(node.GetRenderProperties(), *canvas_);
+        canvas_->Restore();
+    }
+
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
@@ -859,7 +870,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // 6.draw border
     canvas_->Save();
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
     RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);

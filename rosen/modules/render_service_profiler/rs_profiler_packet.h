@@ -17,12 +17,13 @@
 #define RS_PROFILER_MESSAGE_HELPER_H
 
 #include <bitset>
+#include <iterator>
+#include <type_traits>
+#include <vector>
 
 #ifndef REPLAY_TOOL_CLIENT
 #include <securec.h>
 #endif
-
-#include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
 
@@ -36,6 +37,10 @@ enum class PackageID {
     RS_PROFILER_SKP_BINARY,
     RS_PROFILER_RDC_BINARY,
     RS_PROFILER_DCL_BINARY,
+    RS_PROFILER_RSTREE_DUMP_JSON,
+    RS_PROFILER_RSTREE_PERF_NODE_LIST,
+    RS_PROFILER_RSTREE_SINGLE_NODE_PERF,
+    RS_PROFILER_MSKP_FILEPATH,
 };
 class BinaryHelper {
 public:
@@ -62,6 +67,12 @@ public:
         return *reinterpret_cast<const uint16_t*>(data + 1 + sizeof(uint32_t));
     }
 };
+
+template<typename T, typename = void>
+struct HasContiguousLayout : std::false_type {};
+
+template<typename T>
+struct HasContiguousLayout<T, std::void_t<decltype(std::declval<T>().data())>> : std::true_type {};
 
 class Packet {
 public:
@@ -196,12 +207,18 @@ inline T Packet::Read(size_t size)
 }
 
 template<typename T>
-[[maybe_unused]] inline bool Packet::Write(const T& value)
+[[maybe_unused]] bool Packet::Write(const T& value)
 {
     if constexpr (std::is_trivially_copyable_v<T>) {
         return WriteTrivial(value);
-    } else if constexpr (std::is_member_function_pointer_v<decltype(&T::size)>) {
+    } else if constexpr (HasContiguousLayout<T>::value) {
         return Write(reinterpret_cast<const void*>(value.data()), value.size() * sizeof(typename T::value_type));
+    } else {
+        bool res = true;
+        for (auto it = value.cbegin(); it != value.cend(); ++it) {
+            res = res && Write(*it);
+        }
+        return res;
     }
     return false;
 }

@@ -16,23 +16,36 @@
 #include "render/rs_drawing_filter.h"
 
 #include <memory>
+
+#include "common/rs_optional_trace.h"
 #include "draw/blend_mode.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_aibar_shader_filter.h"
+#include "render/rs_grey_shader_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_maskcolor_shader_filter.h"
 #include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int SHADER_FILTERS_SIZE = 10;
+const std::map<int, std::string> FILTER_TYPE_MAP {
+    { RSFilter::BLUR, "RSBlurFilterBlur" },
+    { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
+    { RSFilter::AIBAR, "RSAIBarFilterBlur" },
+    { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
+};
 }
-RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter)
+RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
     : RSFilter(), imageFilter_(imageFilter)
 {
-    hash_ = SkOpts::hash(&imageFilter_, sizeof(imageFilter_), 0);
+    imageFilterHash_ = hash;
     shaderFilters_.reserve(SHADER_FILTERS_SIZE);
 }
 
@@ -44,24 +57,100 @@ RSDrawingFilter::RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter)
 }
 
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-    std::shared_ptr<RSShaderFilter> shaderFilter) : RSFilter(), imageFilter_(imageFilter)
+    std::shared_ptr<RSShaderFilter> shaderFilter, uint32_t hash) : RSFilter(), imageFilter_(imageFilter)
 {
     hash_ = shaderFilter->Hash();
-    hash_ = SkOpts::hash(&imageFilter_, sizeof(imageFilter_), hash_);
+    imageFilterHash_ = hash;
     shaderFilters_.reserve(SHADER_FILTERS_SIZE);
     shaderFilters_.emplace_back(shaderFilter);
 }
 
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters)
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters, uint32_t hash)
     : RSFilter(), imageFilter_(imageFilter)
 {
     shaderFilters_ = shaderFilters;
-    hash_ = SkOpts::hash(&imageFilter_, sizeof(imageFilter_), hash_);
-    hash_ = SkOpts::hash(&shaderFilters_, sizeof(shaderFilters_), hash_);
+    for (const auto& shaderFilter : shaderFilters_) {
+        uint32_t hash = shaderFilter->Hash();
+        hash_ = SkOpts::hash(&hash, sizeof(hash), hash_);
+    }
+    imageFilterHash_ = hash;
 }
 
 RSDrawingFilter::~RSDrawingFilter() {};
+
+std::string RSDrawingFilter::GetDescription()
+{
+    std::string filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
+    for (const auto& shaderFilter : shaderFilters_) {
+        switch (shaderFilter->GetShaderFilterType()) {
+            case RSShaderFilter::KAWASE: {
+                auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);
+                int radius = filter->GetRadius();
+                filterString = filterString + ", radius: " + std::to_string(radius) + " sigma";
+                break;
+            }
+            case RSShaderFilter::LINEAR_GRADIENT_BLUR: {
+                auto filter4 = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(shaderFilter);
+                float radius2 = filter4->GetLinearGradientBlurRadius();
+                filterString = filterString + ", radius: " + std::to_string(radius2);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return filterString;
+}
+
+std::string RSDrawingFilter::GetDetailedDescription()
+{
+    std::string filterString = FILTER_TYPE_MAP.at(RSFilter::type_);
+    for (const auto& shaderFilter : shaderFilters_) {
+        switch (shaderFilter->GetShaderFilterType()) {
+            case RSShaderFilter::KAWASE: {
+                auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);
+                int radius = filter->GetRadius();
+                filterString = filterString + ", radius: " + std::to_string(radius) + " sigma";
+                break;
+            }
+            case RSShaderFilter::GREY: {
+                auto filter2 = std::static_pointer_cast<RSGreyShaderFilter>(shaderFilter);
+                float greyCoefLow = filter2->GetGreyCoefLow();
+                float greyCoefHigh = filter2->GetGreyCoefHigh();
+                filterString = filterString + ", greyCoef1: " + std::to_string(greyCoefLow);
+                filterString = filterString + ", greyCoef2: " + std::to_string(greyCoefHigh);
+                break;
+            }
+            case RSShaderFilter::MASK_COLOR: {
+                auto filter3 = std::static_pointer_cast<RSMaskColorShaderFilter>(shaderFilter);
+                int colorMode = filter3->GetColorMode();
+                RSColor maskColor = filter3->GetMaskColor();
+                char maskColorStr[UINT8_MAX] = { 0 };
+                auto ret = memset_s(maskColorStr, UINT8_MAX, 0, UINT8_MAX);
+                if (ret != EOK) {
+                    return "Failed to memset_s for maskColorStr, ret=" + std::to_string(ret);
+                }
+                if (sprintf_s(maskColorStr, UINT8_MAX, "%08X", maskColor.AsArgbInt()) != -1) {
+                    filterString =
+                        filterString + ", maskColor: " + maskColorStr + ", colorMode: " + std::to_string(colorMode);
+                }
+                break;
+            }
+            case RSShaderFilter::LINEAR_GRADIENT_BLUR: {
+                auto filter4 = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(shaderFilter);
+                float radius2 = filter4->GetLinearGradientBlurRadius();
+                filterString = filterString + ", radius: " + std::to_string(radius2);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return filterString;
+}
 
 Drawing::Brush RSDrawingFilter::GetBrush() const
 {
@@ -73,15 +162,32 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
     return brush;
 }
 
-bool RSDrawingFilter::CanSkipFrame(float radius) const
+bool RSDrawingFilter::CanSkipFrame(float radius)
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
     return radius > HEAVY_BLUR_THRESHOLD;
 }
 
+uint32_t RSDrawingFilter::Hash() const
+{
+    auto hash = SkOpts::hash(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
+    return hash;
+}
+
+uint32_t RSDrawingFilter::ShaderHash() const
+{
+    return hash_;
+}
+
+uint32_t RSDrawingFilter::ImageHash() const
+{
+    return imageFilterHash_;
+}
+
 std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<RSDrawingFilter> other) const
 {
-    std::shared_ptr<RSDrawingFilter> result = std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_);
+    std::shared_ptr<RSDrawingFilter> result =
+        std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_, imageFilterHash_);
     result->hash_ = hash_;
     if (other == nullptr) {
         return result;
@@ -90,14 +196,17 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     for (auto item : other->GetShaderFilters()) {
         result->InsertShaderFilter(item);
     }
-    auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+    auto otherShaderHash = other->ShaderHash();
+    auto otherImageHash = other->ImageHash();
+    result->hash_ = SkOpts::hash(&otherShaderHash, sizeof(otherShaderHash), hash_);
+    result->imageFilterHash_ = SkOpts::hash(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
     return result;
 }
 
 std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<RSShaderFilter> other) const
 {
-    std::shared_ptr<RSDrawingFilter> result = std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_);
+    std::shared_ptr<RSDrawingFilter> result =
+        std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_, imageFilterHash_);
     result->hash_ = hash_;
     if (other == nullptr) {
         return result;
@@ -108,15 +217,17 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     return result;
 }
 
-std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<Drawing::ImageFilter> other) const
+std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(
+    const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const
 {
-    std::shared_ptr<RSDrawingFilter> result = std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_);
+    std::shared_ptr<RSDrawingFilter> result =
+        std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_, imageFilterHash_);
     result->hash_ = hash_;
     if (other == nullptr) {
         return result;
     }
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other);
-    result->hash_ = SkOpts::hash(&other, sizeof(other), hash_);
+    result->imageFilterHash_ = SkOpts::hash(&hash, sizeof(hash), imageFilterHash_);
     return result;
 }
 
@@ -140,75 +251,81 @@ void RSDrawingFilter::InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderF
     shaderFilters_.emplace_back(shaderFilter);
 }
 
+void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::Rect& src, const Drawing::Rect& dst)
+{
+    Drawing::Brush brush;
+    if (imageFilter_) {
+        Drawing::Filter filter;
+        filter.SetImageFilter(imageFilter_);
+        brush.SetFilter(filter);
+    }
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return;
+}
+
 void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+    for (const auto& filter : shaderFilters_) {
+        if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
+            continue;
+        }
         filter->GenerateGEVisualEffect(visualEffectContainer);
-    });
+    };
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     auto outImage = geRender->ApplyImageEffect(
         canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
     auto brush = GetBrush();
+    std::shared_ptr<RSShaderFilter> kawaseShaderFilter =
+        GetShaderFilterWithType(RSShaderFilter::KAWASE);
+    if (kawaseShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
+        auto radius = tmpFilter->GetRadius();
+
+        static constexpr float epsilon = 0.999f;
+        if (ROSEN_LE(radius, epsilon)) {
+            ApplyColorFilter(canvas, outImage, src, dst);
+            return;
+        }
+
+        if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
+            canvas.DrawBlurImage(*outImage, Drawing::HpsBlurParameter(
+                src, dst, radius, saturationForHPS_, brightnessForHPS_))) {
+            RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
+            return;
+        } else {
+            auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+            tmpFilter->GenerateGEVisualEffect(visualEffectContainer);
+            auto blurImage = geRender->ApplyImageEffect(
+                canvas, *visualEffectContainer, outImage, src, src, Drawing::SamplingOptions());
+            canvas.AttachBrush(brush);
+            canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
+            canvas.DetachBrush();
+            return;
+        }
+    }
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 }
 
-void RSDrawingFilter::CaclMaskColor(std::shared_ptr<Drawing::Image>& image)
-{
-    if (colorMode_ == AVERAGE && image != nullptr) {
-        // update maskColor while persevere alpha
-        auto colorPicker = RSPropertiesPainter::CalcAverageColor(image);
-        maskColor_ = RSColor(Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
-            Drawing::Color::ColorQuadGetB(colorPicker), maskColor_.GetAlpha());
-    }
-    if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
-        image != nullptr) {
-        RSColor color;
-        if (colorPickerTask_->GetWaitRelease()) {
-            if (colorPickerTask_->GetColor(color) && colorPickerTask_->GetFirstGetColorFinished()) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            return;
-        }
-        if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask_, image)) {
-            if (colorPickerTask_->GetColor(color)) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
-        }
-    }
-}
-
 void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
 {
-    if (needMaskColor_) {
-        CaclMaskColor(image);
-    }
+    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+        filter->PreProcess(image);
+    });
 }
 
-void RSDrawingFilter::PostProcess(RSPaintFilterCanvas& canvas)
+void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
 {
-    if (needMaskColor_) {
-        Drawing::Brush brush;
-        brush.SetColor(maskColor_.AsArgbInt());
-        canvas.DrawBackground(brush);
-    }
-}
-
-const std::shared_ptr<RSColorPickerCacheTask>& RSDrawingFilter::GetColorPickerCacheTask() const
-{
-    return colorPickerTask_;
-}
-
-void RSDrawingFilter::ReleaseColorPickerFilter()
-{
-    if (colorPickerTask_ == nullptr) {
-        return;
-    }
-    colorPickerTask_->ReleaseColorPicker();
+    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+        filter->PostProcess(canvas);
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

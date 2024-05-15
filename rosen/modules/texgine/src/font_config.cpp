@@ -308,6 +308,9 @@ int FontConfigJson::ParseAlias(const cJSON* root, FontGenericInfo &genericInfo)
             continue;
         }
         std::string aliasName = std::string(item->string);
+        if (!cJSON_IsNumber(item)) {
+            continue;
+        }
         int weight = item->valueint;
         AliasInfo info = {aliasName, weight};
         genericInfo.aliasSet.emplace_back(std::move(info));
@@ -323,10 +326,14 @@ int FontConfigJson::ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo)
         return FAILED;
     }
     int size = cJSON_GetArraySize(root);
-    int *value = new int(size);
+    const int count = 2; // the adjust item is 2
+    int value[count] = { 0 };
     for (int i = 0; i < size; i++) {
+        if (i >= count) {
+            break;
+        }
         cJSON* item = cJSON_GetArrayItem(root, i);
-        if (item == nullptr) {
+        if (item == nullptr || !cJSON_IsNumber(item)) {
             continue;
         }
         value[i] = item->valueint;
@@ -334,7 +341,6 @@ int FontConfigJson::ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo)
 
     AdjustInfo info = {value[0], value[1]};
     genericInfo.adjustSet.emplace_back(std::move(info));
-    delete value;
     return SUCCESSED;
 }
 
@@ -359,7 +365,13 @@ int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
             continue;
         }
         cJSON* item2 = cJSON_GetArrayItem(item, 0);
+        if (item2 == nullptr) {
+            continue;
+        }
         FallbackInfo fallbackInfo;
+        if (!cJSON_IsString(item2) || !cJSON_IsRaw(item2)) {
+            continue;
+        }
         fallbackInfo.familyName = item2->valuestring;
         fallbackInfo.font = item2->string;
         fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));

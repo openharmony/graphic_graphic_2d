@@ -44,6 +44,8 @@ public:
         return std::move(mParsedData_);
     }
 
+    static bool IsNumber(const std::string& str);
+
 private:
     static int32_t GetHgmXmlNodeAsInt(xmlNode &node);
     bool ParseInternal(xmlNode &node);
@@ -55,8 +57,8 @@ private:
                          const std::string &valueName = "value", const std::string &keyName = "name");
     int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
     int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
+    int32_t ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
-    static bool IsNumber(const std::string &str);
 
     xmlDoc *xmlDocument_;
     std::unique_ptr<PolicyConfigData> mParsedData_ = nullptr;

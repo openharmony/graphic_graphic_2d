@@ -35,6 +35,7 @@
 #include "utils/system_properties.h"
 
 #ifdef ACE_ENABLE_GPU
+#include "include/core/SkYUVAPixmaps.h"
 #include "skia_gpu_context.h"
 #endif
 
@@ -112,6 +113,34 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 }
 
 #ifdef ACE_ENABLE_GPU
+std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    if (!memory) {
+        LOGD("memory nullprt, %{public}s, %{public}d",  __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    
+    auto grContext = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    if (grContext == nullptr) {
+        LOGD("grContext nullprt, %{public}s, %{public}d",  __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    SkYUVAPixmapInfo pixmapInfo({{info.GetWidth(), info.GetHeight()},
+                                 SkiaYUVInfo::ConvertToSkPlaneConfig(info.GetConfig()),
+                                 SkiaYUVInfo::ConvertToSkSubSampling(info.GetSampling()),
+                                 SkiaYUVInfo::ConvertToSkYUVColorSpace(info.GetColorSpace())},
+                                 SkYUVAPixmapInfo::DataType::kUnorm8,
+                                 nullptr);
+    auto skYUVAPixmaps = SkYUVAPixmaps::FromExternalMemory(pixmapInfo, memory);
+    auto skImage = SkImage::MakeFromYUVAPixmaps(grContext.get(), skYUVAPixmaps);
+    if (skImage == nullptr) {
+        LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
@@ -213,7 +242,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
 #endif
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::MakeFromTexture skiaImage_ is nullptr!!!! "
-            "TextureInfo format:%u, w:%d, h:%d , bitmapFormat.colorType is %d",
+            "TextureInfo format:%{public}u, w:%{public}d, h:%{public}d , bitmapFormat.colorType is %{public}d",
             info.GetFormat(), info.GetWidth(), info.GetHeight(), static_cast<int>(bitmapFormat.colorType));
         return false;
     }

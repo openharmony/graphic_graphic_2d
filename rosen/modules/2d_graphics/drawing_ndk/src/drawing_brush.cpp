@@ -36,6 +36,11 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
 }
 
+static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
+{
+    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
+}
+
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
@@ -49,6 +54,15 @@ static const Filter* CastToFilter(const OH_Drawing_Filter* cFilter)
 OH_Drawing_Brush* OH_Drawing_BrushCreate()
 {
     return (OH_Drawing_Brush*)new Brush;
+}
+
+OH_Drawing_Brush* OH_Drawing_BrushCopy(OH_Drawing_Brush* cBrush)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_Brush*)new Brush(*brush);
 }
 
 void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
@@ -114,6 +128,15 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush* cBrush, OH_Drawing_Shader
         return;
     }
     brush->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
+}
+
+void OH_Drawing_BrushSetShadowLayer(OH_Drawing_Brush* cBrush, OH_Drawing_ShadowLayer* cShadowLayer)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowLayer), [](auto p) {}});
 }
 
 void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFilter)

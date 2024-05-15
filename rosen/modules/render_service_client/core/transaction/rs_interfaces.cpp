@@ -138,9 +138,9 @@ void RSInterfaces::SetRefreshRateMode(int32_t refreshRateMode)
     renderServiceClient_->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
+void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped)
 {
-    renderServiceClient_->SyncFrameRateRange(id, range);
+    renderServiceClient_->SyncFrameRateRange(id, range, isAnimatorStopped);
 }
 
 uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)
@@ -345,6 +345,11 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
 }
 
+std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect)
+{
+    return renderServiceClient_->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+}
+
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
     return renderServiceClient_->GetScreenHDRCapability(id, screenHdrCapability);
@@ -517,9 +522,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    renderServiceClient_->NotifyTouchEvent(touchStatus);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -532,9 +537,22 @@ void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
 }
 
-GpuDirtyRegionInfo RSInterfaces::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSInterfaces::GetActiveDirtyRegionInfo()
 {
-    return renderServiceClient_->GetCurrentDirtyRegionInfo(id);
+    const auto& activeDirtyRegionInfo = renderServiceClient_->GetActiveDirtyRegionInfo();
+    return activeDirtyRegionInfo;
+}
+
+GlobalDirtyRegionInfo RSInterfaces::GetGlobalDirtyRegionInfo()
+{
+    const auto& globalDirtyRegionInfo = renderServiceClient_->GetGlobalDirtyRegionInfo();
+    return globalDirtyRegionInfo;
+}
+
+LayerComposeInfo RSInterfaces::GetLayerComposeInfo()
+{
+    const auto& layerComposeInfo = renderServiceClient_->GetLayerComposeInfo();
+    return layerComposeInfo;
 }
 
 #ifdef TP_FEATURE_ENABLE

@@ -42,7 +42,6 @@ namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -51,9 +50,10 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
 
+    // deprecated
     inline std::shared_ptr<const RSRenderNode> GetRenderNode()
     {
-        return renderNode_;
+        return renderNode_.lock();
     }
 
     inline bool GetOpDropped() const
@@ -63,11 +63,55 @@ public:
 
     inline bool ShouldPaint() const
     {
-        const auto& params = renderNode_->GetRenderParams();
-        return LIKELY(params != nullptr) && params->GetShouldPaint();
+        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
+    }
+
+    // opinc switch
+    bool IsOpincRenderCacheEnable();
+    bool IsOpincRealDrawCacheEnable();
+    bool IsAutoCacheDebugEnable();
+
+    void OpincCalculateBefore(Drawing::Canvas& canvas,
+        const RSRenderParams& params, bool& isOpincDropNodeExt);
+    void OpincCalculateAfter(Drawing::Canvas& canvas, bool& isOpincDropNodeExt);
+    void BeforeDrawCache(NodeStragyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
+        bool& isOpincDropNodeExt);
+    void AfterDrawCache(NodeStragyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
+        bool& isOpincDropNodeExt, int& opincRootTotalCount);
+
+    bool DrawAutoCache(RSPaintFilterCanvas& canvas, Drawing::Image& image,
+        const Drawing::SamplingOptions& samplingOption, Drawing::SrcRectConstraint constraint);
+    void DrawAutoCacheDfx(RSPaintFilterCanvas& canvas,
+        std::vector<std::pair<RectI, std::string>>& autoCacheRenderNodeInfos);
+    void DrawableCacheStateReset(RSRenderParams& params);
+    bool PreDrawableCacheState(RSRenderParams& params, bool& isOpincDropNodeExt);
+    void OpincCanvasUnionTranslate(RSPaintFilterCanvas& canvas);
+    void ResumeOpincCanvasTranslate(RSPaintFilterCanvas& canvas);
+
+    // opinc dfx
+    std::string GetNodeDebugInfo();
+
+    bool IsOpListDrawAreaEnable();
+    bool IsTranslate(Drawing::Matrix& mat);
+
+    const Drawing::Rect& GetOpListUnionArea()
+    {
+        return opListDrawAreas_.GetOpInfo().unionRect;
+    }
+
+    bool IsComputeDrawAreaSucc()
+    {
+        return isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE;
+    }
+
+    // opinc root state
+    bool IsOpincRootNode()
+    {
+        return isOpincRootNode_;
     }
 
 protected:
+    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
@@ -80,7 +124,17 @@ protected:
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
+    static inline std::mutex drawingCacheInfoMutex_;
     static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
+
+    // opinc global state
+    static inline bool autoCacheEnable_ = false;
+    static inline bool autoCacheDrawingEnable_ = false;
+    static inline NodeStragyType nodeCacheType_ = NodeStragyType::CACHE_NONE;
+    static inline bool isDiscardSurface_ = true;
+    static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
+    static inline bool isOpincDropNodeExt_ = true;
+    static inline int opincRootTotalCount_ = 0;
 
     // used foe render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -100,7 +154,7 @@ protected:
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
-    static inline bool drawBlurForCache_ = false;
+    static thread_local bool drawBlurForCache_;
 
 private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
@@ -119,9 +173,24 @@ private:
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
 
-    static inline bool isOpDropped_ = true;
-    static inline int processedNodeCount_ = 0;
+    static thread_local bool isOpDropped_;
+    static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
+
+    // opinc cache state
+    void NodeCacheStateDisable();
+    bool BeforeDrawCacheProcessChildNode(NodeStragyType& cacheStragy, RSRenderParams& params);
+    void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
+    NodeStragyType rootNodeStragyType_ = NodeStragyType::CACHE_NONE;
+    NodeStragyType temNodeStragyType_ = NodeStragyType::CACHE_NONE;
+    DrawAreaEnableState isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
+    Drawing::OpListHandle opListDrawAreas_;
+    bool opCanCache_ = false;
+    int64_t reuseCount_ = 0;
+    bool isOpincRootNode_ = false;
+    bool isOpincDropNodeExtTemp_ = true;
+    bool isOpincCaculateStart_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

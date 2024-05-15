@@ -16,6 +16,7 @@
 #ifdef BUILD_NON_SDK_VER
 #include <filesystem>
 #endif
+#include <cstdlib>
 #include <fstream>
 #include "drawing_register_font.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
@@ -70,27 +71,11 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
         return ERROR_NULL_FONT_COLLECTION;
     }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    Drawing::Typeface* typeface = nullptr;
 #ifndef USE_GRAPHIC_TEXT_GINE
     fc->LoadFontFromList(data, dataLength, familyName);
 #else
-    typeface = fc->LoadFont(familyName, data, dataLength);
+    fc->LoadFont(familyName, data, dataLength);
 #endif
-    if (typeface) {
-        std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
-        std::string name = familyName;
-        if (name.empty()) {
-            name = drawingTypeface->GetFamilyName();
-        }
-        fc->AddLoadedFamilyName(name);
-        if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-            bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(drawingTypeface);
-            if (!ret) {
-                LOGE("LoadFromFontCollection: register typeface failed.");
-                return ERROR_REGISTER_FAILED;
-            }
-        }
-    }
     return 0;
 }
 
@@ -111,7 +96,12 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
         return ERROR_FILE_NOT_EXISTS;
     }
 
-    std::ifstream ifs(path, std::ios_base::in);
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), tmpPath) == nullptr) {
+        return ERROR_FILE_NOT_EXISTS;
+    }
+
+    std::ifstream ifs(tmpPath, std::ios_base::in);
     if (!ifs.is_open()) {
         return ERROR_OPEN_FILE_FAILED;
     }

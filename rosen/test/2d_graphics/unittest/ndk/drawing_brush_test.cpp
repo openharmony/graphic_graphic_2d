@@ -20,6 +20,7 @@
 #include "drawing_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
+#include "drawing_shadow_layer.h"
 #include "drawing_color_filter.h"
 #include "effect/color_filter.h"
 #include "effect/filter.h"
@@ -148,6 +149,30 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushGetFilter005, TestS
     OH_Drawing_FilterDestroy(tmpFilter_);
     OH_Drawing_ColorFilterDestroy(cColorFilter_);
     OH_Drawing_ColorFilterDestroy(colorFilterTmp);
+    OH_Drawing_BrushDestroy(brush);
+}
+
+/*
+ * @tc.name: NativeDrawingBrushTest_brushSetShadowLayer006
+ * @tc.desc: test for the set methods of brush.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetShadowLayer006, TestSize.Level1)
+{
+    // blurRadius:-3.f, offset:(-3.f, 3.f), shadowColor:green
+    OH_Drawing_ShadowLayer* shadow = OH_Drawing_ShadowLayerCreate(-3.f, -3.f, 3.f, 0xFF00FF00);
+    EXPECT_EQ(shadow, nullptr);
+    OH_Drawing_ShadowLayerDestroy(nullptr);
+    // blurRadius:3.f, offset:(-3.f, 3.f), shadowColor:green
+    OH_Drawing_ShadowLayer* shadowLayer = OH_Drawing_ShadowLayerCreate(3.f, -3.f, 3.f, 0xFF00FF00);
+    EXPECT_NE(shadowLayer, nullptr);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_BrushSetShadowLayer(nullptr, shadowLayer);
+    OH_Drawing_BrushSetShadowLayer(brush, nullptr);
+    OH_Drawing_BrushSetShadowLayer(brush, shadowLayer);
+    OH_Drawing_ShadowLayerDestroy(shadowLayer);
     OH_Drawing_BrushDestroy(brush);
 }
 } // namespace Drawing

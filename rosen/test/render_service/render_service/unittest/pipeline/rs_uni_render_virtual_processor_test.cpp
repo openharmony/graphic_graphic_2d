@@ -16,9 +16,12 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_render_engine.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -73,35 +76,12 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, processor);
     ASSERT_EQ(false, processor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
-
-/**
- * @tc.name: Init002
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, Init002, TestSize.Level2)
-{
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    int32_t offsetX = 0;
-    int32_t offsetY = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
-    ASSERT_NE(nullptr, processor);
-    uint64_t newScreenId = 0;
-    ASSERT_EQ(false, processor->Init(rsDisplayRenderNode, offsetX, offsetY, newScreenId, renderEngine));
-}
-
 
 /**
  * @tc.name: ProcessSurface
@@ -249,6 +229,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, JudgeResolution, TestSize.Level2)
     RSDisplayNodeConfig config;
     NodeId id = 0;
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsDisplayRenderNode.SetOriginScreenRotation(ScreenRotation::ROTATION_90);
+    virtualProcessor->JudgeResolution(rsDisplayRenderNode);
+    rsDisplayRenderNode.SetOriginScreenRotation(ScreenRotation::ROTATION_270);
     virtualProcessor->JudgeResolution(rsDisplayRenderNode);
 }
 
@@ -316,5 +299,41 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UniScale, TestSize.Level2)
         DEFAULT_CANVAS_WIDTH / 3, DEFAULT_CANVAS_HEIGHT / 2);
     virtualProcessor->UniScale(*canvas, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT,
         DEFAULT_CANVAS_WIDTH / 2, DEFAULT_CANVAS_HEIGHT / 3);
+}
+
+/**
+ * @tc.name: ProcessRcdSurfaceTest
+ * @tc.desc: Verify function ProcessRcdSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessRcdSurfaceTest, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+    RCDSurfaceType type = RCDSurfaceType::INVALID;
+    RSRcdSurfaceRenderNode node(nodeId, type);
+    processor->ProcessRcdSurface(node);
+    EXPECT_FALSE(processor->forceCPU_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceTest
+ * @tc.desc: Verify function ProcessDisplaySurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level2)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    processor->ProcessDisplaySurface(rsDisplayRenderNode);
+    Drawing::Canvas canvas;
+    processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
+    rsDisplayRenderNode.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    processor->ProcessDisplaySurface(rsDisplayRenderNode);
+    EXPECT_FALSE(processor->forceCPU_);
 }
 } // namespace OHOS::Rosen

@@ -124,4 +124,127 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand007, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::ClearChildren(context, nodeId);
 }
+
+/**
+ * @tc.name: Destroy001
+ * @tc.desc: test results of Destroy
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, Destroy001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    BaseNodeCommandHelper::Destroy(context, nodeId);
+    EXPECT_TRUE(nodeId);
+
+    nodeId = 0;
+    BaseNodeCommandHelper::Destroy(context, nodeId);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: AddChild001
+ * @tc.desc: test results of AddChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, AddChild001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    NodeId childNodeId = 0;
+    int32_t index = 1;
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: MoveChild001
+ * @tc.desc: test results of MoveChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, MoveChild001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    NodeId childNodeId = 0;
+    int32_t index = 1;
+    BaseNodeCommandHelper::MoveChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: RemoveChild001
+ * @tc.desc: test results of RemoveChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, RemoveChild001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    NodeId childNodeId = 0;
+    BaseNodeCommandHelper::RemoveChild(context, nodeId, childNodeId);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: AddCrossParentChild001
+ * @tc.desc: test results of AddCrossParentChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, AddCrossParentChild001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    NodeId childId = 0;
+    int32_t index = 1;
+    BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childId, index);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: RemoveCrossParentChild001
+ * @tc.desc: test results of RemoveCrossParentChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, RemoveCrossParentChild001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    BaseNodeCommandHelper::RemoveCrossParentChild(context, nodeId, 0, 0);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: RemoveFromTree001
+ * @tc.desc: test results of RemoveFromTree
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, RemoveFromTree001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    BaseNodeCommandHelper::RemoveFromTree(context, nodeId);
+    EXPECT_TRUE(nodeId == 0);
+}
+
+/**
+ * @tc.name: ClearChildren001
+ * @tc.desc: test results of ClearChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, ClearChildren001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    BaseNodeCommandHelper::ClearChildren(context, nodeId);
+    EXPECT_TRUE(nodeId == 0);
+}
 } // namespace OHOS::Rosen

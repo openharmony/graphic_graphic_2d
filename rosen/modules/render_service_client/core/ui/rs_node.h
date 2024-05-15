@@ -22,6 +22,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
+#include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
@@ -236,7 +237,8 @@ public:
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
-    void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
+    void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
+    void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
@@ -276,6 +278,10 @@ public:
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
+    void SetFgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetFgBrightnessFract(const float& fract);
+    void SetBgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetBgBrightnessFract(const float& fract);
     void SetGreyCoef(const Vector2f greyCoef);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 
@@ -303,7 +309,7 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
@@ -335,10 +341,16 @@ public:
 
     bool GetIsCustomTextType();
 
+    void SetIsCustomTypeface(bool isCustomTypeface);
+
+    bool GetIsCustomTypeface();
+
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
+
+    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -397,8 +409,14 @@ public:
         return isTextureExportNode_;
     }
 
-    // key: symbolSpanID, value:symbol animation node list
-    std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
+    std::mutex childrenNodeLock_; // lock for map operation
+    // key: symbolSpanID, value:nodeid and symbol animation node list
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+
+    // key: status : 1 appear, -1 invalid, value:symbol node animation config
+    std::unordered_map<int,
+        std::unordered_map<NodeId,
+            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
 
     void SetInstanceId(int32_t instanceId);
     int32_t GetInstanceId() const
@@ -427,6 +445,7 @@ protected:
 
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
+    bool isCustomTypeface_ = false;
 
     std::recursive_mutex& GetPropertyMutex() const
     {
@@ -464,6 +483,7 @@ private:
     
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
+    std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
@@ -487,10 +507,12 @@ private:
 
     bool isNodeSingleFrameComposer_ = false;
 
+    bool isSuggestOpincNode_ = false;
+
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
     std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::shared_ptr<RSModifier> modifiersTypeMap_[(uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE] = { nullptr };
+    std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;

@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 RSForegroundEffectFilter::RSForegroundEffectFilter(float blurRadius)
-    : RSDrawingFilter(nullptr)
+    : RSDrawingFilterOriginal(nullptr)
 {
     type_ = FilterType::FOREGROUND_EFFECT;
     MakeForegroundEffect();

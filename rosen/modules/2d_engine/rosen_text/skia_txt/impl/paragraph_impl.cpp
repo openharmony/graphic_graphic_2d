@@ -58,7 +58,7 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 } // anonymous namespace
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
-    : paragraph_(std::move(paragraph)), paints_(paints)
+    : paragraph_(std::move(paragraph)), paints_(std::move(paints))
 {}
 
 double ParagraphImpl::GetMaxWidth()
@@ -185,6 +185,14 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     paragraph_->paint(&painter, x, y);
 }
 
+void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset)
+{
+    RSCanvasParagraphPainter painter(canvas, paints_);
+    painter.SetAnimation(animationFunc_);
+    painter.SetParagraphId(id_);
+    paragraph_->paint(&painter, path, hOffset, vOffset);
+}
+
 std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
     RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle)
 {
@@ -221,11 +229,11 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics(std::vector<size_t>& startIndexs)
+std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
 {
     if (!lineMetrics_) {
         std::vector<skt::LineMetrics> metrics;
-        paragraph_->getLineMetrics(metrics, startIndexs);
+        paragraph_->getLineMetrics(metrics);
 
         lineMetrics_.emplace();
         lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
@@ -259,9 +267,9 @@ std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics(std::vector<size_t>& sta
     return lineMetrics_.value();
 }
 
-bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics, size_t& startIndex) const
+bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
 {
-    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics, startIndex);
+    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)

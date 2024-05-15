@@ -77,6 +77,10 @@ public:
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
     void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 
+    bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
+    void SetPaint(Drawing::Paint paint);
+    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
+
     void SetNodeId(NodeId nodeId);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
@@ -106,7 +110,16 @@ private:
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
-
+    void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
+    void DrawImageOnCanvas(
+        const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
+#ifdef ROSEN_OHOS
+    static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
+    static bool UnmarshalImageProperties(
+        Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale);
+    static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
+        const std::shared_ptr<Media::PixelMap>& pixelMap);
+#endif
     std::shared_ptr<Drawing::Data> compressData_;
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
@@ -116,6 +129,8 @@ private:
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
+    Drawing::Paint paint_;
+    uint32_t dynamicRangeMode_ = 0;
 };
 
 template<>

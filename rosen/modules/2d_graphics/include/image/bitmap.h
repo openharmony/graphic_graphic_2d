@@ -159,7 +159,7 @@ public:
      */
     void SetImmutable();
 
-    /** 
+    /**
      * @brief Replaces pixel values with c, interpreted as being in the sRGB ColorSpace.
      * @param color unpremultiplied color
      */

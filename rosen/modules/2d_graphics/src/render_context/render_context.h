@@ -58,7 +58,7 @@ public:
     {
         return surface_;
     }
-    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr);
+    virtual bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr);
 
 #ifdef RS_ENABLE_VK
     void AbandonContext();
@@ -130,9 +130,9 @@ public:
         isUniRenderMode_ = isUni;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::string GetShaderCacheSize() const;
+    virtual std::string GetShaderCacheSize() const;
 
-    std::string CleanAllShaderCache() const;
+    virtual std::string CleanAllShaderCache() const;
 #endif
     EGLContext CreateShareContext();
 #ifdef ROSEN_IOS
@@ -142,7 +142,7 @@ public:
 #endif
     static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 
-private:
+protected:
     std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
 

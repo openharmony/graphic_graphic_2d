@@ -29,6 +29,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "rs_surface_render_node.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -56,7 +57,8 @@ public:
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
@@ -153,7 +155,7 @@ public:
     void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
-    bool SkipFrame(uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const
@@ -256,16 +258,24 @@ public:
     {
         return curAllSurfaces_;
     }
+    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
+    {
+        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
+    }
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& hasCaptureWindow);
+        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
+        std::map<ScreenId, bool>& hasCaptureWindow);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
     void UpdateRotation();
     bool IsRotationChanged() const;
+    bool IsLastRotationChanged() const {
+        return lastRotationChanged_;
+    }
     bool IsFirstTimeToProcessor() const {
         return isFirstTimeToProcessor_;
     }
@@ -305,8 +315,99 @@ public:
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
+    bool GetResetRotate() const {
+        return resetRotate_;
+    }
+    void SetResetRotate(bool resetRotate) {
+        resetRotate_ = resetRotate;
+    }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
+
+    void SetHDRPresent(bool hdrPresent);
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
+    {
+        return dirtySurfaceNodeMap_;
+    }
+
+    void ClearSurfaceSrcRect()
+    {
+        surfaceSrcRects_.clear();
+    }
+    
+    void ClearSurfaceDstRect()
+    {
+        surfaceDstRects_.clear();
+    }
+    
+    void ClearSurfaceTotalMatrix()
+    {
+        surfaceTotalMatrix_.clear();
+    }
+
+    void SetSurfaceSrcRect(NodeId id, RectI rect)
+    {
+        surfaceSrcRects_[id] = rect;
+    }
+
+    void SetSurfaceDstRect(NodeId id, RectI rect)
+    {
+        surfaceDstRects_[id] = rect;
+    }
+
+    void SetSurfaceTotalMatrix(NodeId id, const Drawing::Matrix& totalMatrix)
+    {
+        surfaceTotalMatrix_[id] = totalMatrix;
+    }
+
+    RectI GetSurfaceSrcRect(NodeId id) const
+    {
+        auto iter = surfaceSrcRects_.find(id);
+        if (iter == surfaceSrcRects_.cend()) {
+            return RectI();
+        }
+
+        return iter->second;
+    }
+
+    RectI GetSurfaceDstRect(NodeId id) const
+    {
+        auto iter = surfaceDstRects_.find(id);
+        if (iter == surfaceDstRects_.cend()) {
+            return RectI();
+        }
+
+        return iter->second;
+    }
+
+    Drawing::Matrix GetSurfaceTotalMatrix(NodeId id) const
+    {
+        auto iter = surfaceTotalMatrix_.find(id);
+        if (iter == surfaceTotalMatrix_.cend()) {
+            return Drawing::Matrix();
+        }
+
+        return iter->second;
+    }
+
+    const std::vector<NodeId>& GetLastSurfaceIds() const {
+        return lastSurfaceIds_;
+    }
+
+    void SetLastSurfaceIds(std::vector<NodeId> lastSurfaceIds) {
+        lastSurfaceIds_ = std::move(lastSurfaceIds);
+    }
+
+    const std::vector<RectI>& GetDamageRegion() const
+    {
+        return damageRegion_;
+    }
+
+    void SetDamageRegion(const std::vector<RectI>& rects)
+    {
+        damageRegion_ = rects;
+    }
 
 protected:
     void OnSync() override;
@@ -327,6 +428,7 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+    bool lastRotationChanged_ = false;
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
@@ -348,15 +450,27 @@ private:
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
     // Use in screen recording optimization
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    bool resetRotate_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
+    
+	// support multiscreen
+    std::map<NodeId, RectI> surfaceSrcRects_;
+    std::map<NodeId, RectI> surfaceDstRects_;
+    std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
+
+    std::vector<NodeId> lastSurfaceIds_;
+    std::vector<RectI> damageRegion_;
 };
 } // namespace Rosen
 } // namespace OHOS

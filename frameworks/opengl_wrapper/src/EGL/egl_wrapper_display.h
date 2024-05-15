@@ -61,6 +61,26 @@ public:
         return disp_;
     };
 
+    inline const char *GetVendorValue() const
+    {
+        return vendorValue_.c_str();
+    }
+
+    inline const char *GetVersionValue() const
+    {
+        return versionValue_.c_str();
+    }
+
+    inline const char *GetClientApiValue() const
+    {
+        return clientApiValue_.c_str();
+    }
+
+    inline const char *GetExtensionValue() const
+    {
+        return extensionValue_.c_str();
+    }
+
     EGLBoolean QueryContext(EGLContext ctx, EGLint attribute, EGLint *value);
     EGLBoolean QuerySurface(EGLSurface surf, EGLint attribute, EGLint *value);
     EGLBoolean SwapBuffers(EGLSurface surf);
@@ -88,10 +108,16 @@ public:
 
     EGLBoolean SwapBuffersWithDamageKHR(EGLSurface draw, EGLint *rects, EGLint nRects);
     EGLBoolean SetDamageRegionKHR(EGLSurface surf, EGLint *rects, EGLint nRects);
-
+    EGLBoolean GetCompositorTimingSupportedANDROID(EGLSurface surface, EGLint name);
+    EGLBoolean GetFrameTimestampSupportedANDROID(EGLSurface surface, EGLint timestamp);
+    EGLBoolean PresentationTimeANDROID(EGLSurface surface, EGLnsecsANDROID time);
+    EGLSurface CreatePlatformWindowSurfaceEXT(EGLConfig config, void *nativeWindow, const EGLint *attribList);
+    EGLSurface CreatePlatformPixmapSurfaceEXT(EGLConfig config, void *nativePixmap, const EGLint *attribList);
+    EGLBoolean SwapBuffersWithDamageEXT(EGLSurface surface, const EGLint *rects, EGLint nRects);
 private:
     EglWrapperDisplay() noexcept;
     ~EglWrapperDisplay();
+    void UpdateQueryValue(EGLint *major, EGLint *minor);
     EGLDisplay GetEglNativeDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
     EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
     bool CheckObject(EglWrapperObject *obj);
@@ -108,9 +134,13 @@ private:
     static EglWrapperDisplay wrapperDisp_;
     EGLDisplay  disp_;
     std::mutex  lockMutex_;
-    std::mutex  refLockMutex_;
+    std::recursive_mutex refLockMutex_;
     std::unordered_set<EglWrapperObject *> objects_;
-    uint32_t    refCnt_;
+    uint32_t refCnt_;
+    std::string versionValue_ {};
+    std::string vendorValue_ {};
+    std::string clientApiValue_ {};
+    std::string extensionValue_ {};
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H

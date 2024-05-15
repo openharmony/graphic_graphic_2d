@@ -19,6 +19,7 @@
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "drawing/engine_adapter/impl_interface/bitmap_impl.h"
+#include "image/yuv_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,6 +57,8 @@ static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
             return Drawing::ColorType::COLORTYPE_ALPHA_8;
         case PixelFormat::RGBA_F16:
             return Drawing::ColorType::COLORTYPE_RGBA_F16;
+        case PixelFormat::RGBA_1010102:
+            return Drawing::ColorType::COLORTYPE_RGBA_1010102;
         case PixelFormat::UNKNOWN:
         case PixelFormat::ARGB_8888:
         case PixelFormat::RGB_888:
@@ -194,6 +197,71 @@ void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixe
         drawingImageInfo, reinterpret_cast<void*>(pixelMap.GetWritablePixels()),
         static_cast<uint32_t>(pixelMap.GetRowBytes()));
     canvas.DrawBitmap(pixelBitmap, px, py);
+}
+
+bool RSPixelMapUtil::IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (!pixelMap) {
+        return false;
+    }
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        return false;
+    }
+#endif
+    ImageInfo imageInfo;
+    pixelMap->GetImageInfo(imageInfo);
+    return imageInfo.pixelFormat == Media::PixelFormat::NV21 || imageInfo.pixelFormat == Media::PixelFormat::NV12;
+}
+
+static Drawing::YUVInfo::PlaneConfig YUVPixelFormatToPlaneConfig(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::NV12:
+            return Drawing::YUVInfo::PlaneConfig::Y_UV;
+        case Media::PixelFormat::NV21:
+            return Drawing::YUVInfo::PlaneConfig::Y_VU;
+        default:
+            return Drawing::YUVInfo::PlaneConfig::UNKNOWN;
+    }
+}
+
+static Drawing::YUVInfo::SubSampling YUVPixelFormatToSubSampling(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::NV21:
+            return Drawing::YUVInfo::SubSampling::K420;
+        default:
+            return Drawing::YUVInfo::SubSampling::UNKNOWN;
+    }
+}
+
+static Drawing::YUVInfo::YUVColorSpace YUVPixelFormatToYUVColorSpace(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::NV21:
+            return Drawing::YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE;
+        default:
+            return Drawing::YUVInfo::YUVColorSpace::IDENTITY_YUVCOLORSPACE;
+    }
+}
+
+std::shared_ptr<Drawing::Image> RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(
+    std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (gpuContext && pixelMap && IsYUVFormat(pixelMap)) {
+        ImageInfo imageInfo;
+        pixelMap->GetImageInfo(imageInfo);
+        Drawing::YUVInfo info(pixelMap->GetWidth(), pixelMap->GetHeight(),
+            YUVPixelFormatToPlaneConfig(imageInfo.pixelFormat),
+            YUVPixelFormatToSubSampling(imageInfo.pixelFormat),
+            YUVPixelFormatToYUVColorSpace(imageInfo.pixelFormat));
+        return Drawing::Image::MakeFromYUVAPixmaps(*gpuContext, info,
+            const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+    }
+    return nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

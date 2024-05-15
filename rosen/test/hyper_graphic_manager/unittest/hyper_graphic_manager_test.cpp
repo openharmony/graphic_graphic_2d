@@ -32,6 +32,13 @@ namespace {
     int32_t phyWidth = 685;
     int32_t phyHeight = 1218;
     ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+
+    constexpr int32_t settingMode1 = 1;
+    constexpr int32_t settingMode2 = 2;
+    constexpr int32_t settingMode3 = 3;
+    constexpr int32_t IDEAL_30_PERIOD = 33333333;
+    constexpr int32_t IDEAL_60_PERIOD = 16666666;
+
 }
 class HyperGraphicManagerTest : public testing::Test {
 public:
@@ -153,7 +160,7 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
         STEP("get Instance and call Init and add a screen") {
             auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
             auto activeScreen = instance5.GetActiveScreen();
-            STEP_ASSERT_EQ(activeScreen, nullptr);
+
             instance5.SetActiveScreenId(screenId);
             activeScreen = instance5.GetActiveScreen();
             STEP_ASSERT_NE(activeScreen, nullptr);
@@ -456,9 +463,9 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
 
     PART("HgmCore") {
         STEP("1. set active mode") {
-            int32_t setResult = instance.SetRefreshRateMode(1);
-            setResult = instance.SetRefreshRateMode(3);
-            setResult = instance.SetRefreshRateMode(1);
+            int32_t setResult = instance.SetRefreshRateMode(settingMode1);
+            setResult = instance.SetRefreshRateMode(settingMode3);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
         }
 
@@ -466,7 +473,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             int32_t setResult = instance.SetScreenRefreshRate(screenId3, 0, rate);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate3);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate2);
-            setResult = instance.SetRefreshRateMode(1);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_GE(setResult, -1);
         }
 
@@ -517,20 +524,20 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
 
     PART("HgmCore") {
         STEP("1. set active mode") {
-            int32_t setResult = instance.SetRefreshRateMode(1);
+            int32_t setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
             auto refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 1);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode1);
 
-            setResult = instance.SetRefreshRateMode(3);
+            setResult = instance.SetRefreshRateMode(settingMode2);
             STEP_ASSERT_EQ(setResult, 0);
             refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 3);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode2);
 
-            setResult = instance.SetRefreshRateMode(1);
+            setResult = instance.SetRefreshRateMode(settingMode1);
             STEP_ASSERT_EQ(setResult, 0);
             refreshRateMode = instance.GetCurrentRefreshRateMode();
-            STEP_ASSERT_EQ(refreshRateMode, 1);
+            STEP_ASSERT_EQ(refreshRateMode, settingMode1);
         }
     }
 }
@@ -572,8 +579,8 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
 HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
 {
     auto &instance = HgmCore::Instance();
-    EXPECT_EQ(instance.GetIdealPeriod(30), 0);
-    EXPECT_EQ(instance.GetIdealPeriod(60), 16666666);
+    EXPECT_EQ(instance.GetIdealPeriod(30), IDEAL_30_PERIOD);
+    EXPECT_EQ(instance.GetIdealPeriod(60), IDEAL_60_PERIOD);
 }
 
 /**

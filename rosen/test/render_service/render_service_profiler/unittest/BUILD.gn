@@ -1,0 +1,209 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic/rosen_engine/render_service_profiler"
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":RSProfilerArchiveTest",
+    ":RSProfilerCaptureDataTest",
+    ":RSProfilerNetworkTest",
+    ":RSProfilerPacketTest",
+    ":RSProfilerSocketTest",
+    ":RSProfilerUtilsTest",
+  ]
+}
+
+###############################################################################
+config("render_test") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+  ]
+}
+
+##############################  RSProfilerArchiveTest  ##################################
+ohos_unittest("RSProfilerArchiveTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_archive_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerCaptureDataTest  ##################################
+ohos_unittest("RSProfilerCaptureDataTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_capturedata_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerNetworkTest  ##################################
+ohos_unittest("RSProfilerNetworkTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_network_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerPacketTest  ##################################
+ohos_unittest("RSProfilerPacketTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_packet_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerSocketTest  ##################################
+ohos_unittest("RSProfilerSocketTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_socket_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerUtilsTest  ##################################
+ohos_unittest("RSProfilerUtilsTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_profiler_utils_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}

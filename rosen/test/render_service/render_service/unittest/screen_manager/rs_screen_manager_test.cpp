@@ -17,7 +17,7 @@
 #include "limit_number.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_interfaces.h"
-#include "../pipeline/mock/mock_hdi_device.h"
+#include "mock_hdi_device.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -27,7 +27,7 @@ napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& c
         CMLOGE("[NAPI]colorSpace is nullptr");
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-            "[NAPI]colorSpace is nullptr"));
+            "BusinessError 401: Parameter error, the value of colorSpace must not be nullptr"));
         return nullptr;
     }
     napi_value object = nullptr;
@@ -36,7 +36,7 @@ napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& c
         CMLOGE("[NAPI]Fail to convert to js object");
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-            "[NAPI]Fail to convert to js object"));
+            "BusinessError 401: Parameter error, the value of env error. Can not create object."));
         napi_get_undefined(env, &object);
         return object;
     }

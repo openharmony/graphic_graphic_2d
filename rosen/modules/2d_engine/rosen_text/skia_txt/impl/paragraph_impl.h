@@ -74,6 +74,8 @@ public:
 
     void Paint(Drawing::Canvas* canvas, double x, double y) override;
 
+    void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) override;
+
     std::vector<TextBox> GetRectsForRange(size_t start, size_t end,
         RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle) override;
 
@@ -85,10 +87,9 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    std::vector<LineMetrics>& GetLineMetrics(std::vector<size_t>& startIndexs) override;
+    std::vector<LineMetrics>& GetLineMetrics() override;
 
-    bool GetLineMetricsAt(
-        int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const override;
+    bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 
     void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc

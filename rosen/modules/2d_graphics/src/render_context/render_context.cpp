@@ -294,8 +294,10 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
             cacheDir_ = UNIRENDER_CACHE_DIR;
         }
         Drawing::GPUContextOptions options;
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+        if (glesVersion != nullptr) {
+            auto size = glesVersion ? strlen(glesVersion) : 0;
+            mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+        }
 
         auto drGPUContext = std::make_shared<Drawing::GPUContext>();
         if (!drGPUContext->BuildFromGL(options)) {

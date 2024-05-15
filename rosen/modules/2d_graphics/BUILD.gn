@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
@@ -48,10 +48,6 @@ config("export_config") {
 
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
-  }
-
-  if (graphic_2d_feature_enable_opinc) {
-    defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 }
 
@@ -201,10 +197,6 @@ template("graphics2d_source_set") {
       defines += [ "ROSEN_EMULATOR" ]
     }
 
-    if (graphic_2d_feature_enable_opinc) {
-      defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
-    }
-
     include_dirs = [
       "$drawing_core_include_dir",
       "$src_dir",
@@ -213,9 +205,7 @@ template("graphics2d_source_set") {
       "$ace_root/frameworks",
       "$rosen_root/modules/render_service_base/include",
       "//third_party/skia/include/core",
-      "//third_party/skia/include/private",
       "//third_party/skia/src/core",
-      "//third_party/skia/src/ports",
       "$rosen_root/modules/texgine/src",
       "$rosen_root/modules/texgine/texgine_drawing/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
@@ -294,7 +284,6 @@ template("graphics2d_source_set") {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]
         include_dirs += [
           "$flutter_root/txt/src",
-          "//third_party/skia/third_party/externals/harfbuzz/src",
           "//",
           root_gen_dir,
         ]
@@ -369,6 +358,11 @@ foreach(item, ace_platforms) {
 if (!is_arkui_x) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
     platform = current_os
     if (platform == "mingw") {
       platform = "windows"
@@ -408,6 +402,11 @@ if (enable_text_gine) {
 
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics_canvaskit0310") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "$drawing_core_src_dir/draw/brush.cpp",
     "$drawing_core_src_dir/draw/color.cpp",

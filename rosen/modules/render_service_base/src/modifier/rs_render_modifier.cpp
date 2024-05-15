@@ -21,7 +21,6 @@
 
 #include "pixel_map.h"
 
-#include "animation/rs_render_particle.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
@@ -229,9 +228,8 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 
 void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto geoPtr = (context.properties_.GetBoundsGeometry());
-    auto property = property_->Get();
-    geoPtr->ConcatMatrix(property);
+    auto& geoPtr = (context.properties_.GetBoundsGeometry());
+    geoPtr->ConcatMatrix(property_->Get());
 }
 
 void RSGeometryTransRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)

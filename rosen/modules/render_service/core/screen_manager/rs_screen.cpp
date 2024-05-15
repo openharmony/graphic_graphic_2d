@@ -639,7 +639,7 @@ void RSScreen::SetScreenBacklight(uint32_t level)
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
-    screenBacklightLevel_ = level;
+    screenBacklightLevel_ = static_cast<int32_t>(level);
 }
 
 int32_t RSScreen::GetScreenBacklight() const

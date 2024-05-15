@@ -78,8 +78,10 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
+    "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
+    "src/animation/rs_particle_noise_field.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interpolating_spring_animation.cpp",
@@ -129,7 +131,6 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
-    "src/common/rs_gpu_dirty_region.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
@@ -170,12 +171,16 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
+    #luminance
+    "src/luminance/rs_luminance_control.cpp",
+
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
     #params
+    "src/params/rs_canvas_drawing_render_params.cpp",
     "src/params/rs_canvas_render_params.cpp",
     "src/params/rs_display_render_params.cpp",
     "src/params/rs_render_params.cpp",
@@ -200,6 +205,8 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_autocache.cpp",
+    "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
     "src/pipeline/rs_single_frame_composer.cpp",
@@ -229,22 +236,29 @@ ohos_source_set("render_service_base_src") {
     "src/drawable/rs_property_drawable_foreground.cpp",
     "src/drawable/rs_property_drawable_utils.cpp",
     "src/drawable/rs_render_node_drawable_adapter.cpp",
+    "src/drawable/rs_render_node_shadow_drawable.cpp",
 
     #render
     "src/render/rs_aibar_filter.cpp",
+    "src/render/rs_aibar_shader_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
+    "src/render/rs_drawing_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
+    "src/render/rs_grey_shader_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
     "src/render/rs_kawase_blur.cpp",
+    "src/render/rs_kawase_blur_shader_filter.cpp",
     "src/render/rs_light_up_effect_filter.cpp",
     "src/render/rs_linear_gradient_blur_filter.cpp",
+    "src/render/rs_linear_gradient_blur_shader_filter.cpp",
     "src/render/rs_mask.cpp",
+    "src/render/rs_maskcolor_shader_filter.cpp",
     "src/render/rs_material_filter.cpp",
     "src/render/rs_motion_blur_filter.cpp",
     "src/render/rs_path.cpp",
@@ -269,6 +283,10 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_props.cpp",
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
+
+    #info_collection
+    "src/info_collection/rs_gpu_dirty_region_collection.cpp",
+    "src/info_collection/rs_layer_compose_collection.cpp",
   ]
 
   if (is_cross_platform) {
@@ -345,9 +363,13 @@ ohos_source_set("render_service_base_src") {
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [
@@ -399,16 +421,25 @@ ohos_source_set("render_service_base_src") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils",
     "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
   ]
 
+  if (is_arkui_x) {
+    include_dirs += [
+      "$graphic_2d_root/utils/color_manager/export",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
+  }
+
   include_dirs += [ "//third_party/skia/src" ]
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
+    "$rosen_root/modules/graphics_effect:libgraphics_effect",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
@@ -417,11 +448,6 @@ ohos_source_set("render_service_base_src") {
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
-
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-    sources += opinc_adapter_opt_set.opinc_src_set
-  }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
@@ -435,6 +461,15 @@ ohos_source_set("render_service_base_src") {
       ":particle_cxx_gen",
       ":particle_cxx_rust",
     ]
+  }
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+    sources += [ "src/render/rs_colorspace_convert.cpp" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
@@ -485,8 +520,13 @@ ohos_source_set("render_service_base_src") {
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_cache.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_settings.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_utils.cpp",
     ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
@@ -535,15 +575,18 @@ ohos_shared_library("librender_service_base") {
 
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
+  public_configs = [ ":render_service_base_all_deps_config" ]
+
   if (enhanced_opt) {
     configs = [ ":render_service_base_link_config" ]
   }
 
-  deps = [ "$rosen_root/modules/platform:eventhandler" ]
-  public_deps = [
-    ":render_service_base_src",
+  deps = [
+    "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
   ]
+
+  public_deps = [ ":render_service_base_src" ]
 
   external_deps = [ "hilog:libhilog" ]
 

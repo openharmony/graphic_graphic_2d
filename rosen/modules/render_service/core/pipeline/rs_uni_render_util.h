@@ -57,8 +57,10 @@ public:
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface, RectF& localBounds);
+    static void SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
+        const sptr<IConsumerSurface>& surface, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-        bool forceCPU, pid_t threadIndex = UNI_RENDER_THREAD_INDEX, bool isRenderThread = false);
+        bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool isRenderThread = false);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
@@ -83,7 +85,7 @@ public:
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     // use floor value of translateX and translateY in matrix of canvas to avoid jittering
-    static void CeilTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
+    static void FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
     static bool IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation);
 #ifdef RS_ENABLE_VK
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -94,9 +96,11 @@ public:
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerScaleDown(RSSurfaceRenderNode& Node);
+    static void LayerScaleFit(RSSurfaceRenderNode& Node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);

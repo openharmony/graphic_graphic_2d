@@ -24,6 +24,7 @@
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
+#include "skia_convert_utils.h"
 #include "skia_image_filter.h"
 #include "skia_path.h"
 #include "skia_image_info.h"
@@ -31,10 +32,8 @@
 #include "skia_text_blob.h"
 #include "skia_surface.h"
 #include "include/effects/SkRuntimeEffect.h"
-// opinc_begin
 #include "skia_canvas_autocache.h"
 #include "skia_oplist_handle.h"
-// opinc_end
 
 #include "draw/core_canvas.h"
 #include "draw/canvas.h"
@@ -113,6 +112,16 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
         return RectI();
     }
     auto iRect = skCanvas_->getDeviceClipBounds();
+    return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
+}
+
+RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
+{
+    if (skCanvas_ == nullptr) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return RectI();
+    }
+    auto iRect = skCanvas_->getRoundInDeviceClipBounds();
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
@@ -205,16 +214,16 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
     if (shape.GetParaNum() > 0) {
         std::vector<float> para = shape.GetPara();
         std::vector<float> para1 = shape.GetTransPara();
-        int num1 = para1.size();
-        int num = para.size();
-        for (int i = 1; i <= num; i++) {
+        uint64_t num1 = para1.size();
+        uint64_t num = para.size();
+        for (uint64_t i = 1; i <= num; i++) {
             char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "para%lu", i);
             builder.uniform(buf) = para[i-1];
         }
-        for (int i = 1; i <= num1; i++) {
+        for (uint64_t i = 1; i <= num1; i++) {
             char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "transpara%lu", i);
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();
@@ -442,6 +451,25 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     }
 }
 
+void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    SkPoint3 point1 = SkPoint3::Make(planeParams.GetX(), planeParams.GetY(), planeParams.GetZ());
+    SkPoint3 point2 = SkPoint3::Make(devLightPos.GetX(), devLightPos.GetY(), devLightPos.GetZ());
+    SkColor color1 = ambientColor.CastToColorQuad();
+    SkColor color2 = spotColor.CastToColorQuad();
+    SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
+    if (skPathImpl != nullptr) {
+        SkShadowUtils::DrawShadowStyle(
+            skCanvas_, skPathImpl->GetPath(), point1, point2, lightRadius, color1, color2, flags, isLimitElevation);
+    }
+}
+
 void SkiaCanvas::DrawColor(ColorQuad color, BlendMode mode)
 {
     if (!skCanvas_) {
@@ -603,49 +631,24 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     skCanvas_->drawImageLattice(img.get(), skLattice, skDst, skFilterMode, paint.get());
 }
 
-// opinc_begin
-bool SkiaCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return false;
-}
-
-Drawing::OpListHandle SkiaCanvas::EndOpRecording()
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return {};
-}
-
-void SkiaCanvas::DrawOpList(Drawing::OpListHandle handle)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return;
-}
-
-int SkiaCanvas::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return -1;
-}
-
 bool SkiaCanvas::OpCalculateBefore(const Matrix& matrix)
 {
     if (!skCanvas_) {
-        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        LOGD("opinc before is null");
         return false;
     }
     if (skiaCanvasOp_ || skCanvasBackup_) {
-        LOGD("PreOpListDrawArea is nested %{public}d", __LINE__);
+        LOGD("opinc PreOpListDrawArea is nested");
         return false;
     }
     auto m = matrix.GetImpl<SkiaMatrix>();
     if (!m) {
-        LOGD("get matrix null, return on line, %{public}d", __LINE__);
+        LOGD("opinc get matrix null");
         return false;
     }
     auto tmp = std::make_shared<SkiaCanvasAutoCache>(skCanvas_);
     if (!tmp) {
-        LOGD("create opinccanvas null, return on line, %{public}d", __LINE__);
+        LOGD("opinc create opinccanvas null");
         return false;
     }
     tmp->Init(m->ExportSkiaMatrix());
@@ -659,13 +662,14 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
 {
     std::shared_ptr<Drawing::OpListHandle> handle = nullptr;
     if (!skCanvas_ || !skiaCanvasOp_) {
-        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        LOGD("opinc after is null");
         return handle;
     }
 
     do {
         auto nodeBound = SkRect::MakeLTRB(bound.GetLeft(), bound.GetTop(), bound.GetRight(), bound.GetBottom());
         if (!skiaCanvasOp_->OpCanCache(nodeBound)) {
+            LOGD("opinc opCanCache false");
             break;
         }
 
@@ -674,6 +678,7 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
         auto& skUnionRect = skiaCanvasOp_->GetOpUnionRect();
         auto& skOpListDrawArea = skiaCanvasOp_->GetOpListDrawArea();
         if (skUnionRect.isEmpty() || opNum == 0 || percent == 0 || skOpListDrawArea.size() == 0) {
+            LOGD("opinc opNum is zero");
             break;
         }
         Drawing::Rect unionRect(skUnionRect.left(), skUnionRect.top(), skUnionRect.right(), skUnionRect.bottom());
@@ -690,7 +695,67 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
     skCanvasBackup_ = nullptr;
     return handle;
 }
-// opinc_end
+
+void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    if (!skCanvas_ || !atlas) {
+        LOGD("skCanvas_ or atlas is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    const int maxCount = 2000; // max count supported is 2000
+    if (count <= 0 || count > maxCount) {
+        LOGD("invalid count for atlas, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    auto skImageImpl = atlas->GetImpl<SkiaImage>();
+    if (skImageImpl == nullptr) {
+        LOGD("skImageImpl is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    sk_sp<SkImage> img = skImageImpl->GetImage();
+    if (img == nullptr) {
+        LOGD("img is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    SkRSXform skRSXform[count];
+    SkRect skTex[count];
+    for (int i = 0; i < count; ++i) {
+        SkiaConvertUtils::DrawingRSXformCastToSkXform(xform[i], skRSXform[i]);
+        SkiaConvertUtils::DrawingRectCastToSkRect(tex[i], skTex[i]);
+    }
+
+    std::vector<SkColor> skColors = {};
+    if (colors != nullptr) {
+        skColors.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skColors[i] = static_cast<SkColor>(colors[i]);
+        }
+    }
+
+    SkSamplingOptions samplingOptions;
+    SkiaConvertUtils::DrawingSamplingCastToSkSampling(sampling, samplingOptions);
+
+    SkRect skCullRect;
+    if (cullRect != nullptr) {
+        SkiaConvertUtils::DrawingRectCastToSkRect(*cullRect, skCullRect);
+    }
+
+    SortedPaints& paints = skiaPaint_.GetSortedPaints();
+    if (paints.count_ == 0) {
+        skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,
+            static_cast<SkBlendMode>(mode), samplingOptions, cullRect ? &skCullRect : nullptr, nullptr);
+        return;
+    }
+
+    for (int i = 0; i < paints.count_; i++) {
+        const SkPaint* paint = paints.paints_[i];
+        skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,
+            static_cast<SkBlendMode>(mode), samplingOptions, cullRect ? &skCullRect : nullptr, paint);
+    }
+}
 
 void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
@@ -1237,6 +1302,29 @@ void SkiaCanvas::Reset(int32_t width, int32_t height)
 {
     SkNoDrawCanvas* noDraw = reinterpret_cast<SkNoDrawCanvas*>(skCanvas_);
     noDraw->resetCanvas(width, height);
+}
+
+bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams)
+{
+    auto skImageImpl = image.GetImpl<SkiaImage>();
+    if (skImageImpl == nullptr) {
+        LOGE("skImageImpl is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+
+    sk_sp<SkImage> img = skImageImpl->GetImage();
+    if (img == nullptr) {
+        LOGE("img is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+
+    SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
+        blurParams.src.GetRight(), blurParams.src.GetBottom());
+    SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
+        blurParams.dst.GetRight(), blurParams.dst.GetBottom());
+
+    SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
+    return skCanvas_->drawBlurImage(img.get(), blurArg);
 }
 } // namespace Drawing
 } // namespace Rosen

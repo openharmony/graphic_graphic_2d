@@ -27,122 +27,128 @@ namespace Rosen {
 //    b. g_propertyToDrawableLut in rs_drawable_content.cpp
 // 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, else wise it will not work
 enum class RSModifierType : int16_t {
-    INVALID = 0,                   // 0
-    BOUNDS,                        // 1
-    FRAME,                         // 2
-    POSITION_Z,                    // 3
-    PIVOT,                         // 4
-    PIVOT_Z,                       // 5
-    QUATERNION,                    // 6
-    ROTATION,                      // 7
-    ROTATION_X,                    // 8
-    ROTATION_Y,                    // 9
-    CAMERA_DISTANCE,               // 10
-    SCALE,                         // 11
-    SKEW,                          // 12
-    PERSP,                         // 13
-    TRANSLATE,                     // 14
-    TRANSLATE_Z,                   // 15
-    SUBLAYER_TRANSFORM,            // 16
-    CORNER_RADIUS,                 // 17
-    ALPHA,                         // 18
-    ALPHA_OFFSCREEN,               // 19
-    FOREGROUND_COLOR,              // 20
-    BACKGROUND_COLOR,              // 21
-    BACKGROUND_SHADER,             // 22
-    BG_IMAGE,                      // 23
-    BG_IMAGE_INNER_RECT,           // 24
-    BG_IMAGE_WIDTH,                // 25
-    BG_IMAGE_HEIGHT,               // 26
-    BG_IMAGE_POSITION_X,           // 27
-    BG_IMAGE_POSITION_Y,           // 28
-    SURFACE_BG_COLOR,              // 29
-    BORDER_COLOR,                  // 30
-    BORDER_WIDTH,                  // 31
-    BORDER_STYLE,                  // 32
-    FILTER,                        // 33
-    BACKGROUND_FILTER,             // 34
-    LINEAR_GRADIENT_BLUR_PARA,     // 35
-    DYNAMIC_LIGHT_UP_RATE,         // 36
-    DYNAMIC_LIGHT_UP_DEGREE,       // 37
-    FRAME_GRAVITY,                 // 38
-    CLIP_RRECT,                    // 39
-    CLIP_BOUNDS,                   // 40
-    CLIP_TO_BOUNDS,                // 41
-    CLIP_TO_FRAME,                 // 42
-    VISIBLE,                       // 43
-    SHADOW_COLOR,                  // 44
-    SHADOW_OFFSET_X,               // 45
-    SHADOW_OFFSET_Y,               // 46
-    SHADOW_ALPHA,                  // 47
-    SHADOW_ELEVATION,              // 48
-    SHADOW_RADIUS,                 // 49
-    SHADOW_PATH,                   // 50
-    SHADOW_MASK,                   // 51
-    SHADOW_COLOR_STRATEGY,         // 52
-    MASK,                          // 53
-    SPHERIZE,                      // 54
-    LIGHT_UP_EFFECT,               // 55
-    PIXEL_STRETCH,                 // 56
-    PIXEL_STRETCH_PERCENT,         // 57
-    USE_EFFECT,                    // 58
-    COLOR_BLEND_MODE,              // 59
-    COLOR_BLEND_APPLY_TYPE,        // 60
-    SANDBOX,                       // 61
-    GRAY_SCALE,                    // 62
-    BRIGHTNESS,                    // 63
-    CONTRAST,                      // 64
-    SATURATE,                      // 65
-    SEPIA,                         // 66
-    INVERT,                        // 67
-    AIINVERT,                      // 68
-    SYSTEMBAREFFECT,               // 69
-    HUE_ROTATE,                    // 70
-    COLOR_BLEND,                   // 71
-    PARTICLE,                      // 72
-    SHADOW_IS_FILLED,              // 73
-    OUTLINE_COLOR,                 // 74
-    OUTLINE_WIDTH,                 // 75
-    OUTLINE_STYLE,                 // 76
-    OUTLINE_RADIUS,                // 77
-    USE_SHADOW_BATCHING,           // 78
-    GREY_COEF,                     // 79
-    LIGHT_INTENSITY,               // 80
-    LIGHT_COLOR,                   // 81
-    LIGHT_POSITION,                // 82
-    ILLUMINATED_BORDER_WIDTH,      // 83
-    ILLUMINATED_TYPE,              // 84
-    BLOOM,                         // 85
-    PARTICLE_EMITTER_UPDATER,      // 86
-    FOREGROUND_EFFECT_RADIUS,      // 87
-    MOTION_BLUR_PARA,              // 88
-    DYNAMIC_DIM_DEGREE,            // 89
-    BACKGROUND_BLUR_RADIUS,        // 90
-    BACKGROUND_BLUR_SATURATION,    // 91
-    BACKGROUND_BLUR_BRIGHTNESS,    // 92
-    BACKGROUND_BLUR_MASK_COLOR,    // 93
-    BACKGROUND_BLUR_COLOR_MODE,    // 94
-    BACKGROUND_BLUR_RADIUS_X,      // 95
-    BACKGROUND_BLUR_RADIUS_Y,      // 96
-    FOREGROUND_BLUR_RADIUS,        // 97
-    FOREGROUND_BLUR_SATURATION,    // 98
-    FOREGROUND_BLUR_BRIGHTNESS,    // 99
-    FOREGROUND_BLUR_MASK_COLOR,    // 100
-    FOREGROUND_BLUR_COLOR_MODE,    // 101
-    FOREGROUND_BLUR_RADIUS_X,      // 102
-    FOREGROUND_BLUR_RADIUS_Y,      // 103
-    CUSTOM,                        // 104
-    EXTENDED,                      // 105
-    TRANSITION,                    // 106
-    BACKGROUND_STYLE,              // 107
-    CONTENT_STYLE,                 // 108
-    FOREGROUND_STYLE,              // 109
-    OVERLAY_STYLE,                 // 110
-    NODE_MODIFIER,                 // 111
-    ENV_FOREGROUND_COLOR,          // 112
-    ENV_FOREGROUND_COLOR_STRATEGY, // 113
-    GEOMETRYTRANS,                 // 114
-    CHILDREN,                      // 115, PLACEHOLDER, no such modifier, but we need a dirty flag
+    INVALID = 0,
+    BOUNDS,
+    FRAME,
+    POSITION_Z,
+    PIVOT,
+    PIVOT_Z,
+    QUATERNION,
+    ROTATION,
+    ROTATION_X,
+    ROTATION_Y,
+    CAMERA_DISTANCE,
+    SCALE,
+    SKEW,
+    PERSP,
+    TRANSLATE,
+    TRANSLATE_Z,
+    SUBLAYER_TRANSFORM,
+    CORNER_RADIUS,
+    ALPHA,
+    ALPHA_OFFSCREEN,
+    FOREGROUND_COLOR,
+    BACKGROUND_COLOR,
+    BACKGROUND_SHADER,
+    BG_IMAGE,
+    BG_IMAGE_INNER_RECT,
+    BG_IMAGE_WIDTH,
+    BG_IMAGE_HEIGHT,
+    BG_IMAGE_POSITION_X,
+    BG_IMAGE_POSITION_Y,
+    SURFACE_BG_COLOR,
+    BORDER_COLOR,
+    BORDER_WIDTH,
+    BORDER_STYLE,
+    FILTER,
+    BACKGROUND_FILTER,
+    LINEAR_GRADIENT_BLUR_PARA,
+    DYNAMIC_LIGHT_UP_RATE,
+    DYNAMIC_LIGHT_UP_DEGREE,
+    FG_BRIGHTNESS_PARAMS,
+    FG_BRIGHTNESS_FRACTION,
+    BG_BRIGHTNESS_PARAMS,
+    BG_BRIGHTNESS_FRACTION,
+    FRAME_GRAVITY,
+    CLIP_RRECT,
+    CLIP_BOUNDS,
+    CLIP_TO_BOUNDS,
+    CLIP_TO_FRAME,
+    VISIBLE,
+    SHADOW_COLOR,
+    SHADOW_OFFSET_X,
+    SHADOW_OFFSET_Y,
+    SHADOW_ALPHA,
+    SHADOW_ELEVATION,
+    SHADOW_RADIUS,
+    SHADOW_PATH,
+    SHADOW_MASK,
+    SHADOW_COLOR_STRATEGY,
+    MASK,
+    SPHERIZE,
+    LIGHT_UP_EFFECT,
+    PIXEL_STRETCH,
+    PIXEL_STRETCH_PERCENT,
+    PIXEL_STRETCH_TILE_MODE,
+    USE_EFFECT,
+    COLOR_BLEND_MODE,
+    COLOR_BLEND_APPLY_TYPE,
+    SANDBOX,
+    GRAY_SCALE,
+    BRIGHTNESS,
+    CONTRAST,
+    SATURATE,
+    SEPIA,
+    INVERT,
+    AIINVERT,
+    SYSTEMBAREFFECT,
+    HUE_ROTATE,
+    COLOR_BLEND,
+    PARTICLE,
+    SHADOW_IS_FILLED,
+    OUTLINE_COLOR,
+    OUTLINE_WIDTH,
+    OUTLINE_STYLE,
+    OUTLINE_RADIUS,
+    USE_SHADOW_BATCHING,
+    GREY_COEF,
+    LIGHT_INTENSITY,
+    LIGHT_COLOR,
+    LIGHT_POSITION,
+    ILLUMINATED_BORDER_WIDTH,
+    ILLUMINATED_TYPE,
+    BLOOM,
+    PARTICLE_EMITTER_UPDATER,
+    PARTICLE_NOISE_FIELD,
+    FOREGROUND_EFFECT_RADIUS,
+    MOTION_BLUR_PARA,
+    DYNAMIC_DIM_DEGREE,
+    BACKGROUND_BLUR_RADIUS,
+    BACKGROUND_BLUR_SATURATION,
+    BACKGROUND_BLUR_BRIGHTNESS,
+    BACKGROUND_BLUR_MASK_COLOR,
+    BACKGROUND_BLUR_COLOR_MODE,
+    BACKGROUND_BLUR_RADIUS_X,
+    BACKGROUND_BLUR_RADIUS_Y,
+    FOREGROUND_BLUR_RADIUS,
+    FOREGROUND_BLUR_SATURATION,
+    FOREGROUND_BLUR_BRIGHTNESS,
+    FOREGROUND_BLUR_MASK_COLOR,
+    FOREGROUND_BLUR_COLOR_MODE,
+    FOREGROUND_BLUR_RADIUS_X,
+    FOREGROUND_BLUR_RADIUS_Y,
+    CUSTOM,
+    EXTENDED,
+    TRANSITION,
+    BACKGROUND_STYLE,
+    CONTENT_STYLE,
+    FOREGROUND_STYLE,
+    OVERLAY_STYLE,
+    NODE_MODIFIER,
+    ENV_FOREGROUND_COLOR,
+    ENV_FOREGROUND_COLOR_STRATEGY,
+    GEOMETRYTRANS,
+    CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;

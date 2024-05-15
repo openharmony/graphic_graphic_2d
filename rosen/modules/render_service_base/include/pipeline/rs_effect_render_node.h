@@ -37,6 +37,11 @@ public:
         return false;
     }
 
+    bool OpincGetNodeSupportFlag() override
+    {
+        return false;
+    }
+
     explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     ~RSEffectRenderNode() override;
@@ -46,6 +51,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
     // record if there is filter cache for occlusion before this effect node
@@ -77,10 +83,9 @@ public:
 
 protected:
     RectI GetFilterRect() const override;
-    void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect, bool isForeground = false) override;
-    void MarkFilterCacheFlagsAfterPrepare(
-        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false) override;
+    void UpdateFilterCacheWithSelfDirty() override;
+    void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        RSDirtyRegionManager& dirtyManager, bool isForeground = false) override;
 
 private:
     bool isVisitedOcclusionFilterCacheEmpty_ = true;

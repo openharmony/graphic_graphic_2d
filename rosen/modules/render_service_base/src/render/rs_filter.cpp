@@ -28,9 +28,6 @@ RSFilter::RSFilter()
 
 RSFilter::~RSFilter() {}
 
-std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> RSFilter::postTask = nullptr;
-std::function<void()> RSFilter::clearGpuContext = nullptr;
-
 std::string RSFilter::GetDescription()
 {
     return "RSFilter " + std::to_string(type_);
@@ -61,6 +58,12 @@ std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(float radius, float sat
 std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegree)
 {
     return std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+}
+
+float RSFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
+{
+    float radiusPx = radiusVp * dipScale;
+    return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + 0.5f : 0.0f;
 }
 
 std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs, const std::shared_ptr<RSFilter>& rhs)

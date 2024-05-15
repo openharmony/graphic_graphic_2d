@@ -166,7 +166,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
     BufferRequestConfig config = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true,
-        colorGamut, pixelFormat);
+        false, colorGamut, pixelFormat);
     ASSERT_EQ(static_cast<int32_t>(screenInfo.width), config.width);
     ASSERT_EQ(colorGamut, config.colorGamut);
     ASSERT_EQ(pixelFormat, config.format);
@@ -212,7 +212,81 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true));
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_002
+ * @tc.desc: Test ConsumeAndUpdateBuffer while buffer not satisfy consume time
+ * @tc.type: FUNC
+ * @tc.require: issueI9J3IQ
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    flushConfig.timestamp = 100; // this timestamp can be any nunmber
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
+    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+    ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_003
+ * @tc.desc: Test ConsumeAndUpdateBuffer while buffer satisfy consume time
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    flushConfig.timestamp = 100; // this timestamp can be any nunmber
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    uint64_t vsyncTimestamp = 200; // let vync's timestamp bigger than buffer timestamp
+    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+    ASSERT_EQ(surfaceHandler.bufferCache_.size(), 0);
 }
 
 /*
@@ -1155,4 +1229,24 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmapTest, TestSize.Level2)
     Drawing::Bitmap bitmap;
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
+
+/*
+ * @tc.name: GetAccumulatedBufferCount_001
+ * @tc.desc: Test GetAccumulatedBufferCount with increase and decrease the value of BufferCount
+ * @tc.type: FUNC
+ * @tc.require: issueI9OKU5
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
+{
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    ASSERT_GT(RSBaseRenderUtil::GetAccumulatedBufferCount(), 0);
+
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+}
+
 } // namespace OHOS::Rosen

@@ -65,14 +65,14 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
             return isUniRender_;
         }
 
-        bool GetHasingSecurityOrSkipLayer() const
+        bool GetHasingSecurityOrSkipOrProtectedLayer() const
         {
-            return hasSecurityOrSkipLayer_;
+            return hasSecurityOrSkipOrProtectedLayer_;
         }
 
-        void SetHasingSecurityOrSkipLayer(const bool &hasSecurityOrSkipLayer)
+        void SetHasingSecurityOrSkipOrProtectedLayer(const bool &hasSecurityOrSkipOrProtectedLayer)
         {
-            hasSecurityOrSkipLayer_ = hasSecurityOrSkipLayer;
+            hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
         }
 
     private:
@@ -100,7 +100,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
-        bool hasSecurityOrSkipLayer_ = false;
+        bool hasSecurityOrSkipOrProtectedLayer_ = false;
         bool isUIFirst_ = false;
         std::unordered_set<NodeId> curCacheFilterRects_ = {};
 
@@ -131,9 +131,9 @@ private:
         bool isUniRender = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
-        bool isUniRender = false, bool hasSecurityOrSkipLayer = false);
+        bool isUniRender = false, bool hasSecurityOrSkipOrProtectedLayer = false);
 
-    bool FindSecurityOrSkipLayer();
+    bool FindSecurityOrSkipOrProtectedLayer();
 
     // It is currently only used on folding screen.
     int32_t ScreenCorrection(ScreenRotation screenRotation);

@@ -24,8 +24,8 @@ class RSCanvasListener;
 
 class RSB_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
 public:
-    RSListenedCanvas(Drawing::Canvas& canvas, float alpha = 1.0f);
-    RSListenedCanvas(Drawing::Surface& surface, float alpha = 1.0f);
+    RSListenedCanvas(Drawing::Canvas& canvas);
+    RSListenedCanvas(Drawing::Surface& surface);
 
     void SetListener(const std::shared_ptr<RSCanvasListener>& listener);
     // shapes
@@ -43,6 +43,9 @@ public:
     void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
+    void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
+        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 

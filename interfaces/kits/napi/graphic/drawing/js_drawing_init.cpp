@@ -21,8 +21,12 @@
 #include "enum_napi/js_enum.h"
 #include "font_napi/js_font.h"
 #include "font_napi/js_typeface.h"
+#include "mask_filter_napi/js_mask_filter.h"
+#include "path_effect_napi/js_path_effect.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
+#include "sampling_options_napi/js_sampling_options.h"
+#include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
 
 namespace OHOS::Rosen {
@@ -38,6 +42,10 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsTextBlob::Init(env, exportObj);
     JsPen::Init(env, exportObj);
     JsBrush::Init(env, exportObj);
+    JsSamplingOptions::Init(env, exportObj);
+    JsMaskFilter::Init(env, exportObj);
+    JsPathEffect::Init(env, exportObj);
+    JsShadowLayer::Init(env, exportObj);
     return exportObj;
 }
 } // namespace Drawing

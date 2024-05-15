@@ -40,9 +40,10 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_IMAGE_PTR,
     UPDATE_MODIFIER_MASK_PTR,
     UPDATE_MODIFIER_PATH_PTR,
+    UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
     UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
-    UPDATE_MODIFIER_MOTION_BLUR_PTR,
     UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+    UPDATE_MODIFIER_NOISE_FIELD_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
@@ -62,8 +63,10 @@ enum RSNodeCommandType : uint16_t {
 
     MARK_NODE_GROUP,
     MARK_NODE_SINGLE_FRAME_COMPOSER,
+    MARK_SUGGEST_OPINC_NODE,
 
     SET_NODE_NAME,
+    UPDATE_MODIFIER_MOTION_BLUR_PTR,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -124,6 +127,7 @@ public:
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
+    static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
@@ -171,6 +175,10 @@ ADD_COMMAND(RSUpdatePropertyMask,
 ADD_COMMAND(RSUpdatePropertyPath,
     ARG(RS_NODE, UPDATE_MODIFIER_PATH_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyDynamicBrightness,
+    ARG(RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
+        RSNodeCommandHelper::UpdateModifier<RSDynamicBrightnessPara>,
+        NodeId, RSDynamicBrightnessPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
@@ -181,8 +189,12 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<EmitterUpdater>>,
-        NodeId, std::shared_ptr<EmitterUpdater>, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
+        NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
+    ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,
+        NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))
@@ -217,6 +229,8 @@ ADD_COMMAND(RSMarkNodeGroup,
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer,
         NodeId, bool, pid_t))
+ADD_COMMAND(RSMarkSuggestOpincNode,
+    ARG(RS_NODE, MARK_SUGGEST_OPINC_NODE, RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,

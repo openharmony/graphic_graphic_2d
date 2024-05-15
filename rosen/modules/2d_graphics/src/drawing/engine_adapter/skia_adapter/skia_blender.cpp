@@ -29,6 +29,17 @@ void SkiaBlender::SetSkBlender(const sk_sp<SkBlender>& skBlender)
 {
     blender_ = skBlender;
 }
+
+std::shared_ptr<Blender> SkiaBlender::CreateWithBlendMode(BlendMode mode)
+{
+    sk_sp<SkBlender> skBlender = SkBlender::Mode(static_cast<SkBlendMode>(mode));
+    if (!skBlender) {
+        return nullptr;
+    }
+    auto blender = std::make_shared<Blender>();
+    blender->GetImpl<SkiaBlender>()->SetSkBlender(skBlender);
+    return blender;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -19,9 +19,9 @@
 #include "hgm_command.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "luminance/rs_luminance_control.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
-#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
@@ -37,8 +37,10 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
+#include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -251,8 +253,12 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    mainThread_->RecvRSTransactionData(transactionData);
+    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
+    if (isProcessBySingleFrame) {
+        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
+    } else {
+        mainThread_->RecvRSTransactionData(transactionData);
+    }
 }
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
@@ -355,6 +361,22 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         return nullptr;
     }
     return conn;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    OHOS::Media::Rect rect = {
+        .left = srcRect.x,
+        .top = srcRect.y,
+        .width = srcRect.w,
+        .height = srcRect.h,
+    };
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    RSBackgroundThread::Instance().PostSyncTask([this, surface, rect, &pixelmap]() {
+        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    });
+    return pixelmap;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
@@ -474,7 +496,8 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
+void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
+    const FrameRateRange& range, bool isAnimatorStopped)
 {
     mainThread_->ScheduleTask([=]() {
         auto& context = mainThread_->GetContext();
@@ -485,6 +508,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id, const F
             return;
         }
         linker->SetExpectedRange(range);
+        linker->SetAnimationIdle(isAnimatorStopped);
     }).wait();
 }
 
@@ -759,6 +783,11 @@ int32_t RSRenderServiceConnection::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 {
+    RSLuminanceControl::Get().SetSdrLuminance(id, level);
+    if (RSLuminanceControl::Get().IsHdrOn(id) && level > 0) {
+        return;
+    }
+
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
@@ -1070,6 +1099,9 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
+        if (!renderThread_.IsIdle()) {
+            return false;
+        }
         renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
@@ -1226,9 +1258,13 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
 }
 
-void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(touchStatus);
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
+        return;
+    }
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(touchStatus, touchCnt);
 }
 
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
@@ -1237,6 +1273,7 @@ void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
         RSJankStats::GetInstance().SetReportEventResponse(info);
     };
     renderThread_.PostTask(task);
+    RSUifirstManager::Instance().OnProcessEventResponse(info);
 }
 
 void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
@@ -1245,6 +1282,7 @@ void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
         RSJankStats::GetInstance().SetReportEventComplete(info);
     };
     renderThread_.PostTask(task);
+    RSUifirstManager::Instance().OnProcessEventComplete(info);
 }
 
 void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
@@ -1282,11 +1320,25 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
-GpuDirtyRegionInfo RSRenderServiceConnection::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
-    GpuDirtyRegionInfo gpuDirtyRegionInfo = GpuDirtyRegion::GetInstance().GetGpuDirtyRegionInfo(id);
-    GpuDirtyRegion::GetInstance().ResetDirtyRegionInfo();
-    return gpuDirtyRegionInfo;
+    const auto& activeDirtyRegionInfos = GpuDirtyRegionCollection::GetInstance().GetActiveDirtyRegionInfo();
+    GpuDirtyRegionCollection::GetInstance().ResetActiveDirtyRegionInfo();
+    return activeDirtyRegionInfos;
+}
+
+GlobalDirtyRegionInfo RSRenderServiceConnection::GetGlobalDirtyRegionInfo()
+{
+    const auto& globalDirtyRegionInfo = GpuDirtyRegionCollection::GetInstance().GetGlobalDirtyRegionInfo();
+    GpuDirtyRegionCollection::GetInstance().ResetGlobalDirtyRegionInfo();
+    return globalDirtyRegionInfo;
+}
+
+LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
+{
+    const auto& layerComposeInfo = LayerComposeCollection::GetInstance().GetLayerComposeInfo();
+    LayerComposeCollection::GetInstance().ResetLayerComposeInfo();
+    return layerComposeInfo;
 }
 
 #ifdef TP_FEATURE_ENABLE
@@ -1314,15 +1366,6 @@ void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreen
     }
     return;
 }
-
-#ifdef RS_PROFILER_ENABLED
-int RSRenderServiceConnection::OnRemoteRequest(
-    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
-{
-    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
-    return RSRenderServiceConnectionStub::OnRemoteRequest(code, data, reply, option);
-}
-#endif
 
 void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {

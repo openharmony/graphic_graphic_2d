@@ -14,13 +14,16 @@
  */
 #include <parameter.h>
 #include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "rs_test_util.h"
+
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_test_util.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -37,6 +40,8 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
+constexpr int32_t INVALID_VALUE = -1;
+constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -329,7 +334,32 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str, 0);
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, 0);
+}
+
+/**
+ * @tc.name: SetFocusAppInfo002
+ * @tc.desc: Test SetFocusAppInfo while change focus node
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto oldFocusNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto newFocusNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    mainThread->focusNodeId_ = oldFocusNode->GetId();
+
+    std::string str = "";
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, newFocusNode->GetId());
+    ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
 
 /**
@@ -353,13 +383,14 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->MarkNeedSync();
     rsTransactionData->SetSyncId(0);
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 
     // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
 
 /**
@@ -548,6 +579,112 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus02, TestSize
     mainThread->CheckAndUpdateInstanceContentStaticStatus(node);
     ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
 }
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest001
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when TransactionData is null
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+    transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest002
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when SingleFrameComposer enabled by app process
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    ASSERT_TRUE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest003
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when animation node exists
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    
+    NodeId id = 1;
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    mainThread->context_->RegisterAnimatingRenderNode(node);
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest004
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when multi-window shown on screen
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    
+    NodeId firstWindowNodeId = 2;
+    auto firstWindowNode = std::make_shared<RSSurfaceRenderNode>(firstWindowNodeId, mainThread->context_);
+    firstWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    NodeId firstWindowChildNodeId = 3;
+    auto firstWindowChildNode = std::make_shared<RSSurfaceRenderNode>(firstWindowChildNodeId, mainThread->context_);
+    firstWindowChildNode->MarkUIHidden(false);
+    firstWindowNode->AddChild(firstWindowChildNode);
+    firstWindowNode->GenerateFullChildrenList();
+    mainThread->context_->nodeMap.RegisterRenderNode(firstWindowNode);
+    
+    NodeId secondWindowNodeId = 2;
+    auto secondWindowNode = std::make_shared<RSSurfaceRenderNode>(secondWindowNodeId, mainThread->context_);
+    secondWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    NodeId secondWindowChildNodeId = 3;
+    auto secondWindowChildNode = std::make_shared<RSSurfaceRenderNode>(secondWindowChildNodeId, mainThread->context_);
+    secondWindowChildNode->MarkUIHidden(false);
+    secondWindowNode->AddChild(secondWindowChildNode);
+    secondWindowNode->GenerateFullChildrenList();
+    mainThread->context_->nodeMap.RegisterRenderNode(secondWindowNode);
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: RecvAndProcessRSTransactionDataImmediatelyTest
+ * @tc.desc: Test ecvAndProcessRSTransactionDataImmediately when transactionData is null
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, RecvAndProcessRSTransactionDataImmediatelyTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    mainThread->RecvAndProcessRSTransactionDataImmediately(transactionData);
+    ASSERT_EQ(transactionData, nullptr);
+}
+
 
 /**
  * @tc.name: RecvRSTransactionData
@@ -759,6 +896,7 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId003, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(node, nullptr);
 
+    ASSERT_NE(mainThread->context_, nullptr);
     mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, node->GetId());
@@ -1252,6 +1390,9 @@ HWTEST_F(RSMainThreadTest, UniRender001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -1259,6 +1400,8 @@ HWTEST_F(RSMainThreadTest, UniRender001, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->UniRender(rootNode);
 }
 
@@ -1272,6 +1415,9 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -1284,16 +1430,21 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     bool isDirty = mainThread->isDirty_;
     bool isAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
     bool isCachedSurfaceUpdated = mainThread->isCachedSurfaceUpdated_;
+    bool isHardwareEnabledBufferUpdated = mainThread->isHardwareEnabledBufferUpdated_;
     mainThread->doDirectComposition_ = true;
     mainThread->isDirty_ = false;
     mainThread->isAccessibilityConfigChanged_ = false;
     mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->UniRender(rootNode);
     // status recover
     mainThread->doDirectComposition_ = doDirectComposition;
     mainThread->isDirty_ = isDirty;
     mainThread->isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
     mainThread->isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
+    mainThread->isHardwareEnabledBufferUpdated_ = isHardwareEnabledBufferUpdated;
 }
 
 /**
@@ -1306,11 +1457,21 @@ HWTEST_F(RSMainThreadTest, Render, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rootNode->AddChild(childDisplayNode);
     bool isUniRender = mainThread->isUniRender_;
     mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
     mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
     // uni render
     mainThread->isUniRender_ = true;
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->Render();
     mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
@@ -1416,14 +1577,18 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 0;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayNodeId, config, mainThread->context_);
+
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    NodeId surfaceNodeId = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId, mainThread->context_);
     curAllSurfaces.emplace_back(nullptr);
-    curAllSurfaces.emplace_back(node);
+    curAllSurfaces.emplace_back(surfaceNode);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(displayNode, curAllSurfaces, dstCurVisVec, dstPidVisMap);
 }
 
 /**
@@ -2707,7 +2872,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
@@ -2744,7 +2909,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 2);
@@ -2781,7 +2946,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
@@ -2819,7 +2984,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
@@ -2859,10 +3024,283 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
     ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId001
+ * @tc.desc: UpdateDisplayNodeScreenId, when rootnode is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->globalRootRenderNode_ = nullptr;
+    mainThread->UpdateDisplayNodeScreenId();
+    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId002
+ * @tc.desc: UpdateDisplayNodeScreenId, root node has no child display node.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    NodeId id = 1;
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id);
+    mainThread->UpdateDisplayNodeScreenId();
+    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+}
+
+/**
+ * @tc.name: UpdateDisplayNodeScreenId003
+ * @tc.desc: UpdateDisplayNodeScreenId, root node has one child display node.
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(rootId);
+    RSDisplayNodeConfig config;
+    NodeId displayId = 1;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    uint64_t screenId = 1;
+    displayNode->SetScreenId(screenId);
+    mainThread->context_->globalRootRenderNode_->AddChild(displayNode);
+    ASSERT_FALSE(mainThread->context_->globalRootRenderNode_->children_.empty());
+    mainThread->UpdateDisplayNodeScreenId();
+}
+
+/**
+ * @tc.name: ProcessScreenHotPlugEvents
+ * @tc.desc: Test ProcessScreenHotPlugEvents
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessScreenHotPlugEvents();
+}
+
+/**
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    mainThread->systemAnimatedScenesList_.clear();
+    mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
+}
+
+/**
+ * @tc.name: CheckSystemSceneStatus001
+ * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::APPEAR_MISSION_CENTER);
+    mainThread->CheckSystemSceneStatus();
+}
+
+/**
+ * @tc.name: CheckSystemSceneStatus002
+ * @tc.desc: Test CheckSystemSceneStatus, ENTER_TFS_WINDOW
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_TFS_WINDOW);
+    mainThread->CheckSystemSceneStatus();
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    mainThread->DoDirectComposition(rootNode, false);
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange001
+ * @tc.desc: test UpdateNeedDrawFocusChange while node don't has parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_TRUE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange002
+ * @tc.desc: test UpdateNeedDrawFocusChange while node's parent isn't leash window
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->AddChild(node);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_TRUE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateNeedDrawFocusChange003
+ * @tc.desc: test UpdateNeedDrawFocusChange while node's parent is leash window
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->AddChild(node);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    mainThread->UpdateNeedDrawFocusChange(id);
+    ASSERT_FALSE(node->GetNeedDrawFocusChange());
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId001
+ * @tc.desc: test UpdateFocusNodeId while focusNodeId don't change
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->focusNodeId_ = id;
+    mainThread->UpdateFocusNodeId(id);
+    ASSERT_EQ(mainThread->GetFocusNodeId(), id);
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId002
+ * @tc.desc: test UpdateFocusNodeId while newfocusNodeId is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    mainThread->focusNodeId_ = id;
+    mainThread->UpdateFocusNodeId(INVALID_NODEID);
+    ASSERT_EQ(mainThread->GetFocusNodeId(), id);
+}
+
+/**
+ * @tc.name: UpdateFocusNodeId003
+ * @tc.desc: test UpdateFocusNodeId while focus node change
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, UpdateFocusNodeId003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto oldFocusNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto newFocusNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    ASSERT_NE(oldFocusNode, nullptr);
+    ASSERT_NE(newFocusNode, nullptr);
+
+    mainThread->context_->nodeMap.renderNodeMap_[oldFocusNode->GetId()] = oldFocusNode;
+    mainThread->context_->nodeMap.renderNodeMap_[newFocusNode->GetId()] = newFocusNode;
+    mainThread->focusNodeId_ = oldFocusNode->GetId();
+    mainThread->UpdateFocusNodeId(newFocusNode->GetId());
+    ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
 } // namespace OHOS::Rosen

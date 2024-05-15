@@ -93,4 +93,189 @@ HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
     RSColor ohterColor2(red2, green, blue, alpha);
     EXPECT_FALSE(color.IsNearEqual(ohterColor2, threshold));
 }
+
+/**
+ * @tc.name: RSColorCreateTest
+ * @tc.desc: Verify function RSColor
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, RSColorCreateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSColor> color;
+    color = std::make_shared<RSColor>();
+    EXPECT_FALSE(color == nullptr);
+    color = std::make_shared<RSColor>(0);
+    EXPECT_FALSE(color == nullptr);
+    // for test
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    color = std::make_shared<RSColor>(red, green, blue);
+    EXPECT_FALSE(color == nullptr);
+}
+
+/**
+ * @tc.name: operatorTest002
+ * @tc.desc: Verify function operator== operator+ operator- operator* operator*=
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, operatorTest002, TestSize.Level1)
+{
+    // for test
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha = 13;
+    RSColor color(red, green, blue, alpha);
+    RSColor colorTest;
+    float scale = 0;
+    EXPECT_FALSE(color == colorTest);
+    EXPECT_TRUE(color == (color + colorTest));
+    EXPECT_TRUE(color == (color - colorTest));
+    EXPECT_FALSE(color == (color * scale));
+    EXPECT_TRUE(color == (color *= scale));
+}
+
+/**
+ * @tc.name: AsRgbaIntTest
+ * @tc.desc: Verify function AsRgbaInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, AsRgbaIntTest, TestSize.Level1)
+{
+    RSColor color(1);
+    EXPECT_EQ(color.AsRgbaInt(), 1);
+}
+
+/**
+ * @tc.name: FromRgbaIntTest
+ * @tc.desc: Verify function FromRgbaInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, FromRgbaIntTest, TestSize.Level1)
+{
+    auto color = RSColor::FromRgbaInt(1);
+    EXPECT_EQ(color.alpha_, 1);
+}
+
+/**
+ * @tc.name: AsArgbIntTest
+ * @tc.desc: Verify function AsArgbInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, AsArgbIntTest, TestSize.Level1)
+{
+    RSColor color(1);
+    EXPECT_EQ(color.AsArgbInt(), 16777216);
+}
+
+/**
+ * @tc.name: FromArgbIntTest
+ * @tc.desc: Verify function FromArgbInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, FromArgbIntTest, TestSize.Level1)
+{
+    auto color = RSColor::FromArgbInt(1);
+    EXPECT_EQ(color.alpha_, 0);
+}
+
+/**
+ * @tc.name: AsBgraIntTest
+ * @tc.desc: Verify function AsBgraInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, AsBgraIntTest, TestSize.Level1)
+{
+    RSColor color(1);
+    EXPECT_EQ(color.AsBgraInt(), 1);
+}
+
+/**
+ * @tc.name: FromBgraIntTest
+ * @tc.desc: Verify function FromBgraInt
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, FromBgraIntTest, TestSize.Level1)
+{
+    auto color = RSColor::FromBgraInt(1);
+    EXPECT_EQ(color.alpha_, 0);
+}
+
+/**
+ * @tc.name: BlueTest
+ * @tc.desc: Verify function GetBlue SetBlue
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, BlueTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetBlue(), 0);
+    color.SetBlue(1);
+    EXPECT_EQ(color.GetBlue(), 1);
+}
+
+/**
+ * @tc.name: GreenTest
+ * @tc.desc: Verify function GetGreen SetGreen
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, GreenTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetGreen(), 0);
+    color.SetGreen(1);
+    EXPECT_EQ(color.GetGreen(), 1);
+}
+
+/**
+ * @tc.name: RedTest
+ * @tc.desc: Verify function GetRed SetRed
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, RedTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetRed(), 0);
+    color.SetRed(1);
+    EXPECT_EQ(color.GetRed(), 1);
+}
+
+/**
+ * @tc.name: AlphaTest
+ * @tc.desc: Verify function GetAlpha SetAlpha
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, AlphaTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetAlpha(), 0);
+    color.SetAlpha(1);
+    EXPECT_EQ(color.GetAlpha(), 1);
+}
+
+/**
+ * @tc.name: MultiplyAlphaTest
+ * @tc.desc: Verify function MultiplyAlpha
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSColorTest, MultiplyAlphaTest, TestSize.Level1)
+{
+    RSColor color;
+    color.MultiplyAlpha(1.0f);
+    EXPECT_EQ(color.GetAlpha(), 0);
+}
 } // namespace OHOS::Rosen

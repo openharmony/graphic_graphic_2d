@@ -43,7 +43,7 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
         CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-            "Parameter check fails. ApiColorSpaceType's value is out of range."));
+            "BusinessError 401: Parameter error, csType value is out of range."));
         return false;
     }
     if (csType == ApiColorSpaceType::UNKNOWN || csType == ApiColorSpaceType::CUSTOM) {
@@ -81,7 +81,7 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
         if (argvSize == ARGC_ONE) {
             napi_throw(env,
                 CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-                "Parameter check fails. When there is only one parameter, its type should be ApiColorSpaceType"));
+                "BusinessError 401: Parameter error, the type of info must be ApiColorSpaceType"));
             return object;
         }
         ColorSpacePrimaries primaries;
@@ -90,13 +90,13 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
         if (!ParseColorSpacePrimaries(env, nativePrimaries, primaries)) {
             napi_throw(env,
                 CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-                "Parameter check fails. The first parameter cannot be convert to ColorSpacePrimaries"));
+                "BusinessError 401: Parameter error, the first parameter cannot be convert to ColorSpacePrimaries."));
             return object;
         }
         if (!ConvertFromJsValue(env, argvArr[1], gamma)) {
             napi_throw(env,
                 CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-                "Parameter check fails. The second parameter cannot be convert to gamma(float)"));
+                "BusinessError 401: Parameter error, the second parameter cannot be convert to gamma(float)."));
             return object;
         }
         colorSpace = std::make_shared<ColorSpace>(primaries, static_cast<float>(gamma));

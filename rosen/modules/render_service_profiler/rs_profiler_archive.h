@@ -19,6 +19,7 @@
 #include <cstring>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,7 @@
 
 #ifndef REPLAY_TOOL_CLIENT
 #include <securec.h>
+
 #include "platform/common/rs_log.h"
 #else
 #include "rs_adapt.h"
@@ -33,31 +35,43 @@
 
 namespace OHOS::Rosen {
 
-class Archive {
+class RSB_EXPORT Archive {
 public:
     bool IsReading() const
     {
         return isReading_;
     }
 
-    template<typename T>
-    void Serialize(T& value)
-    {
-        Serialize(&value, sizeof(value));
-    }
+    void Serialize(char& value);
+    void Serialize(float& value);
+    void Serialize(double& value);
+
+    void Serialize(int8_t& value);
+    void Serialize(int16_t& value);
+    void Serialize(int32_t& value);
+    void Serialize(int64_t& value);
+
+    void Serialize(uint8_t& value);
+    void Serialize(uint16_t& value);
+    void Serialize(uint32_t& value);
+    void Serialize(uint64_t& value);
+
+    void Serialize(std::string& value);
 
     template<typename T>
     void Serialize(std::vector<T>& vector)
     {
         SerializeVectorBase(vector);
-        for (T& value : vector) {
-            Serialize(value);
-        }
+        Serialize(vector.data(), vector.size());
     }
 
     template<typename T>
     void Serialize(std::vector<T>& vector, void (*serializer)(Archive&, T&))
     {
+        if (!serializer) {
+            return;
+        }
+
         SerializeVectorBase(vector);
         for (T& value : vector) {
             serializer(*this, value);
@@ -73,7 +87,7 @@ public:
         }
     }
 
-    virtual void Serialize(void* data, size_t size) = 0;
+    void Serialize(void* data, size_t size);
 
 protected:
     explicit Archive(bool reader) : isReading_(reader) {}
@@ -91,58 +105,46 @@ protected:
         }
     }
 
+    virtual void Read(void* data, size_t size) = 0;
+    virtual void Write(const void* data, size_t size) = 0;
+
 private:
     bool isReading_ = true;
 };
 
 // Data archives
-
-class DataArchive : public Archive {
-protected:
-    explicit DataArchive(bool reader, size_t offset = 0) : Archive(reader), offset_(offset) {}
-
-protected:
-    size_t offset_ = 0;
-};
-
-class DataReader final : public DataArchive {
+template<bool Reader>
+class DataArchive final : public Archive {
 public:
-    explicit DataReader(const std::vector<char>& data, size_t offset = 0) : DataArchive(true, offset), data_(data) {}
+    explicit DataArchive(const std::vector<char>& data) : Archive(Reader), data_(const_cast<std::vector<char>&>(data))
+    {}
 
-    void Serialize(void* data, size_t size) override
+protected:
+    void Read(void* data, size_t size) override
     {
-        if (data && (size > 0) && (offset_ + size <= data_.size())) {
-            if (::memmove_s(data, size, data_.data() + offset_, size) == 0) {
-                offset_ += size;
-            }
+        if ((offset_ + size <= data_.size()) && Utils::Move(data, size, data_.data() + offset_, size)) {
+            offset_ += size;
         }
     }
 
-protected:
-    const std::vector<char>& data_;
-};
-
-class DataWriter final : public DataArchive {
-public:
-    explicit DataWriter(std::vector<char>& data, size_t offset = 0) : DataArchive(false, offset), data_(data) {}
-
-    void Serialize(void* data, size_t size) override
+    void Write(const void* data, size_t size) override
     {
-        if (data && (size > 0)) {
-            data_.resize(data_.size() + size);
-            if (::memmove_s(data_.data() + offset_, data_.size(), data, size) == 0) {
-                offset_ += size;
-            }
+        data_.resize(data_.size() + size);
+        if (Utils::Move(data_.data() + offset_, size, data, size)) {
+            offset_ += size;
         }
     }
 
 protected:
     std::vector<char>& data_;
+    size_t offset_ = 0;
 };
 
-// File archives
+using DataReader = DataArchive<true>;
+using DataWriter = DataArchive<false>;
 
-template<bool Reader = true>
+// File archives
+template<bool Reader>
 class FileArchive final : public Archive {
 public:
     explicit FileArchive(FILE* file) : Archive(Reader), file_(file), external_(true) {}
@@ -158,20 +160,20 @@ public:
 
     ~FileArchive() override
     {
-        if (file_ && !external_) {
-            fclose(file_);
+        if (!external_) {
+            Utils::FileClose(file_);
         }
     }
 
-    void Serialize(void* data, size_t size) override
+protected:
+    void Read(void* data, size_t size) override
     {
-        if (file_ && data && (size > 0)) {
-            if (IsReading()) {
-                Utils::FileRead(file_, data, size);
-            } else {
-                Utils::FileWrite(file_, data, size);
-            }
-        }
+        Utils::FileRead(file_, data, size);
+    }
+
+    void Write(const void* data, size_t size) override
+    {
+        Utils::FileWrite(file_, data, size);
     }
 
 protected:
@@ -181,6 +183,32 @@ protected:
 
 using FileReader = FileArchive<true>;
 using FileWriter = FileArchive<false>;
+
+// Stream archive
+template<bool Reader>
+class StringStreamArchive final : public Archive {
+public:
+    explicit StringStreamArchive(const std::stringstream& stream)
+        : Archive(Reader), stream_(const_cast<std::stringstream&>(stream))
+    {}
+
+protected:
+    void Read(void* data, size_t size) override
+    {
+        stream_.read(reinterpret_cast<char*>(data), size);
+    }
+
+    void Write(const void* data, size_t size) override
+    {
+        stream_.write(reinterpret_cast<const char*>(data), size);
+    }
+
+private:
+    std::stringstream& stream_;
+};
+
+using StringStreamReader = StringStreamArchive<true>;
+using StringStreamWriter = StringStreamArchive<false>;
 
 } // namespace OHOS::Rosen
 

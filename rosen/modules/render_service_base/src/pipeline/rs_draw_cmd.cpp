@@ -23,6 +23,7 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
 #include "native_window.h"
 #endif
@@ -85,6 +86,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
+        rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
     }
 }
 
@@ -92,6 +94,13 @@ void RSExtendImageObject::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageObject::SetPaint(Drawing::Paint paint)
+{
+    if (rsImage_) {
+        rsImage_->SetPaint(paint);
     }
 }
 
@@ -103,37 +112,15 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
+#ifndef ROSEN_ARKUI_X
+            SKResourceManager::Instance().HoldResource(image_);
+#endif
             rsImage_->SetDmaImage(image_);
         }
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
         return;
     }
-    if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
-#if defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
-        }
-#endif
-#if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
-        }
-#endif
-    } else {
-        if (pixelmap && pixelmap->IsAstc()) {
-            const void* data = pixelmap->GetPixels();
-            std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-            const int seekSize = 16;
-            if (pixelmap->GetCapacity() > seekSize) {
-                fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelmap->GetCapacity() - seekSize);
-            }
-            rsImage_->SetCompressData(fileData);
-        }
-    }
+    PreProcessPixelMap(canvas, pixelmap);
 #endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
@@ -153,6 +140,48 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
     }
     return object;
 }
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+#if defined(RS_ENABLE_GL)
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+                rsImage_->SetDmaImage(image_);
+            }
+        }
+#endif
+#if defined(RS_ENABLE_VK)
+        if (RSSystemProperties::IsUseVukan()) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+                rsImage_->SetDmaImage(image_);
+            }
+        }
+#endif
+        return;
+    }
+
+    if (pixelMap->IsAstc()) {
+        const void* data = pixelMap->GetPixels();
+        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+        const int seekSize = 16;
+        if (pixelMap->GetCapacity() > seekSize) {
+            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        }
+        rsImage_->SetCompressData(fileData);
+        return;
+    }
+
+    if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
+        rsImage_->MarkYUVImage();
+    }
+}
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
@@ -248,9 +277,10 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
             return false;
         }
     }
-    if (!backendTexture_.IsValid()) {
+    bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
+    if (!backendTexture_.IsValid() || isProtected) {
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), isProtected);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
@@ -460,6 +490,7 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    objectHandle_->SetPaint(paint_);
     canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }

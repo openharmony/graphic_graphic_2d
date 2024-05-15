@@ -14,21 +14,19 @@
  */
 
 #include "skia_shader_effect.h"
-#include "skia_helper.h"
 
 #include <vector>
 
 #include "include/core/SkMatrix.h"
+#include "include/core/SkSamplingOptions.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkRuntimeEffect.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "src/shaders/SkShaderBase.h"
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
-#include "include/core/SkSamplingOptions.h"
-#endif
 
+#include "skia_helper.h"
 #include "skia_image.h"
 #include "skia_matrix.h"
 #include "skia_picture.h"
@@ -79,7 +77,6 @@ void SkiaShaderEffect::InitWithImage(
         skiaMatrix = m->ExportSkiaMatrix();
         skiaImage = i->GetImage();
         if (skiaImage != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
                 samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
@@ -88,9 +85,6 @@ void SkiaShaderEffect::InitWithImage(
                     static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
             }
             shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
-#else
-            shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
-#endif
         }
     }
 }
@@ -110,18 +104,14 @@ void SkiaShaderEffect::InitWithPicture(
         skiaPicture = p->GetPicture();
         skiaMatrix = m->ExportSkiaMatrix();
         if (skiaPicture != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkFilterMode skFilterMode = static_cast<SkFilterMode>(mode);
             shader_ = skiaPicture->makeShader(modeX, modeY, skFilterMode, &skiaMatrix, &r);
-#else
-            shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
-#endif
         }
     }
 }
 
 void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     SkPoint pts[2];
     pts[0].set(startPt.GetX(), startPt.GetY());
@@ -140,12 +130,16 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
     for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
     shader_ = SkGradientShader::MakeLinear(pts, &c[0], pos.empty() ? nullptr : &p[0],
-        colorsCount, static_cast<SkTileMode>(mode));
+        colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     SkPoint center;
     center.set(centerPt.GetX(), centerPt.GetY());
@@ -163,8 +157,12 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
     for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
     shader_ = SkGradientShader::MakeRadial(center, radius, &c[0],
-        pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode));
+        pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,

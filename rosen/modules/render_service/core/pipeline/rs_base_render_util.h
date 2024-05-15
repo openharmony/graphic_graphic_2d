@@ -17,13 +17,16 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <vector>
+#include <atomic>
 #include "image/bitmap.h"
+#include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
 #include "draw/pen.h"
 
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_composer_adapter.h"
 #include "pixel_map.h"
@@ -31,6 +34,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
@@ -92,16 +96,20 @@ public:
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true,
+        bool isProtected = false,
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
+    static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
+    static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
+    static bool ConsumeAndUpdateBuffer(
+        RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp = 0);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
@@ -123,7 +131,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF& localBounds, BufferDrawParam& params);
+        RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
@@ -136,10 +144,12 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    static bool IsForceClient();
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
 
+    static int GetAccumulatedBufferCount();
+    static void IncAcquiredBufferCount();
+    static void DecAcquiredBufferCount();
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
@@ -150,6 +160,8 @@ private:
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
 
     static bool enableClient;
+
+    static inline std::atomic<int> acquiredBufferCount_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

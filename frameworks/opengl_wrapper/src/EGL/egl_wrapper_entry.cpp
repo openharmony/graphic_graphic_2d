@@ -26,8 +26,13 @@
 #include "egl_wrapper_display.h"
 #include "egl_wrapper_loader.h"
 #include "thread_private_data_ctl.h"
+#include "window.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"
+#if USE_APS_IGAMESERVICE_FUNC
+#include "egl_slice_report.h"
+#include "aps_game_fps_controller.h"
+#endif
 
 using namespace OHOS;
 namespace OHOS {
@@ -292,10 +297,10 @@ EGLint EglGetErrorImpl(void)
     return ret;
 }
 
-static __eglMustCastToProperFunctionPointerType findBuiltinWrapper(const char* procname)
+static __eglMustCastToProperFunctionPointerType FindBuiltinWrapper(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+    static void* dlglv3Handle = dlopen("/system/lib64/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
 #else
     static void* dlglv3Handle = dlopen("/system/lib/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
 #endif
@@ -314,7 +319,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return gExtensionMap.at(procname);
     }
 
-    __eglMustCastToProperFunctionPointerType addr = findBuiltinWrapper(procname);
+    __eglMustCastToProperFunctionPointerType addr = FindBuiltinWrapper(procname);
     if (addr) {
         return __eglMustCastToProperFunctionPointerType(addr);
     }
@@ -340,6 +345,9 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 EGLBoolean EglInitializeImpl(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
     WLOGD("");
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::EglSliceReport::GetInstance().InitSliceReport();
+#endif
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
     if (!display) {
         WLOGE("EGLDislay is invalid.");
@@ -385,24 +393,23 @@ EGLBoolean EglQueryContextImpl(EGLDisplay dpy, EGLContext ctx,
 const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name)
 {
     ClearError();
-    WLOGD("");
-    EGLDisplay actualDpy = EGL_NO_DISPLAY;
-    if (dpy != EGL_NO_DISPLAY) {
-        EglWrapperDisplay *display = ValidateDisplay(dpy);
-        if (!display) {
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return nullptr;
+    }
+
+    switch (name) {
+        case EGL_VENDOR:
+            return display->GetVendorValue();
+        case EGL_VERSION:
+            return display->GetVersionValue();
+        case EGL_EXTENSIONS:
+            return display->GetExtensionValue();
+        case EGL_CLIENT_APIS:
+            return display->GetClientApiValue();
+        default:
             return nullptr;
-        }
-        actualDpy = display->GetEglDisplay();
     }
-
-    EglWrapperDispatchTablePtr table = &gWrapperHook;
-    if (table->isLoad && table->egl.eglQueryString) {
-        return table->egl.eglQueryString(actualDpy, name);
-    } else {
-        WLOGE("eglQueryString is not found.");
-    }
-
-    return nullptr;
 }
 
 EGLBoolean EglQuerySurfaceImpl(EGLDisplay dpy, EGLSurface surf,
@@ -428,6 +435,10 @@ EGLBoolean EglSwapBuffersImpl(EGLDisplay dpy, EGLSurface surf)
 {
     ClearError();
     WLOGD("");
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::EglSliceReport::GetInstance().AddGraphicCount();
+    OHOS::Rosen::ApsGameFpsController::GetInstance().PowerCtrllofEglswapbuffer();
+#endif
     EglWrapperDisplay *display = ValidateDisplay(dpy);
     if (!display) {
         return EGL_FALSE;
@@ -1301,10 +1312,89 @@ void EglSetBlobCacheFuncsANDROIDImpl(EGLDisplay dpy, EGLSetBlobFuncANDROID set, 
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
-                                               BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+                                               BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
     } else {
         WLOGE("EglSetBlobCacheFuncsANDROIDImpl platform is not found.");
     }
+}
+
+EGLBoolean EglGetCompositorTimingSupportedANDROIDImpl(EGLDisplay dpy, EGLSurface surface, EGLint name)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->GetCompositorTimingSupportedANDROID(surface, name);
+}
+
+EGLBoolean EglGetFrameTimestampSupportedANDROIDImpl(EGLDisplay dpy, EGLSurface surface, EGLint timestamp)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->GetFrameTimestampSupportedANDROID(surface, timestamp);
+}
+
+EGLBoolean EglPresentationTimeANDROIDImpl(EGLDisplay dpy, EGLSurface surface, EGLnsecsANDROID time)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->PresentationTimeANDROID(surface, time);
+}
+
+EGLSurface EglCreatePlatformWindowSurfaceEXTImpl(EGLDisplay dpy, EGLConfig config, void *nativeWindow,
+    const EGLint *attribList)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->CreatePlatformWindowSurfaceEXT(config, nativeWindow, attribList);
+}
+
+EGLSurface EglCreatePlatformPixmapSurfaceEXTImpl(EGLDisplay dpy, EGLConfig config, void *nativePixmap,
+    const EGLint *attribList)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->CreatePlatformPixmapSurfaceEXT(config, nativePixmap, attribList);
+}
+
+EGLBoolean EglSwapBuffersWithDamageEXTImpl(EGLDisplay dpy, EGLSurface surface, const EGLint *rects, EGLint nRects)
+{
+    ClearError();
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    return display->SwapBuffersWithDamageEXT(surface, rects, nRects);
+}
+
+EGLClientBuffer EglGetNativeClientBufferANDROIDImpl(const struct AHardwareBuffer *buffer)
+{
+    ClearError();
+    if (buffer == nullptr) {
+        WLOGE("EGLDislay is invalid.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+        return nullptr;
+    }
+
+    auto nativeWindowBuffer = CreateNativeWindowBufferFromNativeBuffer(reinterpret_cast<OH_NativeBuffer*>(
+        const_cast<AHardwareBuffer*>(buffer)));
+    if (nativeWindowBuffer == nullptr) {
+        WLOGE("EglGetNativeClientBufferANDROIDImpl nativeWindowBuffer is nullptr.");
+    }
+    return nativeWindowBuffer;
 }
 
 static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
@@ -1397,12 +1487,26 @@ static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
 
     { "eglWaitSyncKHR", (EglWrapperFuncPointer)&EglWaitSyncKHRImpl },
 
+    /* EGL_EXT_platform_base */
     { "eglGetPlatformDisplayEXT", (EglWrapperFuncPointer)&EglGetPlatformDisplayEXTImpl },
+    { "eglCreatePlatformWindowSurfaceEXT", (EglWrapperFuncPointer)&EglCreatePlatformWindowSurfaceEXTImpl },
+    { "eglCreatePlatformPixmapSurfaceEXT", (EglWrapperFuncPointer)&EglCreatePlatformPixmapSurfaceEXTImpl },
 
     { "eglSwapBuffersWithDamageKHR", (EglWrapperFuncPointer)&EglSwapBuffersWithDamageKHRImpl },
     { "eglSetDamageRegionKHR", (EglWrapperFuncPointer)&EglSetDamageRegionKHRImpl },
+
+    /* EGL_EXT_swap_buffers_with_damage */
+    { "eglSwapBuffersWithDamageEXT", (EglWrapperFuncPointer)&EglSwapBuffersWithDamageEXTImpl },
+
     { "eglSetBlobCacheFuncsANDROID", (EglWrapperFuncPointer)&EglSetBlobCacheFuncsANDROIDImpl },
 
+    /* EGL_ANDROID_get_frame_timestamps */
+    { "eglGetCompositorTimingSupportedANDROID", (EglWrapperFuncPointer)&EglGetCompositorTimingSupportedANDROIDImpl },
+    { "eglGetFrameTimestampSupportedANDROID", (EglWrapperFuncPointer)&EglGetFrameTimestampSupportedANDROIDImpl },
+    { "eglPresentationTimeANDROID", (EglWrapperFuncPointer)&EglPresentationTimeANDROIDImpl },
+
+    /* EGL_ANDROID_get_native_client_buffer */
+    { "eglGetNativeClientBufferANDROID", (EglWrapperFuncPointer)&EglGetNativeClientBufferANDROIDImpl },
 };
 
 EglWrapperFuncPointer FindEglWrapperApi(const std::string &name)

@@ -167,6 +167,11 @@ void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
     paragraph_->Paint(drawCanvas, x, y);
 }
 
+void Typography::Paint(Drawing::Canvas* drawCanvas, Drawing::Path* path, double hOffset, double vOffset)
+{
+    paragraph_->Paint(drawCanvas, path, hOffset, vOffset);
+}
+
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
     TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {
@@ -212,8 +217,7 @@ Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
 
 double Typography::GetLineHeight(int lineNumber)
 {
-    std::vector<size_t> startIndexs;
-    const auto &lines = paragraph_->GetLineMetrics(startIndexs);
+    const auto &lines = paragraph_->GetLineMetrics();
     if (lineNumber < static_cast<int>(lines.size())) {
         return lines[lineNumber].height;
     }
@@ -222,8 +226,7 @@ double Typography::GetLineHeight(int lineNumber)
 
 double Typography::GetLineWidth(int lineNumber)
 {
-    std::vector<size_t> startIndexs;
-    const auto &lines = paragraph_->GetLineMetrics(startIndexs);
+    const auto &lines = paragraph_->GetLineMetrics();
     if (lineNumber < static_cast<int>(lines.size())) {
         return lines[lineNumber].width;
     }
@@ -251,18 +254,17 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
     if (paragraph_ == nullptr) {
         return false;
     }
-    if (lineNumber < 0 || lineNumber >= paragraph_->GetLineCount() || lineMetrics == nullptr) {
+    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
 
     skia::textlayout::LineMetrics sklineMetrics;
-    size_t startIndex;
-    if (!paragraph_->GetLineMetricsAt(lineNumber, &sklineMetrics, startIndex)) {
+    if (!paragraph_->GetLineMetricsAt(lineNumber, &sklineMetrics)) {
         return false;
     }
 
     if (!sklineMetrics.fLineMetrics.empty()) {
-        const auto &skFontMetrics = sklineMetrics.fLineMetrics.at(startIndex).font_metrics;
+        const auto &skFontMetrics = sklineMetrics.fLineMetrics.begin()->second.font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         if (oneLine) {
             lineMetrics->ascender = sklineMetrics.fAscent;
@@ -302,13 +304,11 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
 {
     std::vector<LineMetrics> lineMetrics;
     if (paragraph_ != nullptr) {
-        std::vector<size_t> startIndexs;
-        int index = 0;
-        auto metrics = paragraph_->GetLineMetrics(startIndexs);
+        auto metrics = paragraph_->GetLineMetrics();
         for (SPText::LineMetrics& spLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
             if (!spLineMetrics.runMetrics.empty()) {
-                auto &spFontMetrics = spLineMetrics.runMetrics.at(startIndexs[index++]).fontMetrics;
+                const auto &spFontMetrics = spLineMetrics.runMetrics.begin()->second.fontMetrics;
                 line.firstCharMetrics = spFontMetrics;
                 line.capHeight = spFontMetrics.fCapHeight;
                 line.xHeight = spFontMetrics.fXHeight;
@@ -334,17 +334,16 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     if (paragraph_ == nullptr) {
         return false;
     }
-    if (lineNumber < 0 || lineNumber >= paragraph_->GetLineCount() || lineMetrics == nullptr) {
+    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
     skia::textlayout::LineMetrics skLineMetrics;
-    size_t startIndex;
-    if (!paragraph_->GetLineMetricsAt(lineNumber, &skLineMetrics, startIndex)) {
+    if (!paragraph_->GetLineMetricsAt(lineNumber, &skLineMetrics)) {
         return false;
     }
 
     if (!skLineMetrics.fLineMetrics.empty()) {
-        const auto &skFontMetrics = skLineMetrics.fLineMetrics.at(startIndex).font_metrics;
+        const auto &skFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         lineMetrics->capHeight = skFontMetrics.fCapHeight;
         lineMetrics->xHeight = skFontMetrics.fXHeight;

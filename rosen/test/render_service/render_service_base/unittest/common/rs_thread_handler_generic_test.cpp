@@ -50,4 +50,87 @@ HWTEST_F(RSThreadHandlerGenericTest, Create001, TestSize.Level1)
     auto rsThreadHandlerGeneric = RSThreadHandler::Create();
     ASSERT_NE(rsThreadHandlerGeneric, nullptr);
 }
+
+/**
+ * @tc.name: CreateTaskTest
+ * @tc.desc: Verify function CreateTask
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadHandlerGenericTest, CreateTaskTest, TestSize.Level1)
+{
+    RSTaskMessage::RSTask task = []() -> void {};
+    auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
+    EXPECT_TRUE(rsThreadHandlerGeneric->CreateTask(task) != nullptr);
+}
+
+/**
+ * @tc.name: PostTaskTest
+ * @tc.desc: Verify function PostTask
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadHandlerGenericTest, PostTaskTest, TestSize.Level1)
+{
+    RSTaskMessage::RSTask task = []() -> void {};
+    auto generic = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle = generic->CreateTask(task);
+    generic->PostTask(taskHandle, 1);
+    ThreadLooperImpl::CreateThreadInstance();
+    auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle2 = rsThreadHandlerGeneric->CreateTask(task);
+    rsThreadHandlerGeneric->PostTask(taskHandle2, 1);
+    EXPECT_TRUE(rsThreadHandlerGeneric->looper_ != nullptr);
+}
+
+/**
+ * @tc.name: PostTaskDelayTest
+ * @tc.desc: Verify function PostTaskDelay
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadHandlerGenericTest, PostTaskDelayTest, TestSize.Level1)
+{
+    RSTaskMessage::RSTask task = []() -> void {};
+    auto generic = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle = generic->CreateTask(task);
+    generic->PostTaskDelay(taskHandle, 1, 1);
+    ThreadLooperImpl::CreateThreadInstance();
+    auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle2 = rsThreadHandlerGeneric->CreateTask(task);
+    rsThreadHandlerGeneric->PostTaskDelay(taskHandle2, 1, 1);
+    EXPECT_TRUE(rsThreadHandlerGeneric->looper_ != nullptr);
+}
+
+/**
+ * @tc.name: CancelTaskTest
+ * @tc.desc: Verify function CancelTask
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadHandlerGenericTest, CancelTaskTest, TestSize.Level1)
+{
+    RSTaskMessage::RSTask task = []() -> void {};
+    auto generic = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle = generic->CreateTask(task);
+    generic->CancelTask(taskHandle);
+    ThreadLooperImpl::CreateThreadInstance();
+    auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
+    RSTaskHandle taskHandle2 = rsThreadHandlerGeneric->CreateTask(task);
+    rsThreadHandlerGeneric->CancelTask(taskHandle2);
+    EXPECT_TRUE(rsThreadHandlerGeneric->looper_ != nullptr);
+}
+
+/**
+ * @tc.name: StaticCreateTaskTest
+ * @tc.desc: Verify function StaticCreateTask
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadHandlerGenericTest, StaticCreateTaskTest, TestSize.Level1)
+{
+    RSTaskMessage::RSTask task = []() -> void {};
+    auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
+    EXPECT_TRUE(rsThreadHandlerGeneric->StaticCreateTask(task) != nullptr);
+}
 } // namespace OHOS::Rosen

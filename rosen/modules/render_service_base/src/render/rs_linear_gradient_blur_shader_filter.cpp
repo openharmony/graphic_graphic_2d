@@ -46,8 +46,14 @@ void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
     gelinearGradientBlurFilter->SetParam("CANVASMAT", mat_);
     gelinearGradientBlurFilter->SetParam("FRACTIONSTOPS", linearGradientBlurPara_->fractionStops_);
     gelinearGradientBlurFilter->SetParam("DIRECTION", (int)linearGradientBlurPara_->direction_);
- 
+    gelinearGradientBlurFilter->SetParam("ISOFFSCREEN", isOffscreenCanvas_);
+
     visualEffectContainer->AddToChainedFilter(gelinearGradientBlurFilter);
+}
+
+float RSLinearGradientBlurShaderFilter::GetLinearGradientBlurRadius() const
+{
+    return linearGradientBlurPara_->blurRadius_;
 }
 } // namespace Rosen
 } // namespace OHOS

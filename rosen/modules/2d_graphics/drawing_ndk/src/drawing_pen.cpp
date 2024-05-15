@@ -21,6 +21,21 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
+static const Matrix* CastToMatrix(const OH_Drawing_Matrix* cMatrix)
+{
+    return reinterpret_cast<const Matrix*>(cMatrix);
+}
+
+static const Path* CastToPath(const OH_Drawing_Path* cPath)
+{
+    return reinterpret_cast<const Path*>(cPath);
+}
+
+static Path* CastToPath(OH_Drawing_Path* cPath)
+{
+    return reinterpret_cast<Path*>(cPath);
+}
+
 static Pen* CastToPen(OH_Drawing_Pen* cPen)
 {
     return reinterpret_cast<Pen*>(cPen);
@@ -31,9 +46,19 @@ static const Pen& CastToPen(const OH_Drawing_Pen& cPen)
     return reinterpret_cast<const Pen&>(cPen);
 }
 
+static const Rect* CastToRect(const OH_Drawing_Rect* cRect)
+{
+    return reinterpret_cast<const Rect*>(cRect);
+}
+
 static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
 {
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
+}
+
+static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
+{
+    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
 }
 
 static PathEffect* CastToPathEffect(OH_Drawing_PathEffect* cPathEffect)
@@ -130,6 +155,15 @@ static Pen::JoinStyle CJoinCastToJoin(OH_Drawing_PenLineJoinStyle cJoin)
 OH_Drawing_Pen* OH_Drawing_PenCreate()
 {
     return (OH_Drawing_Pen*)new Pen;
+}
+
+OH_Drawing_Pen* OH_Drawing_PenCopy(OH_Drawing_Pen* cPen)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_Pen*)new Pen(*pen);
 }
 
 void OH_Drawing_PenDestroy(OH_Drawing_Pen* cPen)
@@ -280,6 +314,15 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cP
     pen->SetPathEffect(std::shared_ptr<PathEffect>{CastToPathEffect(cPathEffect), [](auto p) {}});
 }
 
+void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* cShadowlayer)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowlayer), [](auto p) {}});
+}
+
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     Pen* pen = CastToPen(cPen);
@@ -317,6 +360,19 @@ void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen* cPen, OH_Drawing_BlendMode cBlen
         return;
     }
     pen->SetBlendMode(static_cast<BlendMode>(cBlendMode));
+}
+
+bool OH_Drawing_PenGetFillPath(OH_Drawing_Pen* cPen, const OH_Drawing_Path* src, OH_Drawing_Path* dst,
+    const OH_Drawing_Rect* cRect, const OH_Drawing_Matrix* cMatrix)
+{
+    Pen* pen = CastToPen(cPen);
+    const Path* srcPath = CastToPath(src);
+    Path* dstPath = CastToPath(dst);
+    if (!pen || !srcPath || !dstPath) {
+        return false;
+    }
+    return pen->GetFillPath(*srcPath, *dstPath, cRect ? CastToRect(cRect): nullptr,
+        cMatrix ? *CastToMatrix(cMatrix) : Matrix());
 }
 
 void OH_Drawing_PenReset(OH_Drawing_Pen* cPen)

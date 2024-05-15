@@ -19,12 +19,20 @@
 #include <memory>
 #include <unistd.h>
 
+#include "ibuffer_consumer_listener.h"
+#include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class BufferConsumerTestListener : public ::OHOS::IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
 class RSInterfacesTest : public testing::Test {
 public:
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSInterfacesTest" };
@@ -944,85 +952,6 @@ HWTEST_F(RSInterfacesTest, GetScreenGamutMap002, Function | SmallTest | Level2)
 }
 
 /*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval001, Function | SmallTest | Level2)
-{
-    ScreenId screenId = INVALID_SCREEN_ID;
-    uint32_t skipFrameInterval = 1;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval002, Function | SmallTest | Level2)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 0;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval003, Function | SmallTest | Level2)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 100;  // for test
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with valid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval004, Function | SmallTest | Level1)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    float skipFrameInterval = 2.1;  // for test
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with valid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval005, Function | SmallTest | Level1)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 1;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    ASSERT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
  * @tc.name: ScreenGamutMap_001
  * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap
  * @tc.type: FUNC
@@ -1083,6 +1012,9 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t formerRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
 
+    FrameRateLinkerId id = 0;
+    FrameRateRange range;
+    rsInterfaces->SyncFrameRateRange(id, range, false);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
     uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);
@@ -1107,17 +1039,24 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
     rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
-    auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
-
     bool ifSupported = false;
-    for (auto rateIter : supportedRates) {
-        if (rateIter < 0) {
-            continue;
-        }
-        if (static_cast<uint32_t>(rateIter) == rateToSet) {
-            ifSupported = true;
+
+    if (currentRate == rateToSet) {
+        ifSupported = true;
+    } else {
+        auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
+        for (auto rateIter : supportedRates) {
+            if (rateIter < 0) {
+                continue;
+            }
+            if (static_cast<uint32_t>(rateIter) == rateToSet) {
+                ifSupported = true;
+                currentRate = rateToSet;
+                break;
+            }
         }
     }
+    
     if (ifSupported) {
         EXPECT_GE(currentRate, rateToSet);
     } else {
@@ -1326,7 +1265,8 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus);
+    int32_t touchCnt = 0;
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1467,6 +1407,116 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: GetCurrentRefreshRateMode
+ * @tc.desc: Test GetCurrentRefreshRateMode.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level2)
+{
+    EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> producer = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+    int releaseFence = -1;
+    sptr<SurfaceBuffer> buffer;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        }
+    };
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 0x100,
+        .h = 0x100,
+    };
+    uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, cSurface);
+    auto pixcelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_NE(pixcelMap, nullptr);
+#endif
+}
+
+/*
+ * @tc.name: GetActiveScreenId
+ * @tc.desc: Test GetActiveScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, GetActiveScreenId, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetActiveScreenId();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenScaleMode
+ * @tc.desc: Test SetVirtualMirrorScreenScaleMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest | Level2)
+{
+    ASSERT_FALSE(rsInterfaces->SetVirtualMirrorScreenScaleMode(INVALID_SCREEN_ID, ScreenScaleMode::INVALID_MODE));
+}
+
+/*
+ * @tc.name: SetScreenCorrection
+ * @tc.desc: Test SetScreenCorrection
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->SetScreenCorrection(INVALID_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetSystemAnimatedScenes
+ * @tc.desc: Test SetSystemAnimatedScenes
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -23,11 +23,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr static float FLOAT_SCALE_THRESHOLD = 1.1f; // 1.1f scale threshold
+constexpr static float FLOAT_IMAGE_SCALE = 0.5f;    // 0.5f image scale
+} // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSMotionBlurFilter::motionBlurShaderEffect_ = nullptr;
 
 RSMotionBlurFilter::RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& para)
-    : RSDrawingFilter(nullptr), motionBlurPara_(para)
+    : RSDrawingFilterOriginal(nullptr), motionBlurPara_(para)
 {
     type_ = FilterType::MOTION_BLUR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
@@ -39,54 +43,71 @@ RSMotionBlurFilter::~RSMotionBlurFilter() = default;
 void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    if (!RSSystemProperties::GetMotionBlurEnabled()) {
+    RS_OPTIONAL_TRACE_NAME("RSMotionBlurFilter::MotionBlur");
+    Drawing::Matrix mat = canvas.GetTotalMatrix();
+    Drawing::Rect rect = canvas.GetDeviceClipBounds();
+    mat.MapRect(rect, rect);
+    curRect_ = Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+
+    if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
+        lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
+        ROSEN_LOGE("RSMotionBlurFilter::image error");
+        return;
+    }
+
+    if (!RSSystemProperties::GetMotionBlurEnabled() || motionBlurPara_ == nullptr || motionBlurPara_->radius <= 0) {
+        lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
         OutputOriginalImage(canvas, image, src, dst);
         return;
     }
 
-    auto para = motionBlurPara_;
-    if (!image || para == nullptr || para->radius <= 0) {
-        OutputOriginalImage(canvas, image, src, dst);
-        return;
-    }
-
-    RS_OPTIONAL_TRACE_NAME("DrawMotionBlur");
     if (!RectValid(lastRect_, curRect_)) {
         lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
         OutputOriginalImage(canvas, image, src, dst);
         return;
     }
 
-    Vector2f rectOffset;
-    Vector2f scaleSize;
-    rectOffset[0] = curRect_.GetLeft() - lastRect_.GetLeft() +
-        (curRect_.GetWidth() - lastRect_.GetWidth()) * para->scaleAnchor[0];
-    rectOffset[1] = curRect_.GetTop() - lastRect_.GetTop() +
-        (curRect_.GetHeight() - lastRect_.GetHeight()) * para->scaleAnchor[1];
-    scaleSize[0] = curRect_.GetWidth() / lastRect_.GetWidth();
-    scaleSize[1] = curRect_.GetHeight() / lastRect_.GetHeight();
+    DrawMotionBlur(canvas, image, src, dst);
+}
 
-    if (curRect_.GetWidth() < lastRect_.GetWidth()) {
-        rectOffset[0] = -rectOffset[0];
-        rectOffset[1] = -rectOffset[1];
-        scaleSize[0] = 1.0 / scaleSize[0];
-        scaleSize[1] = 1.0 / scaleSize[1];
+void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::Rect& src, const Drawing::Rect& dst) const
+{
+    if (motionBlurPara_ == nullptr) {
+        lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+        OutputOriginalImage(canvas, image, src, dst);
+        return;
     }
 
-    Vector2f scaleAnchorCoord = {para->scaleAnchor[0] * curRect_.GetWidth(),
-        para->scaleAnchor[1] * curRect_.GetHeight()};
-
-    lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
+    RS_OPTIONAL_TRACE_NAME("DrawMotionBlur");
+    Vector2f rectOffset;
+    Vector2f scaleSize;
+    Vector2f scaleAnchorCoord;
+    CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
 
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
-    inputMatrix.PostScale(dst.GetWidth() / image->GetWidth(), dst.GetHeight() / image->GetHeight());
+    inputMatrix.PostScale(FLOAT_IMAGE_SCALE, FLOAT_IMAGE_SCALE);
     Drawing::Matrix matrix;
     matrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostConcat(matrix);
-    auto srcImageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::DECAL,
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
-    auto shader = MakeMotionBlurShader(srcImageShader, scaleAnchorCoord, scaleSize, rectOffset, para->radius);
+    auto builder = MakeMotionBlurShader(imageShader, scaleAnchorCoord, scaleSize, rectOffset, motionBlurPara_->radius);
+
+    auto originImageInfo = image->GetImageInfo();
+    auto scaledInfo = Drawing::ImageInfo(std::ceil(image->GetWidth() * FLOAT_IMAGE_SCALE),
+        std::ceil(image->GetHeight() * FLOAT_IMAGE_SCALE), originImageInfo.GetColorType(),
+        originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
+        canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+
+    float invBlurScale = 1.0f / FLOAT_IMAGE_SCALE;
+    Drawing::Matrix invBlurMatrix;
+    invBlurMatrix.PostScale(invBlurScale, invBlurScale);
+    auto shader = Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, linear, invBlurMatrix);
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
@@ -95,7 +116,7 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
     canvas.DetachBrush();
 }
 
-std::shared_ptr<Drawing::ShaderEffect> RSMotionBlurFilter::MakeMotionBlurShader(
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSMotionBlurFilter::MakeMotionBlurShader(
     std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
     Vector2f& rectOffset, float radius)
 {
@@ -108,18 +129,25 @@ std::shared_ptr<Drawing::ShaderEffect> RSMotionBlurFilter::MakeMotionBlurShader(
 
         half4 main(float2 coord)
         {
-            const float num = 7.0;
+            const float num = 6.0; // 6.0 sample times
             float2 scaleSizeStep = (scaleSize - 1.0) / num * radius;
             float2 rectOffsetStep = rectOffset / num * radius;
+            float2 samplingOffset = (coord - scaleAnchor) * scaleSizeStep + rectOffsetStep;
 
-            float2 samplingOffset = (coord - scaleAnchor) * scaleSizeStep  + rectOffsetStep;
-            half4 color = srcImageShader.eval(coord) * 0.09;
-            color += srcImageShader.eval(coord + samplingOffset) * 0.13;
-            color += srcImageShader.eval(coord + samplingOffset * 2) * 0.17;
-            color += srcImageShader.eval(coord + samplingOffset * 3) * 0.22;
-            color += srcImageShader.eval(coord + samplingOffset * 4) * 0.17;
-            color += srcImageShader.eval(coord + samplingOffset * 5) * 0.13;
-            color += srcImageShader.eval(coord + samplingOffset * 6) * 0.09;
+            float2 coord1 = coord + samplingOffset;
+            float2 coord2 = coord + samplingOffset * 2; // 2 times
+            float2 coord3 = coord + samplingOffset * 3; // 3 times
+            float2 coord4 = coord + samplingOffset * 4; // 4 times
+            float2 coord5 = coord + samplingOffset * 5; // 5 times
+            float2 coord6 = coord + samplingOffset * 6; // 6 times
+            half4 color = srcImageShader.eval(coord) * 0.11; // 0.11 alpha
+            color += srcImageShader.eval(coord1) * 0.12; // 0.12 alpha
+            color += srcImageShader.eval(coord2) * 0.13; // 0.13 alpha
+            color += srcImageShader.eval(coord3) * 0.14; // 0.14 alpha
+            color += srcImageShader.eval(coord4) * 0.15; // 0.15 alpha
+            color += srcImageShader.eval(coord5) * 0.16; // 0.16 alpha
+            color += srcImageShader.eval(coord6) * 0.19; // 0.19 alpha
+
             return color;
         }
     )";
@@ -137,7 +165,38 @@ std::shared_ptr<Drawing::ShaderEffect> RSMotionBlurFilter::MakeMotionBlurShader(
     builder->SetUniform("scaleSize", scaleSize[0], scaleSize[1]);
     builder->SetUniform("rectOffset", rectOffset[0], rectOffset[1]);
     builder->SetUniform("radius", radius);
-    return builder->MakeShader(nullptr, false);
+    return builder;
+}
+
+void RSMotionBlurFilter::CaculateRect(Vector2f& rectOffset, Vector2f& scaleSize, Vector2f& scaleAnchorCoord) const
+{
+    rectOffset[0] = curRect_.GetLeft() - lastRect_.GetLeft() +
+        (curRect_.GetWidth() - lastRect_.GetWidth()) * motionBlurPara_->scaleAnchor[0];
+    rectOffset[1] = curRect_.GetTop() - lastRect_.GetTop() +
+        (curRect_.GetHeight() - lastRect_.GetHeight()) * motionBlurPara_->scaleAnchor[1];
+    scaleSize[0] = curRect_.GetWidth() / lastRect_.GetWidth();
+    scaleSize[1] = curRect_.GetHeight() / lastRect_.GetHeight();
+
+    if (curRect_.GetWidth() < lastRect_.GetWidth() && curRect_.GetHeight() < lastRect_.GetHeight()) {
+        rectOffset[0] = -rectOffset[0];
+        rectOffset[1] = -rectOffset[1];
+        scaleSize[0] = 1.0 / scaleSize[0];
+        scaleSize[1] = 1.0 / scaleSize[1];
+    }
+
+    if (scaleSize[0] > FLOAT_SCALE_THRESHOLD || scaleSize[1] > FLOAT_SCALE_THRESHOLD) {
+        rectOffset[0] = rectOffset[0] * FLOAT_SCALE_THRESHOLD / scaleSize[0];
+        rectOffset[1] = rectOffset[1] * FLOAT_SCALE_THRESHOLD / scaleSize[1];
+        scaleSize[0] = FLOAT_SCALE_THRESHOLD;
+        scaleSize[1] = FLOAT_SCALE_THRESHOLD;
+    }
+    rectOffset[0] = rectOffset[0] * FLOAT_IMAGE_SCALE;
+    rectOffset[1] = rectOffset[1] * FLOAT_IMAGE_SCALE;
+
+    scaleAnchorCoord = {motionBlurPara_->scaleAnchor[0] * curRect_.GetWidth() * FLOAT_IMAGE_SCALE,
+        motionBlurPara_->scaleAnchor[1] * curRect_.GetHeight() * FLOAT_IMAGE_SCALE};
+
+    lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
 }
 
 bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2)
@@ -146,7 +205,7 @@ bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Re
         return false;
     }
 
-    if (fabs(rect1.GetWidth() - rect2.GetWidth()) <= 1 && fabs(rect1.GetHeight() - rect2.GetHeight()) <= 1) {
+    if (rect1 == rect2) {
         return false;
     }
 
@@ -156,6 +215,10 @@ bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Re
 void RSMotionBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
+    if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
+        ROSEN_LOGE("RSMotionBlurFilter::OutputOriginalImage image error");
+        return;
+    }
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
     inputMatrix.PostScale(dst.GetWidth() / image->GetWidth(), dst.GetHeight() / image->GetHeight());

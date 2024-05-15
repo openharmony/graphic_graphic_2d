@@ -42,23 +42,28 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (!ShouldPaint()) {
+    const auto& params = GetRenderParams();
+    auto isOpincDraw = PreDrawableCacheState(*params, isOpincDropNodeExt_);
+    if (!ShouldPaint() && isOpincDraw) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
+    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())
+        && isOpincDraw) {
         return;
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
+        BeforeDrawCache(nodeCacheType_, canvas, *params, isOpincDropNodeExt_);
         if (!drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
+        AfterDrawCache(nodeCacheType_, canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
@@ -73,15 +78,39 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && EnableRecordingOptimization(*params)) {
+        return;
+    }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
         CheckCacheTypeAndDraw(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+}
+
+bool RSCanvasRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
+{
+    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (threadParams) {
+        NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
+        bool hasCaptureImg = threadParams->GetHasCaptureImg();
+        if (nodeId == params.GetId()) {
+            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
+                params.GetId());
+            threadParams->SetStartVisit(true);
+        }
+        if (hasCaptureImg && !threadParams->GetStartVisit()) {
+            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
+                params.GetId());
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -62,13 +62,13 @@
           "hitrace",
           "ability_runtime",
           "drivers_interface_display",
-          "drivers_interface_camera_ext",
           "c_utils",
           "access_token",
           "safwk",
           "eventhandler",
           "config_policy",
           "init",
+          "input",
           "hicollie",
           "image_framework",
           "ipc",
@@ -79,7 +79,7 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin",
+          "memmgr_override",
           "sensor",
           "qos_manager",
           "video_processing_engine",
@@ -88,11 +88,18 @@
           "opengles",
           "node",
           "vulkan-headers",
+          "vulkan-loader",
           "hiview",
           "battery_manager",
           "cJSON",
           "jsoncpp",
-          "openssl"
+          "openssl",
+          "zlib",
+          "libuv",
+          "icu",
+          "libpng",
+          "ffrt",
+          "libxml2"
         ],
         "third_party": [
           "flutter",
@@ -115,12 +122,14 @@
             "//third_party/libpng:libpng",
             "//third_party/vulkan-loader:vulkan_loader",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
+            "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk:native_effect_ndk",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
@@ -313,6 +322,15 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk:native_effect_ndk",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_new",
             "header": {
               "header_files": [
@@ -414,6 +432,18 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/buffer_handle/export"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
+            "header": {
+              "header_files": [
+                "cj_color_manager.h",
+                "cj_color_mgr_utils.h",
+                "color_mgr_ffi.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
+            }
           }
         ],
         "test": [
@@ -422,7 +452,8 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
-          "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test"
+          "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
+          "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo"
         ]
       }
     }

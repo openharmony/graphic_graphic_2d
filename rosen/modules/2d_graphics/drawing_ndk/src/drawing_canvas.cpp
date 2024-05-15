@@ -17,6 +17,8 @@
 #include "drawing_canvas_utils.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
+#include "native_pixel_map_manager.h"
+#include "pixelmap_native_impl.h"
 #include "recording/recording_canvas.h"
 
 using namespace OHOS;
@@ -321,7 +323,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
     if (positionsPoint == nullptr) {
         return;
     }
-    for (uint32_t i = 0; i < vertexCount; ++i) {
+    for (int32_t i = 0; i < vertexCount; ++i) {
         positionsPoint[i] = CastToPoint(positions[i]);
     }
     Point* texsPoint = new Point[vertexCount];
@@ -329,7 +331,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         delete [] positionsPoint;
         return;
     }
-    for (uint32_t i = 0; i < vertexCount; ++i) {
+    for (int32_t i = 0; i < vertexCount; ++i) {
         texsPoint[i] = CastToPoint(texs[i]);
     }
     Vertices* vertices = new Vertices();
@@ -381,8 +383,20 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {
 #ifdef OHOS_PLATFORM
-    DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas),
-        Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap)),
+    std::shared_ptr<Media::PixelMap> p = nullptr;
+    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
+        case NativePixelMapType::OBJECT_FROM_C:
+            if (pixelMap) {
+                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
+            }
+            break;
+        case NativePixelMapType::OBJECT_FROM_JS:
+            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
+            break;
+        default:
+            break;
+    }
+    DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas), p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
 #endif
@@ -477,9 +491,6 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
         return;
-    }
-    if (canvas->GetDrawingType() == DrawingType::RECORDING) {
-        (static_cast<RecordingCanvas*>(canvas))->SetIsCustomTypeface(true);
     }
     canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
 }

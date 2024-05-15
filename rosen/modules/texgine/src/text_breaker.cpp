@@ -218,8 +218,10 @@ void TextBreaker::GenNewBoundryByQuote(CharGroups cgs, std::vector<Boundary> &bo
         }
 
         if (isQuote && !isEndQuote) {
-            newBoundary.push_back({boundary->leftIndex, boundary->rightIndex - 1});
-            newBoundary.push_back({boundary->rightIndex -1, (boundary + 1)->rightIndex});
+            newBoundary.push_back({boundary->leftIndex,
+                boundary->rightIndex - 1 >= 0 ? boundary->rightIndex - 1 : 0});
+            newBoundary.push_back({boundary->rightIndex -1 >= 0 ? boundary->rightIndex -1 : 0,
+                (boundary + 1)->rightIndex});
             isEndQuote = true;
             boundary++;
         }
@@ -332,7 +334,7 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
             WordBreakType::BREAK_WORD : ys.wordBreakType;
         bool isBreakAll = (breakType == WordBreakType::BREAK_ALL);
         bool isBreakWord = (breakType == WordBreakType::BREAK_WORD);
-        bool isFinalCharGroup = (i == wordcgs.GetNumberOfCharGroup() - 1);
+        bool isFinalCharGroup = (i == static_cast<int>(wordcgs.GetNumberOfCharGroup()) - 1);
         bool needGenerateSpan = isBreakAll;
         needGenerateSpan = needGenerateSpan || (isBreakWord && isFinalCharGroup);
         if (needGenerateSpan == false) {

@@ -58,9 +58,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRange(initialRange);
-    frameRateLinker->UpdateFrameRateRange({30, 144, 60});
-    frameRateLinker->UpdateFrameRateRange(newRange);
+    frameRateLinker->UpdateFrameRateRange(initialRange, false);
+    frameRateLinker->UpdateFrameRateRange({30, 144, 60}, false);
+    frameRateLinker->UpdateFrameRateRange(newRange, false);
 }
 
 /**
@@ -74,9 +74,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRangeImme(initialRange);
-    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60});
-    frameRateLinker->UpdateFrameRateRangeImme(newRange);
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
+    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, false);
+    frameRateLinker->UpdateFrameRateRangeImme(newRange, false);
 }
 
 /**
@@ -92,5 +92,43 @@ HWTEST_F(RSFrameRateLinkerTest, SetEnable, TestSize.Level1)
     EXPECT_TRUE(frameRateLinker->IsEnable());
     frameRateLinker->SetEnable(false);
     EXPECT_FALSE(frameRateLinker->IsEnable());
+}
+
+/**
+ * @tc.name: GenerateId
+ * @tc.desc: test results of GenerateId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRateLinkerTest, GenerateId, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    FrameRateLinkerId res = frameRateLinker->GenerateId();
+    EXPECT_TRUE(res != 0);
+}
+
+/**
+ * @tc.name: IsUniRenderEnabled
+ * @tc.desc: test results of IsUniRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRateLinkerTest, IsUniRenderEnabled, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    bool res = frameRateLinker->IsUniRenderEnabled();
+    EXPECT_TRUE(res != true);
+}
+
+/**
+ * @tc.name: InitUniRenderEnabled
+ * @tc.desc: test results of InitUniRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRateLinkerTest, InitUniRenderEnabled, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    frameRateLinker->InitUniRenderEnabled();
 }
 } // namespace OHOS::Rosen

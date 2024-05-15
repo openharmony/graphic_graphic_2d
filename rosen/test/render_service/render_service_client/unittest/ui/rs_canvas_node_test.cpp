@@ -3370,4 +3370,121 @@ HWTEST_F(RSCanvasNodeTest, GetType003, TestSize.Level1)
     ASSERT_TRUE(canvasNode != nullptr);
     ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
 }
+
+/**
+ * @tc.name: SetBoundsChangedCallbackTest
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type:FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    ASSERT_FALSE(canvasNode->recordingUpdated_);
+    canvasNode->SetHDRPresent(true);
+    canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
+    ASSERT_NE(canvasNode->boundsChangedCallback_, nullptr);
+}
+
+/**
+ * @tc.name: CreateTextureExportRenderNodeInRT
+ * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, CreateTextureExportRenderNodeInRT, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->CreateTextureExportRenderNodeInRT();
+    ASSERT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawOnNode
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, DrawOnNode, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    RSModifierType type = RSModifierType::INVALID;
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: GetPaintWidth
+ * @tc.desc: test results of GetPaintWidth
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, GetPaintWidth, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintWidth();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: GetPaintHeight
+ * @tc.desc: test results of GetPaintHeight
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, GetPaintHeight, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintHeight();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: SetFreeze
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, SetFreeze, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetFreeze(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: SetBoundsChangedCallback
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallback, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
+    canvasNode->SetBoundsChangedCallback(canvasNode->boundsChangedCallback_);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
 } // namespace OHOS::Rosen

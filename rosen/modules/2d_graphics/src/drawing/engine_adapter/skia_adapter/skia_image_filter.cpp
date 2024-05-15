@@ -191,13 +191,15 @@ void SkiaImageFilter::InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter>
     filter_ = SkImageFilters::Blend(static_cast<SkBlendMode>(mode), outer, inner);
 }
 
-void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader)
+void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect)
 {
     sk_sp<SkShader> skShader = nullptr;
     if (shader != nullptr && shader->GetImpl<SkiaShaderEffect>() != nullptr) {
         skShader = shader->GetImpl<SkiaShaderEffect>()->GetShader();
     }
-    filter_ = SkImageFilters::Shader(skShader);
+    SkRect skiaRect = {rect.left_, rect.top_, rect.right_, rect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
+    filter_ = SkImageFilters::Shader(skShader, skCropRect);
 }
 
 } // namespace Drawing

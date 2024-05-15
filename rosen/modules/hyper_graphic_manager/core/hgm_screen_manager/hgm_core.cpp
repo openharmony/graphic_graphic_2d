@@ -32,10 +32,19 @@
 
 namespace OHOS::Rosen {
 static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+    { 144, 6944444 },
     { 120, 8333333 },
     { 90, 11111111 },
     { 72, 13888888 },
-    { 60, 16666666 }
+    { 60, 16666666 },
+    { 45, 22222222 },
+    { 40, 25000000 },
+    { 36, 27777777 },
+    { 30, 33333333 },
+    { 24, 41666666 },
+    { 20, 50000000 },
+    { 15, 66666666 },
+    { 10, 100000000 },
 };
 
 HgmCore& HgmCore::Instance()
@@ -86,6 +95,7 @@ bool HgmCore::Init()
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
+        CheckCustomFrameRateModeValid();
     }
 
     SetLtpoConfig();
@@ -93,6 +103,38 @@ bool HgmCore::Init()
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
+}
+
+void HgmCore::CheckCustomFrameRateModeValid()
+{
+    if (hgmFrameRateMgr_ == nullptr || mPolicyConfigData_ == nullptr) {
+        return;
+    }
+
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto &screenConfigs = mPolicyConfigData_->screenConfigs_;
+    if (screenConfigs.find(curScreenStrategyId) == screenConfigs.end()) {
+        return;
+    }
+
+    auto &screenConfig = screenConfigs[curScreenStrategyId];
+    auto modeStr = std::to_string(customFrameRateMode_);
+    if (screenConfig.find(modeStr) != screenConfig.end() || screenConfig.empty()) {
+        return;
+    }
+
+    int32_t maxMode = HGM_REFRESHRATE_MODE_AUTO;
+    for (auto &[modeStr, _] : screenConfig) {
+        if (!XMLParser::IsNumber(modeStr)) {
+            continue;
+        }
+        auto mode = std::stoi(modeStr);
+        if (maxMode < mode) {
+            maxMode = mode;
+        }
+    }
+    HGM_LOGE("auto repair mode: %{public}d -> %{public}d", customFrameRateMode_, maxMode);
+    customFrameRateMode_ = maxMode;
 }
 
 int32_t HgmCore::InitXmlConfig()
@@ -175,7 +217,7 @@ int32_t HgmCore::SetCustomRateMode(int32_t mode)
 void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback)
 {
     ScreenId screenId = HgmCore::Instance().GetActiveScreenId();
-    int32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
     refreshRateUpdateCallback_ = callback;
     if (refreshRateUpdateCallback_ != nullptr) {
         refreshRateUpdateCallback_(refreshRate);

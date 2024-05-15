@@ -35,6 +35,7 @@
 #include <vector>
 #include <string>
 #include <unicode/brkiter.h>
+#include <shared_mutex>
 
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
@@ -54,6 +55,27 @@ __attribute__((constructor)) void init()
 #endif
 
 static std::shared_ptr<OHOS::Rosen::Drawing::ObjectMgr> objectMgr = OHOS::Rosen::Drawing::ObjectMgr::GetInstance();
+static std::map<void*, size_t> arrSizeMgr;
+static std::shared_mutex arrSizeMgrMutex;
+
+static size_t GetArrSizeFromMgr(void* arrPtr)
+{
+    std::shared_lock<std::shared_mutex> lock(arrSizeMgrMutex);
+    auto itr = arrSizeMgr.find(arrPtr);
+    return itr != arrSizeMgr.end() ? itr->second : 0;
+}
+
+static void MgrSetArrSize(void* arrPtr, size_t arrSize)
+{
+    std::unique_lock<std::shared_mutex> lock(arrSizeMgrMutex);
+    arrSizeMgr[arrPtr] = arrSize;
+}
+
+static void MgrRemoveSize(void* arrPtr)
+{
+    std::unique_lock<std::shared_mutex> lock(arrSizeMgrMutex);
+    arrSizeMgr.erase(arrPtr);
+}
 
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
@@ -491,12 +513,22 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
+    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+        potisionX, potisionY);
+}
+
+void OH_Drawing_TypographyPaintOnPath(
+    OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas, OH_Drawing_Path* path, double hOffset, double vOffset)
+{
     auto drawingCanvas = reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas);
+    if (!path) {
+        return;
+    }
+    auto drawingpath = reinterpret_cast<OHOS::Rosen::Drawing::Path*>(path);
     if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
         (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
     }
-    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas,
-        potisionX, potisionY);
+    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas, drawingpath, hOffset, vOffset);
 }
 
 double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)
@@ -1348,6 +1380,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
             return (OH_Drawing_FontDescriptor*)descriptor;
         }
     }
+    delete descriptor;
     return nullptr;
 }
 
@@ -1356,12 +1389,19 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     if (typography == nullptr) {
         return nullptr;
     }
-    std::vector<LineMetrics>* lineMetrics = new std::vector<LineMetrics>;
-    if (lineMetrics == nullptr) {
+    auto lineMetrics = ConvertToOriginalText<Typography>(typography)->GetLineMetrics();
+    if (lineMetrics.size() == 0) {
         return nullptr;
     }
-    *lineMetrics = ConvertToOriginalText<Typography>(typography)->GetLineMetrics();
-    return (OH_Drawing_LineMetrics*)lineMetrics;
+    LineMetrics* lineMetricsArr = new LineMetrics[lineMetrics.size()];
+    if (lineMetricsArr == nullptr) {
+        return nullptr;
+    }
+    for (size_t i = 0; i < lineMetrics.size(); ++i) {
+        lineMetricsArr[i] = lineMetrics[i];
+    }
+    MgrSetArrSize((void *)(lineMetricsArr), lineMetrics.size());
+    return (OH_Drawing_LineMetrics*)lineMetricsArr;
 }
 
 size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics* lineMetrics)
@@ -1369,14 +1409,14 @@ size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics* lineMetrics)
     if (lineMetrics == nullptr) {
         return 0;
     }
-    std::vector<LineMetrics>* innerLineMetrics = ConvertToOriginalText<std::vector<LineMetrics>>(lineMetrics);
-    return innerLineMetrics->size();
+    return GetArrSizeFromMgr((void *)(lineMetrics));
 }
 
 void OH_Drawing_DestroyLineMetrics(OH_Drawing_LineMetrics* lineMetrics)
 {
     if (lineMetrics) {
-        delete ConvertToOriginalText<std::vector<LineMetrics>>(lineMetrics);
+        MgrRemoveSize((void *)(lineMetrics));
+        delete[] lineMetrics;
         lineMetrics = nullptr;
     }
 }
@@ -1450,6 +1490,20 @@ OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadows(OH_Drawing_TextStyle* styl
     return nullptr;
 }
 
+void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_Drawing_Point* offset,
+    double blurRadius)
+{
+    if (!shadow || !offset) {
+        return;
+    }
+
+    auto* tailoredShadow = reinterpret_cast<TextShadow*>(shadow);
+    tailoredShadow->blurRadius = blurRadius;
+    tailoredShadow->color = Drawing::Color(color);
+    tailoredShadow->offset = *reinterpret_cast<Drawing::Point*>(offset);
+    return;
+}
+
 void OH_Drawing_TextStyleAddShadow(OH_Drawing_TextStyle* style, OH_Drawing_TextShadow* shadow)
 {
     if (shadow == nullptr || style == nullptr) {
@@ -1470,12 +1524,10 @@ OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadowWithIndex(OH_Drawing_TextSty
     if (style == nullptr || index < 0) {
         return nullptr;
     }
-    TextShadow* elementShadow = new TextShadow;
-    if (index >= (ConvertToOriginalText<TextStyle>(style)->shadows.size())) {
+    if (index >= static_cast<int>(ConvertToOriginalText<TextStyle>(style)->shadows.size())) {
         return nullptr;
     }
-    elementShadow = &(ConvertToOriginalText<TextStyle>(style)->shadows.at(index));
-    return (OH_Drawing_TextShadow*)(elementShadow);
+    return (OH_Drawing_TextShadow*)(&(ConvertToOriginalText<TextStyle>(style)->shadows.at(index)));
 }
 
 void OH_Drawing_DestroyTextShadows(OH_Drawing_TextShadow* shadow)
@@ -1920,7 +1972,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
     if (fontFeature == nullptr) {
         return;
     }
-    for (int i = 0; i < fontFeatureSize; i++) {
+    for (int i = 0; i < static_cast<int>(fontFeatureSize); i++) {
         if ((fontFeature + i)->tag == nullptr) {
             continue;
         }
@@ -3071,7 +3123,7 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
         return nullptr;
     }
     for (size_t i = 0; i < strutstyle->familiesSize; i++) {
-        int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
+        int size = static_cast<int>(typographyStyle->lineStyleFontFamilies[i].size()) + 1;
         strutstyle->families[i] = new char[size];
         if (!strutstyle->families[i]) {
             for (size_t j = 0; j < i ; j++) {
@@ -3141,6 +3193,9 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typo
 
     OH_Drawing_Font_Metrics* fontMetrics = new OH_Drawing_Font_Metrics[grabFontMetrics.size()];
     if (fontMetrics == nullptr || !grabFontMetrics.size()) {
+        if (fontMetrics != nullptr) {
+            delete[] fontMetrics;
+        }
         return nullptr;
     }
 
@@ -3335,7 +3390,8 @@ bool OH_Drawing_TextStyleIsEqual(const OH_Drawing_TextStyle* style, const OH_Dra
 {
     auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
     auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
-    if ((convertStyle != nullptr) ^ (convertComparedStyle != nullptr)) {
+    if ((convertStyle == nullptr && convertComparedStyle != nullptr) ||
+        (convertStyle != nullptr && convertComparedStyle == nullptr)) {
         return false;
     }
     if (convertStyle == nullptr && convertComparedStyle == nullptr) {
@@ -3399,4 +3455,24 @@ bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style)
         return false;
     }
     return typographyStyle->hintingIsOn;
+}
+
+void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox* textBox)
+{
+    if (!textBox) {
+        return;
+    }
+
+#ifndef USE_GRAPHIC_TEXT_GINE
+    std::vector<TypographyProperties::TextBox>* textRectArr =
+        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textBox);
+#else
+    std::vector<TextRect>* textRectArr = ConvertToOriginalText<std::vector<TextRect>>(textBox);
+#endif
+
+    if (!textRectArr) {
+        return;
+    }
+    delete textRectArr;
+    textRectArr = nullptr;
 }

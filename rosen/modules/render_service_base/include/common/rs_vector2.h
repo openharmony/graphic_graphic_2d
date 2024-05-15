@@ -146,7 +146,7 @@ Vector2<T> Vector2<T>::operator+(const Vector2<T>& other) const
 template<typename T>
 Vector2<T> Vector2<T>::operator/(T scale) const
 {
-    if (ROSEN_EQ(scale, 0)) {
+    if (ROSEN_EQ<T>(scale, 0)) {
         return *this;
     }
     const T invScale = 1.0f / scale;

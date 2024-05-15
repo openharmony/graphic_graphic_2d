@@ -17,6 +17,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -31,7 +32,11 @@ RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node))
 {
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto renderNode = renderNode_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
     auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
     canvasDrawingRenderNode->InitRenderContent();
 }
@@ -55,7 +60,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     if (params->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
@@ -75,7 +80,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
     };
     auto threadId = paintFilterCanvas->GetIsParallelCanvas() ?
-        RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : 0;
+        RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : RSUniRenderThread::Instance().GetTid();
     SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
 
     auto& bounds = params->GetBounds();
@@ -98,7 +103,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawForeground(canvas, bounds);
 
     // 5. Ready to clear resource.
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto renderNode = renderNode_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
     auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
     canvasDrawingRenderNode->SetDrawCmdListsVisited(true);
 }
@@ -107,11 +116,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 struct SharedTextureContext {
     SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
         : sharedImage_(std::move(sharedImage)) {}
- 
+
 private:
     std::shared_ptr<Drawing::Image> sharedImage_;
 };
- 
+
 static void DeleteSharedTextureContext(void* context)
 {
     SharedTextureContext* cleanupHelper = static_cast<SharedTextureContext*>(context);
@@ -124,17 +133,30 @@ static void DeleteSharedTextureContext(void* context)
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
     DrawContent(*canvas_, rect);
-
+    auto renderNode = renderNode_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
+    auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
+    if (canvasDrawingNode == nullptr) {
+        return;
+    }
+    auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
+    canvasDrawingParams->SetNeedProcess(false);
     Rosen::Drawing::Matrix mat;
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
+    if (params == nullptr) {
+        return;
+    }
     auto& frameRect = params->GetFrameRect();
     if (RSPropertiesPainter::GetGravityMatrix(params->GetFrameGravity(),
         { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },
         params->GetBounds().GetWidth(), params->GetBounds().GetHeight(), mat)) {
         canvas.ConcatMatrix(mat);
     }
-    auto ctx = renderNode_->GetContext().lock();
-    Flush(rect.GetWidth(), rect.GetHeight(), ctx, renderNode_->GetId(),
+    auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
+    Flush(rect.GetWidth(), rect.GetHeight(), ctx, nodeId_,
         *static_cast<RSPaintFilterCanvas*>(&canvas)); // getimage
     std::lock_guard<std::mutex> lock(imageMutex_);
     if (image_ == nullptr) {
@@ -163,16 +185,37 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
-    auto nodeId = renderNode_->GetId();
-    auto ctx = renderNode_->GetContext().lock();
-    auto rect = renderNode_->GetRenderParams()->GetBounds();
+    auto nodeId = nodeId_;
+    auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
+    auto rect = GetRenderParams()->GetBounds();
     auto task = [this, rect, nodeId, ctx]() {
         std::lock_guard<std::mutex> lockTask(taskMutex_);
         if (!surface_ || !canvas_) {
             return;
         }
-        // planning: clear op
+        auto renderNode = renderNode_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
+        auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
+        auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
+        if (canvasDrawingNode == nullptr) {
+            return;
+        }
+        auto canvasDrawingParams =
+            static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
+        DrawContent(*canvas_, rect);
+        canvasDrawingParams->SetNeedProcess(false);
+        canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
+
+    {
+        // check params, if params is invalid, do not post the task
+        std::lock_guard<std::mutex> lockTask(taskMutex_);
+        if (!surface_ || !canvas_) {
+            return;
+        }
+    }
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
 
@@ -297,10 +340,6 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(const uint64_t tid)
     std::lock_guard<std::mutex> lock(drawingMutex);
     if (!image_) {
         RS_LOGE("Failed to get bitmap, image is null!");
-        return bitmap;
-    }
-    if (GetTid() != tid) {
-        RS_LOGE("Failed to get bitmap: image is used by multi threads");
         return bitmap;
     }
     if (!image_->AsLegacyBitmap(bitmap)) {

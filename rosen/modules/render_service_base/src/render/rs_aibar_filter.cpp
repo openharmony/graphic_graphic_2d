@@ -23,6 +23,8 @@
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_kawase_blur.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
 
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
@@ -32,7 +34,7 @@ namespace Rosen {
 
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 RSAIBarFilter::RSAIBarFilter()
-    : RSDrawingFilter(nullptr)
+    : RSDrawingFilterOriginal(nullptr)
 {
     type_ = RSFilter::AIBAR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
@@ -43,29 +45,45 @@ RSAIBarFilter::~RSAIBarFilter() = default;
 void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    std::vector<float> aiInvertCoef = GetAiInvertCoef();
-    float radius = aiInvertCoef[5]; // aiInvertCoef[5] is filter_radius
-    Drawing::Matrix matrix;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
-    float imageWidth = image->GetWidth();
-    float imageHeight = image->GetHeight();
-    auto builder = MakeBinarizationShader(
-        imageWidth, imageHeight, imageShader);
-    auto invertedImage = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
-    if (invertedImage == nullptr) {
-        ROSEN_LOGE("RSAIBarFilter::DrawImageRect invertedImage is null");
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    if (!visualEffectContainer) {
         return;
     }
-    // apply blur effect on invertedImage
-    KawaseParameter param = KawaseParameter(src, dst, radius, nullptr, 1.0);
+    auto aiBarPara = GetAiInvertCoef();
+    auto aiBarFilter =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_AI_BAR, Drawing::DrawingPaintType::BRUSH);
+    if (!aiBarFilter) {
+        return;
+    }
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_LOW, aiBarPara[0]); // 0 low
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_HIGH, aiBarPara[1]); // 1 high
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_THRESHOLD, aiBarPara[2]); // 2 threshold
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_OPACITY, aiBarPara[3]); // 3 opacity
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_SATURATION, aiBarPara[4]); // 4 saturation
+    auto radius = aiBarPara[5];  // 5 blur radius
+    visualEffectContainer->AddToChainedFilter(aiBarFilter);
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    if (!geRender) {
+        return;
+    }
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
-    if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED &&
-        KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, invertedImage, param)) {
+    if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED) {
+        auto kawaseFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR, Drawing::DrawingPaintType::BRUSH);
+        kawaseFilter->SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, (int)radius);
+        visualEffectContainer->AddToChainedFilter(kawaseFilter);
+        auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+            image, src, src, Drawing::SamplingOptions());
+        Drawing::Brush brushKawas;
+        canvas.AttachBrush(brushKawas);
+        canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
+        canvas.DetachBrush();
         return;
     }
     Drawing::Brush brush;
     Drawing::Filter filter;
+    auto invertedImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+        image, src, src, Drawing::SamplingOptions());
     auto blurType = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
     filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP,
         nullptr, blurType));
@@ -73,6 +91,7 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*invertedImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
+    return;
 }
 
 std::string RSAIBarFilter::GetDescription()

@@ -50,10 +50,6 @@ public:
         return token_;
     }
 
-#ifdef RS_PROFILER_ENABLED
-    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-#endif
-
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
@@ -80,6 +76,8 @@ private:
                                                  const sptr<VSyncIConnectionToken>& token,
                                                  uint64_t id,
                                                  NodeId windowNodeId = 0) override;
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -112,7 +110,7 @@ private:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -245,11 +243,15 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus) override;
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
+
+    LayerComposeInfo GetLayerComposeInfo() override;
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
@@ -297,7 +299,7 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-    
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

@@ -21,21 +21,19 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT GEGreyShaderFilter : public GEShaderFilter {
+class GEGreyShaderFilter : public GEShaderFilter {
 public:
     GEGreyShaderFilter(const Drawing::GEGreyShaderFilterParams& params);
-    ~GEGreyShaderFilter() override;
+    ~GEGreyShaderFilter() override = default;
 
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
 private:
-    friend class RSMarshallingHelper;
-
     bool InitGreyAdjustmentEffect();
 
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
+    float greyCoef1_;
+    float greyCoef2_;
 };
 
 } // namespace Rosen

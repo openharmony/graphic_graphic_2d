@@ -25,8 +25,10 @@ using InitFunc = void (*)();
 using ProcessCommandsStartFunc = void(*)();
 using AnimateStartFunc = void(*)();
 using RenderStartFunc = void(*)(uint64_t);
+using ParallelRenderStartFunc = void(*)();
 using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
+using ParallelRenderEndFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
 class RsFrameReport final {
 public:
@@ -37,7 +39,9 @@ public:
     void ProcessCommandsStart();
     void AnimateStart();
     void RenderStart(uint64_t timestamp);
+    void RSRenderStart();
     void RenderEnd();
+    void RSRenderEnd();
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
 
@@ -55,7 +59,9 @@ private:
     ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
     AnimateStartFunc animateStartFunc_ = nullptr;
     RenderStartFunc renderStartFunc_ = nullptr;
+    ParallelRenderStartFunc parallelRenderStartFunc_ = nullptr;
     RenderEndFunc renderEndFunc_ = nullptr;
+    ParallelRenderEndFunc parallelRenderEndFunc_ = nullptr;
     SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
     SetFrameParamFunc setFrameParamFunc_ = nullptr;
 };

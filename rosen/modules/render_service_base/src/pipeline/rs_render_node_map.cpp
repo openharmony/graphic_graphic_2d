@@ -28,6 +28,9 @@ constexpr const char* ENTRY_VIEW = "SCBDesktop";
 constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
+constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
+constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
+constexpr const char* SYSTEM_APP = "";
 constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 RSRenderNodeMap::RSRenderNodeMap()
@@ -51,6 +54,9 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     }
     if (surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos) {
         wallpaperViewNodeId_ = surfaceNode->GetId();
+    }
+    if (surfaceNode->GetName().find(NEGATIVE_SCREEN) != std::string::npos) {
+        negativeScreenNodeId_ = surfaceNode->GetId();
     }
 }
 
@@ -79,6 +85,11 @@ NodeId RSRenderNodeMap::GetScreenLockWindowNodeId() const
     return screenLockWindowNodeId_;
 }
 
+NodeId RSRenderNodeMap::GetNegativeScreenNodeId() const
+{
+    return negativeScreenNodeId_;
+}
+
 static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
 {
     return surfaceNode->GetName().find(ENTRY_VIEW) != std::string::npos ||
@@ -95,6 +106,18 @@ void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
         return;
     }
     abilityComponentNumsInProcess_[ExtractPid(id)]++;
+}
+
+uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
+{
+    if (surfaceNodeMap_.empty()) {
+        return 0;
+    }
+
+    return std::count_if(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
+        [](const auto& pair) -> bool {
+            return pair.second && pair.second->IsLeashWindowSurfaceNodeVisible();
+        });
 }
 
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
@@ -144,7 +167,8 @@ void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
     auto surfaceNodeIter = surfaceNodeMap_.find(id);
     if (surfaceNodeIter != surfaceNodeMap_.end()) {
         auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
-        if (surfaceNode->IsAbilityComponent()) {
+        if ((surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE) &&
+            (surfaceNode->GetName().find(SYSTEM_APP) == std::string::npos)) {
             auto pid = ExtractPid(id);
             auto iter = abilityComponentNumsInProcess_.find(pid);
             if (iter != abilityComponentNumsInProcess_.end()) {

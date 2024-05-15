@@ -25,7 +25,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-napi_value DrawingInit(napi_env env, napi_value exportObj);
+DRAWING_API napi_value DrawingInit(napi_env env, napi_value exportObj);
 napi_value CreateFont(napi_env env);
 class JsDraw final {
 public:

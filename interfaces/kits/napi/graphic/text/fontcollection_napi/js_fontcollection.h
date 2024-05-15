@@ -31,13 +31,12 @@ public:
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
-    static napi_value DisableFallback(napi_env env, napi_callback_info info);
     static napi_value LoadFontSync(napi_env env, napi_callback_info info);
+    static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
     static thread_local napi_ref constructor_;
-    napi_value OnDisableFallback(napi_env env, napi_callback_info info);
     napi_value OnLoadFont(napi_env env, napi_callback_info info);
     std::unique_ptr<Global::Resource::ResourceManager> GetResourManager(const std::string& moudleName);
     bool SpiltAbsoluteFontPath(std::string& absolutePath);
@@ -45,9 +44,8 @@ private:
     bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info);
     bool GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
         napi_value bundleNameNApi, napi_value moduleNameNApi);
-    Drawing::Typeface* GetFontFileProperties(const std::string path, const std::string familyName);
-    bool AddTypefaceInformation(Drawing::Typeface* typeface, const std::string familyName);
-    std::shared_ptr<FontCollection> m_fontCollection = nullptr;
+    bool GetFontFileProperties(const std::string path, const std::string familyName);
+    std::shared_ptr<FontCollection> fontcollection_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_JS_FONTCOLLECTION_H

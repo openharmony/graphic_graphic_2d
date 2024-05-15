@@ -159,6 +159,18 @@ void RsFrameReport::RenderStart(uint64_t timestamp)
     }
 }
 
+void RsFrameReport::RSRenderStart()
+{
+    if (parallelRenderStartFunc_ == nullptr) {
+        parallelRenderStartFunc_ = reinterpret_cast<ParallelRenderStartFunc>(LoadSymbol("RSRenderStart"));
+    }
+    if (parallelRenderStartFunc_ != nullptr) {
+        parallelRenderStartFunc_();
+    } else {
+        LOGE("RsFrameReport:[RSRenderStart]load RSRenderStart function failed!");
+    }
+}
+
 void RsFrameReport::RenderEnd()
 {
     if (renderEndFunc_ == nullptr) {
@@ -169,6 +181,18 @@ void RsFrameReport::RenderEnd()
         renderEndFunc_();
     } else {
         LOGE("RsFrameReport:[RenderEnd]load RenderEnd function failed!");
+    }
+}
+
+void RsFrameReport::RSRenderEnd()
+{
+    if (parallelRenderEndFunc_ == nullptr) {
+        parallelRenderEndFunc_ = reinterpret_cast<ParallelRenderEndFunc>(LoadSymbol("RSRenderEnd"));
+    }
+    if (parallelRenderEndFunc_ != nullptr) {
+        parallelRenderEndFunc_();
+    } else {
+        LOGE("RsFrameReport:[RSRenderEnd]load RSRenderEnd function failed!");
     }
 }
 

@@ -77,7 +77,7 @@ public:
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
- 
+
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
@@ -104,7 +104,7 @@ public:
 
     virtual ScreenInfo QueryScreenInfo(ScreenId id) const = 0;
 
-    // Can only be called after QueryScreenState and the state is ScreenState::PRODUCER_SURFACE_ENABLE;
+    // Can only be called after QueryScreenState and the state is ScreenState::SOFTWARE_OUTPUT_ENABLE;
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
 
     virtual bool GetCanvasRotation(ScreenId id) const = 0;
@@ -119,6 +119,8 @@ public:
     virtual void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) = 0;
 
     virtual void ProcessScreenHotPlugEvents() = 0;
+
+    virtual bool TrySimpleProcessHotPlugEvents() = 0;
 
     virtual void DisplayDump(std::string& dumpString) = 0;
 
@@ -153,7 +155,7 @@ public:
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
-     
+
     virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const = 0;
 
     virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
@@ -187,6 +189,8 @@ public:
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
     virtual void ForceRefreshOneFrameIfNoRNV() = 0;
+
+    virtual void ClearFrameBufferIfNeed() = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -279,6 +283,8 @@ public:
 
     void ProcessScreenHotPlugEvents() override;
 
+    bool TrySimpleProcessHotPlugEvents() override;
+
     void DisplayDump(std::string& dumpString) override;
 
     void SurfaceDump(std::string& dumpString) override;
@@ -335,7 +341,7 @@ public:
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
     ScreenId GetActiveScreenId() override;
-    
+
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
     {
@@ -355,6 +361,8 @@ public:
     void HandlePostureData(const SensorEvent * const event) override;
 #endif
     void ForceRefreshOneFrameIfNoRNV() override;
+
+    void ClearFrameBufferIfNeed() override;
 
 private:
     RSScreenManager();

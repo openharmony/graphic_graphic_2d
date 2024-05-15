@@ -16,8 +16,10 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_virtual_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_virtual_screen_processor.h"
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -79,8 +81,9 @@ HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         SOFTWARE_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsSoftwareProcessor);
     ASSERT_EQ(false, rsSoftwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 
@@ -168,4 +171,18 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level
     rsVirtualScreenProcessor.ProcessDisplaySurface(rsDisplayRenderNode);
 }
 
+/**
+ * @tc.name: ProcessRcdSurfaceTest
+ * @tc.desc: test results of ProcessRcdSurface
+ * @tc.type:  FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    RCDSurfaceType type = RCDSurfaceType::BOTTOM;
+    RSRcdSurfaceRenderNode node(id, type);
+    RSVirtualScreenProcessor rsVirtualScreenProcessor;
+    rsVirtualScreenProcessor.ProcessRcdSurface(node);
+}
 } // namespace OHOS::Rosen

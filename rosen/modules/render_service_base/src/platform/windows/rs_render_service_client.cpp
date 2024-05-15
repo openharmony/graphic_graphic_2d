@@ -110,6 +110,12 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverWindows>();
 }
 
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    return nullptr;
+}
+
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
@@ -158,7 +164,8 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
+    const FrameRateRange& range, bool isAnimatorStopped)
 {
 }
 
@@ -460,7 +467,7 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 }
 
@@ -472,9 +479,19 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
 {
 }
 
-GpuDirtyRegionInfo RSRenderServiceClient::GetCurrentDirtyRegionInfo(ScreenId id)
+std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
-    return GpuDirtyRegionInfo {};
+    return {};
+}
+
+GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
+{
+    return GlobalDirtyRegionInfo {};
+}
+
+LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
+{
+    return LayerComposeInfo {};
 }
 
 #ifdef TP_FEATURE_ENABLE

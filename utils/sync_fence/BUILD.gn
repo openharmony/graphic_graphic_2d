@@ -29,9 +29,6 @@ config("sync_fence_config") {
 config("sync_fence_public_config") {
   include_dirs = [
     "export",
-    "//commonlibrary/c_utils/base/include",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits",
-    "//base/notification/eventhandler/interfaces/inner_api",
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 }
@@ -60,6 +57,11 @@ ohos_shared_library("sync_fence") {
     "chipsetsdk",
     "platformsdk_indirect",
   ]
+
+  if (!is_emulator && !build_ohos_sdk && current_os == "ohos") {
+    defines = [ "FENCE_SCHED_ENABLE" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

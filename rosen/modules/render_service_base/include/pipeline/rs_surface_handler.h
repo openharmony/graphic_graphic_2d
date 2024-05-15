@@ -16,10 +16,12 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
 #include <atomic>
+#include <map>
 #include <mutex>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #include <surface.h>
@@ -102,6 +104,16 @@ public:
         return consumer_;
     }
 
+    void SetHoldBuffer(std::shared_ptr<SurfaceBufferEntry> buffer)
+    {
+        holdBuffer_ = buffer;
+    }
+
+    inline std::shared_ptr<SurfaceBufferEntry> GetHoldBuffer()
+    {
+        return holdBuffer_;
+    }
+
     void SetBuffer(
         const sptr<SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence,
@@ -149,6 +161,20 @@ public:
         }
         bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
                              buffer->GetHeight() != preBuffer_.buffer->GetHeight();
+    }
+
+    bool CheckScalingModeChanged()
+    {
+        if (!HasConsumer() || buffer_.buffer == nullptr) {
+            return false;
+        }
+
+        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+
+        consumer_->GetScalingMode(buffer_.buffer->GetSeqNum(), scalingMode);
+        bool ScalingModeChanged_ = scalingMode != scalingModePre;
+        scalingModePre = scalingMode;
+        return ScalingModeChanged_;
     }
 #endif
 
@@ -215,6 +241,11 @@ public:
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
+    void ReleaseBuffer(SurfaceBufferEntry& buffer);
+    void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
+    void CacheBuffer(SurfaceBufferEntry buffer);
+    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
+    bool HasBufferCache() const;
 #endif
 
 protected:
@@ -224,12 +255,17 @@ protected:
     bool isCurrentFrameBufferConsumed_ = false;
 
 private:
+#ifndef ROSEN_CROSS_PLATFORM
+    ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+#endif
     NodeId id_ = 0;
     SurfaceBufferEntry buffer_;
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
+    std::map<uint64_t, SurfaceBufferEntry> bufferCache_;
+    std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };
 }
 }

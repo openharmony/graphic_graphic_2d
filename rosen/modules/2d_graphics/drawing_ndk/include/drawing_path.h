@@ -87,6 +87,56 @@ typedef enum {
 } OH_Drawing_PathAddMode;
 
 /**
+ * @brief Operations when two paths object are combined.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Difference operation.
+     */
+    PATH_OP_MODE_DIFFERENCE,
+    /**
+     * Intersect operation.
+     */
+    PATH_OP_MODE_INTERSECT,
+    /**
+     * Union operation.
+     */
+    PATH_OP_MODE_UNION,
+    /**
+     * Xor operation.
+     */
+    PATH_OP_MODE_XOR,
+    /**
+     * Reverse difference operation.
+     */
+    PATH_OP_MODE_REVERSE_DIFFERENCE,
+} OH_Drawing_PathOpMode;
+
+/**
+ * @brief Enumerates the matrix information corresponding to the path measurements.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Gets position.
+     */
+    GET_POSITION_MATRIX,
+    /**
+     * Gets tangent.
+     */
+    GET_TANGENT_MATRIX,
+    /**
+     * Gets both position and tangent.
+     */
+    GET_POSITION_AND_TANGENT_MATRIX,
+} OH_Drawing_PathMeasureMatrixFlags;
+
+/**
  * @brief Creates an <b>OH_Drawing_Path</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -421,6 +471,45 @@ void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* path, const OH_Dra
 void OH_Drawing_PathAddOval(OH_Drawing_Path*, const OH_Drawing_Rect*, OH_Drawing_PathDirection);
 
 /**
+ * @brief Adds contour created from point array, adding (count - 1) line segments.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param points Indicates the point array.
+ * @param count Indicates the size of point array.
+ * @param isClosed Indicates Whether to add lines that connect the end and start.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddPolygon(OH_Drawing_Path* path, const OH_Drawing_Point2D* points, uint32_t count, bool isClosed);
+
+/**
+ * @brief  Adds a circle to the path, and wound in the specified direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the center of the circle.
+ * @param y Indicates the y coordinate of the center of the circle.
+ * @param radius Indicates the radius of the circle.
+ * @param OH_Drawing_PathDirection Indicates the path direction.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddCircle(OH_Drawing_Path* path, float x, float y, float radius, OH_Drawing_PathDirection);
+
+/**
+ * @brief Parses the svg path from the string.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param str Indicates the string of the SVG path.
+ * @return Returns true if build path is successful, returns false otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* path, const char* str);
+
+/**
  * @brief Return the status that point (x, y) is contained by path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -484,6 +573,17 @@ void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
 float OH_Drawing_PathGetLength(OH_Drawing_Path*, bool forceClosed);
 
 /**
+ * @brief Gets the smallest bounding box that contains the path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathGetBounds(OH_Drawing_Path*, OH_Drawing_Rect*);
+
+/**
  * @brief Closes a path. A line segment from the start point to the last point of the path is added.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -515,6 +615,64 @@ void OH_Drawing_PathOffset(OH_Drawing_Path* path, OH_Drawing_Path* dst, float dx
  * @version 1.0
  */
 void OH_Drawing_PathReset(OH_Drawing_Path*);
+
+/**
+ * @brief Determines whether the path current contour is closed.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param forceClosed Whether to close the Path.
+ * @return Returns <b>true</b> if the path current contour is closed; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathIsClosed(OH_Drawing_Path* path, bool forceClosed);
+
+/**
+ * @brief Gets the position and tangent of the distance from the starting position of the Path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param forceClosed Whether to close the Path.
+ * @param distance The distance from the start of the Path.
+ * @param position Sets to the position of distance from the starting position of the Path.
+ * @param tangent Sets to the tangent of distance from the starting position of the Path.
+ * @return Returns <b>true</b> if succeeded; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathGetPositionTangent(OH_Drawing_Path* path, bool forceClosed,
+    float distance, OH_Drawing_Point2D* position, OH_Drawing_Point2D* tangent);
+
+/**
+ * @brief Combines two paths.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param srcPath Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param op Indicates the operation to apply to combine.
+ * @return Returns <b>true</b> if constructed path is not empty; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathOp(OH_Drawing_Path* path, const OH_Drawing_Path* srcPath, OH_Drawing_PathOpMode op);
+
+/**
+ * @brief Computes the corresponding matrix at the specified distance.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param forceClosed Whether to close the Path.
+ * @param distance The distance from the start of the Path.
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param flag Indicates what should be returned in the matrix.
+ * @return Returns <b>false</b> if path is nullptr or zero-length;
+ *         returns <b>true</b> if path is not nullptr and not zero-length.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* path, bool forceClosed,
+    float distance, OH_Drawing_Matrix* matrix, OH_Drawing_PathMeasureMatrixFlags flag);
 
 #ifdef __cplusplus
 }

@@ -14,10 +14,13 @@
  */
 
 #include "gtest/gtest.h"
+#include "limit_number.h"
+#include "rs_test_util.h"
+
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_processor.h"
-#include "pipeline/rs_processor_factory.h"
-#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -65,5 +68,111 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
     processor->Init(node, 0, 0, 0, uniRenderEngine);
     RSSurfaceRenderNode surfaceNode(2);
     processor->ProcessSurface(surfaceNode);
+}
+
+/**
+ * @tc.name: InitTest
+ * @tc.desc: Verify function Init
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode node(1, config);
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    EXPECT_EQ(renderProcessor->Init(node, 0, 0, 0, renderEngine), false);
+}
+
+/**
+ * @tc.name: ProcessSurfaceTest
+ * @tc.desc: Verify function ProcessSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode node(1, config);
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    renderProcessor->Init(node, 0, 0, 0, uniRenderEngine);
+    // for test
+    RSSurfaceRenderNode surfaceNode(2);
+    renderProcessor->ProcessSurface(surfaceNode);
+}
+
+/**
+ * @tc.name: PostProcessTest
+ * @tc.desc: Verify function PostProcess
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    renderProcessor->PostProcess();
+    EXPECT_FALSE(renderProcessor->isPhone_);
+}
+
+/**
+ * @tc.name: CreateLayerTest
+ * @tc.desc: Verify function CreateLayer
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    HdiBackend hdiBackend;
+    auto output = std::make_shared<HdiOutput>(1);
+    renderProcessor->uniComposerAdapter_->hdiBackend_ = &hdiBackend;
+    renderProcessor->uniComposerAdapter_->output_ = output;
+    RSSurfaceRenderNode node(0);
+    auto iConsumerSurface = IConsumerSurface::Create();
+    node.SetConsumer(iConsumerSurface);
+    RSSurfaceRenderParams params(0);
+    RSLayerInfo layerInfo;
+    sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
+    sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
+    layerInfo.buffer = bufferTest;
+    layerInfo.preBuffer = preBufferTest;
+    layerInfo.zOrder = 0;
+    params.SetLayerInfo(layerInfo);
+    renderProcessor->CreateLayer(node, params);
+    EXPECT_FALSE(renderProcessor->isPhone_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceTest
+ * @tc.desc: Verify function ProcessDisplaySurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode node(nodeId, config);
+    renderProcessor->ProcessDisplaySurface(node);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+}
+
+/**
+ * @tc.name: ProcessRcdSurfaceTest
+ * @tc.desc: Verify function ProcessRcdSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+    RCDSurfaceType type = RCDSurfaceType::INVALID;
+    RSRcdSurfaceRenderNode node(nodeId, type);
+    renderProcessor->ProcessRcdSurface(node);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
 }
 }

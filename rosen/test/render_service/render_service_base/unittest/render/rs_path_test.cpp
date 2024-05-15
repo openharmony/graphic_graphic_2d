@@ -14,8 +14,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "render/rs_path.h"
+
 #include "draw/path.h"
+#include "render/rs_path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -70,6 +71,43 @@ HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDrawingPathTest001
+ * @tc.desc: Verify function GetDrawingPath
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetDrawingPathTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    rsPath->GetDrawingPath();
+    ASSERT_NE(rsPath->drPath_, nullptr);
+}
+
+/**
+ * @tc.name: ReverseTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, ReverseTest001, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    auto reveseRsPath = rsPath->Reverse();
+    EXPECT_NE(rsPath, reveseRsPath);
+}
+
+/**
+ * @tc.name: GetDistanceTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, GetDistanceTest, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    EXPECT_EQ(rsPath->GetDistance(), path.GetLength(false));
+}
+
+/**
  * @tc.name: SetSkiaPathTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -79,5 +117,43 @@ HWTEST_F(RSPathTest, SetSkiaPathTest, TestSize.Level1)
     Drawing::Path path = CreateDrawingPath();
     RSPath rsPath;
     rsPath.SetDrawingPath(path);
+}
+
+/**
+ * @tc.name: GetPosTanTest001
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector2f pos = { 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
+}
+
+/**
+ * @tc.name: GetPosTanTest002
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest002, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector4f pos = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
+}
+
+/**
+ * @tc.name: ReverseTest002
+ * @tc.desc: Verify function Reverse
+ * @tc.type: FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSPathTest, ReverseTest002, TestSize.Level1)
+{
+    RSPath rsPath;
+    EXPECT_NE(rsPath.Reverse(), nullptr);
 }
 } // namespace OHOS::Rosen

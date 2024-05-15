@@ -17,19 +17,21 @@
 
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_material_filter.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_material_filter.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-// when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD,
-// the snapshot should call outset before blur to shrink by 1px.
-constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
+constexpr int TRACE_LEVEL_TWO = 2;
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
 {
@@ -182,7 +184,6 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 {
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-    Drawing::AutoCanvasRestore rst(*canvas, true);
     auto matrix = canvas->GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
@@ -202,15 +203,13 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         return;
     }
 
-    bool needSnapshotOutset = true;
-    if (rsFilter->GetFilterType() == RSFilter::MATERIAL) {
-        auto material = std::static_pointer_cast<RSMaterialFilter>(rsFilter);
-        needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
-    }
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    auto clipIBounds = canvas->GetDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s",
+        rsFilter->GetFilterType(), rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     g_blurCnt++;
 
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter surface null");
@@ -221,28 +220,48 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         return;
     }
 
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (paintFilterCanvas == nullptr) {
+        return;
+    }
+    RSAutoCanvasRestore autoCanvasStore(paintFilterCanvas, isForegroundFilter ?
+        RSPaintFilterCanvas::SaveType::kAlpha : RSPaintFilterCanvas::SaveType::kNone);
+    if (isForegroundFilter) {
+        paintFilterCanvas->SetAlpha(1.0);
+    }
+
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        !paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
+    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+        std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+        if (rsShaderFilter != nullptr) {
+            auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+            tmpFilter->IsOffscreenCanvas(true);
+            filter->SetSnapshotOutset(false);
+        }
+        cacheManager->DrawFilter(*paintFilterCanvas, filter,
+            { false, shouldClearFilteredCache });
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }
 #endif
 
-    auto clipIBounds = canvas->GetDeviceClipBounds();
-    auto imageClipIBounds = clipIBounds;
-    if (needSnapshotOutset) {
-        imageClipIBounds.MakeOutset(-1, -1);
+    std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+    if (rsShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+        tmpFilter->IsOffscreenCanvas(true);
+        filter->SetSnapshotOutset(false);
     }
+    auto imageClipIBounds = clipIBounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter image null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter image null");
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->GetWidth(), imageSnapshot->GetHeight())) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter cache image resource(w:%{public}d, h:%{public}d).",
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter cache image resource(w:%{public}d, h:%{public}d).",
             imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
         imageSnapshot->HintCacheGpuResource();
     }
@@ -268,6 +287,7 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    canvas.StoreCanvas();
     canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
     offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.SavePCanvasList();
@@ -298,7 +318,7 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter image null");
         return;
     }
-    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
@@ -337,6 +357,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     }
 #endif
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
+        rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     auto imageRect = clipIBounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);
     if (imageSnapshot == nullptr) {
@@ -387,7 +409,7 @@ void RSPropertyDrawableUtils::DrawColorFilter(
     auto clipBounds = canvas->GetDeviceClipBounds();
     auto imageSnapshot = surface->GetImageSnapshot(clipBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter image is null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawColorFilter image is null");
         return;
     }
     imageSnapshot->HintCacheGpuResource();
@@ -493,7 +515,8 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeDynamicDimSh
         half4 main(float2 coord)
         {
             vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
-            hsv.y = hsv.y * 0.8;
+            float value = max(0.8, dynamicDimDeg); // 0.8 is min saturation ratio.
+            hsv.y = hsv.y * value;
             hsv.z = min(hsv.z * dynamicDimDeg, 1.0);
             return vec4(hsv2rgb(hsv), 1.0);
         }
@@ -516,21 +539,22 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
     float low, float high, float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static constexpr char prog[] = R"(
-        uniform half low;
-        uniform half high;
-        uniform half thresholdLow;
-        uniform half thresholdHigh;
+        uniform mediump float ubo_low;
+        uniform mediump float ubo_high;
+        uniform mediump float ubo_thresholdLow;
+        uniform mediump float ubo_thresholdHigh;
         uniform shader imageShader;
-
-        half4 main(float2 coord) {
-            half3 c = imageShader.eval(float2(coord.x, coord.y)).rgb;
+        mediump vec4 main(vec2 drawing_coord) {
+            mediump vec3 c = imageShader(drawing_coord).rgb;
             float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-            float lowRes = mix(high, -1.0, step(thresholdLow, gray));
-            float highRes = mix(-1.0, low, step(thresholdHigh, gray));
-            float midRes = (thresholdHigh - gray) * (high - low) / (thresholdHigh - thresholdLow) + low;
+            float lowRes = mix(ubo_high, -1.0, step(ubo_thresholdLow, gray));
+            float highRes = mix(-1.0, ubo_low, step(ubo_thresholdHigh, gray));
+            float midRes = (ubo_thresholdHigh - gray) * (ubo_high - ubo_low) /
+            (ubo_thresholdHigh - ubo_thresholdLow) + ubo_low;
             float invertedGray = mix(midRes, max(lowRes, highRes), step(-0.5, max(lowRes, highRes)));
-            half3 invert = half3(invertedGray);
-            return half4(invert, 1.0);
+            mediump vec3 invert = vec3(invertedGray);
+            mediump vec4 res = vec4(invert, 1.0);
+            return res;
         }
     )";
     if (binarizationShaderEffect_ == nullptr) {
@@ -544,11 +568,92 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
         std::make_shared<Drawing::RuntimeShaderBuilder>(binarizationShaderEffect_);
     thresholdHigh = thresholdHigh <= thresholdLow ? thresholdHigh + 1e-6 : thresholdHigh;
     builder->SetChild("imageShader", imageShader);
-    builder->SetUniform("low", low);
-    builder->SetUniform("high", high);
-    builder->SetUniform("thresholdLow", thresholdLow);
-    builder->SetUniform("thresholdHigh", thresholdHigh);
+    builder->SetUniform("ubo_low", low);
+    builder->SetUniform("ubo_high", high);
+    builder->SetUniform("ubo_thresholdLow", thresholdLow);
+    builder->SetUniform("ubo_thresholdHigh", thresholdHigh);
     return builder->MakeShader(nullptr, false);
+}
+
+std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
+    const RSDynamicBrightnessPara& params, const float fract)
+{
+    if (ROSEN_LNE(fract, 0.0) || ROSEN_GE(fract, 1.0)) {
+        return nullptr;
+    }
+
+    auto builder = MakeDynamicBrightnessBuilder();
+    if (!builder) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make builder fail");
+        return nullptr;
+    }
+
+    constexpr int IDNEX_ZERO = 0;
+    constexpr int IDNEX_ONE = 1;
+    constexpr int IDNEX_TWO = 2;
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
+    builder->SetUniform("ubo_fract", fract);
+    builder->SetUniform("ubo_rate", params.rate_);
+    builder->SetUniform("ubo_degree", params.lightUpDegree_);
+    builder->SetUniform("ubo_cubic", params.cubicCoeff_);
+    builder->SetUniform("ubo_quad", params.quadCoeff_);
+    builder->SetUniform("ubo_baseSat", params.saturation_);
+    builder->SetUniform("ubo_posr", params.posRGB_[IDNEX_ZERO]);
+    builder->SetUniform("ubo_posg", params.posRGB_[IDNEX_ONE]);
+    builder->SetUniform("ubo_posb", params.posRGB_[IDNEX_TWO]);
+    builder->SetUniform("ubo_negr", params.negRGB_[IDNEX_ZERO]);
+    builder->SetUniform("ubo_negg", params.negRGB_[IDNEX_ONE]);
+    builder->SetUniform("ubo_negb", params.negRGB_[IDNEX_TWO]);
+    return builder->MakeBlender();
+}
+
+std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDynamicBrightnessBuilder()
+{
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBuilder");
+    static constexpr char prog[] = R"(
+        uniform half ubo_fract;
+        uniform half ubo_rate;
+        uniform half ubo_degree;
+        uniform half ubo_cubic;
+        uniform half ubo_quad;
+        uniform half ubo_baseSat;
+        uniform half ubo_posr;
+        uniform half ubo_posg;
+        uniform half ubo_posb;
+        uniform half ubo_negr;
+        uniform half ubo_negg;
+        uniform half ubo_negb;
+
+        const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
+
+        half3 gray(half3 x, half4 coeff) {
+            return coeff.x * x * x * x + coeff.y * x * x + coeff.z * x + coeff.w;
+        }
+        half3 sat(half3 inColor, half n, half3 pos, half3 neg) {
+            half base = dot(inColor, baseVec) * (1.0 - n);
+            half3 delta = base + inColor * n - inColor;
+            half3 posDelta = inColor + delta * pos;
+            half3 negDelta = inColor + delta * neg;
+            half3 test = mix(negDelta, posDelta, step(0, delta));
+            return test;
+        }
+        half4 main(half4 src, half4 dst) {
+            half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
+            half3 color = gray(dst.rgb, coeff);
+            half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
+            half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
+            color = sat(color, ubo_baseSat, pos, neg);
+            color = clamp(color, 0.0, 1.0);
+            color = mix(color, src.rgb, ubo_fract);
+            half4 res = half4(mix(dst.rgb, color, src.a), dst.a);
+            return dst.a * res;
+        }
+    )";
+    if (dynamicBrightnessBlenderEffect_ == nullptr) {
+        dynamicBrightnessBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
+        if (dynamicBrightnessBlenderEffect_ == nullptr) { return nullptr; }
+    }
+    return std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicBrightnessBlenderEffect_);
 }
 
 void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert)
@@ -610,6 +715,10 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(), clipBounds.GetBottom());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawPixelStretch, right: %f, bottom: %f", tmpBounds.GetRight(),
+        tmpBounds.GetBottom());
+
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch map rect failed.");
     }
@@ -703,8 +812,12 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
 {
-    CeilMatrixTrans(canvas);
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawShadow, ShadowElevation: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
+    CeilMatrixTrans(canvas);
     if (!isFilled) {
         canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
     }
@@ -717,8 +830,8 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas->GetAlpha());
     spotColor.MultiplyAlpha(canvas->GetAlpha());
-    canvas->DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
-        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
+    canvas->DrawShadowStyle(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
+        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true);
 }
 
 void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
@@ -752,34 +865,64 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     canvas->DetachBrush();
 }
 
-void RSPropertyDrawableUtils::BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType)
+bool RSPropertyDrawableUtils::IsDangerousBlendMode(int blendMode, int blendApplyType)
 {
-    // fast blend mode
+    static const uint32_t fastDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR));
+    static const uint32_t offscreenDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_ATOP)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::MODULATE));
+    uint32_t tmp = 1 << blendMode;
+    if (blendApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        return tmp & fastDangerousBit;
+    }
+    return tmp & offscreenDangerousBit;
+}
+
+void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
+    int blendModeApplyType, bool isDangerous)
+{
+    if (isDangerous && !canvas.HasOffscreenLayer()) {
+        Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
+        canvas.SaveLayer(maskLayerRec);
+        ROSEN_LOGD("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
+    }
+
+    // fast blender
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
-        canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
+        canvas.SetBlender(blender);
         return;
     }
 
     // save layer mode
-    auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas.SetMatrix(matrix);
+    CeilMatrixTrans(&canvas);
+
     Drawing::Brush blendBrush_;
     blendBrush_.SetAlphaF(canvas.GetAlpha());
-    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
+    blendBrush_.SetBlender(blender);
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
-    canvas.SetBlendMode(std::nullopt);
+    canvas.SetBlender(nullptr);
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0f);
 }
 
-void RSPropertyDrawableUtils::EndBlendMode(RSPaintFilterCanvas& canvas)
+void RSPropertyDrawableUtils::EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType)
 {
-    canvas.RestoreEnv();
-    canvas.RestoreAlpha();
-    canvas.Restore();
+    // RSRenderNodeDrawable will do other necessary work (restore canvas & env), we only need to restore alpha
+    if (blendModeApplyType != static_cast<int>(RSColorBlendApplyType::FAST)) {
+        canvas.RestoreAlpha();
+    }
 }
 
 Color RSPropertyDrawableUtils::CalculateInvertColor(const Color& backgroundColor)

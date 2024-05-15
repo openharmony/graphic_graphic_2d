@@ -51,8 +51,38 @@ HWTEST_F(MotionBlurFilterTest, testInterface, TestSize.Level1)
     Drawing::Rect src;
     Drawing::Rect dst;
     std::shared_ptr<Drawing::Image> image;
-
+    filter->GetDescription();
     filter->DrawImageRect(canvas, image, src, dst);
+}
+
+/**
+ * @tc.name: ComposeTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, ComposeTest, TestSize.Level1)
+{
+    Vector2f anchor = {0.f, 0.f};
+    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
+    auto filter = std::make_shared<RSMotionBlurFilter>(para);
+    auto filter_ = std::make_shared<RSMotionBlurFilter>(para);
+
+    EXPECT_TRUE(filter->Compose(filter_) == nullptr);
+}
+
+/**
+ * @tc.name: SetGeometryTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, SetGeometryTest, TestSize.Level1)
+{
+    Vector2f anchor = {0.f, 0.f};
+    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
+    auto filter = std::make_shared<RSMotionBlurFilter>(para);
+
+    Drawing::Canvas canvas;
+    filter->SetGeometry(canvas, 0.f, 0.f);
 }
 } // namespace Rosen
 } // namespace OHOS

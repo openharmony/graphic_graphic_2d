@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "ui/rs_effect_node.h"
+#include "transaction/rs_transaction_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,5 +47,32 @@ HWTEST_F(RSEffectNodeTest, Create001, TestSize.Level1)
     ASSERT_TRUE(effectNode != nullptr);
 }
 
+/**
+ * @tc.name: Create002
+ * @tc.desc: test results of Create
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSEffectNodeTest, Create002, TestSize.Level1)
+{
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(true);
+    EXPECT_TRUE(effectNode != nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: SetFreeze
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSEffectNodeTest, SetFreeze, TestSize.Level1)
+{
+    RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(true);
+    effectNode->SetFreeze(true);
+    ASSERT_TRUE(effectNode != nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

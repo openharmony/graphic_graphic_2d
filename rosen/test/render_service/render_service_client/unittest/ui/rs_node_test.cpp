@@ -2579,6 +2579,45 @@ HWTEST_F(RSNodeTest, SetandGetShadowColor005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetShadowColorStrategy001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+}
+
+/**
+ * @tc.name: SetandGetShadowColorStrategy002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+}
+
+/**
+ * @tc.name: SetandGetShadowColorStrategy003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+}
+
+/**
  * @tc.name: SetandGetTranslateThree001
  * @tc.desc:
  * @tc.type:FUNC
@@ -3322,7 +3361,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3335,7 +3375,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter002, TestSize.Level2)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3348,7 +3389,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter003, TestSize.Level3)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3361,7 +3403,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter004, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3374,7 +3417,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[0]);
 }
 
 /**
@@ -3387,7 +3431,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3400,7 +3445,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter002, TestSize.Level2)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3413,7 +3459,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter003, TestSize.Level3)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3426,7 +3473,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter004, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3439,7 +3487,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[0]);
 }
 
 /**
@@ -3532,6 +3581,93 @@ HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     auto shader = RSShader::CreateRSShader();
     rsNode->SetBackgroundShader(shader);
+}
+
+/**
+ * @tc.name: SetandGetGreyCoef001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f greyCoef = { 0.5, 0.5 };
+    rsNode->SetGreyCoef(greyCoef);
+}
+
+/**
+ * @tc.name: SetandGetAiInvertTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetAiInvertTest, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    auto value = Vector4f(10.f);
+    rootNode->SetAiInvert(value);
+}
+
+/**
+ * @tc.name: SetandGetSpherizeDegree001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetSpherizeDegree001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float spherizeDegree = 1.0f;
+    rsNode->SetSpherizeDegree(spherizeDegree);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetSpherizeDegree(), spherizeDegree));
+}
+
+/**
+ * @tc.name: SetandGetLightUpEffectDegree001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetLightUpEffectDegree001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float lightUpEffectDegree = 1.0f;
+    rsNode->SetLightUpEffectDegree(lightUpEffectDegree);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetLightUpEffectDegree(), lightUpEffectDegree));
+}
+
+/**
+ * @tc.name: SetandGetShadowIsFilled001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowIsFilled001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowIsFilled(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowIsFilled(), true);
+}
+
+/**
+ * @tc.name: SetandGetShadowIsFilled002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowIsFilled002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowIsFilled(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowIsFilled(), false);
+}
+
+/**
+ * @tc.name: SetandGetForegroundEffectRadius001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetForegroundEffectRadius001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float radius = 10.0f;
+    rsNode->SetForegroundEffectRadius(radius);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetForegroundEffectRadius(), radius));
 }
 
 /**
@@ -3634,8 +3770,6 @@ HWTEST_F(RSNodeTest, SetProperty001, TestSize.Level1)
         RSModifierType::BORDER_WIDTH, Vector4f(), Vector4f(1.f));
     SetPropertyTest<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>, Vector4<uint32_t>>(
         RSModifierType::BORDER_STYLE, Vector4<uint32_t>(), Vector4<uint32_t>(1));
-    SetPropertyTest<RSFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>, std::shared_ptr<RSFilter>>(
-        RSModifierType::FILTER, RSFilter::CreateBlurFilter(1.f, 1.f), nullptr);
     SetPropertyTest<RSShadowColorModifier, RSAnimatableProperty<Color>, Color>(
         RSModifierType::SHADOW_COLOR, Color(), Color(0xFF00FF00));
     SetPropertyTest<RSShadowOffsetXModifier, RSAnimatableProperty<float>, float>(
@@ -3887,5 +4021,1954 @@ HWTEST_F(RSNodeTest, SyncTextureExport, TestSize.Level1)
     auto canvasNode = RSCanvasNode::Create();
     rsNode->AddChild(canvasNode, -1);
     rsNode->SyncTextureExport(true);
+}
+
+/**
+ * @tc.name: CalcExpectedFrameRate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CalcExpectedFrameRate, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create();
+    rsNode->AddChild(canvasNode, -1);
+    auto scene = "test_scene";
+    float speed = 0;
+    ASSERT_EQ(rsNode->CalcExpectedFrameRate(scene, speed), 0);
+}
+
+/**
+ * @tc.name: RemoveChildByNodeIdTest Test
+ * @tc.desc: test results of RemoveChildByNodeId
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, RemoveChildByNodeIdTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId childId = 1;
+    rsNode->RemoveChildByNodeId(childId);
+    auto nodePtr = RSCanvasNode::Create();
+    nodePtr->SetParent(2);
+    RSNodeMap::MutableInstance().nodeMap_.emplace(nodePtr->GetId(), nodePtr);
+    rsNode->RemoveChildByNodeId(nodePtr->GetId());
+    auto list = rsNode->children_;
+    ASSERT_EQ(std::find(list.begin(), list.end(), nodePtr->GetId()), list.end());
+}
+
+/**
+ * @tc.name: SetTakeSurfaceForUIFlagTest Test
+ * @tc.desc: SetTakeSurfaceForUIFlag and AnimateWithCurrentOptions
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetTakeSurfaceForUIFlagTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTakeSurfaceForUIFlag();
+    PropertyCallback propertyCallback;
+    std::function<void()> finishCallback = []() {};
+    RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true);
+    propertyCallback = []() {};
+    ASSERT_NE(RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true).size(), 0);
+}
+
+/**
+ * @tc.name: DrawOnNode Test
+ * @tc.desc: DrawOnNode and SetFreeze
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, DrawOnNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
+    ASSERT_FALSE(rsNode->recordingUpdated_);
+    rsNode->SetFreeze(true);
+    rsNode->InitUniRenderEnabled();
+    rsNode->SetFreeze(true);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+}
+
+/**
+ * @tc.name: MarkDrivenRender Test
+ * @tc.desc: MarkDrivenRender and MarkDrivenRenderItemIndex and MarkDrivenRenderFramePaintState and MarkContentChanged
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, MarkDrivenRender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkDrivenRender(true);
+    rsNode->MarkDrivenRenderItemIndex(1);
+    rsNode->MarkDrivenRenderFramePaintState(true);
+    rsNode->MarkContentChanged(true);
+    ASSERT_FALSE(rsNode->isNodeGroup_);
+}
+
+/**
+ * @tc.name: SetFrameNodeInfo
+ * @tc.desc: test results of SetFrameNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetFrameNodeInfo, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsNode->SetFrameNodeInfo(0, tag);
+    EXPECT_EQ(rsNode->frameNodeId_, 0);
+}
+
+/**
+ * @tc.name: GetFrameNodeId
+ * @tc.desc: test results of GetFrameNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, GetFrameNodeId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsNode->SetFrameNodeInfo(0, tag);
+    int32_t id = rsNode->GetFrameNodeId();
+    EXPECT_EQ(id, 0);
+}
+
+/**
+ * @tc.name: GetFrameNodeTag
+ * @tc.desc: test results of GetFrameNodeTag
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, GetFrameNodeTag, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsNode->SetFrameNodeInfo(0, tag);
+    std::string strResult = rsNode->GetFrameNodeTag();
+    const char* cTag = tag.c_str();
+    const char* cResult = strResult.c_str();
+    int result = strcmp(cTag, cResult);
+    EXPECT_EQ(result == 0, true);
+}
+
+/**
+ * @tc.name: AddKeyFrame
+ * @tc.desc: test results of AddKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
+    rsNode->AddKeyFrame(1.f, propertyCallback);
+}
+
+/**
+ * @tc.name: AddDurationKeyFrame
+ * @tc.desc: test results of AddDurationKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsNode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
+}
+
+/**
+ * @tc.name: IsImplicitAnimationOpen
+ * @tc.desc: test results of IsImplicitAnimationOpen
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, IsImplicitAnimationOpen, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool res = rsNode->IsImplicitAnimationOpen();
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ExecuteWithoutAnimation
+ * @tc.desc: test results of ExecuteWithoutAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyCallback callback;
+    std::shared_ptr<RSImplicitAnimator> implicitAnimator;
+    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_EQ(callback, nullptr);
+
+    callback = []() {};
+    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_EQ(implicitAnimator, nullptr);
+
+    implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_NE(implicitAnimator, nullptr);
+}
+
+/**
+ * @tc.name: FallbackAnimationsToRoot
+ * @tc.desc: test results of FallbackAnimationsToRoot
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->FallbackAnimationsToRoot();
+    EXPECT_EQ(rsNode->motionPathOption_, nullptr);
+
+    bool isRenderServiceNode = true;
+    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
+    target = std::make_shared<RSNode>(isRenderServiceNode);
+    AnimationId id = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    target->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToRoot();
+    EXPECT_NE(target, nullptr);
+}
+
+/**
+ * @tc.name: AddAnimationInner
+ * @tc.desc: test results of AddAnimationInner
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddAnimationInner, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+    rsNode->AddAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAnimationInner
+ * @tc.desc: test results of RemoveAnimationInner
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, RemoveAnimationInner, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->AddAnimationInner(animation);
+    rsNode->RemoveAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: FinishAnimationByProperty
+ * @tc.desc: test results of FinishAnimationByProperty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, FinishAnimationByProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId id = 0; // for test
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->AddAnimationInner(animation);
+    rsNode->FinishAnimationByProperty(id);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: CancelAnimationByProperty
+ * @tc.desc: test results of CancelAnimationByProperty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, CancelAnimationByProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId id = 0; // for test
+    rsNode->animatingPropertyNum_.insert({ id, 1 });
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->CancelAnimationByProperty(id, true);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    rsNode->CancelAnimationByProperty(id, true);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: GetShowingProperties
+ * @tc.desc: test results of GetShowingProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, GetShowingProperties, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->GetShowingProperties();
+}
+
+/**
+ * @tc.name: AddAnimation
+ * @tc.desc: test results of AddAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddAnimation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation;
+    rsNode->AddAnimation(animation);
+    EXPECT_EQ(animation, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAllAnimations
+ * @tc.desc: test results of RemoveAllAnimations
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, RemoveAllAnimations, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    AnimationId id = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->animations_.insert({ id, animation });
+    rsNode->RemoveAllAnimations();
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAnimation
+ * @tc.desc: test results of RemoveAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, RemoveAnimation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation;
+    rsNode->RemoveAnimation(animation);
+    EXPECT_EQ(animation, nullptr);
+
+    AnimationId id = 1;
+    animation = std::make_shared<RSAnimation>();
+    rsNode->RemoveAnimation(animation);
+    EXPECT_NE(animation, nullptr);
+
+    rsNode->animations_.insert({ id, animation });
+    rsNode->RemoveAnimation(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: SetMotionPathOption
+ * @tc.desc: test results of SetMotionPathOption
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetMotionPathOption, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string path = "";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(path);
+    rsNode->SetMotionPathOption(motionPathOption);
+    EXPECT_NE(motionPathOption, nullptr);
+}
+
+/**
+ * @tc.name: GetMotionPathOption
+ * @tc.desc: test results of GetMotionPathOption
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, GetMotionPathOption, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string path = "";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(path);
+    rsNode->SetMotionPathOption(motionPathOption);
+    rsNode->GetMotionPathOption();
+    EXPECT_NE(motionPathOption, nullptr);
+}
+
+/**
+ * @tc.name: HasPropertyAnimation
+ * @tc.desc: test results of HasPropertyAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, HasPropertyAnimation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId id = 1;
+    bool res = rsNode->HasPropertyAnimation(id);
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetAnimationByPropertyId
+ * @tc.desc: test results of GetAnimationByPropertyId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, GetAnimationByPropertyId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId id = 1;
+    AnimationId animationId = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->animations_.insert({ animationId, animation });
+    rsNode->GetAnimationByPropertyId(id);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: SetProperty
+ * @tc.desc: test results of SetProperty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, 1.f);
+}
+
+/**
+ * @tc.name: SetBounds001
+ * @tc.desc: test results of SetBounds
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f bounds = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetBounds(bounds);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().x_, 1.f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().y_, 1.f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().z_, 1.f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().w_, 1.f));
+}
+
+/**
+ * @tc.name: SetSandBox
+ * @tc.desc: test results of SetSandBox
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::optional<Vector2f> parentPosition;
+    rsNode->SetSandBox(parentPosition);
+
+    Vector2f newPosition(1.0f, 2.0f);
+    parentPosition = newPosition;
+    rsNode->SetSandBox(parentPosition);
+    EXPECT_EQ(parentPosition, newPosition);
+}
+
+/**
+ * @tc.name: SetPivotZ
+ * @tc.desc: test results of SetPivotZ
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetPivotZ, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float pivotZ = 1.f; // for test
+    rsNode->SetPivotZ(pivotZ);
+    EXPECT_EQ(pivotZ, 1.f);
+}
+
+/**
+ * @tc.name: SetCornerRadius
+ * @tc.desc: test results of SetCornerRadius
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetCornerRadius, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f cornerRadius = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetCornerRadius(cornerRadius);
+}
+
+/**
+ * @tc.name: SetCameraDistance
+ * @tc.desc: test results of SetCameraDistance
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetCameraDistance, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float cameraDistance = 1.f; // for test
+    rsNode->SetCameraDistance(cameraDistance);
+    EXPECT_EQ(cameraDistance, 1.f);
+}
+
+/**
+ * @tc.name: SetEnvForegroundColor
+ * @tc.desc: test results of SetEnvForegroundColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetEnvForegroundColor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t colorValue = 1; // for test
+    rsNode->SetEnvForegroundColor(colorValue);
+    EXPECT_EQ(colorValue, 1);
+}
+
+/**
+ * @tc.name: SetEnvForegroundColorStrategy
+ * @tc.desc: test results of SetEnvForegroundColorStrategy
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetEnvForegroundColorStrategy, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ForegroundColorStrategyType strategyType = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+    rsNode->SetEnvForegroundColorStrategy(strategyType);
+    EXPECT_EQ(strategyType, ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR);
+}
+
+/**
+ * @tc.name: SetParticleParams
+ * @tc.desc: test results of SetParticleParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetParticleParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ParticleParams params;
+    std::vector<ParticleParams> particleParams;
+    particleParams.push_back(params);
+    std::function<void()> finishCallback = []() {};
+    rsNode->SetParticleParams(particleParams, finishCallback);
+    EXPECT_EQ(particleParams.empty(), false);
+}
+
+/**
+ * @tc.name: SetParticleDrawRegion
+ * @tc.desc: test results of SetParticleDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetParticleDrawRegion, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EmitterConfig emitterConfig;
+    std::shared_ptr<RSImage> image;
+    ParticleParams params;
+    params.emitterConfig_ = emitterConfig;
+    std::vector<ParticleParams> particleParams;
+    particleParams.push_back(params);
+    rsNode->SetParticleDrawRegion(particleParams);
+    EXPECT_EQ(particleParams.empty(), false);
+
+    params.emitterConfig_.type_ = ParticleType::IMAGES;
+    rsNode->SetParticleDrawRegion(particleParams);
+    EXPECT_EQ(particleParams.empty(), false);
+
+    image = std::make_shared<RSImage>();
+    emitterConfig.image_ = image;
+    rsNode->SetParticleDrawRegion(particleParams);
+    EXPECT_EQ(particleParams.empty(), false);
+}
+
+/**
+ * @tc.name: SetEmitterUpdater
+ * @tc.desc: test results of SetEmitterUpdater
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetEmitterUpdater, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::vector<std::shared_ptr<EmitterUpdater>> para;
+    rsNode->SetEmitterUpdater(para);
+    EXPECT_EQ(para.empty(), true);
+}
+
+/**
+ * @tc.name: SetParticleNoiseFields
+ * @tc.desc: test results of SetParticleNoiseFields
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetParticleNoiseFields, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<ParticleNoiseFields> para = std::make_shared<ParticleNoiseFields>();
+    rsNode->SetParticleNoiseFields(para);
+    EXPECT_NE(para, nullptr);
+}
+
+/**
+ * @tc.name: SetBgImageInnerRect
+ * @tc.desc: test results of SetBgImageInnerRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBgImageInnerRect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f rect = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetBgImageInnerRect(rect);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetOuterBorderColor
+ * @tc.desc: test results of SetOuterBorderColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetOuterBorderColor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Color example(255, 0, 0, 255); // for test
+    Vector4<Color> color = { example, example, example, example };
+    rsNode->SetOuterBorderColor(color);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetOuterBorderWidth
+ * @tc.desc: test results of SetOuterBorderWidth
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetOuterBorderWidth, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f width = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetOuterBorderWidth(width);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetOuterBorderStyle
+ * @tc.desc: test results of SetOuterBorderStyle
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetOuterBorderStyle, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4<BorderStyle> style = { BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED,
+        BorderStyle::NONE }; // for test
+    rsNode->SetOuterBorderStyle(style);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetOuterBorderRadius
+ * @tc.desc: test results of SetOuterBorderRadius
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetOuterBorderRadius, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f radius = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetOuterBorderRadius(radius);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetForegroundEffectRadius
+ * @tc.desc: test results of SetForegroundEffectRadius
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetForegroundEffectRadius, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetForegroundEffectRadius(1.f);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetLinearGradientBlurPara
+ * @tc.desc: test results of SetLinearGradientBlurPara
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetLinearGradientBlurPara, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::vector<std::pair<float, float>> fractionStops;
+    GradientDirection direction = GradientDirection::LEFT;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, direction);
+    rsNode->SetLinearGradientBlurPara(para);
+    EXPECT_NE(fractionStops.empty(), false);
+}
+
+/**
+ * @tc.name: SetMotionBlurPara
+ * @tc.desc: test results of SetMotionBlurPara
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetMotionBlurPara, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f anchor = { 1.f, 1.f }; // for test
+    rsNode->SetMotionBlurPara(1.f, anchor);
+    EXPECT_NE(anchor[0], 0.f);
+}
+
+/**
+ * @tc.name: SetDynamicLightUpRate
+ * @tc.desc: test results of SetDynamicLightUpRate
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetDynamicLightUpRate, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float rate = 1.f; // for test
+    rsNode->SetDynamicLightUpRate(rate);
+    EXPECT_NE(rate, 0.f);
+}
+
+/**
+ * @tc.name: SetDynamicLightUpDegree
+ * @tc.desc: test results of SetDynamicLightUpDegree
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetDynamicLightUpDegree, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float lightUpDegree = 1.f; // for test
+    rsNode->SetDynamicLightUpDegree(lightUpDegree);
+    EXPECT_NE(lightUpDegree, 0.f);
+}
+
+/**
+ * @tc.name: SetFgBrightnessParams
+ * @tc.desc: test results of SetFgBrightnessParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetFgBrightnessParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSDynamicBrightnessPara params;
+    rsNode->SetFgBrightnessParams(params);
+    EXPECT_NE(params.rate_, 0.f);
+}
+
+/**
+ * @tc.name: SetFgBrightnessFract
+ * @tc.desc: test results of SetFgBrightnessFract
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetFgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float fract = 1.f; // for test
+    rsNode->SetFgBrightnessFract(fract);
+    EXPECT_NE(fract, 0.f);
+}
+
+/**
+ * @tc.name: SetBgBrightnessParams
+ * @tc.desc: test results of SetBgBrightnessParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBgBrightnessParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSDynamicBrightnessPara params;
+    rsNode->SetBgBrightnessParams(params);
+    EXPECT_NE(params.rate_, 0.f);
+}
+
+/**
+ * @tc.name: SetBgBrightnessFract
+ * @tc.desc: test results of SetBgBrightnessFract
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float fract = 1.f; // for test
+    rsNode->SetBgBrightnessFract(fract);
+    EXPECT_NE(fract, 0.f);
+}
+
+/**
+ * @tc.name: SetDynamicDimDegree
+ * @tc.desc: test results of SetDynamicDimDegree
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetDynamicDimDegree, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float dimDegree = 1.f; // for test
+    rsNode->SetDynamicDimDegree(dimDegree);
+    EXPECT_NE(dimDegree, 0.f);
+}
+
+/**
+ * @tc.name: SetGreyCoef
+ * @tc.desc: test results of SetGreyCoef
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetGreyCoef, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f greyCoef = { 1.f, 1.f }; // for test
+    rsNode->SetGreyCoef(greyCoef);
+    EXPECT_NE(greyCoef[0], 0.f);
+}
+
+/**
+ * @tc.name: SetShadowMask
+ * @tc.desc: test results of SetShadowMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetShadowMask, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool shadowMask = true;
+    rsNode->SetShadowMask(shadowMask);
+    EXPECT_EQ(shadowMask, true);
+}
+
+/**
+ * @tc.name: SetShadowIsFilled
+ * @tc.desc: test results of SetShadowIsFilled
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetShadowIsFilled, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool shadowIsFilled = true;
+    rsNode->SetShadowIsFilled(shadowIsFilled);
+    EXPECT_EQ(shadowIsFilled, true);
+}
+
+/**
+ * @tc.name: SetShadowColorStrategy
+ * @tc.desc: test results of SetShadowColorStrategy
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = 1; // for test
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_EQ(shadowColorStrategy, 1);
+}
+
+/**
+ * @tc.name: SetClipRRect
+ * @tc.desc: test results of SetClipRRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetClipRRect, TestSize.Level1)
+{
+    Vector4f clipRect = { 1.f, 1.f, 1.f, 1.f }; // for test
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f clipRadius = { 0.f, 1.f, 0.f, 1.f }; // for test
+    rsNode->SetClipRRect(clipRect, clipRadius);
+    EXPECT_EQ(clipRect[0], 1.f);
+}
+
+/**
+ * @tc.name: SetMask
+ * @tc.desc: test results of SetMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetMask, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
+    rsNode->SetMask(mask);
+    EXPECT_NE(mask, nullptr);
+}
+
+/**
+ * @tc.name: SetUseEffect
+ * @tc.desc: test results of SetUseEffect
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetUseEffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool useEffect = true;
+    rsNode->SetUseEffect(useEffect);
+    EXPECT_EQ(useEffect, true);
+}
+
+/**
+ * @tc.name: SetUseShadowBatching
+ * @tc.desc: test results of SetUseShadowBatching
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetUseShadowBatching, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool useShadowBatching = true;
+    rsNode->SetUseShadowBatching(useShadowBatching);
+    EXPECT_EQ(useShadowBatching, true);
+}
+
+/**
+ * @tc.name: SetColorBlendApplyType
+ * @tc.desc: test results of SetColorBlendApplyType
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetColorBlendApplyType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSColorBlendApplyType colorBlendApplyType = RSColorBlendApplyType::FAST;
+    rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    colorBlendApplyType = RSColorBlendApplyType::SAVE_LAYER;
+    rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    colorBlendApplyType = RSColorBlendApplyType::MAX;
+    rsNode->SetColorBlendApplyType(colorBlendApplyType);
+}
+
+/**
+ * @tc.name: SetPixelStretch
+ * @tc.desc: test results of SetPixelStretch
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetPixelStretch, TestSize.Level1)
+{
+    Vector4f stretchSize = { 1.f, 1.f, 1.f, 1.f }; // for test
+    auto rsNode = RSCanvasNode::Create();
+    Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP;
+    rsNode->SetPixelStretch(stretchSize, stretchTileMode);
+    stretchTileMode = Drawing::TileMode::REPEAT;
+    rsNode->SetPixelStretch(stretchSize, stretchTileMode);
+    stretchTileMode = Drawing::TileMode::MIRROR;
+    rsNode->SetPixelStretch(stretchSize, stretchTileMode);
+    stretchTileMode = Drawing::TileMode::DECAL;
+    rsNode->SetPixelStretch(stretchSize, stretchTileMode);
+    EXPECT_EQ(stretchSize[0], 1.f);
+}
+
+/**
+ * @tc.name: SetPixelStretchPercent
+ * @tc.desc: test results of SetPixelStretchPercent
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetPixelStretchPercent, TestSize.Level1)
+{
+    Vector4f stretchPercent = { 1.f, 1.f, 1.f, 1.f }; // for test
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPixelStretchPercent(stretchPercent);
+    EXPECT_EQ(stretchPercent[0], 1.f);
+}
+
+/**
+ * @tc.name: SetNodeName
+ * @tc.desc: test results of SetNodeName
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string nodeName = "1"; // for test
+    rsNode->SetNodeName(nodeName);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetTakeSurfaceForUIFlag
+ * @tc.desc: test results of SetTakeSurfaceForUIFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetTakeSurfaceForUIFlag, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTakeSurfaceForUIFlag();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetSpherizeDegree
+ * @tc.desc: test results of SetSpherizeDegree
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetSpherizeDegree, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float spherizeDegree = 1.f; // for test
+    rsNode->SetSpherizeDegree(spherizeDegree);
+    EXPECT_NE(spherizeDegree, 0.f);
+}
+
+/**
+ * @tc.name: SetLightUpEffectDegree
+ * @tc.desc: test results of SetLightUpEffectDegree
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetLightUpEffectDegree, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float degree = 1.f; // for test
+    rsNode->SetLightUpEffectDegree(degree);
+    EXPECT_NE(degree, 0.f);
+}
+
+/**
+ * @tc.name: NotifyTransition
+ * @tc.desc: test results of NotifyTransition
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, NotifyTransition, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool isTransitionIn = true;
+    std::shared_ptr<const RSTransitionEffect> effect;
+    rsNode->NotifyTransition(effect, isTransitionIn);
+    EXPECT_NE(isTransitionIn, false);
+
+    rsNode->implicitAnimator_ = std::make_shared<RSImplicitAnimator>();
+    rsNode->NotifyTransition(effect, isTransitionIn);
+    EXPECT_NE(rsNode->implicitAnimator_, nullptr);
+}
+
+/**
+ * @tc.name: OnAddChildren
+ * @tc.desc: test results of OnAddChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, OnAddChildren, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->transitionEffect_ = std::make_shared<const RSTransitionEffect>();
+    rsNode->OnAddChildren();
+    EXPECT_NE(rsNode->transitionEffect_, nullptr);
+}
+
+/**
+ * @tc.name: OnRemoveChildren
+ * @tc.desc: test results of OnRemoveChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, OnRemoveChildren, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->transitionEffect_ = std::make_shared<const RSTransitionEffect>();
+    rsNode->OnRemoveChildren();
+    EXPECT_NE(rsNode->transitionEffect_, nullptr);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurRadius
+ * @tc.desc: test results of SetBackgroundBlurRadius
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurRadius, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float radius = 1.f; // for test
+    rsNode->SetBackgroundBlurRadius(radius);
+    EXPECT_NE(radius, 0.f);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurSaturation
+ * @tc.desc: test results of SetBackgroundBlurSaturation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float saturation = 1.f; // for test
+    rsNode->SetBackgroundBlurSaturation(saturation);
+    EXPECT_NE(saturation, 0.f);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurBrightness
+ * @tc.desc: test results of SetBackgroundBlurBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurBrightness, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float brightness = 1.f; // for test
+    rsNode->SetBackgroundBlurBrightness(brightness);
+    EXPECT_NE(brightness, 0.f);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurMaskColor
+ * @tc.desc: test results of SetBackgroundBlurMaskColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurMaskColor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Color maskColor(0, 255, 255, 0); // for test
+    rsNode->SetBackgroundBlurMaskColor(maskColor);
+    EXPECT_EQ(maskColor.GetAlpha(), 0);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurColorMode
+ * @tc.desc: test results of SetBackgroundBlurColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurColorMode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int colorMode = 1; // for test
+    rsNode->SetBackgroundBlurColorMode(colorMode);
+    EXPECT_NE(colorMode, 0);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurRadiusX
+ * @tc.desc: test results of SetBackgroundBlurRadiusX
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurRadiusX, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float blurRadiusX = 1.f; // for test
+    rsNode->SetBackgroundBlurRadiusX(blurRadiusX);
+    EXPECT_NE(blurRadiusX, 0.f);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurRadiusY
+ * @tc.desc: test results of SetBackgroundBlurRadiusY
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetBackgroundBlurRadiusY, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float blurRadiusY = 1.f; // for test
+    rsNode->SetBackgroundBlurRadiusY(blurRadiusY);
+    EXPECT_NE(blurRadiusY, 0.f);
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadius
+ * @tc.desc: test results of SetForegroundBlurRadius
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurRadius, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float radius = 1.f; // for test
+    rsNode->SetForegroundBlurRadius(radius);
+    EXPECT_NE(radius, 0.f);
+}
+
+/**
+ * @tc.name: SetForegroundBlurSaturation
+ * @tc.desc: test results of SetForegroundBlurSaturation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float saturation = 1.f; // for test
+    rsNode->SetForegroundBlurSaturation(saturation);
+    EXPECT_NE(saturation, 0.f);
+}
+
+/**
+ * @tc.name: SetForegroundBlurBrightness
+ * @tc.desc: test results of SetForegroundBlurBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurBrightness, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float brightness = 1.f; // for test
+    rsNode->SetForegroundBlurBrightness(brightness);
+    EXPECT_NE(brightness, 0.f);
+}
+
+/**
+ * @tc.name: SetForegroundBlurMaskColor
+ * @tc.desc: test results of SetForegroundBlurMaskColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurMaskColor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Color maskColor(0, 255, 255, 0); // for test
+    rsNode->SetForegroundBlurMaskColor(maskColor);
+    EXPECT_EQ(maskColor.GetAlpha(), 0);
+}
+
+/**
+ * @tc.name: SetForegroundBlurColorMode
+ * @tc.desc: test results of SetForegroundBlurColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurColorMode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int colorMode = 1; // for test
+    rsNode->SetForegroundBlurColorMode(colorMode);
+    EXPECT_NE(colorMode, 0);
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadiusX
+ * @tc.desc: test results of SetForegroundBlurRadiusX
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurRadiusX, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float blurRadiusX = 1.f; // for test
+    rsNode->SetForegroundBlurRadiusX(blurRadiusX);
+    EXPECT_NE(blurRadiusX, 0.f);
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadiusY
+ * @tc.desc: test results of SetForegroundBlurRadiusY
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetForegroundBlurRadiusY, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float blurRadiusY = 1.f; // for test
+    rsNode->SetForegroundBlurRadiusY(blurRadiusY);
+    EXPECT_NE(blurRadiusY, 0.f);
+}
+
+/**
+ * @tc.name: AnimationCallback
+ * @tc.desc: test results of AnimationCallback
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    AnimationId animationId = 1;
+    AnimationCallbackEvent event = FINISHED;
+    bool res = rsNode->AnimationCallback(animationId, event);
+    EXPECT_EQ(res, false);
+
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->animations_.insert({ animationId, animation });
+    res = rsNode->AnimationCallback(animationId, event);
+    EXPECT_EQ(res, true);
+
+    event = REPEAT_FINISHED;
+    res = rsNode->AnimationCallback(animationId, event);
+    EXPECT_EQ(res, true);
+
+    event = LOGICALLY_FINISHED;
+    res = rsNode->AnimationCallback(animationId, event);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: ClearAllModifiers
+ * @tc.desc: test results of ClearAllModifiers
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, ClearAllModifiers, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId id = 1;
+    std::shared_ptr<RSPropertyBase> property;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[id] = modifier;
+    rsNode->ClearAllModifiers();
+    EXPECT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: DoFlushModifier
+ * @tc.desc: test results of DoFlushModifier
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, DoFlushModifier, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->DoFlushModifier();
+    EXPECT_EQ(rsNode->modifiers_.empty(), true);
+
+    PropertyId id = 1;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[id] = modifier;
+    rsNode->DoFlushModifier();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: GetModifier
+ * @tc.desc: test results of GetModifier
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetModifier, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId propertyId = 1;
+    rsNode->GetModifier(propertyId);
+    EXPECT_EQ(rsNode->modifiers_.empty(), true);
+
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[propertyId] = modifier;
+    rsNode->GetModifier(propertyId);
+    EXPECT_EQ(rsNode->modifiers_.empty(), false);
+}
+
+/**
+ * @tc.name: UpdateModifierMotionPathOption
+ * @tc.desc: test results of UpdateModifierMotionPathOption
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, UpdateModifierMotionPathOption, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSModifierType modifierType = RSModifierType::BOUNDS;
+    PropertyId propertyId = 1;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[propertyId] = modifier;
+    rsNode->propertyModifiers_[modifierType] = modifier;
+    rsNode->UpdateModifierMotionPathOption();
+    EXPECT_EQ(rsNode->modifiers_.empty(), false);
+    EXPECT_EQ(rsNode->propertyModifiers_.empty(), false);
+}
+
+/**
+ * @tc.name: UpdateImplicitAnimator
+ * @tc.desc: test results of UpdateImplicitAnimator
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, UpdateImplicitAnimator, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->UpdateImplicitAnimator();
+}
+
+/**
+ * @tc.name: GetModifierIds
+ * @tc.desc: test results of GetModifierIds
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetModifierIds, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId propertyId = 1;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[propertyId] = modifier;
+    rsNode->GetModifierIds();
+    EXPECT_EQ(rsNode->modifiers_.empty(), false);
+}
+
+/**
+ * @tc.name: MarkAllExtendModifierDirty
+ * @tc.desc: test results of MarkAllExtendModifierDirty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, MarkAllExtendModifierDirty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId propertyId = 1;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[propertyId] = modifier;
+    rsNode->MarkAllExtendModifierDirty();
+    EXPECT_EQ(rsNode->modifiers_.empty(), false);
+
+    rsNode->MarkAllExtendModifierDirty();
+    EXPECT_EQ(rsNode->extendModifierIsDirty_, true);
+}
+
+/**
+ * @tc.name: ResetExtendModifierDirty
+ * @tc.desc: test results of ResetExtendModifierDirty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, ResetExtendModifierDirty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->ResetExtendModifierDirty();
+    EXPECT_EQ(rsNode->extendModifierIsDirty_, false);
+}
+
+/**
+ * @tc.name: SetIsCustomTextType
+ * @tc.desc: test results of SetIsCustomTextType
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetIsCustomTextType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTextType(true);
+    ASSERT_TRUE(rsNode->GetIsCustomTextType());
+    rsNode->MarkNodeGroup(true, true, true);
+    rsNode->MarkNodeGroup(true, true, true);
+    ASSERT_TRUE(rsNode->isNodeGroup_);
+    rsNode->SetGrayScale(1.0f);
+    rsNode->SetLightColor(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: SetIsCustomTypeface
+ * @tc.desc: test results of SetIsCustomTypeface
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetIsCustomTypeface, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTypeface(true);
+    ASSERT_TRUE(rsNode->GetIsCustomTypeface());
+}
+
+/**
+ * @tc.name: GetIsCustomTypeface
+ * @tc.desc: test results of GetIsCustomTypeface
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetIsCustomTypeface, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTypeface(false);
+    ASSERT_TRUE(!rsNode->GetIsCustomTypeface());
+}
+
+/**
+ * @tc.name: SetBloom Test
+ * @tc.desc: SetBloom and SetBrightness and SetContrast and SetSaturate
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetBloom, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBloom(1.0f);
+    rsNode->SetBrightness(1.0f);
+    rsNode->SetContrast(1.0f);
+    rsNode->SetSaturate(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: SetSepia Test
+ * @tc.desc: SetSepia and SetInvert and SetSystemBarEffect and SetHueRotate
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeTest, SetSepia, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSepia(1.0f);
+    rsNode->SetInvert(1.0f);
+    rsNode->SetSystemBarEffect();
+    rsNode->SetHueRotate(1.0f);
+    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
+}
+
+/**
+ * @tc.name: GetIsCustomTextType
+ * @tc.desc: test results of GetIsCustomTextType
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetIsCustomTextType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsCustomTextType(true);
+    bool res = rsNode->GetIsCustomTextType();
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetDrawRegion
+ * @tc.desc: test results of SetDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetDrawRegion, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RectF> rect = std::make_shared<RectF>();
+    rsNode->SetDrawRegion(rect);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: RegisterTransitionPair
+ * @tc.desc: test results of RegisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, RegisterTransitionPair, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->RegisterTransitionPair(inNodeId, outNodeId);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: UnregisterTransitionPair
+ * @tc.desc: test results of UnregisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, UnregisterTransitionPair, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->UnregisterTransitionPair(inNodeId, outNodeId);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: MarkNodeGroup
+ * @tc.desc: test results of MarkNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkNodeGroup(true, true, true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+
+    rsNode->MarkNodeGroup(false, true, true);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: MarkNodeSingleFrameComposer
+ * @tc.desc: test results of MarkNodeSingleFrameComposer
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, MarkNodeSingleFrameComposer, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkNodeSingleFrameComposer(true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetGrayScale
+ * @tc.desc: test results of SetGrayScale
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetGrayScale, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float grayScale = 1.f; // for test
+    rsNode->SetGrayScale(grayScale);
+    EXPECT_NE(grayScale, 0.f);
+}
+
+/**
+ * @tc.name: SetLightIntensity
+ * @tc.desc: test results of SetLightIntensity
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetLightIntensity, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float lightIntensity = 1.f; // for test
+    rsNode->SetLightIntensity(lightIntensity);
+    EXPECT_NE(lightIntensity, 0.f);
+}
+
+/**
+ * @tc.name: SetLightColor
+ * @tc.desc: test results of SetLightColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetLightColor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t lightColorValue = 1; // for test
+    rsNode->SetLightColor(lightColorValue);
+    EXPECT_NE(lightColorValue, 0);
+}
+
+/**
+ * @tc.name: SetLightPosition
+ * @tc.desc: test results of SetLightPosition
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetLightPosition, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float positionX = 1.f; // for test
+    float positionY = 2.f; // for test
+    float positionZ = 1.f; // for test
+    rsNode->SetLightPosition(positionX, positionY, positionZ);
+    Vector4f lightPosition = { 0.f, 1.f, 3.f, 0.f }; // for test
+    rsNode->SetLightPosition(lightPosition);
+    EXPECT_NE(lightPosition[0], 1.f);
+}
+
+/**
+ * @tc.name: SetIlluminatedType
+ * @tc.desc: test results of SetIlluminatedType
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetIlluminatedType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t illuminatedType = 1; // for test
+    rsNode->SetIlluminatedType(illuminatedType);
+    EXPECT_NE(illuminatedType, 0);
+}
+
+/**
+ * @tc.name: SetFunTest
+ * @tc.desc: test results of SetFunTest
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetFunTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float position = 1.f; // for test
+    rsNode->SetBloom(position);
+    rsNode->SetBrightness(position);
+    rsNode->SetContrast(position);
+    rsNode->SetSaturate(position);
+    rsNode->SetSepia(position);
+    rsNode->SetInvert(position);
+    rsNode->SetHueRotate(position);
+    EXPECT_NE(position, 0.f);
+}
+
+/**
+ * @tc.name: SetAiInvert
+ * @tc.desc: test results of SetAiInvert
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetAiInvert, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f aiInvert = { 1.f, 1.f, 1.f, 1.f }; // for test
+    rsNode->SetAiInvert(aiInvert);
+    EXPECT_NE(aiInvert[0], 0.f);
+}
+
+/**
+ * @tc.name: SetSystemBarEffect
+ * @tc.desc: test results of SetSystemBarEffect
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetSystemBarEffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSystemBarEffect();
+}
+
+/**
+ * @tc.name: SetColorBlend
+ * @tc.desc: test results of SetColorBlend
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetColorBlend, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetColorBlend(1.0f);
+    rsNode->SetOutOfParent(OutOfParentType::UNKNOWN);
+    rsNode->SetOutOfParent(OutOfParentType::WITHIN);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+    rsNode->SetBoundsChangedCallback([](const Rosen::Vector4f vector4f) {});
+    ASSERT_NE(rsNode->boundsChangedCallback_, nullptr);
+    uint32_t colorValue = 1; // for test
+    rsNode->SetColorBlend(colorValue);
+    EXPECT_NE(colorValue, 0);
+}
+
+/**
+ * @tc.name: SetOutOfParent
+ * @tc.desc: test results of SetOutOfParent
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetOutOfParent, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    OutOfParentType outOfParent = OutOfParentType::OUTSIDE;
+    rsNode->SetOutOfParent(outOfParent);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateId
+ * @tc.desc: test results of GenerateId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GenerateId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId id = rsNode->GenerateId();
+    EXPECT_NE(id, 1);
+}
+
+/**
+ * @tc.name: InitUniRenderEnabled
+ * @tc.desc: test results of InitUniRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, InitUniRenderEnabled, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->InitUniRenderEnabled();
+}
+
+/**
+ * @tc.name: IsUniRenderEnabled
+ * @tc.desc: test results of IsUniRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, IsUniRenderEnabled, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool res = rsNode->IsUniRenderEnabled();
+    EXPECT_NE(res, true);
+}
+
+/**
+ * @tc.name: IsRenderServiceNode
+ * @tc.desc: test results of IsRenderServiceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, IsRenderServiceNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->isRenderServiceNode_ = true;
+    bool res = rsNode->IsRenderServiceNode();
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: MoveChild
+ * @tc.desc: test results of MoveChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, MoveChild, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> child;
+    rsNode->MoveChild(child, 1);
+    EXPECT_EQ(child, nullptr);
+}
+
+/**
+ * @tc.name: RemoveChildByNodeId
+ * @tc.desc: test results of RemoveChildByNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, RemoveChildByNodeId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId childId = 0;
+    rsNode->RemoveChildByNodeId(childId);
+}
+
+/**
+ * @tc.name: AddCrossParentChild
+ * @tc.desc: test results of AddCrossParentChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, AddCrossParentChild, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> child;
+    rsNode->AddCrossParentChild(child, 1);
+    EXPECT_EQ(child, nullptr);
+}
+
+/**
+ * @tc.name: RemoveCrossParentChild
+ * @tc.desc: test results of RemoveCrossParentChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, RemoveCrossParentChild, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> child;
+    rsNode->RemoveCrossParentChild(child, 1);
+    EXPECT_EQ(child, nullptr);
+}
+
+/**
+ * @tc.name: RemoveChildById
+ * @tc.desc: test results of RemoveChildById
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, RemoveChildById, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId childId = 1;
+    rsNode->children_.push_back(childId);
+    rsNode->RemoveChildById(childId);
+    EXPECT_EQ(rsNode->children_.empty(), true);
+}
+
+/**
+ * @tc.name: GetChildIdByIndex
+ * @tc.desc: test results of GetChildIdByIndex
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, GetChildIdByIndex, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId childId = 1;
+    rsNode->children_.push_back(childId);
+    rsNode->GetChildIdByIndex(-1);
+    EXPECT_EQ(rsNode->children_.empty(), false);
+
+    EXPECT_EQ(rsNode->GetChildIdByIndex(-2), std::nullopt);
+}
+
+/**
+ * @tc.name: SetandGetParent
+ * @tc.desc: test results of SetandGetParent
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetandGetParent, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetParent(1);
+    EXPECT_EQ(rsNode->GetParent(), nullptr);
+}
+
+/**
+ * @tc.name: IsInstanceOf
+ * @tc.desc: test results of IsInstanceOf
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, IsInstanceOf, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    bool res = rsNode->IsInstanceOf(RSUINodeType::CANVAS_NODE);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetInstanceId
+ * @tc.desc: test results of SetInstanceId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetInstanceId(1);
+    ASSERT_EQ(rsNode->GetInstanceId(), 1);
 }
 } // namespace OHOS::Rosen

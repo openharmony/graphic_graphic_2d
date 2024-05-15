@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ public:
         return *instance_;
     }
     bool SendFrameRates(const std::unordered_map<int, uint32_t>& rates);
+    void SendFrameRatesToRss(const std::unordered_map<int, uint32_t>& rates);
 private:
     FrameRateReport() = default;
     static FrameRateReport* instance_;

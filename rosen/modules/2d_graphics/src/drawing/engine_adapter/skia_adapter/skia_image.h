@@ -32,6 +32,7 @@
 #include "skia_matrix.h"
 #include "skia_paint.h"
 #include "skia_picture.h"
+#include "skia_yuv_info.h"
 #include "include/gpu/GrBackendSurface.h"
 
 #include "impl_interface/image_impl.h"
@@ -58,6 +59,7 @@ public:
         size_t rowBytes);
     bool BuildFromBitmap(const Bitmap& bitmap) override;
 #ifdef ACE_ENABLE_GPU
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;

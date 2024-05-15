@@ -23,8 +23,8 @@
 
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
-#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + rect.ToString() + "] ")
-#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + param.ToString() + "] ")
+#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
+#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + (param).ToString() + "] ")
 
 struct DirtyRegionInfoForDFX {
     RectI oldDirty;
@@ -43,6 +43,9 @@ public:
     void SetAlpha(float alpha);
     float GetAlpha() const;
 
+    void SetAlphaOffScreen(bool alphaOffScreen);
+    bool GetAlphaOffScreen() const;
+
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
@@ -57,6 +60,7 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
+    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -90,6 +94,11 @@ public:
         return isSkipLayer_;
     }
 
+    inline bool IsLayerDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
@@ -103,6 +112,13 @@ public:
 
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
+
+    void OpincUpdateRootFlag(bool suggestFlag);
+    bool OpincGetRootFlag() const;
+    void OpincSetCacheChangeFlag(bool state);
+    bool OpincGetCacheChangeState();
+    bool OpincGetCachedMark();
+    void OpincSetCachedMark(bool mark);
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
@@ -129,10 +145,12 @@ public:
     // dfx
     virtual std::string ToString() const;
 
-    static Drawing::Matrix parentSurfaceMatrix_;
+    static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
+    static const Drawing::Matrix& GetParentSurfaceMatrix();
 
 protected:
     bool needSync_ = false;
+    std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
     NodeId id_;
@@ -155,9 +173,13 @@ private:
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     bool canvasDrawingNodeSurfaceChanged_ = false;
+    bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
+    bool isOpincRootFlag_ = false;
+    bool isOpincStateChanged_ = false;
+    bool isOpincMarkCached_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

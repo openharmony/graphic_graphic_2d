@@ -38,6 +38,14 @@ class DRAWING_API Matrix {
 public:
     // Matrix is a 3x3 float type matrix.
     static constexpr int MATRIX_SIZE = 9;
+    static constexpr size_t ROW0 = 0;
+    static constexpr size_t ROW1 = 1;
+    static constexpr size_t ROW2 = 2;
+    static constexpr size_t ROW3 = 3;
+    static constexpr size_t COL0 = 0;
+    static constexpr size_t COL1 = 1;
+    static constexpr size_t COL2 = 2;
+    static constexpr size_t COL3 = 3;
     using Buffer = std::array<scalar, MATRIX_SIZE>;
 
     enum Index {
@@ -273,6 +281,8 @@ public:
 
     bool GetMinMaxScales(scalar scaleFactors[2]);
     bool HasPerspective() const;
+
+    void Swap(Matrix& target);
 
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;

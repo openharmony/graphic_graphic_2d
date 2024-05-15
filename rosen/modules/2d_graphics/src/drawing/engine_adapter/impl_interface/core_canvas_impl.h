@@ -25,9 +25,7 @@
 #include "draw/paint.h"
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
-// opinc_begin
 #include "draw/OpListHandle.h"
-// opinc_end
 #include "effect/filter.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
@@ -60,6 +58,7 @@ enum class PointMode;
 enum class QuadAAFlags;
 struct Lattice;
 class Canvas;
+struct HpsBlurParameter;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -71,6 +70,7 @@ public:
     virtual Matrix GetTotalMatrix() const = 0;
     virtual Rect GetLocalClipBounds() const = 0;
     virtual RectI GetDeviceClipBounds() const = 0;
+    virtual RectI GetRoundInDeviceClipBounds() const = 0;
 #ifdef ACE_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
@@ -96,6 +96,8 @@ public:
     virtual void DrawBackground(const Brush& brush) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
+    virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation) = 0;
     virtual void DrawRegion(const Region& region) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) = 0;
@@ -109,16 +111,13 @@ public:
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
 
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false) = 0;
-    virtual Drawing::OpListHandle EndOpRecording() = 0;
-    virtual void DrawOpList(Drawing::OpListHandle handle) = 0;
-    virtual int CanDrawOpList(Drawing::OpListHandle handle) = 0;
+    // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) = 0;
-    // opinc_end
 
     // image
+    virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+        int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) = 0;
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
     virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
@@ -172,6 +171,8 @@ public:
     virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
 
     virtual void Reset(int32_t width, int32_t height) = 0;
+
+    virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

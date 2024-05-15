@@ -23,6 +23,8 @@
 #include "vulkan/vulkan.h"
 #endif
 
+#include "yuv_info.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -256,6 +258,15 @@ public:
                                                  size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
     /**
+     * @brief             Create YUV Image from pixelmap.
+     * @param gpuContext  GPU context.
+     * @param info        YUV Info.
+     * @param memory      A pointer of pixelmap memory.
+     * @return            A shared pointer to Image.
+     */
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+
+    /**
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
      * @param gpuContext  GPU context.
      * @param bitmap      BitmapInfo, pixel address and row bytes.
@@ -323,8 +334,6 @@ public:
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
     bool IsValid(GPUContext* context) const;
-
-    bool pinAsTexture(GPUContext& context);
 #endif
 
     /**
@@ -434,8 +443,6 @@ public:
     // using for recording, should to remove after using shared memory
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
-
-    const sk_sp<SkImage> ExportSkImage();
 
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;

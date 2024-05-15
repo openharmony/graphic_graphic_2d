@@ -28,6 +28,7 @@ namespace OHOS::Rosen {
 
 constexpr int UNI_APP_PID = -1;
 constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
+constexpr pid_t DEFAULT_PID = 0;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -72,6 +73,18 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
+enum DynamicModeType : int32_t {
+    TOUCH_DISENABLED = 0,
+    TOUCH_ENABLED = 1,
+    TOUCH_EXT_ENABLED = 2, // touch extend program
+};
+
+enum MultiAppStrategyType {
+    USE_MAX,
+    FOLLOW_FOCUS,
+    USE_STRATEGY_NUM,
+};
+
 class PolicyConfigData {
 public:
     PolicyConfigData() = default;
@@ -80,9 +93,10 @@ public:
     struct StrategyConfig {
         int32_t min;
         int32_t max;
-        int32_t dynamicMode;
+        DynamicModeType dynamicMode;
         int32_t drawMin;
         int32_t drawMax;
+        int32_t down;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -110,6 +124,12 @@ public:
         std::unordered_map<std::string, std::string> ltpoConfig;
         // <"pkgName", "4">
         std::unordered_map<std::string, std::string> appList;
+        MultiAppStrategyType multiAppStrategyType;
+        std::string multiAppStrategyName;
+        // <pkgName, appType>
+        std::unordered_map<std::string, std::string> appTypes;
+        // <bufferName, fps>
+        std::unordered_map<std::string, std::string> appBufferList;
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
@@ -130,6 +150,7 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
+    bool videoFrameRateVoteSwitch_ = false;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

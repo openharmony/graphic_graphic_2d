@@ -58,4 +58,164 @@ HWTEST_F(RSFilterTest, CreateBlurFilter, TestSize.Level1)
     ASSERT_NE(filter3, nullptr);
 }
 
+/**
+ * @tc.name: GetDescriptionTest
+ * @tc.desc: Verify function GetDescription
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, GetDescriptionTest, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    auto filter = rSFilter.GetDescription();
+    EXPECT_EQ(filter, "RSFilter 0");
+}
+
+/**
+ * @tc.name: CreateMaterialFilterTest001
+ * @tc.desc: Verify function CreateMaterialFilter
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, CreateMaterialFilterTest001, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    float ratio = 1.0f;
+    auto filter = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio);
+    ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: CreateMaterialFilterTest002
+ * @tc.desc: Verify function CreateMaterialFilter
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, CreateMaterialFilterTest002, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
+    ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: operatorTest001
+ * @tc.desc: Verify function operator+
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, operatorTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSFilter> lhs;
+    std::shared_ptr<RSFilter> rhs;
+    EXPECT_EQ(lhs + rhs, rhs);
+    lhs = std::make_shared<RSFilter>();
+    EXPECT_EQ(lhs + rhs, lhs);
+    rhs = std::make_shared<RSFilter>();
+    EXPECT_EQ(lhs + rhs, nullptr);
+}
+
+/**
+ * @tc.name: operatorTest002
+ * @tc.desc: Verify function operator-
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, operatorTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSFilter> lhs;
+    std::shared_ptr<RSFilter> rhs;
+    std::shared_ptr<RSFilter> lhss;
+    lhs = std::make_shared<RSFilter>();
+    EXPECT_EQ(lhs - rhs, lhs);
+    rhs = std::make_shared<RSFilter>();
+    EXPECT_EQ(lhss - rhs, lhss);
+    EXPECT_EQ(lhs - rhs, nullptr);
+}
+
+/**
+ * @tc.name: operatorTest003
+ * @tc.desc: Verify function operator*
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSFilterTest, operatorTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSFilter> lhs;
+    EXPECT_EQ(lhs * 1.0f, nullptr);
+    lhs = std::make_shared<RSFilter>();
+    EXPECT_EQ(lhs * 1.0f, nullptr);
+}
+
+/**
+ * @tc.name: CreateLightUpEffectFilter
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, CreateLightUpEffectFilter, TestSize.Level1)
+{
+    float lightUpDegree = 0.5f;
+    auto filter = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
+    ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: GetDetailedDescriptionTest
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    EXPECT_EQ(filter->GetDetailedDescription(), "RSFilter 0");
+}
+
+/**
+ * @tc.name: IsValidTest
+ * @tc.desc: Verify function IsValid
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSFilterTest, IsValidTest, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    EXPECT_FALSE(filter->IsValid());
+}
+
+/**
+ * @tc.name: SetFilterType
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, SetFilterType, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    rSFilter.SetFilterType(RSFilter::MATERIAL);
+    EXPECT_EQ(rSFilter.GetFilterType(), RSFilter::MATERIAL);
+}
+
+/**
+ * @tc.name: RadiusVp2SigmaTest001
+ * @tc.desc: Verify function RadiusVp2Sigma
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, RadiusVp2SigmaTest001, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    auto rsFilter = std::make_shared<RSFilter>();
+    EXPECT_EQ(rsFilter->RadiusVp2Sigma(0.f, 0.f), 0.0f);
+}
+
+/**
+ * @tc.name: SetSnapshotOutset
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, SetSnapshotOutset, TestSize.Level1)
+{
+    RSFilter rSFilter;
+    rSFilter.SetSnapshotOutset(1);
+    EXPECT_EQ(rSFilter.NeedSnapshotOutset(), 1);
+}
 } // namespace OHOS::Rosen

@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/runtime_effect.h"
+#include "effect/runtime_shader_builder.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,13 +36,8 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
 
     std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForShader("shader");
     runtimeEffect->GetDrawingType();
-    std::shared_ptr<Data> uniforms = std::make_shared<Data>();
-    ColorQuad color = GetObject<ColorQuad>();
-    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
-    std::shared_ptr<ShaderEffect> children[] = {shaderEffect};
-    Matrix localMatrix = GetObject<Matrix>();
     bool isOpaque = GetObject<bool>();
-    runtimeEffect->MakeShader(uniforms, children, 1, &localMatrix, isOpaque);
+    runtimeEffect->MakeShader(nullptr, nullptr, 0, nullptr, isOpaque);
 
     return true;
 }

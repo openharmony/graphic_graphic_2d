@@ -23,9 +23,6 @@ config("export_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
   if (defined(use_new_render_context) && use_new_render_context) {
     include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_base/include/render_backend" ]
@@ -60,6 +57,7 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_jank_stats.cpp",
     "rs_log.cpp",
     "rs_marshalling_helper.cpp",
+    "rs_node_stats.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect_hub.cpp",
     "rs_render_service_connection_proxy.cpp",
@@ -109,17 +107,16 @@ ohos_source_set("rosen_ohos_sources") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
   ]
 
   public_external_deps = [
+    "c_utils:utils",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
+    "image_framework:image_native",
   ]
 
   # profiler
@@ -141,11 +138,7 @@ ohos_source_set("rosen_ohos_sources") {
   }
 
   if (rs_enable_gpu) {
-    include_dirs += [
-      "//third_party/openssl/include",
-      "$graphic_2d_root/interfaces/inner_api/common",
-    ]
-    include_dirs += [ "//third_party/skia" ]
+    include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     public_deps += [
       "$graphic_2d_root:libgl",
@@ -153,10 +146,6 @@ ohos_source_set("rosen_ohos_sources") {
     ]
 
     public_external_deps += [ "openssl:libcrypto_shared" ]
-  }
-
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 
   external_deps = [
@@ -212,11 +201,15 @@ ohos_source_set("rosen_ohos_sources") {
           graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
     }
   }
-
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [

@@ -40,6 +40,9 @@
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_filter.h"
+#include "render/rs_material_filter.h"
+#include "render/rs_blur_filter.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_drawing_node.h"
@@ -320,7 +323,6 @@ void RSNode::ExecuteWithoutAnimation(
 void RSNode::FallbackAnimationsToRoot()
 {
     auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-
     if (target == nullptr) {
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
@@ -483,6 +485,18 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     std::unique_lock<std::mutex> lock(animationMutex_);
     auto it = animatingPropertyNum_.find(id);
     return it != animatingPropertyNum_.end() && it->second > 0;
+}
+
+std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
+{
+    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::vector<AnimationId> animations;
+    for (auto& [animateId, animation] : animations_) {
+        if (animation->GetPropertyId() == id) {
+            animations.push_back(animateId);
+        }
+    }
+    return animations;
 }
 
 template<typename ModifierName, typename PropertyName, typename T>
@@ -980,6 +994,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
+
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
     auto propertyId = property->GetId();
@@ -1017,12 +1032,12 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         auto emitSize = particleParams[i].emitterConfig_.emitSize_;
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
-            auto radius = particleParams[i].emitterConfig_.radius_;
-            auto radiusMax = radius * scaleMax;
-            left = std::min(left - radiusMax, position.x_ - radiusMax);
-            top = std::min(top - radiusMax, position.y_ - radiusMax);
-            right = std::max(right + radiusMax + radiusMax, position.x_ + emitSize.x_ + radiusMax + radiusMax);
-            bottom = std::max(bottom + radiusMax + radiusMax, position.y_ + emitSize.y_ + radiusMax + radiusMax);
+            auto diameter = particleParams[i].emitterConfig_.radius_ * 2; // diameter = 2 * radius
+            auto diameMax = diameter * scaleMax;
+            left = std::min(left - diameMax, position.x_ - diameMax);
+            top = std::min(top - diameMax, position.y_ - diameMax);
+            right = std::max(right + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
+            bottom = std::max(bottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
@@ -1049,11 +1064,18 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     }
 }
 
-// Update Particle Emitter Position and Size
-void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+// Update Particle Emitter
+void RSNode::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
-    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::shared_ptr<EmitterUpdater>>>(
+    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>>(
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
+}
+
+// Set Particle Noise Field
+void RSNode::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para)
+{
+    SetProperty<RSParticleNoiseFieldsModifier, RSProperty<std::shared_ptr<ParticleNoiseFields>>>(
+        RSModifierType::PARTICLE_NOISE_FIELD, para);
 }
 
 // foreground
@@ -1237,13 +1259,64 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
-    SetProperty<RSBackgroundFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>>(
-        RSModifierType::BACKGROUND_FILTER, backgroundFilter);
+    if (backgroundFilter == nullptr) {
+        SetBackgroundBlurRadius(0.f);
+        SetBackgroundBlurSaturation(1.f);
+        SetBackgroundBlurBrightness(1.f);
+        SetBackgroundBlurMaskColor(RSColor());
+        SetBackgroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT);
+        SetBackgroundBlurRadiusX(0.f);
+        SetBackgroundBlurRadiusY(0.f);
+    } else if (backgroundFilter->GetFilterType() == RSFilter::MATERIAL) {
+        auto materialFilter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter);
+        float Radius = materialFilter->GetRadius();
+        float Saturation = materialFilter->GetSaturation();
+        float Brightness = materialFilter->GetBrightness();
+        Color MaskColor = materialFilter->GetMaskColor();
+        int ColorMode = materialFilter->GetColorMode();
+        SetBackgroundBlurRadius(Radius);
+        SetBackgroundBlurSaturation(Saturation);
+        SetBackgroundBlurBrightness(Brightness);
+        SetBackgroundBlurMaskColor(MaskColor);
+        SetBackgroundBlurColorMode(ColorMode);
+    } else if (backgroundFilter->GetFilterType() == RSFilter::BLUR) {
+        auto blurFilter = std::static_pointer_cast<RSBlurFilter>(backgroundFilter);
+        float blurRadiusX = blurFilter->GetBlurRadiusX();
+        float blurRadiusY = blurFilter->GetBlurRadiusY();
+        SetBackgroundBlurRadiusX(blurRadiusX);
+        SetBackgroundBlurRadiusY(blurRadiusY);
+    }
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
-    SetProperty<RSFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSModifierType::FILTER, filter);
+    if (filter == nullptr) {
+        SetForegroundBlurRadius(0.f);
+        SetForegroundBlurSaturation(1.f);
+        SetForegroundBlurBrightness(1.f);
+        SetForegroundBlurMaskColor(RSColor());
+        SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT);
+        SetForegroundBlurRadiusX(0.f);
+        SetForegroundBlurRadiusY(0.f);
+    } else if (filter->GetFilterType() == RSFilter::MATERIAL) {
+        auto materialFilter = std::static_pointer_cast<RSMaterialFilter>(filter);
+        float Radius = materialFilter->GetRadius();
+        float Saturation = materialFilter->GetSaturation();
+        float Brightness = materialFilter->GetBrightness();
+        Color MaskColor = materialFilter->GetMaskColor();
+        int ColorMode = materialFilter->GetColorMode();
+        SetForegroundBlurRadius(Radius);
+        SetForegroundBlurSaturation(Saturation);
+        SetForegroundBlurBrightness(Brightness);
+        SetForegroundBlurMaskColor(MaskColor);
+        SetForegroundBlurColorMode(ColorMode);
+    } else if (filter->GetFilterType() == RSFilter::BLUR) {
+        auto blurFilter = std::static_pointer_cast<RSBlurFilter>(filter);
+        float blurRadiusX = blurFilter->GetBlurRadiusX();
+        float blurRadiusY = blurFilter->GetBlurRadiusY();
+        SetForegroundBlurRadiusX(blurRadiusX);
+        SetForegroundBlurRadiusY(blurRadiusY);
+    }
 }
 
 void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
@@ -1269,6 +1342,30 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
 {
     SetProperty<RSDynamicLightUpDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
+}
+
+void RSNode::SetFgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSFgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::FG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetFgBrightnessFract(const float& fract)
+{
+    SetProperty<RSFgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_FRACTION, fract);
+}
+
+void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSBgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::BG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetBgBrightnessFract(const float& fract)
+{
+    SetProperty<RSBgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::BG_BRIGHTNESS_FRACTION, fract);
 }
 
 void RSNode::SetDynamicDimDegree(const float dimDegree)
@@ -1408,9 +1505,11 @@ void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
-void RSNode::SetPixelStretch(const Vector4f& stretchSize)
+void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode)
 {
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+    SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
+        RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
@@ -1442,6 +1541,7 @@ void RSNode::SetTakeSurfaceForUIFlag()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 
@@ -1634,9 +1734,7 @@ void RSNode::ClearAllModifiers()
     }
     modifiers_.clear();
     propertyModifiers_.clear();
-    for (int i = 0; i < (uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE; ++i) {
-        modifiersTypeMap_[i] = nullptr;
-    }
+    modifiersTypeMap_.clear();
 }
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
@@ -1652,7 +1750,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
         modifier->AttachToNode(rsnode);
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
+        modifiersTypeMap_.emplace((int16_t)modifier->GetModifierType(), modifier);
     }
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
@@ -1699,14 +1797,14 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
         bool isExist = false;
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
-                modifiersTypeMap_[(int16_t)deleteType] = value;
+                modifiersTypeMap_.emplace((int16_t)deleteType, value);
                 isExist = true;
                 break;
             }
         }
         modifiers_.erase(iter);
-        if (isExist) {
-            modifiersTypeMap_[(int16_t)deleteType] = nullptr;
+        if (!isExist) {
+            modifiersTypeMap_.erase((int16_t)deleteType);
         }
     }
     modifier->DetachFromNode();
@@ -1799,6 +1897,16 @@ bool RSNode::GetIsCustomTextType()
     return isCustomTextType_;
 }
 
+void RSNode::SetIsCustomTypeface(bool isCustomTypeface)
+{
+    isCustomTypeface_ = isCustomTypeface;
+}
+
+bool RSNode::GetIsCustomTypeface()
+{
+    return isCustomTypeface_;
+}
+
 void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
 {
     if (drawRegion_ != rect) {
@@ -1855,6 +1963,20 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
         }
+    }
+}
+
+void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
+{
+    if (isSuggestOpincNode_ == isOpincNode) {
+        return;
+    }
+    isSuggestOpincNode_ = isOpincNode;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkSuggestOpincNode>(GetId(),
+        isOpincNode, isNeedCalculate);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
 
@@ -2032,7 +2154,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    if (isTextureExportNode_) {
+    if (isTextureExportNode_ != child->isTextureExportNode_) {
         child->SyncTextureExport(isTextureExportNode_);
     }
     child->OnAddChildren();

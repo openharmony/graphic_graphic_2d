@@ -17,6 +17,7 @@
 
 #include "impl_factory.h"
 #include "skia_adapter/skia_blender.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +27,11 @@ Blender::Blender() noexcept : impl_(ImplFactory::CreateBlenderImpl()) {}
 void Blender::SetSkBlender(sk_sp<SkBlender> blender)
 {
     GetImpl<SkiaBlender>()->SetSkBlender(blender);
+}
+
+std::shared_ptr<Blender> Blender::CreateWithBlendMode(BlendMode mode)
+{
+    return StaticFactory::CreateWithBlendMode(mode);
 }
 } // namespace Drawing
 } // namespace Rosen

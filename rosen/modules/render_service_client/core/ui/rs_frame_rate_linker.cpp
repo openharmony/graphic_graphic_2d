@@ -71,11 +71,13 @@ bool RSFrameRateLinker::IsUniRenderEnabled() const
     return g_isUniRenderEnabled;
 }
 
-void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range)
+void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range, bool isAnimatorStopped)
 {
-    if (currentRange_ != range) {
+    if (currentRange_ != range || currAnimationStatus_ != isAnimatorStopped) {
         currentRange_ = range;
-        std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(), range);
+        currAnimationStatus_ = isAnimatorStopped;
+        std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(),
+            range, isAnimatorStopped);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsUniRenderEnabled());
@@ -83,11 +85,12 @@ void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range)
     }
 }
 
-void RSFrameRateLinker::UpdateFrameRateRangeImme(const FrameRateRange& range)
+void RSFrameRateLinker::UpdateFrameRateRangeImme(const FrameRateRange& range, bool isAnimatorStopped)
 {
-    if (currentRange_ != range) {
+    if (currentRange_ != range || currAnimationStatus_ != isAnimatorStopped) {
         currentRange_ = range;
-        RSInterfaces::GetInstance().SyncFrameRateRange(GetId(), range);
+        currAnimationStatus_ = isAnimatorStopped;
+        RSInterfaces::GetInstance().SyncFrameRateRange(GetId(), range, isAnimatorStopped);
     }
 }
 

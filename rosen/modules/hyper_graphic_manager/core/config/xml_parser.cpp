@@ -164,6 +164,8 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
     } else if (paraName == "screen_config") {
         setResult = ParseScreenConfig(node);
+    } else if (paraName == "rs_video_frame_rate_vote_config") {
+        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
     } else {
         setResult = 0;
     }
@@ -197,6 +199,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
+        auto down = ExtractPropertyValue("down", *currNode);
         if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
             return HGM_ERROR;
         }
@@ -204,9 +207,10 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         PolicyConfigData::StrategyConfig strategy;
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
-        strategy.dynamicMode = std::stoi(dynamicMode);
+        strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
+        strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
 
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -250,7 +254,11 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
             } else if (name == "scene_list") {
                 setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
             } else if (name == "app_list") {
-                setResult = ParseSimplex(*thresholdNode, screenSetting.appList, "strategy");
+                ParseMultiAppStrategy(*thresholdNode, screenSetting);
+            } else if (name == "app_types") {
+                setResult = ParseSimplex(*thresholdNode, screenSetting.appTypes, "strategy");
+            } else if (name == "additional_touch_rate_config") {
+                setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
             } else {
                 setResult = 0;
             }
@@ -368,6 +376,21 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+{
+    auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
+    if (multiAppStrategy == "focus") {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::FOLLOW_FOCUS;
+    } else if (multiAppStrategy.find("strategy_") != std::string::npos) {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_STRATEGY_NUM;
+        screenSetting.multiAppStrategyName = multiAppStrategy.substr(
+            std::string("strategy_").size(), multiAppStrategy.size());
+    } else {
+        screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
+    }
+    return ParseSimplex(node, screenSetting.appList, "strategy");
+}
+
 std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
@@ -388,7 +411,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
     return propValue;
 }
 
-bool XMLParser::IsNumber(const std::string &str)
+bool XMLParser::IsNumber(const std::string& str)
 {
     if (str.length() == 0) {
         return false;

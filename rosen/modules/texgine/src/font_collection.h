@@ -30,7 +30,7 @@ namespace Rosen {
 namespace TextEngine {
 class FontCollection {
 public:
-    FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>> &&fontStyleSets);
+    explicit FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>> &&fontStyleSets);
 
     std::shared_ptr<Typeface> GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
         const std::string &script, const std::string &locale) const;

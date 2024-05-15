@@ -12,7 +12,8 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/render"
 
@@ -21,9 +22,14 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_aibar_filter_test.cpp",
     "rs_blur_filter_test.cpp",
     "rs_border_test.cpp",
+    "rs_color_extract_test.cpp",
+    "rs_color_picker_test.cpp",
     "rs_filter_test.cpp",
+    "rs_image_base_test.cpp",
+    "rs_image_cache_test.cpp",
     "rs_image_test.cpp",
     "rs_kawase_blur_test.cpp",
     "rs_light_up_effect_filter_test.cpp",
@@ -32,10 +38,18 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_material_filter_test.cpp",
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
+    "rs_pixel_map_shader_test.cpp",
     "rs_pixel_map_util_test.cpp",
+    "rs_resource_manager_test.cpp",
     "rs_shader_test.cpp",
     "rs_shadow_test.cpp",
     "rs_skia_filter_test.cpp",
+    "rs_typeface_cache_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   configs = [
@@ -59,6 +73,15 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "c_utils:utils",
     "init:libbegetutil",
   ]
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+    sources += [ "rs_colorspace_convert_test.cpp" ]
+  }
 
   subsystem_name = "graphic"
 }

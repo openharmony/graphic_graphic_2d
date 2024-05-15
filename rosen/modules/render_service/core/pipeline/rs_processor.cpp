@@ -184,11 +184,9 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
     }
 
     if (mirroredId_ != INVALID_SCREEN_ID) {
-        auto mirroredScreenInfo = screenManager->QueryScreenInfo(mirroredId_);
-        CalculateMirrorAdaptiveCoefficient(
-            static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
-            static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
-        );
+        mirroredScreenInfo_ = screenManager->QueryScreenInfo(mirroredId_);
+        mirroredScreenInfo_.rotation = mirrorNode->GetRotation();
+        CalculateMirrorAdaptiveMatrix();
     }
 
     // set default render frame config
@@ -212,7 +210,7 @@ void RSProcessor::SetMirrorScreenSwap(const RSDisplayRenderNode& node)
 
 void RSProcessor::CalculateScreenTransformMatrix(const RSDisplayRenderNode& node)
 {
-    auto boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr != nullptr) {
         boundsGeoPtr->UpdateByMatrixFromSelf();
         screenTransformMatrix_ = boundsGeoPtr->GetMatrix();
@@ -285,6 +283,46 @@ void RSProcessor::SetSecurityDisplay(bool isSecurityDisplay)
 void RSProcessor::SetDisplayHasSecSurface(bool displayHasSecSurface)
 {
     displayHasSecSurface_ = displayHasSecSurface;
+}
+
+void RSProcessor::CalculateMirrorAdaptiveMatrix()
+{
+    CalculateMirrorAdaptiveCoefficient(static_cast<float>(screenInfo_.GetRotatedWidth()),
+        static_cast<float>(screenInfo_.GetRotatedHeight()), static_cast<float>(mirroredScreenInfo_.GetRotatedWidth()),
+        static_cast<float>(mirroredScreenInfo_.GetRotatedHeight()));
+
+    float rotation = 0.0f;
+    float offsetX = 0.0f;
+    float offsetY = 0.0f;
+
+    switch (screenInfo_.rotation) {
+        case ScreenRotation::ROTATION_90:
+            rotation = -90.0f;
+            offsetX = screenInfo_.GetRotatedWidth() * -1.0f;
+            break;
+        case ScreenRotation::ROTATION_180:
+            rotation = -180.0f;
+            offsetX = screenInfo_.GetRotatedWidth() * -1.0f;
+            offsetY = screenInfo_.GetRotatedHeight() * -1.0f;
+            break;
+        case ScreenRotation::ROTATION_270:
+            rotation = -270.0f;
+            offsetY = screenInfo_.GetRotatedHeight() * -1.0f;
+            break;
+        default:
+            break;
+    }
+
+    // align center
+    offsetX +=
+        (screenInfo_.GetRotatedWidth() - mirroredScreenInfo_.GetRotatedWidth() * mirrorAdaptiveCoefficient_) / 2.0f;
+    offsetY +=
+        (screenInfo_.GetRotatedHeight() - mirroredScreenInfo_.GetRotatedHeight() * mirrorAdaptiveCoefficient_) /
+        2.0f;
+
+    mirrorAdaptiveMatrix_.PreRotate(rotation);
+    mirrorAdaptiveMatrix_.PreTranslate(offsetX, offsetY);
+    mirrorAdaptiveMatrix_.PreScale(mirrorAdaptiveCoefficient_, mirrorAdaptiveCoefficient_);
 }
 
 } // namespace Rosen

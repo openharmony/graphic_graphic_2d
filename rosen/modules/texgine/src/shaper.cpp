@@ -382,7 +382,8 @@ std::vector<LineMetrics> Shaper::CreatePartlySpan(const bool cutRight, const Typ
 
     if (startIndex < endIndex) {
         // endIndex - 1 is the index of end
-        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex, endIndex - 1, SpacesModel::NORMAL);
+        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex,
+            endIndex - 1 >= 0 ? endIndex - 1 : 0, SpacesModel::NORMAL);
         VariantSpan partlySpan(TextSpan::MakeFromText(chars));
         partlySpan.SetTextStyle(span.GetTextStyle());
         std::vector<VariantSpan> spans = {partlySpan};
@@ -462,7 +463,8 @@ void Shaper::SplitJointRightSpans(const EllipsisParams &params, const size_t rig
     }
     size_t maxIndex = textSpan->cgs_.GetSize();
     // maxIndex - 1 means last index of the array,false means handles spaces at the end of the right index of the array
-    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex, maxIndex - 1, SpacesModel::NORMAL);
+    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex,
+        maxIndex - 1 >= 0 ? maxIndex - 1 : 0, SpacesModel::NORMAL);
     VariantSpan rightSpan(TextSpan::MakeFromText(rightGroups));
     rightSpan.SetTextStyle(span.GetTextStyle());
     std::vector<VariantSpan> rightVariantSpans = {rightSpan};
@@ -669,7 +671,7 @@ bool Shaper::CalcSpanPosition(const std::vector<VariantSpan> &spans, struct Span
     const int &breakPos, const int loopNum)
 {
     spanPos.leftSpanIndex = 0;
-    spanPos.rightSpanIndex = spans.size() - 1;
+    spanPos.rightSpanIndex = spans.size() - 1 >= 0 ? spans.size() - 1 : 0;
     spanPos.maxSpanIndex = spanPos.rightSpanIndex;
     spanPos.leftCharIndex = spans.at(spanPos.leftSpanIndex).TryToTextSpan()->cgs_.GetRange().start;
     spanPos.rightCharIndex = spans.at(spanPos.rightSpanIndex).TryToTextSpan()->cgs_.GetRange().end;

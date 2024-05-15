@@ -71,6 +71,20 @@ HWTEST_F(RSMaskTest, LifeCycle002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreatePathMaskTest002
+ * @tc.desc: Verify function CreatePathMask
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, CreatePathMaskTest002, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    Drawing::Pen maskPen;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, maskPen, brush);
+    EXPECT_TRUE(mask != nullptr);
+}
+
+/**
  * @tc.name: LifeCycle003
  * @tc.desc:
  * @tc.type:FUNC
@@ -89,6 +103,7 @@ HWTEST_F(RSMaskTest, LifeCycle003, TestSize.Level1)
     ASSERT_TRUE(mask != nullptr);
 
     ASSERT_TRUE(mask->IsSvgMask());
+    ASSERT_TRUE(mask->GetSvgDom() == svgDom);
 }
 
 /**
@@ -212,6 +227,10 @@ HWTEST_F(RSMaskTest, LifeCycle008, TestSize.Level1)
      */
     Drawing::Path path2;
     mask->SetMaskPath(path2);
+    auto path3 = mask->GetMaskPath();
+    ASSERT_TRUE(path2.GetBounds() == path3->GetBounds());
+
+    ASSERT_TRUE(!mask->GetSvgPicture());
 }
 
 /**
@@ -234,6 +253,91 @@ HWTEST_F(RSMaskTest, LifeCycle009, TestSize.Level1)
     Drawing::Brush brush2;
     mask->SetMaskBrush(brush2);
     ASSERT_TRUE(mask->GetMaskBrush() == brush2);
+}
+
+/**
+ * @tc.name: LifeCycle010
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, LifeCycle010, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Path
+     */
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, pen, brush);
+    ASSERT_TRUE(mask != nullptr);
+}
+
+/**
+ * @tc.name: GetMaskPathTest001
+ * @tc.desc: Verify function GetMaskPath
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, GetMaskPathTest001, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_TRUE(mask->GetMaskPath() != nullptr);
+}
+
+/**
+ * @tc.name: GetMaskPenTest001
+ * @tc.desc: Verify function GetMaskPen
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, GetMaskPenTest001, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_EQ(mask->GetMaskPen().GetPathEffect(), nullptr);
+}
+
+/**
+ * @tc.name: GetSvgDomTest001
+ * @tc.desc: Verify function GetSvgDom
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, GetSvgDomTest001, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_TRUE(mask->GetSvgDom() == nullptr);
+}
+
+/**
+ * @tc.name: GetSvgPictureTest001
+ * @tc.desc: Verify function GetSvgPicture
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, GetSvgPictureTest001, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_TRUE(mask->GetSvgPicture() == nullptr);
+}
+
+/**
+ * @tc.name: MarshallingTest001
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, MarshallingTest001, TestSize.Level1)
+{
+    Parcel parcel;
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_TRUE(mask->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: MarshallingPathAndBrushTest001
+ * @tc.desc: Verify function MarshallingPathAndBrush
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, MarshallingPathAndBrushTest001, TestSize.Level1)
+{
+    Parcel parcel;
+    auto mask = std::make_shared<RSMask>();
+    EXPECT_TRUE(mask->MarshallingPathAndBrush(parcel));
 }
 
 /**
@@ -284,6 +388,7 @@ HWTEST_F(RSMaskTest, CreatePixelMapMask001, TestSize.Level1)
     ASSERT_TRUE(mask != nullptr);
     mask->SetPixelMap(pixelmap);
     ASSERT_TRUE(mask->GetImage() == nullptr);
+    EXPECT_EQ(mask->GetPixelMap(), nullptr);
     ASSERT_TRUE(mask->IsPixelMapMask());
 }
 
@@ -301,5 +406,18 @@ HWTEST_F(RSMaskTest, CreatePixelMapMask002, TestSize.Level1)
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
     ASSERT_TRUE(mask != nullptr);
     ASSERT_TRUE(mask->IsPixelMapMask() == false);
+}
+
+/**
+ * @tc.name: GetPixelMapTest
+ * @tc.desc: Verify function GetPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issuesI9MO9U
+ */
+HWTEST_F(RSMaskTest, GetPixelMapTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+    ASSERT_EQ(mask->GetPixelMap(), nullptr);
 }
 } // namespace OHOS::Rosen

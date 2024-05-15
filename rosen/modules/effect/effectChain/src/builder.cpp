@@ -122,25 +122,26 @@ void Builder::ConnectPipeline(cJSON* connections)
         cJSON* to = cJSON_GetObjectItem(item, "to");
         std::shared_ptr<Filter> fFilter = nullptr;
         std::shared_ptr<Filter> tFilter = nullptr;
-        if (from != nullptr && to != nullptr && from->valuestring != nullptr && to->valuestring != nullptr) {
-            auto itFrom = nameFilter_.find(from->valuestring);
-            if (itFrom != nameFilter_.end()) {
-                fFilter = itFrom->second;
-                if (fFilter->GetFilterType() == FILTER_TYPE::INPUT) {
-                    inputs_.push_back(std::static_pointer_cast<Input>(fFilter));
-                }
-            } else {
-                LOGE("The from filter %{public}s fails to be connected", from->valuestring);
+        if (from == nullptr || to == nullptr || from->valuestring == nullptr || to->valuestring == nullptr) {
+            continue;
+        }
+        auto itFrom = nameFilter_.find(from->valuestring);
+        if (itFrom != nameFilter_.end()) {
+            fFilter = itFrom->second;
+            if (fFilter->GetFilterType() == FILTER_TYPE::INPUT) {
+                inputs_.push_back(std::static_pointer_cast<Input>(fFilter));
             }
-            auto itTo = nameFilter_.find(to->valuestring);
-            if (itTo != nameFilter_.end()) {
-                tFilter = itTo->second;
-            } else {
-                LOGE("The to filter %{public}s fails to be connected", to->valuestring);
-            }
-            if (fFilter != nullptr && tFilter != nullptr) {
-                fFilter->AddNextFilter(tFilter);
-            }
+        } else {
+            LOGE("The from filter %{public}s fails to be connected", from->valuestring);
+        }
+        auto itTo = nameFilter_.find(to->valuestring);
+        if (itTo != nameFilter_.end()) {
+            tFilter = itTo->second;
+        } else {
+            LOGE("The to filter %{public}s fails to be connected", to->valuestring);
+        }
+        if (fFilter != nullptr && tFilter != nullptr) {
+            fFilter->AddNextFilter(tFilter);
         }
     }
 }

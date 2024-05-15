@@ -85,4 +85,16 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand004, TestSize.Level1)
     int32_t height = static_cast<int32_t>(0);
     RootNodeCommandHelper::UpdateSuggestedBufferSize(context, id, width, height);
 }
+
+/**
+ * @tc.name: CreateTest
+ * @tc.desc: Verify function Create
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSRootNodeCommandTest, CreateTest, TestSize.Level1)
+{
+    RSContext context;
+    RootNodeCommandHelper::Create(context, 1, false);
+}
 } // namespace OHOS::Rosen

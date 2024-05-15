@@ -47,6 +47,8 @@ public:
                                                          uint64_t id = 0,
                                                          NodeId windowNodeId = 0) override;
 
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
+
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
@@ -78,7 +80,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -196,7 +198,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus) override;
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void ReportEventResponse(DataBaseRs info) override;
 
@@ -214,7 +216,11 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
-    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
+
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
+
+    LayerComposeInfo GetLayerComposeInfo() override;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;

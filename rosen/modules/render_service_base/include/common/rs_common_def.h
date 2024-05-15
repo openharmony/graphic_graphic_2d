@@ -76,6 +76,13 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_DRAWING_NODE = 0x2081u,
 };
 
+enum RSRenderParamsDirtyType {
+    NO_DIRTY = 0,
+    MATRIX_DIRTY,
+    LAYER_INFO_DIRTY,
+    MAX_DIRTY_TYPE,
+};
+
 enum class CacheType : uint8_t {
     NONE = 0,
     CONTENT,
@@ -98,6 +105,42 @@ enum class FilterCacheType : uint8_t {
     SNAPSHOT          = 1,
     FILTERED_SNAPSHOT = 2,
     BOTH              = SNAPSHOT | FILTERED_SNAPSHOT,
+};
+
+// opinc state
+enum NodeCacheState : uint8_t {
+    STATE_INIT = 0,
+    STATE_CHANGE,
+    STATE_UNCHANGE,
+    STATE_DISABLE,
+};
+
+enum NodeChangeType : uint8_t {
+    KEEP_UNCHANGE = 0,
+    SELF_DIRTY,
+};
+
+// opinc cache state
+enum NodeStragyType : uint8_t {
+    CACHE_NONE = 0,
+    DDGR_OPINC_DYNAMIC,
+    DDGR_AUTOCACHE,
+    NODE_GROUP,
+    CACHE_DISABLE,
+};
+
+enum NodeRecordState : uint8_t {
+    RECORD_NONE = 0,
+    RECORD_CALCULATE,
+    RECORD_CACHING,
+    RECORD_CACHED,
+    RECORD_DISABLE,
+};
+
+enum DrawAreaEnableState : uint8_t {
+    DRAW_AREA_INIT = 0,
+    DRAW_AREA_ENABLE,
+    DRAW_AREA_DISABLE,
 };
 
 // priority for node, higher number means lower priority
@@ -172,6 +215,12 @@ enum class RSSurfaceNodeType : uint8_t {
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
 };
 
+enum class MultiThreadCacheType : uint8_t {
+    NONE = 0,
+    LEASH_WINDOW,
+    ARKTS_CARD,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
@@ -191,6 +240,7 @@ struct RSSurfaceRenderNodeConfig {
 enum class RSSurfaceExtType : uint8_t {
     NONE,
     SURFACE_TEXTURE,
+    SURFACE_PLATFORM_TEXTURE,
 };
 
 struct RSSurfaceExtConfig {

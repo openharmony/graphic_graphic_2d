@@ -1,0 +1,59 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
+
+module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/skia_test"
+
+ohos_unittest("2d_engine_rosen_text_skia_test") {
+  module_out_path = module_output_path
+  sources = [
+    "skia_anyspan_test.cpp",
+    "skia_txt_test.cpp",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  include_dirs = [
+    "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/texgine/export",
+    "$rosen_2d_engine_root/rosen_text",
+    "$rosen_2d_engine_root/rosen_text/export/rosen_text",
+    "//third_party/googletest/googletest/include",
+  ]
+
+  deps = [
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/texgine:libtexgine",
+    "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":2d_engine_rosen_text_skia_test" ]
+}

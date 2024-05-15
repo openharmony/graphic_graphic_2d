@@ -29,7 +29,7 @@ constexpr int PARAM_TWO = 2;
 constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
-const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
+const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 // ====================================
 // Binarization
@@ -220,17 +220,13 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        stagingFrameWidth_ = node.GetRenderProperties().GetFrameWidth();
-        stagingFrameHeight_ = node.GetRenderProperties().GetFrameHeight();
-    }
     return true;
 }
 
 // foregroundFilter
 RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (!BLUR_ENABLED) {
+    if (!FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterDrawable::OnGenerate close blur.");
         return nullptr;
     }
@@ -277,7 +273,7 @@ void RSForegroundFilterDrawable::OnSync()
 // Restore RSForegroundFilter
 RSDrawable::Ptr RSForegroundFilterRestoreDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (!BLUR_ENABLED) {
+    if (!FOREGROUND_FILTER_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterRestoreDrawable::OnGenerate close blur.");
         return nullptr;
     }
@@ -453,7 +449,7 @@ RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    auto& outline = properties.GetBorder();
+    auto& outline = properties.GetOutline();
     if (!outline || !outline->HasBorder()) {
         return false;
     }

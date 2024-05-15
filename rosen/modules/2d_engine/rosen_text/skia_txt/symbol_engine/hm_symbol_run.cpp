@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
+    RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
+    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR};
 
 RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText)
 {
@@ -49,29 +52,6 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     return symbolInfo;
 }
 
-bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
-    std::vector<RSRenderGroup>& renderGroups)
-{
-    RSAnimationSetting animationSetting;
-    if (GetAnimationGroups(glyphId, effectStrategy, animationSetting)) {
-        std::vector<RSRenderGroup> newRenderGroups;
-        RSRenderGroup group;
-        for (size_t i = 0, j = 0; i < animationSetting.groupSettings.size(); i++) {
-            if (j < renderGroups.size()) {
-                group = renderGroups[j];
-                j++;
-            }
-            group.groupInfos = animationSetting.groupSettings[i].groupInfos;
-            newRenderGroups.push_back(group);
-        }
-        if (!newRenderGroups.empty()) {
-            renderGroups = newRenderGroups;
-            return true;
-        }
-    }
-    return false;
-}
-
 void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
     const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo)
 {
@@ -85,8 +65,11 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
                 symbolInfo.renderGroups[i].color = colors[0]; // the 0 indicates the the first color is used
             }
             break;
+        // MULTIPLE_OPACITY: Supports rgb replace and alphia overlay setting by the first color
         case RSSymbolRenderingStrategy::MULTIPLE_OPACITY:
             for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+                float colorAlphia = symbolInfo.renderGroups[i].color.a * colors[0].a;
+                symbolInfo.renderGroups[i].color.a = std::clamp(colorAlphia, 0.0f, 1.0f); // 0.0: min, 1.0: max
                 symbolInfo.renderGroups[i].color.r = colors[0].r; // the 0 indicates the the first color is used
                 symbolInfo.renderGroups[i].color.g = colors[0].g; // the 0 indicates the the first color is used
                 symbolInfo.renderGroups[i].color.b = colors[0].b; // the 0 indicates the the first color is used
@@ -127,7 +110,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
         RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
         std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
-        if (symbolEffect > 0) { // 0 > has animation
+        if (symbolEffect > 0 && symbolTxt.GetAnimationStart()) { // 0 > has animation
             if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt)) {
                 ClearSymbolAnimation(symbolData, symbolId, offsetXY);
                 canvas->DrawSymbol(symbolData, offset);
@@ -154,13 +137,18 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
         if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
             return false;
         }
+
+        if (std::count(COMMON_ANIMATION_TYPES.begin(), COMMON_ANIMATION_TYPES.end(), effectMode) != 0 &&
+            animationSetting.groupSettings.size() == 1) {
+            animationMode = 1; // the 1 is wholeSymbol effect
+        }
     }
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
     symbolNode.SetAnimation(animationFunc_);
     symbolNode.SetSymbolId(symbolId_);
     symbolNode.SetAnimationMode(animationMode);
     symbolNode.SetRepeatCount(symbolTxt.GetRepeatCount());
-    symbolNode.SetAminationStart(symbolTxt.GetAminationStart());
+    symbolNode.SetAnimationStart(symbolTxt.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt.GetCommonSubType());
     if (!symbolNode.DecomposeSymbolAndDraw()) {
         return false;

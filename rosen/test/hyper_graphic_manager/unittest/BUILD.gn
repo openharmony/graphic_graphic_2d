@@ -32,14 +32,20 @@ ohos_unittest("hyper_graphic_manager_test") {
 
   sources = [
     "hgm_frame_rate_manager_test.cpp",
+    "hgm_idle_detector_test.cpp",
+    "hgm_multi_app_strategy_test.cpp",
     "hgm_task_handle_thread_test.cpp",
+    "hgm_touch_manager_test.cpp",
     "hgm_vsync_generator_controller_test.cpp",
     "hgm_xml_parser_test.cpp",
     "hyper_graphic_manager_test.cpp",
+    "rs_frame_rate_vote_test.cpp",
+    "rs_video_frame_rate_vote_test.cpp",
   ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
@@ -52,6 +58,7 @@ ohos_unittest("hyper_graphic_manager_test") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",

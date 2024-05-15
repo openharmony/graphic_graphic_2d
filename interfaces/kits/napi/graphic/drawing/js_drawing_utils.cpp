@@ -15,7 +15,20 @@
 
 #include "js_drawing_utils.h"
 
+#ifdef ROSEN_OHOS
+#include <parameters.h>
+#endif
+
+#include "draw/color.h"
+
 namespace OHOS::Rosen {
+
+#ifdef ROSEN_OHOS
+bool JsDrawingTestUtils::closeDrawingTest_ =
+    std::atoi((OHOS::system::GetParameter("persist.sys.graphic.drawing.test", "0").c_str())) != 1;
+#else
+bool JsDrawingTestUtils::closeDrawingTest_ = true;
+#endif
 namespace Drawing {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
@@ -70,6 +83,36 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 {
     napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
     return NapiGetUndefined(env);
+}
+
+static const char* ARGB_STRING[4] = {"alpha", "red", "green", "blue"};
+static const char* LTRB_STRING[4] = {"left", "top", "right", "bottom"};
+
+bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        int32_t* curChannel = argb + idx;
+        napi_get_named_property(env, jsValue, ARGB_STRING[idx], &tempValue);
+        if (napi_get_value_int32(env, tempValue, curChannel) != napi_ok ||
+            *curChannel < 0 || *curChannel > Color::RGB_MAX) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        double* curEdge = ltrb + idx;
+        napi_get_named_property(env, jsValue, LTRB_STRING[idx], &tempValue);
+        if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
+            return false;
+        }
+    }
+    return true;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

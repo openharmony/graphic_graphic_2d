@@ -22,8 +22,8 @@
 #include "string_utils.h"
 #include "surface_type.h"
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
-
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 
 namespace OHOS {
@@ -64,6 +64,10 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d]",
+        node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight());
 
     layer->SetSurface(node.GetConsumer());
     layer->SetBuffer(layerInfo.buffer, layerInfo.acquireFence);
@@ -77,7 +81,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    layer->SetCompositionType(RSBaseRenderUtil::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+    layer->SetCompositionType(RSSystemProperties::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
     std::vector<GraphicIRect> visibleRegions;
@@ -136,6 +140,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
+    RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

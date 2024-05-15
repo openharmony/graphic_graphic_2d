@@ -33,51 +33,68 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/sandbox",
-    "//third_party/libxml2/include",
   ]
 
   cflags = [ "-g3" ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
   }
 }
 
 ohos_shared_library("libhyper_graphic_manager") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   public_configs = [ ":libhyper_graphic_manager_config" ]
 
   sources = [
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
+    "core/frame_rate_manager/hgm_idle_detector.cpp",
+    "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",
     "core/frame_rate_manager/hgm_touch_manager.cpp",
     "core/frame_rate_manager/hgm_vsync_generator_controller.cpp",
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
+    "frame_rate_vote/rs_frame_rate_vote.cpp",
+    "frame_rate_vote/rs_video_frame_rate_vote.cpp",
   ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
     }
   }
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/libxml2:xml2",
   ]
 
   external_deps = [
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "libxml2:libxml2",
   ]
 
   part_name = "graphic_2d"

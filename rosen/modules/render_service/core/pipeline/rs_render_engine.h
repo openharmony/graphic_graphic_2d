@@ -29,8 +29,7 @@ public:
 
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
-        float mirrorAdaptiveCoefficient) override;
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU) override;
 
 private:
     void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
@@ -43,8 +42,7 @@ private:
 
     // These 2 functions can only be called in DrawLayers().
     void ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node);
-    void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
-        float mirrorAdaptiveCoefficient = 1.0f, bool forceCPU = false);
+    void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, bool forceCPU = false);
 
     void SetColorFilterModeToPaint(Drawing::Brush& paint);
 };

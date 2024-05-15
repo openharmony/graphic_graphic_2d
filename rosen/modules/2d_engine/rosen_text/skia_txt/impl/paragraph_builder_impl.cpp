@@ -63,7 +63,7 @@ RSFontStyle MakeFontStyle(FontWeight fontWeight, FontWidth fontWidth, FontStyle 
     return RSFontStyle(weight, width, slant);
 }
 
-SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
+void MakeFontArguments(skt::TextStyle& skStyle, const FontVariations& fontVariations)
 {
     constexpr size_t axisLen = 4;
 
@@ -80,7 +80,7 @@ SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 
     SkFontArguments arguments;
     arguments.setVariationDesignPosition(position);
-    return arguments;
+    skStyle.setFontArguments(arguments);
 }
 
 skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
@@ -146,7 +146,7 @@ std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
 {
     paints_.push_back(paint);
-    return paints_.size() - 1;
+    return static_cast<int>(paints_.size()) - 1;
 }
 
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
@@ -251,7 +251,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     }
 
     if (!txt.fontVariations.GetAxisValues().empty()) {
-        skStyle.setFontArguments(MakeFontArguments(txt.fontVariations));
+        MakeFontArguments(skStyle, txt.fontVariations);
     }
 
     skStyle.resetShadows();
@@ -282,7 +282,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
         paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());
         paint.symbol.SetRepeatCount(txt.symbol.GetRepeatCount());
-        paint.symbol.SetAminationStart(txt.symbol.GetAminationStart());
+        paint.symbol.SetAnimationStart(txt.symbol.GetAnimationStart());
         paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }

@@ -84,7 +84,9 @@ void RSRootNode::SetEnableRender(bool flag) const
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeSetEnableRender>(GetId(), flag);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    transactionProxy->FlushImplicitTransaction();
+    if (!isTextureExportNode_) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 
 void RSRootNode::OnBoundsSizeChanged() const

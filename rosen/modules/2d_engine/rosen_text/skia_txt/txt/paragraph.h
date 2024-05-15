@@ -154,6 +154,9 @@ public:
     // Paints the laid out text onto the supplied canvas at (x, y).
     virtual void Paint(Drawing::Canvas* canvas, double x, double y) = 0;
 
+    // Paints the text extension path of the layout.
+    virtual void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) = 0;
+
     // Returns a vector of bounding boxes that enclose all text
     // between start and end glyph indexes. The bounding boxes
     // can be used to display selections.
@@ -173,10 +176,9 @@ public:
 
     virtual Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
 
-    virtual std::vector<LineMetrics>& GetLineMetrics(std::vector<size_t>& startIndexs) = 0;
+    virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
 
-    virtual bool GetLineMetricsAt(
-        int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const = 0;
+    virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
 
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;

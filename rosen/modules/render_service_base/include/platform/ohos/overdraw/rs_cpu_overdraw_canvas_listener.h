@@ -49,6 +49,9 @@ public:
     void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
+    void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
+        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 

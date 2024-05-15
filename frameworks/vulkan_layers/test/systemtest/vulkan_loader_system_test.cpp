@@ -40,6 +40,11 @@ public:
     static void SetUpTestCase() {}
     static void TearDownTestCase()
     {
+        if (isSupportedVulkan_) {
+            fpDestroySwapchainKHR(device_, swapChain_, nullptr);
+            vkDestroySurfaceKHR(instance_, surface_, nullptr);
+            fpDestroyInstance(instance_, nullptr);
+        }
         if (libVulkan_ != nullptr) {
             dlclose(libVulkan_);
             libVulkan_ = nullptr;
@@ -67,7 +72,17 @@ public:
     static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
     static inline PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
     static inline PFN_vkQueuePresentKHR fpQueuePresentKHR;
+    static inline PFN_vkGetPhysicalDevicePresentRectanglesKHR fpGetPhysicalDevicePresentRectanglesKHR;
+    static inline PFN_vkGetPhysicalDeviceSurfaceFormats2KHR fpGetPhysicalDeviceSurfaceFormats2KHR;
+    static inline PFN_vkSetHdrMetadataEXT fpSetHdrMetadataEXT;
+    static inline PFN_vkReleaseSwapchainImagesEXT fpReleaseSwapchainImagesEXT;
 
+    static inline PFN_vkDestroyInstance fpDestroyInstance;
+    static inline PFN_vkDestroySurfaceKHR fpDestroySurfaceKHR;
+    static inline PFN_vkDestroyDevice fpDestroyDevice;
+
+    static inline PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR fpGetPhysicalDeviceSurfaceCapabilities2KHR;
+    static inline PFN_vkGetDeviceGroupPresentCapabilitiesKHR fpGetDeviceGroupPresentCapabilitiesKHR;
     static inline void *libVulkan_ = nullptr;
     static inline VkInstance instance_ = nullptr;
     static inline VkSurfaceKHR surface_ = VK_NULL_HANDLE;
@@ -103,7 +118,8 @@ void VulkanLoaderSystemTest::TrytoCreateVkInstance()
 
     std::vector<const char*> instanceExtensions = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_OHOS_SURFACE_EXTENSION_NAME
+        VK_OHOS_SURFACE_EXTENSION_NAME,
+        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME
     };
 
     VkInstanceCreateInfo instanceCreateInfo = {};
@@ -188,6 +204,37 @@ HWTEST_F(VulkanLoaderSystemTest, LoadInstanceFuncPtr, TestSize.Level1)
         fpGetPhysicalDeviceSurfacePresentModesKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfacePresentModesKHR>(
             vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfacePresentModesKHR"));
         EXPECT_NE(fpGetPhysicalDeviceSurfacePresentModesKHR, nullptr);
+        fpGetPhysicalDevicePresentRectanglesKHR = reinterpret_cast<PFN_vkGetPhysicalDevicePresentRectanglesKHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDevicePresentRectanglesKHR"));
+        EXPECT_NE(fpGetPhysicalDevicePresentRectanglesKHR, nullptr);
+        fpGetPhysicalDeviceSurfaceFormats2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceFormats2KHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfaceFormats2KHR"));
+        EXPECT_NE(fpGetPhysicalDeviceSurfaceFormats2KHR, nullptr);
+
+        fpDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(
+            vkGetInstanceProcAddr(instance_, "vkDestroyInstance"));
+        EXPECT_NE(fpDestroyInstance, nullptr);
+        fpDestroySurfaceKHR = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
+            vkGetInstanceProcAddr(instance_, "vkDestroySurfaceKHR"));
+        EXPECT_NE(fpDestroySurfaceKHR, nullptr);
+        fpDestroyDevice = reinterpret_cast<PFN_vkDestroyDevice>(
+            vkGetInstanceProcAddr(instance_, "vkDestroyDevice"));
+        EXPECT_NE(fpDestroyDevice, nullptr);
+        fpDestroySwapchainKHR = reinterpret_cast<PFN_vkDestroySwapchainKHR>(
+            vkGetInstanceProcAddr(instance_, "vkDestroySwapchainKHR"));
+        EXPECT_NE(fpDestroySwapchainKHR, nullptr);
+
+        fpGetPhysicalDeviceSurfaceCapabilities2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfaceCapabilities2KHR"));
+        EXPECT_NE(fpGetPhysicalDeviceSurfaceCapabilities2KHR, nullptr);
+
+        fpGetPhysicalDeviceSurfaceFormatsKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceFormatsKHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfaceFormatsKHR"));
+        EXPECT_NE(fpGetPhysicalDeviceSurfaceFormatsKHR, nullptr);
+
+        fpGetDeviceGroupPresentCapabilitiesKHR = reinterpret_cast<PFN_vkGetDeviceGroupPresentCapabilitiesKHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetDeviceGroupPresentCapabilitiesKHR"));
+        EXPECT_NE(fpGetDeviceGroupPresentCapabilitiesKHR, nullptr);
     }
 }
 
@@ -242,6 +289,8 @@ HWTEST_F(VulkanLoaderSystemTest, createDevice_Test, TestSize.Level1)
         // Device
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_HDR_METADATA_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -280,6 +329,12 @@ HWTEST_F(VulkanLoaderSystemTest, LoadDeviceFuncPtr, TestSize.Level1)
         EXPECT_NE(fpAcquireNextImageKHR, nullptr);
         fpQueuePresentKHR = reinterpret_cast<PFN_vkQueuePresentKHR>(vkGetDeviceProcAddr(device_, "vkQueuePresentKHR"));
         EXPECT_NE(fpQueuePresentKHR, nullptr);
+        fpSetHdrMetadataEXT = reinterpret_cast<PFN_vkSetHdrMetadataEXT>(
+            vkGetDeviceProcAddr(device_, "vkSetHdrMetadataEXT"));
+        EXPECT_NE(fpAcquireNextImageKHR, nullptr);
+        fpReleaseSwapchainImagesEXT = reinterpret_cast<PFN_vkReleaseSwapchainImagesEXT>(
+            vkGetDeviceProcAddr(device_, "vkReleaseSwapchainImagesEXT"));
+        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
     }
 }
 
@@ -356,4 +411,147 @@ HWTEST_F(VulkanLoaderSystemTest, createSwapChain_Test, TestSize.Level1)
         EXPECT_NE(swapChain_, VK_NULL_HANDLE);
     }
 }
+
+/**
+ * @tc.name: test vkSetHdrMetadataEXT
+ * @tc.desc: test vkSetHdrMetadataEXT
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+HWTEST_F(VulkanLoaderSystemTest, setHdrMetadataEXT_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+        uint32_t swapchainCount = 1;
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.displayPrimaryRed.x = 1000;
+        hdrMetadata.displayPrimaryRed.y = 300;
+        hdrMetadata.displayPrimaryGreen.x = 600;
+        hdrMetadata.displayPrimaryGreen.y = 100;
+        hdrMetadata.displayPrimaryBlue.x = 1600;
+        hdrMetadata.displayPrimaryBlue.y = 200;
+        hdrMetadata.whitePoint.x = 15635;
+        hdrMetadata.whitePoint.y = 16450;
+        hdrMetadata.minLuminance = 100;
+        hdrMetadata.maxLuminance = 1000000;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 400;
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        fpSetHdrMetadataEXT(device_, swapchainCount, &swapChain_, &hdrMetadata);
+    }
+}
+/**
+ * @tc.name: test vkReleaseSwapchainImagesEXT
+ * @tc.desc: test vkReleaseSwapchainImagesEXT
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+HWTEST_F(VulkanLoaderSystemTest, releaseSwapchainImagesEXT_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+        EXPECT_NE(fpGetSwapchainImagesKHR, nullptr);
+        VkReleaseSwapchainImagesInfoEXT releaseInfo = {};
+        releaseInfo.sType = VK_STRUCTURE_TYPE_RELEASE_SWAPCHAIN_IMAGES_INFO_EXT;
+        releaseInfo.swapchain = swapChain_;
+        releaseInfo.imageIndexCount = 1;
+        std::vector<uint32_t> pImageIndices(1);
+        pImageIndices[0] = 0;
+        releaseInfo.pImageIndices = pImageIndices.data();
+
+        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
+        VkResult result = fpReleaseSwapchainImagesEXT(device_, &releaseInfo);
+        EXPECT_EQ(result, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test vkGetPhysicalDeviceSurfaceFormatsKHR
+ * @tc.desc: test vkGetPhysicalDeviceSurfaceFormatsKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+HWTEST_F(VulkanLoaderSystemTest, getPhysicalDeviceSurfaceFormatsKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(physicalDevice_, nullptr);
+        EXPECT_NE(surface_, VK_NULL_HANDLE);
+        uint32_t formatCount = 0;
+        VkResult res = fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, nullptr);
+        EXPECT_EQ(res, VK_SUCCESS);
+        EXPECT_NE(formatCount, 0);
+        std::vector<VkSurfaceFormatKHR> formats(formatCount);
+        res = fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, formats.data());
+        EXPECT_EQ(formatCount, formats.size());
+        EXPECT_EQ(res, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test vkGetPhysicalDeviceSurfaceCapabilities2KHR
+ * @tc.desc: test vkGetPhysicalDeviceSurfaceCapabilities2KHR
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+HWTEST_F(VulkanLoaderSystemTest, getPhysicalDeviceSurfaceCapabilities2KHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(physicalDevice_, nullptr);
+        EXPECT_NE(surface_, VK_NULL_HANDLE);
+        VkPhysicalDeviceSurfaceInfo2KHR surfaceInfo = {};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
+        surfaceInfo.surface = surface_;
+
+        VkSurfaceCapabilities2KHR surfaceCapabilities = {};
+        surfaceCapabilities.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
+        surfaceCapabilities.pNext = nullptr;
+
+        fpGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice_, &surfaceInfo, &surfaceCapabilities);
+    }
+}
+
+/**
+ * @tc.name: test vkGetPhysicalDevicePresentRectanglesKHR
+ * @tc.desc: test vkGetPhysicalDevicePresentRectanglesKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+HWTEST_F(VulkanLoaderSystemTest, getPhysicalDevicePresentRectanglesKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(physicalDevice_, nullptr);
+        EXPECT_NE(surface_, VK_NULL_HANDLE);
+        EXPECT_NE(fpGetPhysicalDevicePresentRectanglesKHR, nullptr);
+        uint32_t pRectCount = 0;
+        VkResult res = fpGetPhysicalDevicePresentRectanglesKHR(physicalDevice_, surface_, &pRectCount, nullptr);
+        EXPECT_EQ(res, VK_SUCCESS);
+        if (pRectCount > 0) {
+            std::vector<VkRect2D> pRects(pRectCount);
+            res = fpGetPhysicalDevicePresentRectanglesKHR(physicalDevice_, surface_, &pRectCount, pRects.data());
+            EXPECT_EQ(res, VK_SUCCESS);
+        }
+    }
+}
+
+/**
+ * @tc.name: test vkGetDeviceGroupPresentCapabilitiesKHR
+ * @tc.desc: test vkGetDeviceGroupPresentCapabilitiesKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI9IN5M
+ */
+
+HWTEST_F(VulkanLoaderSystemTest, getDeviceGroupPresentCapabilitiesKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(fpGetDeviceGroupPresentCapabilitiesKHR, nullptr);
+        VkDeviceGroupPresentCapabilitiesKHR deviceGroupPresentCapabilities = {};
+        VkResult res = fpGetDeviceGroupPresentCapabilitiesKHR(device_, &deviceGroupPresentCapabilities);
+        EXPECT_EQ(res, VK_SUCCESS);
+    }
+}
+
 }

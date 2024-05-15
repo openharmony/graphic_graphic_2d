@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,9 +22,13 @@ ohos_source_set("render_frame_trace") {
   ]
   cflags = [ "-fstack-protector-all" ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
     }
   }
   external_deps = [ "jsoncpp:jsoncpp" ]
@@ -41,16 +45,11 @@ ohos_source_set("render_frame_trace") {
       external_deps += [ "frame_aware_sched:frame_trace_intf" ]
     }
   }
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
-ohos_source_set("rs_frame_report_ext") {
-  include_dirs = [ "include" ]
-  sources = [ "src/rs_frame_report_ext.cpp" ]
-  external_deps = [ "hilog:libhilog" ]
-
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

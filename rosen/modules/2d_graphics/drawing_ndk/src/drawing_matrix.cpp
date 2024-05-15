@@ -15,6 +15,8 @@
 
 #include "drawing_matrix.h"
 
+#include <vector>
+
 #include "utils/matrix.h"
 #include "utils/rect.h"
 
@@ -28,14 +30,29 @@ static Matrix* CastToMatrix(OH_Drawing_Matrix* cMatrix)
     return reinterpret_cast<Matrix*>(cMatrix);
 }
 
-static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
+static const Matrix* CastToMatrix(const OH_Drawing_Matrix* cMatrix)
 {
-    return reinterpret_cast<const Point *>(cPoint);
+    return reinterpret_cast<const Matrix*>(cMatrix);
 }
 
-static const Drawing::Rect& CastToRect(const OH_Drawing_Rect& cRect)
+static Point* CastToPoint(OH_Drawing_Point2D* cPoint)
 {
-    return reinterpret_cast<const Drawing::Rect&>(cRect);
+    return reinterpret_cast<Point*>(cPoint);
+}
+
+static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
+{
+    return reinterpret_cast<const Point*>(cPoint);
+}
+
+static Rect& CastToRect(OH_Drawing_Rect& cRect)
+{
+    return reinterpret_cast<Rect&>(cRect);
+}
+
+static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
+{
+    return reinterpret_cast<const Rect&>(cRect);
 }
 
 OH_Drawing_Matrix* OH_Drawing_MatrixCreate()
@@ -245,6 +262,36 @@ bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix* cMatrix, const OH_Drawing
         return false;
     }
     return matrix->SetPolyToPoly(CastToPoint(src), CastToPoint(dst), count);
+}
+
+void OH_Drawing_MatrixMapPoints(const OH_Drawing_Matrix* cMatrix, const OH_Drawing_Point2D* src,
+    OH_Drawing_Point2D* dst, int count)
+{
+    const Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    const Point* srcTemp = CastToPoint(src);
+    Point* dstTemp = CastToPoint(dst);
+    std::vector<Point> srcPoints(count);
+    std::vector<Point> dstPoints(count);
+    for (int idx = 0; idx < count; idx++) {
+        srcPoints[idx] = srcTemp[idx];
+        dstPoints[idx] = dstTemp[idx];
+    }
+    matrix->MapPoints(dstPoints, srcPoints, count);
+    for (int idx = 0; idx < count; idx++) {
+        dstTemp[idx] = dstPoints[idx];
+    }
+}
+
+bool OH_Drawing_MatrixMapRect(const OH_Drawing_Matrix* cMatrix, const OH_Drawing_Rect* src, OH_Drawing_Rect* dst)
+{
+    const Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return false;
+    }
+    return matrix->MapRect(CastToRect(*dst), CastToRect(*src));
 }
 
 bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix* cMatrix)

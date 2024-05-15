@@ -34,11 +34,11 @@ public:
 
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces();
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
-    uint64_t GetDisplayOffsetX() const
+    int32_t GetDisplayOffsetX() const
     {
         return offsetX_;
     }
-    uint64_t GetDisplayOffsetY() const
+    int32_t GetDisplayOffsetY() const
     {
         return offsetY_;
     }
@@ -78,6 +78,10 @@ public:
     {
         return displayHasSkipSurface_;
     }
+    const std::map<ScreenId, bool>& GetDisplayHasProtectedSurface() const
+    {
+        return displayHasProtectedSurface_;
+    }
     const std::map<ScreenId, bool>& GethasCaptureWindow() const
     {
         return hasCaptureWindow_;
@@ -94,7 +98,21 @@ public:
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasSecurityLayer();
     bool HasSkipLayer();
+    bool HasProtectedLayer();
     bool HasCaptureWindow();
+    void SetNeedOffscreen(bool needOffscreen);
+    bool GetNeedOffscreen() const;
+
+    void SetRotationChanged(bool changed);
+    bool IsRotationChanged() const;
+
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
+
+    void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetNewColorSpace() const;
+    void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
+    GraphicPixelFormat GetNewPixelFormat() const;
 
     // dfx
     std::string ToString() const override;
@@ -102,6 +120,7 @@ public:
 private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
+    std::map<ScreenId, bool> displayHasProtectedSurface_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     int32_t offsetX_ = -1;
@@ -111,16 +130,21 @@ private:
     uint64_t screenId_ = 0;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     ScreenInfo screenInfo_;
-    ScreenId mirroredId_;
+    ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     bool isMainAndLeashSurfaceDirty_ = false;
-    
+    bool needOffscreen_ = false;
+    bool isRotationChanged_ = false;
+    bool hasHdrPresent_ = false;
+
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
+    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H

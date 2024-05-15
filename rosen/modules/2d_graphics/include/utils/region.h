@@ -37,10 +37,17 @@ public:
     Region& operator=(const Region& other);
     virtual ~Region() = default;
 
+    void Clone(const Region& other)
+    {
+        impl_->Clone(other);
+    }
+
     virtual DrawingType GetDrawingType() const
     {
         return DrawingType::COMMON;
     }
+
+    virtual bool Contains(int32_t x, int32_t y) const;
 
     /**
      * @brief Constructs a rectangular Region matching the bounds of rect.

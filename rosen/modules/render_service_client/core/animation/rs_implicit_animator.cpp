@@ -17,6 +17,7 @@
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_path_animation.h"
 #include "common/rs_optional_trace.h"
@@ -563,12 +564,9 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         repeatCallback.reset();
     }
 
-    RS_OPTIONAL_TRACE_NAME("CreateImplicitAnimation:node[" + std::to_string(target->GetId()) + "] pro[" +
-                           std::to_string(property->GetId()) + "] animate[" + std::to_string(animation->GetId()) +
-                           "] animateType [" + std::to_string(static_cast<int>(params->GetType())) + "] proType [" +
-                           std::to_string(static_cast<int>(property->type_)) + "] dur [" +
-                           std::to_string(animation->GetDuration()) + "] repeat [" +
-                           std::to_string(protocol.GetRepeatCount()) + "]");
+    RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(target->GetId(), property->GetId(), animation->GetId(),
+        static_cast<int>(params->GetType()), static_cast<int>(property->type_), startValue->GetRenderProperty(),
+        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration());
 
     if (params->GetType() == ImplicitAnimationParamType::TRANSITION ||
         params->GetType() == ImplicitAnimationParamType::KEYFRAME) {

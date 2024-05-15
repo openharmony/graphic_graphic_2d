@@ -47,8 +47,8 @@ HWTEST_F(GEVisualEffectTest, SetParam001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam001 start";
 
-    auto visualEffect = std::make_shared<GEVisualEffect>("KAWASE_BLUR");
-    visualEffect->SetParam("KAWASE_BLUR_RADIUS", 1);
+    auto visualEffect = std::make_shared<GEVisualEffect>(GE_FILTER_KAWASE_BLUR);
+    visualEffect->SetParam(GE_FILTER_KAWASE_BLUR_RADIUS, 1);
 
     GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam001 end";
 }

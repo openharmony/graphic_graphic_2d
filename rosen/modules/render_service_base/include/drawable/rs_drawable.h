@@ -46,7 +46,7 @@ enum class RSDrawableSlot : int8_t {
     // BG properties in Bounds Clip
     BG_SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
-    BLEND_MODE,
+    BLENDER,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
     BACKGROUND_IMAGE,
@@ -85,21 +85,26 @@ enum class RSDrawableSlot : int8_t {
     PIXEL_STRETCH,
 
     // Restore state
-    RESTORE_BLEND_MODE,
+    RESTORE_BLENDER,
     RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
-    BG_PROPERTIES_BEGIN      = BLEND_MODE,
-    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY,
-    CONTENT_TRANSFORM_BEGIN  = FRAME_OFFSET,
-    CONTENT_TRANSFORM_END    = CLIP_TO_FRAME,
-    CONTENT_PROPERTIES_BEGIN = CONTENT_STYLE,
-    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE,
-    FG_PROPERTIES_BEGIN      = BINARIZATION,
-    FG_PROPERTIES_END        = FOREGROUND_COLOR,
-    EXTRA_PROPERTIES_BEGIN   = POINT_LIGHT,
-    EXTRA_PROPERTIES_END     = PIXEL_STRETCH,
+    // properties before Background, not clipped
+    TRANSITION_PROPERTIES_BEGIN = SHADOW,
+    TRANSITION_PROPERTIES_END   = OUTLINE,
+    // background properties, clipped by bounds by default
+    BG_PROPERTIES_BEGIN         = BLENDER,
+    BG_PROPERTIES_END           = ENV_FOREGROUND_COLOR_STRATEGY,
+    // content properties, can be clipped by ClipToFrame and ClipToBounds
+    CONTENT_BEGIN               = FRAME_OFFSET,
+    CONTENT_END                 = FOREGROUND_STYLE,
+    // foreground properties, clipped by bounds by default
+    FG_PROPERTIES_BEGIN         = BINARIZATION,
+    FG_PROPERTIES_END           = FOREGROUND_COLOR,
+    // post-foreground properties, can be clipped by ClipToBounds
+    EXTRA_PROPERTIES_BEGIN      = POINT_LIGHT,
+    EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
 
     MAX = RESTORE_ALL + 1,
 };
@@ -110,40 +115,41 @@ public:
     RSDrawable() = default;
     virtual ~RSDrawable() = default;
 
-    // not copyable and moveable
+    // Not copyable and moveable
     RSDrawable(const RSDrawable&) = delete;
     RSDrawable(const RSDrawable&&) = delete;
     RSDrawable& operator=(const RSDrawable&) = delete;
     RSDrawable& operator=(const RSDrawable&&) = delete;
 
-    // =================type definition==================
+    // Type definitions
     using Ptr = std::shared_ptr<RSDrawable>;
     using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableSlot::MAX)>;
     using Generator = std::function<Ptr(const RSRenderNode&)>;
 
-    // =================virtual functions==================
-
-    // Call on property change, return true if update succeed, false if need destroy
+    // UI methods: OnUpdate and OnGenerate (static method defined in every subclass) can only access the UI (staging)
+    // members, else may cause crash.
+    // OnUpdate and OnGenerate will be invoked if related property has changed, if false is returned, the drawable will
+    // be erased.
     virtual bool OnUpdate(const RSRenderNode& content)
     {
         return true;
     }
 
-    // Call on thread sync
-    virtual void OnSync() = 0;
-
-    // !!!!!!!!!!!!!!!!!!!!!!!!!! Important Note:
-    // DrawFunc can only access the RT members variables, accessing staging members will cause a crash
+    // Render helper methods: This func is called in UI thread, but the generated DrawFunc will be called in RT thread,
+    // they can only access the RT members, else may cause crash
     virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
 
-    // =================Generate & Update helper methods==================
-    // Step 1, generate DirtySlots from dirty Modifiers
+    // Sync methods, then can access all members and do UI->RT sync
+    virtual void OnSync() = 0;
+
+    // static generate & update helper methods
+    // Step 1, calculate dirtySlots based on dirty modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
         const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
-    // Step 2, for every DirtySlot, generate DrawableContent
+    // Step 2, for every dirtySlot, update or generate RSDrawable
     static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);
-    // Step 3, add necessary Clip/Save/Restore
+    // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
 };
 } // namespace OHOS::Rosen

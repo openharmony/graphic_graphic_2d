@@ -37,15 +37,11 @@ ohos_shared_library("color_picker") {
   include_dirs = [
     "include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
   ]
 
-  configs = [
-    ":graphic_napi_color_picker_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  configs = [ ":graphic_napi_color_picker_config" ]
 
   sources = [
     "src/color_extract.cpp",

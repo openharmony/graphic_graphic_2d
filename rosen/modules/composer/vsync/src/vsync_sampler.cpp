@@ -30,7 +30,7 @@ sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::instance_ = nullptr;
 
 namespace {
 constexpr double PI = 3.1415926;
-constexpr int64_t g_errorThreshold = 160000000000; // 400 usec squared
+constexpr int64_t ERROR_THRESHOLD = 160000000000; // 400 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
@@ -120,9 +120,11 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
         firstSampleIndex_ = (firstSampleIndex_ + 1) % MAX_SAMPLES;
     }
 
-    uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
-    samples_[index] = timeStamp;
-
+    if (firstSampleIndex_ + numSamples_ >= 1) {
+        uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
+        samples_[index] = timeStamp;
+    }
+    
     UpdateReferenceTimeLocked();
     UpdateModeLocked();
 
@@ -131,7 +133,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     }
 
     // 1/2 just a empirical value
-    bool shouldDisableScreenVsync = modeUpdated_ && (error_ < g_errorThreshold / 2);
+    bool shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
 
     if (shouldDisableScreenVsync) {
         // disabled screen vsync in rsMainThread
@@ -261,19 +263,24 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 
-    int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
-    if ((prevFenceTimeStamp != INVAILD_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
-        ScopedBytrace trace("StartRefreshAfterIdle");
-        CreateVSyncGenerator()->StartRefresh();
-        numSamples_ = 0;
+    if (presentFenceTimeOffset_ + NUM_PRESENT >= 1) {
+        int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
+        if ((prevFenceTimeStamp != INVAILD_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
+            ScopedBytrace trace("StartRefreshAfterIdle");
+            CreateVSyncGenerator()->StartRefresh();
+            numSamples_ = 0;
+        }
     }
 
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;
     numResyncSamplesSincePresent_ = 0;
 
     UpdateErrorLocked();
+    if (error_ > ERROR_THRESHOLD) {
+        ScopedBytrace trace("PresentFenceTime error_:" + std::to_string(error_));
+    }
 
-    return !modeUpdated_ || error_ > g_errorThreshold;
+    return !modeUpdated_ || error_ > ERROR_THRESHOLD;
 }
 
 int64_t VSyncSampler::GetPeriod() const
@@ -315,6 +322,7 @@ void VSyncSampler::SetPendingPeriod(int64_t period)
 
 void VSyncSampler::Dump(std::string &result)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     result.append("\n-- VSyncSampler --");
     result += "\nperiod:" + std::to_string(period_);
     result += "\nphase:" + std::to_string(phase_);

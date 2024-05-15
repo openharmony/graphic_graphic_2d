@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <event_handler.h>
+#include <queue>
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -34,18 +35,21 @@ private:
     const uint32_t SYNC_TIME_OUT = 3000;
     const int32_t GPU_SUBHEALTH_EVENT_LIMIT = 200;
     const int32_t GPU_SUBHEALTH_EVENT_THRESHOLD = 12;
-    const std::string GPU_LOAD = "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation";
+    const uint32_t FRAME_QUEUE_SIZE_LIMIT = 4;
+    const int32_t FRAME_PERIOD = 1000;
     const std::string threadName_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
     std::atomic<uint32_t> fencesQueued_;
     std::atomic<uint32_t> fencesSignaled_;
     int32_t gpuSubhealthEventNum = 0;
-    int32_t gpuSubhealthEventDay;
+    int32_t gpuSubhealthEventDay = 0;
+    std::queue<int32_t> *frameStartTimes = new std::queue<int32_t>;
     void Loop(const sptr<SyncFence>& fence);
     bool CheckGpuSubhealthEventLimit();
     void ReportEventGpuSubhealth(int32_t duration);
-    inline int32_t GetValue(const std::string& fileName);
+    inline void UpdateFrameQueue(int32_t startTime);
+    inline int32_t GetFrameRate();
 };
 }
 #endif // UTILS_INCLUDE_SYNC_FENCE_TRACKER_H

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/animation"
@@ -24,6 +24,10 @@ ohos_unittest("RSRenderServiceBaseAnimationTest") {
   sources = [
     "rs_animation_fraction_test.cpp",
     "rs_animation_manager_test.cpp",
+    "rs_animation_rate_decider_test.cpp",
+    "rs_cubic_bezier_interpolator_test.cpp",
+    "rs_interpolator_test.cpp",
+    "rs_render_keyframe_animation_test.cpp",
     "rs_render_particle_test.cpp",
     "rs_render_path_animation_test.cpp",
     "rs_steps_interpolator_test.cpp",

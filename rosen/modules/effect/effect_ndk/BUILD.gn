@@ -1,0 +1,117 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+effect_root = "$graphic_2d_root/rosen/modules/effect"
+effect_ndk_include_dir =
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk/include"
+effect_ndk_src_dir = "$graphic_2d_root/rosen/modules/effect/effect_ndk/src"
+
+config("export_config") {
+  include_dirs = [ "$effect_ndk_include_dir" ]
+}
+
+template("effect_ndk_source_set") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    defines += invoker.defines
+    cflags_cc += invoker.cflags_cc
+
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "image_framework:image",
+    ]
+
+    public_deps = [
+      "$effect_root//skia_effectChain:skeffectchain",
+      "$effect_root/color_picker:color_picker",
+    ]
+    public_external_deps = [ "jsoncpp:jsoncpp" ]
+
+    configs = [ ":export_config" ]
+    sources = [
+      "$effect_ndk_src_dir/effect_filter.cpp",
+      "$effect_ndk_src_dir/filter/filter.cpp",
+    ]
+
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+    }
+    if (ace_enable_gpu) {
+      defines += [ "ACE_ENABLE_GPU" ]
+    }
+    if (is_emulator) {
+      defines += [ "ROSEN_EMULATOR" ]
+    }
+
+    include_dirs = [
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
+      "$graphic_2d_root/modules/2d_graphics/include",
+    ]
+
+    if (platform == "ohos" || platform == "ohos_ng") {
+      defines += [ "OHOS_PLATFORM" ]
+      external_deps += [
+        "bounds_checking_function:libsec_static",
+        "image_framework:pixelmap",
+        "image_framework:pixelmap_ndk",
+      ]
+      deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+    } else {
+      deps = []
+      cflags = [ "-std=c++17" ]
+
+      if (!is_arkui_x) {
+        deps += [ "$rosen_root/modules/platform:hilog" ]
+      }
+    }
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
+
+effect_ndk_source_set("effect_ndk_source_ohos") {
+  platform = "ohos"
+  defines = []
+  cflags_cc = []
+}
+
+ohos_shared_library("native_effect_ndk") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+  public_configs = [ ":export_config" ]
+
+  if (platform == "ohos") {
+    deps = [ "$effect_root/effect_ndk:effect_ndk_source_ohos" ]
+    symlink_target_name = [ "libnative_effect.so" ]
+    innerapi_tags = [ "ndk" ]
+  }
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

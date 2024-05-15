@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/command"
@@ -26,11 +26,13 @@ ohos_unittest("RSNodeCommandTest") {
     "rs_base_node_command_test.cpp",
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
+    "rs_command_factory_test.cpp",
     "rs_display_node_command_test.cpp",
     "rs_effect_node_command_test.cpp",
     "rs_frame_rate_linker_command_test.cpp",
     "rs_message_processor_test.cpp",
     "rs_node_command_test.cpp",
+    "rs_node_showing_command_test.cpp",
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",
     "rs_surface_node_command_test.cpp",
@@ -40,6 +42,11 @@ ohos_unittest("RSNodeCommandTest") {
     ":render_test",
     "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   include_dirs = [

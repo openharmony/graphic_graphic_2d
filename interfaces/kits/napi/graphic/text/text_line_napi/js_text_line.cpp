@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "js_text_line.h"
-
 #include "canvas_napi/js_canvas.h"
+#include "js_text_line.h"
+#include "js_drawing_utils.h"
+#include "recording/recording_canvas.h"
 #include "run_napi/js_run.h"
 #include "utils/log.h"
-#include "../drawing/js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsTextLine::constructor_ = nullptr;
@@ -176,6 +176,7 @@ napi_value JsTextLine::OnGetGlyphRuns(napi_env env, napi_callback_info info)
             continue;
         }
         jsRun->SetRun(std::move(item));
+        jsRun->SetParagraph(paragraph_);
         napi_set_element(env, array, index++, itemObject);
     }
     return array;
@@ -213,12 +214,8 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void**>(&jsCanvas));
-    if (jsCanvas == nullptr) {
+    if (!jsCanvas || !jsCanvas->GetCanvas()) {
         ROSEN_LOGE("JsTextLine::OnPaint jsCanvas is nullptr");
-        return NapiGetUndefined(env);
-    }
-    if (jsCanvas->GetCanvas() == nullptr) {
-        ROSEN_LOGE("JsTextLine::OnPaint canvas is nullptr");
         return NapiGetUndefined(env);
     }
     double x = 0.0;
@@ -227,11 +224,17 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
     textLine_->Paint(jsCanvas->GetCanvas(), x, y);
+
     return NapiGetUndefined(env);
 }
 
 std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
 {
     return std::move(textLine_);
+}
+
+void JsTextLine::SetParagraph(std::shared_ptr<Typography> paragraph)
+{
+    paragraph_ = paragraph;
 }
 } // namespace OHOS::Rosen

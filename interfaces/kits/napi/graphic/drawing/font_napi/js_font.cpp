@@ -186,13 +186,9 @@ napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsFont::OnEnableSubpixel Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isSubpixel = false;
     if (!ConvertFromJsValue(env, argv[0], isSubpixel)) {
@@ -211,13 +207,9 @@ napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsFont::OnEnableEmbolden Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isEmbolden = false;
     if (!ConvertFromJsValue(env, argv[0], isEmbolden)) {
@@ -236,13 +228,9 @@ napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsFont::OnEnableLinearMetrics Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isLinearMetrics = false;
     if (!ConvertFromJsValue(env, argv[0], isLinearMetrics)) {
@@ -261,13 +249,9 @@ napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsFont::OnSetSize Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     double textSize = 0.0;
     if (!ConvertFromJsValue(env, argv[0], textSize)) {
@@ -308,13 +292,10 @@ napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsFont::OnSetTypeface Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
+
     JsTypeface *jsTypeface = nullptr;
     napi_unwrap(env, argv[0], (void **)&jsTypeface);
     if (jsTypeface == nullptr) {
@@ -344,13 +325,10 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO) {
-        ROSEN_LOGE("JsFont::OnMeasureText Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_EACH_PARAM(ARGC_ZERO, napi_string);
+    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[0], text)) {

@@ -41,7 +41,7 @@ inline std::pair<RSPropertyDrawable::DrawablePtr, RSPropertyDrawable::DrawablePt
     if (type == RSPaintFilterCanvas::kNone) {
         return {};
     } else if (type == RSPaintFilterCanvas::kCanvas) {
-        auto count = std::make_shared<int>(-1);
+        auto count = std::make_shared<uint32_t>(0);
         return { std::make_unique<RSSaveDrawable>(count), std::make_unique<RSRestoreDrawable>(count) };
     } else {
         auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
@@ -119,6 +119,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::SYSTEMBAREFFECT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_TILE_MODE, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::USE_EFFECT, RSPropertyDrawableSlot::USE_EFFECT },
     { RSModifierType::SANDBOX, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::GRAY_SCALE, RSPropertyDrawableSlot::COLOR_FILTER },
@@ -168,6 +169,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::ENV_FOREGROUND_COLOR, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR },
     { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
     { RSModifierType::PARTICLE_EMITTER_UPDATER, RSPropertyDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::PARTICLE_NOISE_FIELD, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::DYNAMIC_DIM_DEGREE, RSPropertyDrawableSlot::DYNAMIC_DIM },
     { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };

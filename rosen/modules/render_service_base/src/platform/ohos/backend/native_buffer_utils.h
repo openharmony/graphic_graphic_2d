@@ -39,8 +39,8 @@ public:
         : fDevice_(vkContext.GetDevice()),
           fImage_(image),
           fMemory_(memory),
-          fDestroyImage_(vkContext.vkDestroyImage),
-          fFreeMemory_(vkContext.vkFreeMemory),
+          fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
+          fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
           fStatName(statName),
           fRefCnt_(1) {}
     ~VulkanCleanupHelper()
@@ -105,10 +105,10 @@ struct NativeSurfaceInfo {
 };
 
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
-    NativeSurfaceInfo& nativeSurface, int width, int height);
+    NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected = false);
 
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
-    int width, int height);
+    int width, int height, bool isProtected = false);
 }
 } // OHOS::Rosen
 #endif

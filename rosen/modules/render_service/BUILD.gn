@@ -32,13 +32,13 @@ ohos_shared_library("librender_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   if (enhanced_opt) {
     configs = [ ":render_service_link_config" ]
   }
-  defines = [ "RS_PARALLEL" ]
+  defines = []
   if (graphic_2d_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
   } else {
@@ -53,9 +53,14 @@ ohos_shared_library("librender_service") {
   defines += gpu_defines
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     defines += [ "IS_OHOS" ]
-    cflags = [ "-flto=thin" ]
+    cflags = []
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
     if (enhanced_opt) {
-      cflags += [ "-fwhole-program-vtables" ]
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
         cflags += [
@@ -130,7 +135,7 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_display_render_node_drawable.cpp",
     "core/drawable/rs_effect_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",
-    "core/drawable/rs_render_node_shadow_drawable.cpp",
+    "core/drawable/rs_render_node_drawable_autocache.cpp",
     "core/drawable/rs_root_render_node_drawable.cpp",
     "core/drawable/rs_surface_render_node_drawable.cpp",
     "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
@@ -159,10 +164,6 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    sources += [ "$graphic_2d_ext_root/chipset_vsync/src/chipset_vsync.cpp" ]
-  }
-
   if (use_memmgr_plugin || use_memmgr) {
     sources += [ "core/memory/rs_app_state_listener.cpp" ]
   }
@@ -183,36 +184,33 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/utils",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
-  }
-
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-  }
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
+    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
+
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+    deps += [ "$graphic_2d_ext_root/chipset_vsync:libchipset_vsync" ]
+    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+  }
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
@@ -235,7 +233,6 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
@@ -243,17 +240,11 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_utils.cpp",
     ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
-  public_deps = [
-    "//third_party/libpng:libpng",
-    "//third_party/libxml2:libxml2",
-  ]
-
-  public_deps += [ "//third_party/skia:skia_ohos" ]
+  public_deps = [ "//third_party/skia:skia_ohos" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     include_dirs += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
@@ -288,11 +279,14 @@ ohos_shared_library("librender_service") {
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
+  public_external_deps = [ "libxml2:libxml2" ]
+
   external_deps = [
     "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "graphic_surface:frame_report",
     "graphic_surface:surface",
     "hicollie:libhicollie",
@@ -302,6 +296,7 @@ ohos_shared_library("librender_service") {
     "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "libpng:libpng",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -346,7 +341,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (use_memmgr_plugin) {
-    external_deps += [ "memmgr_plugin:memmgrclient" ]
+    external_deps += [ "memmgr_override:memmgrclient" ]
   } else if (use_memmgr) {
     external_deps += [ "memmgr:memmgrclient" ]
   }
@@ -356,14 +351,6 @@ ohos_shared_library("librender_service") {
     external_deps += [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
-    ]
-  }
-
-  if (graphic_2d_feature_enable_chipset_vsync) {
-    defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
-    external_deps += [
-      "drivers_interface_camera_ext:chipset_vsync_idl_headers",
-      "drivers_interface_camera_ext:libchipset_vsync_proxy_1.0",
     ]
   }
 
@@ -386,7 +373,7 @@ ohos_executable("render_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
     if (rosen_is_ohos) {
       boundary_sanitize = true
@@ -399,7 +386,6 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "//commonlibrary/c_utils/base/include",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 

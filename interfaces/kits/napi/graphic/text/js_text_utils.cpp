@@ -120,18 +120,18 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
     return true;
 }
 
-bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
+void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
-    if (argValue == nullptr) {
-        return false;
-    }
-    SetTextStyleColor(env, argValue, "color", textStyle.color);
-
     napi_value tempValue = nullptr;
     napi_get_named_property(env, argValue, "fontWeight", &tempValue);
     uint32_t fontWeight = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
         textStyle.fontWeight = FontWeight(fontWeight);
+    }
+    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
+    uint32_t fontStyle = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
+        textStyle.fontStyle = FontStyle(fontStyle);
     }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
@@ -152,7 +152,6 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     SetTextStyleBooleValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetTextStyleBooleValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
-
     std::string text = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
         textStyle.ellipsis = Str8ToStr16(text);
@@ -167,6 +166,62 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
         textStyle.locale = textLocale;
     }
+}
+
+void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
+{
+    textStyle.shadows.clear();
+    for (uint32_t further = 0; further < arrayLength; further++) {
+        napi_value element;
+        Drawing::Color colorSrc;
+        Drawing::Point offset;
+        double runTimeRadius = 0;
+        if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
+            ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
+            return;
+        }
+        SetTextStyleColor(env, element, "color", colorSrc);
+
+        napi_value pointValue = nullptr;
+        if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
+            ROSEN_LOGE("The parameter of as private point is unvaild");
+            return;
+        }
+        GetPointFromJsValue(env, pointValue, offset);
+
+        napi_value radius = nullptr;
+        if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
+            napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
+        }
+        textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
+    }
+    return;
+}
+
+void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value allShadowValue = nullptr;
+    if (napi_get_named_property(env, argValue, "textShadow", &allShadowValue) != napi_ok) {
+        return;
+    }
+
+    uint32_t arrayLength = 0;
+    if (napi_get_array_length(env, allShadowValue, &arrayLength) != napi_ok) {
+        ROSEN_LOGE("The parameter of text shadow is not array");
+        return;
+    }
+    ScanShadowValue(env, allShadowValue, arrayLength, textStyle);
+    return;
+}
+
+bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    SetTextStyleColor(env, argValue, "color", textStyle.color);
+    ParsePartTextStyle(env, argValue, textStyle);
+    SetTextShadowProperty(env, argValue, textStyle);
     return true;
 }
 

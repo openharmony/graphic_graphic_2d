@@ -91,9 +91,12 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
-#ifndef ROSEN_ARKUI_X
-    SKResourceManager::Instance().HoldResource(image);
-#endif
+}
+
+void RSImageBase::MarkYUVImage()
+{
+    isDrawn_ = false;
+    isYUVImage_ = true;
 }
 #endif
 
@@ -302,7 +305,7 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
     // paraUpload only enable in render_service or UnmarshalThread
     pid_t tid = paraUpload ? getpid() : gettid();
 #endif
-    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
+    if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
         if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, tid);
@@ -331,6 +334,31 @@ void RSImageBase::GenUniqueId(uint32_t id)
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     uniqueId_ = shiftedPid | id;
 }
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext)
+{
+    if (!gpuContext) {
+        return;
+    }
+    auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (cache) {
+        image_ = cache;
+        return;
+    }
+    RS_TRACE_NAME("make yuv img");
+    auto image = RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap_);
+    if (image) {
+        image_ = image;
+        SKResourceManager::Instance().HoldResource(image);
+        RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+    } else {
+        RS_LOGE("make yuv image %{public}d (%{public}d, %{public}d) failed",
+            (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+    }
+}
+#endif
 
 std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
 {

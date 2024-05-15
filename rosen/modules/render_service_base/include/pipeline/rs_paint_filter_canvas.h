@@ -25,6 +25,8 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "screen_manager/screen_types.h"
+#include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {
@@ -40,6 +42,8 @@ public:
     Drawing::Rect GetLocalClipBounds() const override;
 
     Drawing::RectI GetDeviceClipBounds() const override;
+
+    Drawing::RectI GetRoundInDeviceClipBounds() const override;
 
     uint32_t GetSaveCount() const override;
 
@@ -63,6 +67,9 @@ public:
     void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
+    void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
+        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
@@ -74,14 +81,8 @@ public:
     void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
 
-    // opinc_begin
-    bool BeginOpRecording(const Drawing::Rect* bound = nullptr, bool isDynamic = false) override;
-    Drawing::OpListHandle EndOpRecording() override;
-    void DrawOpList(Drawing::OpListHandle handle) override;
-    int CanDrawOpList(Drawing::OpListHandle handle) override;
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
-    // opinc_end
 
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,
@@ -125,6 +126,8 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+
 protected:
     virtual bool OnFilter() const = 0;
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
@@ -137,7 +140,7 @@ class RSB_EXPORT RSPaintFilterCanvas : public RSPaintFilterCanvasBase {
 public:
     RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
-    ~RSPaintFilterCanvas() override {};
+    ~RSPaintFilterCanvas() override = default;;
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
@@ -162,11 +165,11 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
+    // blendmode and blender related
+    void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
-    int GetBlendOffscreenLayerCnt() const
-    {
-        return 0;
-    };
+    void SetBlender(std::shared_ptr<Drawing::Blender>);
+    bool HasOffscreenLayer() const;
 
     // save/restore utils
     struct SaveStatus {
@@ -266,14 +269,34 @@ public:
     bool GetRecordingState() const override;
     void SetRecordingState(bool flag) override;
 
+    const std::stack<OffscreenData>& GetOffscreenDataList() const
+    {
+        return offscreenDataList_;
+    }
+    Drawing::DrawingType GetDrawingType() const override
+    {
+        return Drawing::DrawingType::PAINT_FILTER;
+    }
+    bool GetHDRPresent() const;
+    void SetHDRPresent(bool hasHdrPresent);
+    bool IsCapture() const;
+    void SetCapture(bool isCapture);
+    ScreenId GetScreenId() const;
+    void SetScreenId(ScreenId screenId);
+    GraphicColorGamut GetTargetColorGamut() const;
+    void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    float GetBrightnessRatio() const;
+    void SetBrightnessRatio(float brightnessRatio);
+    template <typename T>
+    void PaintFilter(T& paint);
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
-        std::optional<int> blendMode_;
+        std::shared_ptr<Drawing::Blender> blender_;
+        bool hasOffscreenLayer_;
     };
-    const std::stack<float>& GetAlphaStack();
-    const std::stack<Env>& GetEnvStack();
 
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
@@ -313,11 +336,17 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     Drawing::Rect visibleRect_ = Drawing::Rect();
 
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    ScreenId screenId_ = INVALID_SCREEN_ID;
+
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
+    bool hasHdrPresent_ = false;
+    bool isCapture_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

@@ -138,6 +138,11 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
 #endif
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
 }
+
+std::shared_ptr<Image> StaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return EngineStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+}
 #endif
 
 std::shared_ptr<Surface> StaticFactory::MakeRaster(const ImageInfo& imageInfo)
@@ -211,6 +216,14 @@ std::shared_ptr<Typeface> StaticFactory::DeserializeTypeface(const void* data, s
     }
 #endif
     return EngineStaticFactory::DeserializeTypeface(data, size);
+}
+
+bool StaticFactory::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    // DDGR need to be adapted
+#endif
+    return EngineStaticFactory::GetFillPath(pen, src, dst, rect, matrix);
 }
 
 bool StaticFactory::CanComputeFastBounds(const Brush& brush)
@@ -323,6 +336,16 @@ FontStyleSet* StaticFactory::CreateEmpty()
     }
 #endif
     return EngineStaticFactory::CreateEmpty();
+}
+
+std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::CreateWithBlendMode(mode);
+    }
+#endif
+    return EngineStaticFactory::CreateWithBlendMode(mode);
 }
 } // namespace Drawing
 } // namespace Rosen
