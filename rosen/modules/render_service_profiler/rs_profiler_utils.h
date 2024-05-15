@@ -86,16 +86,21 @@ public:
 
     // Memory routines
     static bool Move(void* destination, size_t destinationSize, const void* source, size_t size);
+    static bool Set(void* data, size_t size, int32_t value, size_t count);
 
     // File system routines
     static std::string GetRealPath(const std::string& path);
     static std::string MakePath(const std::string& directory, const std::string& file);
     static std::string NormalizePath(const std::string& path);
+    static std::string GetFileName(const std::string& path);
+    static std::string GetDirectory(const std::string& path);
+    static bool IsDirectory(const std::string& path);
     static void IterateDirectory(const std::string& path, std::vector<std::string>& files);
     static void LoadLine(const std::string& path, std::string& line);
     static void LoadLines(const std::string& path, std::vector<std::string>& lines);
     static void LoadContent(const std::string& path, std::string& content);
 
+    static bool FileExists(const std::string& path);
     static FILE* FileOpen(const std::string& path, const std::string& options);
     static void FileClose(FILE* file);
     static bool IsFileValid(FILE* file);
