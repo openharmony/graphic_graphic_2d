@@ -1740,35 +1740,29 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     const auto& properties = GetRenderProperties();
     if (properties.GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable == nullptr) {
-            return;
-        }
-        auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
-            dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
-            dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
-        if (!(filterDrawable->IsForceClearFilterCache()) && (rotationClear || bgDirty)) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] background color or shader or image is dirty", GetId());
-            filterDrawable->MarkFilterForceClearCache();
+        if (filterDrawable != nullptr) {
+            auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
+                dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
+                dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
+            if (!(filterDrawable->IsForceClearFilterCache()) && (rotationClear || bgDirty)) {
+                RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] background color or shader or image is dirty", GetId());
+                filterDrawable->MarkFilterForceClearCache();
+            }
         }
     }
     if (properties.GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable == nullptr) {
-            return;
-        }
-        if (!(filterDrawable->IsForceClearFilterCache()) && !dirtySlots_.empty()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] foreground is dirty", GetId());
-            filterDrawable->MarkFilterForceClearCache();
+        if (filterDrawable != nullptr) {
+            if (!(filterDrawable->IsForceClearFilterCache()) && !dirtySlots_.empty()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] foreground is dirty", GetId());
+                filterDrawable->MarkFilterForceClearCache();
+            }
         }
     }
 }
 
-bool RSRenderNode::IsForceClearOrUseFilterCache(bool isForeground)
+bool RSRenderNode::IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable)
 {
-    auto filterDrawable = GetFilterDrawable(isForeground);
-    if (filterDrawable == nullptr) {
-        return false;
-    }
     return filterDrawable->IsForceUseFilterCache() || filterDrawable->IsForceClearFilterCache();
 }
 
@@ -1804,7 +1798,8 @@ void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyMa
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
         return;
     }
-    if (IsForceClearOrUseFilterCache(isForeground)) {
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
     auto dirtyRegion = dirtyManager.GetCurrentFrameDirtyRegion();
@@ -1826,15 +1821,22 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     }
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
         GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
-    if (filterRegion_.IsInsideOf(lastFilterRegion_)) {
-        return;
-    }
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter() && !IsForceClearOrUseFilterCache(false)) {
-        MarkFilterStatusChanged(false, true);
+    if (properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) {
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable != nullptr) {
+            if (!IsForceClearOrUseFilterCache(filterDrawable)) {
+                MarkFilterStatusChanged(false, true);
+            }
+        }
     }
-    if (properties.GetFilter() && !IsForceClearOrUseFilterCache(true)) {
-        MarkFilterStatusChanged(true, true);
+    if (properties.GetFilter() && filterRegion_ != lastFilterRegion_) {
+        auto filterDrawable = GetFilterDrawable(true);
+        if (filterDrawable != nullptr) {
+            if (!IsForceClearOrUseFilterCache(filterDrawable)) {
+                MarkFilterStatusChanged(true, true);
+            }
+        }
     }
 #endif
 }
@@ -1868,19 +1870,17 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
     const auto& properties = GetRenderProperties();
     if (properties.GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable == nullptr) {
-            return;
+        if (filterDrawable != nullptr) {
+            MarkFilterCacheFlags(filterDrawable, dirtyManager);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
         }
-        MarkFilterCacheFlags(filterDrawable, dirtyManager);
-        CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
     }
     if (properties.GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable == nullptr) {
-            return;
+        if (filterDrawable != nullptr) {
+            MarkFilterCacheFlags(filterDrawable, dirtyManager, true);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
         }
-        MarkFilterCacheFlags(filterDrawable, dirtyManager, true);
-        CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
     }
     UpdateLastFilterCacheRegion();
 }
@@ -1888,7 +1888,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
 void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
-    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(isForeground)) {
+    if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d, forceClearWithoutNextVsync:%d",
@@ -1920,21 +1920,19 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
 {
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable == nullptr) {
-            return;
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkFilterForceClearCache();
+            filterDrawable->CheckClearFilterCache();
+            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
         }
-        filterDrawable->MarkFilterForceClearCache();
-        filterDrawable->CheckClearFilterCache();
-        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
     if (GetRenderProperties().GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable == nullptr) {
-            return;
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkFilterForceClearCache();
+            filterDrawable->CheckClearFilterCache();
+            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
         }
-        filterDrawable->MarkFilterForceClearCache();
-        filterDrawable->CheckClearFilterCache();
-        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
     }
 }
 
@@ -1942,14 +1940,15 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 {
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable == nullptr) {
-            return;
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkNodeIsOccluded(occluded);
         }
-        filterDrawable->MarkNodeIsOccluded(occluded);
     }
     if (GetRenderProperties().GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
-        filterDrawable->MarkNodeIsOccluded(occluded);
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkNodeIsOccluded(occluded);
+        }
     }
     isOccluded_ = occluded;
 }

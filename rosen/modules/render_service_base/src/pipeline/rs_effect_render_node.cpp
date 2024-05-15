@@ -146,12 +146,12 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
-    if (IsForceClearOrUseFilterCache(false)) {
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
-    auto filterDrawable = GetFilterDrawable(false);
     // clear filter cache if no child marked useeffect
-    if (filterDrawable != nullptr && !ChildHasVisibleEffect() && lastFrameHasVisibleEffect_) {
+    if (!ChildHasVisibleEffect() && lastFrameHasVisibleEffect_) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty "
             "hasVisibleEffect:%d", GetId(), ChildHasVisibleEffect());
         filterDrawable->MarkFilterForceClearCache();
@@ -171,7 +171,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
 {
     preStaticStatus_ = IsStaticCached();
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
-    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(isForeground)) {
+    if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
     // use for skip-frame when screen rotation
