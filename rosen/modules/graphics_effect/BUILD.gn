@@ -19,7 +19,7 @@ config("export_config") {
   cflags_cc = [ "-std=c++17" ]
 }
 
-ohos_shared_library("libgraphics_effect") {
+ohos_source_set("graphics_effect_src") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -64,7 +64,6 @@ ohos_shared_library("libgraphics_effect") {
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [ "hilog:libhilog" ]
-
   if (current_os == "ohos") {
     defines = [ "GE_OHOS" ]
     external_deps += [ "init:libbegetutil" ]
@@ -72,4 +71,36 @@ ohos_shared_library("libgraphics_effect") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+if (is_arkui_x) {
+  ohos_source_set("libgraphics_effect") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    public_deps = [ ":graphics_effect_src" ]
+    deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  ohos_shared_library("libgraphics_effect") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    public_deps = [ ":graphics_effect_src" ]
+    external_deps = [ "hilog:libhilog" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
