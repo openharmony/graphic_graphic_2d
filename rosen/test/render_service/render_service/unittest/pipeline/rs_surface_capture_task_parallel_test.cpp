@@ -14,7 +14,6 @@ class RSSurfaceCaptureTaskParallelTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-
     void SetUp() override;
     void TearDown() override;
 };
@@ -37,6 +36,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, FindSecurityOrSkipOrProtectedLayer, T
     NodeId id = 1;
     RSSurfaceCaptureTaskParallel task(0, scaleX, scaleY);
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
     /* nullptr */
     nodeMap.surfaceNodeMap_[0] = nullptr;
     ASSERT_FALSE(task.FindSecurityOrSkipOrProtectedLayer());
@@ -45,19 +45,19 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, FindSecurityOrSkipOrProtectedLayer, T
     node1->SetIsOnTheTree(false);
     nodeMap.surfaceNodeMap_[0] = node1;
     ASSERT_FALSE(task.FindSecurityOrSkipOrProtectedLayer());
-    /* isSecurtyLayer_ */
+    /* isSecurityLayer_ */
     auto node2 = std::make_shared<RSSurfaceRenderNode>(id);
     node2->SetIsOnTheTree(true);
     node2->isSecurityLayer_ = true;
     nodeMap.surfaceNodeMap_[0] = node2;
     ASSERT_TRUE(task.FindSecurityOrSkipOrProtectedLayer());
-    /* isSecurtyLayer_ */
+    /* isSkipLayer_ */
     auto node3 = std::make_shared<RSSurfaceRenderNode>(id);
     node3->SetIsOnTheTree(true);
     node3->isSkipLayer_ = true;
     nodeMap.surfaceNodeMap_[0] = node3;
     ASSERT_TRUE(task.FindSecurityOrSkipOrProtectedLayer());
-    /* isSecurtyLayer_ */
+    /* isProtectedLayer_ */
     auto node4 = std::make_shared<RSSurfaceRenderNode>(id);
     node4->SetIsOnTheTree(true);
     node4->isProtectedLayer_ = true;
@@ -81,6 +81,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, ScreenCorrection, TestSize.Level2)
     int32_t rotation_180 = -180;
     int32_t rotation_270 = -270;
     RSSurfaceCaptureTaskParallel task(0, scaleX, scaleY);
+
     ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_0), rotation_0);
     ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_90), rotation_90);
     ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_180), rotation_180);
