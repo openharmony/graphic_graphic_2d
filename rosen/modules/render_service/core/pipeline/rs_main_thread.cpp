@@ -1679,6 +1679,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (RSSystemProperties::GetQuickPrepareEnabled()) {
             //planning:the QuickPrepare will be replaced by Prepare
             rootNode->QuickPrepare(uniVisitor);
+            uniVisitor->SurfaceOcclusionCallbackToWMS();
         } else {
             rootNode->Prepare(uniVisitor);
         }

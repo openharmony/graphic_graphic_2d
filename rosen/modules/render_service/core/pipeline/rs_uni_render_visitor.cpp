@@ -42,7 +42,6 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_proxy_render_node.h"
@@ -1206,7 +1205,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     PostPrepare(node);
     UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
-    SurfaceOcclusionCallbackToWMS();
+    UpdateSurfaceOcclusionInfo();
     curDisplayNode_->UpdatePartialRenderParams();
     curDisplayNode_->UpdateScreenRenderParams(screenInfo_, displayHasSecSurface_, displayHasSkipSurface_,
         displayHasProtectedSurface_, hasCaptureWindow_);
@@ -2004,10 +2003,10 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
 #endif
 }
 
-void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
+void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
 {
     if (!needRecalculateOcclusion_) {
-        RS_LOGD("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS no need to callback");
+        RS_LOGD("RSUniRenderVisitor::UpdateSurfaceOcclusionInfo no need to update");
         return;
     }
     bool visibleChanged = dstCurVisVec_.size() != lastVisVec_.size();
@@ -2021,8 +2020,9 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
         }
     }
     if (visibleChanged) {
-        RSMainThread::Instance()->SurfaceOcclusionChangeCallback(dstCurVisVec_);
+        visibleChanged_ = visibleChanged;
     }
+    allDstCurVisVec_.insert(allDstCurVisVec_.end(), dstCurVisVec_.begin(), dstCurVisVec_.end());
     lastVisVec_.clear();
     std::swap(lastVisVec_, dstCurVisVec_);
 }
