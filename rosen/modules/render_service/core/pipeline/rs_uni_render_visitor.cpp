@@ -1857,7 +1857,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             }
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
-            hwcNodePtr->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() ? -1.f : globalZOrder_++);
+            hwcNodePtr->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() && !hwcNodePtr->GetProtectedLayer()
+                ? -1.f : globalZOrder_++);
         }
     });
     PrevalidateHwcNode();
