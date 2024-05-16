@@ -162,7 +162,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         ScopedBytrace func("socketPair is null, conn: " + info_.name_);
         return ERRNO_OTHER;
     }
-    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
+    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now) +
+                       ", refreshRate:" + std::to_string(refreshRate_));
     // 3 is array size.
     int64_t data[3];
     data[0] = now;
