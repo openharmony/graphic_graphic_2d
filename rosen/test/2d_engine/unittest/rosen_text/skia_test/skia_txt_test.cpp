@@ -73,9 +73,22 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level1)
     textStyle2.isPlaceholder = true;
     EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), false);
     EXPECT_EQ(textStyle1.MatchOneAttribute(ALL_ATTRIBUTES, textStyle2), true);
+    bool res1;
+    res1 = textStyle1.MatchOneAttribute(FOREGROUND, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(BACKGROUND, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(SHADOW, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(DECORATIONS, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(LETTER_SPACING, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(WORD_SPACING, textStyle2);
+    res1 = textStyle1.MatchOneAttribute(FONT, textStyle2);
+    bool res2 = textStyle2.MatchOneAttribute(FONT, textStyle1);
+    EXPECT_EQ(res1, res2);
 
     FontFeatures fontFeatures;
     std::string str1 = fontFeatures.GetFeatureSettings();
+    // 1 is used for test
+    fontFeatures.SetFeature("123", 1);
+    str1 = fontFeatures.GetFeatureSettings();
     FontVariations fontVariations1;
     std::string str2 = "123";
     // 1 is used for initialization
@@ -93,6 +106,8 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level1)
     EXPECT_EQ(typographyStyle1 == typographyStyle2, false);
     EXPECT_EQ(typographyStyle1.IsUnlimitedLines(), true);
     EXPECT_NE(typographyStyle1.IsEllipsized(), typographyStyle1.ellipsis.empty());
+    typographyStyle2.textAlign = TextAlign::END;
+    EXPECT_EQ(typographyStyle2.GetEffectiveAlign(), TextAlign::RIGHT);
 
     // 1 is used for initialization
     Boundary boundary1(1, 1);
