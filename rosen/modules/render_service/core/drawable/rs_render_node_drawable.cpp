@@ -380,6 +380,7 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         samplingOptions, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
         canvas.DetachBrush();
         DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
+        return;
     }
     if (canvas.GetTotalMatrix().HasPerspective()) {
         // In case of perspective transformation, make dstRect 1px outset to anti-alias

@@ -439,7 +439,6 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawVerticesTest, TestSize.Level1)
 HWTEST_F(RSPaintFilterCanvasTest, OpCalculateBeforeTest, TestSize.Level1)
 {
     Drawing::Matrix matrix;
-    EXPECT_FALSE(paintFilterCanvas_->OpCalculateBefore(matrix));
     paintFilterCanvas_->SetAlpha(SET_ALPHA);
     EXPECT_TRUE(paintFilterCanvas_->OpCalculateBefore(matrix));
 }

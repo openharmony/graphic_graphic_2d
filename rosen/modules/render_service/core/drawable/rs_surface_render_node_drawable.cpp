@@ -168,7 +168,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         renderEngine_->ClearCacheSet(unmappedCache);
     }
     if (autoCacheEnable_) {
-        nodeCacheType_ = NodeStragyType::CACHE_NONE;
+        nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     }
     bool isuifirstNode = rscanvas->GetIsParallelCanvas();
     if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {

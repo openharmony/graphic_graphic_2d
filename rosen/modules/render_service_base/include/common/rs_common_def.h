@@ -121,10 +121,10 @@ enum NodeChangeType : uint8_t {
 };
 
 // opinc cache state
-enum NodeStragyType : uint8_t {
+enum NodeStrategyType : uint8_t {
     CACHE_NONE = 0,
     DDGR_OPINC_DYNAMIC,
-    DDGR_AUTOCACHE,
+    OPINC_AUTOCACHE,
     NODE_GROUP,
     CACHE_DISABLE,
 };
