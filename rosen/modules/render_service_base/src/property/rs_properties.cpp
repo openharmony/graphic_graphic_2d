@@ -36,6 +36,7 @@
 #include "render/rs_linear_gradient_blur_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_spherize_effect_filter.h"
 #include "src/core/SkOpts.h"
 
 namespace OHOS {
@@ -1949,7 +1950,8 @@ std::shared_ptr<RSMask> RSProperties::GetMask() const
 void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
-    if (IsSpherizeValid()) {
+    isSpherizeValid_ = spherizeDegree_ > SPHERIZE_VALID_EPSILON;
+    if (isSpherizeValid_) {
         isDrawn_ = true;
     }
     filterNeedUpdate_ = true;
@@ -1964,7 +1966,7 @@ float RSProperties::GetSpherize() const
 
 bool RSProperties::IsSpherizeValid() const
 {
-    return isSpherizeValid_ = spherizeDegree_ > SPHERIZE_VALID_EPSILON;
+    return isSpherizeValid_;
 }
 
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
@@ -3613,7 +3615,7 @@ void RSProperties::OnApplyModifiers()
         } else {
             foregroundFilter_.reset();
         }
-        if (IsSpherizeValid()){
+        if (IsSpherizeValid()) {
             auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
             foregroundFilter_ = spherizeEffectFilter;
         }
