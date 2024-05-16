@@ -130,6 +130,125 @@ bool RSPropertyDrawableUtils::PickColor(Drawing::Canvas& canvas,
     return true;
 }
 
+Color RSPropertyDrawableUtils::GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,
+    const int& colorStrategy)
+{
+    RSColor colorPicked;
+    auto shadowAlpha = color.GetAlpha();
+    auto matrix = canvas->GetTotalMatrix();
+    auto deviceClipBounds = canvas->GetDeviceClipBounds(); 
+    if (PickColorSyn(canvas, path, matrix, deviceClipBounds, colorPicked, colorStrategy)) {
+        GetDarkColor(colorPicked);
+    } else {
+        shadowAlpha = 0;
+    }
+    return Color(colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue(), shadowAlpha);
+}
+
+bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Path& drPath, Drawing::Matrix& matrix,
+    Drawing::RectI& deviceClipBounds, RSColor& colorPicked, const int& colorStrategy)
+{
+    Drawing::Rect clipBounds = drPath.GetBounds();
+    Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
+        static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
+    Drawing::Surface* drSurface = canvas->GetSurface();
+
+    if (drSurface == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn drSurface is null");
+        return false;
+    }
+
+    static int deviceWidth = drSurface->Width();
+    static int deviceHeight = drSurface->Height();
+    Drawing::Rect regionRect = {0, 0, clipIBounds.GetWidth(), clipIBounds.GetHeight()};
+    Drawing::Rect regionRectDev;
+    matrix.MapRect(regionRectDev, regionRect);
+    int32_t fLeft = std::clamp(int(regionRectDev.GetLeft()), 0, deviceWidth - 1);
+    int32_t fTop = std::clamp(int(regionRectDev.GetTop()), 0, deviceHeight - 1);
+    int32_t fRight = std::clamp(int(regionRectDev.GetRight()), 0, deviceWidth - 1);
+    int32_t fBottom = std::clamp(int(regionRectDev.GetBottom()), 0, deviceHeight - 1);
+    if (fLeft == fRight || fTop == fBottom) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn Shadow Rect Invalid");
+        return false;
+    }
+
+    Drawing::RectI regionBounds = { fLeft, fTop, fRight, fBottom };
+    std::shared_ptr<Drawing::Image> shadowRegionImage = drSurface->GetImageSnapshot(regionBounds);
+
+    if (shadowRegionImage == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn GetImageSnapshot Failed");
+        return false;
+    }
+
+    std::shared_ptr<Drawing::Pixmap> dst;
+    if (!GpuScaleImage(canvas, shadowRegionImage, dst)) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn GpuScaleImage Failed");
+        return false;
+    }
+
+    uint32_t errorCode = 0;
+    std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
+    if (errorCode != 0) {
+        return false;
+    }
+
+    Drawing::ColorQuad color;
+    if (colorStrategy == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN) {
+        colorPicker->GetLargestProportionColor(color);
+    } else {
+        colorPicker->GetAverageColor(color);
+    }
+    colorPicked = RSColor(Drawing::Color::ColorQuadGetR(color), Drawing::Color::ColorQuadGetG(color),
+        Drawing::Color::ColorQuadGetB(color), Drawing::Color::ColorQuadGetA(color));
+    return true;
+}
+
+bool RSPropertyDrawableUtils::GpuScaleImage(Drawing::Canvas* canvas,
+    const std::shared_ptr<Drawing::Image> image, std::shared_ptr<Drawing::Pixmap>& dst)
+{
+    std::string shaderString(R"(
+        uniform shader imageInput;
+
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            return half4(c.rgb, 1.0);
+        }
+    )");
+
+    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(shaderString);
+    if (!effect) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage effect is null");
+        return false;
+    }
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBulider =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    Drawing::ImageInfo pcInfo;
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0, 1.0);
+    if (image->GetWidth() * image->GetHeight() < 10000) { // 10000 = 100 * 100 pixels
+        pcInfo = Drawing::ImageInfo::MakeN32Premul(10, 10); // 10 * 10 pixels
+        matrix.SetScale(10.0 / image->GetWidth(), 10.0 / image->GetHeight()); // 10.0 pixels
+    } else {
+        pcInfo = Drawing::ImageInfo::MakeN32Premul(100, 100); // 100 * 100 pixels
+        matrix.SetScale(100.0 / image->GetWidth(), 100.0 / image->GetHeight());  // 100.0 pixels
+    }
+    effectBulider->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix));
+    std::shared_ptr<Drawing::Image> tmpColorImg = effectBulider->MakeImage(
+        canvas->GetGPUContext().get(), nullptr, pcInfo, false);
+
+    const int buffLen = tmpColorImg->GetWidth() * tmpColorImg->GetHeight();
+    auto pixelPtr = new uint32_t[buffLen];
+
+    auto info = tmpColorImg->GetImageInfo();
+    dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr, info.GetWidth() * info.GetBytesPerPixel());
+    bool flag = tmpColorImg->ReadPixels(*dst, 0, 0);
+
+    return flag;
+}
+
 void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
 {
     // convert to lab
@@ -832,6 +951,23 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
     spotColor.MultiplyAlpha(canvas->GetAlpha());
     canvas->DrawShadowStyle(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
         Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true);
+}
+
+void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
+    const float& offsetY, const float& radius, Color spotColor)
+{
+    path.Offset(offsetX, offsetY);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::ColorQuadSetARGB(
+        spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
+    brush.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetMaskFilter(
+        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius));
+    brush.SetFilter(filter);
+    canvas->AttachBrush(brush);
+    canvas->DrawPath(path);
+    canvas->DetachBrush();
 }
 
 void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
