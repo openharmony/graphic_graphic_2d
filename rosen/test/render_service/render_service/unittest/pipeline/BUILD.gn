@@ -360,8 +360,8 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_surface_capture_task_test.cpp",
     "rs_surface_capture_task_parallel_test.cpp",
+    "rs_surface_capture_task_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   include_dirs = [ "../../../../../modules/render_service_base/include" ]
