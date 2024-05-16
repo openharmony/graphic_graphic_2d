@@ -91,28 +91,16 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 {
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
-    CHECK_EACH_PARAM(ARGC_TWO, napi_number);
     CHECK_EACH_PARAM(ARGC_THREE, napi_object);
 
     double blurRadius = 0.0;
-    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], blurRadius)) {
-        ROSEN_LOGE("JsShadowLayer::Create argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ZERO, blurRadius);
 
     double dx = 0.0;
-    if (!ConvertFromJsValue(env, argv[ARGC_ONE], dx)) {
-        ROSEN_LOGE("JsShadowLayer::Create argv[1] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ONE, dx);
 
     double dy = 0.0;
-    if (!ConvertFromJsValue(env, argv[ARGC_TWO], dy)) {
-        ROSEN_LOGE("JsShadowLayer::Create argv[2] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_TWO, dy);
 
     int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_THREE], argb, ARGC_FOUR)) {

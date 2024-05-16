@@ -102,7 +102,6 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
     CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     uint32_t arrayLength = 0;
     napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength);
@@ -127,11 +126,8 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
         intervals[i] = value;
     }
 
-    double phase = 0;
-    if (!ConvertFromJsNumber(env, argv[ARGC_ONE], phase)) {
-        ROSEN_LOGE("JsPathEffect::CreateDashPathEffect argv[1] is invalid");
-        return NapiGetUndefined(env);
-    }
+    double phase = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, phase);
 
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateDashPathEffect(intervals, arrayLength, phase);
     return JsPathEffect::Create(env, pathEffect);

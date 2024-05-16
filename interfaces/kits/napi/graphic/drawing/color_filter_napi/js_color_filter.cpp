@@ -106,7 +106,6 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
     CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
@@ -115,11 +114,8 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
             "Parameter verification failed. The range of color channels must be [0, 255].");
     }
 
-    uint32_t jsMode = 0;
-    if (!ConvertFromJsValue(env, argv[1], jsMode)) {
-        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[1] is invalid");
-        return NapiGetUndefined(env);
-    }
+    int32_t jsMode = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
 
     auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateBlendModeColorFilter(color, BlendMode(jsMode));

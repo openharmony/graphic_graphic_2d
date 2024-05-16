@@ -149,15 +149,11 @@ napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, x);
     double y = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], x) && ConvertFromJsValue(env, argv[1], y))) {
-        ROSEN_LOGE("JsPath::OnMoveTo Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ONE, y);
 
     JS_CALL_DRAWING_FUNC(m_path->MoveTo(x, y));
     return NapiGetUndefined(env);
@@ -172,15 +168,11 @@ napi_value JsPath::OnLineTo(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, x);
     double y = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], x) && ConvertFromJsValue(env, argv[1], y))) {
-        ROSEN_LOGE("JsPath::OnLineTo Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ONE, y);
 
     JS_CALL_DRAWING_FUNC(m_path->LineTo(x, y));
     return NapiGetUndefined(env);
@@ -195,25 +187,19 @@ napi_value JsPath::OnArcTo(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_SIX] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SIX);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
-    CHECK_EACH_PARAM(ARGC_TWO, napi_number);
-    CHECK_EACH_PARAM(ARGC_THREE, napi_number);
-    CHECK_EACH_PARAM(ARGC_FOUR, napi_number);
-    CHECK_EACH_PARAM(ARGC_FIVE, napi_number);
 
     double x1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, x1);
     double y1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, y1);
     double x2 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, x2);
     double y2 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, y2);
     double startDeg = 0.0;
+    GET_DOUBLE_PARAM(ARGC_FOUR, startDeg);
     double sweepDeg = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], x1) && ConvertFromJsValue(env, argv[ARGC_ONE], y1) &&
-        ConvertFromJsValue(env, argv[ARGC_TWO], x2) && ConvertFromJsValue(env, argv[ARGC_THREE], y2) &&
-        ConvertFromJsValue(env, argv[ARGC_FOUR], startDeg) && ConvertFromJsValue(env, argv[ARGC_FIVE], sweepDeg))) {
-        ROSEN_LOGE("JsPath::OnArcTo Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_FIVE, sweepDeg);
 
     JS_CALL_DRAWING_FUNC(m_path->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg));
     return NapiGetUndefined(env);
@@ -228,20 +214,15 @@ napi_value JsPath::OnQuadTo(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
-    CHECK_EACH_PARAM(ARGC_TWO, napi_number);
-    CHECK_EACH_PARAM(ARGC_THREE, napi_number);
 
     double ctrlPtX = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, ctrlPtX);
     double ctrlPtY = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, ctrlPtY);
     double endPtX = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, endPtX);
     double endPtY = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], ctrlPtX) && ConvertFromJsValue(env, argv[ARGC_ONE], ctrlPtY) &&
-        ConvertFromJsValue(env, argv[ARGC_TWO], endPtX) && ConvertFromJsValue(env, argv[ARGC_THREE], endPtY))) {
-        ROSEN_LOGE("JsPath::OnQuadTo Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_THREE, endPtY);
 
     JS_CALL_DRAWING_FUNC(m_path->QuadTo(ctrlPtX, ctrlPtY, endPtX, endPtY));
     return NapiGetUndefined(env);
@@ -256,25 +237,19 @@ napi_value JsPath::OnCubicTo(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_SIX] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SIX);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
-    CHECK_EACH_PARAM(ARGC_TWO, napi_number);
-    CHECK_EACH_PARAM(ARGC_THREE, napi_number);
-    CHECK_EACH_PARAM(ARGC_FOUR, napi_number);
-    CHECK_EACH_PARAM(ARGC_FIVE, napi_number);
 
     double px1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, px1);
     double py1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, py1);
     double px2 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px2);
     double py2 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py2);
     double px3 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_FOUR, px3);
     double py3 = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], px1) && ConvertFromJsValue(env, argv[ARGC_ONE], py1) &&
-        ConvertFromJsValue(env, argv[ARGC_TWO], px2) && ConvertFromJsValue(env, argv[ARGC_THREE], py2) &&
-        ConvertFromJsValue(env, argv[ARGC_FOUR], px3) && ConvertFromJsValue(env, argv[ARGC_FIVE], py3))) {
-        ROSEN_LOGE("JsPath::OnCubicTo Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_FIVE, py3);
 
     JS_CALL_DRAWING_FUNC(m_path->CubicTo(Point(px1, py1), Point(px2, py2), Point(px3, py3)));
     return NapiGetUndefined(env);

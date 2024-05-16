@@ -101,20 +101,12 @@ napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info i
 {
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
-    uint32_t blurType = 0;
-    if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], blurType)) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    int32_t blurType = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, blurType);
 
-    double sigma = 0;
-    if (!ConvertFromJsNumber(env, argv[ARGC_ONE], sigma)) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter Argv[1] is invalid");
-        return NapiGetUndefined(env);
-    }
+    double sigma = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, sigma);
 
     auto maskFilter = MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma);
     return JsMaskFilter::Create(env, maskFilter);

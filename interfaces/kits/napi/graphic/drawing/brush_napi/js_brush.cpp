@@ -169,7 +169,6 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     int32_t alpha = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
@@ -255,13 +254,9 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
-    uint32_t mode = 0;
-    if (!ConvertFromJsValue(env, argv[0], mode)) {
-        ROSEN_LOGE("JsBrush::SetBlendMode Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    int32_t mode = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, mode);
 
     brush->SetBlendMode(static_cast<BlendMode>(mode));
     return NapiGetUndefined(env);

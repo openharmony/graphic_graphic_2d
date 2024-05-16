@@ -152,13 +152,9 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     double width = 0.0;
-    if (!ConvertFromJsValue(env, argv[0], width)) {
-        ROSEN_LOGE("JsPen::SetStrokeWidth Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ZERO, width);
 
     pen->SetWidth(static_cast<float>(width));
     return NapiGetUndefined(env);
@@ -205,10 +201,9 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     int32_t alpha = 0;
-    if (!ConvertFromJsNumber(env, argv[0], alpha, 0, Color::RGB_MAX)) {
+    if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
         return NapiGetUndefined(env);
     }
@@ -231,13 +226,9 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
-    uint32_t mode = 0;
-    if (!ConvertFromJsValue(env, argv[0], mode)) {
-        ROSEN_LOGE("JsPen::SetBlendMode Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    int32_t mode = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, mode);
 
     pen->SetBlendMode(static_cast<BlendMode>(mode));
     return NapiGetUndefined(env);
@@ -332,13 +323,9 @@ napi_value JsPen::SetJoinStyle(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     int32_t joinStyle = 0;
-    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], joinStyle)) {
-        ROSEN_LOGE("JsPen::SetJoinStyle Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_INT32_PARAM(ARGC_ZERO, joinStyle);
 
     pen->SetJoinStyle(static_cast<Pen::JoinStyle>(joinStyle));
     return NapiGetUndefined(env);
@@ -374,13 +361,9 @@ napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     int32_t capStyle = 0;
-    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], capStyle)) {
-        ROSEN_LOGE("JsPen::SetCapStyle Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_INT32_PARAM(ARGC_ZERO, capStyle);
 
     pen->SetCapStyle(static_cast<Pen::CapStyle>(capStyle));
     return NapiGetUndefined(env);
