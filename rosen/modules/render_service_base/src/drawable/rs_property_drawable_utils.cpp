@@ -243,14 +243,13 @@ bool RSPropertyDrawableUtils::GpuScaleImage(Drawing::Canvas* canvas,
     auto pixelPtr = new uint32_t[buffLen];
     if (pixelPtr == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage pixelPtr is null");
-        return;
+        return false;
     }
 
     auto info = tmpColorImg->GetImageInfo();
     dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr, info.GetWidth() * info.GetBytesPerPixel());
     bool flag = tmpColorImg->ReadPixels(*dst, 0, 0);
     delete[] pixelPtr; 
-
     return flag;
 }
 
