@@ -1182,6 +1182,20 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
     return false;
 }
 
+void RSUniRenderVisitor::ResetDisplayDirtyRegion()
+{
+    ResetDisplayDirtyRegionForScreenPowerChange();
+    ResetDisplayDirtyRegionForColorFilterSwitch();
+}
+
+void RSUniRenderVisitor::ResetDisplayDirtyRegionForScreenPowerChange()
+{
+    if (!RSMainThread::Instance()->GetScreenPowerOnChanged()) {
+        return;
+    }
+    curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
+}
+
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     // 0. init display info
@@ -1993,7 +2007,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     curDisplayNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
-    ResetDisplayDirtyRegionForColorFilterSwitch();
+    ResetDisplayDirtyRegion();
     CheckMergeDebugRectforRefreshRate();
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);

@@ -193,6 +193,8 @@ public:
     void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
+    void SetScreenPowerOnChanged(bool val);
+    bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
@@ -500,7 +502,9 @@ private:
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
     bool qosPidCal_ = false;
+
     std::atomic<bool> isDirty_ = false;
+    std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
     std::atomic<int32_t> focusAppPid_ = -1;

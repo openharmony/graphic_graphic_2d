@@ -940,6 +940,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         }
         mainThread->PostTask([mainThread]() {
             mainThread->SetDirtyFlag();
+            mainThread->SetScreenPowerOnChanged(true);
         });
         if (screenPowerStatus_.count(id) == 0 ||
             screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF ||

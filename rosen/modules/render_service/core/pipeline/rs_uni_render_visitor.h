@@ -221,6 +221,8 @@ private:
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    void ResetDisplayDirtyRegion();
+    void ResetDisplayDirtyRegionForScreenPowerChange();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);

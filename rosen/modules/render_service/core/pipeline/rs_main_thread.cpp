@@ -1707,6 +1707,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
+    screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     idleTimerExpiredFlag_ = false;
 }
@@ -3004,6 +3005,16 @@ void RSMainThread::SetDirtyFlag(bool isDirty)
 bool RSMainThread::GetDirtyFlag()
 {
     return isDirty_;
+}
+
+void RSMainThread::SetScreenPowerOnChanged(bool val)
+{
+    screenPowerOnChanged_ = val;
+}
+
+bool RSMainThread::GetScreenPowerOnChanged() const
+{
+    return screenPowerOnChanged_;
 }
 
 void RSMainThread::SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync)
