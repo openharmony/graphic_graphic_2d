@@ -367,27 +367,33 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 
 void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 {
+    // message ID for correspondence UI thread and IPC thread
+    static uint32_t messageId = 0;
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
         m[RSNodeMap::Instance().GetNodeInstanceId(id)].push_back(std::move(cmd));
     }
+    auto msgId = ++messageId;
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages messageId [%lu]", msgId);
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
-        PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter] {
-            for (auto &cmd : *cmds) {
-                RSContext context; // RSCommand->process() needs it
-                cmd->Process(context);
-            }
-            if (counter->fetch_sub(1) == 1) {
-                std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-                if (requestVsyncCallback_ != nullptr) {
-                    requestVsyncCallback_();
-                } else {
-                    RSTransaction::FlushImplicitTransaction();
+        PostTask(
+            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, msgId] {
+                RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages PostTask messageId [%lu]", msgId);
+                for (auto &cmd : *cmds) {
+                    RSContext context; // RSCommand->process() needs it
+                    cmd->Process(context);
                 }
-                ROSEN_LOGD("ProcessMessages end");
-            }
-        }, instanceId);
+                if (counter->fetch_sub(1) == 1) {
+                    std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
+                    if (requestVsyncCallback_ != nullptr) {
+                        requestVsyncCallback_();
+                    } else {
+                        RSTransaction::FlushImplicitTransaction();
+                    }
+                    ROSEN_LOGD("ProcessMessages end");
+                }
+            }, instanceId);
     }
 }
 

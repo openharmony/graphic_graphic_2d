@@ -100,6 +100,16 @@ public:
         return true;
     }
 
+    virtual bool IsEqual(const std::shared_ptr<RSFilter>& other) const
+    {
+        return true;
+    }
+
+    virtual bool IsEqualZero() const
+    {
+        return true;
+    }
+
     bool NeedSnapshotOutset() const
     {
         return needSnapshotOutset_;
