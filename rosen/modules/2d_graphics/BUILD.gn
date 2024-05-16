@@ -250,9 +250,7 @@ template("graphics2d_source_set") {
         "$rosen_text_root/ui/typography.cpp",
         "$rosen_text_root/ui/typography_create.cpp",
       ]
-      include_dirs += [
-        "$rosen_2d_engine_root",
-      ]
+      include_dirs += [ "$rosen_2d_engine_root" ]
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
