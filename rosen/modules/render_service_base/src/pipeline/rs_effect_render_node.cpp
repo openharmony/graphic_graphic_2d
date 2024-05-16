@@ -167,7 +167,7 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 }
 
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
-    RSDirtyRegionManager& dirtyManager, bool isForeground)
+    RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
     preStaticStatus_ = IsStaticCached();
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
@@ -178,7 +178,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
     if (isRotationChanged_) {
         filterDrawable->MarkRotationChanged();
     }
-    RSRenderNode::MarkFilterCacheFlags(filterDrawable, dirtyManager, isForeground);
+    RSRenderNode::MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
 }
 
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
