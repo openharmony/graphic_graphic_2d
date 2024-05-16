@@ -251,6 +251,7 @@ bool RSPropertyDrawableUtils::GpuScaleImage(Drawing::Canvas* canvas,
     bool flag = tmpColorImg->ReadPixels(*dst, 0, 0);
     if (pixelPtr != nullptr) {
          delete[] pixelPtr;
+         pixelPtr = nullptr;
     }
     return flag;
 }
