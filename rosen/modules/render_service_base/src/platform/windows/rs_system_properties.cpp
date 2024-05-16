@@ -87,6 +87,16 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyEnabled()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};

@@ -534,6 +534,11 @@ public:
         return visibleRegion_;
     }
 
+    const Occlusion::Region& GetVisibleRegionInVirtual() const
+    {
+        return visibleRegionInVirtual_;
+    }
+
     const Occlusion::Region& GetVisibleRegionForCallBack() const
     {
         return visibleRegionForCallBack_;
@@ -703,6 +708,11 @@ public:
     void SetVisibleRegion(Occlusion::Region region)
     {
         visibleRegion_ = region;
+    }
+
+    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    {
+        visibleRegionInVirtual_ = region;
     }
 
     inline bool IsEmptyAppWindow() const
@@ -1168,6 +1178,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;

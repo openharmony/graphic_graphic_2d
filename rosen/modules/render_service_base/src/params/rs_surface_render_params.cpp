@@ -74,6 +74,17 @@ void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleReg
     needSync_ = true;
 }
 
+Occlusion::Region RSSurfaceRenderParams::GetVisibleRegionInVirtual() const
+{
+    return visibleRegionInVirtual_;
+}
+
+void RSSurfaceRenderParams::SetVisibleRegionInVirtual(const Occlusion::Region& visibleRegion)
+{
+    visibleRegionInVirtual_ = visibleRegion;
+    needSync_ = true;
+}
+
 void RSSurfaceRenderParams::SetOccludedByFilterCache(bool val)
 {
     if (isOccludedByFilterCache_ == val) {
@@ -286,6 +297,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
+    targetSurfaceParams->visibleRegionInVirtual_ = visibleRegionInVirtual_;
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;

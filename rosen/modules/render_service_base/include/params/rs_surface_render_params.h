@@ -218,6 +218,9 @@ public:
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegion() const;
 
+    void SetVisibleRegionInVirtual(const Occlusion::Region& visibleRegion);
+    Occlusion::Region GetVisibleRegionInVirtual() const;
+
     void SetOccludedByFilterCache(bool val);
     bool GetOccludedByFilterCache() const;
 
@@ -281,6 +284,7 @@ private:
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;

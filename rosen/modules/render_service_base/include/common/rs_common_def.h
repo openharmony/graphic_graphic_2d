@@ -181,6 +181,11 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
+enum BufferHandleAttrKey : uint32_t {
+    // used in set roi region to codec, must be the same as HDI
+    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+};
+
 // types for PC SystemAnimatedScenes
 enum class SystemAnimatedScenes : uint32_t {
     ENTER_MISSION_CENTER, // Enter the mission center
