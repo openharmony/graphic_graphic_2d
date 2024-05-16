@@ -45,6 +45,7 @@
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
@@ -1387,6 +1388,56 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
         " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_, srcRect.left_,
         srcRect.top_, srcRect.width_, srcRect.height_);
+}
+
+void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+    Drawing::GPUContext* grContext)
+{
+    if (!surface || !grContext) {
+        RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("Render surface flush and submit");
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+
+        VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
+        exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+        exportSemaphoreCreateInfo.pNext = nullptr;
+        exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        VkSemaphoreCreateInfo semaphoreInfo;
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
+        semaphoreInfo.flags = 0;
+        VkSemaphore semaphore;
+        vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+        RS_TRACE_NAME_FMT("VkSemaphore %p", semaphore);
+        GrBackendSemaphore backendSemaphore;
+        backendSemaphore.initVulkan(semaphore);
+
+        DestroySemaphoreInfo* destroyInfo =
+            new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+
+        Drawing::FlushInfo drawingFlushInfo;
+        drawingFlushInfo.backendSurfaceAccess = true;
+        drawingFlushInfo.numSemaphores = 1;
+        drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+        drawingFlushInfo.finishedProc = [](void *context) {
+            DestroySemaphoreInfo::DestroySemaphore(context);
+        };
+        drawingFlushInfo.finishedContext = destroyInfo;
+        surface->Flush(&drawingFlushInfo);
+        grContext->Submit();
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
+    } else {
+        surface->FlushAndSubmit(true);
+    }
+#else
+    surface->FlushAndSubmit(true);
+#endif
 }
 
 } // namespace Rosen
