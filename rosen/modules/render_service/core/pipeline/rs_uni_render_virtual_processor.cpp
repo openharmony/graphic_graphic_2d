@@ -67,53 +67,37 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
-    if (mirrorNode) {
+    if (mirrorNode && !canvasRotation_) {
         mainScreenRotation_ = mirrorNode->GetScreenRotation();
-        RS_LOGD("RSUniRenderVirtualProcessor::Init, virtual screen(id %{public}" PRIu64 "), rotation: %{public}d, " \
-            "canvasRotation: %{public}d, scaleMode: %{public}d",
-            node.GetScreenId(), static_cast<uint32_t>(mainScreenRotation_), canvasRotation_, scaleMode_);
-    }
-    if (mirrorNode && node.IsFirstTimeToProcessor() && !canvasRotation_) {
-        if (isPhone_) {
+        if (node.IsFirstTimeToProcessor()) {
             node.SetOriginScreenRotation(mainScreenRotation_);
             RS_LOGI("RSUniRenderVirtualProcessor::Init, OriginScreenRotation: %{public}d",
                 node.GetOriginScreenRotation());
-        } else {
-            auto& boundsGeoPtr = (mirrorNode->GetRenderProperties().GetBoundsGeometry());
-            if (boundsGeoPtr != nullptr) {
-                boundsGeoPtr->UpdateByMatrixFromSelf();
-                node.SetInitMatrix(boundsGeoPtr->GetMatrix());
-            }
         }
-    }
-    if (mirrorNode && isPhone_) {
-        if (!(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) &&
-            (node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270)) {
-            CanvasRotation(node.GetOriginScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
-            canvas_->Translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
+        if (!(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
+            OriginScreenRotation(node.GetOriginScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
         }
-    } else {
-        Drawing::Matrix invertMatrix;
-        if (node.GetInitMatrix().Invert(invertMatrix)) {
-            screenTransformMatrix_.PostConcat(invertMatrix);
-        }
-        canvas_->ConcatMatrix(screenTransformMatrix_);
+        RS_LOGD("RSUniRenderVirtualProcessor::Init, (id %{public}" PRIu64 "), mainScreenRotation: %{public}d, " \
+            "canvasRotation: %{public}d, originScreenRotation: %{public}d, scaleMode: %{public}d",
+            node.GetScreenId(), mainScreenRotation_, canvasRotation_, node.GetOriginScreenRotation(), scaleMode_);
     }
     return true;
 }
 
-void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, float width, float height)
+void RSUniRenderVirtualProcessor::OriginScreenRotation(ScreenRotation screenRotation, float width, float height)
 {
     if (screenRotation == ScreenRotation::ROTATION_90) {
         canvas_->Translate(width / 2.0f, height / 2.0f);
         canvas_->Rotate(90, 0, 0); // 90 degrees
+        canvas_->Translate(-(height / 2.0f), -(width / 2.0f));
     } else if (screenRotation == ScreenRotation::ROTATION_180) {
         canvas_->Rotate(180, width / 2.0f, height / 2.0f); // 180 degrees
     } else if (screenRotation == ScreenRotation::ROTATION_270) {
         canvas_->Translate(width / 2.0f, height / 2.0f);
         canvas_->Rotate(270, 0, 0); // 270 degrees
+        canvas_->Translate(-(height / 2.0f), -(width / 2.0f));
+    } else {
+        return;
     }
 }
 
