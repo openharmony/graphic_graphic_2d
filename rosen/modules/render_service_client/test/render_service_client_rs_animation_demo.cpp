@@ -26,8 +26,8 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-#include "wm/window.h"
-#include "wm/window_scene.h"
+#include "window.h"
+#include "window_scene.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -80,7 +80,7 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
         return;
     }
     Drawing::Brush brush;
-    brush.SetAntiAilas(true);
+    brush.SetAntiAlias(true);
     brush.SetColor(color);
 
     canvas->AttachBrush(brush);

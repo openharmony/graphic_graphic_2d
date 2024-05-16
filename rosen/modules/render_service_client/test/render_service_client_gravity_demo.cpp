@@ -22,7 +22,7 @@
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#include "wm/window.h"
+#include "window.h"
 
 namespace OHOS {
 namespace Rosen {

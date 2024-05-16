@@ -19,7 +19,7 @@
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColor.h"
-#include "wm/window.h"
+#include "window.h"
 
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
