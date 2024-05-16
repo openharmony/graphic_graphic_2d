@@ -103,10 +103,7 @@ if (enable_text_gine) {
     public_configs = [ ":rosen_text_public_config" ]
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
 
-    include_dirs = [
-      "$flutter_root/engine",
-      "$rosen_root/modules/render_service_base/include",
-    ]
+    include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
     defines += [
       "USE_GRAPHIC_TEXT_GINE",
@@ -114,9 +111,7 @@ if (enable_text_gine) {
     ]
     cflags = [ "-std=c++17" ]
 
-    if (defined(use_new_skia) && use_new_skia) {
-      include_dirs += [ "$flutter_root/txt/src" ]
-    } else {
+    if (!defined(use_new_skia)) {
       include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
     }
 

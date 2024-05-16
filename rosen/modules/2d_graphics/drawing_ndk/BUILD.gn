@@ -114,7 +114,6 @@ template("drawing_ndk_source_set") {
         defines += [ "USE_TEXGINE" ]
       }
       include_dirs += [
-        "$flutter_root/engine",
         "$rosen_root/modules/2d_engine/rosen_text",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
         "$rosen_root/modules/2d_engine/rosen_text/export",
@@ -137,17 +136,8 @@ template("drawing_ndk_source_set") {
       ]
 
       deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
-      include_dirs += [ "$flutter_root/engine" ]
-
-      if (enable_text_gine && use_texgine) {
-        include_dirs -= [ "$flutter_root/engine" ]
-      }
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]
-      include_dirs += [
-        "$flutter_root/txt/src",
-        "//third_party/skia/third_party/externals/harfbuzz/src",
-      ]
     } else {
       deps = []
       cflags = [ "-std=c++17" ]
