@@ -249,7 +249,7 @@ bool RSPropertyDrawableUtils::GpuScaleImage(Drawing::Canvas* canvas,
     auto info = tmpColorImg->GetImageInfo();
     dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr, info.GetWidth() * info.GetBytesPerPixel());
     bool flag = tmpColorImg->ReadPixels(*dst, 0, 0);
-    delete[] pixelPtr; 
+    delete[] pixelPtr;
     return flag;
 }
 
