@@ -30,6 +30,7 @@
 #include "png.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 
 #include "draw/clip.h"
@@ -973,13 +974,16 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-        "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRIu64 " .",
-        surfaceHandler.GetNodeId(), vsyncTimestamp, static_cast<uint64_t>(surfaceBuffer->timestamp));
     
-    if (isDisplaySurface) {
+    if (isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
+        !RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control disable), "
+            "buffer timestamp = %{public}" PRId64 " .", surfaceHandler.GetNodeId(), surfaceBuffer->timestamp);
         surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
     } else {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }

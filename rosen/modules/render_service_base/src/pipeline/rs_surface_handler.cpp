@@ -18,6 +18,12 @@
 
 namespace OHOS {
 namespace Rosen {
+RSSurfaceHandler::~RSSurfaceHandler() noexcept
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ClearBufferCache();
+#endif
+}
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
@@ -54,9 +60,12 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 GetNodeId(), ret);
+        } else {
+            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer success(ret: %{public}d)!",
+                GetNodeId(), ret);
         }
-        buffer.Reset();
     }
+    buffer.Reset();
 }
 
 void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
@@ -68,12 +77,16 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
     SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
     SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
-        "buffer timestamp = %{public}" PRIu64 " .", GetNodeId(), static_cast<uint64_t>(buffer.timestamp));
+        "buffer timestamp = %{public}" PRId64 " .", GetNodeId(), buffer.timestamp);
 }
 
 void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 {
-    bufferCache_[static_cast<uint64_t>(buffer.timestamp)] = buffer;
+    uint64_t bufferTimestamp = static_cast<uint64_t>(buffer.timestamp);
+    if (bufferCache_.count(bufferTimestamp)) {
+        ReleaseBuffer(bufferCache_[bufferTimestamp]);
+    }
+    bufferCache_[bufferTimestamp] = buffer;
     RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
 }
 
@@ -100,6 +113,14 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
         RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
     }
     return buffer;
+}
+
+void RSSurfaceHandler::ClearBufferCache()
+{
+    while (!bufferCache_.empty()) {
+        ReleaseBuffer(bufferCache_.begin()->second);
+        bufferCache_.erase(bufferCache_.begin());
+    }
 }
 #endif
 }
