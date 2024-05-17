@@ -114,7 +114,6 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
@@ -142,14 +141,9 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
-    bool aa = true;
-    if (!ConvertFromJsValue(env, argv[0], aa)) {
-        ROSEN_LOGE("JsBrush::SetAntiAlias Argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of the aa parameter is true or false.");
-    }
+    bool aa = false;
+    GET_BOOLEAN_PARAM(ARGC_ZERO, aa);
 
     brush->SetAntiAlias(aa);
     return nullptr;

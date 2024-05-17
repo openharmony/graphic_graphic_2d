@@ -124,7 +124,6 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
@@ -175,13 +174,9 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
-    bool aa = true;
-    if (!ConvertFromJsValue(env, argv[0], aa)) {
-        ROSEN_LOGE("JsPen::SetAntiAlias Argv[0] is invalid");
-        return nullptr;
-    }
+    bool aa = false;
+    GET_BOOLEAN_PARAM(ARGC_ZERO, aa);
 
     pen->SetAntiAlias(aa);
     return nullptr;
@@ -287,13 +282,9 @@ napi_value JsPen::SetDither(napi_env env, napi_callback_info info)
 {
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool dither = false;
-    if (!ConvertFromJsValue(env, argv[0], dither)) {
-        ROSEN_LOGE("JsPen::SetDither Argv[0] is invalid");
-        return nullptr;
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, dither);
     return nullptr;
 }
 
