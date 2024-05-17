@@ -3612,12 +3612,10 @@ void RSProperties::OnApplyModifiers()
         if (IsForegroundEffectRadiusValid()) {
             auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
             foregroundFilter_ = foregroundEffectFilter;
-        }
-        if (IsSpherizeValid()) {
+        } else if (IsSpherizeValid()) {
             auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
             foregroundFilter_ = spherizeEffectFilter;
-        }
-        else {
+        } else {
             foregroundFilter_.reset();
         }
         if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
