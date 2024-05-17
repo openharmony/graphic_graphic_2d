@@ -84,14 +84,16 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
         height = height - (height - width) * spherizeDegree_;
     }
 
-    float segmentWidthOne = width / 3.0;
-    float segmentWidthTwo = width / 3.0 * 2.0;
-    float segmentHeightOne = height / 3.0;
-    float segmentHeightTwo = height / 3.0 * 2.0;
+    float segmentWidthOne = width / 3.0; // Anchor point of 1 is located at one-third of the image width.
+    float segmentWidthTwo = width / 3.0 * 2.0; // Anchor point 2 is located at two-thirds of the image width.
+    float segmentHeightOne = height / 3.0; // Anchor point 1 is located at one-third of the height of the image.
+    float segmentHeightTwo = height / 3.0 * 2.0; // Anchor point 2 is located at a height of two-thirds of the image.
+    // The width moving distance of the four corner anchor points of the image.
     float offsetSphereWidth = width / 6 * spherizeDegree_;
+    // The high moving distance of the four corner anchor points of the image.
     float offsetSphereHeight = height / 6  * spherizeDegree_;
 
-    const int PointNum = 12;
+    const int PointNum = 12; // 12 anchor points
     Drawing::Point ctrlPoints[PointNum] = {
         // top edge control points
         {0.0f, 0.0f}, {segmentWidthOne, 0.0f}, {segmentWidthTwo, 0.0f}, {width, 0.0f},
