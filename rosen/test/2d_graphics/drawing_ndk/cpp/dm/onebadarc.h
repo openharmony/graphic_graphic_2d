@@ -15,7 +15,7 @@
 
 #ifndef ONEBADARC_H
 #define ONEBADARC_H
-#include "../test_base.h"
+#include "test_base.h"
 
 class OneBadArc : public TestBase {
 public:

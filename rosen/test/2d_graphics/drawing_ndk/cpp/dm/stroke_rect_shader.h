@@ -18,7 +18,7 @@
 
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_canvas.h>
-#include "../test_base.h"
+#include "test_base.h"
 
 enum { K_W = 690, K_H = 300 };
 class StrokeRectShader : public TestBase {

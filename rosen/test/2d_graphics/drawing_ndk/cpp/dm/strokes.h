@@ -15,7 +15,7 @@
 
 #ifndef STROKES_H
 #define STROKES_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>
