@@ -135,14 +135,14 @@ napi_value JsColorFilter::CreateComposeColorFilter(napi_env env, napi_callback_i
     napi_unwrap(env, argv[1], (void **)&jsColorFilter2);
     if (jsColorFilter1 == nullptr || jsColorFilter2 == nullptr) {
         ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter argv is invalid");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::shared_ptr<ColorFilter> colorFilter1 = jsColorFilter1->GetColorFilter();
     std::shared_ptr<ColorFilter> colorFilter2 = jsColorFilter2->GetColorFilter();
     if (colorFilter1 == nullptr || colorFilter2 == nullptr) {
         ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter colorFilter is nullptr");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateComposeColorFilter(*colorFilter1, *colorFilter2);
@@ -173,7 +173,7 @@ napi_value JsColorFilter::Create(napi_env env, const std::shared_ptr<ColorFilter
     napi_create_object(env, &objValue);
     if (objValue == nullptr || colorFilter == nullptr) {
         ROSEN_LOGE("[NAPI]Object or JsColorFilter is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsColorFilter> jsColorFilter = std::make_unique<JsColorFilter>(colorFilter);
@@ -181,7 +181,7 @@ napi_value JsColorFilter::Create(napi_env env, const std::shared_ptr<ColorFilter
 
     if (objValue == nullptr) {
         ROSEN_LOGE("[NAPI]objValue is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
     return objValue;
 }

@@ -156,7 +156,7 @@ napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, y);
 
     JS_CALL_DRAWING_FUNC(m_path->MoveTo(x, y));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnLineTo(napi_env env, napi_callback_info info)
@@ -175,7 +175,7 @@ napi_value JsPath::OnLineTo(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, y);
 
     JS_CALL_DRAWING_FUNC(m_path->LineTo(x, y));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnArcTo(napi_env env, napi_callback_info info)
@@ -202,7 +202,7 @@ napi_value JsPath::OnArcTo(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_FIVE, sweepDeg);
 
     JS_CALL_DRAWING_FUNC(m_path->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnQuadTo(napi_env env, napi_callback_info info)
@@ -225,7 +225,7 @@ napi_value JsPath::OnQuadTo(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_THREE, endPtY);
 
     JS_CALL_DRAWING_FUNC(m_path->QuadTo(ctrlPtX, ctrlPtY, endPtX, endPtY));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnCubicTo(napi_env env, napi_callback_info info)
@@ -252,7 +252,7 @@ napi_value JsPath::OnCubicTo(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_FIVE, py3);
 
     JS_CALL_DRAWING_FUNC(m_path->CubicTo(Point(px1, py1), Point(px2, py2), Point(px3, py3)));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnClose(napi_env env, napi_callback_info info)
@@ -263,7 +263,7 @@ napi_value JsPath::OnClose(napi_env env, napi_callback_info info)
     }
 
     JS_CALL_DRAWING_FUNC(m_path->Close());
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPath::OnReset(napi_env env, napi_callback_info info)
@@ -274,7 +274,7 @@ napi_value JsPath::OnReset(napi_env env, napi_callback_info info)
     }
 
     JS_CALL_DRAWING_FUNC(m_path->Reset());
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 Path* JsPath::GetPath()

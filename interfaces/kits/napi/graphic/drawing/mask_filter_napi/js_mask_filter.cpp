@@ -118,7 +118,7 @@ napi_value JsMaskFilter::Create(napi_env env, std::shared_ptr<MaskFilter> maskFi
     napi_create_object(env, &objValue);
     if (objValue == nullptr || maskFilter == nullptr) {
         ROSEN_LOGE("JsMaskFilter::Create object is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsMaskFilter> jsMaskFilter = std::make_unique<JsMaskFilter>(maskFilter);
@@ -126,7 +126,7 @@ napi_value JsMaskFilter::Create(napi_env env, std::shared_ptr<MaskFilter> maskFi
 
     if (objValue == nullptr) {
         ROSEN_LOGE("JsMaskFilter::Create object value is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
     return objValue;
 }

@@ -115,7 +115,7 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
         napi_has_element(env, argv[ARGC_ZERO], i, &hasElement);
         if (!hasElement) {
             ROSEN_LOGE("JsPathEffect::CreateDashPathEffect parameter check error");
-            return NapiGetUndefined(env);
+            return nullptr;
         }
 
         napi_value element = nullptr;
@@ -139,7 +139,7 @@ napi_value JsPathEffect::Create(napi_env env, std::shared_ptr<PathEffect> pathEf
     napi_create_object(env, &objValue);
     if (objValue == nullptr || pathEffect == nullptr) {
         ROSEN_LOGE("JsPathEffect::Create object is null");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsPathEffect> jsPathEffect = std::make_unique<JsPathEffect>(pathEffect);
@@ -147,7 +147,7 @@ napi_value JsPathEffect::Create(napi_env env, std::shared_ptr<PathEffect> pathEf
 
     if (objValue == nullptr) {
         ROSEN_LOGE("JsPathEffect::Create objValue is null");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
     return objValue;
 }

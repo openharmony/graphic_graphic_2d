@@ -120,7 +120,7 @@ napi_value JsShadowLayer::CreateLooper(napi_env env, const std::shared_ptr<BlurD
     napi_create_object(env, &objValue);
     if (objValue == nullptr || blurDrawLooper == nullptr) {
         ROSEN_LOGE("JsShadowLayer::CreateLooper object is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsShadowLayer> jsShadowLayer = std::make_unique<JsShadowLayer>(blurDrawLooper);
@@ -128,7 +128,7 @@ napi_value JsShadowLayer::CreateLooper(napi_env env, const std::shared_ptr<BlurD
 
     if (objValue == nullptr) {
         ROSEN_LOGE("JsShadowLayer::CreateLooper objValue is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     return objValue;

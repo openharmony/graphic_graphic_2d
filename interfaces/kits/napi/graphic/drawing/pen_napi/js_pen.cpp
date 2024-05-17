@@ -135,7 +135,7 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 
     Color color(Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]));
     pen->SetColor(color);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
@@ -157,7 +157,7 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ZERO, width);
 
     pen->SetWidth(static_cast<float>(width));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 
@@ -180,11 +180,11 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
     bool aa = true;
     if (!ConvertFromJsValue(env, argv[0], aa)) {
         ROSEN_LOGE("JsPen::SetAntiAlias Argv[0] is invalid");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     pen->SetAntiAlias(aa);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
@@ -205,11 +205,11 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     int32_t alpha = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     pen->SetAlpha(alpha);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
@@ -231,7 +231,7 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, mode);
 
     pen->SetBlendMode(static_cast<BlendMode>(mode));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
@@ -248,19 +248,14 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsColorFilter* jsColorFilter = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsColorFilter));
-    if (jsColorFilter == nullptr) {
-        ROSEN_LOGE("JsPen::SetColorFilter jsColorFilter is nullptr");
-        return NapiGetUndefined(env);
-    }
 
     Filter filter = pen->GetFilter();
-    filter.SetColorFilter(jsColorFilter->GetColorFilter());
+    filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
     pen->SetFilter(filter);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetMaskFilter(napi_env env, napi_callback_info info)
@@ -278,19 +273,14 @@ napi_value JsPen::SetMaskFilter(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsMaskFilter* jsMaskFilter = nullptr;
     napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsMaskFilter));
-    if (jsMaskFilter == nullptr) {
-        ROSEN_LOGE("JsPen::SetMaskFilter jsMaskFilter is nullptr");
-        return NapiGetUndefined(env);
-    }
 
     Filter filter = pen->GetFilter();
-    filter.SetMaskFilter(jsMaskFilter->GetMaskFilter());
+    filter.SetMaskFilter(jsMaskFilter ? jsMaskFilter->GetMaskFilter() : nullptr);
     pen->SetFilter(filter);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetDither(napi_env env, napi_callback_info info)
@@ -302,10 +292,9 @@ napi_value JsPen::SetDither(napi_env env, napi_callback_info info)
     bool dither = false;
     if (!ConvertFromJsValue(env, argv[0], dither)) {
         ROSEN_LOGE("JsPen::SetDither Argv[0] is invalid");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
-
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::SetJoinStyle(napi_env env, napi_callback_info info)
@@ -328,7 +317,7 @@ napi_value JsPen::SetJoinStyle(napi_env env, napi_callback_info info)
     GET_INT32_PARAM(ARGC_ZERO, joinStyle);
 
     pen->SetJoinStyle(static_cast<Pen::JoinStyle>(joinStyle));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::GetJoinStyle(napi_env env, napi_callback_info info)
@@ -366,7 +355,7 @@ napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
     GET_INT32_PARAM(ARGC_ZERO, capStyle);
 
     pen->SetCapStyle(static_cast<Pen::CapStyle>(capStyle));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsPen::GetCapStyle(napi_env env, napi_callback_info info)
@@ -400,17 +389,12 @@ napi_value JsPen::SetPathEffect(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsPathEffect* jsPathEffect = nullptr;
     napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsPathEffect));
-    if (jsPathEffect == nullptr) {
-        ROSEN_LOGE("JsPen::SetPathEffect jsPathEffect is nullptr");
-        return NapiGetUndefined(env);
-    }
 
-    pen->SetPathEffect(jsPathEffect->GetPathEffect());
-    return NapiGetUndefined(env);
+    pen->SetPathEffect(jsPathEffect ? jsPathEffect->GetPathEffect() : nullptr);
+    return nullptr;
 }
 
 napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
@@ -428,16 +412,12 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsShadowLayer* jsShadowLayer = nullptr;
     napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsShadowLayer));
-    if (jsShadowLayer == nullptr) {
-        ROSEN_LOGE("JsPen::SetShadowLayer jsShadowLayer is nullptr");
-        return NapiGetUndefined(env);
-    }
-    pen->SetLooper(jsShadowLayer->GetBlurDrawLooper());
-    return NapiGetUndefined(env);
+
+    pen->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
+    return nullptr;
 }
 
 Pen* JsPen::GetPen()
