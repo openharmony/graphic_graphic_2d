@@ -100,6 +100,8 @@ public:
     static void LayerScaleDown(RSSurfaceRenderNode& Node);
     static void LayerScaleFit(RSSurfaceRenderNode& Node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+        Drawing::GPUContext* grContext);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
