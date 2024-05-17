@@ -66,16 +66,15 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
         ROSEN_LOGE("RSSpherizeEffectFilter::shader error");
         return;
     }
-    float width = image->GetWidth();
-    float height = image->GetHeight();
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawSpherize:%f", spherizeDegree_);
+    int width = image->GetWidth();
+    int height = image->GetHeight();
     bool isWidthGreater = width > height;
 
     auto brush = GetBrush(image);
     canvas.AttachBrush(brush);
 
-    const Drawing::Point texCoords[4] = {
-        {0.0f, 0.0f}, {width, 0.0f}, {width, height}, {0.0f, height}
-    };
+    const Drawing::Point texCoords[4] = { { 0.0f, 0.0f }, { width, 0.0f }, { width, height }, { 0.0f, height } };
     float offsetSquare = 0.f;
     if (isWidthGreater) {
         offsetSquare = (width - height) * spherizeDegree_ / 2.0; // half of the change distance
