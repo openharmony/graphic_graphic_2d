@@ -60,7 +60,8 @@ public:
     virtual bool IsEnable() = 0;
     virtual VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                        const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                                       uint32_t generatorRefreshRate) = 0;
+                                                       uint32_t generatorRefreshRate,
+                                                       int64_t expectNextVsyncTime = 0) = 0;
     virtual int64_t GetVSyncPulse() = 0;
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
@@ -94,7 +95,8 @@ public:
     bool IsEnable() override;
     VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                               uint32_t generatorRefreshRate) override;
+                                               uint32_t generatorRefreshRate,
+                                               int64_t expectNextVsyncTime = 0) override;
     int64_t GetVSyncPulse() override;
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
@@ -142,6 +144,7 @@ private:
     void SubScribeSystemAbility();
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
+    VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
@@ -182,6 +185,8 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_;
     int32_t periodCheckCounter_ = 0;
     int64_t lastPeriod_ = 0;
+    int64_t expectNextVsyncTime_ = 0;
+    bool expectTimeFlag_ = false;
 };
 } // impl
 } // namespace Rosen
