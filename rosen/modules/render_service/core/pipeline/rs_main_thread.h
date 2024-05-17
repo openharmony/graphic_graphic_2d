@@ -196,6 +196,7 @@ public:
     void SetScreenPowerOnChanged(bool val);
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
+    bool IsCurtainScreenUsingStatusChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
@@ -492,6 +493,9 @@ private:
 
     // Used to refresh the whole display when AccessibilityConfig is changed
     bool isAccessibilityConfigChanged_ = false;
+
+    // Used to refresh the whole display when curtain screen status is changed
+    bool isCurtainScreenUsingStatusChanged_ = false;
 
     // used for blocking mainThread when hardwareThread has 2 and more task to Execute
     mutable std::mutex hardwareThreadTaskMutex_;
