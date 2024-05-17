@@ -126,7 +126,7 @@ public:
     void MarkRotationChanged();
     void MarkHasEffectChildren();
     void MarkNodeIsOccluded(bool isOccluded);
-    void CheckClearFilterCache();
+    void ClearCacheIfNeeded();
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;

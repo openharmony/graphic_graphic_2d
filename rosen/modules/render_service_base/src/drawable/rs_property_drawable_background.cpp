@@ -466,6 +466,7 @@ void RSBackgroundEffectDrawable::OnSync()
     if (!stagingHasEffectChildren_) {
         lastCacheType_ = FilterCacheType::NONE;
     }
+    stagingHasEffectChildren_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

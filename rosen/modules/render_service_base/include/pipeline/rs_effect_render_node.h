@@ -81,7 +81,8 @@ public:
         return isStaticCached_;
     }
     void InitRenderParams() override;
-    void UpdateRenderParams() override;
+    void MarkFilterHasEffectChildren() override;
+    void OnFilterCacheStateChanged() override;
 
 protected:
     RectI GetFilterRect() const override;

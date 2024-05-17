@@ -234,23 +234,29 @@ void RSEffectRenderNode::InitRenderParams()
     }
 }
 
-void RSEffectRenderNode::UpdateRenderParams()
+void RSEffectRenderNode::MarkFilterHasEffectChildren()
 {
-    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+    // now only background filter need to mark effect child
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        filterDrawable->MarkHasEffectChildren();
+    }
     if (!RSProperties::FilterCacheEnabled) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
-    if (!ChildHasVisibleEffect() || GetRenderProperties().GetBackgroundFilter() == nullptr) {
-        effectParams->SetHasEffectChildren(false);
-        return;
-    }
-    effectParams->SetHasEffectChildren(true);
-    // now only background filter need to mark effect child
+}
+
+void RSEffectRenderNode::OnFilterCacheStateChanged()
+{
     auto filterDrawable = GetFilterDrawable(false);
-    if (filterDrawable == nullptr) {
+    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+    if (filterDrawable == nullptr || effectParams == nullptr) {
         return;
     }
-    filterDrawable->MarkHasEffectChildren();
+    effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
     effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
 }
 } // namespace Rosen

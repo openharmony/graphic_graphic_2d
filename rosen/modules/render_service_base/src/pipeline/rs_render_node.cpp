@@ -1862,6 +1862,9 @@ inline static bool IsLargeArea(int width, int height)
 
 void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
+    if (ChildHasVisibleEffect()) {
+        MarkFilterHasEffectChildren();
+    }
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::PostPrepareForBlurFilterNode filter cache is disabled.");
         return;
@@ -1881,6 +1884,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
             CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
         }
     }
+    OnFilterCacheStateChanged();
     UpdateLastFilterCacheRegion();
 }
 
@@ -1921,7 +1925,7 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
     if (filterDrawable == nullptr) {
         return;
     }
-    filterDrawable->CheckClearFilterCache();
+    filterDrawable->ClearCacheIfNeeded();
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 
@@ -1931,7 +1935,7 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->CheckClearFilterCache();
+            filterDrawable->ClearCacheIfNeeded();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
@@ -1939,7 +1943,7 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->CheckClearFilterCache();
+            filterDrawable->ClearCacheIfNeeded();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
         }
     }
@@ -2404,11 +2408,6 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, boo
 
     auto absRect = property.GetBoundsGeometry()->GetAbsRect();
     region->Join(Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()));
-}
-
-void RSRenderNode::MarkFilterHasEffectChildren()
-{
-
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)

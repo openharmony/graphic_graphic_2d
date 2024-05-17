@@ -252,7 +252,7 @@ void RSFilterDrawable::ForceClearCacheWithLastFrame()
     forceClearCacheWithLastFrame_ = true;
 }
 
-void RSFilterDrawable::CheckClearFilterCache()
+void RSFilterDrawable::ClearCacheIfNeeded()
 {
     if (cacheManager_ == nullptr) {
         return;
