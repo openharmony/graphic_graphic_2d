@@ -64,7 +64,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 bool RSSystemProperties::GetDrawOpTraceEnabled()

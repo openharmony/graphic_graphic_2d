@@ -69,7 +69,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
