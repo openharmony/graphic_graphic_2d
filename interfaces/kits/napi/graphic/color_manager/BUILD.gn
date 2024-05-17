@@ -47,10 +47,15 @@ if (current_os == "ohos") {
       "$graphic_2d_root/utils/color_manager:color_manager_public_config",
     ]
 
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
+    if (is_arkui_x) {
+      deps = [ "$arkui_root/napi:ace_napi" ]
+      include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    } else {
+      external_deps = [
+        "hilog:libhilog",
+        "napi:ace_napi",
+      ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
     innerapi_tags = [ "platformsdk" ]
@@ -104,10 +109,15 @@ template("colorspacemanager_napi_source_set") {
       "$graphic_2d_root/utils/color_manager:color_manager_public_config",
     ]
 
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
+    if (is_arkui_x) {
+      deps = [ "$arkui_root/napi:ace_napi" ]
+      include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    } else {
+      external_deps = [
+        "hilog:libhilog",
+        "napi:ace_napi",
+      ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
@@ -138,10 +148,15 @@ template("sendablecolorspacemanager_napi_source_set") {
       "$graphic_2d_root/utils/color_manager:color_manager_public_config",
     ]
 
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
+    if (is_arkui_x) {
+      deps = [ "$arkui_root/napi:ace_napi" ]
+      include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    } else {
+      external_deps = [
+        "hilog:libhilog",
+        "napi:ace_napi",
+      ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
