@@ -19,6 +19,7 @@
 #include "rs_dirty_rects_dfx.h"
 #include "rs_trace.h"
 
+#include "drawable/rs_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
@@ -86,6 +87,8 @@ void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         DrawCurrentRefreshRate();
     }
+
+    DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(*canvas_);
 }
 
 void RSDirtyRectsDfx::DrawCurrentRefreshRate()
