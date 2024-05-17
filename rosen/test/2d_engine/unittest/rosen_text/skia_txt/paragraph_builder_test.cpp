@@ -121,4 +121,29 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest006, TestSize.Level1)
     EXPECT_EQ(paragraphBuilder_ != nullptr, true);
     EXPECT_EQ(paragraphBuilder_->Build() != nullptr, true);
 }
+
+/*
+ * @tc.name: ParagraphBuilderTest007
+ * @tc.desc: test for locale
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level1)
+{
+    static const std::string localeZh = "zh-Hans";
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.locale = "";
+    EXPECT_EQ(ParagraphBuilder::Create(paragraphStyle, fontCollection) != nullptr, true);
+    paragraphStyle.locale = localeZh;
+    EXPECT_EQ(ParagraphBuilder::Create(paragraphStyle, fontCollection) != nullptr, true);
+
+    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    TextStyle textStyle;
+    textStyle.locale = "";
+    builder->PushStyle(textStyle);
+    EXPECT_EQ(builder->Build() != nullptr, true);
+    textStyle.locale = localeZh;
+    builder->PushStyle(textStyle);
+    EXPECT_EQ(builder->Build() != nullptr, true);
+}
 } // namespace txt
