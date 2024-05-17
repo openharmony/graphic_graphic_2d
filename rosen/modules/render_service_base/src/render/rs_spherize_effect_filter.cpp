@@ -74,6 +74,7 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
     auto brush = GetBrush(image);
     canvas.AttachBrush(brush);
 
+    // 4 coordinates of image texture
     const Drawing::Point texCoords[4] = { { 0.0f, 0.0f }, { width, 0.0f }, { width, height }, { 0.0f, height } };
     float offsetSquare = 0.f;
     if (isWidthGreater) {
@@ -104,10 +105,10 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
         // left edge control points
         {0.0f, segmentHeightTwo}, {0.0f, segmentHeightOne}
     };
-    ctrlPoints[0].Offset(offsetSphereWidth, offsetSphereHeight); // top left control point
-    ctrlPoints[3].Offset(-offsetSphereWidth, offsetSphereHeight); // top right control point
-    ctrlPoints[6].Offset(-offsetSphereWidth, -offsetSphereHeight); // bottom right control point
-    ctrlPoints[9].Offset(offsetSphereWidth, -offsetSphereHeight); // bottom left control point
+    ctrlPoints[0].Offset(offsetSphereWidth, offsetSphereHeight); // Point 0 express top left control point
+    ctrlPoints[3].Offset(-offsetSphereWidth, offsetSphereHeight); // Point 3 express top right control point
+    ctrlPoints[6].Offset(-offsetSphereWidth, -offsetSphereHeight); // Point 6 express bottom right control point
+    ctrlPoints[9].Offset(offsetSphereWidth, -offsetSphereHeight); // Point 9 express bottom left control point
     if (isWidthGreater) {
         for (int i = 0; i < PointNum; ++i) {
             ctrlPoints[i].Offset(offsetSquare, 0);
@@ -118,11 +119,16 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
         }
     }
     Drawing::Path path;
+    // The zeroth point express the starting point of drawing.
     path.MoveTo(ctrlPoints[0].GetX(), ctrlPoints[0].GetY());
-    path.CubicTo(ctrlPoints[1], ctrlPoints[2], ctrlPoints[3]); // upper edge
-    path.CubicTo(ctrlPoints[4], ctrlPoints[5], ctrlPoints[6]); // right edge
-    path.CubicTo(ctrlPoints[7], ctrlPoints[8], ctrlPoints[9]); // bottom edge
-    path.CubicTo(ctrlPoints[10], ctrlPoints[11], ctrlPoints[0]); // left edge
+    // The 1st, 2nd, and 3rd control points are connected to represent the upper edge.
+    path.CubicTo(ctrlPoints[1], ctrlPoints[2], ctrlPoints[3]);
+    // The 4th, 5th and 6th control points are connected to represent the right edge.
+    path.CubicTo(ctrlPoints[4], ctrlPoints[5], ctrlPoints[6]);
+    // The 7th, 8th, and 9th control points are connected to represent the bottom edge.
+    path.CubicTo(ctrlPoints[7], ctrlPoints[8], ctrlPoints[9]);
+    // The 0th, 10th, and 11th control points are connected to represent the left edge.
+    path.CubicTo(ctrlPoints[10], ctrlPoints[11], ctrlPoints[0]);
     canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
     canvas.DrawPatch(ctrlPoints, nullptr, texCoords, Drawing::BlendMode::SRC_OVER);
     canvas.DetachBrush();
