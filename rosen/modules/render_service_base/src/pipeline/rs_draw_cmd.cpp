@@ -142,13 +142,15 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::SamplingOptions& sampling)
+void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::SamplingOptions& sampling)
 {
     if (!pixelMap) {
         return;
     }
 
-    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC && sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR) {
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+        sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
