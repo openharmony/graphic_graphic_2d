@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -260,6 +260,12 @@ void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
 {
     AttachPaint();
     impl_->DrawImage(image, px, py, sampling);
+}
+
+void CoreCanvas::DrawImage(
+    const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    DrawImageRect(image, src, dst, sampling, constraint);
 }
 
 void CoreCanvas::DrawImageRect(

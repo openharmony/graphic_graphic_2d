@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -442,6 +442,8 @@ public:
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect);
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
+    virtual void DrawImage(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
+        SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling);
