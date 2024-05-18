@@ -60,7 +60,7 @@ static std::unordered_set<NodeId> g_nodeSetPerf;
 static std::unordered_map<NodeId, int> g_mapNode2Count;
 static NodeId g_calcPerfNode = 0;
 static int g_calcPerfNodeTry = 0;
-constexpr int CALC_PERF_NODE_TIME_COUNT = 5;
+constexpr int CALC_PERF_NODE_TIME_COUNT = 64;
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT];
 static NodeId g_calcPerfNodeParent = 0;
 static int g_calcPerfNodeIndex = 0;
@@ -974,8 +974,9 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         if (!displayNode) {
             continue;
         }
-        const auto& nodes = displayNode->GetCurAllSurfaces();
-        for (auto& node : nodes) {
+        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+        displayNode->CollectSurface(displayNode, curAllSurfaces, true, false);
+        for (auto& node : curAllSurfaces) {
             if (node) {
                 PerfTreeFlatten(*node, g_nodeSetPerf, g_mapNode2Count);
             }
