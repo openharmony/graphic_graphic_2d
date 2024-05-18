@@ -78,10 +78,10 @@ void RSSpherizeEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::s
     const Drawing::Point texCoords[4] = { { 0.0f, 0.0f }, { width, 0.0f }, { width, height }, { 0.0f, height } };
     float offsetSquare = 0.f;
     if (isWidthGreater) {
-        offsetSquare = (width - height) * spherizeDegree_ / 2.0; // half of the change distance
+        offsetSquare = (width - height) * spherizeDegree_ / 2.0; // 2.0 express half of the change distance
         width = width - (width - height) * spherizeDegree_;
     } else {
-        offsetSquare = (height - width) * spherizeDegree_ / 2.0; // half of the change distance
+        offsetSquare = (height - width) * spherizeDegree_ / 2.0; // 2.0 express half of the change distance
         height = height - (height - width) * spherizeDegree_;
     }
 
