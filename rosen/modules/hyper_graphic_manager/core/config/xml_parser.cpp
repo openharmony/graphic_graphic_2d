@@ -240,38 +240,47 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         auto id = ExtractPropertyValue("id", *currNode);
         screenSetting.strategy = ExtractPropertyValue("strategy", *currNode);
         for (xmlNode *thresholdNode = currNode->xmlChildrenNode; thresholdNode; thresholdNode = thresholdNode->next) {
-            if (thresholdNode->type != XML_ELEMENT_NODE) {
-                continue;
-            }
-            auto name = ExtractPropertyValue("name", *thresholdNode);
-            int32_t setResult = EXEC_SUCCESS;
-            if (name == "LTPO_config") {
-                setResult = ParseSimplex(*thresholdNode, screenSetting.ltpoConfig);
-            } else if (name == "property_animation_dynamic_settings") {
-                setResult = ParserDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
-            } else if (name == "ace_scene_dynamic_settings") {
-                setResult = ParserDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
-            } else if (name == "scene_list") {
-                setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
-            } else if (name == "app_list") {
-                ParseMultiAppStrategy(*thresholdNode, screenSetting);
-            } else if (name == "app_types") {
-                setResult = ParseSimplex(*thresholdNode, screenSetting.appTypes, "strategy");
-            } else if (name == "additional_touch_rate_config") {
-                setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
-            } else {
-                setResult = 0;
-            }
-
-            if (setResult != EXEC_SUCCESS) {
-                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
-            }
+            ParseSubScreenConfig(*thresholdNode, screenSetting);
         }
         screenConfig[id] = screenSetting;
         HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
     }
     mParsedData_->screenConfigs_[type] = screenConfig;
     return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+{
+    xmlNode *thresholdNode = &node;
+    if (thresholdNode->type != XML_ELEMENT_NODE) {
+        return HGM_ERROR;
+    }
+    auto name = ExtractPropertyValue("name", *thresholdNode);
+    int32_t setResult = EXEC_SUCCESS;
+    if (name == "LTPO_config") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.ltpoConfig);
+    } else if (name == "property_animation_dynamic_settings") {
+        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
+    } else if (name == "ace_scene_dynamic_settings") {
+        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+    } else if (name == "scene_list") {
+        setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
+    } else if (name == "game_scene_list") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.gameSceneList);
+    } else if (name == "app_list") {
+        ParseMultiAppStrategy(*thresholdNode, screenSetting);
+    } else if (name == "app_types") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.appTypes, "strategy");
+    } else if (name == "additional_touch_rate_config") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
+    } else {
+        setResult = 0;
+    }
+
+    if (setResult != EXEC_SUCCESS) {
+        HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+    }
+    return setResult;
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
