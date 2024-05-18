@@ -1711,18 +1711,20 @@ inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
 }
 
 void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-    const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect)
+    const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect)
 {
     Drawing::Matrix absMatrix;
     if (!GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
         return;
     }
+    Drawing::RectF absDrawRect;
+    absMatrix.MapRect(absDrawRect, Rect2DrawingRect(selfDrawRect_));
+    oldDirtyInSurface_ = RectI(absDrawRect.GetLeft(), absDrawRect.GetTop(),
+        absDrawRect.GetWidth(), absDrawRect.GetHeight()).IntersectRect(clipRect);
     Drawing::RectF absRect;
     absMatrix.MapRect(absRect, Rect2DrawingRect(GetRenderProperties().GetBoundsRect()));
     filterRect = RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight());
-    if (clipRect.has_value()) {
-        filterRect = filterRect.IntersectRect(*clipRect);
-    }
+    filterRect = filterRect.IntersectRect(clipRect);
     filterRegion_ = filterRect;
     if (filterRect == lastFilterRegion_) {
         return;
