@@ -127,6 +127,16 @@ public:
         maxTE_ = maxTE;
     }
 
+    bool GetDirectCompositionFlag() const
+    {
+        return doDirectComposition_;
+    }
+
+    void SetDirectCompositionFlag(bool doDirectComposition)
+    {
+        doDirectComposition_ = doDirectComposition;
+    }
+
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
@@ -205,6 +215,7 @@ private:
     int32_t pipelineOffsetPulseNum_ = 8;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
+    bool doDirectComposition_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H
