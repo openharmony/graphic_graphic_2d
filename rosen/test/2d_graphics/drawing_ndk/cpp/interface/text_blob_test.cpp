@@ -138,3 +138,32 @@ void TextBlobGetBounds::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_TextBlobDestroy(blob);
     OH_Drawing_FontDestroy(font);
 }
+void TextBlobBuilderAllocRunPos::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    const int count = 9;
+    OH_Drawing_TextBlobBuilder* builder = OH_Drawing_TextBlobBuilderCreate();
+    uint16_t glyphs[9] = { 65, 227, 283, 283, 299, 2, 94, 37, 84 }; // 65, 227, 283, 283, 299, 2, 94, 37, 84字形符号数组
+    float posX[9] = { 0, 14.9 * 2, 25.84 * 2, 30.62 * 2, 35.4 * 2, 47.22 * 2, 52.62 * 2, 67.42 * 2,
+        81.7 * 2 }; // 14.9 * 2, 25.84 * 2, 30.62 * 2, 35.4 * 2, 47.22 * 2, 52.62 * 2, 67.42 * 2, 81.7 * 2 位置数组
+    float posY[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }; //
+    const OH_Drawing_RunBuffer* buffer;
+
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 10, 300, 300); // 10, 10, 300, 300 创建矩形
+    for (int i = 0; i < testCount_; i++) {
+        buffer = OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, count, rect);
+    }
+    for (int idx = 0; idx < count; idx++) {
+        buffer->glyphs[idx] = glyphs[idx];
+        buffer->pos[idx * 2] = posX[idx];     // 2 设置字形位置
+        buffer->pos[idx * 2 + 1] = posY[idx]; // 2 1 设置字形位置
+    }
+    OH_Drawing_TextBlob* blob = OH_Drawing_TextBlobBuilderMake(builder);
+    OH_Drawing_CanvasDrawTextBlob(canvas, blob, rand.nextULessThan(bitmapWidth_), rand.nextULessThan(bitmapHeight_));
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_TextBlobDestroy(blob);
+    OH_Drawing_TextBlobBuilderDestroy(builder);
+    OH_Drawing_FontDestroy(font);
+}

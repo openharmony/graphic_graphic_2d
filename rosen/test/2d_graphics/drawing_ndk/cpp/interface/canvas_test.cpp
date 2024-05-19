@@ -643,3 +643,100 @@ void CanvasClipPath::OnTestPerformance(OH_Drawing_Canvas* canvas)
     }
     OH_Drawing_PathDestroy(path);
 }
+
+void CanvasGetTotalMatrix::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    float l, t, r, b;
+    l = rand.nextULessThan(bitmapWidth_);
+    t = rand.nextULessThan(bitmapHeight_);
+    r = l + rand.nextULessThan(bitmapWidth_);
+    b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_Matrix* matrix_a = OH_Drawing_MatrixCreateRotation(45, 0, 0);    // 45为顺时针旋转角度
+    OH_Drawing_Matrix* matrix_b = OH_Drawing_MatrixCreateTranslation(-10, -10); // -10为水平方向平移距离
+    OH_Drawing_Matrix* total = OH_Drawing_MatrixCreate();
+    OH_Drawing_CanvasSetMatrix(canvas, matrix_a);
+    OH_Drawing_CanvasConcatMatrix(canvas, matrix_b);
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_CanvasGetTotalMatrix(canvas, total);
+    }
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_MatrixDestroy(matrix_a);
+    OH_Drawing_MatrixDestroy(matrix_b);
+    OH_Drawing_MatrixDestroy(total);
+}
+
+void CanvasRestore::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    OH_Drawing_CanvasSave(canvas);
+    TestRend rand;
+    OH_Drawing_CanvasScale(canvas, 0.1, 0.1); // 0.1, 0.1 缩放比例
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_CanvasRestore(canvas);
+    }
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 300, 300); // 300, 300 创建矩形
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
+}
+
+void CanvasGetLocalClipBounds::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 700, 700);      // 0, 0, 700, 700 创建矩形
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100, 100, 300, 300); // 100, 100, 300, 300 剪切矩形
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(400, 400, 700, 700); // 400, 400, 700, 700 剪切矩形
+    OH_Drawing_CanvasClipRect(canvas, rect1, OH_Drawing_CanvasClipOp::DIFFERENCE, true);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_CanvasGetLocalClipBounds(canvas, rect);
+    }
+    OH_Drawing_CanvasClipRect(canvas, rect2, OH_Drawing_CanvasClipOp::DIFFERENCE, true);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+void CanvasGetSaveCount::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    OH_Drawing_CanvasSave(canvas);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
+    OH_Drawing_CanvasScale(canvas, 5, 5);                          //  5, 5 缩放因子
+    OH_Drawing_CanvasSave(canvas);
+    OH_Drawing_CanvasScale(canvas, 0.1, 0.1); //  0.1, 0.1 缩放因子
+    OH_Drawing_CanvasSave(canvas);
+    uint32_t fSave_Count = 0;
+    for (int i = 0; i < testCount_; i++) {
+        fSave_Count = OH_Drawing_CanvasGetSaveCount(canvas);
+    }
+    OH_Drawing_CanvasRestoreToCount(canvas, fSave_Count);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
+}
+
+void CanvasGetWidth::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    int32_t canvas_width = 0;
+    for (int i = 0; i < testCount_; i++) {
+        canvas_width = OH_Drawing_CanvasGetWidth(canvas);
+    }
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, canvas_width, 100); // 100 矩形高度
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
+}
+
+void CanvasGetHeight::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    TestRend rand;
+    int32_t canvas_height = 0;
+    for (int i = 0; i < testCount_; i++) {
+        canvas_height = OH_Drawing_CanvasGetHeight(canvas);
+    }
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, canvas_height); // 100 矩形宽度
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
+}
