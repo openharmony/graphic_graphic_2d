@@ -79,24 +79,32 @@ typedef struct FontConfigJsonInfo {
     FallbackGroupSet fallbackGroupSet;
 } FontConfigJsonInfo;
 
+using FontFileMap = std::map<std::string, std::string>;
+
 class FontConfigJson : public FontConfig {
 public:
     FontConfigJson() = default;
     int ParseFile(const char* fname = nullptr);
+    int ParseFontFileMap(const char* fname = nullptr);
     std::shared_ptr<FontConfigJsonInfo> GetFontConfigJsonInfo()
     {
         return fontPtr;
     }
-
+    std::shared_ptr<FontFileMap> GetFontFileMap()
+    {
+        return fontFileMap;
+    }
     // for test
     void Dump() const override;
 
 private:
     int ParseConfigList(const char* fname);
+    int ParseConfigListPath(const char* fname);
     int ParseGeneric(const cJSON* root, const char* key);
     int ParseAlias(const cJSON* root, FontGenericInfo &genericInfo);
     int ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo);
     int ParseFallback(const cJSON* root, const char* key);
+    int ParseFontMap(const cJSON* root, const char* key);
     int ParseDir(const cJSON* root);
     void AnalyseFontDir(const cJSON* root);
     int ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo);
@@ -106,8 +114,10 @@ private:
     void DumpForbak() const;
     void DumpAlias(const AliasSet &aliasSet) const;
     void DumpAjdust(const AdjustSet &adjustSet) const;
+    void DumpFontFileMap() const;
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
+    std::shared_ptr<FontFileMap> fontFileMap = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen
