@@ -25,6 +25,7 @@
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_typeface_cache.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -205,6 +206,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->RegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
@@ -213,6 +219,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->UnRegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
 
