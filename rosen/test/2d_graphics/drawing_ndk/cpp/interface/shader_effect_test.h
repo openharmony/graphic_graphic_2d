@@ -24,7 +24,7 @@
 
 class ShaderEffectCreateLinearGradient : public TestBase {
 public:
-    ShaderEffectCreateLinearGradient(int type) : TestBase(type)
+    explicit ShaderEffectCreateLinearGradient(int type) : TestBase(type)
     {
         fileName_ = "ShaderEffectCreateLinearGradient";
     }
@@ -37,7 +37,7 @@ protected:
 };
 class ShaderEffectCreateRadialGradient : public TestBase {
 public:
-    ShaderEffectCreateRadialGradient(int type) : TestBase(type)
+    explicit ShaderEffectCreateRadialGradient(int type) : TestBase(type)
     {
         fileName_ = "ShaderEffectCreateRadialGradient";
     }
@@ -50,7 +50,7 @@ protected:
 };
 class ShaderEffectCreateImageShader : public TestBase {
 public:
-    ShaderEffectCreateImageShader(int type) : TestBase(type)
+    explicit ShaderEffectCreateImageShader(int type) : TestBase(type)
     {
         fileName_ = "ShaderEffectCreateImageShader";
     }
@@ -63,7 +63,7 @@ protected:
 };
 class ShaderEffectCreateSweepGradient : public TestBase {
 public:
-    ShaderEffectCreateSweepGradient(int type) : TestBase(type)
+    explicit ShaderEffectCreateSweepGradient(int type) : TestBase(type)
     {
         fileName_ = "ShaderEffectCreateSweepGradient";
     }

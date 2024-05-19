@@ -119,8 +119,7 @@ void ShaderEffectCreateSweepGradient::OnTestPerformance(OH_Drawing_Canvas* canva
 {
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(NUM_20, NUM_20);
     int fCount = NUM_50;
-    int ArraySize = NUM_50;
-    float positions[ArraySize];
+    float positions[NUM_50];
 
     positions[0] = 0.0f;
     positions[1] = 0.1f; // 0.1 位置值
