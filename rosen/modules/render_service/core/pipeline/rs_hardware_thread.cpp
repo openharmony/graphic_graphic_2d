@@ -283,14 +283,10 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
-        if (!hgmCore.GetLtpoEnabled()) {
-            hdiBackend_->StartSample(output);
-        } else {
-            auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-            int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-            hdiBackend_->StartSample(output);
-        }
+        auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
+        int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
+        hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
+        hdiBackend_->StartSample(output);
     }
 }
 
