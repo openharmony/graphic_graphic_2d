@@ -14,13 +14,15 @@
  */
 
 #include <cstddef>
-#include "draw/surface.h"
+
 #include "gtest/gtest.h"
-#include "image/image.h"
-#include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_gpu_context.h"
+#include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_surface.h"
+
+#include "draw/surface.h"
+#include "image/image.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -132,11 +134,10 @@ HWTEST_F(SkiaImageTest, BuildFromTexture001, TestSize.Level1)
 #endif
     TextureInfo textureInfo;
     BitmapFormat bitmapFormat;
-    skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat,
-        nullptr, nullptr, nullptr);
+    skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat,
-        colorSpace, nullptr, nullptr);
+    skiaImage->BuildFromTexture(
+        context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace, nullptr, nullptr);
 }
 
 /**
@@ -270,8 +271,8 @@ HWTEST_F(SkiaImageTest, BuildFromTexture002, TestSize.Level1)
     GPUContext context;
     TextureInfo textureInfo;
     BitmapFormat bitmapFormat;
-    bool buildFromTexture = skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat,
-        nullptr, nullptr, nullptr);
+    bool buildFromTexture = skiaImage->BuildFromTexture(
+        context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
     ASSERT_FALSE(buildFromTexture);
 }
 
@@ -364,7 +365,7 @@ HWTEST_F(SkiaImageTest, IsLazyGenerated001, TestSize.Level1)
     skiaImage->ReadPixels(pixmap, 100, 100);
     Bitmap bitmap3;
     CubicResampler cubicResampler;
-    SamplingOptions options1{cubicResampler};
+    SamplingOptions options1 { cubicResampler };
     ASSERT_TRUE(!skiaImage->ScalePixels(bitmap3, options1, false));
 }
 
@@ -491,7 +492,7 @@ HWTEST_F(SkiaImageTest, ScalePixels001, TestSize.Level1)
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     Bitmap bitmap;
     CubicResampler cubicResampler;
-    SamplingOptions options1{cubicResampler};
+    SamplingOptions options1 { cubicResampler };
     ASSERT_TRUE(!skiaImage->ScalePixels(bitmap, options1, false));
     SamplingOptions options2;
     ASSERT_TRUE(!skiaImage->ScalePixels(bitmap, options2, true));
@@ -554,7 +555,6 @@ HWTEST_F(SkiaImageTest, CanPeekPixels001, TestSize.Level1)
  */
 HWTEST_F(SkiaImageTest, GetWidth001, TestSize.Level1)
 {
-
     sk_sp<SkImage> img;
     SkiaImage skiaImage;
     skiaImage.SetSkImage(img);
