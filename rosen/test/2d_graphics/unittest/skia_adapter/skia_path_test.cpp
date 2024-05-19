@@ -14,9 +14,11 @@
  */
 
 #include <cstddef>
+
 #include "gtest/gtest.h"
-#include "draw/path.h"
 #include "skia_adapter/skia_path.h"
+
+#include "draw/path.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,23 +50,23 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
     SkiaPath skiaPath;
     skiaPath.MoveTo(0, 0);
     skiaPath.LineTo(100, 100); // 100: x, y
-    skiaPath.LineTo(100, 0); // 100: x
+    skiaPath.LineTo(100, 0);   // 100: x
     skiaPath.Close();
     skiaPath.Reset();
-    skiaPath.ArcTo(0, 0, 100, 100, 90, 90); // 100: pt2X and pt2Y, 90: startAngle and sweepAngle
+    skiaPath.ArcTo(0, 0, 100, 100, 90, 90);                        // 100: pt2X and pt2Y, 90: startAngle and sweepAngle
     skiaPath.ArcTo(0, 0, 90, PathDirection::CW_DIRECTION, 90, 90); // 90: angle, 90: endX and endY
-    skiaPath.ArcTo(0, 0, 90, 90, 10); // 90: x2 and y2, 10: radius
-    skiaPath.CubicTo(0, 0, 100, 100, 100, 200); // 100: angle, direction and endX, 200: endY
-    skiaPath.QuadTo(0, 0, 100, 100); // 100: endX and endY
-    skiaPath.RMoveTo(100, 100); // 100: dx and dy
-    skiaPath.RLineTo(200, 200); // 200: dx and dy
-    skiaPath.RCubicTo(0, 0, 100, 100, 100, 200); // 200: dx and dy
-    skiaPath.RQuadTo(0, 0, 100, 100); // 100: dx2 and dy2
+    skiaPath.ArcTo(0, 0, 90, 90, 10);                              // 90: x2 and y2, 10: radius
+    skiaPath.CubicTo(0, 0, 100, 100, 100, 200);                    // 100: angle, direction and endX, 200: endY
+    skiaPath.QuadTo(0, 0, 100, 100);                               // 100: endX and endY
+    skiaPath.RMoveTo(100, 100);                                    // 100: dx and dy
+    skiaPath.RLineTo(200, 200);                                    // 200: dx and dy
+    skiaPath.RCubicTo(0, 0, 100, 100, 100, 200);                   // 200: dx and dy
+    skiaPath.RQuadTo(0, 0, 100, 100);                              // 100: dx2 and dy2
     skiaPath.AddOval(0, 0, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom
-    skiaPath.AddArc(0, 0, 100, 100, 90, 90); // 100: right, bottom, 90: startAngle, sweepAngle
-    skiaPath.AddCircle(0, 0, 100, PathDirection::CW_DIRECTION); // 100: radius
-    skiaPath.AddRoundRect(0, 0,
-        100, 100, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom, xRadius, yRadius
+    skiaPath.AddArc(0, 0, 100, 100, 90, 90);                       // 100: right, bottom, 90: startAngle, sweepAngle
+    skiaPath.AddCircle(0, 0, 100, PathDirection::CW_DIRECTION);    // 100: radius
+    skiaPath.AddRoundRect(
+        0, 0, 100, 100, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom, xRadius, yRadius
     Path path;
     skiaPath.AddPath(path, 200, 200, PathAddMode::APPEND_PATH_ADD_MODE); // 200: dx and dy
     skiaPath.AddPath(path, PathAddMode::APPEND_PATH_ADD_MODE);
@@ -102,7 +104,7 @@ HWTEST_F(SkiaPathTest, RArcTo001, TestSize.Level1)
  * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPathTest, InitWithInterpolate001, TestSize.Level1)
-{   
+{
     SkiaPath skiaPath;
     Path path;
     Path path2;
@@ -159,7 +161,7 @@ HWTEST_F(SkiaPathTest, Offset002, TestSize.Level1)
 {
     SkiaPath skiaPath;
     Path path;
-    skiaPath.Offset(path, 100, 100); 
+    skiaPath.Offset(path, 100, 100);
 }
 
 } // namespace Drawing
