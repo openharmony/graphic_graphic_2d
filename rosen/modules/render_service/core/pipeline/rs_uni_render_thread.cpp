@@ -178,6 +178,10 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
+    if (tid_ == gettid()) {
+        task();
+        return;
+    }
     std::unique_lock<std::mutex> releaseLock(imageReleaseMutex_);
     imageReleaseTasks_.push_back(task);
 }

@@ -517,7 +517,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // canvas draw
     {
-        Drawing::AutoCanvasRestore acr(*curCanvas_, true);
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         {
             RSSkpCaptureDfx capture(curCanvas_);
