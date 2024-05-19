@@ -388,7 +388,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsNeedSetVSync();
+    bool IsSCBNode();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();

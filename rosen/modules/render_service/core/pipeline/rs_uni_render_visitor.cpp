@@ -138,7 +138,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
     bool result = false;
     auto sortedChildren = node.GetSortedChildren();
-    if (node.IsScbScreen()) {
+    if (node.IsScbScreen() || node.IsSCBNode()) {
         for (const auto& child : *sortedChildren) {
             result = CheckScbReadyToDraw(child);
         }

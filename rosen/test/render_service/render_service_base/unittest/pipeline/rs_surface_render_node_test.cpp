@@ -2464,7 +2464,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
     ASSERT_FALSE(node->opaqueRegionBaseInfo_.hasContainerWindow_);
     node->UpdateOccludedByFilterCache(false);
     ASSERT_FALSE(node->IsOccludedByFilterCache());
-    ASSERT_TRUE(node->IsNeedSetVSync());
+    ASSERT_TRUE(node->IsSCBNode());
     ASSERT_FALSE(node->CheckIfOcclusionChanged());
 }
 
