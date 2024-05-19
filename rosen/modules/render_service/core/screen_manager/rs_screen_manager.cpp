@@ -1106,8 +1106,8 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.id = id;
     info.width = screen->Width();
     info.height = screen->Height();
-    info.phyWidth = screen->PhyWidth();
-    info.phyHeight = screen->PhyHeight();
+    info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
+    info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
     auto ret = screen->GetScreenColorGamut(info.colorGamut);
     if (ret != StatusCode::SUCCESS) {
         info.colorGamut = COLOR_GAMUT_SRGB;

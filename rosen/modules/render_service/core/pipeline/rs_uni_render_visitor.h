@@ -265,6 +265,7 @@ private:
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
+    bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
     // If reusable filter cache covers whole screen, mark lower layer to skip process
@@ -482,6 +483,11 @@ private:
     bool isVisibleRegionDfxEnabled_ = false;
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isCanvasNodeSkipDfxEnabled_ = false;
+    bool isVirtualDirtyEnabled_ = false;
+    bool isVirtualDirtyDfxEnabled_ = false;
+    bool hasMirrorDisplay_ = false;
+    // if display node has skip layer except capsule window
+    bool hasSkipLayer_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     bool isSkipCanvasNodeOutOfScreen_ = false;
@@ -571,6 +577,7 @@ private:
     // variable for occlusion
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedOcclusionRegion_;
+    Occlusion::Region occlusionRegionWithoutSkipLayer_;
 
     bool curDirty_ = false;
     bool curContentDirty_ = false;

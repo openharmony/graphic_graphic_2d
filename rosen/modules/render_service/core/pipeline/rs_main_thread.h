@@ -238,6 +238,7 @@ public:
 
     DeviceType GetDeviceType() const;
     bool IsSingleDisplay();
+    bool HasMirrorDisplay() const;
     bool GetNoNeedToPostTask();
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;

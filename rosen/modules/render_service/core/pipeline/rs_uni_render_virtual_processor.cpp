@@ -17,6 +17,7 @@
 
 #include <ctime>
 
+#include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
@@ -58,7 +59,20 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             node.GetScreenId());
         return false;
     }
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
+    auto rsSurface = node.GetVirtualSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
+            node.GetScreenId());
+        rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
+        node.SetVirtualSurface(rsSurface);
+    }
+#ifdef NEW_RENDER_CONTEXT
+    renderFrame_ = renderEngine_->RequestFrame(
+        std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+#else
+    renderFrame_ = renderEngine_->RequestFrame(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+#endif
     if (renderFrame_ == nullptr) {
         return false;
     }
@@ -82,6 +96,66 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             node.GetScreenId(), mainScreenRotation_, canvasRotation_, node.GetOriginScreenRotation(), scaleMode_);
     }
     return true;
+}
+
+int RSUniRenderVirtualProcessor::GetBufferAge()
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::GetBufferAge renderFrame_ is null.");
+        return 0;
+    }
+    return renderFrame_->GetBufferAge();
+}
+
+void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGW("RSUniRenderVirtualProcessor::SetDirtyInfo renderFrame_ is null.");
+        return;
+    }
+    renderFrame_->SetDamageRegion(damageRegion);
+    if (SetRoiRegionToCodec(damageRegion) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetDirtyInfo SetRoiRegionToCodec failed.");
+    }
+}
+
+GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& damageRegion)
+{
+    auto& rsSurface = renderFrame_->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec surface is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec buffer is null, not support get surfacebuffer.");
+        return GSERROR_NO_BUFFER;
+    }
+
+    RoiRegions roiRegions;
+    if (damageRegion.size() <= ROI_REGIONS_MAX_CNT) {
+        for (auto& rect : damageRegion) {
+            RoiRegionInfo region = RoiRegionInfo{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()};
+            roiRegions.regions[roiRegions.regionCnt++] = region;
+        }
+    } else {
+        RectI mergedRect;
+        for (auto& rect : damageRegion) {
+            mergedRect = mergedRect.JoinRect(rect);
+        }
+        RoiRegionInfo region = RoiRegionInfo{mergedRect.GetLeft(), mergedRect.GetTop(),
+            mergedRect.GetWidth(), mergedRect.GetHeight()};
+        roiRegions.regions[roiRegions.regionCnt++] = region;
+    }
+
+    std::vector<uint8_t> roiRegionsVec;
+    auto ret = MetadataHelper::ConvertMetadataToVec(roiRegions, roiRegionsVec);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec ConvertMetadataToVec failed.");
+        return ret;
+    }
+    return buffer->SetMetadata(BufferHandleAttrKey::ATTRKEY_HDR_DYNAMIC_METADATA, roiRegionsVec);
 }
 
 void RSUniRenderVirtualProcessor::OriginScreenRotation(ScreenRotation screenRotation, float width, float height)
@@ -200,34 +274,46 @@ void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessSurface() is not supported.");
 }
 
+void RSUniRenderVirtualProcessor::CalculateTransform(RSDisplayRenderNode& node)
+{
+    if (isExpand_) {
+        return;
+    }
+    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
+        return;
+    }
+    canvas_->Save();
+    CanvasAdjustment(node, canvasRotation_);
+
+    canvas_->Clear(Drawing::Color::COLOR_BLACK);
+    Drawing::Matrix invertMatrix;
+    if (screenTransformMatrix_.Invert(invertMatrix)) {
+        canvas_->ConcatMatrix(invertMatrix);
+    }
+    
+    JudgeResolution(node);
+    ScaleMirrorIfNeed(node);
+    RotateMirrorCanvasIfNeed(node, canvasRotation_);
+    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ProcessDisplaySurface:(%f, %f, %f, %f), " \
+        "rotation:%d, oriRotation:%d",
+        mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
+        static_cast<int>(node.GetScreenRotation()), static_cast<int>(node.GetOriginScreenRotation()));
+    canvasMatrix_ = canvas_->GetTotalMatrix();
+}
+
 void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
-    if (!isExpand_) {
-        if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
-            RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
-            return;
-        }
-        CanvasAdjustment(node, canvasRotation_);
-
-        canvas_->Save();
-        canvas_->Clear(Drawing::Color::COLOR_BLACK);
-        Drawing::Matrix invertMatrix;
-        if (screenTransformMatrix_.Invert(invertMatrix)) {
-            canvas_->ConcatMatrix(invertMatrix);
-        }
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
-        
-        JudgeResolution(node);
-        ScaleMirrorIfNeed(node);
-        RotateMirrorCanvasIfNeed(node, canvasRotation_);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ProcessDisplaySurface:(%f, %f, %f, %f), " \
-            "rotation:%d, oriRotation:%d",
-            mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
-            static_cast<int>(node.GetScreenRotation()), static_cast<int>(node.GetOriginScreenRotation()));
-
-        renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
-        canvas_->Restore();
+    if (isExpand_) {
+        return;
     }
+    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
+        return;
+    }
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
+    renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+    canvas_->Restore();
 }
 
 void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,

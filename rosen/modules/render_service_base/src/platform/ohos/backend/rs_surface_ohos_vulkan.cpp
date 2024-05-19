@@ -186,6 +186,14 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     return ret;
 }
 
+sptr<SurfaceBuffer> RSSurfaceOhosVulkan::GetCurrentBuffer()
+{
+    if (mSurfaceList.empty()) {
+        return nullptr;
+    }
+    return mSurfaceList.back()->sfbuffer;
+}
+
 void RSSurfaceOhosVulkan::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
 }
