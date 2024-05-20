@@ -37,7 +37,8 @@ ohos_source_set("create_pixelmap_surface_src") {
   sources = [ "src/pixel_map_from_surface.cpp" ]
 
   deps = [
-    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",

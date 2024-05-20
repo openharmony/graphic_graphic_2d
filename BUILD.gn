@@ -67,10 +67,6 @@ group("libfence") {
   public_deps = [ "frameworks/fence:libfence" ]
 }
 
-group("libgl") {
-  public_deps = libgl
-}
-
 group("libvulkan") {
   public_deps = libvulkan
 }

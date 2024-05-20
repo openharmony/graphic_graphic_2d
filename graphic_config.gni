@@ -116,13 +116,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   rs_enable_gpu = true
   surface_enable_gpu = true
 
-  # libgl is a native stub for decoupling system.img and vendor.img
-  # real libgl installed in /vendor/lib/chipsetsdk
-  libgl = [
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-  ]
-
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
     libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
@@ -132,7 +125,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
-  libgl = []
   libvulkan = []
 }
 

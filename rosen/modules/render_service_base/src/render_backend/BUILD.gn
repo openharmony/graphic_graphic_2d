@@ -74,8 +74,9 @@ ohos_static_library("librender_backend") {
     include_dirs += [ "//third_party/skia" ]
 
     public_deps += [
-      "$graphic_2d_root:libgl",
       "$graphic_2d_root:libvulkan",
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     ]
 

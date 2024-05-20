@@ -33,7 +33,8 @@ ohos_executable("test_effect_chain") {
     ]
 
     deps = [
-      "$graphic_2d_root:libgl",
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
       "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     ]

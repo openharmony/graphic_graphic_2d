@@ -219,7 +219,8 @@ template("render_service_client_source_set") {
       }
     } else if (rosen_preview) {
       deps += [
-        "$graphic_2d_root:libgl",
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
       ]
 

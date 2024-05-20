@@ -311,7 +311,10 @@ template("graphics2d_source_set") {
           "EGL_EGLEXT_PROTOTYPES",
         ]
       }
-      public_deps += [ "$graphic_2d_root:libgl" ]
+      public_deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+      ]
       external_deps += [ "c_utils:utils" ]
       public_external_deps = [ "graphic_surface:surface" ]
     }

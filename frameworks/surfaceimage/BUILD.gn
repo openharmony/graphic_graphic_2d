@@ -51,7 +51,10 @@ ohos_shared_library("libnative_image") {
 
   public_configs = [ ":libnative_image_public_config" ]
 
-  deps = [ "$graphic_2d_root:libgl" ]
+  deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
 
   output_extension = "so"
 

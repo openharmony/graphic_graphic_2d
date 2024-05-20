@@ -195,13 +195,21 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d:libgl",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "header": {
               "header_files": [
               ],
               "header_base": [
-                  "//third_party/openGLES:libGLES",
-                  "//third_party/EGL:libEGL"
+              ]
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
               ]
             }
           },

@@ -45,7 +45,10 @@ ohos_shared_library("skeffectchain") {
 
   if (ace_enable_gpu) {
     defines = gpu_defines
-    public_deps += [ "$graphic_2d_root:libgl" ]
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
   }
 
   public_deps += [ "//third_party/skia:skia_ohos" ]

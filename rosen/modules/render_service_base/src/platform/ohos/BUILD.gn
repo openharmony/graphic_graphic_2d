@@ -141,8 +141,9 @@ ohos_source_set("rosen_ohos_sources") {
     include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     public_deps += [
-      "$graphic_2d_root:libgl",
       "$graphic_2d_root:libvulkan",
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
 
     public_external_deps += [ "openssl:libcrypto_shared" ]

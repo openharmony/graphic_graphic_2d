@@ -53,7 +53,8 @@ ohos_static_library("gl_utils") {
   public_configs = [ ":gl_utils_public_config" ]
 
   public_deps = [
-    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "..:libgslogger",
     "..:matrix",
   ]
