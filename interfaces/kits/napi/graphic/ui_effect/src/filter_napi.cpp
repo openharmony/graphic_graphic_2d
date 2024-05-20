@@ -244,8 +244,8 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     }
     para->stretchTileMode_ = tileMode;
     if (argCount >= NUM_2) {
-        IMG_NAPI_CHECK_RET_D(GetStretchPercent(
-                env, argValue[NUM_1], para), nullptr, FILTER_LOG_E("fail to parse coordinates"));
+        IMG_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_1], para),
+            nullptr, FILTER_LOG_E("fail to parse coordinates"));
     }
 
     Filter* filterObj = nullptr;
