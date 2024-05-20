@@ -53,6 +53,16 @@ struct GEKawaseBlurShaderFilterParams {
     int radius;
 };
 
+constexpr char GE_FILTER_HPS_BLUR[] = "HPS_BLUR";
+constexpr char GE_FILTER_HPS_BLUR_RADIUS[] = "HPS_BLUR_RADIUS";
+constexpr char GE_FILTER_HPS_BLUR_SATURATION[] = "HPS_BLUR_SATURATION";
+constexpr char GE_FILTER_HPS_BLUR_BRIGHTNESS[] = "HPS_BLUR_BRIGHTNESS";
+struct HpsBlurFilterParams {
+    float radius;
+    float saturation;
+    float brightness;
+};
+
 constexpr char GE_FILTER_LINEAR_GRADIENT_BLUR[] = "LINEAR_GRADIENT_BLUR";
 constexpr char GE_FILTER_LINEAR_GRADIENT_BLUR_DIRECTION[] = "DIRECTION";
 constexpr char GE_FILTER_LINEAR_GRADIENT_BLUR_IS_OFF_SCREEN[] = "ISOFFSCREEN";
