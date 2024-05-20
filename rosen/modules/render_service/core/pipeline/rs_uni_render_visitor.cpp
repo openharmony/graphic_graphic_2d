@@ -1235,7 +1235,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
         needRequestNextVsync_ = false;
     }
-    RSUifirstManager::Instance().SetRotationChanged(node.IsRotationChanged());
+    RSUifirstManager::Instance().SetRotationChanged(node.IsRotationChanged() || isScreenRotationAnimating_);
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         QuickPrepareChildren(node);
     }
