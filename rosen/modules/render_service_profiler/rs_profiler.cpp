@@ -1189,7 +1189,8 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 
     // get first frame data
     FirstFrameUnmarshalling(dataFirstFrame);
-    g_playbackWaitFrames = 50;
+    constexpr int defaultWaitFrames = 50;
+    g_playbackWaitFrames = defaultWaitFrames;
     AwakeRenderServiceThread();
 }
 
