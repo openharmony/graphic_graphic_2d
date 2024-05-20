@@ -2207,7 +2207,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
             "has transparentCleanFilter", surfaceNode->GetName().c_str());
         // check accumulatedDirtyRegion influence filter nodes which in the current surface
         for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
-            auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
+            auto filterNode = nodeMap.GetRenderNode(it->first);
             if (filterNode == nullptr) {
                 continue;
             }

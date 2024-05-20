@@ -1,4 +1,4 @@
-/*RSCanvasRenderParams
+/*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
-#define RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+#ifndef RENDER_SERVICE_BASE_PARAMS_RS_EFFECT_RENDER_PARAMS_H
+#define RENDER_SERVICE_BASE_PARAMS_RS_EFFECT_RENDER_PARAMS_H
 
 #include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
-class RSCanvasRenderParams : public RSRenderParams {
+class RSB_EXPORT RSEffectRenderParams : public RSRenderParams {
 public:
-    explicit RSCanvasRenderParams(NodeId id);
-    virtual ~RSCanvasRenderParams() = default;
+    explicit RSEffectRenderParams(NodeId id);
+    ~RSEffectRenderParams() override = default;
+    void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
+    void SetCacheValid(bool valid);
+    bool GetCacheValid() const;
 
 private:
+    bool cacheValid_ = false;
+    bool hasEffectChildren_ = false;
 };
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+#endif // RENDER_SERVICE_BASE_PARAMS_RS_EFFECT_RENDER_PARAMS_H

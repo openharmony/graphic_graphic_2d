@@ -469,10 +469,9 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSBackgroundEffectDrawable::OnSync()
 {
-    hasEffectChildren_ = stagingHasEffectChildren_;
     RSFilterDrawable::OnSync();
     // clear both cache image when it has no effect children and will not draw in this frame
-    if (!hasEffectChildren_) {
+    if (!stagingHasEffectChildren_) {
         lastCacheType_ = FilterCacheType::NONE;
     }
     stagingHasEffectChildren_ = false;
@@ -482,12 +481,10 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas && ptr && ptr->filter_ && ptr->hasEffectChildren_) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
-            RSPropertyDrawableUtils::DrawBackgroundEffect(
-                paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->clearFilteredCacheAfterDrawing_);
-        }
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
+        RSPropertyDrawableUtils::DrawBackgroundEffect(
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->clearFilteredCacheAfterDrawing_);
     };
 }
 

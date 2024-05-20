@@ -241,7 +241,7 @@ public:
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
-            return RectI();
+            return {};
         }
         return lastFrameSurfacePos_[id];
     }
@@ -249,7 +249,7 @@ public:
     RectI GetCurrentFrameSurfacePos(NodeId id)
     {
         if (currentFrameSurfacePos_.count(id) == 0) {
-            return RectI();
+            return {};
         }
         return currentFrameSurfacePos_[id];
     }
@@ -257,14 +257,14 @@ public:
     const std::vector<RectI> GetSurfaceChangedRects() const
     {
         std::vector<RectI> rects;
-        for (auto iter = lastFrameSurfacePos_.begin(); iter != lastFrameSurfacePos_.end(); iter++) {
-            if (currentFrameSurfacePos_.find(iter->first) == currentFrameSurfacePos_.end()) {
-                rects.emplace_back(iter->second);
+        for (const auto& lastFrameSurfacePo : lastFrameSurfacePos_) {
+            if (currentFrameSurfacePos_.find(lastFrameSurfacePo.first) == currentFrameSurfacePos_.end()) {
+                rects.emplace_back(lastFrameSurfacePo.second);
             }
         }
-        for (auto iter = currentFrameSurfacePos_.begin(); iter != currentFrameSurfacePos_.end(); iter++) {
-            if (lastFrameSurfacePos_.find(iter->first) == lastFrameSurfacePos_.end()) {
-                rects.emplace_back(iter->second);
+        for (const auto& currentFrameSurfacePo : currentFrameSurfacePos_) {
+            if (lastFrameSurfacePos_.find(currentFrameSurfacePo.first) == lastFrameSurfacePos_.end()) {
+                rects.emplace_back(currentFrameSurfacePo.second);
             }
         }
         return rects;
@@ -391,7 +391,7 @@ public:
     {
         auto iter = surfaceDstRects_.find(id);
         if (iter == surfaceDstRects_.cend()) {
-            return RectI();
+            return {};
         }
 
         return iter->second;
@@ -401,7 +401,7 @@ public:
     {
         auto iter = surfaceTotalMatrix_.find(id);
         if (iter == surfaceTotalMatrix_.cend()) {
-            return Drawing::Matrix();
+            return {};
         }
 
         return iter->second;

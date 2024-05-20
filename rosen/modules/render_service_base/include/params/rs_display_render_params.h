@@ -28,7 +28,7 @@ namespace OHOS::Rosen {
 class RSB_EXPORT RSDisplayRenderParams : public RSRenderParams {
 public:
     explicit RSDisplayRenderParams(NodeId id);
-    virtual ~RSDisplayRenderParams() = default;
+    ~RSDisplayRenderParams() override = default;
 
     void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 

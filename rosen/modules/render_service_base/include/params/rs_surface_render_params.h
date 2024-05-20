@@ -55,7 +55,7 @@ struct RSLayerInfo {
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
-    virtual ~RSSurfaceRenderParams() = default;
+    ~RSSurfaceRenderParams() override = default;
     bool IsMainWindowType() const
     {
         return isMainWindowType_;
