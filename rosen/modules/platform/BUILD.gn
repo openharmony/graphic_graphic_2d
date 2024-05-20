@@ -57,6 +57,10 @@ ohos_source_set("impl_eventhandler") {
     "libuv:uv",
   ]
 
+  if (is_arkui_x) {
+    defines += [ "CROSSPLATFORM" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

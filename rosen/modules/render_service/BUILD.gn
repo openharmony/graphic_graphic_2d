@@ -220,7 +220,7 @@ ohos_shared_library("librender_service") {
 
   if (rosen_is_ohos) {
     sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
-  } else {
+  } else if (!is_arkui_x) {
     sources +=
         [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }

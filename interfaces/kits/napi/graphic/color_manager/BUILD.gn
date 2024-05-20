@@ -48,6 +48,10 @@ template("color_space_object_convertor_source_set") {
       "hilog:libhilog",
       "napi:ace_napi",
     ]
+    if (is_arkui_x) {
+      deps = [ "//foundation/arkui/napi:ace_napi", ]
+      include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
@@ -108,6 +112,11 @@ template("colorspacemanager_napi_source_set") {
       "hilog:libhilog",
       "napi:ace_napi",
     ]
+
+    if (is_arkui_x) {
+      deps = [ "//foundation/arkui/napi:ace_napi", ]
+      include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
