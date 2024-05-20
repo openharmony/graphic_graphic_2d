@@ -32,13 +32,15 @@ namespace Rosen {
 class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener {
 public:
     using VSyncCallback = std::function<void(int64_t, void*)>;
+    using VSyncCallbackWithId = std::function<void(int64_t, int64_t, void*)>;
     struct FrameCallback {
         void *userData_;
         VSyncCallback callback_;
+        VSyncCallbackWithId callbackWithId_;
     };
-    VSyncCallBackListener() : period_(0), timeStamp_(0), vsyncCallbacks_(nullptr), userData_(nullptr)
-    {
-    }
+    VSyncCallBackListener()
+        : period_(0), timeStamp_(0), vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr), userData_(nullptr)
+    {}
 
     ~VSyncCallBackListener()
     {
@@ -46,8 +48,9 @@ public:
     void SetCallback(FrameCallback cb)
     {
         std::lock_guard<std::mutex> locker(mtx_);
-        vsyncCallbacks_ = cb.callback_;
         userData_ = cb.userData_;
+        vsyncCallbacks_ = cb.callback_;
+        vsyncCallbacksWithId_ = cb.callbackWithId_;
     }
     void SetName(std::string &name)
     {
@@ -72,6 +75,7 @@ public:
 private:
     void OnReadable(int32_t fileDescriptor) override;
     VSyncCallback vsyncCallbacks_;
+    VSyncCallbackWithId vsyncCallbacksWithId_;
     void *userData_;
     std::mutex mtx_;
     std::string name_;
