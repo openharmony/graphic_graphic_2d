@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_UIEFFECT_FILTER_NAPI_H
+#define OHOS_UIEFFECT_FILTER_NAPI_H
 
 #include <hilog/log.h>
 #include <iostream>
@@ -53,3 +55,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
+#endif // OHOS_UIEFFECT_FILTER_NAPI_H

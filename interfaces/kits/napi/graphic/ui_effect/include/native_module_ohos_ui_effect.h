@@ -12,7 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
+#define OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
 
 #include "effect_napi.h"
 #include "filter_napi.h"
 #include "napi/native_node_api.h"
+
+#endif // OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
