@@ -302,6 +302,7 @@ private:
     static void PlaybackUpdate();
 
     static void PlaybackPrepare(const ArgList& args);
+    static void PlaybackPrepareFirstFrame(const ArgList& args);
     static void PlaybackPause(const ArgList& args);
     static void PlaybackPauseAt(const ArgList& args);
     static void PlaybackPauseClear(const ArgList& args);

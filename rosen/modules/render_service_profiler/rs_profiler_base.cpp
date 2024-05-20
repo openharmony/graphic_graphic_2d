@@ -587,6 +587,7 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
             node->SetContentDirty();
+            node->SetDirty();
         }
     });
 }
