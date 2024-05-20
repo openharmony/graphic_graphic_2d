@@ -736,9 +736,9 @@ bool RSSymbolAnimation::GetKeyframeAlphaAnimationParas(
         return false;
     }
     totalDuration = 0;
-    int interval = 0;
     // traverse all time stages
     for (unsigned int i = 0; i < oneGroupParas.size(); i++) {
+        int interval = 0;
         if (i + 1 < oneGroupParas.size()) {
             interval = oneGroupParas[i + 1].delay -
                        (static_cast<int>(oneGroupParas[i].duration) + oneGroupParas[i].delay);
@@ -774,9 +774,9 @@ bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const
         return false;
     }
     uint32_t duration = 0;
-    int interval = 0;
     timePercents.push_back(0); // the first property of timePercent
     for (int i = 0; i < static_cast<int>(oneGroupParas.size()) - 1; i++) {
+        int interval = 0;
         duration = duration + oneGroupParas[i].duration;
         SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
         interval = oneGroupParas[i + 1].delay -
