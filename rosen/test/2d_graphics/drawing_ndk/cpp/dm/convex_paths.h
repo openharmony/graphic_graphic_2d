@@ -20,7 +20,7 @@
 #include <native_drawing/drawing_mask_filter.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 
 #include "common/log_common.h"

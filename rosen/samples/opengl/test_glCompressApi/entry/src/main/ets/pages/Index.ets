@@ -31,9 +31,9 @@ struct Index {
             hilog.info(0x0000, 'testTag', 'Test glCompressApi = %{public}d',
               testNapi.testGlCompressApi());
             if (testNapi.testGlCompressApi() == 0) {
-              this.message = "testGlCompressApi succeeded.";
+              this.message = 'testGlCompressApi succeeded.';
             } else {
-              this.message = "testGlCompressApi failed.";
+              this.message = 'testGlCompressApi failed.';
             }
           })
       }

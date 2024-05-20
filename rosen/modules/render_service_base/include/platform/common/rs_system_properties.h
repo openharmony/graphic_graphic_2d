@@ -97,21 +97,16 @@ enum class SubTreePrepareCheckType {
     ENABLED = 2,                        // 2, Enable the IsSubTreeNeedPrepare check
 };
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
 enum class DdgrOpincType {
-    DDGR_OPINC_NONE = 0,
-    DDGR_AUTOCACHE,
-    DDGR_AUTOCACHE_REALDRAW,
-    DDGR_RENDERCACHE,
-    DDGR_OPINCUPDATE,
-    DDGR_UNRESTRICTED_MODE,
+    OPINC_NONE = 0,
+    OPINC_AUTOCACHE,
+    OPINC_AUTOCACHE_REALDRAW,
 };
 
 enum class DdgrOpincDfxType {
-    DDGR_OPINC_DFX_NONE,
-    DDGR_OPINC_DFX_AUTO,
+    OPINC_DFX_NONE,
+    OPINC_DFX_AUTO,
 };
-#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
@@ -129,6 +124,8 @@ public:
     static bool GetProfilerEnabled();
     static bool GetInstantRecording();
     static void SetInstantRecording(bool flag);
+    static uint32_t GetBetaRecordingMode();
+    static void SetBetaRecordingMode(uint32_t param);
     static bool GetSaveRDC();
     static void SetSaveRDC(bool flag);
 
@@ -139,6 +136,8 @@ public:
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static bool GetVirtualDirtyDebugEnabled();
+    static bool GetVirtualDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
@@ -227,14 +226,13 @@ public:
     static bool IsForceClient();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();
+    static bool GetGpuOverDrawBufferOptimizeEnabled();
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
@@ -256,6 +254,8 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static int GetRSNodeLimit();
+
 private:
     RSSystemProperties() = default;
 
@@ -263,10 +263,8 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static const GpuApiType systemGpuApiType_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;
-#endif
 };
 
 } // namespace Rosen

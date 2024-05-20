@@ -1506,4 +1506,264 @@ HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
         ASSERT_NE(node->frameModifier_, nullptr);
     }
 }
+
+/**
+ * @tc.name: OpincSetInAppState
+ * @tc.desc: test OpincSetInAppStateStart and OpincSetInAppStateEnd
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincSetInAppState, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    bool unchangeMarkInApp = false;
+    node->OpincSetInAppStateStart(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+    node->OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_FALSE(unchangeMarkInApp);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode01
+ * @tc.desc: test OpincQuickMarkStableNode when content dirty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetContentDirty();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode02
+ * @tc.desc: test OpincQuickMarkStableNode when subtree dirty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetSubTreeDirty(true);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode03
+ * @tc.desc: test OpincQuickMarkStableNode default
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
+}
+
+/**
+ * @tc.name: OpincUpdateRootFlag
+ * @tc.desc: test OpincUpdateRootFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincUpdateRootFlag, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->isUnchangeMarkEnable_ = true;
+    bool unchangeMarkEnable = true;
+    node->OpincUpdateRootFlag(unchangeMarkEnable);
+    ASSERT_FALSE(node->isUnchangeMarkEnable_);
+    ASSERT_FALSE(unchangeMarkEnable);
+}
+
+/**
+ * @tc.name: IsOpincUnchangeState
+ * @tc.desc: test result of IsOpincUnchangeState
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsOpincUnchangeState, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->IsOpincUnchangeState());
+    node->isSuggestOpincNode_ = true;
+    node->isOpincNodeSupportFlag_ = true;
+    node->nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    ASSERT_TRUE(node->IsOpincUnchangeState());
+}
+
+/**
+ * @tc.name: OpincUpdateNodeSupportFlag01
+ * @tc.desc: test result of OpincGetNodeSupportFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->OpincUpdateNodeSupportFlag(false);
+    ASSERT_FALSE(node->OpincGetNodeSupportFlag());
+}
+
+/**
+ * @tc.name: OpincUpdateNodeSupportFlag02
+ * @tc.desc: test result of OpincGetNodeSupportFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->OpincUpdateNodeSupportFlag(true);
+    ASSERT_TRUE(node->OpincGetNodeSupportFlag());
+}
+
+/**
+ * @tc.name: IsMarkedRenderGroup01
+ * @tc.desc: test result of IsMarkedRenderGroup
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup01, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->IsMarkedRenderGroup());
+    node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+    ASSERT_TRUE(node->IsMarkedRenderGroup());
+}
+
+/**
+ * @tc.name: IsMarkedRenderGroup02
+ * @tc.desc: test result of IsMarkedRenderGroup
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup02, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->isOpincRootFlag_ = true;
+    ASSERT_TRUE(node->IsMarkedRenderGroup());
+}
+
+/**
+ * @tc.name: OpincForcePrepareSubTree
+ * @tc.desc: test result of OpincForcePrepareSubTree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincForcePrepareSubTree, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_EQ(node->OpincForcePrepareSubTree(), false);
+    node->isSuggestOpincNode_ = true;
+    node->isOpincRootFlag_ = false;
+    node->isOpincNodeSupportFlag_ = true;
+    ASSERT_TRUE(node->OpincForcePrepareSubTree());
+}
+
+/**
+ * @tc.name: OpincGetRootFlag
+ * @tc.desc: test result of OpincGetRootFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincGetRootFlag, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->OpincGetRootFlag());
+    node->isOpincRootFlag_ = true;
+    ASSERT_TRUE(node->OpincGetRootFlag());
+}
+
+/**
+ * @tc.name: MarkSuggestOpincNode
+ * @tc.desc: test MarkSuggestOpincNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    bool isOpincNode = true;
+    bool isNeedCalculate = true;
+    node->MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
+    ASSERT_TRUE(node->GetSuggestOpincNode());
+    ASSERT_TRUE(node->isNeedCalculate_);
+    ASSERT_TRUE(node->IsDirty());
+}
+
+/**
+ * @tc.name: GetSuggestOpincNode
+ * @tc.desc: test result of GetSuggestOpincNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, GetSuggestOpincNode, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->GetSuggestOpincNode());
+}
+
+/**
+ * @tc.name: NodeCacheStateChange01
+ * @tc.desc: test node cache state change
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange01, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
+    node->NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
+    node->NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
+    node->NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_UNCHANGE);
+}
+
+/**
+ * @tc.name: NodeCacheStateChange02
+ * @tc.desc: test node cache state change
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange02, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: NodeCacheStateReset
+ * @tc.desc: test reset node cache state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateReset, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+    node->NodeCacheStateReset(NodeCacheState::STATE_UNCHANGE);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_UNCHANGE);
+    node->NodeCacheStateReset(NodeCacheState::STATE_DISABLE);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_DISABLE);
+}
 } // namespace OHOS::Rosen

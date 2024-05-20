@@ -60,6 +60,14 @@ public:
     const RunBuffer& AllocRunPos(const Font& font, int count,
                                  const Rect* bounds = nullptr);
 
+    /**
+     * @brief         Alloc run with storage for glyphs and affine matrix.
+     * @param font    Font used for this run
+     * @param count   Number of glyphs
+     * @return        Run with storage for glyphs and affine matrix.
+     */
+    const RunBuffer& AllocRunRSXform(const Font& font, int count);
+
 private:
     std::shared_ptr<TextBlobBuilderImpl> textBlobBuilderImpl_;
 };

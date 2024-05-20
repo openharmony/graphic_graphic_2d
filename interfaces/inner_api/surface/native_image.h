@@ -201,6 +201,19 @@ int32_t OH_NativeImage_UnsetOnFrameAvailableListener(OH_NativeImage* image);
  */
 void OH_NativeImage_Destroy(OH_NativeImage** image);
 
+/**
+ * @brief Obtains the transform matrix of the texture image by producer transform type.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param matrix Indicates the retrieved 4*4 transform matrix .
+ * @return 0 - Success.
+ *     40001000 - image is NULL.
+ * @since 12
+ * @version 1.0
+ */
+int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16]);
+
 #ifdef __cplusplus
 }
 #endif

@@ -14,6 +14,7 @@
  */
 
 #include "drawing_pen.h"
+#include "drawing_helper.h"
 
 #include "draw/pen.h"
 
@@ -59,11 +60,6 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
 static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
 {
     return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
-}
-
-static PathEffect* CastToPathEffect(OH_Drawing_PathEffect* cPathEffect)
-{
-    return reinterpret_cast<PathEffect*>(cPathEffect);
 }
 
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
@@ -311,7 +307,12 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cP
     if (pen == nullptr) {
         return;
     }
-    pen->SetPathEffect(std::shared_ptr<PathEffect>{CastToPathEffect(cPathEffect), [](auto p) {}});
+    if (cPathEffect == nullptr) {
+        pen->SetPathEffect(nullptr);
+        return;
+    }
+    auto pathEffectHandle = Helper::CastTo<OH_Drawing_PathEffect*, NativeHandle<PathEffect>*>(cPathEffect);
+    pen->SetPathEffect(pathEffectHandle->value);
 }
 
 void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* cShadowlayer)

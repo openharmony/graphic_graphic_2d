@@ -185,6 +185,14 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     paragraph_->paint(&painter, x, y);
 }
 
+void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset)
+{
+    RSCanvasParagraphPainter painter(canvas, paints_);
+    painter.SetAnimation(animationFunc_);
+    painter.SetParagraphId(id_);
+    paragraph_->paint(&painter, path, hOffset, vOffset);
+}
+
 std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
     RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle)
 {

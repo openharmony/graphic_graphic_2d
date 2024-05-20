@@ -1025,9 +1025,6 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     }
 
     TextBlob::Context ctx {typeface, false};
-    if (typeface != nullptr) {
-        ctx.SetIsCustomTypeface(true);
-    }
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, &ctx);
 }
 

@@ -160,6 +160,7 @@ private:
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+    void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
 
     // UIFIRST
     UIFirstParams uiFirstParams;

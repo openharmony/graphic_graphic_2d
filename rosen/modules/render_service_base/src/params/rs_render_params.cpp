@@ -255,6 +255,43 @@ bool RSRenderParams::GetDrawingCacheIncludeProperty() const
     return drawingCacheIncludeProperty_;
 }
 
+void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
+{
+    if (isOpincRootFlag_ == suggestFlag) {
+        return;
+    }
+    isOpincRootFlag_ = suggestFlag;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincGetRootFlag() const
+{
+    return isOpincRootFlag_;
+}
+
+void RSRenderParams::OpincSetCacheChangeFlag(bool state)
+{
+    isOpincStateChanged_ = state;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincGetCacheChangeState()
+{
+    bool state = isOpincStateChanged_;
+    isOpincStateChanged_ = false;
+    return state;
+}
+
+bool RSRenderParams::OpincGetCachedMark()
+{
+    return isOpincMarkCached_;
+}
+
+void RSRenderParams::OpincSetCachedMark(bool mark)
+{
+    isOpincMarkCached_ = mark;
+}
+
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 {
     if (shadowRect_ == rect) {
@@ -350,6 +387,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
     OnCanvasDrawingSurfaceChange(target);
+    target->isOpincRootFlag_ = isOpincRootFlag_;
+    target->isOpincStateChanged_ = OpincGetCacheChangeState();
     needSync_ = false;
 }
 

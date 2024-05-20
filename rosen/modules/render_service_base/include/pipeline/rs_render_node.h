@@ -120,8 +120,13 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
+    void MergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
+    inline bool LastFrameSubTreeSkipped() const
+    {
+        return lastFrameSubTreeSkipped_;
+    }
 
     inline WeakPtr GetParent() const
     {
@@ -141,10 +146,11 @@ public:
     }
 
     bool IsFirstLevelNode();
-    bool IsSubSurfaceNode();
     bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
     void AddSubSurfaceNode(SharedPtr parent);
     void RemoveSubSurfaceNode(SharedPtr parent);
+    void UpdateChildSubSurfaceNode();
+    bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
     inline static const bool isSubSurfaceEnabled_ =
         RSSystemProperties::GetSubSurfaceEnabled() && RSSystemProperties::IsPhoneType();
 
@@ -380,12 +386,6 @@ public:
         return isCacheSurfaceNeedUpdate_;
     }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    Vector4f GetOptionBufferBound() const;
-    Vector2f GetOpincBufferSize() const;
-    Drawing::Rect GetOpincBufferBound() const;
-#endif
-
     int GetShadowRectOffsetX() const;
     int GetShadowRectOffsetY() const;
 
@@ -473,16 +473,19 @@ public:
     void MarkFilterHasEffectChildren();
 
     // for blur filter cache
+    virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(RSDirtyRegionManager& dirtyManager,
-        bool dirtyBelowContainsFilterNode = false, bool rotationChanged = false);
+    void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+    void CheckFilterCacheAndUpdateDirtySlots(
+        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
@@ -492,12 +495,7 @@ public:
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
     enum NodeGroupType : uint8_t {
         NONE = 0,
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        GROUPED_BY_AUTO = 1,
-        GROUPED_BY_ANIM = GROUPED_BY_AUTO << 1,
-#else
         GROUPED_BY_ANIM = 1,
-#endif
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUP_TYPE_BUTT = GROUPED_BY_USER,
@@ -508,6 +506,30 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
+
+    // mark stable node
+    void OpincSetInAppStateStart(bool& unchangeMarkInApp);
+    void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
+    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable);
+    bool IsOpincUnchangeState();
+    std::string QuickGetNodeDebugInfo();
+
+    // mark support node
+    void OpincUpdateNodeSupportFlag(bool supportFlag);
+    virtual bool OpincGetNodeSupportFlag()
+    {
+        return isOpincNodeSupportFlag_;
+    }
+    bool IsMarkedRenderGroup();
+    bool OpincForcePrepareSubTree();
+
+    // sync to drawable
+    void OpincUpdateRootFlag(bool& unchangeMarkEnable);
+    bool OpincGetRootFlag() const;
+
+    // arkui mark
+    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
+    bool GetSuggestOpincNode() const;
 
     /////////////////////////////////////////////
 
@@ -556,14 +578,6 @@ public:
     {
         isTextureExportNode_ = isTextureExportNode;
     }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    class RSAutoCache;
-    const std::shared_ptr<RSAutoCache>& GetAutoCache();
-    bool isOpincRectOutParent_ = false;
-    bool isOpincPrepareDis_ = false;
-    bool isOpincRootNode_ = false;
-#endif
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
@@ -660,11 +674,14 @@ public:
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
+    bool IsEffectNodeShouldNotPaint() const;
+    bool HasBlurFilter() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
 
 protected:
     virtual void OnApplyModifiers() {}
+    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
     enum class NodeDirty {
         CLEAN = 0,
@@ -732,8 +749,10 @@ protected:
     bool clipAbsDrawRectChange_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
-    virtual void MarkFilterCacheFlagsAfterPrepare(
-        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false);
+    virtual void MarkFilterCacheFlags(
+        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDirtyRegionManager& dirtyManager,
+        bool needRequestNextVsync);
+    bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
     std::atomic<bool> isStaticCached_ = false;
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
@@ -776,6 +795,7 @@ private:
     std::atomic<bool> isTunnelHandleChange_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
+    bool lastFrameSubTreeSkipped_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     RectI absChildrenRect_;
@@ -816,9 +836,24 @@ private:
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    std::shared_ptr<RSAutoCache> autoCache_;
-#endif
+
+    // opinc state
+    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
+    int unchangeCount_ = 0;
+    int unchangeCountUpper_ = 3; // 3 time is the default to cache
+    int tryCacheTimes_ = 0;
+    bool isUnchangeMarkInApp_ = false;
+    bool isUnchangeMarkEnable_ = false;
+
+    bool isOpincNodeSupportFlag_ = true;
+    bool isSuggestOpincNode_ = false;
+    bool isNeedCalculate_ = false;
+    bool isOpincRootFlag_ = false;
+
+    // opinc state func
+    void NodeCacheStateChange(NodeChangeType type);
+    void SetCacheStateByRetrytime();
+    void NodeCacheStateReset(NodeCacheState nodeCacheState);
 
     std::shared_ptr<Drawing::Image> GetCompletedImage(
         RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
@@ -957,6 +992,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    friend class RSRenderNodeGC;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

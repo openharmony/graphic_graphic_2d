@@ -105,7 +105,10 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
@@ -210,6 +213,18 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
+        return SURFACE_ERROR_UNKOWN;
+    }
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+                        currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
+    if (ret != EOK) {
+        BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");
         return SURFACE_ERROR_UNKOWN;
     }
     return SURFACE_ERROR_OK;

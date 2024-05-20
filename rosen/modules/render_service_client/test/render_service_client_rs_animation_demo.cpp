@@ -26,8 +26,8 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-#include "wm/window.h"
-#include "wm/window_scene.h"
+#include "window.h"
+#include "window_scene.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -80,7 +80,7 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
         return;
     }
     Drawing::Brush brush;
-    brush.SetAntiAilas(true);
+    brush.SetAntiAlias(true);
     brush.SetColor(color);
 
     canvas->AttachBrush(brush);
@@ -113,9 +113,7 @@ int main()
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     rsUiDirector->SetUITaskRunner(
-        [handler](const std::function<void()>& task) {
-            handler->PostTask(task);
-        });
+        [handler](const std::function<void()>& task, uint32_t delay) { handler->PostTask(task); });
     runner->Run();
 
     RSTransaction::FlushImplicitTransaction();

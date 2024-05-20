@@ -135,6 +135,7 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_display_render_node_drawable.cpp",
     "core/drawable/rs_effect_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_drawable_autocache.cpp",
     "core/drawable/rs_root_render_node_drawable.cpp",
     "core/drawable/rs_surface_render_node_drawable.cpp",
     "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
@@ -194,10 +195,6 @@ ohos_shared_library("librender_service") {
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-  }
-
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 
   deps = [

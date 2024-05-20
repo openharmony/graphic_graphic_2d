@@ -53,6 +53,18 @@ const TextBlobBuilder::RunBuffer& SkiaTextBlobBuilder::AllocRunPos(const Font& f
     SkiaConvertUtils::SkRunBufferCastToDrawingRunBuffer(skRunBuffer, drawingRunBuffer_);
     return drawingRunBuffer_;
 }
+
+const TextBlobBuilder::RunBuffer& SkiaTextBlobBuilder::AllocRunRSXform(const Font& font, int count)
+{
+    auto skiaFont = font.GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        LOGD("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return drawingRunBuffer_;
+    }
+    const SkTextBlobBuilder::RunBuffer& skRunBuffer = skTextBlobBuilder_.allocRunRSXform(skiaFont->GetFont(), count);
+    SkiaConvertUtils::SkRunBufferCastToDrawingRunBuffer(skRunBuffer, drawingRunBuffer_);
+    return drawingRunBuffer_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

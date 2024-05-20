@@ -35,7 +35,7 @@ class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
     explicit RSSurfaceHandler(NodeId id) : id_(id) {}
-    virtual ~RSSurfaceHandler() noexcept = default;
+    virtual ~RSSurfaceHandler() noexcept;
 
     struct SurfaceBufferEntry {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -246,6 +246,7 @@ public:
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
     bool HasBufferCache() const;
+    void ClearBufferCache();
 #endif
 
 protected:

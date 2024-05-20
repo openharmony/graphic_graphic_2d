@@ -99,25 +99,14 @@ void JsMaskFilter::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc != ARGC_TWO) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
-    uint32_t blurType = 0;
-    if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], blurType)) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    int32_t blurType = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, blurType);
 
-    double sigma = 0;
-    if (!ConvertFromJsNumber(env, argv[ARGC_ONE], sigma)) {
-        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter Argv[1] is invalid");
-        return NapiGetUndefined(env);
-    }
+    double sigma = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, sigma);
 
     auto maskFilter = MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma);
     return JsMaskFilter::Create(env, maskFilter);
@@ -129,7 +118,7 @@ napi_value JsMaskFilter::Create(napi_env env, std::shared_ptr<MaskFilter> maskFi
     napi_create_object(env, &objValue);
     if (objValue == nullptr || maskFilter == nullptr) {
         ROSEN_LOGE("JsMaskFilter::Create object is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsMaskFilter> jsMaskFilter = std::make_unique<JsMaskFilter>(maskFilter);
@@ -137,7 +126,7 @@ napi_value JsMaskFilter::Create(napi_env env, std::shared_ptr<MaskFilter> maskFi
 
     if (objValue == nullptr) {
         ROSEN_LOGE("JsMaskFilter::Create object value is null!");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
     return objValue;
 }

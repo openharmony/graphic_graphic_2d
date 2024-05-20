@@ -41,7 +41,8 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
     RSDrawable::Ptr ret = nullptr;
     if (node.GetRenderProperties().GetShadowMask()) {
         ret = std::make_shared<RSColorfulShadowDrawable>();
-    } else if (node.GetRenderProperties().GetShadowElevation() > 0.f) {
+    } else if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
+               node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         ret = std::make_shared<RSShadowDrawable>();
     } else {
         ret = std::make_shared<RSMaskShadowDrawable>();
@@ -67,6 +68,8 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingElevation_ = properties.GetShadowElevation();
     stagingColor_ = properties.GetShadowColor();
     stagingIsFilled_ = properties.GetShadowIsFilled();
+    stagingColorStrategy_ = properties.GetShadowColorStrategy();
+    stagingRadius_ = properties.GetShadowRadius();
     needSync_ = true;
     return true;
 }
@@ -82,6 +85,8 @@ void RSShadowDrawable::OnSync()
     offsetY_ = stagingOffsetY_;
     elevation_ = stagingElevation_;
     isFilled_ = stagingIsFilled_;
+    radius_ = stagingRadius_;
+    colorStrategy_ = stagingColorStrategy_;
     needSync_ = false;
 }
 
@@ -95,8 +100,23 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
             return;
         }
         Drawing::Path path = ptr->path_;
-        RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
-            ptr->elevation_, ptr->isFilled_, ptr->color_);
+        if (ptr->colorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+            RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
+                ptr->elevation_, ptr->isFilled_, ptr->color_);
+            return;
+        }
+        Color colorPicked = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
+            ptr->color_, ptr->colorStrategy_);
+        if (ptr->radius_ > 0.f) {
+            RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, ptr->offsetX_, ptr->offsetY_,
+                ptr->radius_, colorPicked);
+            return;
+        }
+        if (ptr->elevation_ > 0.f) {
+            RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
+                ptr->elevation_, ptr->isFilled_, colorPicked);
+            return;
+        }
     };
 }
 

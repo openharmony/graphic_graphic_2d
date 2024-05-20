@@ -14,7 +14,7 @@
  */
 #ifndef DASHING_H
 #define DASHING_H
-#include "../test_base.h"
+#include "test_base.h"
 
 struct Dashings {
     float finalX = (600);
@@ -53,8 +53,8 @@ protected:
         int fOffInterval;
     };
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
-    void DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
-    void DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
-    void DashingThree(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
+    void DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen);
+    void DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen);
+    void DashingThree(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen);
 };
 #endif // DASHING_H

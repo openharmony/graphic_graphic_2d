@@ -69,7 +69,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -83,6 +83,16 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
     return {};
 }
@@ -421,6 +431,11 @@ bool RSSystemProperties::GetUnmarshParallelFlag()
 uint32_t RSSystemProperties::GetUnMarshParallelSize()
 {
     return UINT32_MAX;
+}
+
+bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

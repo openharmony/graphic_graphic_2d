@@ -1090,6 +1090,76 @@ HWTEST_F(RSPropertiesTest, SetDynamicLightUpDegree001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNGetFgBrightnessParams
+ * @tc.desc: test results of SetNGetFgBrightnessParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessParams, TestSize.Level1)
+{
+    RSProperties properties;
+    RSDynamicBrightnessPara Params = {
+        .lightUpDegree_ = 0.5f,
+    };
+    properties.SetFgBrightnessParams(Params);
+    EXPECT_NE(Params.rate_, 0.f);
+    EXPECT_EQ(Params.lightUpDegree_, 0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+    ASSERT_TRUE(properties.GetFgBrightnessParams().has_value());
+
+    properties.SetFgBrightnessFract(0.5f);
+    EXPECT_TRUE(properties.IsFgBrightnessValid());
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessFract
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessFract, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.GetFgBrightnessFract(), 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessParams
+ * @tc.desc: test results of SetNGetBgBrightnessParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessParams, TestSize.Level1)
+{
+    RSProperties properties;
+    RSDynamicBrightnessPara Params = {
+        .lightUpDegree_ = 0.5f,
+    };
+    properties.SetBgBrightnessParams(Params);
+    EXPECT_NE(Params.rate_, 0.f);
+    EXPECT_EQ(Params.lightUpDegree_, 0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+    ASSERT_TRUE(properties.GetBgBrightnessParams().has_value());
+
+    properties.SetBgBrightnessFract(0.5f);
+    EXPECT_TRUE(properties.IsBgBrightnessValid());
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessFract
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessFract, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.GetBgBrightnessFract(), 0.5f);
+}
+
+/**
  * @tc.name: SetGreyCoef001
  * @tc.desc: test
  * @tc.type:FUNC

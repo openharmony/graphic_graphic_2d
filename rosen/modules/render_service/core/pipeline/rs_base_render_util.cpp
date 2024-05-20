@@ -24,10 +24,13 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "include/utils/SkCamera.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 
 #include "draw/clip.h"
@@ -37,6 +40,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
+constexpr int32_t ROTATION_90 = 90;
+}
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
 using PixelTransformFunc = std::function<float(float)>;
@@ -947,6 +954,11 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
         }
+        // Flip damage because the rect is specified relative to the bottom-left of the surface in gl,
+        // but the damages is specified relative to the top-left in rs.
+        // The damages in vk is also transformed to the same as gl now.
+        // [planning]: Unify the damage's coordinate systems of vk and gl.
+        damageAfterMerge.y = surfaceBuffer->buffer->GetHeight() - damageAfterMerge.y - damageAfterMerge.h;
         surfaceBuffer->damageRect = damageAfterMerge;
         if (consumer->IsBufferHold()) {
             surfaceHandler.SetHoldBuffer(surfaceBuffer);
@@ -962,13 +974,16 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-        "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRIu64 " .",
-        surfaceHandler.GetNodeId(), vsyncTimestamp, static_cast<uint64_t>(surfaceBuffer->timestamp));
     
-    if (isDisplaySurface) {
+    if (isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
+        !RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control disable), "
+            "buffer timestamp = %{public}" PRId64 " .", surfaceHandler.GetNodeId(), surfaceBuffer->timestamp);
         surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
     } else {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
@@ -1133,10 +1148,16 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params)
+    RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
+    int extraRotation = 0;
+    if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
+        extraRotation = degree - FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN;
+    }
+    rotationTransform = static_cast<GraphicTransformType>((rotationTransform + extraRotation / ROTATION_90) % 4);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {

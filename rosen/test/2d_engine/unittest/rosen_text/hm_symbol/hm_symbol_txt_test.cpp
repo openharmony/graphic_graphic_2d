@@ -60,6 +60,10 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest002, TestSize.Level1)
     style.symbol.SetRenderMode(1); // this 1 is multiple color
     textStyle = AdapterTxt::Convert(style);
     EXPECT_EQ(textStyle.symbol.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
+
+    style.symbol.SetRenderMode(5); // this 5 is Incorrect input parameter.
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
 }
 
 /*
@@ -229,6 +233,61 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest010, TestSize.Level1)
     style.symbol.SetCommonSubType(Drawing::DrawingCommonSubType::UP);
     textStyle = AdapterTxt::Convert(style);
     EXPECT_EQ(textStyle.symbol.GetCommonSubType(), Drawing::DrawingCommonSubType::UP);
+}
+
+/*
+ * @tc.name: OHHmSymbolTxtTest011
+ * @tc.desc: test for symbol HMSymbolTxt::operator
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest011, TestSize.Level1)
+{
+    RSSColor color1 = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color2 = {1.0, 0, 0, 0}; // the 1.0 is alpha, 0, 0, 0 is RGB
+    RSSColor color3 = {1.0, 255, 255, 0}; // the 1.0 is alpha, 255, 255, 0 is RGB
+    RSSColor color4 = {1.0, 255, 0, 255}; // the 1.0 is alpha, 255, 0, 255 is RGB
+    RSSColor color5 = {0.5, 255, 0, 0}; // the 0.5 is alpha, 255, 0, 0 is RGB
+    std::vector<RSSColor> colors = {color1, color2};
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetRenderColor(color1);
+    SPText::HMSymbolTxt symbolTxt1;
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt1.SetRenderColor(color2);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt1.SetRenderColor(color3);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt1.SetRenderColor(color4);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt1.SetRenderColor(color5);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt.SetRenderColor(colors);
+    symbolTxt1.SetRenderColor(colors);
+    EXPECT_EQ(symbolTxt == symbolTxt1, true);
+
+    symbolTxt.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
+    symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt1.SetSymbolEffect(Drawing::DrawingEffectStrategy::APPEAR);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt1.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
+    symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
+    EXPECT_EQ(symbolTxt == symbolTxt1, false);
+
+    symbolTxt.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt1.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
+    symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
+    EXPECT_EQ(symbolTxt == symbolTxt1, true);
 }
 } // namespace Rosen
 } // namespace OHOS

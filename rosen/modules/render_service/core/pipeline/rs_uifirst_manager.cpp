@@ -299,10 +299,13 @@ void RSUifirstManager::UpdateSkipSyncNode()
         if (!node) {
             continue;
         }
+        auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceNode) {
+            continue;
+        }
         // ArkTSCard
         if (NodeIsInCardWhiteList(*node)) {
-            auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode && surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
+            if (surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
                 processingCardNodeSkipSync_.insert(it->first);
                 continue;
             }
@@ -310,11 +313,10 @@ void RSUifirstManager::UpdateSkipSyncNode()
 
         // leash window
         processingNodePartialSync_.insert(it->first); // partial sync
-        for (auto& child : *(node->GetChildren())) {
-            if (!child) {
-                continue;
-            }
-            processingNodeSkipSync_.insert(child->GetInstanceRootNodeId()); // skip sync
+        std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
+        surfaceNode->GetAllSubSurfaceNodes(allSubSurfaceNodes);
+        for (auto& [id, node] : allSubSurfaceNodes) {
+            processingNodeSkipSync_.insert(id); // skip sync
         }
     }
 }
@@ -724,7 +726,7 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     // 1: Planning: support multi appwindows
     if (isUIFirstEnable && node.IsLeashWindow()) {
         isNeedAssignToSubThread = (animation || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
-            node.GetForceUIFirst()) && !node.HasFilter();
+            node.GetForceUIFirst()) && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
         " filter:%d animation:%d forceUIFirst:%d isNeedAssign:%d",

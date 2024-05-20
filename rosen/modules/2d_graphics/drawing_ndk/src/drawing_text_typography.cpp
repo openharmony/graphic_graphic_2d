@@ -513,12 +513,22 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
+    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+        potisionX, potisionY);
+}
+
+void OH_Drawing_TypographyPaintOnPath(
+    OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas, OH_Drawing_Path* path, double hOffset, double vOffset)
+{
     auto drawingCanvas = reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas);
+    if (!path) {
+        return;
+    }
+    auto drawingpath = reinterpret_cast<OHOS::Rosen::Drawing::Path*>(path);
     if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
         (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
     }
-    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas,
-        potisionX, potisionY);
+    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas, drawingpath, hOffset, vOffset);
 }
 
 double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)

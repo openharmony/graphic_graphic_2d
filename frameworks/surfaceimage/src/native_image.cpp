@@ -103,6 +103,15 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
     return image->consumer->GetTransformMatrix(matrix);
 }
 
+int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16])
+{
+    if (image == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->GetTransformMatrixV2(matrix);
+}
+
 int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 {
     if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
@@ -115,8 +124,6 @@ int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
         image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
     }
     BLOGE_CHECK_AND_RETURN_RET(image->pSurface != nullptr, SURFACE_ERROR_UNKOWN, "pSurface is null");
-    SurfaceUtils* utils = SurfaceUtils::GetInstance();
-    utils->Add(*surfaceId, image->pSurface);
     return SURFACE_ERROR_OK;
 }
 
@@ -146,8 +153,6 @@ void OH_NativeImage_Destroy(OH_NativeImage** image)
     }
     if ((*image)->consumer != nullptr) {
         (void)(*image)->consumer->UnsetOnBufferAvailableListener();
-        SurfaceUtils* utils = SurfaceUtils::GetInstance();
-        utils->Remove((*image)->consumer->GetUniqueId());
     }
     
     if ((*image)->nativeWindow != nullptr) {

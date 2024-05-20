@@ -102,14 +102,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMat
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradient(const OH_Drawing_Point* cCenterPt, float radius,
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
-    if (cCenterPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (cCenterPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT,
         *CastToPoint(cCenterPt), radius, colorsVector, posVector, static_cast<TileMode>(cTileMode));
@@ -119,14 +121,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
     const OH_Drawing_Point2D* centerPt, float radius, const uint32_t* colors, const float* pos, uint32_t size,
     OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
 {
-    if (centerPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (centerPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(
         ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, *CastToPoint(centerPt), radius, colorsVector, posVector,
@@ -136,14 +140,16 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Drawing_Point* cCenterPt,
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
-    if (cCenterPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (cCenterPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
         *CastToPoint(cCenterPt), colorsVector, posVector, static_cast<TileMode>(cTileMode), 0,
@@ -164,6 +170,26 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::IMAGE, CastToImage(*cImage),
         static_cast<TileMode>(tileX), static_cast<TileMode>(tileY), CastToSamplingOptions(*cSampling),
         *CastToMatrix(cMatrix));
+}
+
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
+    float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
+    uint32_t size, OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
+{
+    if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
+        return nullptr;
+    }
+    std::vector<ColorQuad> colorsVector;
+    std::vector<scalar> posVector;
+    for (uint32_t i = 0; i < size; i++) {
+        colorsVector.emplace_back(colors[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
+    }
+    return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT,
+        *CastToPoint(startPt), startRadius, *CastToPoint(endPt), endRadius, colorsVector, posVector,
+        static_cast<TileMode>(cTileMode), cMatrix ? CastToMatrix(cMatrix) : nullptr);
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)

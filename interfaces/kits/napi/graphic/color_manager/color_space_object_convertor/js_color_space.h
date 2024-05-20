@@ -33,6 +33,9 @@ public:
     static napi_value GetColorSpaceName(napi_env env, napi_callback_info info);
     static napi_value GetWhitePoint(napi_env env, napi_callback_info info);
     static napi_value GetGamma(napi_env env, napi_callback_info info);
+    static napi_value GetSendableColorSpaceName(napi_env env, napi_callback_info info);
+    static napi_value GetSendableWhitePoint(napi_env env, napi_callback_info info);
+    static napi_value GetSendableGamma(napi_env env, napi_callback_info info);
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
         return colorSpaceToken_;
@@ -42,6 +45,9 @@ private:
     napi_value OnGetColorSpaceName(napi_env env, napi_callback_info info);
     napi_value OnGetWhitePoint(napi_env env, napi_callback_info info);
     napi_value OnGetGamma(napi_env env, napi_callback_info info);
+    napi_value OnGetSendableColorSpaceName(napi_env env, napi_callback_info info);
+    napi_value OnGetSendableWhitePoint(napi_env env, napi_callback_info info);
+    napi_value OnGetSendableGamma(napi_env env, napi_callback_info info);
 
     std::shared_ptr<ColorSpace> colorSpaceToken_;
 };

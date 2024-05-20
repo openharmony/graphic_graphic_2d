@@ -82,7 +82,7 @@ void ConvexPaths::MakePath1()
 
     OH_Drawing_Path* path_2 = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path_2, 0, 50);           // 50 coordinate
-    OH_Drawing_PathQuadTo(path_2, 50, 100, 0, 100); // 50 100 coordinate
+    OH_Drawing_PathQuadTo(path_2, 50, 0, 100, 50); // 50 100 coordinate
     OH_Drawing_PathQuadTo(path_2, 50, 100, 0, 50);  // 50 100 coordinate
     fPaths.push_back(path_2);
 
@@ -160,7 +160,7 @@ void ConvexPaths::MakePath2()
     // cubics
     OH_Drawing_Path* cubic_path1 = OH_Drawing_PathCreate();
     OH_Drawing_Path* cubic_path2 = OH_Drawing_PathCreate();
-    OH_Drawing_PathCubicTo(cubic_path1, 1, 1, 10, 90, 0, 10);    // 1 10 90 10 coordinate
+    OH_Drawing_PathCubicTo(cubic_path1, 1, 1, 10, 90, 0, 100);    // 1 10 90 100 coordinate
     OH_Drawing_PathCubicTo(cubic_path2, 100, 50, 20, 100, 0, 0); // 100 50 20 100 coordinate
     fPaths.push_back(cubic_path1);
     fPaths.push_back(cubic_path2);

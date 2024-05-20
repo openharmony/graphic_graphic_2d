@@ -350,6 +350,8 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
+
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
     void SetGrayScale(float grayScale);
@@ -504,6 +506,8 @@ private:
     bool isNodeGroup_ = false;
 
     bool isNodeSingleFrameComposer_ = false;
+
+    bool isSuggestOpincNode_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

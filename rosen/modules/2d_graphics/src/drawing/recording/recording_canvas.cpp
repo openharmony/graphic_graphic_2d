@@ -359,7 +359,7 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         AddDrawOpDeferred<DrawTextBlobOpItem>(blob, x, y);
         return;
     }
-    TextBlob::Context ctx {nullptr, IsCustomTypeface()};
+    TextBlob::Context ctx {nullptr, false};
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob, &ctx);
     uint64_t globalUniqueId = 0;
     if (ctx.GetTypeface() != nullptr) {
@@ -561,7 +561,7 @@ uint32_t RecordingCanvas::Save()
 {
     uint32_t ret = static_cast<uint32_t>(saveOpStateStack_.size());
     saveOpStateStack_.push(LazySaveOp);
-    return ret;
+    return ret + 1; // The minimum value for non-recording types is 1
 }
 
 void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
@@ -610,7 +610,7 @@ void RecordingCanvas::Restore()
 
 uint32_t RecordingCanvas::GetSaveCount() const
 {
-    return static_cast<uint32_t>(saveOpStateStack_.size());
+    return static_cast<uint32_t>(saveOpStateStack_.size()) + 1; // The minimum value for non-recording types is 1
 }
 
 void RecordingCanvas::Discard()

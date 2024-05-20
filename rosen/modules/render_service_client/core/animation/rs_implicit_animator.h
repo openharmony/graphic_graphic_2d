@@ -90,11 +90,10 @@ private:
     void BeginImplicitCancelAnimation();
 
     void CloseImplicitAnimationInner();
-    bool ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
+    void ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
 
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
-    void CreateEmptyAnimation();
 
     void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 

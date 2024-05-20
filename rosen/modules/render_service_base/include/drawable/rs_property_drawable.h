@@ -122,14 +122,18 @@ public:
     void MarkFilterRegionIsLargeArea();
     void MarkFilterForceUseCache();
     void MarkFilterForceClearCache();
+    void ForceClearCacheWithLastFrame();
     void MarkRotationChanged();
     void MarkHasEffectChildren();
     void MarkNodeIsOccluded(bool isOccluded);
     void CheckClearFilterCache();
 
     bool IsFilterCacheValid() const;
-    bool GetFilterForceClearCache() const;
+    bool IsForceClearFilterCache() const;
+    bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
+    bool IsSkippingFrame() const;
+    bool IsAIBarCacheValid() const;
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -156,6 +160,7 @@ protected:
     bool rotationChanged_ = false;
     bool hasEffectChildren_ = false;
     bool clearFilteredCacheAfterDrawing_ = false;
+    bool forceClearCacheWithLastFrame_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
     bool stagingForceUseCache_ = false;

@@ -21,6 +21,7 @@
 #include "draw/brush.h"
 #include "rs_trace.h"
 
+#include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "impl_interface/region_impl.h"
 #include "memory/rs_tag_tracker.h"
@@ -29,10 +30,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-
-#include "common/rs_color.h"
-#include "common/rs_common_def.h"
-#include "draw/brush.h"
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
@@ -170,6 +167,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // remove imagecahce when its bufferQueue gobackground
         renderEngine_->ClearCacheSet(unmappedCache);
     }
+    if (autoCacheEnable_) {
+        nodeCacheType_ = NodeStrategyType::CACHE_NONE;
+    }
     bool isuifirstNode = rscanvas->GetIsParallelCanvas();
     if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
@@ -242,14 +242,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
+    // add a blending disable rect op behind floating window, to enable overdraw buffer feature on special gpu.
+    if (surfaceParams->IsLeashWindow() && RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+        && surfaceParams->IsGpuOverDrawBufferOptimizeNode()) {
+        EnableGpuOverDrawDrawBufferOptimization(canvas, surfaceParams);
+    }
+
     auto bounds = surfaceParams->GetFrameRect();
 
     // 1. draw background
     DrawBackground(canvas, bounds);
-
-    if (isSelfDrawingSurface) {
-        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
-    }
 
     // 2. draw self drawing node
     if (surfaceParams->GetBuffer() != nullptr) {
@@ -293,7 +295,8 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     if (surfaceParams->IsMainWindowType() || surfaceParams->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
         Occlusion::Region calcRegion;
-        if (surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) {
+        if ((surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) ||
+            surfaceParams->IsSubSurfaceNode()) {
             calcRegion = surfaceParams->GetVisibleRegion();
         } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
             calcRegion = surfaceParams->GetTransparentRegion();
@@ -331,21 +334,38 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
+    if (!surfaceNode) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, surfaceNode is nullptr");
+        return;
+    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
         return;
     }
 
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParam) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture uniParam is nullptr");
+        return;
+    }
+
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, rscanvas us nullptr");
         return;
     }
 
     bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
     if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
         EnableRecordingOptimization(*surfaceParams)) {
+        return;
+    }
+
+    if (uniParam->IsOcclusionEnabled() && surfaceNode->IsMainWindowType() &&
+        surfaceParams->GetVisibleRegionInVirtual().IsEmpty()) {
+        RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
+            surfaceParams->GetAbsDrawRect().ToString());
         return;
     }
 
@@ -443,10 +463,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     // 1. draw background
     DrawBackground(canvas, bounds);
 
-    if (isSelfDrawingSurface) {
-        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
-    }
-
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
@@ -474,7 +490,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
-            canvas.ClipRect(surfaceParams.GetBounds());
+            Drawing::Rect rect(std::round(surfaceParams.GetBounds().GetLeft()),
+                std::round(surfaceParams.GetBounds().GetTop()), std::round(surfaceParams.GetBounds().GetWidth()),
+                std::round(surfaceParams.GetBounds().GetHeight()));
+            canvas.ClipRect(rect);
             canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
         return;
@@ -485,6 +504,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    params.dstRect.MakeOutset(1, 1);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenManager = CreateOrGetScreenManager();
     auto ancestor = surfaceParams.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -500,11 +520,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {
-        auto bounds = RSPropertiesPainter::Rect2DrawingRect(
-            { 0, 0, surfaceParams.GetBounds().GetWidth(), surfaceParams.GetBounds().GetHeight() });
+        auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0, std::round(surfaceParams.GetBounds().GetWidth()),
+            std::round(surfaceParams.GetBounds().GetHeight()) });
         Drawing::SaveLayerOps layerOps(&bounds, nullptr);
         canvas.SaveLayer(layerOps);
-        canvas.SetAlpha(1.0f);
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
         canvas.AttachBrush(brush);
@@ -571,4 +590,24 @@ void RSSurfaceRenderNodeDrawable::DrawUIFirstDfx(RSPaintFilterCanvas& canvas, Mu
     canvas.DetachBrush();
 }
 
+void RSSurfaceRenderNodeDrawable::EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas,
+    RSSurfaceRenderParams* surfaceParams)
+{
+    const Vector4f& radius = surfaceParams->GetOverDrawBufferNodeCornerRadius();
+    if (radius.IsZero()) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("EnableGpuOverDrawDrawBufferOptimization Id:%" PRIu64 "", surfaceParams->GetId());
+    const Drawing::Rect& bounds = surfaceParams->GetFrameRect();
+    Drawing::Brush brush;
+    // must set src blend mode, so overdraw buffer feature can enabled.
+    brush.SetBlendMode(Drawing::BlendMode::SRC);
+    // cause the rect will be covered by the child background node, so we just add a white rect
+    brush.SetColor(Drawing::Color::COLOR_WHITE);
+    canvas.AttachBrush(brush);
+    Drawing::AutoCanvasRestore arc(canvas, true);
+    canvas.Translate(radius.x_, radius.y_);
+    canvas.DrawRect(Drawing::Rect {0, 0, bounds.GetWidth() - 2 * radius.x_, bounds.GetHeight() - 2 * radius.y_});
+    canvas.DetachBrush();
+}
 } // namespace OHOS::Rosen::DrawableV2

@@ -439,7 +439,6 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawVerticesTest, TestSize.Level1)
 HWTEST_F(RSPaintFilterCanvasTest, OpCalculateBeforeTest, TestSize.Level1)
 {
     Drawing::Matrix matrix;
-    EXPECT_FALSE(paintFilterCanvas_->OpCalculateBefore(matrix));
     paintFilterCanvas_->SetAlpha(SET_ALPHA);
     EXPECT_TRUE(paintFilterCanvas_->OpCalculateBefore(matrix));
 }
@@ -1177,6 +1176,22 @@ HWTEST_F(RSPaintFilterCanvasTest, PaintFilter002, TestSize.Level1)
 
     paintFilterCanvas_->PaintFilter(paint);
     EXPECT_TRUE(paint.GetFilter() == filter);
+}
+
+/**
+ * @tc.name: SetBlenderTest
+ * @tc.desc: SetBlender
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetBlenderTest, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Blender> blender = nullptr;
+    auto mode = Drawing::BlendMode::SRC;
+    blender = Drawing::Blender::CreateWithBlendMode(mode);
+    EXPECT_TRUE(blender != nullptr);
+    Drawing::Brush brush;
+    brush.SetBlender(blender);
 }
 
 } // namespace Rosen

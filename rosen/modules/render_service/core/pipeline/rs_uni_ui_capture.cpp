@@ -248,8 +248,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
         RS_LOGE("RSUniUICaptureVisitor::SetCanvas: canvas == nullptr");
         return;
     }
-    auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
-    canvas->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
+    std::shared_ptr<Drawing::GPUContext> sharedContext = nullptr;
+    if (isUniRender_) {
+        sharedContext = RSOffscreenRenderThread::Instance().GetRenderContext()->GetSharedDrGPUContext();
+    } else {
+        sharedContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+    }
+    canvas->SetGrRecordingContext(sharedContext);
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);
     canvas_->SetDisableFilterCache(true);
@@ -391,7 +396,9 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     canvas_->ConcatMatrix(geoPtr->GetAbsMatrix());
 
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    const RectF absBounds = { 0, 0, property.GetBoundsWidth(), property.GetBoundsHeight() };
+    auto boundsWidth = std::round(property.GetBoundsWidth());
+    auto boundsHeight = std::round(property.GetBoundsHeight());
+    const RectF absBounds = { 0, 0, boundsWidth, boundsHeight };
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
@@ -402,8 +409,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
         canvas_->ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(absClipRRect),
             Drawing::ClipOp::INTERSECT, true);
     } else {
-        canvas_->ClipRect(Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()),
-            Drawing::ClipOp::INTERSECT, false);
+        canvas_->ClipRect(Drawing::Rect(0, 0, boundsWidth, boundsHeight), Drawing::ClipOp::INTERSECT, false);
     }
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawBackground(property, *canvas_);

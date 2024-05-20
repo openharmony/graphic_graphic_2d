@@ -62,11 +62,15 @@ declare_args() {
 }
 
 if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "pc" ||
     graphic_2d_feature_product == "tablet") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
-  graphic_2d_feature_enable_opinc = false
+}
+
+if (graphic_2d_feature_product == "phone") {
+  graphic_2d_feature_enable_opinc = true
 }
 
 gpu_defines = []
@@ -99,7 +103,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   }
 
   if (graphic_2d_feature_enable_opinc) {
-    import("//foundation/graphic/graphic_2d_ext/opinc/config.gni")
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 

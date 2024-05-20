@@ -34,10 +34,7 @@ public:
         if (IsFileExisted(resPath_)) {
             return FILE_PREFIX + resPath_;
         }
-        if (type == TYPE_VIDEO) {
-            return BOOT_VIDEO_PATH;
-        }
-        return BOOT_SOUND_PATH;
+        return type == TYPE_VIDEO ? BOOT_VIDEO_PATH : BOOT_SOUND_PATH;
     }
 
     Rosen::ScreenId screenId_;

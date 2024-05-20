@@ -405,4 +405,90 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest3, Function | Medium
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
 }
 
+/**
+ * @tc.name: UpdateTest
+ * @tc.desc: Verify function Update
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSOcclusionRegionTest, UpdateTest, Function | MediumTest | Level2)
+{
+    // for test
+    Node node(0, 10);
+    node.Update(10, 10, Event::Type::OPEN);
+    node.Update(0, 10, Event::Type::OPEN);
+    EXPECT_EQ(node.positive_count_, 1);
+    node.Update(0, 10, Event::Type::CLOSE);
+    EXPECT_EQ(node.positive_count_, 0);
+    node.Update(0, 10, Event::Type::VOID_CLOSE);
+    EXPECT_EQ(node.negative_count_, Event::Type::VOID_CLOSE);
+    node.Update(0, 5, Event::Type::OPEN);
+    EXPECT_EQ(node.left_ != nullptr, true);
+    EXPECT_EQ(node.right_ != nullptr, true);
+}
+
+/**
+ * @tc.name: getRangeTest
+ * @tc.desc: Verify function getRange
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSOcclusionRegionTest, getRangeTest, Function | MediumTest | Level2)
+{
+    // for test
+    Node node(0, 10);
+    std::vector<Range> ranges;
+    Region region;
+    region.getRange(ranges, node, Region::OP::AND);
+    region.getRange(ranges, node, Region::OP::OR);
+    region.getRange(ranges, node, Region::OP::XOR);
+    region.getRange(ranges, node, Region::OP::SUB);
+    EXPECT_EQ(node.right_ != nullptr, false);
+}
+
+/**
+ * @tc.name: UpdateRectsTest
+ * @tc.desc: Verify function UpdateRects
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSOcclusionRegionTest, UpdateRectsTest, Function | MediumTest | Level2)
+{
+    Region::Rects rects;
+    std::vector<Range> ranges;
+    std::vector<int> indexAt;
+    Region region;
+    Region resultRegion;
+    // for test
+    rects.preRects.push_back(Rect { 0, 0, 100, 50 });
+    rects.preRects.push_back(Rect { 150, 0, 100, 50 });
+    rects.preRects.push_back(Rect { 150, 0, 250, 50 });
+    rects.curY = 100;
+    rects.preY = 50;
+
+    ranges.emplace_back(Range { 0, 1 });
+    ranges.emplace_back(Range { 1, 2 });
+    ranges.emplace_back(Range { 1, 2 });
+    indexAt.push_back(0);
+    indexAt.push_back(100);
+    indexAt.push_back(250);
+    region.UpdateRects(rects, ranges, indexAt, resultRegion);
+    EXPECT_EQ(rects.preRects[0], (Rect { 0, 0, 100, 100 }));
+}
+
+/**
+ * @tc.name: RegionOpTest
+ * @tc.desc: Verify function RegionOp
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
+{
+    Region emptyRegion(Rect { 0, 0, 0, 0 });
+    Region baseRegion;
+    Region resultRegion;
+    Region::OP operationType = Region::OP::AND;
+    Region regionOperator;
+    regionOperator.RegionOp(emptyRegion, baseRegion, resultRegion, operationType);
+}
 } // namespace OHOS::Rosen

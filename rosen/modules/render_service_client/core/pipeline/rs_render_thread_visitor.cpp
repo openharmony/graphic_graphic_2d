@@ -491,6 +491,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #else
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface.get());
 #endif
+    canvas_->Save();
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
 
@@ -555,7 +556,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 
-    if ((dfxDirtyType_ != DirtyRegionDebugType::DISABLED) && curDirtyManager_->IsDirty()) {
+    if ((dfxDirtyType_ != DirtyRegionDebugType::DISABLED) && curDirtyManager_->IsDirty() &&
+        partialRenderStatus_ != PartialRenderType::DISABLED) {
         ROSEN_LOGD("ProcessRootRenderNode %{public}s [%{public}" PRIu64 "] draw dirtyRect",
             ptr->GetName().c_str(), node.GetId());
         DrawDirtyRegion();
@@ -585,6 +587,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     RS_TRACE_END();
 
+    canvas_->Restore();
     canvas_ = nullptr;
     isIdle_ = true;
 }
@@ -807,6 +810,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (!node.GetIsTextureExportNode()) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
+    }
+
+    if (node.GetIsTextureExportNode()) {
+        canvas_->Save();
+        auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        RSPropertiesPainter::DrawBackground(node.GetRenderProperties(), *canvas_);
+        canvas_->Restore();
     }
 
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.

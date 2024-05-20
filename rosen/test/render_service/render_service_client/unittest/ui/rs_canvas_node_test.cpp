@@ -3121,7 +3121,8 @@ HWTEST_F(RSCanvasNodeTest, CreateBlurFilter001, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     canvasNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3134,7 +3135,8 @@ HWTEST_F(RSCanvasNodeTest, CreateBlurFilter002, TestSize.Level2)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     canvasNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3147,7 +3149,8 @@ HWTEST_F(RSCanvasNodeTest, CreateBlurFilter003, TestSize.Level3)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     canvasNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3160,7 +3163,8 @@ HWTEST_F(RSCanvasNodeTest, CreateBlurFilter004, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     canvasNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3173,7 +3177,8 @@ HWTEST_F(RSCanvasNodeTest, CreateBlurFilter005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     canvasNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[0]);
 }
 
 /**
@@ -3186,7 +3191,8 @@ HWTEST_F(RSCanvasNodeTest, CreateNormalFilter001, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     canvasNode->SetFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3199,7 +3205,8 @@ HWTEST_F(RSCanvasNodeTest, CreateNormalFilter002, TestSize.Level2)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     canvasNode->SetFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3212,7 +3219,8 @@ HWTEST_F(RSCanvasNodeTest, CreateNormalFilter003, TestSize.Level3)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     canvasNode->SetFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3225,7 +3233,8 @@ HWTEST_F(RSCanvasNodeTest, CreateNormalFilter004, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     canvasNode->SetFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3238,7 +3247,8 @@ HWTEST_F(RSCanvasNodeTest, CreateNormalFilter005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     canvasNode->SetFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[0]);
 }
 
 /**

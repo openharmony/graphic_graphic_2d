@@ -29,9 +29,9 @@ public:
     static NativePixelMapManager& GetInstance();
     ~NativePixelMapManager() = default;
 
-    void Register(void*, NativePixelMapType);
-    void Unregister(void*);
-    NativePixelMapType GetNativePixelMapType(void*);
+    void Register(void* handle, NativePixelMapType type);
+    void Unregister(void* handle);
+    NativePixelMapType GetNativePixelMapType(void* handle);
 
     NativePixelMapManager(const NativePixelMapManager&) = delete;
     NativePixelMapManager(const NativePixelMapManager&&) = delete;

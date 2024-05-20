@@ -382,5 +382,31 @@ HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
         ASSERT_EQ(strategyConfig.max, fps1);
     }
 }
+
+/**
+ * @tc.name: LightFactor
+ * @tc.desc: Verify the result of LightFactor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
+{
+    PART("CaseDescription") {
+        PolicyConfigData::StrategyConfig strategyConfig;
+        multiAppStrategy_->GetVoteRes(strategyConfig);
+        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+        multiAppStrategy_->HandleLightFactorStatus(true);
+        multiAppStrategy_->GetVoteRes(strategyConfig);
+        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
+        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+        multiAppStrategy_->HandleLightFactorStatus(false);
+        multiAppStrategy_->GetVoteRes(strategyConfig);
+        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

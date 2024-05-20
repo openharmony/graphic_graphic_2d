@@ -39,7 +39,6 @@ private:
     bool CheckFrameRateValid(int32_t frameRate);
     std::string GetPicZipPath();
 
-private:
     int32_t windowWidth_;
     int32_t windowHeight_;
     int32_t picCurNo_ = 0;

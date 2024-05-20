@@ -36,7 +36,8 @@
 #include "render/rs_linear_gradient_blur_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
-#include "render/rs_material_filter.h"
+#include "render/rs_spherize_effect_filter.h"
+#include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1950,6 +1951,10 @@ void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
     isSpherizeValid_ = spherizeDegree_ > SPHERIZE_VALID_EPSILON;
+    if (isSpherizeValid_) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -2307,9 +2312,9 @@ void RSProperties::GenerateBackgroundBlurFilter()
     if (RSSystemProperties::GetHpsBlurEnabled()) {
         std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
             std::make_shared<RSHpsBlurShaderFilter>(backgroundBlurRadiusX_, 1.f, 1.f);
-        originalFilter = originalFilter
-                             ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
-                             : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
+        originalFilter =
+            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
+                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
     } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadiusX_);
@@ -2392,9 +2397,9 @@ void RSProperties::GenerateForegroundBlurFilter()
     if (RSSystemProperties::GetHpsBlurEnabled()) {
         std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
             std::make_shared<RSHpsBlurShaderFilter>(foregroundBlurRadiusX_, 1.f, 1.f);
-        originalFilter = originalFilter
-                             ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
-                             : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
+        originalFilter =
+            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
+                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
     } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadiusX_);
@@ -3635,8 +3640,10 @@ void RSProperties::OnApplyModifiers()
         if (IsForegroundEffectRadiusValid()) {
             auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
             foregroundFilter_ = foregroundEffectFilter;
-        }
-        if (!IsForegroundEffectRadiusValid()) {
+        } else if (IsSpherizeValid()) {
+            auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+            foregroundFilter_ = spherizeEffectFilter;
+        } else {
             foregroundFilter_.reset();
         }
         if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {

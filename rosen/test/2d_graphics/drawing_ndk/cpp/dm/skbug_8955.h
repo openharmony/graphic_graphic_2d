@@ -15,7 +15,7 @@
 
 #ifndef SKBUG_8955_H
 #define SKBUG_8955_H
-#include "../test_base.h"
+#include "test_base.h"
 
 class SkBug8955 : public TestBase {
 public:

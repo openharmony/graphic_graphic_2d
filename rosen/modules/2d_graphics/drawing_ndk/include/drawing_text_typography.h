@@ -978,6 +978,21 @@ void OH_Drawing_TypographyPaint(OH_Drawing_Typography*, OH_Drawing_Canvas*,
     double /* potisionX */, double /* potisionY */);
 
 /**
+ * @brief Paints path text on the canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Path Indicates path information.
+ * @param double Indicates the distance along the path to add to the text's starting position.
+ * @param double Indicates the distance above(-) or below(+) the path to position the text.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TypographyPaintOnPath(
+    OH_Drawing_Typography*, OH_Drawing_Canvas*, OH_Drawing_Path*, double /* hOffset */, double /* vOffset */);
+
+/**
  * @brief Gets the max width.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

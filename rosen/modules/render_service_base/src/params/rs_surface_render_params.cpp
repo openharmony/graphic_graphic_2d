@@ -74,6 +74,17 @@ void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleReg
     needSync_ = true;
 }
 
+Occlusion::Region RSSurfaceRenderParams::GetVisibleRegionInVirtual() const
+{
+    return visibleRegionInVirtual_;
+}
+
+void RSSurfaceRenderParams::SetVisibleRegionInVirtual(const Occlusion::Region& visibleRegion)
+{
+    visibleRegionInVirtual_ = visibleRegion;
+    needSync_ = true;
+}
+
 void RSSurfaceRenderParams::SetOccludedByFilterCache(bool val)
 {
     if (isOccludedByFilterCache_ == val) {
@@ -128,6 +139,20 @@ void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
+}
+
+void RSSurfaceRenderParams::SetForceHardwareByUser(bool flag)
+{
+    if (isForceHardwareByUser_ == flag) {
+        return;
+    }
+    isForceHardwareByUser_ = flag;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -207,6 +232,44 @@ bool RSSurfaceRenderParams::GetSurfaceSubTreeDirty() const
     return isSubTreeDirty_;
 }
 
+void RSSurfaceRenderParams::SetGpuOverDrawBufferOptimizeNode(bool overDrawNode)
+{
+    if (isGpuOverDrawBufferOptimizeNode_ == overDrawNode) {
+        return;
+    }
+    isGpuOverDrawBufferOptimizeNode_ = overDrawNode;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsGpuOverDrawBufferOptimizeNode() const
+{
+    return isGpuOverDrawBufferOptimizeNode_;
+}
+
+void RSSurfaceRenderParams::SetOverDrawBufferNodeCornerRadius(const Vector4f& radius)
+{
+    if (overDrawBufferNodeCornerRadius_ == radius) {
+        return;
+    }
+    overDrawBufferNodeCornerRadius_ = radius;
+    needSync_ = true;
+}
+
+const Vector4f& RSSurfaceRenderParams::GetOverDrawBufferNodeCornerRadius() const
+{
+    return overDrawBufferNodeCornerRadius_;
+}
+
+void RSSurfaceRenderParams::SetIsSubSurfaceNode(bool isSubSurfaceNode)
+{
+    isSubSurfaceNode_ = isSubSurfaceNode;
+}
+
+bool RSSurfaceRenderParams::IsSubSurfaceNode() const
+{
+    return isSubSurfaceNode_;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -234,10 +297,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
+    targetSurfaceParams->visibleRegionInVirtual_ = visibleRegionInVirtual_;
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->isForceHardwareByUser_ = isForceHardwareByUser_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
@@ -253,6 +318,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
+    targetSurfaceParams->overDrawBufferNodeCornerRadius_ = overDrawBufferNodeCornerRadius_;
+    targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
+    targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     RSRenderParams::OnSync(target);
 }
 

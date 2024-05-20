@@ -167,6 +167,11 @@ void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
     paragraph_->Paint(drawCanvas, x, y);
 }
 
+void Typography::Paint(Drawing::Canvas* drawCanvas, Drawing::Path* path, double hOffset, double vOffset)
+{
+    paragraph_->Paint(drawCanvas, path, hOffset, vOffset);
+}
+
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
     TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {

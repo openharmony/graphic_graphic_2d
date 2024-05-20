@@ -172,10 +172,26 @@ public:
     {
         return surface_;
     }
+    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface)
+    {
+        virtualSurface_ = virtualSurface;
+    }
+    std::shared_ptr<RSRenderSurface> GetVirtualSurface()
+    {
+        return virtualSurface_;
+    }
 #else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
+    }
+    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface)
+    {
+        virtualSurface_ = virtualSurface;
+    }
+    std::shared_ptr<RSSurface> GetVirtualSurface()
+    {
+        return virtualSurface_;
     }
 #endif
     // Use in vulkan parallel rendering
@@ -433,8 +449,10 @@ private:
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
+    std::shared_ptr<RSRenderSurface> virtualSurface_;
 #else
     std::shared_ptr<RSSurface> surface_;
+    std::shared_ptr<RSSurface> virtualSurface_;
 #endif
     bool surfaceCreated_ { false };
     bool hasFingerprint_ = false;

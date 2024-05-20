@@ -74,6 +74,8 @@ public:
 
     void Paint(Drawing::Canvas* canvas, double x, double y) override;
 
+    void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) override;
+
     std::vector<TextBox> GetRectsForRange(size_t start, size_t end,
         RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle) override;
 
