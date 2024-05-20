@@ -32,6 +32,7 @@ enum class AllocatorType : int32_t {
     HEAP_ALLOC = 1,
     SHARE_MEM_ALLOC = 2,
     CUSTOM_ALLOC = 3,  // external
+    DMA_ALLOC = 4, // SurfaceBuffer
 };
 
 enum class ColorSpace : int32_t {

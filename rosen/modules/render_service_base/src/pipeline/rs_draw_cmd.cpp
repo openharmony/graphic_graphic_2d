@@ -120,7 +120,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
         return;
     }
-    PreProcessPixelMap(canvas, pixelmap);
+    PreProcessPixelMap(canvas, pixelmap, sampling);
 #endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
@@ -142,13 +142,14 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap)
+void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::SamplingOptions& sampling)
 {
     if (!pixelMap) {
         return;
     }
 
-    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+    if (RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {

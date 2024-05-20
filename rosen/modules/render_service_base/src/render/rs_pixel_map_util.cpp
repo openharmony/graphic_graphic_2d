@@ -263,5 +263,17 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage
     }
     return nullptr;
 }
+
+bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap,
+    const Drawing::SamplingOptions& sampling)
+{
+    if (!(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
+        return false;
+    }
+    ImageInfo imageInfo;
+    pixelMap->GetImageInfo(imageInfo);
+    return !(imageInfo.pixelFormat == Media::PixelFormat::RGBA_8888 &&
+            sampling.GetMipmapMode() == Drawing::MipmapMode::LINEAR);
+}
 } // namespace Rosen
 } // namespace OHOS
