@@ -37,7 +37,7 @@ public:
 
 void RSVsyncClientTest::SetUpTestCase()
 {
-    cb = [](int64_t timestamp, int64_t frameCount) {};
+    cb = [](int64_t timestamp) {};
 }
 void RSVsyncClientTest::TearDownTestCase() {}
 void RSVsyncClientTest::SetUp()
