@@ -342,7 +342,7 @@ void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
         return;
     }
 
-        if (map.GetAllocatorType() == AllocatorType::DMA_ALLOC) {
+    if (map.GetAllocatorType() == AllocatorType::DMA_ALLOC) {
         // DMA TEXTURE
         auto sbBuffer = static_cast<SurfaceBuffer*>(map.GetFd());
 
