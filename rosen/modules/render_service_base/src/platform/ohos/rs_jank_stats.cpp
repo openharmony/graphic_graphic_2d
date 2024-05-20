@@ -416,6 +416,7 @@ void RSJankStats::SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     if (!isImplicitAnimationEnd) {
         return;
     }
+    RS_TRACE_NAME("RSJankStats::SetImplicitAnimationEnd");
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isDisplayAnimator_) {
             continue;
@@ -431,7 +432,8 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     int64_t inputTime = ConvertTimeToSystime(info.inputTime);
     int64_t beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
     int64_t responseLatency = rtEndTime_ - inputTime;
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse %s", GetSceneDescription(info).c_str());
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse responseLatency is %" PRId64 "ms: %s",
+                      responseLatency, GetSceneDescription(info).c_str());
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
         "VERSION_CODE", info.versionCode, "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName,
@@ -451,7 +453,8 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
     int64_t animationStartLatency = beginVsyncTime - inputTime;
     int64_t animationEndLatency = endVsyncTime - beginVsyncTime;
     int64_t completedLatency = GetCurrentSystimeMs() - inputTime;
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventComplete %s", GetSceneDescription(info).c_str());
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventComplete e2eLatency is %" PRId64 "ms: %s",
+                      completedLatency, GetSceneDescription(info).c_str());
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
         "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
