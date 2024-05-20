@@ -1652,12 +1652,15 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (colorPickerForceRequestVsync_) {
             RS_TRACE_NAME("RSMainThread::UniRender ColorPickerForceRequestVsync");
+            RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
             RSMainThread::Instance()->SetNoNeedToPostTask(false);
             RSMainThread::Instance()->SetDirtyFlag();
             RequestNextVSync();
             return;
         } else {
             RS_LOGD("RSMainThread::Render nothing to update");
+            RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
+            RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
             RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
@@ -2426,7 +2429,8 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                               .timeEndSteady_ = GetCurrentSteadyTimeMs(),
                                               .timeEndSteadyFloat_ = GetCurrentSteadyTimeMsFloat(),
                                               .refreshRate_ = GetDynamicRefreshRate(),
-                                              .discardJankFrames_ = GetDiscardJankFrames() };
+                                              .discardJankFrames_ = GetDiscardJankFrames(),
+                                              .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame() };
         drawFrame_.PostDirectCompositionJankStats(rsParams);
     }
 }

@@ -132,7 +132,7 @@ private:
     DISALLOW_COPY_AND_MOVE(RSJankStats);
 
     void UpdateEndTime();
-    void SetRSJankStats(uint32_t dynamicRefreshRate);
+    void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
     void UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
@@ -164,6 +164,7 @@ private:
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
     static constexpr bool IS_FOLD_DISP = false;
     static constexpr bool IS_CALCULATE_PRECISE_HITCH_TIME = true;
+    static inline const std::string ACCUMULATED_BUFFER_COUNT_TRACE_NAME = "ACCUMULATED_BUFFER_COUNT";
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
     std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_1F", 1},
                                                                           {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };

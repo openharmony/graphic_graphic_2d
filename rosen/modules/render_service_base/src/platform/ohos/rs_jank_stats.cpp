@@ -94,7 +94,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     isCurrentFrameSwitchToNotDoDirectComposition_ = isLastFrameDoDirectComposition_ && !doDirectComposition;
     if (!doDirectComposition) { UpdateEndTime(); }
     if (discardJankFrames) { ClearAllAnimation(); }
-    SetRSJankStats(dynamicRefreshRate);
+    SetRSJankStats(skipJankAnimatorFrame, dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isReportEventResponse_) {
@@ -181,9 +181,12 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
 }
 
 // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
-void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
+void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshRate */)
 {
-    auto frameTime = GetEffectiveFrameTime(true);
+    if (skipJankStats) {
+        return;
+    }
+    const int64_t frameTime = GetEffectiveFrameTime(true);
     const int64_t missedVsync = static_cast<int64_t>(frameTime / VSYNC_PERIOD);
     if (missedVsync <= 0) {
         return;
@@ -217,7 +220,7 @@ void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
         return;
     }
 
-    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %d frameTime %f", missedVsync, frameTime);
+    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %" PRId64 " frameTime %" PRId64, missedVsync, frameTime);
 
     if (type != JANK_FRAME_6_FREQ) {
         RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
@@ -568,6 +571,7 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
 
 void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
 {
+    RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, accumulatedBufferCount_);
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;
     }
@@ -592,6 +596,7 @@ void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
             RecordJankFrameSingle(missedFramesByInterval, recordStats);
         }
     }
+    RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, 0);
 }
 
 void RSJankStats::RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats)
