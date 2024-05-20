@@ -496,6 +496,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
+    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
