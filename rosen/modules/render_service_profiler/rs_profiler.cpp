@@ -53,12 +53,14 @@ static double g_playbackStartTime = 0.0;
 static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
 static bool g_playbackShouldBeTerminated = false;
+static uint64_t g_playbackPauseTime = 0;
+static int g_playbackWaitFrames = 0;
 
 static std::unordered_set<NodeId> g_nodeSetPerf;
 static std::unordered_map<NodeId, int> g_mapNode2Count;
 static NodeId g_calcPerfNode = 0;
 static int g_calcPerfNodeTry = 0;
-constexpr int CALC_PERF_NODE_TIME_COUNT = 5;
+constexpr int CALC_PERF_NODE_TIME_COUNT = 64; // increased to improve reliability of perfomance measurement
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT];
 static NodeId g_calcPerfNodeParent = 0;
 static int g_calcPerfNodeIndex = 0;
@@ -478,6 +480,7 @@ void RSProfiler::AwakeRenderServiceThread()
 {
     ScheduleTask([]() {
         g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
         g_mainThread->RequestNextVSync();
     });
 }
@@ -971,8 +974,9 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         if (!displayNode) {
             continue;
         }
-        const auto& nodes = displayNode->GetCurAllSurfaces();
-        for (auto& node : nodes) {
+        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+        displayNode->CollectSurface(displayNode, curAllSurfaces, true, false);
+        for (auto& node : curAllSurfaces) {
             if (node) {
                 PerfTreeFlatten(*node, g_nodeSetPerf, g_mapNode2Count);
             }
@@ -1169,10 +1173,11 @@ void RSProfiler::RecordStop(const ArgList& args)
     Respond("Network: Record stop (" + std::to_string(stream.str().size()) + ")");
 }
 
-void RSProfiler::PlaybackStart(const ArgList& args)
+void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
+    g_playbackPauseTime = args.Fp64(1);
 
     ImageCache::Reset();
 
@@ -1185,6 +1190,13 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     // get first frame data
     FirstFrameUnmarshalling(dataFirstFrame);
+    constexpr int defaultWaitFrames = 50;
+    g_playbackWaitFrames = defaultWaitFrames;
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::PlaybackStart(const ArgList& args)
+{
     HiddenSpaceTurnOn();
 
     for (size_t pid : g_playbackFile.GetHeaderPids()) {
@@ -1193,7 +1205,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     g_playbackStartTime = Now();
 
-    const double pauseTime = args.Fp64(1);
+    const double pauseTime = g_playbackPauseTime;
     if (pauseTime > 0.0) {
         const uint64_t currentTime = RawNowNano();
         const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime);
@@ -1379,6 +1391,7 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "rstree_dump_json", DumpTreeToJson },
         { "rsrecord_start", RecordStart },
         { "rsrecord_stop", RecordStop },
+        { "rsrecord_replay_prepare", PlaybackPrepareFirstFrame },
         { "rsrecord_replay", PlaybackStart },
         { "rsrecord_replay_stop", PlaybackStop },
         { "rsrecord_pause_now", PlaybackPause },
@@ -1410,6 +1423,11 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
 
 void RSProfiler::ProcessCommands()
 {
+    if (g_playbackWaitFrames > 0) {
+        g_playbackWaitFrames--;
+        AwakeRenderServiceThread();
+    }
+
     std::vector<std::string> commandData;
     if (!Network::PopCommand(commandData)) {
         return;

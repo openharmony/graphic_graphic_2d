@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include "directory_ex.h"
 #include "platform/common/rs_log.h"
+#else
+#include "rs_adapt.h"
 #endif // REPLAY_TOOL_CLIENT
 
 namespace OHOS::Rosen {

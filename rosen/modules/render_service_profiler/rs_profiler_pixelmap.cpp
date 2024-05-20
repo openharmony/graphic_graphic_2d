@@ -342,7 +342,24 @@ void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
         return;
     }
 
-    if (auto file = static_cast<const int32_t*>(map.GetFd())) {
+    if (map.GetAllocatorType() == AllocatorType::DMA_ALLOC) {
+        // DMA TEXTURE
+        auto sbBuffer = static_cast<SurfaceBuffer*>(map.GetFd());
+
+        auto bufferHandle = sbBuffer->GetBufferHandle();
+        uint32_t imageSize = bufferHandle->size;
+        const size_t totalSize = sizeof(BufferHandle) + imageSize;
+        void* imagePtr = sbBuffer->GetVirAddr();
+        if (!imagePtr) {
+            return;
+        }
+
+        std::vector<uint8_t> data;
+        data.resize(totalSize);
+        Rosen::Utils::Move(data.data(), sizeof(BufferHandle), bufferHandle, sizeof(BufferHandle));
+        Rosen::Utils::Move(data.data() + sizeof(BufferHandle), imageSize, imagePtr, imageSize);
+        CacheImage(id, data.data(), totalSize, UnmarshallingContext::headerLength);
+    } else if (auto file = static_cast<const int32_t*>(map.GetFd())) {
         const size_t size = map.isAstc_ ? map.pixelsSize_ : map.rowDataSize_ * map.imageInfo_.size.height;
         if (auto image = MapImage(*file, size, PROT_READ)) {
             CacheImage(id, image, size, UnmarshallingContext::headerLength);
