@@ -69,7 +69,7 @@ void RSVsyncClientWindows::VsyncThreadMain()
                 vsyncCallbackTmp = vsyncCallback_;
             }
             if (vsyncCallbackTmp) {
-                vsyncCallbackTmp(now, 0);
+                vsyncCallbackTmp(now);
             }
         }
     }

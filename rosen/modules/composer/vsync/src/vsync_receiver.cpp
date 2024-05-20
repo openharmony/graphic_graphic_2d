@@ -58,11 +58,9 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     } while (ret != -1);
 
     VSyncCallback cb = nullptr;
-    VSyncCallbackWithId cbWithId = nullptr;
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
-        cbWithId = vsyncCallbacksWithId_;
         RNVFlag_ = false;
     }
     now = data[0];
@@ -80,9 +78,8 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     // 1, 2: index of array data.
     ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
         " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
-    if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
-        // data[2] is frameCount
-        cbWithId != nullptr ? cbWithId(now, data[2], userData_) : cb(now, userData_);
+    if (dataCount > 0 && cb != nullptr) {
+        cb(now, userData_);
     }
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();

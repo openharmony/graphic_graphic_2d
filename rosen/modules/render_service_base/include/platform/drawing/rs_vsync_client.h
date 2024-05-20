@@ -22,7 +22,7 @@ namespace OHOS {
 namespace Rosen {
 class RSVsyncClient {
 public:
-    using VsyncCallback = std::function<void(int64_t, int64_t)>;
+    using VsyncCallback = std::function<void(int64_t)>;
 
     static std::unique_ptr<RSVsyncClient> Create();
     virtual ~RSVsyncClient() {};

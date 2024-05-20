@@ -35,9 +35,9 @@ public:
     void SetVsyncCallback(VsyncCallback callback) override;
 
 private:
-    static void OnVsync(int64_t nanoTimestamp, int64_t frameCount, void* client);
+    static void OnVsync(int64_t nanoTimestamp, void* client);
 
-    void VsyncCallback(int64_t nanoTimestamp, int64_t frameCount);
+    void VsyncCallback(int64_t nanoTimestamp);
 
     std::atomic_bool requestFlag_ = false;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
