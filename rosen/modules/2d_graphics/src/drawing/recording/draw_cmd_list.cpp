@@ -519,6 +519,28 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
     }
     canvas.DetachPaint();
 }
+
+size_t DrawCmdList::CountTextBlobNum()
+{
+    size_t textBlobCnt = 0;
+    if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
+        uint32_t offset = offset_;
+        uint32_t maxOffset = opAllocator_.GetSize();
+        do {
+            void* itemPtr = opAllocator_.OffsetToAddr(offset);
+            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr == nullptr) {
+                break;
+            }
+            uint32_t type = curOpItemPtr->GetType();
+            if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+                textBlobCnt++;
+            }
+            offset = curOpItemPtr->GetNextOpItemOffset();
+        } while (offset != 0 && offset < maxOffset);
+    }
+    return textBlobCnt;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

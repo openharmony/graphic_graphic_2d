@@ -148,6 +148,30 @@ HWTEST_F(RSExtendedModifierTest, FinishDrawingTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FinishDrawingTest001
+ * @tc.desc: long text FinishDrawingTest
+ * @tc.type: FUNC
+ * @tc.require: issueI9P3X4
+ */
+HWTEST_F(RSExtendedModifierTest, FinishDrawingTest1, TestSize.Level1)
+{
+    auto recordingCanvas = new ExtendRecordingCanvas(1000, 3000);
+    Drawing::Font font = Drawing::Font();
+    font.SetSize(10);
+    std::shared_ptr<Drawing::TextBlob> textBlob =
+        Drawing::TextBlob::MakeFromString("hello", font, Drawing::TextEncoding::UTF8);
+    int y = 0;
+    int x = 0;
+    for (int i = 0; i < 20; i++) {
+        recordingCanvas->DrawTextBlob(textBlob.get(), x, y);
+        y += 100;
+    }
+    RSDrawingContext ctx = { recordingCanvas, 1000, 3000 };
+    std::shared_ptr<Drawing::DrawCmdList> cmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
+    ASSERT_EQ(cmdList, nullptr);
+}
+
+/**
  * @tc.name: GetModifierTypeTest001
  * @tc.desc: GetModifierType Test
  * @tc.type: FUNC

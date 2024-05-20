@@ -940,6 +940,13 @@ bool RSSystemProperties::IsForceClient()
     return ConvertToInt(num, 0);
 }
 
+bool RSSystemProperties::GetTextBlobAsPixelMap()
+{
+    static bool pixelMapEnabled =
+        std::atoi((system::GetParameter("persist.rosen.textBlobAsPixelMapEnable.enable", "0")).c_str()) != 0;
+    return pixelMapEnabled;
+}
+
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
     static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "1") != "0";

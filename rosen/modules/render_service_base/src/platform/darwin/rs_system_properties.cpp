@@ -423,6 +423,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+bool RSSystemProperties::GetTextBlobAsPixelMap()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
     return false;
