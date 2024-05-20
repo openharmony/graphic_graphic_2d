@@ -1209,6 +1209,12 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
             }
+
+            if (!surfaceNode->GetDoDirectComposition()) {
+                doDirectComposition_ = false;
+                surfaceNode->SetDoDirectComposition(true);
+            }
+
             if (!surfaceNode->IsOnTheTree()) {
                 if (surfaceNode->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);

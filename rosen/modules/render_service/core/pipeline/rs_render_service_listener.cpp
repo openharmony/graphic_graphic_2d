@@ -108,5 +108,20 @@ void RSRenderServiceListener::OnGoBackground()
         node->ResetHardwareEnabledStates();
     });
 }
+
+void RSRenderServiceListener::OnTransformChange()
+{
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGD("RSRenderServiceListener::OnTransformChange node is nullptr");
+            return;
+        }
+        RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
+        node->SetContentDirty();
+        node->SetDoDirectComposition(false);
+    });
+}
 } // namespace Rosen
 } // namespace OHOS

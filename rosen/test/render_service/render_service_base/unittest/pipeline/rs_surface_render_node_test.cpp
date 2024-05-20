@@ -2703,5 +2703,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameStatic008, TestSize.Level2)
     bool result = leash->IsCurFrameStatic(DeviceType::PC);
     ASSERT_EQ(result, false);
 }
+
+/**
+ * @tc.name: SetDoDirectComposition001
+ * @tc.desc: Test SetDoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueI9Q8E9
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDoDirectComposition001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetDoDirectComposition(false);
+    ASSERT_EQ(node->GetDoDirectComposition(), false);
+
+    node->SetDoDirectComposition(true);
+    ASSERT_EQ(node->GetDoDirectComposition(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

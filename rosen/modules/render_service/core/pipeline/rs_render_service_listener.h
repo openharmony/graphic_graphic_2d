@@ -31,6 +31,7 @@ public:
     void OnTunnelHandleChange() override;
     void OnCleanCache() override;
     void OnGoBackground() override;
+    void OnTransformChange() override;
 private:
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
 };
