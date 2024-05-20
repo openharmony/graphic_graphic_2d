@@ -256,6 +256,30 @@ HWTEST_F(SkiaPaintTest, ComputeFastBounds001, TestSize.Level1)
     skiaPaint.ComputeFastBounds(brush, rect, &storage);
     EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
 }
+
+/**
+ * @tc.name: GetFillPath001
+ * @tc.desc: Test GetFillPath
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, GetFillPath001, TestSize.Level1)
+{
+    SkiaPaint skiaPaint;
+    Pen pen;
+    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    pen.SetWidth(10);
+    Path srcPath;
+    Path dstPath;
+    srcPath.LineTo(100, 100); // 100: x, y
+    Rect rect(0, 0, 100, 100); // 100: right, bottom
+    Matrix matrix;
+    bool ret = false;
+    ret = skiaPaint.GetFillPath(pen, srcPath, dstPath, &rect, matrix);
+    EXPECT_TRUE(ret);
+    ret = skiaPaint.GetFillPath(pen, srcPath, dstPath, nullptr, matrix);
+    EXPECT_TRUE(ret);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
