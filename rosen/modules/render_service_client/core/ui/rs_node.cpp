@@ -2341,7 +2341,6 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     }
     isTextureExportNode_ = isTextureExportNode;
     if (!isTextureExportNode_) {
-        DoFlushModifier();
         return;
     }
     CreateTextureExportRenderNodeInRT();
