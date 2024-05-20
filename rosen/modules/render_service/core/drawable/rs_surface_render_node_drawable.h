@@ -151,6 +151,9 @@ public:
     {
         return brightnessRatio_;
     }
+    void SetTaskFrameCount(uint64_t frameCount);
+
+    uint64_t GetTaskFrameCount() const;
 
     std::shared_ptr<RSSurfaceRenderNode> GetSurfaceRenderNode() const;
 
@@ -213,6 +216,7 @@ private:
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
+    uint64_t frameCount_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

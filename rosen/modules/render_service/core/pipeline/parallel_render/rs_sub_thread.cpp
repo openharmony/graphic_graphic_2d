@@ -29,6 +29,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 
@@ -262,6 +263,13 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     if (!param) {
         return;
     }
+
+    if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
+        nodeDrawable->HasCachedTexture()) {
+        RS_TRACE_NAME_FMT("subthread skip node id %llu", param->GetId());
+        doingCacheProcessNum--;
+        return;
+    }
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
 
@@ -292,7 +300,11 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
+    }
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);

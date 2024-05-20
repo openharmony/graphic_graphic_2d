@@ -1594,7 +1594,7 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-    Drawing::GPUContext* grContext)
+    Drawing::GPUContext* grContext, bool optFenceWait)
 {
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
@@ -1602,8 +1602,8 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
     }
     RS_TRACE_NAME_FMT("Render surface flush and submit");
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
         auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
         VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;

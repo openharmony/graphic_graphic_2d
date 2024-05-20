@@ -447,6 +447,16 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
 
+    void SetUIFirstIsPurge(bool IsPurge)
+    {
+        UIFirstIsPurge_ = IsPurge;
+    }
+
+    bool GetUIFirstIsPurge()
+    {
+        return UIFirstIsPurge_;
+    }
+
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
@@ -1339,6 +1349,7 @@ private:
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
     bool isForeground_ = false;
+    bool UIFirstIsPurge_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1366,6 +1377,7 @@ private:
 
     bool doDirectComposition_ = true;
 
+    friend class RSUifirstManager;
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
