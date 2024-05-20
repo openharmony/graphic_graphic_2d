@@ -16,6 +16,7 @@
 #include "rs_uni_render_virtual_processor.h"
 
 #include <ctime>
+#include <parameters.h>
 
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
@@ -81,6 +82,13 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode) {
+        exFoldScreen_ = (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0);
+        std::string lemScreen = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+        if (lemScreen[0] == '2') { // Small folding screen
+            exFoldScreen_ = false;
+        }
+    }
     if (mirrorNode && !canvasRotation_) {
         mainScreenRotation_ = mirrorNode->GetScreenRotation();
         if (node.IsFirstTimeToProcessor()) {
@@ -88,7 +96,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             RS_LOGI("RSUniRenderVirtualProcessor::Init, OriginScreenRotation: %{public}d",
                 node.GetOriginScreenRotation());
         }
-        if (!(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
+        if (!exFoldScreen_) {
             OriginScreenRotation(node.GetOriginScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
         }
         RS_LOGD("RSUniRenderVirtualProcessor::Init, (id %{public}" PRIu64 "), mainScreenRotation: %{public}d, " \
@@ -177,11 +185,11 @@ void RSUniRenderVirtualProcessor::OriginScreenRotation(ScreenRotation screenRota
 
 void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
 {
-    if (!canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
+    if (!canvasRotation && !exFoldScreen_) {
         return;
     }
     auto rotation = canvasRotation ? node.GetScreenRotation() : node.GetOriginScreenRotation();
-    if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
+    if (exFoldScreen_) {
         // set rotation 0->90 90->180 180->270 270->0
         rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + 1) % SCREEN_ROTATION_NUM);
     }
@@ -225,7 +233,7 @@ void RSUniRenderVirtualProcessor::JudgeResolution(RSDisplayRenderNode& node)
     auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
     auto flag = (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270);
 
-    if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
+    if (exFoldScreen_) {
         if (!flag) {
             std::swap(mainWidth_, mainHeight_);
         }
