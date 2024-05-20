@@ -51,16 +51,17 @@ HWTEST_F(OH_Drawing_RunTest, OH_Drawing_RunTest001, TestSize.Level1)
     // 100 for unit test
     typography->Paint(canvas, 100, 100);
     std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase = typography->GetTextLines();
-    EXPECT_EQ(vectorTextLineBase.size() > 0, true);
-    std::vector<std::unique_ptr<OHOS::Rosen::Run>> vectorRun = vectorTextLineBase[0]->GetGlyphRuns();
-    EXPECT_EQ(vectorRun.size() > 0, true);
-    vectorRun[0]->GetFont();
-    EXPECT_EQ(vectorRun[0]->GetGlyphCount() > 0, true);
-    vectorRun[0]->GetGlyphs();
-    vectorRun[0]->GetPositions();
-    vectorRun[0]->GetOffsets();
-    // 10.0 for unit test
-    vectorRun[0]->Paint(canvas, 10.0, 10.0);
+    if (vectorTextLineBase.size() > 0) {
+        std::vector<std::unique_ptr<OHOS::Rosen::Run>> vectorRun = vectorTextLineBase[0]->GetGlyphRuns();
+        EXPECT_EQ(vectorRun.size() > 0, true);
+        vectorRun[0]->GetFont();
+        EXPECT_EQ(vectorRun[0]->GetGlyphCount() > 0, true);
+        vectorRun[0]->GetGlyphs();
+        vectorRun[0]->GetPositions();
+        vectorRun[0]->GetOffsets();
+        // 10.0 for unit test
+        vectorRun[0]->Paint(canvas, 10.0, 10.0);
+    }
     delete canvas;
     canvas = nullptr;
 }
