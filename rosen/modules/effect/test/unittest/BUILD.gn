@@ -33,6 +33,7 @@ ohos_unittest("EffectTest") {
       "brightness_filter_unittest.cpp",
       "contrast_filter_unittest.cpp",
       "effect_chain_unittest.cpp",
+      "effect_filter_unittest.cpp",
       "filter_factory_unittest.cpp",
       "filter_unittest.cpp",
       "gaussian_blur_filter_unittest.cpp",
