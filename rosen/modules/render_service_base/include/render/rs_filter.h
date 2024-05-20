@@ -61,6 +61,7 @@ public:
         LINEAR_GRADIENT_BLUR,
         FOREGROUND_EFFECT,
         MOTION_BLUR,
+        SPHERIZE_EFFECT,
     };
     FilterType GetFilterType() const
     {
