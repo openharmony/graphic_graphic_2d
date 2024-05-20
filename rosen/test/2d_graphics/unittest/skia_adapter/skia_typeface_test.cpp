@@ -342,7 +342,7 @@ HWTEST_F(SkiaTypefaceTest, MakeFromFile002, TestSize.Level1)
     auto defaultTypeface = SkiaTypeface::MakeDefault();
     // 检查默认字体创建是否成功
     ASSERT_NE(defaultTypeface, nullptr) << "Failed to create default SkiaTypeface";
-    const char validPath[] = "./third_party/skia/resources/fonts/Em.ttf";
+    const char validPath[] = "resources/fonts/Em.ttf";
     // 测试当文件路径无效时，MakeFromFile返回nullptr
     auto typefaceInvalidPath = SkiaTypeface::MakeFromFile("invalid/path/to/font.ttf", 0);
     ASSERT_EQ(typefaceInvalidPath, nullptr) << "Expected nullptr for invalid file path";
