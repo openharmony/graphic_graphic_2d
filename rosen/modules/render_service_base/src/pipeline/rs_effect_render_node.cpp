@@ -256,7 +256,6 @@ void RSEffectRenderNode::OnFilterCacheStateChanged()
     if (filterDrawable == nullptr || effectParams == nullptr) {
         return;
     }
-    effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
     effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
 }
 } // namespace Rosen

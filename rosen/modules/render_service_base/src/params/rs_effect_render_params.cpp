@@ -43,16 +43,4 @@ bool RSEffectRenderParams::GetCacheValid() const
 {
     return cacheValid_;
 }
-void RSEffectRenderParams::SetHasEffectChildren(bool hasEffectChildren)
-{
-    if (hasEffectChildren_ == hasEffectChildren) {
-        return;
-    }
-    hasEffectChildren_ = hasEffectChildren;
-    needSync_ = true;
-}
-bool RSEffectRenderParams::GetHasEffectChildren() const
-{
-    return hasEffectChildren_;
-}
 } // namespace OHOS::Rosen
