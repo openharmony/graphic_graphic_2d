@@ -703,10 +703,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
     const RSDynamicBrightnessPara& params, const float fract)
 {
-    if (ROSEN_LNE(fract, 0.0) || ROSEN_GE(fract, 1.0)) {
-        return nullptr;
-    }
-
     auto builder = MakeDynamicBrightnessBuilder();
     if (!builder) {
         ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make builder fail");
@@ -717,7 +713,7 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightness
     constexpr int IDNEX_ONE = 1;
     constexpr int IDNEX_TWO = 2;
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
-    builder->SetUniform("ubo_fract", fract);
+    builder->SetUniform("ubo_fract", std::clamp(fract, 0.0, 1.0));
     builder->SetUniform("ubo_rate", params.rate_);
     builder->SetUniform("ubo_degree", params.lightUpDegree_);
     builder->SetUniform("ubo_cubic", params.cubicCoeff_);

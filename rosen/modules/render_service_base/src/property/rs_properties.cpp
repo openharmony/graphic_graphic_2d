@@ -1323,14 +1323,12 @@ float RSProperties::GetBgBrightnessFract() const
 
 bool RSProperties::IsFgBrightnessValid() const
 {
-    return fgBrightnessParams_.has_value() && ROSEN_GE(fgBrightnessFract_, 0.0) &&
-        ROSEN_LE(fgBrightnessFract_, 1.0);
+    return fgBrightnessParams_.has_value() && ROSEN_LNE(fgBrightnessFract_, 1.0);
 }
 
 bool RSProperties::IsBgBrightnessValid() const
 {
-    return bgBrightnessParams_.has_value() && ROSEN_GE(bgBrightnessFract_, 0.0) &&
-        ROSEN_LE(bgBrightnessFract_, 1.0);
+    return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessFract_, 1.0);
 }
 
 void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
