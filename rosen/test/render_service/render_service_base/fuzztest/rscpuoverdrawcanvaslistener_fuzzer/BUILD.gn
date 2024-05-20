@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,24 +19,17 @@ module_output_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSCpuOverdrawCanvasListenerFuzzTest") {
   module_out_path = module_output_path
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
-  }
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer"
+  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer"
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "../../../../../modules/render_service_base/src",
+    "../../../../../modules/2d_graphics/include",
+    "../../../../../modules/render_service_base/include",
   ]
-
-  include_dirs += [ "//third_party/skia" ]
-
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/zlib:libz",
+    "../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../modules/render_service:librender_service",
+    "../../../../../modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_client:librender_service_client",
   ]
 
   cflags = [
@@ -44,6 +37,8 @@ ohos_fuzztest("RSCpuOverdrawCanvasListenerFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "rscpuoverdrawcanvaslistener_fuzzer.cpp" ]
 

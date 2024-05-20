@@ -229,10 +229,6 @@ public:
         : RSRenderProperty<T>(value, id), type_(type), unit_(unit)
     {}
     virtual ~RSRenderAnimatableProperty() = default;
-    virtual RSRenderPropertyType GetPropertyType() const override
-    {
-        return type_;
-    }
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
@@ -252,6 +248,11 @@ protected:
     void SetPropertyType(const RSRenderPropertyType type) override
     {
         type_ = type;
+    }
+
+    virtual RSRenderPropertyType GetPropertyType() const override
+    {
+        return type_;
     }
 
     void SetPropertyUnit(RSPropertyUnit unit) override

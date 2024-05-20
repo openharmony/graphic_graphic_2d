@@ -132,12 +132,12 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
 }
 
 /**
- * @tc.name: CanvasRotation
- * @tc.desc: CanvasRotation Test
+ * @tc.name: OriginScreenRotation
+ * @tc.desc: OriginScreenRotation Test
  * @tc.type: FUNC
  * @tc.require: issueI992VW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasRotation, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
@@ -147,10 +147,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasRotation, TestSize.Level2)
     ASSERT_NE(nullptr, drawingCanvas);
     virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
     ASSERT_NE(nullptr, virtualProcessor->canvas_);
-    virtualProcessor->CanvasRotation(ScreenRotation::ROTATION_0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor->CanvasRotation(ScreenRotation::ROTATION_90, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor->CanvasRotation(ScreenRotation::ROTATION_180, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor->CanvasRotation(ScreenRotation::ROTATION_270, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_90, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_180, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_270, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
 }
 
 /**

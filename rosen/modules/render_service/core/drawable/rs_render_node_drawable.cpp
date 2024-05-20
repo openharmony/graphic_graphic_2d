@@ -222,6 +222,24 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     }
 }
 
+void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
+{
+    if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
+            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo); // alpha 0.2 by default
+        }
+    }
+
+    if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
+        for (const auto& info : autoCacheRenderNodeInfos_) {
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
+        }
+    }
+}
+
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
 {
     cacheType_ = cacheType;
@@ -380,6 +398,7 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         samplingOptions, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
         canvas.DetachBrush();
         DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
+        return;
     }
     if (canvas.GetTotalMatrix().HasPerspective()) {
         // In case of perspective transformation, make dstRect 1px outset to anti-alias
@@ -451,7 +470,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    RS_TRACE_NAME("UpdateCacheSurface");
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
     if (GetCachedSurface(threadId) == nullptr) {

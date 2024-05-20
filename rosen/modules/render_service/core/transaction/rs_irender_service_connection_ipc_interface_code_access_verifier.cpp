@@ -45,6 +45,12 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
+#ifdef RS_ENABLE_VK
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_2D_RENDER_CTRL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_2D_RENDER_CTRL");
+            break;
+        }
+#endif
         default: {
             break;
         }

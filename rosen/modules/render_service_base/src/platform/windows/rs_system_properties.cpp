@@ -64,7 +64,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 bool RSSystemProperties::GetDrawOpTraceEnabled()
@@ -83,6 +83,16 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
     return {};
 }

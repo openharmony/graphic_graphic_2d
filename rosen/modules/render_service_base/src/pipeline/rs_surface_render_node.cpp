@@ -67,7 +67,7 @@ bool CheckScbReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
     auto sortedChildren = node.GetSortedChildren();
-    if (node.IsScbScreen()) {
+    if (node.IsScbScreen() || node.IsSCBNode()) {
         for (const auto& child : *sortedChildren) {
             if (CheckScbReadyToDraw(child)) {
                 return true;
@@ -715,10 +715,16 @@ bool RSSurfaceRenderNode::GetBootAnimation() const
 
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetForceHardwareByUser(flag);
+    AddToPendingSyncList();
+
     isForceHardwareByUser_ = flag;
-    if (isForceHardwareByUser_) {
-        originalDstRect_ = GetDstRect();
-    }
+}
+
+bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
 }
 
 bool RSSurfaceRenderNode::GetForceHardware() const
@@ -728,7 +734,11 @@ bool RSSurfaceRenderNode::GetForceHardware() const
 
 void RSSurfaceRenderNode::SetForceHardware(bool flag)
 {
+    if (isForceHardwareByUser_ && !isForceHardware_ && flag) {
+        originalDstRect_ = dstRect_;
+    }
     isForceHardware_ = isForceHardwareByUser_ && flag;
+    SetContentDirty();
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -1263,7 +1273,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
     return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
 }
 
-bool RSSurfaceRenderNode::IsNeedSetVSync()
+bool RSSurfaceRenderNode::IsSCBNode()
 {
     return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB";
 }
@@ -1336,7 +1346,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     // collect visible changed pid
     if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !isSystemAnimatedScenes) {
-        visMapForVsyncRate[GetId()] = !IsNeedSetVSync() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
+        visMapForVsyncRate[GetId()] = !IsSCBNode() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;
@@ -1918,13 +1928,13 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
 
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation)
 {
-    auto absRect = GetDstRect();
+    auto absRect = GetDstRect().IntersectRect(GetOldDirtyInSurface());
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
-    Vector4<int> cornerRadius(static_cast<int>(std::ceil(tmpCornerRadius.x_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.y_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.z_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.w_)));
+    Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
+                                static_cast<int>(std::round(tmpCornerRadius.y_)),
+                                static_cast<int>(std::round(tmpCornerRadius.z_)),
+                                static_cast<int>(std::round(tmpCornerRadius.w_)));
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
@@ -2062,6 +2072,9 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
             dirtyGeoNodeNum_++;
         }
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%lu] contentStatic: %d, dirtyContentNode: %d, "
+        "dirtyGeoNode: %d", GetName().c_str(), GetId(),
+        surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
     // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
     surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
@@ -2467,6 +2480,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     }
     if (IsMainWindowType()) {
         surfaceParams->SetVisibleRegion(visibleRegion_);
+        surfaceParams->SetVisibleRegionInVirtual(visibleRegionInVirtual_);
         surfaceParams->SetIsParentScaling(isParentScaling_);
     }
     surfaceParams->absDrawRect_ = GetAbsDrawRect();

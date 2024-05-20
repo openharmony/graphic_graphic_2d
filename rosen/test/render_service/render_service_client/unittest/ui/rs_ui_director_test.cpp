@@ -128,7 +128,7 @@ HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->SetUITaskRunner([&](const auto& uiTaskRunner) {});
+    director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
 }
 
 /**
@@ -186,7 +186,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
 
-    director->SetUITaskRunner([&](const auto& uiTaskRunner) {});
+    director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
     director->SendMessages();
 }
 

@@ -68,6 +68,12 @@ void HgmMultiAppStrategy::HandleTouchInfo(const std::string& pkgName, TouchState
     CalcVote();
 }
 
+void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
+{
+    lightFactorStatus_ = isSafe;
+    CalcVote();
+}
+
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
@@ -113,6 +119,9 @@ void HgmMultiAppStrategy::CalcVote()
     }
 
     UpdateStrategyByTouch(voteRes_.second, "", true);
+    if (lightFactorStatus_) {
+        voteRes_.second.min = voteRes_.second.max;
+    }
     HGM_LOGD("final apps res: %{public}d, [%{public}d, %{public}d]",
         voteRes_.first, voteRes_.second.min, voteRes_.second.max);
 

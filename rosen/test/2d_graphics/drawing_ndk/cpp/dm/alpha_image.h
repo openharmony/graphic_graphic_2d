@@ -14,7 +14,7 @@
  */
 #ifndef ALPHA_IMAGE_H
 #define ALPHA_IMAGE_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_brush.h>
 #include <native_drawing/drawing_canvas.h>

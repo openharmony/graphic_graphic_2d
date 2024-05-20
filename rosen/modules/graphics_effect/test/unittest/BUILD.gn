@@ -20,6 +20,7 @@ ohos_unittest("GraphicsEffectTest") {
   module_out_path = module_output_path
 
   sources = [
+    "ge_cache_test.cpp",
     "ge_render_test.cpp",
     "ge_visual_effect_container_test.cpp",
     "ge_visual_effect_test.cpp",
@@ -39,6 +40,7 @@ ohos_unittest("GraphicsEffectTest") {
 
   external_deps = [ "hilog:libhilog" ]
 
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

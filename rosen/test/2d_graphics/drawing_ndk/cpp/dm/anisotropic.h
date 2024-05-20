@@ -14,7 +14,7 @@
  */
 #ifndef ANISOTROPIC_H
 #define ANISOTROPIC_H
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>

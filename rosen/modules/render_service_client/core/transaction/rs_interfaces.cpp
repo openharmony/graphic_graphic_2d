@@ -25,6 +25,7 @@
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_typeface_cache.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -83,6 +84,13 @@ ScreenId RSInterfaces::CreateVirtualScreen(
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
+}
+#endif
+
+#ifdef RS_ENABLE_VK
+bool RSInterfaces::Set2DRenderCtrl(bool enable)
+{
+    return renderServiceClient_->Set2DRenderCtrl(enable);
 }
 #endif
 
@@ -198,6 +206,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->RegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
@@ -206,6 +219,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->UnRegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
 
@@ -290,7 +308,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -571,5 +589,13 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
+
+#ifdef RS_ENABLE_VK
+extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
+{
+    RSInterfaces::GetInstance().Set2DRenderCtrl(enable);
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

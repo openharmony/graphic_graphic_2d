@@ -40,9 +40,8 @@ void BootSoundPlayer::Play()
         return;
     }
 
-    while (mediaPlayer_ == nullptr) {
+    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
         LOGI("mediaPlayer is nullptr, try create again");
-        mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
         usleep(SLEEP_TIME_US);
     }
     std::string path = GetResPath(TYPE_SOUND);

@@ -283,11 +283,14 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #endif
 {
 #ifdef RS_ENABLE_VK
-    skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    if (renderContext_ == nullptr) {
-        return nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        if (renderContext_ == nullptr) {
+            return nullptr;
+        }
+        renderContext_->SetUpGpuContext(skContext_);
     }
-    renderContext_->SetUpGpuContext(skContext_);
 #endif
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
@@ -396,6 +399,48 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 #endif
     RS_OPTIONAL_TRACE_END();
     return RequestFrame(rsSurface, config, forceCPU, useAFBC, isProtected);
+}
+
+#ifdef NEW_RENDER_CONTEXT
+std::shared_ptr<RSRenderSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface,
+    bool forceCPU)
+#else
+std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU)
+#endif
+{
+    RS_TRACE_FUNC();
+    if (targetSurface == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::MakeRSSurface: surface is null!");
+        RS_OPTIONAL_TRACE_END();
+        return nullptr;
+    }
+
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RSRenderSurfaceOhos> rsSurface = nullptr;
+    std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
+        targetSurface);
+    rsSurface = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
+#else
+    std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (forceCPU) {
+            rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
+        } else {
+            rsSurface = std::make_shared<RSSurfaceOhosGl>(targetSurface);
+        }
+    }
+#endif
+#if (defined RS_ENABLE_VK)
+    if (RSSystemProperties::IsUseVulkan()) {
+        rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
+    }
+#endif
+    if (rsSurface == nullptr) {
+        rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
+    }
+#endif
+    return rsSurface;
 }
 
 #ifdef NEW_RENDER_CONTEXT
@@ -709,7 +754,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
+            samplingOptions = !params.useBilinearInterpolation
                                 ? Drawing::SamplingOptions()
                                 : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
         }

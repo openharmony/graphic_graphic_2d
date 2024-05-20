@@ -90,7 +90,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::SHADOW,                        // SHADOW_MASK
     RSDrawableSlot::SHADOW,                        // SHADOW_COLOR_STRATEGY
     RSDrawableSlot::MASK,                          // MASK
-    RSDrawableSlot::INVALID,                       // SPHERIZE
+    RSDrawableSlot::FOREGROUND_FILTER,             // SPHERIZE
     RSDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT

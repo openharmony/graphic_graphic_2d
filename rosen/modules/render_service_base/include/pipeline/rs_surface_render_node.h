@@ -133,6 +133,7 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
     bool GetForceHardware() const;
     void SetForceHardware(bool flag);
 
@@ -387,7 +388,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsNeedSetVSync();
+    bool IsSCBNode();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
@@ -531,6 +532,11 @@ public:
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
+    }
+
+    const Occlusion::Region& GetVisibleRegionInVirtual() const
+    {
+        return visibleRegionInVirtual_;
     }
 
     const Occlusion::Region& GetVisibleRegionForCallBack() const
@@ -702,6 +708,11 @@ public:
     void SetVisibleRegion(Occlusion::Region region)
     {
         visibleRegion_ = region;
+    }
+
+    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    {
+        visibleRegionInVirtual_ = region;
     }
 
     inline bool IsEmptyAppWindow() const
@@ -1167,6 +1178,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;

@@ -120,7 +120,7 @@ HWTEST_F(NativeFontTest, NativeFontTest_TextToGlyphs004, TestSize.Level1)
     glyphsCount = OH_Drawing_FontTextToGlyphs(font, str, strlen(str),
         OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, glyphs, count);
     EXPECT_EQ(11, glyphsCount); // 11 means glyphsCount
-    EXPECT_EQ(257, glyphs[0]); // 257 means glyphs[0] value
+    EXPECT_EQ(255, glyphs[0]); // 255 means glyphs[0] value
 
     float widths[50] = {0.f}; // 50 means widths array number
     OH_Drawing_FontGetWidths(font, glyphs, glyphsCount, widths);

@@ -19,6 +19,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "ibuffer_consumer_listener.h"
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
@@ -26,6 +27,12 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class BufferConsumerTestListener : public ::OHOS::IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
 class RSInterfacesTest : public testing::Test {
 public:
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSInterfacesTest" };
@@ -994,6 +1001,23 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | 
 }
 
 /*
+ * @tc.name: Set2DRenderCtrl Test
+ * @tc.desc: Set2DRenderCtrl Test
+ * @tc.type: FUNC
+ * @tc.require:I9NA1T
+ */
+#ifdef RS_ENABLE_VK
+HWTEST_F(RSInterfacesTest, Set2DRenderCtrl_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool ret = rsInterfaces->Set2DRenderCtrl(false);
+    ASSERT_EQ(ret, true);
+    ret = rsInterfaces->Set2DRenderCtrl(true);
+    ASSERT_EQ(ret, true);
+}
+#endif
+
+/*
  * @tc.name: GetScreenCurrentRefreshRate001
  * @tc.desc: Verify the function of getting the current refreshrate via rs interfaces
  * @tc.type: FUNC
@@ -1424,16 +1448,46 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     ASSERT_NE(rsInterfaces, nullptr);
     auto cSurface = IConsumerSurface::Create();
     ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> producer = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+    int releaseFence = -1;
+    sptr<SurfaceBuffer> buffer;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        }
+    };
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
     OHOS::Rect rect = {
         .x = 0,
         .y = 0,
-        .w = 300,
-        .h = 300,
+        .w = 0x100,
+        .h = 0x100,
     };
     uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
     auto utils = SurfaceUtils::GetInstance();
     utils->Add(surfaceId, cSurface);
-    rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
+    auto pixcelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_NE(pixcelMap, nullptr);
+#endif
 }
 
 /*

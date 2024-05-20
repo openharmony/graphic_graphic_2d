@@ -399,6 +399,23 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Set2DRenderCtrl Test
+ * @tc.desc: Set2DRenderCtrl Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NA1T
+ */
+#ifdef RS_ENABLE_VK
+HWTEST_F(RSClientTest, Set2DRenderCtrl, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->Set2DRenderCtrl(false);
+    ASSERT_EQ(ret, true);
+    ret = rsClient->Set2DRenderCtrl(true);
+    ASSERT_EQ(ret, true);
+}
+#endif
+
+/**
  * @tc.name: SetScreenChangeCallback Test
  * @tc.desc: SetScreenChangeCallback Test
  * @tc.type:FUNC

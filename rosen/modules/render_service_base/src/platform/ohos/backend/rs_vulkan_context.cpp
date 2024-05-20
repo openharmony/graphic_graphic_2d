@@ -152,6 +152,8 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(GetPhysicalDeviceMemoryProperties2, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures2, instance_);
 
+    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", instance_);
+
     return true;
 }
 

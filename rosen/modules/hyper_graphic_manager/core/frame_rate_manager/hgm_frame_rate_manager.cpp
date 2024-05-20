@@ -81,6 +81,9 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO && configData->xmlCompatibleMode_) {
+            curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
+        }
         multiAppStrategy_.UpdateXmlConfigCache();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -113,6 +116,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         HandleIdleEvent(true);
     });
     InitTouchManager();
+    multiAppStrategy_.CalcVote();
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -238,7 +242,9 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool
         DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
     } else {
         StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-            forceUpdateCallback_(true, false);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(true, false);
+            }
         });
     }
 }
@@ -282,7 +288,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
-            forceUpdateCallback_(false, true);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(false, true);
+            }
             FrameRateReport();
         }
     }
@@ -328,7 +336,9 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
         HandleIdleEvent(ADD_VOTE);
     } else {
         StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-            forceUpdateCallback_(true, false);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(true, false);
+            }
         });
     }
 
@@ -336,19 +346,15 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     FrameRateVoteInfo frameRateVoteInfo;
     VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo);
     auto& hgmCore = HgmCore::Instance();
-    uint32_t lastPendingRate = hgmCore.GetPendingScreenRefreshRate();
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
-    if ((currRefreshRate_ < lastPendingRate) && !isReduceAllowed_) {
-        // Can't reduce the refreshRate in ltps mode
-        RS_TRACE_NAME_FMT("Can't reduce to [%d], keep [%d] please", currRefreshRate_, lastPendingRate);
-        currRefreshRate_ = lastPendingRate;
-    }
 
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
-        forceUpdateCallback_(false, true);
+        if (forceUpdateCallback_ != nullptr) {
+            forceUpdateCallback_(false, true);
+        }
         FrameRateReport();
     }
     ReportHiSysEvent(frameRateVoteInfo);
@@ -396,9 +402,10 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
-        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, appFrameRate = %d, "\
-            "appRange = (%d, %d, %d)", ExtractPid(linker.first), appFrameRate, linker.second->GetExpectedRange().min_,
-            linker.second->GetExpectedRange().max_, linker.second->GetExpectedRange().preferred_);
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
+            "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
+            appFrameRate, linker.second->GetExpectedRange().min_, linker.second->GetExpectedRange().max_,
+            linker.second->GetExpectedRange().preferred_);
     }
     return frameRateChanged;
 }
@@ -415,7 +422,9 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != lastRefreshRate) {
-            forceUpdateCallback_(false, true);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(false, true);
+            }
             FrameRateReport();
         }
     };
@@ -624,7 +633,9 @@ void HgmFrameRateManager::HandleLightFactorStatus(bool isSafe)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
     HGM_LOGI("HandleLightFactorStatus status:%{public}u", isSafe);
-    isReduceAllowed_ = isSafe;
+    HgmTaskHandleThread::Instance().PostTask([this, isSafeParam = isSafe] () {
+        multiAppStrategy_.HandleLightFactorStatus(isSafeParam);
+    });
 }
 
 void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
@@ -804,6 +815,9 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
     }
 
     std::lock_guard<std::mutex> lock(voteMutex_);
+    if (voteRecord_.find(eventName) == voteRecord_.end()) {
+        voteRecord_[eventName] = {};
+    }
     auto& vec = voteRecord_[eventName];
 
     // clear

@@ -699,8 +699,8 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
 void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {
-    if (!skCanvas_ || !atlas) {
-        LOGD("skCanvas_ or atlas is null, return on line %{public}d", __LINE__);
+    if (!skCanvas_ || !atlas || !xform || !tex) {
+        LOGD("skCanvas_ or atlas, xform or tex is null, return on line %{public}d", __LINE__);
         return;
     }
     const int maxCount = 2000; // max count supported is 2000

@@ -20,10 +20,10 @@
 #include <thread>
 
 #include "rs_profiler_cache.h"
+#include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
-#include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
 
 #include "pipeline/rs_main_thread.h"
@@ -184,34 +184,34 @@ std::vector<NetworkStats> Network::GetStats(const std::string& interface)
     return results;
 }
 
-void Network::SendRdcPath(const std::string& path)
+void Network::SendPath(const std::string& path, PackageID id)
 {
     if (!path.empty()) {
         std::string out;
-        out += static_cast<char>(PackageID::RS_PROFILER_RDC_BINARY);
+        out += static_cast<char>(id);
         out += path;
-        SendBinary(out.data(), out.size());
+        SendBinary(out);
     }
+}
+
+void Network::SendRdcPath(const std::string& path)
+{
+    SendPath(path, PackageID::RS_PROFILER_RDC_BINARY);
 }
 
 void Network::SendDclPath(const std::string& path)
 {
-    if (!path.empty()) {
-        std::string out;
-        out += static_cast<char>(PackageID::RS_PROFILER_DCL_BINARY);
-        out += path;
-        SendBinary(out.data(), out.size());
-    }
+    SendPath(path, PackageID::RS_PROFILER_DCL_BINARY);
 }
 
 void Network::SendMskpPath(const std::string& path)
 {
-    if (!path.empty()) {
-        std::string out;
-        out += static_cast<char>(PackageID::RS_PROFILER_MSKP_FILEPATH);
-        out += path;
-        SendBinary(out.data(), out.size());
-    }
+    SendPath(path, PackageID::RS_PROFILER_MSKP_FILEPATH);
+}
+
+void Network::SendBetaRecordPath(const std::string& path)
+{
+    SendPath(path, PackageID::RS_PROFILER_BETAREC_FILEPATH);
 }
 
 void Network::SendSkp(const void* data, size_t size)
@@ -221,45 +221,20 @@ void Network::SendSkp(const void* data, size_t size)
         buffer.reserve(size + 1);
         buffer.push_back(static_cast<char>(PackageID::RS_PROFILER_SKP_BINARY));
         buffer.insert(buffer.end(), static_cast<const char*>(data), static_cast<const char*>(data) + size);
-        SendBinary(buffer.data(), buffer.size());
+        SendBinary(buffer);
     }
 }
 
-void Network::SendTelemetry(double time)
+void Network::SendCaptureData(const RSCaptureData& data)
 {
-    if (time < 0.0) {
-        return;
-    }
-
-    const DeviceInfo deviceInfo = RSTelemetry::GetDeviceInfo();
-
-    std::stringstream load;
-    std::stringstream frequency;
-    for (uint32_t i = 0; i < deviceInfo.cpu.cores; i++) {
-        load << deviceInfo.cpu.coreFrequencyLoad[i].load;
-        if (i + 1 < deviceInfo.cpu.cores) {
-            load << ";";
-        }
-        frequency << deviceInfo.cpu.coreFrequencyLoad[i].current;
-        if (i + 1 < deviceInfo.cpu.cores) {
-            frequency << ";";
-        }
-    }
-
-    RSCaptureData captureData;
-    captureData.SetTime(time);
-    captureData.SetProperty(RSCaptureData::KEY_CPU_TEMP, deviceInfo.cpu.temperature);
-    captureData.SetProperty(RSCaptureData::KEY_CPU_CURRENT, deviceInfo.cpu.current);
-    captureData.SetProperty(RSCaptureData::KEY_CPU_LOAD, load.str());
-    captureData.SetProperty(RSCaptureData::KEY_CPU_FREQ, frequency.str());
-    captureData.SetProperty(RSCaptureData::KEY_GPU_LOAD, deviceInfo.gpu.frequencyLoad.load);
-    captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequencyLoad.current);
-
     std::vector<char> out;
-    captureData.Serialize(out);
-    const char headerType = 3; // TYPE: GFX METRICS
-    out.insert(out.begin(), headerType);
-    SendBinary(out.data(), out.size());
+    const_cast<RSCaptureData&>(data).Serialize(out);
+
+    if (!out.empty()) {
+        const char headerType = 3; // TYPE: GFX METRICS
+        out.insert(out.begin(), headerType);
+        SendBinary(out);
+    }
 }
 
 void Network::SendRSTreeDumpJSON(const std::string& jsonstr)
@@ -298,6 +273,16 @@ void Network::SendBinary(const void* data, size_t size)
         const std::lock_guard<std::mutex> guard(outgoingMutex_);
         outgoing_.emplace(packet.Release());
     }
+}
+
+void Network::SendBinary(const std::vector<char>& data)
+{
+    SendBinary(data.data(), data.size());
+}
+
+void Network::SendBinary(const std::string& data)
+{
+    SendBinary(data.data(), data.size());
 }
 
 void Network::SendMessage(const std::string& message)

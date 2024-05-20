@@ -304,7 +304,6 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 void RSDisplayRenderNode::UpdateRotation()
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    displayParams->SetRotationChanged(IsRotationChanged());
     AddToPendingSyncList();
 
     auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
@@ -313,6 +312,7 @@ void RSDisplayRenderNode::UpdateRotation()
     }
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
+    displayParams->SetRotationChanged(IsRotationChanged());
 }
 
 void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)

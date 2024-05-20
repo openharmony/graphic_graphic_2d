@@ -29,6 +29,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
@@ -171,16 +172,24 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    void SurfaceOcclusionCallbackToWMS()
+    {
+        if (visibleChanged_) {
+            RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
+        }
+    }
+
     static void ClearRenderGroupCache();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void CheckFilterCacheFullyCovered(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
         const Occlusion::Region& selfDrawRegion);
-    void SurfaceOcclusionCallbackToWMS();
+    void UpdateSurfaceOcclusionInfo();
     void CalcChildFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void CalcSurfaceFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
@@ -220,12 +229,18 @@ private:
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    // should ensure that the surface size of dirty region manager has been set
+    void ResetDisplayDirtyRegion();
+    void ResetDisplayDirtyRegionForScreenPowerChange();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
+    void ResetDisplayDirtyRegionForCurtainScreenUsingStatusChange();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
+        RSSurfaceRenderNode& hwcNodePtr);
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
@@ -250,6 +265,7 @@ private:
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
+    bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
     // If reusable filter cache covers whole screen, mark lower layer to skip process
@@ -467,6 +483,11 @@ private:
     bool isVisibleRegionDfxEnabled_ = false;
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isCanvasNodeSkipDfxEnabled_ = false;
+    bool isVirtualDirtyEnabled_ = false;
+    bool isVirtualDirtyDfxEnabled_ = false;
+    bool hasMirrorDisplay_ = false;
+    // if display node has skip layer except capsule window
+    bool hasSkipLayer_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     bool isSkipCanvasNodeOutOfScreen_ = false;
@@ -487,7 +508,6 @@ private:
 
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool autoCacheDrawingEnable_ = false;
     bool unchangeMarkEnable_ = false;
     bool unchangeMarkInApp_ = false;
 
@@ -530,8 +550,11 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
-    // vector of current frame mainwindow surface visible info
+    // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
+    // vector of current frame mainwindow surface visible info
+    VisibleData allDstCurVisVec_;
+    bool visibleChanged_ = false;
     std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
@@ -554,6 +577,7 @@ private:
     // variable for occlusion
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedOcclusionRegion_;
+    Occlusion::Region occlusionRegionWithoutSkipLayer_;
 
     bool curDirty_ = false;
     bool curContentDirty_ = false;
@@ -585,6 +609,7 @@ private:
     std::vector<RectI> globalFilterRects_;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
+    bool needRequestNextVsync_ = true;
 
     bool forceUpdateFlag_ = false;
 #ifdef ENABLE_RECORDING_DCL

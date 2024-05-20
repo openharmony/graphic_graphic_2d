@@ -36,7 +36,7 @@ struct Index {
       .height('32.3%')
 
       Row() {
-        Button("Draw Rectangle")
+        Button('Draw Rectangle')
           .fontSize(16)
           .fontWeight(500)
           .margin({ bottom:24 })

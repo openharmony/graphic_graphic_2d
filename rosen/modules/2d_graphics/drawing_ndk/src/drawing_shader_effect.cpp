@@ -172,6 +172,26 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
         *CastToMatrix(cMatrix));
 }
 
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
+    float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
+    uint32_t size, OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
+{
+    if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
+        return nullptr;
+    }
+    std::vector<ColorQuad> colorsVector;
+    std::vector<scalar> posVector;
+    for (uint32_t i = 0; i < size; i++) {
+        colorsVector.emplace_back(colors[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
+    }
+    return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT,
+        *CastToPoint(startPt), startRadius, *CastToPoint(endPt), endRadius, colorsVector, posVector,
+        static_cast<TileMode>(cTileMode), cMatrix ? CastToMatrix(cMatrix) : nullptr);
+}
+
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)
 {
     delete CastToShaderEffect(cShaderEffect);

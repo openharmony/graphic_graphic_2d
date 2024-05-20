@@ -38,6 +38,9 @@
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
+#if USE_APS_IGAMESERVICE_FUNC
+#include "vulkan_slice_report.h"
+#endif
 
 #define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
 using namespace OHOS;
@@ -1142,6 +1145,9 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     if (rects != nullptr) {
         defaultAllocator->pfnFree(defaultAllocator->pUserData, rects);
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
+#endif
     return ret;
 }
 
@@ -1496,6 +1502,9 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     if (result != VK_SUCCESS) {
         return result;
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
+#endif
 
     LayerData* instanceLayerData = GetLayerDataPtr(GetDispatchKey(*pInstance));
     instanceLayerData->instance = *pInstance;

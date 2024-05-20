@@ -114,13 +114,13 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(
-            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }
@@ -173,6 +173,7 @@ void RSFilterDrawable::OnSync()
     stagingForceUseCache_ = false;
     stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
+    forceClearCacheWithLastFrame_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
@@ -246,6 +247,11 @@ void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
     isOccluded_ = isOccluded;
 }
 
+void RSFilterDrawable::ForceClearCacheWithLastFrame()
+{
+    forceClearCacheWithLastFrame_ = true;
+}
+
 void RSFilterDrawable::CheckClearFilterCache()
 {
     if (cacheManager_ == nullptr) {
@@ -260,6 +266,13 @@ void RSFilterDrawable::CheckClearFilterCache()
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
         cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_, pendingPurge_);
 
+    if (forceClearCacheWithLastFrame_) {
+        cacheUpdateInterval_ = 0;
+        pendingPurge_ = false;
+        clearType_ = FilterCacheType::BOTH;
+        isFilterCacheValid_ = false;
+        return;
+    }
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
         UpdateFlags(FilterCacheType::NONE, false);
@@ -295,9 +308,19 @@ bool RSFilterDrawable::IsFilterCacheValid() const
     return isFilterCacheValid_;
 }
 
-bool RSFilterDrawable::GetFilterForceClearCache() const
+bool RSFilterDrawable::IsSkippingFrame() const
+{
+    return (filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0;
+}
+
+bool RSFilterDrawable::IsForceClearFilterCache() const
 {
     return forceClearCache_;
+}
+
+bool RSFilterDrawable::IsForceUseFilterCache() const
+{
+    return forceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const
@@ -357,6 +380,11 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         cacheUpdateInterval_--;
         pendingPurge_ = true;
     }
+}
+
+bool RSFilterDrawable::IsAIBarCacheValid() const
+{
+    return (filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

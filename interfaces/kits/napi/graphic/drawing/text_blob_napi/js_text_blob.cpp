@@ -104,20 +104,16 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_object);
 
-    napi_value array = argv[0];
+    napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
-    napi_get_array_length(env, array, &size);
-
-    void* pointerResult = nullptr;
-    napi_unwrap(env, argv[1], &pointerResult);
-    auto jsFont = static_cast<JsFont*>(pointerResult);
-    if (jsFont == nullptr) {
-        ROSEN_LOGE("JsTextBlob::MakeFromRunBuffer jsFont is nullptr");
-        return nullptr;
+    if (napi_get_array_length(env, array, &size) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromRunBuffer font is nullptr");
@@ -129,7 +125,6 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     if (argc == ARGC_TWO) {
         runBuffer = textBlobBuilder->AllocRunPos(*font, size);
     } else {
-        CHECK_EACH_PARAM(ARGC_TWO, napi_object);
         Rect drawingRect;
         napi_valuetype isRectNullptr;
         if (!OnMakeDrawingRect(env, argv[ARGC_TWO], drawingRect, isRectNullptr)) {
@@ -200,16 +195,10 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_string);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_object);
 
-    void* pointerResult = nullptr;
-    napi_unwrap(env, argv[1], &pointerResult);
-    auto jsFont = static_cast<JsFont*>(pointerResult);
-    if (jsFont == nullptr) {
-        ROSEN_LOGE("JsTextBlob::MakeFromString jsFont is nullptr");
-        return nullptr;
-    }
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromString font is nullptr");
@@ -218,12 +207,12 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
 
     // Chinese characters need to be encoded with UTF16
     size_t len = 0;
-    if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
-        return nullptr;
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
     char16_t buffer[len + 1];
-    if (napi_get_value_string_utf16(env, argv[0], buffer, len + 1, &len) != napi_ok) {
-        return nullptr;
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer, len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(buffer, CHAR16_SIZE * len, *font, TextEncoding::UTF16);
 

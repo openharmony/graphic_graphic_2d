@@ -24,7 +24,6 @@
 #include "graphic_common.h"
 #include "image/bitmap.h"
 #include "include/core/SkColor.h"
-#include "include/core/SkTextBlob.h"
 #include "pixel_map.h"
 #include "png.h"
 #include "render_context/render_context.h"
@@ -155,18 +154,20 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
         cout << "canvas is nullptr" << endl;
         return;
     }
-    canvas->clear(SK_ColorWHITE);
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(20);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(SK_ColorGREEN);
+    canvas->Сlear(SK_ColorWHITE);
+
+    Brush brush;
+    brush.SetColor(SK_ColorGREEN);
+    brush.SetAntiAlias(true);
 
     string scaleInfo = "Hello World";
-    sk_sp<SkTextBlob> scaleInfoTextBlob = SkTextBlob::MakeFromString(
-        scaleInfo.c_str(), SkFont(nullptr, 16.0f, 1.0f, 0.0f)); // font size: 16
-    canvas->drawTextBlob(scaleInfoTextBlob.get(), 20, 50, paint); // start point is (20, 50)
+    Font font = Font();
+    font.SetSize(16); // text size 16
+    std::shared_ptr<TextBlob> scaleInfoTextBlob = TextBlob::MakeFromString(scaleInfo.c_str(),
+        font, TextEncoding::UTF8);
+    canvas->AttachBrush(brush);
+    canvas->DrawTextBlob(scaleInfoTextBlob.get(), 20, 50); // start point is (20, 50)
+    canvas->DetachBrush();
     framePtr->SetDamageRegion(0, 0, width, height);
     rsSurface->FlushFrame(framePtr);
     return;

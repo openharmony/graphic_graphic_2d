@@ -52,6 +52,10 @@ private:
     float stagingElevation_;
     bool isFilled_;
     bool stagingIsFilled_;
+    float radius_;
+    float stagingRadius_;
+    int colorStrategy_;
+    int stagingColorStrategy_;
 };
 
 class RSMaskShadowDrawable : public RSPropertyDrawable {

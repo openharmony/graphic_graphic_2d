@@ -91,6 +91,12 @@ skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
     shadow.fColor = txtShadow.color;
     return shadow;
 }
+
+const char* DefaultLocale()
+{
+    static const char* localeZh = "zh-Hans";
+    return localeZh;
+}
 } // anonymous namespace
 
 ParagraphBuilderImpl::ParagraphBuilderImpl(
@@ -165,7 +171,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle.setHeight(SkDoubleToScalar(txt.height));
         textStyle.setHeightOverride(txt.heightOverride);
         textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
-        textStyle.setLocale(SkString(txt.locale.c_str()));
+        textStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
     }
 
     skStyle.setTextStyle(textStyle);
@@ -239,7 +245,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setHalfLeading(txt.halfLeading);
     skStyle.setBaselineShift(txt.baseLineShift);
 
-    skStyle.setLocale(SkString(txt.locale.c_str()));
+    skStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
     skStyle.setStyleId(txt.styleId);
     skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
         txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,

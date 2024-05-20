@@ -35,13 +35,22 @@ public:
 
     enum class RSPaintStyle { FILL, STROKE };
     void OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas);
     void SetDirtyRegion(Occlusion::Region& dirtyRegion)
     {
         dirtyRegion_ = dirtyRegion;
     }
 
+    void SetVirtualDirtyRects(const std::vector<RectI>& virtualDirtyRects, const ScreenInfo& screenInfo)
+    {
+        virtualDirtyRects_ = virtualDirtyRects;
+        screenInfo_ = screenInfo;
+    }
+
 private:
     Occlusion::Region dirtyRegion_;
+    std::vector<RectI> virtualDirtyRects_;
+    ScreenInfo screenInfo_;
     std::shared_ptr<RSDisplayRenderNode> targetNode_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
 
@@ -58,6 +67,7 @@ private:
     void DrawTargetSurfaceVisibleRegionForDFX() const;
     void DrawAndTraceSingleDirtyRegionTypeForDFX(
         RSSurfaceRenderNode& node, DirtyRegionType dirtyType, bool isDrawn = true) const;
+    void DrawDirtyRegionInVirtual() const;
 
     // dfx check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName) const

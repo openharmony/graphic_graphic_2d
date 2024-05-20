@@ -50,6 +50,7 @@ ohos_shared_library("libgraphics_effect") {
 
   sources = [
     "src/ge_aibar_shader_filter.cpp",
+    "src/ge_cache.cpp",
     "src/ge_grey_shader_filter.cpp",
     "src/ge_kawase_blur_shader_filter.cpp",
     "src/ge_linear_gradient_blur_shader_filter.cpp",

@@ -60,7 +60,7 @@ void BootPicturePlayer::Play()
         .userData_ = this,
         .callback_ = std::bind(&BootPicturePlayer::OnVsync, this),
     };
-    int32_t changeFreq = static_cast<int32_t> ((1000.0 / freq_) / 16);
+    int32_t changeFreq = static_cast<int32_t> (1000.0 / freq_ / 16);
     ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         LOGE("SetVSyncRate failed: %{public}d %{public}d", ret, freq_);
@@ -122,10 +122,7 @@ bool BootPicturePlayer::CheckFrameRateValid(int32_t frameRate)
 {
     std::vector<int> freqs = {60, 30};
     int nCount = std::count(freqs.begin(), freqs.end(), frameRate);
-    if (nCount <= 0) {
-        return false;
-    }
-    return true;
+    return nCount > 0;
 }
 
 void BootPicturePlayer::OnVsync()
@@ -135,13 +132,12 @@ void BootPicturePlayer::OnVsync()
 
 bool BootPicturePlayer::Draw()
 {
-    if (picCurNo_ < (imgVecSize_ - 1)) {
-        picCurNo_ = picCurNo_ + 1;
-    } else {
+    if (picCurNo_ >= (imgVecSize_ - 1)) {
         LOGI("play sequence frames end");
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
         return false;
     }
+    picCurNo_ = picCurNo_ + 1;
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
     auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
