@@ -188,13 +188,9 @@ napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isSubpixel = false;
-    if (!ConvertFromJsValue(env, argv[0], isSubpixel)) {
-        ROSEN_LOGE("JsFont::OnEnableSubpixel Argv[0] is invalid");
-        return nullptr;
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isSubpixel);
 
     m_font->SetSubpixel(isSubpixel);
     return nullptr;
@@ -209,13 +205,9 @@ napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isEmbolden = false;
-    if (!ConvertFromJsValue(env, argv[0], isEmbolden)) {
-        ROSEN_LOGE("JsFont::OnEnableEmbolden Argv[0] is invalid");
-        return nullptr;
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isEmbolden);
 
     m_font->SetEmbolden(isEmbolden);
     return nullptr;
@@ -230,13 +222,9 @@ napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isLinearMetrics = false;
-    if (!ConvertFromJsValue(env, argv[0], isLinearMetrics)) {
-        ROSEN_LOGE("JsFont::OnEnableLinearMetrics Argv[0] is invalid");
-        return nullptr;
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isLinearMetrics);
 
     m_font->SetLinearMetrics(isLinearMetrics);
     return nullptr;
@@ -290,14 +278,9 @@ napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsTypeface *jsTypeface = nullptr;
-    napi_unwrap(env, argv[0], (void **)&jsTypeface);
-    if (jsTypeface == nullptr) {
-        ROSEN_LOGE("JsFont::OnSetTypeface jsTypeface is nullptr");
-        return nullptr;
-    }
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsTypeface);
 
     m_font->SetTypeface(jsTypeface->GetTypeface());
     return nullptr;
@@ -323,10 +306,9 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_string);
 
     std::string text = "";
-    if (!ConvertFromJsValue(env, argv[0], text)) {
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnMeasureText Argv[0] is invalid");
         return nullptr;
     }

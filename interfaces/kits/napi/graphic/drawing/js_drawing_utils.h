@@ -69,15 +69,6 @@ private:
         }                                                                                                              \
     } while (0)
 
-#define CHECK_EACH_PARAM(argc, type)                                                                                   \
-    do {                                                                                                               \
-        napi_valuetype valueType = napi_undefined;                                                                     \
-        if (argv[argc] == nullptr || napi_typeof(env, argv[argc], &valueType) != napi_ok || valueType != type) {       \
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
-                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
-        }                                                                                                              \
-    } while (0)
-
 #define GET_DOUBLE_PARAM(argc, value)                                                                                  \
     do {                                                                                                               \
         if (napi_get_value_double(env, argv[argc], &value) != napi_ok) {                                               \
@@ -114,6 +105,22 @@ private:
 #define GET_COLOR_PARAM(argc, value)                                                                                   \
     do {                                                                                                               \
         if (napi_get_value_int32(env, argv[argc], &value) != napi_ok ||  value < 0 ||  value > 255) {                  \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+    } while (0)
+
+#define GET_BOOLEAN_PARAM(argc, value)                                                                                 \
+    do {                                                                                                               \
+        if (napi_get_value_bool(env, argv[argc], &value) != napi_ok) {                                                 \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+    } while (0)
+
+#define GET_UNWRAP_PARAM(argc, value)                                                                                  \
+    do {                                                                                                               \
+        if ((napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) || value == nullptr) {         \
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
         }                                                                                                              \

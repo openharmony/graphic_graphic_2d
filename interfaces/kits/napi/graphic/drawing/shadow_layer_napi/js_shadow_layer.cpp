@@ -91,7 +91,6 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 {
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
-    CHECK_EACH_PARAM(ARGC_THREE, napi_object);
 
     double blurRadius = 0.0;
     GET_DOUBLE_PARAM(ARGC_ZERO, blurRadius);

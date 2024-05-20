@@ -101,14 +101,17 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
 {
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     uint32_t arrayLength = 0;
-    napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength);
-    if (arrayLength % NUMBER_TWO) { // arrayLength must be an even number
+    if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
         ROSEN_LOGE("JsPathEffect::CreateDashPathEffect count of intervals is not even : %{public}u", arrayLength);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
     }
+    if (arrayLength % NUMBER_TWO) { // arrayLength must be an even number
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "parameter array length verification failed.");
+    }
+
     scalar intervals[arrayLength];
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
