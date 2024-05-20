@@ -826,7 +826,7 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
-    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "0")).c_str()));
+    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
     static_cast<DdgrOpincDfxType>(std::atoi((
         system::GetParameter("persist.rosen.ddgr.opinctype.debugtype", "0")).c_str()));
