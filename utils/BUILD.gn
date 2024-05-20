@@ -73,10 +73,6 @@ group("raw_maker") {
   public_deps = [ "raw_maker:raw_maker" ]
 }
 
-group("sync_fence") {
-  public_deps = [ "sync_fence:sync_fence" ]
-}
-
 group("sandbox_utils") {
   public_deps = [ "sandbox:sandbox_utils" ]
 }
