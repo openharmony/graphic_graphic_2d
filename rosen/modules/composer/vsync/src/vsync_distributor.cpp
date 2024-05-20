@@ -542,6 +542,7 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
 {
     std::vector<sptr<VSyncConnection>> conns;
     bool waitForVSync = false;
+    std::lock_guard<std::mutex> locker(mutex_);
     event_.vsyncCount++;
 
     if (refreshRate > 0) {
@@ -551,17 +552,14 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
     vsyncMode_ = vsyncMode;
     ChangeConnsRateLocked();
 
-    {
-        std::lock_guard<std::mutex> locker(mutex_);
-        if (vsyncMode_ == VSYNC_MODE_LTPO) {
-            CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
-        } else {
-            CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
-        }
-        if (!waitForVSync) {
-            DisableVSync();
-            return;
-        }
+    if (vsyncMode_ == VSYNC_MODE_LTPO) {
+        CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
+    } else {
+        CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
+    }
+    if (!waitForVSync) {
+        DisableVSync();
+        return;
     }
 
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
@@ -579,7 +577,6 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         if (ret == 0 || ret == ERRNO_OTHER) {
             RemoveConnection(conns[i]);
         } else if (ret == ERRNO_EAGAIN) {
-            std::unique_lock<std::mutex> locker(mutex_);
             // Trigger VSync Again for LTPO
             conns[i]->triggerThisTime_ = true;
             // Exclude SetVSyncRate for LTPS
