@@ -26,14 +26,22 @@ config("render_service_client_config") {
 
     "//drivers/peripheral/base",
     "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
   defines = rs_common_define
+
   if (defined(is_arkui_x) && is_arkui_x) {
     include_dirs += [
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
   }
+
+  # if (defined(is_arkui_x) && is_arkui_x && ace_enable_gpu) {
+  #   defines += [ "ACE_ENABLE_GPU" ]
+  # }
 }
 
 template("render_service_client_source_set") {
@@ -69,204 +77,209 @@ template("render_service_client_source_set") {
       include_dirs += [
         "$graphic_2d_root/utils/color_manager/export",
         "//foundation/multimedia/image_framework/interfaces/innerkits/include",
-      ]
-    }
-
-    sources = [
-      #animation
-      "core/animation/rs_animation.cpp",
-      "core/animation/rs_animation_callback.cpp",
-      "core/animation/rs_animation_group.cpp",
-      "core/animation/rs_animation_timing_curve.cpp",
-      "core/animation/rs_curve_animation.cpp",
-      "core/animation/rs_implicit_animation_param.cpp",
-      "core/animation/rs_implicit_animator.cpp",
-      "core/animation/rs_implicit_animator_map.cpp",
-      "core/animation/rs_interpolating_spring_animation.cpp",
-      "core/animation/rs_keyframe_animation.cpp",
-      "core/animation/rs_path_animation.cpp",
-      "core/animation/rs_property_animation.cpp",
-      "core/animation/rs_spring_animation.cpp",
-      "core/animation/rs_symbol_animation.cpp",
-      "core/animation/rs_transition.cpp",
-      "core/animation/rs_transition_effect.cpp",
-
-      #modifier
-      "core/modifier/rs_extended_modifier.cpp",
-      "core/modifier/rs_modifier.cpp",
-      "core/modifier/rs_modifier_extractor.cpp",
-      "core/modifier/rs_modifier_manager.cpp",
-      "core/modifier/rs_modifier_manager_map.cpp",
-      "core/modifier/rs_property.cpp",
-      "core/modifier/rs_property_modifier.cpp",
-      "core/modifier/rs_showing_properties_freezer.cpp",
-
-      #jank_detector
-      "core/jank_detector/rs_jank_detector.cpp",
-
-      #pipeline
-      "core/pipeline/rs_divided_ui_capture.cpp",
-      "core/pipeline/rs_node_map.cpp",
-      "core/pipeline/rs_render_thread.cpp",
-      "core/pipeline/rs_render_thread_visitor.cpp",
-
-      #transaction
-      "core/transaction/rs_application_agent_impl.cpp",
-      "core/transaction/rs_interfaces.cpp",
-      "core/transaction/rs_render_thread_client.cpp",
-      "core/transaction/rs_sync_transaction_controller.cpp",
-      "core/transaction/rs_transaction.cpp",
-
-      #ui
-      "core/ui/rs_canvas_drawing_node.cpp",
-      "core/ui/rs_canvas_node.cpp",
-      "core/ui/rs_display_node.cpp",
-      "core/ui/rs_effect_node.cpp",
-      "core/ui/rs_ext_node_operation.cpp",
-      "core/ui/rs_frame_rate_linker.cpp",
-      "core/ui/rs_frame_rate_policy.cpp",
-      "core/ui/rs_hdr_manager.cpp",
-      "core/ui/rs_node.cpp",
-      "core/ui/rs_proxy_node.cpp",
-      "core/ui/rs_root_node.cpp",
-      "core/ui/rs_surface_extractor.cpp",
-      "core/ui/rs_surface_node.cpp",
-      "core/ui/rs_texture_export.cpp",
-      "core/ui/rs_ui_director.cpp",
-      "core/ui/rs_ui_share_context.cpp",
-    ]
-
-    if (is_cross_platform) {
-      #ui
-      sources -= [ "core/ui/rs_display_node.cpp" ]
-    }
-
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      sources += graphic_2d_ext_configs.librender_service_client_ext_sources
-      sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
-    }
-
-    if (rosen_is_ohos) {
-      sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
-    } else {
-      sources +=
-          [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
-    }
-
-    cflags = [
-      "-Wall",
-      "-Wno-pointer-arith",
-      "-Wno-non-virtual-dtor",
-      "-Wno-missing-field-initializers",
-      "-Wno-c++11-narrowing",
-      "-fvisibility=hidden",
-    ]
-
-    if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-      cflags += [ "-flto=thin" ]
-      if (enhanced_opt) {
-        cflags += [ "-fwhole-program-vtables" ]
-      }
-    }
-
-    cflags_cc = [
-      "-std=c++17",
-      "-fvisibility-inlines-hidden",
-    ]
-
-    deps = [
-      "$graphic_2d_root/rosen/modules/platform:ipc_core",
-      "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
-    ]
-    public_deps = []
-    if (enable_export_macro) {
-      defines += [ "ENABLE_EXPORT_MACRO" ]
-    }
-
-    if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [ "USE_ROSEN_DRAWING" ]
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-      if (ace_enable_gpu) {
-        defines += [ "ACE_ENABLE_GPU" ]
-      }
-      if (current_os == "mingw") {
-        defines += [ "WINDOWS_PLATFORM" ]
-      }
-    }
-    if (rosen_is_ohos) {
-      public_deps += [
-        "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
-        "$graphic_2d_root/utils/color_manager:color_manager",
+        "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
       ]
 
-      public_external_deps = [ "graphic_surface:surface" ]
+      sources = [
+        #animation
+        "core/animation/rs_animation.cpp",
+        "core/animation/rs_animation_callback.cpp",
+        "core/animation/rs_animation_group.cpp",
+        "core/animation/rs_animation_timing_curve.cpp",
+        "core/animation/rs_curve_animation.cpp",
+        "core/animation/rs_implicit_animation_param.cpp",
+        "core/animation/rs_implicit_animator.cpp",
+        "core/animation/rs_implicit_animator_map.cpp",
+        "core/animation/rs_interpolating_spring_animation.cpp",
+        "core/animation/rs_keyframe_animation.cpp",
+        "core/animation/rs_path_animation.cpp",
+        "core/animation/rs_property_animation.cpp",
+        "core/animation/rs_spring_animation.cpp",
+        "core/animation/rs_symbol_animation.cpp",
+        "core/animation/rs_transition.cpp",
+        "core/animation/rs_transition_effect.cpp",
 
-      external_deps = [
-        "c_utils:utils",
-        "hisysevent:libhisysevent",
-        "hitrace:hitrace_meter",
-        "image_framework:image_native",
+        #modifier
+        "core/modifier/rs_extended_modifier.cpp",
+        "core/modifier/rs_modifier.cpp",
+        "core/modifier/rs_modifier_extractor.cpp",
+        "core/modifier/rs_modifier_manager.cpp",
+        "core/modifier/rs_modifier_manager_map.cpp",
+        "core/modifier/rs_property.cpp",
+        "core/modifier/rs_property_modifier.cpp",
+        "core/modifier/rs_showing_properties_freezer.cpp",
+
+        #jank_detector
+        "core/jank_detector/rs_jank_detector.cpp",
+
+        #pipeline
+        "core/pipeline/rs_divided_ui_capture.cpp",
+        "core/pipeline/rs_node_map.cpp",
+        "core/pipeline/rs_render_thread.cpp",
+        "core/pipeline/rs_render_thread_visitor.cpp",
+
+        #transaction
+        "core/transaction/rs_application_agent_impl.cpp",
+        "core/transaction/rs_interfaces.cpp",
+        "core/transaction/rs_render_thread_client.cpp",
+        "core/transaction/rs_sync_transaction_controller.cpp",
+        "core/transaction/rs_transaction.cpp",
+
+        #ui
+        "core/ui/rs_canvas_drawing_node.cpp",
+        "core/ui/rs_canvas_node.cpp",
+        "core/ui/rs_display_node.cpp",
+        "core/ui/rs_effect_node.cpp",
+        "core/ui/rs_ext_node_operation.cpp",
+        "core/ui/rs_frame_rate_linker.cpp",
+        "core/ui/rs_frame_rate_policy.cpp",
+        "core/ui/rs_hdr_manager.cpp",
+        "core/ui/rs_node.cpp",
+        "core/ui/rs_proxy_node.cpp",
+        "core/ui/rs_root_node.cpp",
+        "core/ui/rs_surface_extractor.cpp",
+        "core/ui/rs_surface_node.cpp",
+        "core/ui/rs_texture_export.cpp",
+        "core/ui/rs_ui_director.cpp",
+        "core/ui/rs_ui_share_context.cpp",
       ]
 
-      if (accessibility_enable) {
-        external_deps += [ "accessibility:accessibilityconfig" ]
-        external_deps += [ "accessibility:accessibility_common" ]
-        defines += accessibility_defines
+      if (is_cross_platform) {
+        #ui
+        sources -= [ "core/ui/rs_display_node.cpp" ]
+        defines += [ "CROSS_PLATFORM" ]
       }
-    } else if (rosen_preview) {
-      deps += [
-        "$graphic_2d_root:libgl",
-        "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
+
+      if (defined(graphic_2d_ext_configs.vendor_root)) {
+        sources += graphic_2d_ext_configs.librender_service_client_ext_sources
+        sources -=
+            graphic_2d_ext_configs.librender_service_client_ext_sources_del
+      }
+
+      if (rosen_is_ohos) {
+        sources +=
+            [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+      } else if (!is_arkui_x) {
+        sources +=
+            [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+      }
+
+      cflags = [
+        "-Wall",
+        "-Wno-pointer-arith",
+        "-Wno-non-virtual-dtor",
+        "-Wno-missing-field-initializers",
+        "-Wno-c++11-narrowing",
+        "-fvisibility=hidden",
       ]
+
+      if (is_ohos && is_clang &&
+          (target_cpu == "arm" || target_cpu == "arm64")) {
+        cflags += [ "-flto=thin" ]
+        if (enhanced_opt) {
+          cflags += [ "-fwhole-program-vtables" ]
+        }
+      }
+
+      cflags_cc = [
+        "-std=c++17",
+        "-fvisibility-inlines-hidden",
+      ]
+
+      deps = [
+        "$graphic_2d_root/rosen/modules/platform:ipc_core",
+        "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
+      ]
+      public_deps = []
+      if (enable_export_macro) {
+        defines += [ "ENABLE_EXPORT_MACRO" ]
+      }
+
+      if (defined(use_rosen_drawing) && use_rosen_drawing) {
+        defines += [ "USE_ROSEN_DRAWING" ]
+        deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+
+        # if (ace_enable_gpu) {
+        #   defines += [ "ACE_ENABLE_GPU" ]
+        # }
+        if (current_os == "mingw") {
+          defines += [ "WINDOWS_PLATFORM" ]
+        }
+      }
+      if (rosen_is_ohos) {
+        public_deps += [
+          "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+          "$graphic_2d_root/utils/color_manager:color_manager",
+        ]
+
+        public_external_deps = [ "graphic_surface:surface" ]
+
+        external_deps = [
+          "c_utils:utils",
+          "hisysevent:libhisysevent",
+          "hitrace:hitrace_meter",
+          "image_framework:image_native",
+        ]
+
+        if (accessibility_enable) {
+          external_deps += [ "accessibility:accessibilityconfig" ]
+          external_deps += [ "accessibility:accessibility_common" ]
+          defines += accessibility_defines
+        }
+      } else if (rosen_preview) {
+        deps += [
+          "$graphic_2d_root:libgl",
+          "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
+        ]
+
+        if (rss_enabled) {
+          external_deps = []
+        }
+      }
+      if (defined(external_deps)) {
+        external_deps += [ "hilog:libhilog" ]
+      } else {
+        external_deps = [ "hilog:libhilog" ]
+      }
+      if (!defined(public_external_deps)) {
+        public_external_deps = [ "graphic_surface:surface_headers" ]
+      }
+      if (rosen_cross_platform) {
+        deps += [ "$rosen_root/modules/platform:hilog" ]
+      }
 
       if (rss_enabled) {
-        external_deps = []
+        defines += [ "OHOS_RSS_CLIENT" ]
+        external_deps += [ "resource_schedule_service:ressched_client" ]
       }
-    }
-    if (defined(external_deps)) {
-      external_deps += [ "hilog:libhilog" ]
-    } else {
-      external_deps = [ "hilog:libhilog" ]
-    }
-    if (!defined(public_external_deps)) {
-      public_external_deps = [ "graphic_surface:surface_headers" ]
-    }
-    if (rosen_cross_platform) {
-      deps += [ "$rosen_root/modules/platform:hilog" ]
-    }
 
-    if (rss_enabled) {
-      defines += [ "OHOS_RSS_CLIENT" ]
-      external_deps += [ "resource_schedule_service:ressched_client" ]
+      if (is_static_lib) {
+        public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
+      } else {
+        public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+        deps += [ "$rosen_root/modules/platform:eventhandler" ]
+      }
+
+      if (defined(graphic_2d_broker_configs.vendor_root) && !rosen_preview) {
+        sources += graphic_2d_broker_configs.librender_service_client_ext_broker_sources
+        sources -= graphic_2d_broker_configs.librender_service_client_ext_broker_sources_del
+        external_deps += [ "ipc:ipc_core" ]
+        external_deps += [ "samgr:samgr_proxy" ]
+      }
+
+      if (tp_feature_enable) {
+        defines += tp_defines
+      }
+
+      if (defined(use_new_render_context) && use_new_render_context) {
+        public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
+      }
+
+      public_configs = [ ":render_service_client_config" ]
+
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
     }
-
-    if (is_static_lib) {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
-    } else {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
-      deps += [ "$rosen_root/modules/platform:eventhandler" ]
-    }
-
-    if (defined(graphic_2d_broker_configs.vendor_root) && !rosen_preview) {
-      sources +=
-          graphic_2d_broker_configs.librender_service_client_ext_broker_sources
-      sources -= graphic_2d_broker_configs.librender_service_client_ext_broker_sources_del
-      external_deps += [ "ipc:ipc_core" ]
-      external_deps += [ "samgr:samgr_proxy" ]
-    }
-
-    if (tp_feature_enable) {
-      defines += tp_defines
-    }
-
-    if (defined(use_new_render_context) && use_new_render_context) {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
-    }
-
-    public_configs = [ ":render_service_client_config" ]
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
   }
 }
 

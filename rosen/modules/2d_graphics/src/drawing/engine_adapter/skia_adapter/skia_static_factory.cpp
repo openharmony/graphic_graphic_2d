@@ -193,7 +193,11 @@ DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyp
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
+#if !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
+#endif
+    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
+    return parameters;
 }
 
 FontStyleSet* SkiaStaticFactory::CreateEmpty()
