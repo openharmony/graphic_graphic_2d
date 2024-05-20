@@ -63,6 +63,7 @@ if (current_os != "ohos") {
       "src/EGL/egl.cpp",
       "src/EGL/egl_blob_cache.cpp",
       "src/EGL/egl_core.cpp",
+      "src/EGL/egl_system_layers_manager.cpp",
       "src/EGL/egl_wrapper_context.cpp",
       "src/EGL/egl_wrapper_display.cpp",
       "src/EGL/egl_wrapper_entry.cpp",
@@ -85,6 +86,7 @@ if (current_os != "ohos") {
 
     public_external_deps = [
       "egl:libEGL",
+      "jsoncpp:jsoncpp",
       "opengles:libGLES",
     ]
     external_deps = [
