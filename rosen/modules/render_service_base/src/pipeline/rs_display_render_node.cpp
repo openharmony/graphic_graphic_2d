@@ -345,5 +345,39 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
         AddToPendingSyncList();
     }
 }
+
+RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
+{
+    int32_t currentScbPid = GetCurrentScbPid();
+    ChildrenListSharedPtr fullChildrenList = RSRenderNode::GetSortedChildren();
+    if (currentScbPid < 0) {
+        return fullChildrenList;
+    }
+    if (isNeedWaitNewScbPid_) {
+        for (auto it = (*fullChildrenList).rbegin(); it != (*fullChildrenList).rend(); ++it) {
+            auto& child = *it;
+            auto childPid = ExtractPid(child->GetId());
+            if (childPid == currentScbPid) {
+                RS_LOGI("child scb pid equals current scb pid");
+                isNeedWaitNewScbPid_ = false;
+                break;
+            }
+        }
+    }
+    if (isNeedWaitNewScbPid_) {
+        return fullChildrenList;
+    }
+    std::vector<int32_t> oldScbPids = GetOldScbPids();
+    currentChildrenList_->clear();
+    for (auto& child : *fullChildrenList) {
+        auto childPid = ExtractPid(child->GetId());
+        auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
+        if (pidIter != oldScbPids.end()) {
+            continue;
+        }
+        currentChildrenList_->emplace_back(child);
+    }
+    return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
+}
 } // namespace Rosen
 } // namespace OHOS

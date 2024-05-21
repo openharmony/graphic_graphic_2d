@@ -57,6 +57,8 @@ public:
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
 
+    void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid);
+
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);
     RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id);
