@@ -14,8 +14,12 @@
  */
 
 #include "drawing_path_effect.h"
+
 #include <mutex>
 #include <unordered_map>
+
+#include "drawing_canvas_utils.h"
+
 #include "effect/path_effect.h"
 
 using namespace OHOS;
@@ -28,6 +32,7 @@ static std::unordered_map<void*, std::shared_ptr<PathEffect>> g_pathEffectMap;
 OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int count, float phase)
 {
     if (intervals == nullptr || count <= 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateDashPathEffect(intervals, count, phase);
