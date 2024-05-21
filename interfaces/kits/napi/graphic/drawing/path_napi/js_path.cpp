@@ -70,6 +70,10 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
 
     Path *path = new Path();
     JsPath *jsPath = new(std::nothrow) JsPath(path);
+    if (!jsPath) {
+        ROSEN_LOGE("Failed to create JsPath");
+        return nullptr;
+    }
 
     status = napi_wrap(env, jsThis, jsPath,
                        JsPath::Destructor, nullptr, nullptr);

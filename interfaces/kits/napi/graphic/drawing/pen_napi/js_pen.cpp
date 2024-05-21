@@ -80,6 +80,11 @@ napi_value JsPen::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsPen* jsPen = new(std::nothrow) JsPen();
+    if (!jsPen) {
+        ROSEN_LOGE("JsPen::Constructor Failed to create JsPen");
+        return nullptr;
+    }
+
     status = napi_wrap(env, jsThis, jsPen,
                        JsPen::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

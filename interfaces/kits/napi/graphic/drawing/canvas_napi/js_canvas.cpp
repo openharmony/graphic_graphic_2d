@@ -276,6 +276,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
             return nullptr;
         }
         JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(g_drawingCanvas);
+        if (!jsCanvas) {
+            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+            return nullptr;
+        }
         status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsCanvas;
@@ -299,6 +303,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         Canvas* canvas = new Canvas();
         canvas->Bind(bitmap);
         JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
+        if (!jsCanvas) {
+            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+            return nullptr;
+        }
         status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsCanvas;
