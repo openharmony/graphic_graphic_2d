@@ -1400,9 +1400,6 @@ void RSMainThread::PurgeCacheBetweenFrames(ClearMemoryMoment moment)
                 return;
             }
             std::string pidList;
-            for (auto& pid : exitedPidSet_) {
-                pidList += "[" + std::to_string(pid) + "]";
-            }
             RS_TRACE_NAME_FMT("PurgeCacheBetweenFrames");
             std::set<int> protectedPidSet = { GetDesktopPidForRotationScene() };
             MemoryManager::PurgeCacheBetweenFrames(grContext, true, this->exitedPidSet_, protectedPidSet);
