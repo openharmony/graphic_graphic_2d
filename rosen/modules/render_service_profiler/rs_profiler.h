@@ -100,6 +100,7 @@ class RSRenderAnimation;
 class RSCommand;
 class ArgList;
 class JsonWriter;
+class RSFile;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
 
@@ -151,16 +152,28 @@ public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
+    RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
 
 private:
     static const char* GetProcessNameByPid(int pid);
 
     RSB_EXPORT static void EnableSharedMemory();
     RSB_EXPORT static void DisableSharedMemory();
-    
+
     // Beta record
-    RSB_EXPORT static bool IsBetaRecordSavingTriggered();
     RSB_EXPORT static void EnableBetaRecord();
+    RSB_EXPORT static bool IsBetaRecordSavingTriggered();
+    static void StartBetaRecord();
+    static bool IsBetaRecordStarted();
+    static void UpdateBetaRecord();
+    static bool SaveBetaRecord();
+    static bool IsBetaRecordInactive();
+    static void RequestVSyncOnBetaRecordInactivity();
+    static void SendBetaRecordPath();
+    static void LaunchBetaRecordNotificationThread();
+    static void LaunchBetaRecordMetricsUpdateThread();
+    static bool OpenBetaRecordFile(RSFile& file);
+    static void WriteBetaRecordMetrics(RSFile& file, double time);
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static Mode GetMode();

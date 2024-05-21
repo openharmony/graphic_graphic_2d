@@ -919,8 +919,14 @@ bool RSProfiler::IsBetaRecordEnabled()
 
 bool RSProfiler::IsBetaRecordSavingTriggered()
 {
-    static constexpr uint32_t SAVING_MODE = 2u;
-    return RSSystemProperties::GetBetaRecordingMode() == SAVING_MODE;
+    constexpr uint32_t savingMode = 2u;
+    return RSSystemProperties::GetBetaRecordingMode() == savingMode;
+}
+
+bool RSProfiler::IsBetaRecordEnabledWithMetrics()
+{
+    constexpr uint32_t metricsMode = 3u;
+    return RSSystemProperties::GetBetaRecordingMode() == metricsMode;
 }
 
 } // namespace OHOS::Rosen
