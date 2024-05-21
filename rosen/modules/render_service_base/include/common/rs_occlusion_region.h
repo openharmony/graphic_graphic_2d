@@ -86,6 +86,11 @@ public:
         if (bottom_ < MIN_REGION_VALUE || bottom_ > MAX_REGION_VALUE) {
             hasAbnormalValue = true;
         }
+        if (hasAbnormalValue) {
+            RS_LOGE("Occlusion::Rect initialized with invalid value, [%{public}d, %{public}d, %{public}d, %{public}d], \
+                should in range [%{public}d, %{public}d]",
+                left_, top_, right_, bottom_, MIN_REGION_VALUE, MAX_REGION_VALUE);
+        }
         return hasAbnormalValue;
     }
 
@@ -263,6 +268,15 @@ public:
     {
         return rects_;
     }
+
+    const std::vector<RectI>& GetRegionRectIs()
+    {
+        for (const auto& rect : rects_) {
+            rectIs_.emplace_back(rect.ToRectI());
+        }
+        return rectIs_;
+    }
+
     int GetSize() const
     {
         return rects_.size();
@@ -373,6 +387,7 @@ private:
     
 private:
     std::vector<Rect> rects_;
+    std::vector<RectI> rectIs_;
     Rect bound_;
     static bool _s_so_loaded_;
 };

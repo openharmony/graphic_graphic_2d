@@ -116,11 +116,11 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::vector<RSBaseRen
             surfaceNode->SetAlignedVisibleDirtyRegion(alignedRegion);
             allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
             GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
-                surfaceNode->GetName(), alignedRegion);
+                surfaceNode->GetName(), alignedRegion.GetRegionRectIs());
         } else {
             allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
             GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
-                surfaceNode->GetName(), surfaceVisibleDirtyRegion);
+                surfaceNode->GetName(), surfaceVisibleDirtyRegion.GetRegionRectIs());
         }
     }
     return allSurfaceVisibleDirtyRegion;

@@ -1488,7 +1488,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_SYNTHESIS_MODE_INFO) : {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO) : {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;

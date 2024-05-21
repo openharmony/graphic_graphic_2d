@@ -32,11 +32,12 @@ GpuDirtyRegionCollection::~GpuDirtyRegionCollection() noexcept
 }
 
 void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName,
-    Occlusion::Region region)
+    std::vector<RectI> rectIs)
 {
-    for (auto rect : region.GetRegionRects()) {
+    std::lock_guard<std::mutex> lock(activeMtx_);
+    for (const auto& rectI : rectIs) {
         ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
-        activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += (rect.right_ - rect.left_) * (rect.bottom_ - rect.top_);
+        activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += rectI.width_ * rectI.height_;
         activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
         activeDirtyRegionInfoMap_[id].windowName = windowName;
     }
@@ -44,6 +45,7 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
 
 void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage)
 {
+    std::lock_guard<std::mutex> lock(activeMtx_);
     ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
     activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += damage.w * damage.h;
     activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
@@ -52,17 +54,20 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
 
 void GpuDirtyRegionCollection::UpdateGlobalDirtyInfoForDFX(RectI rect)
 {
+    std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.globalFramesNumber;
     globalDirtyRegionInfo_.globalDirtyRegionAreas += rect.width_ * rect.height_;
 }
 
 void GpuDirtyRegionCollection::AddSkipProcessFramesNumberForDFX()
 {
+    std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.skipProcessFramesNumber;
 }
 
 std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegionInfo() const
 {
+    std::lock_guard<std::mutex> lock(activeMtx_);
     std::vector<ActiveDirtyRegionInfo> activeDirtyRegionInfos;
     for (auto activeDirtyRegionInfo : activeDirtyRegionInfoMap_) {
         if (activeDirtyRegionInfo.second.pidOfBelongsApp && activeDirtyRegionInfo.second.activeFramesNumber > 0) {
@@ -73,8 +78,9 @@ std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegio
     return activeDirtyRegionInfos;
 }
 
-GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo()
+GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
 {
+    std::lock_guard<std::mutex> lock(globalMtx_);
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
     if (globalDirtyRegionInfo_.globalFramesNumber > 0) {
         globalDirtyRegionInfo.globalDirtyRegionAreas = globalDirtyRegionInfo_.globalDirtyRegionAreas /
@@ -87,11 +93,13 @@ GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo()
 
 void GpuDirtyRegionCollection::ResetActiveDirtyRegionInfo()
 {
+    std::lock_guard<std::mutex> lock(activeMtx_);
     activeDirtyRegionInfoMap_.clear();
 }
 
 void GpuDirtyRegionCollection::ResetGlobalDirtyRegionInfo()
 {
+    std::lock_guard<std::mutex> lock(globalMtx_);
     globalDirtyRegionInfo_ = GlobalDirtyRegionInfo {};
 }
 } // namespace Rosen

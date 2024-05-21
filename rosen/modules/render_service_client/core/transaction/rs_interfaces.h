@@ -242,11 +242,11 @@ public:
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 
-    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
 
-    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
 
-    LayerComposeInfo GetLayerComposeInfo();
+    LayerComposeInfo GetLayerComposeInfo() const;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
