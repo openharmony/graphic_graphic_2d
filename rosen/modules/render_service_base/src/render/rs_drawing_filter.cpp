@@ -275,8 +275,8 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
 void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
-    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    if (visualEffectContainer == nullptr) {
+    auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    if (effectContainer == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect visualEffectContainer is null");
         return;
     }
@@ -285,7 +285,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
         if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
             continue;
         }
-        filter->GenerateGEVisualEffect(visualEffectContainer);
+        filter->GenerateGEVisualEffect(effectContainer);
     };
 
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
@@ -295,7 +295,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     }
 
     auto outImage =
-        geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
+        geRender->ApplyImageEffect(canvas, *effectContainer, image, src, src, Drawing::SamplingOptions());
     if (outImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
         return;
@@ -312,10 +312,10 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
             return;
         } else {
-            auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-            tmpFilter->GenerateGEVisualEffect(visualEffectContainer);
+            auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+            tmpFilter->GenerateGEVisualEffect(effectContainer);
             auto blurImage = geRender->ApplyImageEffect(
-                canvas, *visualEffectContainer, outImage, src, src, Drawing::SamplingOptions());
+                canvas, *effectContainer, outImage, src, src, Drawing::SamplingOptions());
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
