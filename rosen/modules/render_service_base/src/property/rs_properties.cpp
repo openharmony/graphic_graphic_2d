@@ -3747,7 +3747,7 @@ int RSProperties::GetColorBlendApplyType() const
     return colorBlendApplyType_;
 }
 
-const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
+std::shared_ptr<RSColorPickerCacheTask> RSProperties::GetColorPickerCacheTaskShadow() const
 {
     return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
 }

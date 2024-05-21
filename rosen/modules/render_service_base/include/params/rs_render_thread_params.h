@@ -253,7 +253,7 @@ public:
         context_ = context;
     }
 
-    const std::shared_ptr<RSContext>& GetContext() const
+    const std::shared_ptr<RSContext> GetContext() const
     {
         return context_.lock();
     }

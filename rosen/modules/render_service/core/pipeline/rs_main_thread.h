@@ -116,7 +116,7 @@ public:
         return std::move(taskFuture);
     }
 
-    const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
+    const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
         RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;

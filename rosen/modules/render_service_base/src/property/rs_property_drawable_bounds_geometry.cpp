@@ -492,7 +492,7 @@ RSColor RSShadowDrawable::GetColorForShadow(const RSRenderContent& content, RSPa
     const RSProperties& properties = content.GetRenderProperties();
     // shadow alpha follow setting
     auto shadowAlpha = color_.GetAlpha();
-    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         if (RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {

@@ -414,7 +414,7 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
         return false;
     }
 
-    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (!colorPickerTask) {
         ROSEN_LOGE("RSPropertiesPainter::PickColor colorPickerTask is null");
         return false;
@@ -478,7 +478,7 @@ void RSPropertiesPainter::DrawShadowInner(
     canvas.SetMatrix(matrix);
 
     RSColor colorPicked;
-    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         if (PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
