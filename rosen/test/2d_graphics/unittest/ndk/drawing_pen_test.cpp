@@ -250,6 +250,326 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer011, TestSi
     OH_Drawing_ShadowLayerDestroy(shadowLayer);
     OH_Drawing_PenDestroy(pen);
 }
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenIsAntiAlias
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenIsAntiAlias, TestSize.Level1)
+{
+    ASSERT_TRUE(OH_Drawing_PenIsAntiAlias(nullptr) == false);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetAntiAlias
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetAntiAlias, TestSize.Level1)
+{
+    OH_Drawing_PenSetAntiAlias(nullptr, false);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetColor
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetColor, TestSize.Level1)
+{
+    ASSERT_TRUE(OH_Drawing_PenGetColor(nullptr) == 0);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetColor
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetColor, TestSize.Level1)
+{
+    OH_Drawing_PenSetColor(nullptr, 0xFFFFFFFF);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetAlpha
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetAlpha, TestSize.Level1)
+{
+    ASSERT_TRUE(OH_Drawing_PenGetAlpha(nullptr) == 0);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetAlpha002
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetAlpha002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetAlpha(pen, 0xFF);
+    ASSERT_TRUE(OH_Drawing_PenGetAlpha(pen) == 0xFF);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetAlpha
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetAlpha, TestSize.Level1)
+{
+    OH_Drawing_PenSetAlpha(nullptr, 0xFF);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetAlpha
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetAlpha002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetAlpha(pen, 0xFF);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetWidth
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetWidth, TestSize.Level1)
+{
+    OH_Drawing_PenGetWidth(nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetWidth
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetWidth, TestSize.Level1)
+{
+    OH_Drawing_PenSetWidth(nullptr, 10);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetMiterLimit
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetMiterLimit, TestSize.Level1)
+{
+    OH_Drawing_PenGetMiterLimit(nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetMiterLimit
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetMiterLimit, TestSize.Level1)
+{
+    OH_Drawing_PenSetMiterLimit(nullptr, 0);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetCap
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetCap, TestSize.Level1)
+{
+    OH_Drawing_PenSetCap(nullptr, OH_Drawing_PenLineCapStyle::LINE_FLAT_CAP);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetJoin001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetJoin001, TestSize.Level1)
+{
+    ASSERT_TRUE(OH_Drawing_PenGetJoin(nullptr) == OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetJoin001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetJoin001, TestSize.Level1)
+{
+    OH_Drawing_PenSetJoin(nullptr, OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetShaderEffect001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShaderEffect001, TestSize.Level1)
+{
+    OH_Drawing_PenSetShaderEffect(nullptr, nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetShaderEffect002
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShaderEffect002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_Point *point = OH_Drawing_PointCreate(100, 100); // point 100,100
+    uint32_t colors[] = {0xFFFF0000, 0xFF00FF00, 0xFF0000FF};
+    float pos[] = {0, 0.5, 1.0};
+    OH_Drawing_ShaderEffect *effect = OH_Drawing_ShaderEffectCreateRadialGradient(point, 100, colors,
+                                                                                  pos, 3, OH_Drawing_TileMode::CLAMP);
+    OH_Drawing_PenSetShaderEffect(pen, effect);
+    OH_Drawing_ShaderEffectDestroy(effect);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetShadowLayer001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer001, TestSize.Level1)
+{
+    OH_Drawing_PenSetShadowLayer(nullptr, nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetShadowLayer002
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    float blurRadius = 10;
+    float x = 100;
+    float y = 100;
+    uint32_t color = 0xFF00FF00;
+    OH_Drawing_ShadowLayer *shadowLayer = OH_Drawing_ShadowLayerCreate(blurRadius, x, y, color);
+    OH_Drawing_PenSetShadowLayer(pen, shadowLayer);
+    OH_Drawing_ShadowLayerDestroy(shadowLayer);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetFilter001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetFilter001, TestSize.Level1)
+{
+    OH_Drawing_PenSetFilter(nullptr, nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetFilter002
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetFilter002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetFilter(pen, nullptr);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenSetFilter003
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetFilter003, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_Filter *filter = OH_Drawing_FilterCreate();
+    OH_Drawing_PenSetFilter(pen, filter);
+    OH_Drawing_FilterDestroy(filter);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetFilter001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter001, TestSize.Level1)
+{
+    OH_Drawing_PenGetFilter(nullptr, nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetFilter001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter002, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenGetFilter(pen, nullptr);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetFilter001
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter003, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_Filter *filter = OH_Drawing_FilterCreate();
+    OH_Drawing_PenGetFilter(pen, filter);
+    OH_Drawing_FilterDestroy(filter);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenReset
+ * @tc.desc: test for the set methods of pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenReset, TestSize.Level1)
+{
+    OH_Drawing_PenReset(nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

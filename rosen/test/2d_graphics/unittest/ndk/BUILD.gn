@@ -39,6 +39,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_register_font_test.cpp",
     "drawing_surface_test.cpp",
     "drawing_text_typography_test.cpp",
+    "drawing_round_rect_test.cpp",
   ]
 
   include_dirs = [

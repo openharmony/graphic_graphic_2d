@@ -106,6 +106,19 @@ HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_CreateFromGL, 
     EXPECT_NE(gpuContext_, nullptr);
     OH_Drawing_GpuContextDestroy(gpuContext_);
 }
+
+/*
+ * @tc.name: NativeDrawingGpuContextTest_GpuContextDestroy
+ * @tc.desc: test for GpuContextDestroy.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_GpuContextDestroy, TestSize.Level1)
+{
+    OH_Drawing_GpuContext *gpuContext_ = nullptr;
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+    EXPECT_EQ(gpuContext_, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
