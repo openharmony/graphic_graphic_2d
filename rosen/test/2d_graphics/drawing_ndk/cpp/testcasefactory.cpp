@@ -47,9 +47,21 @@
 #include "dm/skbug_8955.h"
 #include "dm/stroke_rect_shader.h"
 #include "dm/strokes.h"
+#include "interface/bitmap_test.h"
+#include "interface/brush_test.h"
 #include "interface/canvas_test.h"
+#include "interface/color_test.h"
+#include "interface/font_test.h"
+#include "interface/mask_filter_test.h"
+#include "interface/matrix_test.h"
+#include "interface/memory_stream_test.h"
 #include "interface/path_test.h"
+#include "interface/pen_test.h"
+#include "interface/sample_option_test.h"
+#include "interface/shader_effect_test.h"
+#include "interface/surface_test.h"
 #include "interface/text_blob_test.h"
+#include "interface/typeface_test.h"
 
 #include "common/log_common.h"
 
@@ -234,6 +246,24 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<CanvasDrawPixelMapRect>(TestBase::DRAW_STYLE_COMPLEX);
         } }, // OH_PixelMap_CreatePixelMap传入参数napi_env env无法获取，无法实现
+    { "canvas_gettotalmatrix",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<CanvasGetTotalMatrix>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "canvas_restore",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasRestore>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "canvas_getlocalclipbounds",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<CanvasGetLocalClipBounds>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "canvas_getsavecount",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<CanvasGetSaveCount>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "canvas_getheight",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetHeight>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "canvas_getwidth",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetWidth>(TestBase::DRAW_STYLE_COMPLEX); } },
 
     // path
     { "path_create",
@@ -343,7 +373,156 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<TextBlobGetBounds>(TestBase::DRAW_STYLE_COMPLEX);
         } },
+    { "textblob_builderallocrunpos",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<TextBlobBuilderAllocRunPos>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
 
+    // shader_effect
+    { "shader_effectcreatelineargradient",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ShaderEffectCreateLinearGradient>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "shader_effectcreateradialgradient",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ShaderEffectCreateRadialGradient>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "shader_effectcreateimageshader",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ShaderEffectCreateImageShader>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "shader_effectcreatesweepgradient",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ShaderEffectCreateSweepGradient>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // typeface
+    { "typeface_createdefault",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<TypefaceCreateDefault>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "typeface_createfromfile",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<TypefaceCreateFromFile>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "typeface_createfromstream",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<TypefaceCreateFromStream>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // matrix
+    { "matrix_reset",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixReset>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "matrix_concat",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixConcat>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "matrix_invert",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixInvert>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "matrix_setpolytopoly",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<MatrixSetPolyToPoly>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "matrix_prerotate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixPreRotate>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "matrix_postscale",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixPostScale>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "matrix_posttranslate",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<MatrixPostTranslate>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "matrix_is_equal",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<MatrixIsEqual>(TestBase::DRAW_STYLE_COMPLEX); } },
+
+    // mask_filter
+    { "mask_filter_createblur",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<MaskFilterCreateBlur>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // color
+    { "color_filtercreateblendmode",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateBlendMode>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_filtercreatecompose",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateCompose>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_filtercreatematrix",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateMatrix>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_filtercreatelineartosrgbgamma",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateLinearToSrgbGamma>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_filtercreatesrgbgammatolinear",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateSrgbGammaToLinear>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_filtercreateluma",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorFilterCreateLuma>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_spacecreatesrgb",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorSpaceCreateSrgb>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "color_spacecreatesrgblinear",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ColorSpaceCreateSrgbLinear>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // bitmap and image
+    { "bitmap_readpixels",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BitmapReadPixels>(
+                TestBase::DRAW_STYLE_COMPLEX, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE);
+        } },
+    { "image_buildfrombitmap",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<ImageBuildFromBitmap>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "bitmap_build",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<BitmapBuild>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "bitmap_createfrompixels",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BitmapCreateFromPixels>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // textblob
+    { "textblob_builderallocrunpos",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<TextBlobBuilderAllocRunPos>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+
+    // pen
+    { "pen_reset",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PenReset>(TestBase::DRAW_STYLE_COMPLEX); } },
+
+    // sampling_option
+    { "sampling_options_create",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<SamplingOptionsCreate>(TestBase::DRAW_STYLE_COMPLEX,
+                OH_Drawing_FilterMode::FILTER_MODE_LINEAR, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+        } },
+
+    // memory_stream
+    { "memory_stream_create",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<MemoryStreamCreate>(TestBase::DRAW_STYLE_COMPLEX, true);
+        } },
+    { "surface_create_from_gpu_context",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<SurfaceCreateFromGpuContext>(TestBase::DRAW_STYLE_COMPLEX, false);
+        } }, // 只能用gpu来画，用cpu会闪退
+
+    // font
+    { "fontcounttext",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FontCountText>(TestBase::DRAW_STYLE_COMPLEX); } },
+
+    // brush
+    { "brushrest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<BrushReset>(TestBase::DRAW_STYLE_COMPLEX); } },
 };
 } // namespace
 
