@@ -233,6 +233,12 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
     return dump;
 }
 
+void RSSurfaceRenderNode::ResetRenderParams()
+{
+    stagingRenderParams_.reset();
+    renderDrawable_->renderParams_.reset();
+}
+
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.

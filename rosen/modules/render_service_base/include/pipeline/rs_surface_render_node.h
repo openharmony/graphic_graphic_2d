@@ -80,6 +80,8 @@ public:
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
     }
 
+    void ResetRenderParams();
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;

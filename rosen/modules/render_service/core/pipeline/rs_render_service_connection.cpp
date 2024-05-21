@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_service_connection.h"
+#include <string>
 
 #include "frame_report.h"
 #include "hgm_command.h"
@@ -57,6 +58,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int SLEEP_TIME_US = 1000;
+constexpr int TASK_DELAY_TIME_MS = 1000;
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -124,6 +126,18 @@ void RSRenderServiceConnection::MoveRenderNodeMap(
 void RSRenderServiceConnection::RemoveRenderNodeMap(
     std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
 {
+    // temp solution for DongHu to resolve with dma leak
+    for (auto& [_, node] : *subRenderNodeMap) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        if (surfaceNode && surfaceNode->GetName().find("ShellAssistantAnco") != std::string::npos) {
+            auto task = [surfaceNode = surfaceNode] {
+                surfaceNode->CleanCache();
+                surfaceNode->ResetRenderParams();
+                surfaceNode->SetConsumer(nullptr);
+            };
+            RSMainThread::Instance()->PostTask(task, "ResetBuffer", TASK_DELAY_TIME_MS);
+        }
+    }
     auto iter = subRenderNodeMap->begin();
     for (; iter != subRenderNodeMap->end();) {
         iter = subRenderNodeMap->erase(iter);
