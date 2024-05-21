@@ -716,6 +716,9 @@ bool RSSurfaceRenderNode::GetBootAnimation() const
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
     surfaceParams->SetForceHardwareByUser(flag);
     AddToPendingSyncList();
 
