@@ -363,6 +363,33 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/effect:uieffect_effect",
+            "header": {
+              "header_files": [
+                "background_color_effect_para.h",
+                "blender.h",
+                "brightness_blender.h",
+                "visual_effect_para.h",
+                "visual_effect.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/effect/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/filter:uieffect_filter",
+            "header": {
+              "header_files": [
+                "filter.h",
+                "filter_blur_para.h",
+                "filter_para.h",
+                "filter_pixel_stretch_para.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/filter/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
             "header": {
               "header_files": [

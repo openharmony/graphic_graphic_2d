@@ -20,6 +20,8 @@ config("render_service_client_config") {
     "$graphic_2d_root/rosen/modules",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/ui_effect/effect/include",
+    "$graphic_2d_root/rosen/modules/ui_effect/filter/include",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
@@ -181,6 +183,8 @@ template("render_service_client_source_set") {
     deps = [
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
+      "$graphic_2d_root/rosen/modules/ui_effect/effect:uieffect_effect",
+      "$graphic_2d_root/rosen/modules/ui_effect/filter:uieffect_filter",
     ]
     public_deps = []
     if (enable_export_macro) {
