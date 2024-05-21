@@ -25,6 +25,14 @@ namespace {
 
 namespace OHOS {
 namespace Rosen {
+
+std::map<int32_t, Drawing::TileMode> INDEX_TO_TILEMODE = {
+    { NUM_0, Drawing::TileMode::CLAMP },
+    { NUM_1, Drawing::TileMode::REPEAT },
+    { NUM_2, Drawing::TileMode::MIRROR },
+    { NUM_3, Drawing::TileMode::DECAL },
+};
+
 static const std::string CLASS_NAME = "Filter";
 
 FilterNapi::FilterNapi()
@@ -107,6 +115,10 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     }
 
     FilterNapi *filterNapi = new(std::nothrow) FilterNapi();
+    if (filterNapi == nullptr) {
+        FILTER_LOG_E("new filterNapi is nullptr");
+        return nullptr;
+    }
     status = napi_wrap(env, jsThis, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete filterNapi;
@@ -128,6 +140,11 @@ void FilterNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
 {
     Filter* filterObj = new(std::nothrow) Filter();
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("new filterNapi is nullptr");
+        return nullptr;
+    }
+
     napi_value object = nullptr;
     napi_create_object(env, &object);
     napi_wrap(
@@ -161,7 +178,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_number) {
-        double tmp = -1.0f;
+        double tmp = 0.0f;
         if (IMG_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
             if (tmp >= 0) {
                 radius = static_cast<float>(tmp);
@@ -170,7 +187,15 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     }
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return nullptr;
+    }
     std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("para is nullptr");
+        return nullptr;
+    }
     para->radius_ = radius;
     filterObj->AddPara(para);
 
@@ -250,6 +275,10 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return nullptr;
+    }
     filterObj->AddPara(para);
 
     return thisVar;
@@ -259,21 +288,12 @@ Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
     int32_t mode = 0;
     if (Media::ImageNapiUtils::getType(env, argv) == napi_number) {
-        double tmp = -1.0f;
+        double tmp = 0.0f;
         if (IMG_IS_OK(napi_get_value_double(env, argv, &tmp))) {
             mode = tmp;
         }
     }
-    if (mode == NUM_0) {
-        return Drawing::TileMode::CLAMP;
-    } else if (mode == NUM_1) {
-        return Drawing::TileMode::REPEAT;
-    } else if (mode == NUM_2) {
-        return Drawing::TileMode::MIRROR;
-    } else if (mode == NUM_3) {
-        return Drawing::TileMode::DECAL;
-    }
-    return Drawing::TileMode::CLAMP;
+    return INDEX_TO_TILEMODE[mode];
 }
 
 }  // namespace Rosen
