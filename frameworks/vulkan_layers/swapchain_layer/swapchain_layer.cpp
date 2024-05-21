@@ -507,7 +507,7 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
     On OpenHarmony, the direction of rotation is counterclockwise
 */
 
-VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransform(OH_NativeBuffer_TransformType nativeTransformType)
+VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransformHint(OH_NativeBuffer_TransformType nativeTransformType)
 {
     switch (nativeTransformType) {
         case NATIVEBUFFER_ROTATE_NONE:
@@ -535,7 +535,7 @@ VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransform(OH_NativeBuffer_T
     }
 }
 
-OH_NativeBuffer_TransformType TranslateVulkanToNativeTransform(VkSurfaceTransformFlagBitsKHR transform)
+OH_NativeBuffer_TransformType TranslateVulkanToNativeTransformHint(VkSurfaceTransformFlagBitsKHR transform)
 {
     switch (transform) {
         case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR:
@@ -598,12 +598,12 @@ VKAPI_ATTR VkResult SetWindowBufferGeometry(NativeWindow* window, int width, int
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
+VKAPI_ATTR VkResult SetWindowTransformHint(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
 {
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    int err = NativeWindowHandleOpt(window, SET_TRANSFORM, transformType);
+    int err = NativeWindowSetTransformHint(window, transformType);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Transform failed: %{public}d", err);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -612,19 +612,50 @@ VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_Tra
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowBufferUsage(NativeWindow* window, const VkSwapchainCreateInfoKHR* createInfo)
+VKAPI_ATTR VkResult SetWindowBufferUsage(VkDevice device, NativeWindow* window,
+    const VkSwapchainCreateInfoKHR* createInfo)
 {
     uint64_t grallocUsage = 0;
-    int err = NativeWindowHandleOpt(window, GET_USAGE, &grallocUsage);
-    if (err != OHOS::GSERROR_OK) {
-        SWLOGE("NativeWindow Get Usage %{public}" PRIu64" failed: %{public}d", grallocUsage, err);
-        return VK_ERROR_SURFACE_LOST_KHR;
+    VkLayerDispatchTable* pDisp =
+        GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
+    if (pDisp->GetSwapchainGrallocUsageOHOS != nullptr) {
+        VkResult res =
+            pDisp->GetSwapchainGrallocUsageOHOS(device, createInfo->imageFormat, createInfo->imageUsage, &grallocUsage);
+        if (res != VK_SUCCESS) {
+            SWLOGE("GetSwapchainGrallocUsageOHOS failed: %{public}d", res);
+            return VK_ERROR_SURFACE_LOST_KHR;
+        }
+        SWLOGD("GetSwapchainGrallocUsageOHOS Get grallocUsage %{public}" PRIu64"", grallocUsage);
     }
+
+    bool userSetVkTransform = createInfo->preTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    SWLOGD("User %{public}d Set VkTransform, preTransform is %{public}d",
+        userSetVkTransform, static_cast<int32_t>(createInfo->preTransform));
+    bool needSetFlgForDSS = false;
+    if (!userSetVkTransform) {
+        OH_NativeBuffer_TransformType curWindowTransformType = NATIVEBUFFER_ROTATE_NONE;
+        int err = NativeWindowGetTransformHint(window, &curWindowTransformType);
+        if (err != OHOS::GSERROR_OK) {
+            SWLOGE("NativeWindow Get TransformHint failed: %{public}d", err);
+            return VK_ERROR_SURFACE_LOST_KHR;
+        }
+        SWLOGD("NativeWindow Get NativeTransformHint %{public}d", static_cast<int>(curWindowTransformType));
+        if (curWindowTransformType == NATIVEBUFFER_ROTATE_270 || curWindowTransformType == NATIVEBUFFER_ROTATE_90) {
+            needSetFlgForDSS = true;
+        }
+    }
+
+    if (needSetFlgForDSS) {
+        grallocUsage |= BUFFER_USAGE_VENDOR_PRI19;
+    } else {
+        grallocUsage &= ~BUFFER_USAGE_VENDOR_PRI19;
+    }
+    SWLOGD("[%{public}d] Set Rotated Flag in Usage: %{public}" PRIu64"", needSetFlgForDSS, grallocUsage);
 
     if (createInfo->flags & VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR) {
         grallocUsage |= BUFFER_USAGE_PROTECTED;
     }
-    err = NativeWindowHandleOpt(window, SET_USAGE, grallocUsage);
+    int err = NativeWindowHandleOpt(window, SET_USAGE, grallocUsage);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Usage %{public}" PRIu64" failed: %{public}d", grallocUsage, err);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -696,11 +727,17 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
         static_cast<int>(createInfo->imageExtent.height)) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
+
+    // Set Buffer Usage
+    if (SetWindowBufferUsage(device, window, createInfo) != VK_SUCCESS) {
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
+
     // Set Transform
-    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
     SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
         static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
-    if (SetWindowTransform(window, transformType) != VK_SUCCESS) {
+    if (SetWindowTransformHint(window, transformType) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -711,11 +748,6 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
 
     // Set Bufferqueue Size
     if (SetWindowQueueSize(window, createInfo) != VK_SUCCESS) {
-        return VK_ERROR_SURFACE_LOST_KHR;
-    }
-
-    // Set Buffer Usage
-    if (SetWindowBufferUsage(window, createInfo) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -850,7 +882,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
     SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
         static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
     Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode, transformType);
@@ -1276,7 +1308,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
     capabilities->maxImageExtent = VkExtent2D {4096, 4096};
     capabilities->maxImageArrayLayers = 1;
     capabilities->supportedTransforms = g_supportedTransforms;
-    capabilities->currentTransform = TranslateNativeToVulkanTransform(transformHint);
+    capabilities->currentTransform = TranslateNativeToVulkanTransformHint(transformHint);
     capabilities->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     capabilities->supportedUsageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT |
