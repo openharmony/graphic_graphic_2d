@@ -15,6 +15,7 @@ group("napi_packages") {
   deps = [
     "graphic/animation/window_animation_manager:windowanimationmanager_napi",
     "graphic/color_manager:colorspacemanager_napi",
+    "graphic/color_manager:sendablecolorspacemanager_napi",
     "graphic/drawing:drawingnapi",
     "graphic/effect_kit:effectkit",
     "graphic/hdr_capability:hdrcapability_napi",

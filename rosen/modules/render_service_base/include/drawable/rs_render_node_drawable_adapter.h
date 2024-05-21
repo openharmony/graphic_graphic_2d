@@ -39,8 +39,9 @@ class Canvas;
 struct DrawCmdIndex {
     int8_t shadowIndex_           = -1;
     int8_t renderGroupBeginIndex_ = -1;
-    int8_t backgroundFilterIndex_ = -1;
     int8_t backgroundColorIndex_  = -1;
+    int8_t backgroundImageIndex_  = -1;
+    int8_t backgroundFilterIndex_ = -1;
     int8_t useEffectIndex_        = -1;
     int8_t backgroundEndIndex_    = -1;
     int8_t childrenIndex_         = -1;
@@ -111,6 +112,7 @@ protected:
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
+    void DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const;
     void SetSkip(SkipType type) { skipType_ = type; }
 
     // Register utils

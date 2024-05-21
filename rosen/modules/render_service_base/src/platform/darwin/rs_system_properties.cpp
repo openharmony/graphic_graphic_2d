@@ -69,7 +69,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -83,6 +83,16 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
     return {};
 }
@@ -409,6 +419,11 @@ bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTextBlobAsPixelMap()
 {
     return false;
 }

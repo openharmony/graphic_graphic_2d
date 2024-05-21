@@ -143,5 +143,27 @@ HWTEST_F(KawaseBlurFilterTest, GetDescriptionTest001, TestSize.Level1)
     auto kawaseBlurFilter = std::make_shared<KawaseBlurFilter>();
     EXPECT_EQ(kawaseBlurFilter->GetDescription(), "blur radius is 0.000000");
 }
+
+/**
+ * @tc.name: ExecutePingPongBlurTest
+ * @tc.desc: Verify function ExecutePingPongBlur
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(KawaseBlurFilterTest, ExecutePingPongBlurTest, TestSize.Level1)
+{
+    auto kawaseBlurFilter = std::make_shared<KawaseBlurFilter>();
+    Drawing::Canvas canvas;
+    auto input = std::make_shared<Drawing::Image>();
+    Drawing::Rect srcRect;
+    Drawing::Rect dstRect;
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>();
+    KawaseParameter inParam(srcRect, dstRect, 1, colorFilter, 0.f);
+    KawaseBlurFilter::BlurParams blur;
+    kawaseBlurFilter->ExecutePingPongBlur(canvas, input, inParam, blur);
+    kawaseBlurFilter->SetupSimpleFilter();
+    kawaseBlurFilter->ExecutePingPongBlur(canvas, input, inParam, blur);
+    EXPECT_EQ(kawaseBlurFilter->blurEffectAF_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -61,6 +61,7 @@ public:
         LINEAR_GRADIENT_BLUR,
         FOREGROUND_EFFECT,
         MOTION_BLUR,
+        SPHERIZE_EFFECT,
     };
     FilterType GetFilterType() const
     {
@@ -96,6 +97,16 @@ public:
     }
 
     virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
+    {
+        return true;
+    }
+
+    virtual bool IsEqual(const std::shared_ptr<RSFilter>& other) const
+    {
+        return true;
+    }
+
+    virtual bool IsEqualZero() const
     {
         return true;
     }

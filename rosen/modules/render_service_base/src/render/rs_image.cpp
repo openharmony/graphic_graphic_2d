@@ -314,6 +314,36 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     int minY = 0;
     int maxX = 0;
     int maxY = 0;
+    CalcRepeatBounds(minX, maxX, minY, maxY);
+    // draw repeat rect
+    ConvertPixelMapToDrawingImage();
+    UploadGpu(canvas);
+    bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
+    src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
+    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
+    for (int i = minX; i <= maxX; ++i) {
+        for (int j = minY; j <= maxY; ++j) {
+            dst_ = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
+                dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
+            if (isAstc) {
+                canvas.Save();
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            }
+            if (image_) {
+                DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
+            }
+            if (isAstc) {
+                canvas.Restore();
+            }
+        }
+    }
+    if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
+        isDrawn_ = true;
+    }
+}
+
+void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
+{
     float left = frameRect_.left_;
     float right = frameRect_.GetRight();
     float top = frameRect_.top_;
@@ -336,42 +366,22 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             ++maxY;
         }
     }
+}
 
-    // draw repeat rect
-    ConvertPixelMapToDrawingImage();
-    UploadGpu(canvas);
-    bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
-    src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
-    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
-    for (int i = minX; i <= maxX; ++i) {
-        for (int j = minY; j <= maxY; ++j) {
-            dst_ = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
-                dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
-            if (isAstc) {
-                canvas.Save();
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
-            }
-            if (image_) {
-                if (canvas.GetTotalMatrix().HasPerspective()) {
-                    // In case of perspective transformation, make dstRect 1px outset to anti-alias
-                    dst_.MakeOutset(1, 1);
-                }
-                if (innerRect_.has_value()) {
-                    canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
-                } else if (hdrImageDraw) {
-                    canvas.DrawRect(dst_);
-                } else {
-                    canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-                }
-            }
-            if (isAstc) {
-                canvas.Restore();
-            }
-        }
+void RSImage::DrawImageOnCanvas(
+    const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw)
+{
+    if (canvas.GetTotalMatrix().HasPerspective()) {
+        // In case of perspective transformation, make dstRect 1px outset to anti-alias
+        dst_.MakeOutset(1, 1);
     }
-    if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
-        isDrawn_ = true;
+    if (innerRect_.has_value()) {
+        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+    } else if (hdrImageDraw) {
+        canvas.DrawRect(dst_);
+    } else {
+        canvas.DrawImageRect(
+            *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
 }
 
@@ -486,6 +496,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
+    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
@@ -506,17 +517,10 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     uint64_t uniqueId;
     int width;
     int height;
-    if (!UnmarshallingIdAndSize(parcel, uniqueId, width, height)) {
-        RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
-        return nullptr;
-    }
     NodeId nodeId;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
-        RS_LOGE("RSImage::Unmarshalling nodeId fail");
+    if (!UnmarshalIdSizeAndNodeId(parcel, uniqueId, width, height, nodeId)) {
         return nullptr;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
-
     bool useSkImage;
     std::shared_ptr<Drawing::Image> img;
     std::shared_ptr<Media::PixelMap> pixelMap;
@@ -529,31 +533,13 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     if (!UnmarshallingCompressData(parcel, skipData, compressData)) {
         return nullptr;
     }
-
     int fitNum;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
-        RS_LOGE("RSImage::Unmarshalling fitNum fail");
-        return nullptr;
-    }
-
     int repeatNum;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
-        RS_LOGE("RSImage::Unmarshalling repeatNum fail");
-        return nullptr;
-    }
-
     std::vector<Drawing::Point> radius(CORNER_SIZE);
-    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
-        RS_LOGE("RSImage::Unmarshalling radius fail");
-        return nullptr;
-    }
-
     double scale;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
-        RS_LOGE("RSImage::Unmarshalling scale fail");
+    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale)) {
         return nullptr;
     }
-
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
     rsImage->SetImagePixelAddr(imagepixelAddr);
@@ -564,6 +550,53 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
     rsImage->SetNodeId(nodeId);
+    ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
+    return rsImage;
+}
+
+bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId)
+{
+    if (!UnmarshallingIdAndSize(parcel, uniqueId, width, height)) {
+        RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
+        RS_LOGE("RSImage::Unmarshalling nodeId fail");
+        return false;
+    }
+    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
+    return true;
+}
+
+bool RSImage::UnmarshalImageProperties(
+    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale)
+{
+    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
+        RS_LOGE("RSImage::Unmarshalling fitNum fail");
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
+        RS_LOGE("RSImage::Unmarshalling repeatNum fail");
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+        RS_LOGE("RSImage::Unmarshalling radius fail");
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
+        RS_LOGE("RSImage::Unmarshalling scale fail");
+        return false;
+    }
+
+    return true;
+}
+
+void RSImage::ProcessImageAfterCreation(
+    RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage, const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
@@ -576,7 +609,6 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
 #endif
     }
 #endif
-    return rsImage;
 }
 #endif
 } // namespace Rosen

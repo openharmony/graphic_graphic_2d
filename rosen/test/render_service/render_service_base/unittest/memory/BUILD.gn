@@ -40,6 +40,11 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
     "$graphic_2d_root/rosen/test/include",
   ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",

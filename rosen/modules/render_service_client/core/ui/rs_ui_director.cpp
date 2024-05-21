@@ -283,7 +283,7 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
     bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
-        modifierManager->SetDisplaySyncEnable(GetCurrentRefreshRateMode() == HGM_REFRESHRATE_MODE_AUTO);
+        modifierManager->SetDisplaySyncEnable(true);
         modifierManager->SetFrameRateGetFunc([](const RSPropertyUnit unit, float velocity) -> int32_t {
             return RSFrameRatePolicy::GetInstance()->GetExpectedFrameRate(unit, velocity);
         });
@@ -367,27 +367,33 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 
 void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 {
+    // message ID for correspondence UI thread and IPC thread
+    static uint32_t messageId = 0;
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
         m[RSNodeMap::Instance().GetNodeInstanceId(id)].push_back(std::move(cmd));
     }
+    auto msgId = ++messageId;
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages messageId [%lu]", msgId);
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
-        PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter] {
-            for (auto &cmd : *cmds) {
-                RSContext context; // RSCommand->process() needs it
-                cmd->Process(context);
-            }
-            if (counter->fetch_sub(1) == 1) {
-                std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-                if (requestVsyncCallback_ != nullptr) {
-                    requestVsyncCallback_();
-                } else {
-                    RSTransaction::FlushImplicitTransaction();
+        PostTask(
+            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, msgId] {
+                RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages PostTask messageId [%lu]", msgId);
+                for (auto &cmd : *cmds) {
+                    RSContext context; // RSCommand->process() needs it
+                    cmd->Process(context);
                 }
-                ROSEN_LOGD("ProcessMessages end");
-            }
-        }, instanceId);
+                if (counter->fetch_sub(1) == 1) {
+                    std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
+                    if (requestVsyncCallback_ != nullptr) {
+                        requestVsyncCallback_();
+                    } else {
+                        RSTransaction::FlushImplicitTransaction();
+                    }
+                    ROSEN_LOGD("ProcessMessages end");
+                }
+            }, instanceId);
     }
 }
 
@@ -420,13 +426,18 @@ void RSUIDirector::PostFrameRateTask(const std::function<void()>& task)
 
 void RSUIDirector::PostTask(const std::function<void()>& task, int32_t instanceId)
 {
+    PostDelayTask(task, 0, instanceId);
+}
+
+void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t delay, int32_t instanceId)
+{
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
     for (const auto &[director, taskRunner] : g_uiTaskRunners) {
         if (director->instanceId_ != instanceId) {
             continue;
         }
         ROSEN_LOGD("RSUIDirector::PostTask instanceId=%{public}d success", instanceId);
-        taskRunner(task);
+        taskRunner(task, delay);
         return;
     }
     if (instanceId != INSTANCE_ID_UNDEFINED) {
@@ -434,7 +445,7 @@ void RSUIDirector::PostTask(const std::function<void()>& task, int32_t instanceI
     }
     for (const auto &[_, taskRunner] : g_uiTaskRunners) {
         ROSEN_LOGD("RSUIDirector::PostTask success");
-        taskRunner(task);
+        taskRunner(task, delay);
         return;
     }
 }

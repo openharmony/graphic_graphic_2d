@@ -74,9 +74,9 @@ public:
     void OpincCalculateBefore(Drawing::Canvas& canvas,
         const RSRenderParams& params, bool& isOpincDropNodeExt);
     void OpincCalculateAfter(Drawing::Canvas& canvas, bool& isOpincDropNodeExt);
-    void BeforeDrawCache(NodeStragyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
+    void BeforeDrawCache(NodeStrategyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
         bool& isOpincDropNodeExt);
-    void AfterDrawCache(NodeStragyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
+    void AfterDrawCache(NodeStrategyType& cacheStragy, Drawing::Canvas& canvas, RSRenderParams& params,
         bool& isOpincDropNodeExt, int& opincRootTotalCount);
 
     bool DrawAutoCache(RSPaintFilterCanvas& canvas, Drawing::Image& image,
@@ -110,6 +110,9 @@ public:
         return isOpincRootNode_;
     }
 
+    // dfx
+    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -130,7 +133,7 @@ protected:
     // opinc global state
     static inline bool autoCacheEnable_ = false;
     static inline bool autoCacheDrawingEnable_ = false;
-    static inline NodeStragyType nodeCacheType_ = NodeStragyType::CACHE_NONE;
+    static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static inline bool isDiscardSurface_ = true;
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     static inline bool isOpincDropNodeExt_ = true;
@@ -179,11 +182,11 @@ private:
 
     // opinc cache state
     void NodeCacheStateDisable();
-    bool BeforeDrawCacheProcessChildNode(NodeStragyType& cacheStragy, RSRenderParams& params);
+    bool BeforeDrawCacheProcessChildNode(NodeStrategyType& cacheStragy, RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
-    NodeStragyType rootNodeStragyType_ = NodeStragyType::CACHE_NONE;
-    NodeStragyType temNodeStragyType_ = NodeStragyType::CACHE_NONE;
+    NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
+    NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     DrawAreaEnableState isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
     Drawing::OpListHandle opListDrawAreas_;
     bool opCanCache_ = false;

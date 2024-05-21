@@ -14,7 +14,7 @@
  */
 #ifndef AA_RECT_MODES_H
 #define AA_RECT_MODES_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>

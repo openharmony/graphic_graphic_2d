@@ -115,7 +115,8 @@ VsyncError VSyncReceiver::Init()
 
     int32_t retVal = fcntl(fd_, F_SETFL, O_NONBLOCK); // set fd to NonBlock mode
     if (retVal != 0) {
-        VLOGW("%{public}s fcntl set fd_ NonBlock failed", __func__);
+        VLOGW("%{public}s fcntl set fd_:%{public}d NonBlock failed, retVal:%{public}d, errno:%{public}d",
+            __func__, fd_, retVal, errno);
     }
 
     listener_->SetName(name_);
@@ -187,14 +188,14 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
     }
     if (isThreadShared == false) {
         if (listener_->period_ == 0 || listener_->timeStamp_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->period_;
         timeStamp = listener_->timeStamp_;
     } else {
         if (listener_->periodShared_ == 0 || listener_->timeStampShared_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->periodShared_;

@@ -48,6 +48,10 @@ public:
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage);
     void SetSurfacePixelFormat(uint64_t pixelFormat);
+    sptr<SurfaceBuffer> GetCurrentBuffer()
+    {
+        return nullptr;
+    }
 private:
     void RenderFrame();
     void SetReleaseFence(const int32_t& fence);

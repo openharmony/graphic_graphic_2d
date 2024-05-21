@@ -37,7 +37,7 @@ if (enable_text_gine) {
 
   ohos_shared_library("rosen_text") {
     include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
-    public_deps = [ ":rosen_text_inner" ]
+    deps = [ ":rosen_text_inner" ]
     public_configs =
         [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
     platform = current_os
@@ -46,9 +46,9 @@ if (enable_text_gine) {
     }
 
     if (platform == "ohos") {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
     } else {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
 
     part_name = "graphic_2d"
@@ -103,10 +103,7 @@ if (enable_text_gine) {
     public_configs = [ ":rosen_text_public_config" ]
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
 
-    include_dirs = [
-      "$flutter_root/engine",
-      "$rosen_root/modules/render_service_base/include",
-    ]
+    include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
     defines += [
       "USE_GRAPHIC_TEXT_GINE",
@@ -114,9 +111,7 @@ if (enable_text_gine) {
     ]
     cflags = [ "-std=c++17" ]
 
-    if (defined(use_new_skia) && use_new_skia) {
-      include_dirs += [ "$flutter_root/txt/src" ]
-    } else {
+    if (!defined(use_new_skia)) {
       include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
     }
 

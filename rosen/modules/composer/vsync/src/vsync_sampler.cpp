@@ -318,6 +318,7 @@ void VSyncSampler::SetPendingPeriod(int64_t period)
     }
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
+    CreateVSyncGenerator()->SetFrameRateChangingStatus(true);
 }
 
 void VSyncSampler::Dump(std::string &result)

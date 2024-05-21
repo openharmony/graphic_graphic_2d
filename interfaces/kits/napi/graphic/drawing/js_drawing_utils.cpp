@@ -82,7 +82,7 @@ bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_va
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message)
 {
     napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 static const char* ARGB_STRING[4] = {"alpha", "red", "green", "blue"};

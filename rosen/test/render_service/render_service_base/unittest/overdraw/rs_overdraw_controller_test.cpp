@@ -25,6 +25,11 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t SIZE1 = 5;
+constexpr uint32_t SIZE2 = 6;
+const char* SET_KEY = "overdraw-color";
+const char* SET_VALUE1 = "1 2 3 4";
+const char* SET_VALUE2 = "true";
 class RSOverdrawControllerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -42,6 +47,14 @@ class MockRSPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
     explicit MockRSPaintFilterCanvas(Drawing::Canvas *canvas) : RSPaintFilterCanvas(canvas) {}
     MOCK_METHOD1(DrawRect, void(const Drawing::Rect& rect));
+};
+
+class RSDelegateTest : public RSDelegate {
+public:
+    void Repaint()
+    {
+        return;
+    }
 };
 
 /*
@@ -99,7 +112,7 @@ HWTEST_F(RSOverdrawControllerTest, Enable, Function | SmallTest | Level0)
             e = RSOverdrawController::GetInstance().IsEnabled();
             STEP_ASSERT_EQ(e, true);
         }
-     
+
         STEP("5. set enable as false when enable is true") {
             RSOverdrawController::GetInstance().SetEnable(false);
             e = RSOverdrawController::GetInstance().IsEnabled();
@@ -200,6 +213,47 @@ HWTEST_F(RSOverdrawControllerTest, CreateListenerEnable, Function | SmallTest | 
             STEP_ASSERT_NE(listener, nullptr);
         }
     }
+}
+/**
+ * @tc.name: OnColorChangeTest001
+ * @tc.desc: OnColorChange Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9NDED
+ */
+HWTEST_F(RSOverdrawControllerTest, OnColorChangeTest001, TestSize.Level1)
+{
+    auto& controller = RSOverdrawController::GetInstance();
+    controller.SetEnable(false);
+    EXPECT_FALSE(controller.IsEnabled());
+    controller.OnColorChange(SET_KEY, SET_VALUE1, &controller);
+
+    auto colorArrayTest = controller.GetColorArray();
+    auto ColorMap = controller.GetColorMap();
+    EXPECT_EQ(ColorMap.size(), SIZE1);
+    EXPECT_EQ(colorArrayTest.size(), SIZE2);
+}
+
+/**
+ * @tc.name: SwitchFunctionTest002
+ * @tc.desc: SwitchFunctio Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9NDED
+ */
+HWTEST_F(RSOverdrawControllerTest, SwitchFunctionTest002, TestSize.Level1)
+{
+    auto& controller = RSOverdrawController::GetInstance();
+    controller.SetEnable(true);
+    EXPECT_TRUE(controller.IsEnabled());
+
+    std::shared_ptr<RSDelegateTest> delegate = std::make_shared<RSDelegateTest>();
+    EXPECT_TRUE(delegate);
+
+    controller.SetDelegate(delegate);
+    EXPECT_TRUE(controller.delegate_);
+    controller.SwitchFunction(SET_KEY, SET_VALUE2, &controller);
+    EXPECT_TRUE(controller.IsEnabled());
+    controller.SwitchFunction(SET_KEY, "", &controller);
+    EXPECT_FALSE(controller.IsEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

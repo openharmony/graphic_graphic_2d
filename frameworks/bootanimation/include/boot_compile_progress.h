@@ -44,15 +44,14 @@ private:
     bool WaitBmsStartIfNeeded();
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
+    Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
 
-private:
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
     int32_t times_ = 0;
     int32_t rotateDegree_ = 0;
     int32_t progress_ = 0;
     int32_t timeLimitSec_ = -1;
-    int32_t freq_ = 4;
     int64_t startTimeMs_ = -1;
     int64_t endTimePredictMs_ = -1;
     Rosen::ScreenId screenId_;
@@ -64,9 +63,10 @@ private:
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;
     std::shared_ptr<Rosen::Drawing::Typeface> tf_;
-    std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
+    std::shared_ptr<Rosen::VSyncReceiver> receiver_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
+    std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
 };
 } // namespace OHOS
 

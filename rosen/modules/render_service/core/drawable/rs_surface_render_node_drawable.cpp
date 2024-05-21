@@ -31,10 +31,6 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 
-#include "common/rs_color.h"
-#include "common/rs_common_def.h"
-#include "draw/brush.h"
-
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
 #include "utils/rect.h"
@@ -172,7 +168,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         renderEngine_->ClearCacheSet(unmappedCache);
     }
     if (autoCacheEnable_) {
-        nodeCacheType_ = NodeStragyType::CACHE_NONE;
+        nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     }
     bool isuifirstNode = rscanvas->GetIsParallelCanvas();
     if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {
@@ -257,10 +253,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // 1. draw background
     DrawBackground(canvas, bounds);
 
-    if (isSelfDrawingSurface) {
-        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
-    }
-
     // 2. draw self drawing node
     if (surfaceParams->GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(*surfaceNode, *rscanvas, *surfaceParams);
@@ -342,21 +334,38 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
+    if (!surfaceNode) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, surfaceNode is nullptr");
+        return;
+    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
         return;
     }
 
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParam) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture uniParam is nullptr");
+        return;
+    }
+
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, rscanvas us nullptr");
         return;
     }
 
     bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
     if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
         EnableRecordingOptimization(*surfaceParams)) {
+        return;
+    }
+
+    if (uniParam->IsOcclusionEnabled() && surfaceNode->IsMainWindowType() &&
+        surfaceParams->GetVisibleRegionInVirtual().IsEmpty()) {
+        RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
+            surfaceParams->GetAbsDrawRect().ToString());
         return;
     }
 
@@ -454,10 +463,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     // 1. draw background
     DrawBackground(canvas, bounds);
 
-    if (isSelfDrawingSurface) {
-        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
-    }
-
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
@@ -485,7 +490,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
-            canvas.ClipRect(surfaceParams.GetBounds());
+            Drawing::Rect rect(std::round(surfaceParams.GetBounds().GetLeft()),
+                std::round(surfaceParams.GetBounds().GetTop()), std::round(surfaceParams.GetBounds().GetWidth()),
+                std::round(surfaceParams.GetBounds().GetHeight()));
+            canvas.ClipRect(rect);
             canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
         return;
@@ -496,6 +504,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    params.dstRect.MakeOutset(1, 1);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenManager = CreateOrGetScreenManager();
     auto ancestor = surfaceParams.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -511,11 +520,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {
-        auto bounds = RSPropertiesPainter::Rect2DrawingRect(
-            { 0, 0, surfaceParams.GetBounds().GetWidth(), surfaceParams.GetBounds().GetHeight() });
+        auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0, std::round(surfaceParams.GetBounds().GetWidth()),
+            std::round(surfaceParams.GetBounds().GetHeight()) });
         Drawing::SaveLayerOps layerOps(&bounds, nullptr);
         canvas.SaveLayer(layerOps);
-        canvas.SetAlpha(1.0f);
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
         canvas.AttachBrush(brush);

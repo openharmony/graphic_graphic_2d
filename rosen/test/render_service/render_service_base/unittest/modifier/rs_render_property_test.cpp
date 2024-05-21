@@ -19,6 +19,7 @@
 #include "include/modifier/rs_render_modifier.h"
 #include "message_parcel.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -231,5 +232,71 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
         ASSERT_FALSE(RSRenderPropertyBase::Marshalling(parcel, prop));
         ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel, prop));
     }
+}
+
+/**
+ * @tc.name: OnChange
+ * @tc.desc: Test OnChange and Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, OnChange, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderPropertyBase>();
+    base->OnChange();
+    base->Attach(std::make_shared<RSRenderNode>(1));
+    base->modifierType_ = RSModifierType::FOREGROUND_COLOR;
+    base->OnChange();
+    base->modifierType_ = RSModifierType::POSITION_Z;
+    base->OnChange();
+    base->modifierType_ = RSModifierType::FOREGROUND_STYLE;
+    base->OnChange();
+
+    base->UpdatePropertyUnit(RSModifierType::FRAME);
+    base->UpdatePropertyUnit(RSModifierType::SCALE);
+    base->UpdatePropertyUnit(RSModifierType::ROTATION_X);
+    base->UpdatePropertyUnit(RSModifierType::CLIP_BOUNDS);
+    ASSERT_EQ(base->node_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: IsNearEqual
+ * @tc.desc: Test IsNearEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property;
+    Vector2f vector2f;
+    RSRenderAnimatableProperty<Vector2f> propertyTwo(vector2f);
+    Matrix3f matrix3f;
+    RSRenderAnimatableProperty<Matrix3f> propertyMatrix3f(matrix3f);
+    Color color;
+    RSRenderAnimatableProperty<Color> propertyColor(color);
+    std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> propertyRSFilter(rsFilter);
+    Vector4<Color> vector4;
+    RSRenderAnimatableProperty<Vector4<Color>> propertyVector4Color(vector4);
+    RRect rect;
+    RSRenderAnimatableProperty<RRect> propertyRect(rect);
+
+    std::shared_ptr<RSRenderPropertyBase> value;
+    EXPECT_TRUE(property.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyTwo.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyMatrix3f.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyColor.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyRSFilter.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyVector4Color.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyRect.IsNearEqual(value, 1.f));
+
+    value = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_TRUE(property.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyTwo.IsNearEqual(value, 1.f));
+    EXPECT_FALSE(propertyMatrix3f.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyColor.IsNearEqual(value, 1.f));
+    EXPECT_TRUE(propertyRSFilter.IsNearEqual(value, 1.f));
+    EXPECT_FALSE(propertyVector4Color.IsNearEqual(value, 1.f));
+    ASSERT_FALSE(propertyRect.IsNearEqual(value, 1.f));
 }
 }

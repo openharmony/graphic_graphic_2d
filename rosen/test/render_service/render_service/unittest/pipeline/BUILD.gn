@@ -892,6 +892,7 @@ ohos_unittest("RSUnmarshalThreadTest") {
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
   ]
   defines = []

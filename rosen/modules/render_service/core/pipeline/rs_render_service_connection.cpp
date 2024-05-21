@@ -50,6 +50,10 @@
 #include "touch_screen/touch_screen.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 constexpr int SLEEP_TIME_US = 1000;
@@ -429,6 +433,16 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->SetVirtualScreenSurface(id, surface);
 }
+
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
+{
+    if (RsVulkanContext::GetSingleton().GetRsVulkanInterface().HMS_XEG_SetFreqAdjustEnable != nullptr) {
+        RsVulkanContext::GetSingleton().GetRsVulkanInterface().HMS_XEG_SetFreqAdjustEnable(enable);
+    }
+    return true;
+}
+#endif
 
 void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
 {
@@ -1030,9 +1044,6 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
 
 bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
-    if (!mainThread_->IsIdle()) {
-        return false;
-    }
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("RSRenderServiceConnection::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", id);
@@ -1053,6 +1064,9 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     };
     auto getBitmapTask = [&node, &bitmap, tid]() { bitmap = node->GetBitmap(tid); };
     if (tid == UNI_MAIN_THREAD_INDEX) {
+        if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
+            return false;
+        }
         mainThread_->PostSyncTask(getBitmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
         renderThread_.PostSyncTask(getDrawableBitmapTask);
@@ -1099,9 +1113,6 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
-        if (!renderThread_.IsIdle()) {
-            return false;
-        }
         renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
