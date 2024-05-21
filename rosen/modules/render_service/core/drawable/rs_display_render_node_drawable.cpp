@@ -41,6 +41,7 @@
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
@@ -890,11 +891,16 @@ std::shared_ptr<Drawing::Image> RSDisplayRenderNodeDrawable::GetCacheImageFromMi
     if (auto renderContext = renderEngine->GetRenderContext()) {
         auto grContext = renderContext->GetDrGPUContext();
         auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
+        SharedTextureContext* sharedContext = new SharedTextureContext(cacheImage);
         if (grContext != nullptr && imageBackendTexure.IsValid()) {
             Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
                 Drawing::AlphaType::ALPHATYPE_PREMUL};
-            image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
-                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
+            if (!image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
+                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr,
+                SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+                delete sharedContext;
+                RS_LOGE("RSDisplayRenderNodeDrawable::GetCacheImageFromMirrorNode image is nullptr");
+            }
         }
     }
     return image;
