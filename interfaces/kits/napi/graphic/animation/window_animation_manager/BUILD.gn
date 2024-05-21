@@ -49,9 +49,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "window_manager:sms",
   ]
 
-  public_external_deps = [
-    "window_manager:libwm",
-  ]
+  public_external_deps = [ "window_manager:libwm" ]
 
   defines = []
 
