@@ -39,6 +39,10 @@
 namespace OHOS {
 namespace Rosen {
 
+// set the offset value to prevent the situation where the float number
+// with the suffix 0.000x is still rounded up.
+constexpr float RECT_CEIL_DEVIATION = 0.001;
+
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -138,9 +142,9 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
     int top = std::clamp<int>(localClipRect.GetTop(), 0, properties.GetBoundsHeight());
-    int width = std::clamp<int>(std::ceil(localClipRect.GetWidth()), 0,
+    int width = std::clamp<int>(std::ceil(localClipRect.GetWidth() - RECT_CEIL_DEVIATION), 0,
         std::ceil(properties.GetBoundsWidth() - left));
-    int height = std::clamp<int>(std::ceil(localClipRect.GetHeight()), 0,
+    int height = std::clamp<int>(std::ceil(localClipRect.GetHeight() - RECT_CEIL_DEVIATION), 0,
         std::ceil(properties.GetBoundsHeight() - top));
     RectI srcRect = {left, top, width, height};
     SetSrcRect(srcRect);
