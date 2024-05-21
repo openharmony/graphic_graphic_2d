@@ -762,7 +762,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     napi_value verticesArray = argv[ARGC_THREE];
     uint32_t verticesSize = 0;
     napi_get_array_length(env, verticesArray, &verticesSize);
-    uint64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
+    int64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertices are invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
@@ -786,7 +786,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     napi_value colorsArray = argv[ARGC_FIVE];
     uint32_t colorsSize = 0;
     napi_get_array_length(env, colorsArray, &colorsSize);
-    uint64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
+    int64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
 
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
