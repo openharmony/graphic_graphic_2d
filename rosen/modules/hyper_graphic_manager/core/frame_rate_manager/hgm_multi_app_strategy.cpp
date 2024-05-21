@@ -359,7 +359,7 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
     return { pkgName, pid, appType };
 }
 
-void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes)
+void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
 {
     if (lightFactorStatus_ && strategyRes.isFactor) {
         RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
@@ -385,7 +385,7 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
         if (strategyConfigs.find(strategyName) == strategyConfigs.end()) {
             return;
         }
-        auto &settingStrategy = strategyConfigs.at(strategyName);
+        const auto &settingStrategy = strategyConfigs.at(strategyName);
         if (settingStrategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
             return;
         }

@@ -75,7 +75,7 @@ private:
     void FollowFocus();
     void UseMax();
 
-    void OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes);
+    void OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const;
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();

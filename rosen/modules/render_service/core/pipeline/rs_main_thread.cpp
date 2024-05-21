@@ -1645,6 +1645,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     if (rsFrameRateLinker_ != nullptr) {
+        rsCurrRange_.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }

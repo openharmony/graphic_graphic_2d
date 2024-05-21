@@ -68,39 +68,48 @@ struct DvsyncInfo {
     bool isUiDvsyncOn = false;
 };
 
-struct FrameRateVoteInfo {
+struct VoteInfo {
     std::string voterName = "";
-    uint32_t preferred = 0;
-    FrameRateLinkerId pid = 0;
-    std::string ltpoType = "";
-    uint64_t timestamp = 0;
+    uint32_t min = OLED_NULL_HZ;
+    uint32_t max = OLED_NULL_HZ;
+    pid_t pid = DEFAULT_PID;
+    std::string extInfo = "";
+    std::string bundleName = "";
 
-    void SetTimestamp(uint64_t curTimestamp)
+    void Merge(const VoteInfo& other)
     {
-        timestamp = curTimestamp;
+        this->voterName = other.voterName;
+        this->pid = other.pid;
+        this->extInfo = other.extInfo;
     }
 
-    void SetVoteInfo(const std::string& curVoterName, uint32_t curPreferred)
+    void SetRange(uint32_t min, uint32_t max)
     {
-        voterName = curVoterName;
-        preferred = curPreferred;
+        this->min = min;
+        this->max = max;
     }
 
-    void SetLtpoInfo(FrameRateLinkerId curPid, const std::string& curLtpoType)
-    {
-        pid = curPid;
-        ltpoType = curLtpoType;
-    }
-
-    std::string ToString() const
+    std::string ToString(uint64_t timestamp) const
     {
         std::stringstream str;
         str << "VOTER_NAME:" << voterName << ";";
-        str << "PREFERRED:" << preferred << ";";
-        str << "LTPO_TYPE:" << ltpoType << ";";
+        str << "PREFERRED:" << max << ";";
+        str << "EXT_INFO:" << extInfo << ";";
         str << "PID:" << pid << ";";
+        str << "BUNDLE_NAME:" << bundleName << ";";
         str << "TIMESTAMP:" << timestamp << ".";
         return str.str();
+    }
+
+    bool operator==(const VoteInfo& other) const
+    {
+        return this->max == other.max && this->voterName == other.voterName &&
+            this->extInfo == other.extInfo && this->pid == other.pid && this->bundleName == other.bundleName;
+    }
+
+    bool operator!=(const VoteInfo& other) const
+    {
+        return !(*this == other);
     }
 };
 
@@ -145,9 +154,6 @@ public:
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
-
-    static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
-
     void SetSchedulerPreferredFps(int32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -160,11 +166,14 @@ public:
     {
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
+
+    static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
 private:
     void Reset();
     void UpdateAppSupportStatus();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
-    void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
+
+    void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired, pid_t pid = DEFAULT_PID);
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
@@ -180,16 +189,16 @@ private:
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
-    void DeliverRefreshRateVote(pid_t pid, std::string eventName, bool eventStatus,
-        uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
+    void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
     // merge [VOTER_LTPO, VOTER_IDLE)
-    bool MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange);
-    VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, const DvsyncInfo& dvsyncInfo);
+    bool MergeLtpo2IdleVote(
+        std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
+    VoteInfo ProcessRefreshRateVote();
     void UpdateVoteRule();
-    void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
-    VoteRange ProcessRefreshRateVoteNoRefreshNeeded(const DvsyncInfo& dvsyncInfo);
+    void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
+    void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -208,14 +217,14 @@ private:
     // FORMAT: <sceneName, pid>
     std::vector<std::pair<std::string, pid_t>> sceneStack_;
     // FORMAT: "voterName, <pid, <min, max>>"
-    std::unordered_map<std::string, std::vector<std::pair<pid_t, VoteRange>>> voteRecord_;
+    std::unordered_map<std::string, std::vector<VoteInfo>> voteRecord_;
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
-    FrameRateVoteInfo frameRateVoteInfo_;
-    std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
+    // FORMAT: <timestamp, VoteInfo>
+    std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
@@ -223,14 +232,13 @@ private:
     bool isLtpo_ = true;
     bool isRefreshNeed_ = true;
     int32_t idleFps_ = 60;
+    VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
     int32_t lastTouchState_ = IDLE_STATE;
     bool startCheck_ = false;
     bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
-    uint32_t lastVoteMin_ = 0;
-    uint32_t lastVoteMax_ = 144;
     bool isNeedUpdateAppOffset_ = false;
     int32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
