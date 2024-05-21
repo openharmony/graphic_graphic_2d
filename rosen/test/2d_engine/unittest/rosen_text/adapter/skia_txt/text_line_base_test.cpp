@@ -52,7 +52,8 @@ HWTEST_F(OH_Drawing_TextLineBaseTest, OH_Drawing_TextLineBaseTest001, TestSize.L
     std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase = typography->GetTextLines();
     if (vectorTextLineBase.size() > 0) {
         vectorTextLineBase[0]->GetGlyphCount();
-        vectorTextLineBase[0]->GetGlyphRuns();
+        std::vector<std::unique_ptr<OHOS::Rosen::Run>> vectorRun = vectorTextLineBase[0]->GetGlyphRuns();
+        EXPECT_EQ(vectorRun.size() > 0, true);
         vectorTextLineBase[0]->GetTextRange();
         // 100.0 for unit test
         vectorTextLineBase[0]->Paint(canvas, 100.0, 100.0);
