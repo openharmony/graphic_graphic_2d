@@ -3002,6 +3002,7 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
         MemoryManager::CountMemory(pids,
             RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), mems);
     });
+
 #endif
 }
 
@@ -3606,7 +3607,6 @@ void RSMainThread::UpdateLuminance()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-        dumpString.append("rootNode is null\n");
         return;
     }
     bool isNeedRefreshAll{false};
