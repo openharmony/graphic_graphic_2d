@@ -122,18 +122,33 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_value argv[ARGC_ONE] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    size_t argc = ARGC_FOUR;
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_FOUR);
 
-    int32_t argb[ARGC_FOUR] = {0};
-    if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
-        ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+    Drawing::Color drawingColor;
+    if (argc == ARGC_ONE) {
+        int32_t argb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+            ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter verification failed. The range of color channels must be [0, 255].");
+        }
+        drawingColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+    } else if (argc == ARGC_FOUR) {
+        int32_t alpha = 0;
+        GET_COLOR_PARAM(ARGC_ZERO, alpha);
+        int32_t red = 0;
+        GET_COLOR_PARAM(ARGC_ONE, red);
+        int32_t green = 0;
+        GET_COLOR_PARAM(ARGC_TWO, green);
+        int32_t blue = 0;
+        GET_COLOR_PARAM(ARGC_THREE, blue);
+        drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
+    } else {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-
-    Color color(Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]));
-    pen->SetColor(color);
+    pen->SetColor(drawingColor);
     return nullptr;
 }
 
