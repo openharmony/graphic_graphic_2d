@@ -799,7 +799,7 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
 bool RSSystemProperties::GetPurgeResourcesEveryEnabled()
 {
     static bool purgeResourcesEveryEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.PurgeResourcesEveryEnabled", "0").c_str()) != 0);
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "0").c_str()) != 0);
     return purgeResourcesEveryEnabled;
 }
 

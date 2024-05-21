@@ -1387,12 +1387,12 @@ uint32_t RSMainThread::GetDynamicRefreshRate() const
     return refreshRate;
 }
 
-void RSMainThread::ClearMemoryCacheInFrame(ClearMemoryMoment moment, bool deeply)
+void RSMainThread::PurgeCacheBetweenFrames(ClearMemoryMoment moment)
 {
     if(!RSSystemProperties::GetReleaseResourceEnabled()){
         return;
     }
-    RS_TRACE_NAME_FMT("MEM ClearMemoryCacheInFrame add task");
+    RS_TRACE_NAME_FMT("MEM PurgeCacheBetweenFrames add task");
     PostTask(
         [this]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
@@ -1403,9 +1403,9 @@ void RSMainThread::ClearMemoryCacheInFrame(ClearMemoryMoment moment, bool deeply
             for (auto& pid : exitedPidSet_) {
                 pidList += "[" + std::to_string(pid) + "]";
             }
-            RS_TRACE_NAME_FMT("ClearMemoryCacheInFrame pids=%s",pidList.c_str());
+            RS_TRACE_NAME_FMT("PurgeCacheBetweenFrames");
             std::set<int> protectedPidSet = { GetDesktopPidForRotationScene() };
-            MemoryManager::PurgeResourcesEveryFrame(grContext,true , this->exitedPidSet_, protectedPidSet);
+            MemoryManager::PurgeResourcesEveryFrame(grContext, true, this->exitedPidSet_, protectedPidSet);
             RemoveTask(CLEAR_GPU_CACHE_IN_FRAME);
         },
         CLEAR_GPU_CACHE_IN_FRAME, 0, AppExecFwk::EventQueue::Priority::LOW);
@@ -2403,7 +2403,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     if (RSSystemProperties::GetPurgeResourcesEveryEnabled()) {
         // clear memory after every vsync
-        ClearMemoryCacheInFrame(context_->clearMoment_, false);
+        PurgeCacheBetweenFrames(context_->clearMoment_);
     }
     isOnVsync_.store(false);
 }
