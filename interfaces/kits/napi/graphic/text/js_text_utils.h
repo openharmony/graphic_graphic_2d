@@ -428,7 +428,6 @@ inline napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "fontSize", CreateJsNumber(env, textStyle.fontSize));
         napi_set_named_property(env, objValue, "letterSpacing", CreateJsNumber(env, textStyle.letterSpacing));
         napi_set_named_property(env, objValue, "wordSpacing", CreateJsNumber(env, textStyle.wordSpacing));
-        napi_set_named_property(env, objValue, "wordSpacing", CreateJsNumber(env, textStyle.wordSpacing));
         napi_set_named_property(env, objValue, "heightScale", CreateJsNumber(env, textStyle.heightScale));
         napi_set_named_property(env, objValue, "halfLeading", CreateJsNumber(env, textStyle.halfLeading));
         napi_set_named_property(env, objValue, "heightOnly", CreateJsNumber(env, textStyle.heightOnly));
@@ -514,7 +513,7 @@ inline napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetric
         napi_set_named_property(env, objValue, "left", CreateJsNumber(env, lineMetrics.x));
         napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.baseline));
         napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.lineNumber));
-        napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.capHeight));
+        napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.y));
         napi_set_named_property(env, objValue, "runMetrics", ConvertMapToNapiMap(env, lineMetrics.runMetrics));
     }
     return objValue;
