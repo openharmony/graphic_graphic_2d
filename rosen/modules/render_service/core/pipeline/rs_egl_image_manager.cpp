@@ -151,7 +151,7 @@ NativeWindowBuffer* CastFromEGLClientBuffer(EGLClientBuffer eglClientBuffer)
 
 EGLImageKHR CreateEGLImage(
     EGLDisplay eglDisplay,
-    EGLContext EGLContext,
+    EGLContext eglContext,
     const NativeWindowBufferObject& nativeBuffer)
 {
     EGLint attrs[] = {
@@ -161,7 +161,7 @@ EGLImageKHR CreateEGLImage(
     };
 
     return GetEGLCreateImageKHRFunc()(
-        eglDisplay, EGLContext, EGL_NATIVE_BUFFER_OHOS, CastToEGLClientBuffer(nativeBuffer), attrs);
+        eglDisplay, eglContext, EGL_NATIVE_BUFFER_OHOS, CastToEGLClientBuffer(nativeBuffer), attrs);
 }
 } // namespace Detail
 

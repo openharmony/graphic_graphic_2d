@@ -1022,22 +1022,24 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
 void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
 {
     Vector4f bounds = GetStagingProperties().GetBounds();
-    float left = 0.f;
-    float top = 0.f;
-    float right = bounds.z_;
-    float bottom = bounds.w_;
-    for (size_t i = 0; i < particleParams.size(); i++) {
+    float boundsRight = bounds.x_ + bounds.z_;
+    float boundsBottom = bounds.y_ + bounds.w_;
+    size_t emitterCount = particleParams.size();
+    std::vector<float> left(emitterCount);
+    std::vector<float> top(emitterCount);
+    std::vector<float> right(emitterCount);
+    std::vector<float> bottom(emitterCount);
+    for (size_t i = 0; i < emitterCount; i++) {
         auto particleType = particleParams[i].emitterConfig_.type_;
         auto position = particleParams[i].emitterConfig_.position_;
         auto emitSize = particleParams[i].emitterConfig_.emitSize_;
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
-            auto diameter = particleParams[i].emitterConfig_.radius_ * 2; // diameter = 2 * radius
-            auto diameMax = diameter * scaleMax;
-            left = std::min(left - diameMax, position.x_ - diameMax);
-            top = std::min(top - diameMax, position.y_ - diameMax);
-            right = std::max(right + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
-            bottom = std::max(bottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
+            auto diameMax = particleParams[i].emitterConfig_.radius_ * 2 * scaleMax; // diameter = 2 * radius
+            left[i] = std::min(bounds.x_ - diameMax, position.x_ - diameMax);
+            top[i] = std::min(bounds.y_ - diameMax, position.y_ - diameMax);
+            right[i] = std::max(boundsRight + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
+            bottom[i] = std::max(boundsBottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
@@ -1052,16 +1054,20 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             }
             float imageSizeWidthMax = imageSizeWidth * scaleMax;
             float imageSizeHeightMax = imageSizeHeight * scaleMax;
-            left = std::min(left - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
-            top = std::min(top - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
-            right = std::max(right + imageSizeWidthMax + imageSizeWidthMax,
+            left[i] = std::min(bounds.x_ - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
+            top[i] = std::min(bounds.y_ - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
+            right[i] = std::max(boundsRight + imageSizeWidthMax + imageSizeWidthMax,
                 position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
-            bottom = std::max(bottom + imageSizeHeightMax + imageSizeHeightMax,
+            bottom[i] = std::max(boundsBottom + imageSizeHeightMax + imageSizeHeightMax,
                 position.y_ + emitSize.y_ + imageSizeHeightMax + imageSizeHeightMax);
         }
-        std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(left, top, right, bottom);
-        SetDrawRegion(overlayRect);
     }
+    float l = *std::min_element(left.begin(), left.end());
+    float t = *std::min_element(top.begin(), top.end());
+    boundsRight = *std::max_element(right.begin(), right.end());
+    boundsBottom = *std::max_element(bottom.begin(), bottom.end());
+    std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(l, t, boundsRight - l, boundsBottom - t);
+    SetDrawRegion(overlayRect);
 }
 
 // Update Particle Emitter
@@ -2341,7 +2347,6 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     }
     isTextureExportNode_ = isTextureExportNode;
     if (!isTextureExportNode_) {
-        DoFlushModifier();
         return;
     }
     CreateTextureExportRenderNodeInRT();

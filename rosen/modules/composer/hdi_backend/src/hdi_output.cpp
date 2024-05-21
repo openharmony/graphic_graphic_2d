@@ -188,7 +188,7 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     surfaceIdMap_[surfaceId] = layer;
 
     // DISPLAY ENGINE
-    uint32_t ret = 0;
+    int32_t ret = 0;
     std::vector<std::string> validKeys{};
     ret = device_->GetSupportedLayerPerFrameParameterKey(validKeys);
     if (ret != 0) {

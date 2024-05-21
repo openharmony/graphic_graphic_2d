@@ -15,7 +15,7 @@
 
 #ifndef CLIP_CUBIC_H
 #define CLIP_CUBIC_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_canvas.h>
 

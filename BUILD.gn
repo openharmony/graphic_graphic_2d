@@ -36,6 +36,7 @@ group("graphic_common_test") {
     "frameworks/vulkan_layers/test:test",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
+    "rosen/modules/graphics_effect/test:test",
     "rosen/test/frame_analyzer:test",
     "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",
@@ -64,10 +65,6 @@ ohos_prebuilt_etc("graphic.rc") {
 
 group("libfence") {
   public_deps = [ "frameworks/fence:libfence" ]
-}
-
-group("libgl") {
-  public_deps = libgl
 }
 
 group("libvulkan") {

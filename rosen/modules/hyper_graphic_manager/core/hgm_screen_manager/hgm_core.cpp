@@ -95,6 +95,10 @@ bool HgmCore::Init()
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
+        if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO &&
+            mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+            customFrameRateMode_ = mPolicyConfigData_->SettingModeId2XmlModeId(customFrameRateMode_);
+        }
         CheckCustomFrameRateModeValid();
     }
 

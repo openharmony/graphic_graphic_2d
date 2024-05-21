@@ -208,6 +208,19 @@ void RSLightUpEffectDrawableTest::TearDownTestCase() {}
 void RSLightUpEffectDrawableTest::SetUp() {}
 void RSLightUpEffectDrawableTest::TearDown() {}
 
+class RSDynamicDimDrawableTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void RSDynamicDimDrawableTest::SetUpTestCase() {}
+void RSDynamicDimDrawableTest::TearDownTestCase() {}
+void RSDynamicDimDrawableTest::SetUp() {}
+void RSDynamicDimDrawableTest::TearDown() {}
+
 class RSBinarizationDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -234,6 +247,19 @@ void RSBackgroundFilterDrawableTest::TearDownTestCase() {}
 void RSBackgroundFilterDrawableTest::SetUp() {}
 void RSBackgroundFilterDrawableTest::TearDown() {}
 
+class RSCompositingFilterDrawableTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void RSCompositingFilterDrawableTest::SetUpTestCase() {}
+void RSCompositingFilterDrawableTest::TearDownTestCase() {}
+void RSCompositingFilterDrawableTest::SetUp() {}
+void RSCompositingFilterDrawableTest::TearDown() {}
+
 class RSForegroundFilterDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -246,6 +272,19 @@ void RSForegroundFilterDrawableTest::SetUpTestCase() {}
 void RSForegroundFilterDrawableTest::TearDownTestCase() {}
 void RSForegroundFilterDrawableTest::SetUp() {}
 void RSForegroundFilterDrawableTest::TearDown() {}
+
+class RSForegroundFilterRestoreDrawableTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void RSForegroundFilterRestoreDrawableTest::SetUpTestCase() {}
+void RSForegroundFilterRestoreDrawableTest::TearDownTestCase() {}
+void RSForegroundFilterRestoreDrawableTest::SetUp() {}
+void RSForegroundFilterRestoreDrawableTest::TearDown() {}
 
 class RSEffectDataGenerateDrawableTest : public testing::Test {
 public:
@@ -285,6 +324,19 @@ void RSForegroundColorDrawableTest::SetUpTestCase() {}
 void RSForegroundColorDrawableTest::TearDownTestCase() {}
 void RSForegroundColorDrawableTest::SetUp() {}
 void RSForegroundColorDrawableTest::TearDown() {}
+
+class RSParticleDrawableTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void RSParticleDrawableTest::SetUpTestCase() {}
+void RSParticleDrawableTest::TearDownTestCase() {}
+void RSParticleDrawableTest::SetUp() {}
+void RSParticleDrawableTest::TearDown() {}
 
 class RSPixelStretchDrawableTest : public testing::Test {
 public:
@@ -389,7 +441,7 @@ HWTEST_F(RSClipBoundsDrawableTest, Draw001, TestSize.Level1)
     RSRenderContent content;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     clipBoundsDrawable.Draw(content, fileCanvas);
 
     Vector4f cornerRadius = { 1.0, 1.0, 1.0, 1.0 };
@@ -418,7 +470,7 @@ HWTEST_F(RSClipBoundsDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSPointLightDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSPointLightDrawable::Generate(content);
     EXPECT_EQ(properties.GetIlluminated(), nullptr);
 
@@ -426,7 +478,7 @@ HWTEST_F(RSPointLightDrawableTest, Generate001, TestSize.Level1)
     IlluminatedType illuminatedType = IlluminatedType::BORDER;
     properties.illuminatedPtr_->SetIlluminatedType(illuminatedType);
     RSPointLightDrawable::Generate(content);
-    EXPECT_NE(properties.GetIlluminated(), nullptr);
+    EXPECT_TRUE(properties.illuminatedPtr_->IsIlluminatedValid());
 }
 
 /**
@@ -441,12 +493,12 @@ HWTEST_F(RSPointLightDrawableTest, Draw001, TestSize.Level1)
     RSRenderContent content;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     properties.SetIlluminatedBorderWidth(1.f);
     IlluminatedType illuminatedType = IlluminatedType::BORDER;
     properties.illuminatedPtr_->SetIlluminatedType(illuminatedType);
     pointLightDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(properties.GetIlluminated(), nullptr);
+    EXPECT_TRUE(properties.illuminatedPtr_->IsIlluminatedValid());
 }
 
 /**
@@ -458,7 +510,7 @@ HWTEST_F(RSPointLightDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSBorderDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSBorderDrawable::Generate(content);
     EXPECT_EQ(properties.GetBorder(), nullptr);
 
@@ -534,6 +586,62 @@ HWTEST_F(RSBorderFourLineDrawableTest, OnBoundsChange001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Draw001
+ * @tc.desc: test results of Draw
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSBorderFourLineDrawableTest, Draw001, TestSize.Level1)
+{
+    RSRenderContent content;
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    bool drawBorder = true;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas fileCanvas(&canvas);
+    RSBorderFourLineDrawable borderFourLineDrawable(std::move(brush), std::move(pen), properties, drawBorder);
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetBorderWidth(width);
+    borderFourLineDrawable.Draw(content, fileCanvas);
+    EXPECT_EQ(borderFourLineDrawable.drawBorder_, true);
+
+    borderFourLineDrawable.drawBorder_ = false;
+    Vector4f radius = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetOutlineRadius(radius);
+    borderFourLineDrawable.Draw(content, fileCanvas);
+    EXPECT_EQ(borderFourLineDrawable.drawBorder_, false);
+}
+
+/**
+ * @tc.name: Draw001
+ * @tc.desc: test results of Draw
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSBorderFourLineRoundCornerDrawableTest, Draw001, TestSize.Level1)
+{
+    RSRenderContent content;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas fileCanvas(&canvas);
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    bool drawBorder = true;
+    RSBorderFourLineRoundCornerDrawable drawable(std::move(brush), std::move(pen), properties, drawBorder);
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetBorderWidth(width);
+    drawable.Draw(content, fileCanvas);
+    EXPECT_EQ(drawable.drawBorder_, true);
+
+    drawable.drawBorder_ = false;
+    Vector4f radius = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetOutlineRadius(radius);
+    drawable.Draw(content, fileCanvas);
+    EXPECT_EQ(drawable.drawBorder_, false);
+}
+
+/**
  * @tc.name: OnBoundsChange001
  * @tc.desc: test results of OnBoundsChange
  * @tc.type: FUNC
@@ -565,7 +673,7 @@ HWTEST_F(RSBorderFourLineRoundCornerDrawableTest, OnBoundsChange001, TestSize.Le
 HWTEST_F(RSOutlineDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSOutlineDrawable::Generate(content);
     EXPECT_EQ(properties.GetOutline(), nullptr);
 
@@ -598,7 +706,7 @@ HWTEST_F(RSOutlineDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSMaskDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSMaskDrawable::Generate(content);
     EXPECT_EQ(properties.GetMask(), nullptr);
 
@@ -633,24 +741,43 @@ HWTEST_F(RSMaskDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSShadowBaseDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
-    properties.SetShadowMask(true);
-    RSShadowBaseDrawable::Generate(content);
-    EXPECT_EQ(properties.IsSpherizeValid(), false);
-
-    RSShadow shadow;
-    shadow.SetElevation(1.f);
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSShadowBaseDrawable::Generate(content);
     EXPECT_EQ(properties.IsShadowValid(), false);
 
-    auto mask = std::make_shared<RSMask>();
-    properties.SetMask(mask);
+    properties.shadow_ = std::make_optional<RSShadow>();
+    properties.shadow_->elevation_ = 1.f;
+    properties.shadow_->color_.alpha_ = 255;
+    properties.shadow_->radius_ = 1.f;
     RSShadowBaseDrawable::Generate(content);
-    EXPECT_EQ(properties.IsSpherizeValid(), false);
+    EXPECT_EQ(properties.GetShadowElevation(), 1.f);
+    EXPECT_EQ(properties.IsShadowValid(), true);
 
-    properties.SetSpherize(1.f);
+    properties.shadow_->imageMask_ = true;
     RSShadowBaseDrawable::Generate(content);
-    EXPECT_NE(properties.IsShadowValid(), true);
+    EXPECT_EQ(properties.IsShadowValid(), true);
+}
+
+/**
+ * @tc.name: ClipShadowPath001
+ * @tc.desc: test results of ClipShadowPath
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSShadowBaseDrawableTest, ClipShadowPath001, TestSize.Level1)
+{
+    RSRenderContent content;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas fileCanvas(&canvas);
+    Drawing::Path path;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSShadowDrawable shadowBaseDrawable(properties);
+    shadowBaseDrawable.ClipShadowPath(content, fileCanvas, path);
+    EXPECT_EQ(properties.GetShadowIsFilled(), false);
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    shadowBaseDrawable.ClipShadowPath(content, fileCanvas, path);
+    EXPECT_NE(properties.clipPath_, nullptr);
 }
 
 /**
@@ -661,9 +788,9 @@ HWTEST_F(RSShadowBaseDrawableTest, Generate001, TestSize.Level1)
  */
 HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
 {
-    RSProperties properties;
-    RSShadowDrawable shadowDrawable(properties);
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSShadowDrawable shadowDrawable(properties);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     Drawing::Path skPath;
@@ -672,11 +799,10 @@ HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
     shadowDrawable.GetColorForShadow(content, fileCanvas, skPath, matrix, deviceClipBounds);
     EXPECT_NE(properties.GetColorPickerCacheTaskShadow(), nullptr);
 
-    RSShadow shadow;
-    properties.SetShadowColorStrategy(1);
-    shadow.SetColorStrategy(1);
+    properties.shadow_ = std::make_optional<RSShadow>();
+    properties.shadow_->SetColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE);
     shadowDrawable.GetColorForShadow(content, fileCanvas, skPath, matrix, deviceClipBounds);
-    EXPECT_NE(properties.GetColorPickerCacheTaskShadow(), nullptr);
+    EXPECT_TRUE(properties.visible_);
 }
 
 /**
@@ -687,9 +813,9 @@ HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
  */
 HWTEST_F(RSShadowDrawableTest, Draw001, TestSize.Level1)
 {
-    RSProperties properties;
-    RSShadowDrawable shadowDrawable(properties);
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSShadowDrawable shadowDrawable(properties);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     shadowDrawable.Draw(content, fileCanvas);
@@ -712,17 +838,17 @@ HWTEST_F(RSShadowDrawableTest, Draw001, TestSize.Level1)
  */
 HWTEST_F(RSHardwareAccelerationShadowDrawableTest, Draw001, TestSize.Level1)
 {
-    RSProperties properties;
-    RSHardwareAccelerationShadowDrawable shadowDrawable(properties);
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSHardwareAccelerationShadowDrawable shadowDrawable(properties);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
+    EXPECT_NE(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
 
     fileCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
+    EXPECT_EQ(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
 }
 
 /**
@@ -733,17 +859,17 @@ HWTEST_F(RSHardwareAccelerationShadowDrawableTest, Draw001, TestSize.Level1)
  */
 HWTEST_F(RSColorfulShadowDrawableTest, Draw001, TestSize.Level1)
 {
-    RSProperties properties;
-    RSColorfulShadowDrawable shadowDrawable(properties);
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSColorfulShadowDrawable shadowDrawable(properties);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
+    EXPECT_NE(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
 
     fileCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
+    EXPECT_EQ(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::ENABLED);
 }
 
 /**
@@ -755,7 +881,7 @@ HWTEST_F(RSColorfulShadowDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSDynamicLightUpDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSDynamicLightUpDrawable::Generate(content);
     EXPECT_EQ(properties.IsDynamicLightUpValid(), false);
 
@@ -776,13 +902,27 @@ HWTEST_F(RSDynamicLightUpDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSLightUpEffectDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSLightUpEffectDrawable::Generate(content);
     EXPECT_EQ(content.GetRenderProperties().IsLightUpEffectValid(), false);
 
-    RSProperties properties;
     properties.SetLightUpEffect(0.f);
     RSLightUpEffectDrawable::Generate(content);
-    EXPECT_NE(content.GetRenderProperties().IsLightUpEffectValid(), true);
+    EXPECT_EQ(content.GetRenderProperties().IsLightUpEffectValid(), true);
+}
+
+/**
+ * @tc.name: Generate001
+ * @tc.desc: test results of Generate
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSDynamicDimDrawableTest, Generate001, TestSize.Level1)
+{
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSDynamicDimDrawable::Generate(content);
+    EXPECT_EQ(properties.IsLightUpEffectValid(), false);
 }
 
 /**
@@ -796,7 +936,7 @@ HWTEST_F(RSBinarizationDrawableTest, Generate001, TestSize.Level1)
     RSRenderContent content;
     RSBinarizationDrawable::Generate(content);
 
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     float x = -1.0;
     float y = -1.0;
     float z = -1.0;
@@ -816,16 +956,18 @@ HWTEST_F(RSBinarizationDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSBackgroundFilterDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSBackgroundFilterDrawable::Generate(content);
+    EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
 
-    RSProperties properties;
     auto backgroundFilter = std::make_shared<RSFilter>();
     properties.SetBackgroundFilter(backgroundFilter);
     RSBackgroundFilterDrawable::Generate(content);
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
 
     content.type_ = RSRenderNodeType::EFFECT_NODE;
     RSBackgroundFilterDrawable::Generate(content);
-    EXPECT_TRUE(true);
+    EXPECT_EQ(content.GetType(), RSRenderNodeType::EFFECT_NODE);
 }
 
 /**
@@ -836,16 +978,34 @@ HWTEST_F(RSBackgroundFilterDrawableTest, Generate001, TestSize.Level1)
  */
 HWTEST_F(RSBackgroundFilterDrawableTest, Draw001, TestSize.Level1)
 {
-    RSBackgroundFilterDrawable shadowDrawable;
+    RSBackgroundFilterDrawable drawable;
     RSRenderContent content;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
-    shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    drawable.Draw(content, fileCanvas);
+    EXPECT_NE(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
 
     fileCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
-    shadowDrawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    drawable.Draw(content, fileCanvas);
+    EXPECT_EQ(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
+}
+
+/**
+ * @tc.name: Generate001
+ * @tc.desc: test results of Generate
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSCompositingFilterDrawableTest, Generate001, TestSize.Level1)
+{
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSBackgroundFilterDrawable::Generate(content);
+    EXPECT_EQ(properties.GetFilter(), nullptr);
+
+    properties.filter_ = std::make_shared<RSFilter>();
+    RSBackgroundFilterDrawable::Generate(content);
+    EXPECT_NE(properties.GetFilter(), nullptr);
 }
 
 /**
@@ -857,14 +1017,46 @@ HWTEST_F(RSBackgroundFilterDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSForegroundFilterDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSForegroundFilterDrawable::Generate(content);
-    EXPECT_EQ(content.GetRenderProperties().GetFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundFilter(), nullptr);
 
-    RSProperties properties;
-    auto filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
+    properties.foregroundFilter_ = std::make_shared<RSFilter>();
     RSForegroundFilterDrawable::Generate(content);
-    EXPECT_EQ(content.GetRenderProperties().GetFilter(), nullptr);
+    EXPECT_NE(properties.GetForegroundFilter(), nullptr);
+}
+
+/**
+ * @tc.name: Draw001
+ * @tc.desc: test results of Draw
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSForegroundFilterDrawableTest, Draw001, TestSize.Level1)
+{
+    RSForegroundFilterDrawable drawable;
+    RSRenderContent content;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas fileCanvas(&canvas);
+    drawable.Draw(content, fileCanvas);
+}
+
+/**
+ * @tc.name: Generate001
+ * @tc.desc: test results of Generate
+ * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSForegroundFilterRestoreDrawableTest, Generate001, TestSize.Level1)
+{
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSForegroundFilterRestoreDrawable::Generate(content);
+    EXPECT_EQ(properties.GetForegroundFilter(), nullptr);
+
+    properties.foregroundFilter_ = std::make_shared<RSFilter>();
+    RSForegroundFilterRestoreDrawable::Generate(content);
+    EXPECT_NE(properties.GetForegroundFilter(), nullptr);
 }
 
 /**
@@ -876,10 +1068,10 @@ HWTEST_F(RSForegroundFilterDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSEffectDataGenerateDrawableTest, Draw001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     RSEffectDataGenerateDrawable drawable;
-    RSProperties properties;
     properties.SetHaveEffectRegion(true);
     auto backgroundFilter = std::make_shared<RSFilter>();
     properties.SetBackgroundFilter(backgroundFilter);
@@ -900,11 +1092,11 @@ HWTEST_F(RSEffectDataApplyDrawableTest, Draw001, TestSize.Level1)
     RSPaintFilterCanvas fileCanvas(&canvas);
     RSEffectDataApplyDrawable drawable;
     drawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    EXPECT_NE(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
 
     fileCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
     drawable.Draw(content, fileCanvas);
-    EXPECT_NE(canvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    EXPECT_EQ(fileCanvas.GetCacheType(), RSPaintFilterCanvas::CacheType::OFFSCREEN);
 }
 
 /**
@@ -916,13 +1108,13 @@ HWTEST_F(RSEffectDataApplyDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSEffectDataApplyDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSEffectDataApplyDrawable::Generate(content);
-    EXPECT_EQ(content.GetRenderProperties().GetUseEffect(), false);
+    EXPECT_EQ(properties.GetUseEffect(), false);
 
-    RSProperties properties;
     properties.SetUseEffect(true);
     RSEffectDataApplyDrawable::Generate(content);
-    EXPECT_NE(content.GetRenderProperties().GetUseEffect(), true);
+    EXPECT_EQ(properties.GetUseEffect(), true);
 }
 
 /**
@@ -934,7 +1126,7 @@ HWTEST_F(RSEffectDataApplyDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSForegroundColorDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     Color color(1, 1, 1, 1); // for test
     properties.SetForegroundColor(color);
     RSForegroundColorDrawable::Generate(content);
@@ -951,12 +1143,26 @@ HWTEST_F(RSForegroundColorDrawableTest, Generate001, TestSize.Level1)
  * @tc.name: Generate001
  * @tc.desc: test results of Generate
  * @tc.type: FUNC
+ * @tc.require: issueI9QMC2
+ */
+HWTEST_F(RSParticleDrawableTest, Generate001, TestSize.Level1)
+{
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    RSParticleDrawable::Generate(content);
+    EXPECT_EQ(properties.GetParticles().GetParticleSize(), 0);
+}
+
+/**
+ * @tc.name: Generate001
+ * @tc.desc: test results of Generate
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSPixelStretchDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSPixelStretchDrawable::Generate(content);
     EXPECT_EQ(properties.GetPixelStretch().has_value(), false);
 
@@ -975,10 +1181,10 @@ HWTEST_F(RSPixelStretchDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSBackgroundDrawableTest, Draw001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas fileCanvas(&canvas);
     RSBackgroundDrawable drawable;
-    RSProperties properties;
     Vector4f width = { 1.f, 1.f, 1.f, 1.f }; // for test
     properties.SetBorderWidth(width);
     drawable.Draw(content, fileCanvas);
@@ -998,15 +1204,13 @@ HWTEST_F(RSBackgroundDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSBackgroundColorDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     Color color(1, 1, 1, 1); // for test
-    properties.SetBackgroundColor(color);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->backgroundColor_ = color;
     RSBackgroundColorDrawable::Generate(content);
 
-    color.SetAlpha(0);
-    color.SetGreen(0);
-    color.SetRed(0);
-    color.SetBlue(0);
+    properties.decoration_->backgroundColor_ = RgbPalette::Transparent();
     RSBackgroundColorDrawable::Generate(content);
     EXPECT_TRUE(true);
 }
@@ -1020,18 +1224,16 @@ HWTEST_F(RSBackgroundColorDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSBackgroundColorDrawableTest, Update001, TestSize.Level1)
 {
     RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     Drawing::Color color;
     RSBackgroundColorDrawable drawable(color);
-    RSProperties properties;
     Color groundColor(1, 1, 1, 1); // for test
-    properties.SetBackgroundColor(groundColor);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->backgroundColor_ = groundColor;
     bool res = drawable.Update(content);
-    EXPECT_EQ(res, false);
+    EXPECT_EQ(res, true);
 
-    groundColor.SetAlpha(0);
-    groundColor.SetGreen(0);
-    groundColor.SetRed(0);
-    groundColor.SetBlue(0);
+    properties.decoration_->backgroundColor_ = RgbPalette::Transparent();
     res = drawable.Update(content);
     EXPECT_EQ(res, false);
 }
@@ -1045,12 +1247,12 @@ HWTEST_F(RSBackgroundColorDrawableTest, Update001, TestSize.Level1)
 HWTEST_F(RSBackgroundShaderDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSBackgroundShaderDrawable::Generate(content);
     EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 
-    auto shader = std::make_shared<RSShader>();
-    properties.SetBackgroundShader(shader);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->bgShader_ = std::make_shared<RSShader>();
     RSBackgroundShaderDrawable::Generate(content);
     EXPECT_NE(properties.GetBackgroundShader(), nullptr);
 }
@@ -1064,12 +1266,12 @@ HWTEST_F(RSBackgroundShaderDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSBackgroundImageDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSBackgroundImageDrawable::Generate(content);
     EXPECT_EQ(properties.GetBgImage(), nullptr);
 
-    auto image = std::make_shared<RSImage>();
-    properties.SetBgImage(image);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->bgImage_ = std::make_shared<RSImage>();
     RSBackgroundImageDrawable::Generate(content);
     EXPECT_NE(properties.GetBgImage(), nullptr);
 }
@@ -1083,15 +1285,15 @@ HWTEST_F(RSBackgroundImageDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSBackgroundImageDrawableTest, Update001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSBackgroundImageDrawable drawable;
     bool res = drawable.Update(content);
     EXPECT_EQ(res, false);
 
-    auto image = std::make_shared<RSImage>();
-    properties.SetBgImage(image);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->bgImage_ = std::make_shared<RSImage>();
     res = drawable.Update(content);
-    EXPECT_EQ(res, false);
+    EXPECT_EQ(res, true);
 }
 
 /**

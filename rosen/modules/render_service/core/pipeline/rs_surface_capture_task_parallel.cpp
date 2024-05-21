@@ -24,7 +24,9 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -43,8 +45,6 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include "drawable/rs_render_node_drawable_adapter.h"
-#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -127,7 +127,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && !isProcOnBgThread_) {
-        surface->FlushAndSubmit(true);
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext);
         Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");

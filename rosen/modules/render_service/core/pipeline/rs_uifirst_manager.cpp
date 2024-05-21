@@ -726,7 +726,7 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     // 1: Planning: support multi appwindows
     if (isUIFirstEnable && node.IsLeashWindow()) {
         isNeedAssignToSubThread = (animation || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
-            node.GetForceUIFirst()) && !node.HasFilter();
+            node.GetForceUIFirst()) && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
         " filter:%d animation:%d forceUIFirst:%d isNeedAssign:%d",

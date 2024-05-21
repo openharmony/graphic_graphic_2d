@@ -59,7 +59,8 @@ ohos_unittest("2d_graphics_ndk_test") {
   }
 
   deps = [
-    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "//third_party/googletest:gtest_main",

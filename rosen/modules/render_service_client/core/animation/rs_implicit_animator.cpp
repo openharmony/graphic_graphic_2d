@@ -104,29 +104,28 @@ void RSImplicitAnimator::CloseImplicitAnimationInner()
     EndImplicitAnimation();
 }
 
-bool RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
+void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
 {
     // If finish callback either 1. is null or 2. is referenced by any animation or implicitly parameters, we don't
     // do anything.
     if (finishCallback.use_count() != 1) {
-        CloseImplicitAnimationInner();
-        return false;
+        return;
     }
+    auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
     // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
     // execute it asynchronously, in order to avoid timing issues.
-    if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
+    if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
         ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                    "callback asynchronously");
         RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
-        CloseImplicitAnimationInner();
-        return false;
+    } else {
+        // we are the only one who holds the finish callback, if the callback is timing sensitive, we need to create
+        // a delay task, in order to execute it on the right time.
+        ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                   "callback on delay duration");
+        RSUIDirector::PostDelayTask(
+            [finishCallback]() { finishCallback->Execute(); }, static_cast<uint32_t>(protocol.GetDuration()));
     }
-    // we are the only one who holds the finish callback, and the callback is timing sensitive, we need to create an
-    // empty animation that act like a timer, in order to execute it on the right time.
-    ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, creating empty 'timer' "
-               "animation.");
-    CreateEmptyAnimation();
-    return true;
 }
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
@@ -146,9 +145,9 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created by current implicit animation param, we need to take care of finish callback
     if (currentAnimations.empty() && currentKeyframeAnimations.empty()) {
-        if (!ProcessEmptyAnimations(finishCallback)) {
-            return {};
-        }
+        ProcessEmptyAnimations(finishCallback);
+        CloseImplicitAnimationInner();
+        return {};
     }
     std::vector<std::shared_ptr<RSAnimation>> resultAnimations;
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
@@ -418,23 +417,6 @@ void RSImplicitAnimator::CancelImplicitAnimation(
     }
     auto cancelImplicitParam = std::static_pointer_cast<RSImplicitCancelAnimationParam>(params);
     cancelImplicitParam->AddPropertyToPendingSyncList(property);
-    return;
-}
-
-void RSImplicitAnimator::CreateEmptyAnimation()
-{
-    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-    if (target == nullptr) {
-        ROSEN_LOGE("RSImplicitAnimator::CreateEmptyAnimation, target is nullptr");
-        return;
-    }
-    std::shared_ptr<RSAnimatableProperty<float>> property = std::make_shared<RSAnimatableProperty<float>>(0.f);
-    property->id_ = 0;
-    // The spring animation will stop when the oscillation amplitude is less than 1/256. Setting this end value is to
-    // make the spring animation stop at an appropriate time and call the callback function.
-    auto endValue = std::make_shared<RSAnimatableProperty<float>>(100.0); // 100: for spring animation stop timing
-    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
-    CreateImplicitAnimation(target, property, startValue, endValue);
     return;
 }
 

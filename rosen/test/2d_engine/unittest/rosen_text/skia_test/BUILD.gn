@@ -23,6 +23,7 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
   sources = [
     "skia_anyspan_test.cpp",
     "skia_txt_test.cpp",
+    "texgine_test.cpp",
   ]
 
   cflags_cc = [

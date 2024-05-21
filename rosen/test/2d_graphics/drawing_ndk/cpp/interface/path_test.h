@@ -19,7 +19,7 @@
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 
 class PathTransformWithPerspectiveClip : public TestBase {

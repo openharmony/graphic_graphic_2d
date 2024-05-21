@@ -479,7 +479,7 @@ public:
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTaskShadow() const;
+    std::shared_ptr<RSColorPickerCacheTask> GetColorPickerCacheTaskShadow() const;
     void ReleaseColorPickerTaskShadow() const;
     void ClearFilterCache();
 #endif
@@ -542,9 +542,9 @@ private:
     int colorBlendApplyType_ = 0;
 
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_ = std::nullopt;
-    float fgBrightnessFract_ = -1.0;
+    float fgBrightnessFract_ = 1.0f;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_ = std::nullopt;
-    float bgBrightnessFract_ = -1.0;
+    float bgBrightnessFract_ = 1.0f;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 

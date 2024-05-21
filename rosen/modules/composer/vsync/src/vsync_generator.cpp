@@ -57,6 +57,20 @@ static void SetThreadHighPriority()
     param.sched_priority = SCHED_PRIORITY;
     sched_setscheduler(0, SCHED_FIFO, &param);
 }
+
+static uint32_t CalculateRefreshRate(int64_t period)
+{
+    if (period > 30000000 && period < 35000000) { // 30000000ns, 35000000ns
+        return 30; // 30hz
+    } else if (period > 15000000 && period < 18000000) { // 15000000ns, 18000000ns
+        return 60; // 60hz
+    } else if (period > 10000000 && period < 12000000) { // 10000000ns, 12000000ns
+        return 90; // 90hz
+    } else if (period > 7500000 && period < 9000000) { // 7500000ns, 9000000ns
+        return 120; // 120hz
+    }
+    return 0;
+}
 }
 
 std::once_flag VSyncGenerator::createFlag_;
@@ -115,6 +129,7 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         } else {
             listeners = GetListenerTimeouted(newOccurTimestamp, occurTimestamp, occurReferenceTime);
         }
+        expectTimeFlag_ = false;
     }
     ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
         ", period:" + std::to_string(periodRecord_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
@@ -276,12 +291,21 @@ bool VSyncGenerator::CheckTimingCorrect(int64_t now, int64_t referenceTime, int6
 
 bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, int64_t nextVSyncTime)
 {
-    if (!CheckTimingCorrect(now, referenceTime, nextVSyncTime)) {
-        ScopedBytrace trace("Timing not Correct");
-        return false;
-    }
-
     bool modelChanged = false;
+
+    // change referenceTime
+    if (expectNextVsyncTime_ > 0) {
+        ScopedBytrace trace("UpdateChangeDataLocked, expectNextVsyncTime_:" + std::to_string(expectNextVsyncTime_));
+        nextVSyncTime = expectNextVsyncTime_;
+        expectNextVsyncTime_ = 0;
+        referenceTime_ = nextVSyncTime;
+        modelChanged = true;
+        expectTimeFlag_ = true;
+    } else {
+        if (!CheckTimingCorrect(now, referenceTime, nextVSyncTime)) {
+            return false;
+        }
+    }
 
     // update generate refreshRate
     if (needChangeGeneratorRefreshRate_) {
@@ -337,6 +361,11 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     now -= phase;
     if (now < 0) {
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            if (expectTimeFlag_) { // Ensure that nextTime is not earlier than referenceTime.
+                auto num = ((-now) / periodRecord_) * periodRecord_;
+                ScopedBytrace trace("sgb num:" + std::to_string(num) + ", now:" + std::to_string(now));
+                now += ((-now) / periodRecord_) * periodRecord_;
+            }
             now -= periodRecord_;
         } else {
             now = -periodRecord_;
@@ -355,6 +384,8 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     // 3 / 5 just empirical value
     if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * periodRecord_ / 5))) ||
         ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {
+        ScopedBytrace trace("ComputeListenerNextVSyncTimeStamp add one more period:" + std::to_string(periodRecord_) +
+                            ", threshold:" + std::to_string(threshold));
         nextTime += periodRecord_;
     }
 
@@ -521,11 +552,48 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
     return static_cast<uint32_t>(refreshRate);
 }
 
+VsyncError VSyncGenerator::SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime)
+{
+    if (expectNextVsyncTime <= 0) {
+        return VSYNC_ERROR_OK;
+    }
+    auto now = SystemTime();
+    int64_t expectTime = 0;
+    if (expectNextVsyncTime - referenceTime_ > 0) {
+        if (((expectNextVsyncTime - referenceTime_) % pulse_) < (pulse_ / 2)) { // check with 1/2 pulse
+            expectTime = ((expectNextVsyncTime - referenceTime_) / pulse_) * pulse_ + referenceTime_;
+        } else {
+            expectTime = ((expectNextVsyncTime - referenceTime_) / pulse_ + 1) * pulse_ + referenceTime_;
+        }
+    }
+    if (expectTime == 0 || expectTime - now > 100000000) { // 100ms == 100000000ns
+        ScopedBytrace trace("SetExpectNextVsyncTime Failed, expectTime:" + std::to_string(expectTime) +
+                        ", now:" + std::to_string(now) +
+                        ", expectNextVsyncTime:" + std::to_string(expectNextVsyncTime) +
+                        ", referenceTime_:" + std::to_string(referenceTime_));
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    expectNextVsyncTime_ = expectTime;
+    ScopedBytrace trace("expectNextVsyncTime:" + std::to_string(expectNextVsyncTime) +
+                        ", expectNextVsyncTime_:" + std::to_string(expectNextVsyncTime_) +
+                        ", diff:" + std::to_string(expectNextVsyncTime_ - expectNextVsyncTime));
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                            const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                                           uint32_t generatorRefreshRate)
+                                                           uint32_t generatorRefreshRate, int64_t expectNextVsyncTime)
 {
-    ScopedBytrace func("ChangeGeneratorRefreshRateModel:" + std::to_string(generatorRefreshRate));
+    std::string refreshrateStr = "refreshRates[";
+    for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
+        uint64_t linkerId = rateVec.first;
+        uint32_t refreshrate = rateVec.second;
+        refreshrateStr += "(" + std::to_string(linkerId) + "," + std::to_string(refreshrate) + "),";
+    }
+    refreshrateStr += "]";
+    ScopedBytrace func("ChangeGeneratorRefreshRateModel:" + std::to_string(generatorRefreshRate) +
+                       ", phaseByPulseNum" + std::to_string(listenerPhaseOffset.phaseByPulseNum) +
+                       ", " + refreshrateStr + ", expectNextVsyncTime:" + std::to_string(expectNextVsyncTime));
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
         ScopedBytrace trace("it's not ltpo mode.");
@@ -536,6 +604,9 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
         VLOGE("pulse is not ready!!!");
         return VSYNC_ERROR_API_FAILED;
     }
+
+    VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
+
     if ((generatorRefreshRate <= 0 || (VSYNC_MAX_REFRESHRATE % generatorRefreshRate != 0))) {
         ScopedBytrace trace("Not support this refresh rate: " + std::to_string(generatorRefreshRate));
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
@@ -557,7 +628,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     }
 
     waitForTimeoutCon_.notify_all();
-    return VSYNC_ERROR_OK;
+    return ret;
 }
 
 int64_t VSyncGenerator::GetVSyncPulse()
@@ -651,7 +722,9 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::lock_guard<std::mutex> locker(mutex_);
-    if (pendingPeriod_ <= 0) {
+    if (pendingPeriod_ <= 0 || pulse_ == 0) {
+        frameRateChanging_ = false;
+        VLOGE("[%{public}s] Failed, pendingPeriod_:" VPUBI64 ", pulse_:" VPUBI64, __func__, pendingPeriod_, pulse_);
         return VSYNC_ERROR_API_FAILED;
     }
 
@@ -662,12 +735,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         // framerate has changed
         frameRateChanging_ = false;
         ScopedBytrace changeEnd("frameRateChanging_ = false");
-        pendingPeriod_ = 0;
         int64_t actualOffset = referenceTime - pendingReferenceTime_;
-        if (pulse_ == 0) {
-            VLOGI("[%{public}s] pulse is not ready.", __func__);
-            return VSYNC_ERROR_API_FAILED;
-        }
         int32_t actualOffsetPulseNum = round((double)actualOffset/(double)pulse_);
         if (startRefresh_) {
             referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
@@ -677,8 +745,26 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         ScopedBytrace func("UpdateMode, referenceTime:" + std::to_string((referenceTime)) +
                         ", actualOffsetPulseNum:" + std::to_string((actualOffsetPulseNum)) +
                         ", referenceTimeOffsetPulseNum_:" + std::to_string(referenceTimeOffsetPulseNum_) +
-                        ", startRefresh_:" + std::to_string(startRefresh_));
+                        ", startRefresh_:" + std::to_string(startRefresh_) +
+                        ", period:" + std::to_string(pendingPeriod_));
         UpdateReferenceTimeLocked(referenceTime);
+        bool needNotify = true;
+        uint32_t periodRefreshRate = CalculateRefreshRate(period_);
+        uint32_t pendingPeriodRefreshRate = CalculateRefreshRate(pendingPeriod_);
+        // 120hz, 90hz, 60hz
+        if (((periodRefreshRate == 120) || (periodRefreshRate == 90)) && (pendingPeriodRefreshRate == 60)) {
+            needNotify = false;
+        }
+        if ((periodRefreshRate != 0) && (periodRefreshRate == pendingPeriodRefreshRate)) {
+            ScopedBytrace trace("period not changed, period:" + std::to_string(period_));
+            needNotify = false;
+        } else {
+            UpdatePeriodLocked(pendingPeriod_);
+        }
+        if (needNotify) {
+            waitForTimeoutCon_.notify_all();
+        }
+        pendingPeriod_ = 0;
         startRefresh_ = false;
     }
     return VSYNC_ERROR_OK;
@@ -736,6 +822,12 @@ bool VSyncGenerator::GetFrameRateChaingStatus()
 {
     std::lock_guard<std::mutex> locker(mutex_);
     return frameRateChanging_;
+}
+
+void VSyncGenerator::SetFrameRateChangingStatus(bool frameRateChanging)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    frameRateChanging_ = frameRateChanging;
 }
 
 void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)

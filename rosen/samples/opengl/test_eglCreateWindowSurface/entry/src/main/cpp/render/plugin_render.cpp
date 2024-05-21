@@ -20,7 +20,7 @@
 #include <hilog/log.h>
 
 #include "plugin_render.h"
-#include "../common/common.h"
+#include "common.h"
 
 std::unordered_map<std::string, PluginRender *> PluginRender::m_instance;
 OH_NativeXComponent_Callback PluginRender::m_callback;

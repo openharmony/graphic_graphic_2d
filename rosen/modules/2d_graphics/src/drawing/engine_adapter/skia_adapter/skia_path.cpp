@@ -457,8 +457,14 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
         return false;
     }
     PathMeasureUpdate(forceClosed);
+    SkPathMeasure::MatrixFlags skFlag = SkPathMeasure::kGetPosAndTan_MatrixFlag;
+    if (flag == PathMeasureMatrixFlags::GET_POSITION_MATRIX) {
+        skFlag = SkPathMeasure::kGetPosition_MatrixFlag;
+    } else if (flag == PathMeasureMatrixFlags::GET_TANGENT_MATRIX) {
+        skFlag = SkPathMeasure::kGetTangent_MatrixFlag;
+    }
     return pathMeasure_->getMatrix(distance,
-        &matrix->GetImpl<SkiaMatrix>()->ExportMatrix(), static_cast<SkPathMeasure::MatrixFlags>(flag));
+        &matrix->GetImpl<SkiaMatrix>()->ExportMatrix(), skFlag);
 }
 
 std::shared_ptr<Data> SkiaPath::Serialize() const

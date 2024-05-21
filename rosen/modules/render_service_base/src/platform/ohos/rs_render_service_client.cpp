@@ -337,6 +337,18 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
     return renderService->SetVirtualScreenSurface(id, surface);
 }
 
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+
+    return renderService->Set2DRenderCtrl(enable);
+}
+#endif
+
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

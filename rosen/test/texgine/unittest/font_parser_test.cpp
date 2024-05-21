@@ -94,7 +94,7 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
 {
     FontParser fontParser;
     auto visibilityFonts = fontParser.GetVisibilityFonts();
-    fontParser.GetVisibilityFontByName("Sans");
+    fontParser.GetVisibilityFontByName("Noto Sans Regular");
     std::ifstream fileStream(FILE_NAME.c_str());
     if (fileStream.is_open()) {
         EXPECT_NE(visibilityFonts.size(), 0);
@@ -106,6 +106,18 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FontParserTest3
+ * @tc.desc: test font file parser
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
+{
+    FontParser fontParser;
+    std::unique_ptr<FontParser::FontDescriptor> font =
+        fontParser.GetVisibilityFontByName("Noto Sans Regular");
+}
+
+/**
  * @tc.name: FontConfigTest1
  * @tc.desc: test font file parser
  * @tc.type:FUNC
@@ -114,6 +126,18 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
 {
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFile(), 0);
+    fontConfigJson.Dump();
+}
+
+/**
+ * @tc.name: FontConfigTest2
+ * @tc.desc: test font file parser
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
+{
+    FontConfigJson fontConfigJson;
+    EXPECT_EQ(fontConfigJson.ParseFontFileMap(), 0);
     fontConfigJson.Dump();
 }
 
