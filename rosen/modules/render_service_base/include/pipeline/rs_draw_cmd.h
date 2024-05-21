@@ -103,6 +103,7 @@ private:
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
     std::shared_ptr<Drawing::Image> image_;
+    Drawing::AdaptiveImageInfo imageInfo_;
 };
 
 class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {

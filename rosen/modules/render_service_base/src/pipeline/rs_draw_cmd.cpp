@@ -70,6 +70,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    imageInfo_ = imageInfo;
 }
 
 RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -87,6 +88,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
         rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
+        imageInfo_ = imageInfo;
     }
 }
 
@@ -109,6 +111,12 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    if (pixelmap && pixelmap->IsAstc()) {
+        if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+            recordingCanvas->DrawPixelMapWithParm(pixelmap, imageInfo_, sampling);
+            return;
+        }
+    }
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
