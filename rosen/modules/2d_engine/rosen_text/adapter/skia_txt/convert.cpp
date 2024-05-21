@@ -187,6 +187,36 @@ SPText::TextStyle Convert(const TextStyle& style)
 
     return textStyle;
 }
+TextStyle Convert(const SPText::TextStyle& style)
+{
+    TextStyle textStyle;
+    textStyle.color = style.color;
+    textStyle.decoration = static_cast<OHOS::Rosen::TextDecoration>(style.decoration);
+    textStyle.decorationColor = style.decorationColor;
+    textStyle.decorationStyle = static_cast<OHOS::Rosen::TextDecorationStyle>(style.decorationStyle);
+    textStyle.decorationThicknessScale = style.decorationThicknessMultiplier;
+    textStyle.styleId = style.styleId;
+    textStyle.fontWeight = static_cast<OHOS::Rosen::FontWeight>(style.fontWeight);
+    textStyle.fontWidth = static_cast<OHOS::Rosen::FontWidth>(style.fontWidth);
+    textStyle.fontStyle = static_cast<OHOS::Rosen::FontStyle>(style.fontStyle);
+    textStyle.baseline = static_cast<OHOS::Rosen::TextBaseline>(style.baseline);
+    textStyle.halfLeading = style.halfLeading;
+    textStyle.fontFamilies = style.fontFamilies;
+    textStyle.fontSize = style.fontSize;
+    textStyle.letterSpacing = style.letterSpacing;
+    textStyle.wordSpacing = style.wordSpacing;
+    textStyle.heightScale = style.height;
+    textStyle.heightOnly = style.heightOverride;
+    textStyle.locale = style.locale;
+    textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
+        style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
+        style.backgroundRect.leftBottomRadius };
+    textStyle.styleId = style.styleId;
+    textStyle.isSymbolGlyph = style.isSymbolGlyph;
+    textStyle.baseLineShift = style.baseLineShift;
+    textStyle.isPlaceholder = style.isPlaceholder;
+    return textStyle;
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

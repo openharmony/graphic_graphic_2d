@@ -588,7 +588,7 @@ napi_value JsParagraph::OnGetLineMetricsAt(napi_env env, napi_callback_info info
         ROSEN_LOGE("JsParagraph::OnGetLineMetricsAt Argv is invalid");
         return NapiGetUndefined(env);
     }
-    LineMetrics lineMetrics;
+    OHOS::Rosen::LineMetrics lineMetrics;
     paragraph_->GetLineMetricsAt(lineNumber, &lineMetrics);
     return CreateLineMetricsJsValue(env, lineMetrics);
 }

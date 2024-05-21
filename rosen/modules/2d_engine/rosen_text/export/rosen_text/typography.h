@@ -103,6 +103,10 @@ struct LineMetrics {
     size_t endIndex;
 
     Drawing::FontMetrics firstCharMetrics;
+    /** The y position of the baseline for this line from the top of the paragraph */
+    double baseline;
+    /** Zero indexed line number */
+    size_t lineNumber;
 
     std::map<size_t, RunMetrics> runMetrics;
 };

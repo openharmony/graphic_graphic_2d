@@ -407,6 +407,7 @@ bool GetLineMetricsFromJS(napi_env env, napi_value argValue, LineMetrics& lineMe
     }
 
     uint32_t lineNumber = 0;
+    napi_get_named_property(env, argValue, "lineNumber", &tempValue);
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &lineNumber) == napi_ok) {
         lineMetrics.startIndex = static_cast<size_t>(lineNumber);
     }

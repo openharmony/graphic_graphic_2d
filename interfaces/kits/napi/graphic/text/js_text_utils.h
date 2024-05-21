@@ -480,7 +480,27 @@ inline napi_value CreateRunMetricsJsValue(napi_env env, RunMetrics runMetrics)
     return objValue;
 }
 
-inline napi_value CreateLineMetricsJsValue(napi_env env, LineMetrics lineMetrics)
+inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map) {
+    napi_value result;
+    napi_status status = napi_create_object(env, &result);
+    if (status != napi_ok) {
+        ROSEN_LOGE("yqf-Napi: ConvertMapToNapiMap napi_create_object failed");
+        return nullptr;
+    }
+    napi_value jsSize;
+    napi_create_uint32(env, map.size(), &jsSize);
+    napi_set_named_property(env, result, "size", jsSize);
+    for (const auto &[key, val] : map) {
+        const std::string &name = std::to_string(key);
+        status = napi_set_property(env, result, CreateJsValue(env,name), CreateRunMetricsJsValue(env, val));
+        if (status != napi_ok) {
+            return nullptr;
+        }
+    }
+    return result;
+}
+
+inline napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics lineMetrics)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
@@ -492,27 +512,10 @@ inline napi_value CreateLineMetricsJsValue(napi_env env, LineMetrics lineMetrics
         napi_set_named_property(env, objValue, "height", CreateJsNumber(env, lineMetrics.height));
         napi_set_named_property(env, objValue, "width", CreateJsNumber(env, lineMetrics.width));
         napi_set_named_property(env, objValue, "left", CreateJsNumber(env, lineMetrics.x));
-        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.xHeight));
-        napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.capHeight));
+        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.baseline));
+        napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.lineNumber));
         napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.capHeight));
-        napi_value tempMapRunMetrics = nullptr;
-        uint32_t runMetricsCount = 0;
-        napi_get_array_length(env, tempMapRunMetrics, &runMetricsCount);
-        size_t index = 0;
-        if (lineMetrics.runMetrics.size() > 0) {
-            for (const auto& pair : lineMetrics.runMetrics) {
-                napi_value jsPair;
-                napi_create_array_with_length(env, 2, &jsPair);
-
-                napi_set_element(env, jsPair, 0, CreateJsNumber(env, (uint32_t)pair.first));
-                napi_set_element(env, jsPair, 1, CreateRunMetricsJsValue(env, pair.second));
-                napi_set_element(env, tempMapRunMetrics, index++, jsPair);
-            }
-        } else {
-            napi_create_array_with_length(env, 0, &tempMapRunMetrics);
-            ROSEN_LOGE("yqf-Napi: CreateLineMetricsJsValue null map %{public}p", tempMapRunMetrics);
-        }
-        napi_set_named_property(env, objValue, "runMetrics", tempMapRunMetrics);
+        napi_set_named_property(env, objValue, "runMetrics", ConvertMapToNapiMap(env, lineMetrics.runMetrics));
     }
     return objValue;
 }
@@ -571,7 +574,7 @@ size_t GetParamLen(napi_env env, napi_value param);
 
 bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetrics& fontMetrics);
 
-bool GetRunMetricsFromJS(napi_env env, napi_value argValue, SPText::RunMetrics& runMetrics);
+bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics);
 
 bool GetLineMetricsFromJS(napi_env env, napi_value argValue, LineMetrics& runMetrics);
 

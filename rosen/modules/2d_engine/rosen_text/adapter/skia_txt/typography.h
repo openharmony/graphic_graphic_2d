@@ -71,6 +71,8 @@ public:
     std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const override;
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
 private:
+    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
+    // std::vector<PaintRecord> paints_;
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
 };
 } // namespace AdapterTxt

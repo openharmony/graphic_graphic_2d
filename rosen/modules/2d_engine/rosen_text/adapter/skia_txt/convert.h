@@ -46,6 +46,7 @@ DEFINE_CONVERT_FUNC(TypographyStyle, SPText::ParagraphStyle);
 DEFINE_CONVERT_FUNC(PlaceholderSpan, SPText::PlaceholderRun);
 DEFINE_CONVERT_FUNC(TextStyle, SPText::TextStyle);
 
+DEFINE_CONVERT_FUNC(SPText::TextStyle, OHOS::Rosen::TextStyle);
 #undef DEFINE_CONVERT_FUNC
 } // namespace AdapterTxt
 } // namespace Rosen
