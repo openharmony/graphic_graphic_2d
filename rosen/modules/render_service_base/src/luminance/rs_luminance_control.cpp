@@ -22,13 +22,19 @@
 #include "platform/common/rs_log.h"
 
 namespace {
-constexpr float HDR_DEFAULT_TMO_NIT = 500.0f;
+constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
 constexpr int32_t DEFAULT_LEVEL = 255;
-constexpr std::string_view EXT_LIB_PATH = "system/lib64/libluminance_ext.so";
+constexpr std::string_view EXT_LIB_PATH = "system/lib64/libluminance_ext.z.so";
 }
 
 namespace OHOS {
 namespace Rosen {
+RSLuminanceControl& RSLuminanceControl::Get()
+{
+    static RSLuminanceControl instance;
+    return instance;
+}
+
 RSLuminanceControl::~RSLuminanceControl()
 {
     CloseLibrary();
@@ -156,7 +162,7 @@ bool RSLuminanceControl::LoadTmoControl()
         RS_LOGE("LumCtr link GetHdrDisplayNits error!");
         return false;
     }
-    getNonlinearRatio_ = reinterpret_cast<GetNonlinearRatioFunc>(dlsym(extLibHandle_, "GetHdrBrightnessRatio"));
+    getNonlinearRatio_ = reinterpret_cast<GetNonlinearRatioFunc>(dlsym(extLibHandle_, "GetNonlinearRatio"));
     if (getNonlinearRatio_ == nullptr) {
         RS_LOGE("LumCtr link GetHdrBrightnessRatio error!");
         return false;
@@ -164,9 +170,9 @@ bool RSLuminanceControl::LoadTmoControl()
     return true;
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, bool isHdrOn)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type)
 {
-    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, isHdrOn) : false;
+    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, isHdrOn, type) : false;
 }
 
 bool RSLuminanceControl::IsHdrOn(ScreenId screenId)

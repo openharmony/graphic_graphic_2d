@@ -797,8 +797,8 @@ int32_t RSRenderServiceConnection::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RSLuminanceControl::Instance().SetSdrLuminance(id, level);
-    if (RSLuminanceControl::Instance().IsHdrOn(id) && level > 0) {
+    RSLuminanceControl::Get().SetSdrLuminance(id, level);
+    if (RSLuminanceControl::Get().IsHdrOn(id) && level > 0) {
         return;
     }
 

@@ -23,21 +23,24 @@
 
 namespace OHOS {
 namespace Rosen {
+
+enum HDR_TYPE : int32_t {
+    PHOTO,
+    VIDEO,
+    MAX = 255,
+};
+
 class RSB_EXPORT RSLuminanceControl {
 public:
-    RSB_EXPORT static RSLuminanceControl& Instance()
-    {
-        static RSLuminanceControl instance;
-        return instance;
-    }
     RSLuminanceControl(const RSLuminanceControl&) = delete;
     RSLuminanceControl& operator=(const RSLuminanceControl&) = delete;
     RSLuminanceControl(RSLuminanceControl&&) = delete;
     RSLuminanceControl& operator=(RSLuminanceControl&&) = delete;
 
+    RSB_EXPORT static RSLuminanceControl& Get();
     RSB_EXPORT void Init();
 
-    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, bool isHdrOn);
+    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type = HDR_TYPE::PHOTO);
     RSB_EXPORT bool IsHdrOn(ScreenId screenId);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);
@@ -63,7 +66,7 @@ private:
     bool initStatus_{false};
     void *extLibHandle_{nullptr};
 
-    using SetHdrStatusFunc = bool(*)(ScreenId, bool);
+    using SetHdrStatusFunc = bool(*)(ScreenId, bool, int32_t);
     using IsHdrOnFunc = bool(*)(ScreenId);
     using IsDimmingOnFunc = bool(*)(ScreenId);
     using DimmingIncreaseFunc = void(*)(ScreenId);
