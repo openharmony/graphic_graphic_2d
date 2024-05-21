@@ -373,7 +373,6 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
         lineMetrics->runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
         std::forward_as_tuple(&lineMetricsStyles.back(), styleMtrics.font_metrics));
     }
-    LOGE("yqf-C++: Typography::GetLineMetricsAt : return true!");
     return true;
 }
 
