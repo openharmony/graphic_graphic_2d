@@ -71,6 +71,11 @@ napi_value JsBrush::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsBrush* jsBrush = new(std::nothrow) JsBrush();
+    if (!jsBrush) {
+        ROSEN_LOGE("JsBrush::Constructor Failed to create JsBrush");
+        return nullptr;
+    }
+
     status = napi_wrap(env, jsThis, jsBrush,
                        JsBrush::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
