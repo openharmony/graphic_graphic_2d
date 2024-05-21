@@ -105,7 +105,6 @@ template("drawing_ndk_source_set") {
       "$drawing_utils_root",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$rosen_root/modules/texgine/src",
-      "//foundation/multimedia/image_framework/interfaces/innerkits/include/mdkKits/",
     ]
 
     if (enable_text_gine) {
