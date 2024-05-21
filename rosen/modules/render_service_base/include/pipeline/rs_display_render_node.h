@@ -425,6 +425,25 @@ public:
         damageRegion_ = rects;
     }
 
+    void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+    {
+        oldScbPids_ = oldScbPids;
+        currentScbPid_ = currentScbPid;
+        isNeedWaitNewScbPid_ = true;
+    }
+
+    std::vector<int32_t> GetOldScbPids() const
+    {
+        return oldScbPids_;
+    }
+
+    int32_t GetCurrentScbPid() const
+    {
+        return currentScbPid_;
+    }
+
+    ChildrenListSharedPtr GetSortedChildren() const override;
+
 protected:
     void OnSync() override;
 private:
@@ -489,6 +508,12 @@ private:
 
     std::vector<NodeId> lastSurfaceIds_;
     std::vector<RectI> damageRegion_;
+
+    std::vector<int32_t> oldScbPids_ {};
+    int32_t currentScbPid_ = -1;
+    mutable bool isNeedWaitNewScbPid_ = false;
+    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
 };
 } // namespace Rosen
 } // namespace OHOS
