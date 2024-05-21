@@ -40,7 +40,7 @@ void RSHpsBlurShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
     auto hpsFilter = std::make_shared<Drawing::GEVisualEffect>("HPS_BLUR", Drawing::DrawingPaintType::BRUSH);
-    if ((hpsFilter == nullptr) || (hpsFilter->ImplIsNull())) {
+    if ((hpsFilter == nullptr) || (hpsFilter->IsImplNull())) {
         ROSEN_LOGE("RSHpsBlurShaderFilter::GenerateGEVisualEffect error");
         return;
     }

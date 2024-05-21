@@ -52,16 +52,12 @@ static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect = Drawing::RuntimeEff
 
 GEHpsBlurShaderFilter::GEHpsBlurShaderFilter(const Drawing::HpsBlurFilterParams& params)
     : radius_(params.radius), saturation_(params.saturation), brightness_(params.brightness)
-{
-    if (g_mixEffect == nullptr) {
-        g_mixEffect = Drawing::RuntimeEffect::CreateForShader(g_mixString);
-    }
-}
+{}
 
 std::shared_ptr<Drawing::Image> GEHpsBlurShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
 {
-    if ((image == nullptr) || (image->GetWidth() == 0) || (image->GetHeight() == 0) || (g_mixEffect == nullptr)) {
+    if ((image == nullptr) || (image->GetWidth() <= 0) || (image->GetHeight() <= 0) || (g_mixEffect == nullptr)) {
         LOGE("GEHpsBlurShaderFilter::ProcessImage input is invalid");
         return image;
     }
@@ -124,7 +120,7 @@ std::shared_ptr<Drawing::Image> GEHpsBlurShaderFilter::ApplyBlur(Drawing::Canvas
     const std::shared_ptr<Drawing::Image>& image, std::shared_ptr<Drawing::Image>& blurImage,
     const Drawing::HpsBlurParameter& param) const
 {
-    if ((blurImage == nullptr) || (blurImage->GetWidth() == 0) || (blurImage->GetHeight() == 0)) {
+    if ((blurImage == nullptr) || (blurImage->GetWidth() <= 0) || (blurImage->GetHeight() <= 0)) {
         LOGE("GEHpsBlurShaderFilter::ApplyBlur image is invalid");
         return blurImage;
     }

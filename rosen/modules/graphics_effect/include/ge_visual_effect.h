@@ -58,7 +58,7 @@ public:
         return visualEffectImpl_;
     }
 
-    bool ImplIsNull() const
+    bool IsImplNull() const
     {
         return (visualEffectImpl_ == nullptr) ? true : false;
     }
