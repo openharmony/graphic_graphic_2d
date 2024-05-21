@@ -54,6 +54,9 @@ private:
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
+    void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
+    void RotateMirrorCanvasOnExFoldScreen(RSDisplayRenderParams& params, ScreenRotation& rotation, float mainWidth,
+        float mainHeight);
     void DrawMirrorScreen(std::shared_ptr<RSDisplayRenderNode>& displayNode, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
     std::vector<RectI> CalculateVirtualDirty(RSDisplayRenderNode& displayNode,
@@ -85,6 +88,7 @@ private:
     std::shared_ptr<Drawing::Surface> offscreenSurface_; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
+    bool exFoldScreen_ = false; // Expanded state of folding screen
     Drawing::Matrix lastMatrix_;
 };
 } // namespace DrawableV2

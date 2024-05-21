@@ -91,6 +91,7 @@ private:
     float mirrorScaleX_ = 1.0f;
     float mirrorScaleY_ = 1.0f;
     Drawing::Matrix canvasMatrix_;
+    bool exFoldScreen_ = false; // Expanded state of folding screen
 };
 } // namespace Rosen
 } // namespace OHOS
