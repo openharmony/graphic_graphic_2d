@@ -369,7 +369,11 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 {
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
-        m[RSNodeMap::Instance().GetNodeInstanceId(id)].push_back(std::move(cmd));
+        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(id);
+        if (instanceId == INSTANCE_ID_UNDEFINED) {
+            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(id);
+        }
+        m[instanceId].push_back(std::move(cmd));
     }
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {

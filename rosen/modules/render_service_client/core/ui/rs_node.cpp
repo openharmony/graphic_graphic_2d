@@ -327,11 +327,12 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
-    for (auto& [unused, animation] : animations_) {
+    for (auto& [animationId, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
         std::unique_lock<std::mutex> lock(animationMutex_);
+        RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
         target->AddAnimationInner(std::move(animation));
     }
     std::unique_lock<std::mutex> lock(animationMutex_);
