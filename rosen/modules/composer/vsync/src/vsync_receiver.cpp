@@ -173,6 +173,16 @@ VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)
     return connection_->SetVSyncRate(rate);
 }
 
+/* 设置每帧回调 */
+VsyncError VSyncReceiver::SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen)
+{
+    if (isOpen) {
+        return SetVSyncRate(callback, 1);
+    } else {
+        return SetVSyncRate(callback, -1);
+    }
+}
+
 VsyncError VSyncReceiver::GetVSyncPeriod(int64_t &period)
 {
     int64_t timeStamp;

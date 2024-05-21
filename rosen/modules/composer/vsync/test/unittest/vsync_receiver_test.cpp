@@ -235,6 +235,42 @@ HWTEST_F(VsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | Medium
 }
 
 /*
+* Function: SetVsyncCallBackForEveryFrame001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetVsyncCallBackForEveryFrame
+ */
+HWTEST_F(VsyncReceiverTest, SetVsyncCallBackForEveryFrame001, Function | MediumTest| Level3)
+{
+    onVsyncCount = 0;
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+
+    ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+
+    ASSERT_EQ(rsReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
+    while (onVsyncCount == 0) {
+        sleep(1);
+        std::cout<< "OnVsync called count: " << onVsyncCount << std::endl;
+    }
+
+    onVsyncCount = 0;
+    ASSERT_EQ(rsReceiver->SetVsyncCallBackForEveryFrame(fcb, true), VSYNC_ERROR_OK);
+    int64_t period = 0;
+    ASSERT_EQ(rsReceiver->GetVSyncPeriod(period), VSYNC_ERROR_OK);
+    usleep(period / 10);
+    ASSERT_EQ(rsReceiver->SetVsyncCallBackForEveryFrame(fcb, false), VSYNC_ERROR_OK);
+    sleep(1);
+    std::cout<< "OnVsync called count: " << onVsyncCount << " period: " << period << std::endl;
+    ASSERT_EQ(abs(onVsyncCount - 100) <= 5, true);
+}
+
+/*
 * Function: SetVSyncRate001
 * Type: Function
 * Rank: Important(2)
