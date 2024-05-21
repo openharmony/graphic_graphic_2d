@@ -587,12 +587,7 @@ void RSUniRenderThread::UpdateDisplayNodeScreenId()
     if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
         auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
         if (displayNode) {
-            auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
-            if (!params) {
-                RS_LOGE("RSUniRenderThread::UpdateDisplayNodeScreenId params is nullptr");
-                return;
-            }
-            displayNodeScreenId_ = params->GetScreenId();
+            displayNodeScreenId_ = displayNode->GetScreenId();
         }
     }
 }

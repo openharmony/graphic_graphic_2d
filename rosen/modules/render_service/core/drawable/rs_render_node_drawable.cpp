@@ -225,6 +225,7 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
 void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
             RSUniRenderUtil::DrawRectForDfx(

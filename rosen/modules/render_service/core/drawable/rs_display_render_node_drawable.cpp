@@ -393,7 +393,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw params is null!");
         return;
     }
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw params %s", params->ToString().c_str());
 
     // if start process DisplayRenderNode, restart the delaytime of clearMemoryTask
     RemoveClearMemoryTask();
@@ -401,8 +400,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
     {
-        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        drawingCacheInfos_.clear();
+        if (isDrawingCacheDfxEnabled_) {
+            std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+            drawingCacheInfos_.clear();
+        }
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC

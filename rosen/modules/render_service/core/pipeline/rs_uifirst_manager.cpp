@@ -172,13 +172,14 @@ void RSUifirstManager::ProcessForceUpdateNode()
     }
     pendingForceUpdateNode_.clear();
 }
-
-void RSUifirstManager::ProcessDoneNode()
+void RSUifirstManager::ProcessDoneNodeInner()
 {
-    SetHasDoneNodeFlag(false);
     std::vector<NodeId> tmp;
     {
         std::lock_guard<std::mutex> lock(childernDrawableMutex_);
+        if (subthreadProcessDoneNode_.size() == 0) {
+            return;
+        }
         std::swap(tmp, subthreadProcessDoneNode_);
         subthreadProcessDoneNode_.clear();
     }
@@ -195,6 +196,11 @@ void RSUifirstManager::ProcessDoneNode()
         }
         subthreadProcessingNode_.erase(id);
     }
+}
+void RSUifirstManager::ProcessDoneNode()
+{
+    SetHasDoneNodeFlag(false);
+    ProcessDoneNodeInner();
 
     // reset node when node is not doing
     for (auto it = pendingResetNodes_.begin(); it != pendingResetNodes_.end();) {
@@ -771,24 +777,19 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] ",
-        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
-
-    auto currentFrameCacheType = MultiThreadCacheType::NONE;
-    do {
-        if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
-            break;
-        }
-        if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-            currentFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
-            break;
-        }
-        if (RSUifirstManager::IsArkTsCardCache(node, ancestorNodeHasAnimation)) {
-            currentFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
-            break;
-        }
-    } while (false);
-    UifirstStateChange(node, currentFrameCacheType);
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
+        UifirstStateChange(node, MultiThreadCacheType::NONE);
+        return;
+    }
+    if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
+        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        return;
+    }
+    if (RSUifirstManager::IsArkTsCardCache(node, ancestorNodeHasAnimation)) {
+        UifirstStateChange(node, MultiThreadCacheType::ARKTS_CARD);
+        return;
+    }
+    UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 
 void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType)
@@ -798,9 +799,9 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
         // not support cache type switch, just disable multithread cache
         currentFrameCacheType = MultiThreadCacheType::NONE;
     }
-    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
     if (lastFrameCacheType == MultiThreadCacheType::NONE) { // likely branch: last is disable
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // switch: disable -> enable
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
             RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lx", node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
@@ -813,6 +814,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
         }
     } else { // last is enable
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
             RS_TRACE_NAME_FMT("UIFirst_keep enable  %lx", node.GetId());
             MergeOldDirty(node);

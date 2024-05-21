@@ -109,6 +109,7 @@ private:
 
     void ProcessResetNode();
     void ProcessDoneNode();
+    void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();

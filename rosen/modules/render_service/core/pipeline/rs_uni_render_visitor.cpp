@@ -1382,7 +1382,6 @@ RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region
 void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 {
     // 0. check current node need to tranverse
-    auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
@@ -1407,7 +1406,6 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     // 0. check current node need to traverse
-    auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
@@ -1706,11 +1704,6 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
     auto dstRect = node.GetDstRect();
     Drawing::RectI dst = { std::round(dstRect.GetLeft()), std::round(dstRect.GetTop()), std::round(dstRect.GetRight()),
                            std::round(dstRect.GetBottom()) };
-    bool hasRotation = false;
-    if (node.GetConsumer() != nullptr) {
-        auto rotation = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
-        hasRotation = rotation == GRAPHIC_ROTATE_90 || rotation == GRAPHIC_ROTATE_270;
-    }
     node.UpdateSrcRect(*canvas.get(), dst);
     if (node.GetBuffer()) {
         RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
@@ -1719,17 +1712,13 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
 
 void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
-    auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
-    if (geoPtr == nullptr) {
-        return;
-    }
     auto dstRect = absRect;
     // If the screen is expanded, intersect the destination rectangle with the screen rectangle
     dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(), curDisplayNode_->GetDisplayOffsetY(),
         screenInfo_.width, screenInfo_.height));
     // Remove the offset of the screen
-    dstRect = RectI(dstRect.left_ - curDisplayNode_->GetDisplayOffsetX(),
-        dstRect.top_ - curDisplayNode_->GetDisplayOffsetY(), dstRect.GetWidth(), dstRect.GetHeight());
+    dstRect.left_ = dstRect.left_ - curDisplayNode_->GetDisplayOffsetX();
+    dstRect.top_ = dstRect.top_ - curDisplayNode_->GetDisplayOffsetY();
     // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
     if (node.IsHardwareEnabledType()) {
         dstRect = dstRect.IntersectRect(clipRect);

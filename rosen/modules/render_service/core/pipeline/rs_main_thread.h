@@ -303,7 +303,9 @@ public:
 
     void SetDiscardJankFrames(bool discardJankFrames)
     {
-        discardJankFrames_.store(discardJankFrames);
+        if (discardJankFrames_.load() != discardJankFrames) {
+            discardJankFrames_.store(discardJankFrames);
+        }
     }
 
     bool GetSkipJankAnimatorFrame() const
