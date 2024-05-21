@@ -363,13 +363,17 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
 void RSDisplayRenderNodeDrawable::RemoveClearMemoryTask() const
 {
     auto& unirenderThread = RSUniRenderThread::Instance();
-    unirenderThread.RemoveTask(CLEAR_GPU_CACHE);
+    if (!unirenderThread.GetClearMemoryFinished()) {
+        unirenderThread.RemoveTask(CLEAR_GPU_CACHE);
+    }
 }
 
 void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
 {
     auto& unirenderThread = RSUniRenderThread::Instance();
-    unirenderThread.ClearMemoryCache(unirenderThread.GetClearMoment(), unirenderThread.GetClearMemDeeply());
+    if (!unirenderThread.GetClearMemoryFinished()) {
+        unirenderThread.ClearMemoryCache(unirenderThread.GetClearMoment(), unirenderThread.GetClearMemDeeply());
+    }
 }
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)

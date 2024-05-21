@@ -50,7 +50,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-constexpr uint32_t TIME_OF_TWENTY_FRAMES = 20000;
+constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
@@ -400,6 +400,12 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
+
+bool RSUniRenderThread::GetClearMemoryFinished() const
+{
+    return clearMemoryFinished_;
+}
+
 bool RSUniRenderThread::GetClearMemDeeply() const
 {
     std::lock_guard<std::mutex> lock(clearMemoryMutex_);
@@ -539,12 +545,13 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
             auto screenManager_ = CreateOrGetScreenManager();
             screenManager_->ClearFrameBufferIfNeed();
             grContext->FlushAndSubmit(true);
+            this->clearMemoryFinished_ = true;
             this->exitedPidSet_.clear();
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
     PostTask(task, CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_TWENTY_FRAMES : TIME_OF_THE_FRAMES)
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
                 / GetRefreshRate());
 }
 
