@@ -47,6 +47,9 @@ void RSUniRenderProcessorTest::TearDown() {}
  */
 HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
@@ -61,6 +64,9 @@ HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
@@ -78,6 +84,9 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
@@ -93,6 +102,9 @@ HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
@@ -111,6 +123,9 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     renderProcessor->PostProcess();
     EXPECT_FALSE(renderProcessor->isPhone_);
@@ -124,6 +139,9 @@ HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     HdiBackend hdiBackend;
     auto output = std::make_shared<HdiOutput>(1);
@@ -152,6 +170,9 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSDisplayNodeConfig config;
@@ -168,6 +189,9 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
