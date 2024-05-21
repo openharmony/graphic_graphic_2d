@@ -1802,7 +1802,7 @@ void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyMa
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
         return;
     }
-    auto filterDrawable = GetFilterDrawable(false);
+    auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
