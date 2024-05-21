@@ -108,6 +108,7 @@ public:
     virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
                                         int64_t lastVSyncTS);
     virtual bool IsRequestedNextVSync();
+    virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
