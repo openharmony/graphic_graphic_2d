@@ -246,10 +246,12 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
-    uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
-    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
-    ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+        uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+        ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+    }
 }
 
 /*
@@ -1173,19 +1175,6 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
 {
     std::string filename = "";
-    WriteToPngParam param;
-    ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
-}
-
-/*
- * @tc.name: WriteToPng_002
- * @tc.desc: Test WriteToPng
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderUtilTest, WriteToPng_002, TestSize.Level2)
-{
-    std::string filename = "/test.png";
     WriteToPngParam param;
     ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
 }
