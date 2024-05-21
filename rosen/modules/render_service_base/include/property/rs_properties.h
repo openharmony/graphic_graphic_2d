@@ -542,9 +542,9 @@ private:
     int colorBlendApplyType_ = 0;
 
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_ = std::nullopt;
-    float fgBrightnessFract_ = -1.0;
+    float fgBrightnessFract_ = 1.0f;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_ = std::nullopt;
-    float bgBrightnessFract_ = -1.0;
+    float bgBrightnessFract_ = 1.0f;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
