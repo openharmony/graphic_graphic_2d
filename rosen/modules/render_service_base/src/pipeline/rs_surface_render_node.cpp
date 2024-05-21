@@ -410,6 +410,7 @@ void RSSurfaceRenderNode::SetIsSubSurfaceNode(bool isSubSurfaceNode)
     if (surfaceParams) {
         surfaceParams->SetIsSubSurfaceNode(isSubSurfaceNode);
         isSubSurfaceNode_ = isSubSurfaceNode;
+        AddToPendingSyncList();
     }
 }
 
@@ -478,6 +479,21 @@ std::string RSSurfaceRenderNode::SubSurfaceNodesDump() const
         out += "[" + std::to_string(id) + "]";
     }
     return out;
+}
+
+void RSSurfaceRenderNode::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetIsNodeToBeCaptured(isNodeToBeCaptured);
+        isNodeToBeCaptured_ = isNodeToBeCaptured;
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::IsNodeToBeCaptured() const
+{
+    return isNodeToBeCaptured_;
 }
 
 void RSSurfaceRenderNode::OnResetParent()

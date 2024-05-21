@@ -1224,6 +1224,7 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 
 bool RSRenderServiceConnection::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
 {
+    RSUifirstManager::Instance().OnProcessAnimateScene(systemAnimatedScenes);
     std::lock_guard<std::mutex> lock(mutex_);
     return mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes);
 }
