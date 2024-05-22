@@ -45,6 +45,8 @@ protected:
     bool needSync_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+    std::string propertyDescription_;
+    std::string stagingPropertyDescription_;
 
     friend class RSPropertyDrawCmdListUpdater;
 };

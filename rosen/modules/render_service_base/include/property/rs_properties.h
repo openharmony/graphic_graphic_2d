@@ -414,6 +414,8 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
+    std::string GetFgBrightnessDescription() const;
+    std::string GetBgBrightnessDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);

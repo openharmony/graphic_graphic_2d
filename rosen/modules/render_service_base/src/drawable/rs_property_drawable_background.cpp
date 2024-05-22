@@ -135,6 +135,13 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
     }
 
     const RSProperties& properties = node.GetRenderProperties();
+    if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+        auto shadowRadius = properties.GetShadowRadius();
+        auto shadowOffsetX = properties.GetShadowOffsetX();
+        auto shadowOffsetY = properties.GetShadowOffsetY();
+        RSPropertyDrawable::stagingPropertyDescription_ = "DrawShadow, Radius: " + std::to_string(shadowRadius) +
+            " ShadowOffsetX: " + std::to_string(shadowOffsetX) +" ShadowOffsetY: " + std::to_string(shadowOffsetY);
+    }
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
         properties.GetClipBounds(), properties.GetRRect());
@@ -174,6 +181,8 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSMaskShadowDrawable:: %s, bounds: %s",
+            ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         Drawing::AutoCanvasRestore rst(*canvas, true);
         RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
         ptr->drawCmdList_->Playback(*canvas);
@@ -312,6 +321,9 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
     if (properties.IsBgBrightnessValid()) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            RSPropertyDrawable::stagingPropertyDescription_ = properties.GetBgBrightnessDescription();
+        }
         auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
             properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
         brush.SetBlender(blender);
