@@ -539,7 +539,7 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
                 / GetRefreshRate());
 }
 
-void RSUniRenderThread::PurgeCacheBetweenFrames(ClearMemoryMoment moment)
+void RSUniRenderThread::PurgeCacheBetweenFrames()
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
