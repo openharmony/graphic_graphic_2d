@@ -569,7 +569,7 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
                 return;
             }
             RS_TRACE_NAME_FMT("PurgeCacheBetweenFrames");
-            std::set<int> protectedPidSet = { GetDesktopPidForRotationScene() };
+            std::set<int> protectedPidSet = { RSMainThread::Instance()->GetDesktopPidForRotationScene() };
             MemoryManager::PurgeCacheBetweenFrames(grContext, true, this->exitedPidSet_, protectedPidSet);
             RemoveTask(PURGE_CACHE_BETWEEN_FRAMES);
         },
