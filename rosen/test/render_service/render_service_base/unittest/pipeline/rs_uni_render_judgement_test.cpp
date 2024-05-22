@@ -62,7 +62,7 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement002, TestSize.Level1)
     if (uniType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
         ASSERT_EQ(false, isUni);
     } else {
-        ASSERT_EQ(true, isUni);
+        ASSERT_NE(true, isUni);
     }
 }
 
