@@ -55,6 +55,8 @@ protected:
 
     void OnUpdateStagingValue(bool isFirstStart) override;
 
+    void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) override;
+
     void SetPropertyOnAllAnimationFinish() override;
 
     std::shared_ptr<RSPropertyBase> property_;

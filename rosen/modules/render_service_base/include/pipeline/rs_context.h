@@ -23,6 +23,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "animation/rs_render_interactive_implict_animator_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 
@@ -83,6 +84,11 @@ public:
     const std::shared_ptr<RSBaseRenderNode>& GetGlobalRootRenderNode() const
     {
         return globalRootRenderNode_;
+    }
+
+    RSRenderInteractiveImplictAnimatorMap& GetInteractiveImplictAnimatorMap()
+    {
+        return interactiveImplictAnimatorMap_;
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -153,6 +159,7 @@ private:
     void Initialize();
     RSRenderNodeMap nodeMap;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
     // The root of render node tree, Note: this node is not the animation fallback node.
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     // The list of animating nodes in this frame.

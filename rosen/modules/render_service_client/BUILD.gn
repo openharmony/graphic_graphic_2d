@@ -82,6 +82,7 @@ template("render_service_client_source_set") {
       "core/animation/rs_implicit_animation_param.cpp",
       "core/animation/rs_implicit_animator.cpp",
       "core/animation/rs_implicit_animator_map.cpp",
+      "core/animation/rs_interactive_implict_animator.cpp",
       "core/animation/rs_interpolating_spring_animation.cpp",
       "core/animation/rs_keyframe_animation.cpp",
       "core/animation/rs_path_animation.cpp",

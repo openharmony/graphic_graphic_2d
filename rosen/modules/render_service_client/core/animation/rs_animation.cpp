@@ -65,9 +65,16 @@ void RSAnimation::SetRepeatCallback(const std::shared_ptr<AnimationRepeatCallbac
     repeatCallback_ = repeatCallback;
 }
 
+void RSAnimation::SetInteractiveFinishCallback(
+    const std::shared_ptr<InteractiveAnimatorFinishCallback>& finishCallback)
+{
+    interactiveFinishCallback_ = finishCallback;
+}
+
 void RSAnimation::CallFinishCallback()
 {
     finishCallback_.reset();
+    interactiveFinishCallback_.reset();
     state_ = AnimationState::FINISHED;
     OnCallFinishCallback();
 }
@@ -187,6 +194,111 @@ void RSAnimation::OnPause()
                 std::make_unique<RSAnimationPause>(target->GetId(), id_);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
+    }
+}
+
+bool RSAnimation::IsUiAnimation() const
+{
+    return uiAnimation_ != nullptr;
+}
+
+void RSAnimation::InteractivePause()
+{
+    if (state_ != AnimationState::RUNNING) {
+        ROSEN_LOGD("State error, animation is in [%{public}d] when pause", state_);
+        return;
+    }
+
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to pause animation, target is null!");
+        return;
+    }
+
+    state_ = AnimationState::PAUSED;
+
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Pause();
+    }
+}
+
+void RSAnimation::InteractiveContinue()
+{
+    if (state_ != AnimationState::PAUSED) {
+        ROSEN_LOGD("State error, animation is in [%{public}d] when pause", state_);
+        return;
+    }
+
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to pause animation, target is null!");
+        return;
+    }
+
+    state_ = AnimationState::RUNNING;
+
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Resume();
+    }
+}
+
+void RSAnimation::InteractiveFinish(RSInteractiveAnimationPosition pos)
+{
+    if (state_ != AnimationState::RUNNING && state_ != AnimationState::PAUSED) {
+        ROSEN_LOGD("Animation is in [%{public}d] when Finish", state_);
+        return;
+    }
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to pause animation, target is null!");
+        return;
+    }
+    state_ = AnimationState::FINISHED;
+
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->FinishOnPosition(pos);
+    }
+    UpdateStagingValueOnInteractiveFinish(pos);
+}
+
+void RSAnimation::InteractiveReverse()
+{
+    if (state_ != AnimationState::PAUSED) {
+        ROSEN_LOGD("Animation is in [%{public}d] when Reverse", state_);
+        return;
+    }
+
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to pause animation, target is null!");
+        return;
+    }
+    isReversed_ = true;
+    state_ = AnimationState::RUNNING;
+
+    OnUpdateStagingValue(false);
+
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->SetReversedAndContinue();
+        return;
+    }
+}
+
+void RSAnimation::InteractiveSetFraction(float fraction)
+{
+    if (state_ != AnimationState::PAUSED) {
+        ROSEN_LOGD("State error, animation is in [%{public}d] when pause", state_);
+        return;
+    }
+
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to pause animation, target is null!");
+        return;
+    }
+
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->SetFraction(fraction);
     }
 }
 

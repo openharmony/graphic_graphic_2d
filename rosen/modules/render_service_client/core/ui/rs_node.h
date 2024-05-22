@@ -158,7 +158,7 @@ public:
 
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
-    void AddAnimation(const std::shared_ptr<RSAnimation>& animation);
+    void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);
     void RemoveAllAnimations();
     void RemoveAnimation(const std::shared_ptr<RSAnimation>& animation);
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption);
@@ -547,6 +547,7 @@ private:
     friend class RSProperty;
     template<typename T>
     friend class RSAnimatableProperty;
+    friend class RSInteractiveImplictAnimator;
 };
 // backward compatibility
 using RSBaseNode = RSNode;

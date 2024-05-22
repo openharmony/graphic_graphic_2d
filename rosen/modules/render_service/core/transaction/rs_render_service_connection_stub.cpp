@@ -1309,7 +1309,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto type = data.ReadInt16();
             auto subType = data.ReadInt16();
-            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
+            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY && type != RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
