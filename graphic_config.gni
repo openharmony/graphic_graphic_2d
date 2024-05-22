@@ -41,6 +41,7 @@ declare_args() {
   texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
+  graphic_2d_feature_is_table_product = false
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
@@ -178,6 +179,10 @@ if (graphic_2d_feature_enable_dvsync) {
 }
 if (graphic_2d_feature_enable_chipset_vsync) {
   gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+}
+
+if (graphic_2d_feature_is_table_product) {
+  gpu_defines += [ "RS_IS_TABLE_PRODUCT" ]
 }
 
 tp_defines = []
