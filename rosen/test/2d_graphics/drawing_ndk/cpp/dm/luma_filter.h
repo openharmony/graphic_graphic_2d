@@ -18,7 +18,7 @@
 #include <native_drawing/drawing_canvas.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 
 typedef unsigned int U8CPU;
 

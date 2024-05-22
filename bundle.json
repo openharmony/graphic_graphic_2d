@@ -43,6 +43,7 @@
         "graphic_2d_feature_enable_afbc",
         "graphic_2d_feature_freemem_enable",
         "graphic_2d_feature_parallel_render_enable",
+        "graphic_2d_feature_is_table_product",
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler"
       ],
@@ -110,6 +111,7 @@
           "zlib",
           "skia",
           "cJSON",
+          "jsoncpp",
           "egl",
           "opengles",
           "vulkan-headers",
@@ -194,13 +196,21 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d:libgl",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "header": {
               "header_files": [
               ],
               "header_base": [
-                  "//third_party/openGLES:libGLES",
-                  "//third_party/EGL:libEGL"
+              ]
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
               ]
             }
           },
@@ -350,6 +360,33 @@
                 "effect_errors.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/effect:uieffect_effect",
+            "header": {
+              "header_files": [
+                "background_color_effect_para.h",
+                "blender.h",
+                "brightness_blender.h",
+                "visual_effect_para.h",
+                "visual_effect.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/effect/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/filter:uieffect_filter",
+            "header": {
+              "header_files": [
+                "filter.h",
+                "filter_blur_para.h",
+                "filter_para.h",
+                "filter_pixel_stretch_para.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/ui_effect/filter/include"
             }
           },
           {

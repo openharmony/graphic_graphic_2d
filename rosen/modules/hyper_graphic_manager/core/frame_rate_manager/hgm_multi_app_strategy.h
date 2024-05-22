@@ -39,6 +39,7 @@ public:
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const std::string& pkgName, TouchState touchState);
+    void HandleLightFactorStatus(bool isSafe);
 
     void CalcVote();
     HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes);
@@ -75,6 +76,7 @@ private:
     }};
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
+    bool lightFactorStatus_ = false;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;

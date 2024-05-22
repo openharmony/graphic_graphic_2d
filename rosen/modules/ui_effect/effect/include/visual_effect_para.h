@@ -1,4 +1,4 @@
-/*RSCanvasRenderParams
+/*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
+#define UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
 
-#ifndef RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
-#define RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+#include <iostream>
 
-#include "params/rs_render_params.h"
+namespace OHOS {
+namespace Rosen {
 
-namespace OHOS::Rosen {
-class RSCanvasRenderParams : public RSRenderParams {
+class VisualEffectPara {
 public:
-    explicit RSCanvasRenderParams(NodeId id);
-    virtual ~RSCanvasRenderParams() = default;
+    enum ParaType {
+        NONE,
+        BACKGROUND_COLOR_EFFECT,
+    };
 
-private:
+    VisualEffectPara()  = default;
+    virtual ~VisualEffectPara() = default;
+
+    ParaType type_;
 };
-} // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+} // namespace Rosen
+} // namespace OHOS
+#endif // UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H

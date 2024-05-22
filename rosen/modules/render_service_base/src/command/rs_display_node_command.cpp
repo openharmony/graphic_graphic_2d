@@ -102,5 +102,13 @@ void DisplayNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
     }
 }
 
+void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
+    const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
+        ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
+        node->SetScbNodePid(oldScbPids, currentScbPid);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

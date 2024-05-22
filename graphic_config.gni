@@ -41,6 +41,7 @@ declare_args() {
   texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
+  graphic_2d_feature_is_table_product = false
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
@@ -116,13 +117,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   rs_enable_gpu = true
   surface_enable_gpu = true
 
-  # libgl is a native stub for decoupling system.img and vendor.img
-  # real libgl installed in /vendor/lib/chipsetsdk
-  libgl = [
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-  ]
-
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
     libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
@@ -132,7 +126,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
-  libgl = []
   libvulkan = []
 }
 
@@ -186,6 +179,10 @@ if (graphic_2d_feature_enable_dvsync) {
 }
 if (graphic_2d_feature_enable_chipset_vsync) {
   gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+}
+
+if (graphic_2d_feature_is_table_product) {
+  gpu_defines += [ "RS_IS_TABLE_PRODUCT" ]
 }
 
 tp_defines = []

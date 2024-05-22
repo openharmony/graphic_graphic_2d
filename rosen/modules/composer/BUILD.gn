@@ -61,7 +61,7 @@ ohos_shared_library("libcomposer") {
 
   public_configs = [ ":composer_public_config" ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/utils:scoped_bytrace",
     "vsync:libvsync",
   ]

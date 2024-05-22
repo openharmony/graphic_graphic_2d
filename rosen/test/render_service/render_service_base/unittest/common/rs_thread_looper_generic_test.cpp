@@ -50,4 +50,43 @@ HWTEST_F(RSThreadLooperGenericTest, Create001, TestSize.Level1)
     auto rsThreadLooperGeneric = RSThreadLooper::Create();
     ASSERT_NE(rsThreadLooperGeneric, nullptr);
 }
+
+/**
+ * @tc.name: ProcessOneMessageTest
+ * @tc.desc: Verify function ProcessOneMessage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadLooperGenericTest, ProcessOneMessageTest, TestSize.Level1)
+{
+    auto rsThreadLooperGeneric = std::make_shared<RSThreadLooperGeneric>();
+    rsThreadLooperGeneric->ProcessOneMessage(0);
+    EXPECT_NE(rsThreadLooperGeneric->looper_, nullptr);
+}
+
+/**
+ * @tc.name: ProcessAllMessagesTest
+ * @tc.desc: Verify function ProcessAllMessages
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadLooperGenericTest, ProcessAllMessagesTest, TestSize.Level1)
+{
+    auto rsThreadLooperGeneric = std::make_shared<RSThreadLooperGeneric>();
+    rsThreadLooperGeneric->ProcessAllMessages(0);
+    EXPECT_NE(rsThreadLooperGeneric->looper_, nullptr);
+}
+
+/**
+ * @tc.name: WakeUpTest
+ * @tc.desc: Verify function WakeUp
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSThreadLooperGenericTest, WakeUpTest, TestSize.Level1)
+{
+    auto rsThreadLooperGeneric = std::make_shared<RSThreadLooperGeneric>();
+    rsThreadLooperGeneric->WakeUp();
+    EXPECT_TRUE(rsThreadLooperGeneric->looper_->wakeup_);
+}
 } // namespace OHOS::Rosen

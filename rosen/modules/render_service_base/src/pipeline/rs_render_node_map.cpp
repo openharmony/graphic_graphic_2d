@@ -183,6 +183,15 @@ void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     EraseAbilityComponentNumsInProcess(id);
+    // temp solution for DongHu to resolve with dma leak
+    auto surfaceNode = surfaceNodeMap_[id];
+    if (surfaceNode) {
+        if (surfaceNode->GetName().find("ShellAssistantAnco") == std::string::npos) {
+            renderNodeMap_.erase(id);
+        }
+    } else {
+        renderNodeMap_.erase(id);
+    }
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);

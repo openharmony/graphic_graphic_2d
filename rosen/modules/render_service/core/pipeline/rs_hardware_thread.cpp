@@ -63,6 +63,10 @@
 #endif
 
 namespace OHOS::Rosen {
+namespace {
+const std::string RCD_TOP_LAYER_NAME = "RCDTopSurfaceNode";
+const std::string RCD_BOTTOM_LAYER_NAME = "RCDBottomSurfaceNode";
+}
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -165,7 +169,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     // need to sync the hgm data from main thread.
     // Temporary sync the timestamp to fix the duplicate time stamp issue.
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
+    uint32_t rate = 0;
+    if (hgmCore.GetDirectCompositionFlag()) {
+        rate = hgmCore.GetPendingScreenRefreshRate();
+        hgmCore.SetDirectCompositionFlag(false);
+    } else {
+        rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
+    }
     uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     uint64_t currTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
@@ -279,14 +289,10 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
-        if (!hgmCore.GetLtpoEnabled()) {
-            hdiBackend_->StartSample(output);
-        } else {
-            auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-            int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-            hdiBackend_->StartSample(output);
-        }
+        auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
+        int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
+        hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
+        hdiBackend_->StartSample(output);
     }
 }
 
@@ -327,18 +333,21 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     bool isProtected = false;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-        for (const auto& layer : layers) {
-            if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
-                isProtected = true;
-                break;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+            for (const auto& layer : layers) {
+                if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+                    isProtected = true;
+                    break;
+                }
             }
+            if (RSSystemProperties::IsUseVulkan()) {
+                RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+            }
+        } else {
+            RsVulkanContext::GetSingleton().SetIsProtected(false);
         }
-        if (RSSystemProperties::IsUseVulkan()) {
-            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-        }
-    } else {
-        RsVulkanContext::GetSingleton().SetIsProtected(false);
     }
 #endif
 
@@ -380,8 +389,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif
 #endif // RS_ENABLE_EGLIMAGE
-    bool isTopGpuDraw = false;
-    bool isBottomGpuDraw = false;
+    std::map<std::string, bool> rcdLayersEnableMap = {{RCD_TOP_LAYER_NAME, false}, {RCD_BOTTOM_LAYER_NAME, false}};
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -392,13 +400,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             continue;
         }
 
-        if (layer->GetSurface()->GetName() == "RCDTopSurfaceNode") {
-            isTopGpuDraw = true;
-            continue;
-        }
-        if (layer->GetSurface()->GetName() == "RCDBottomSurfaceNode") {
-            isBottomGpuDraw = true;
-            continue;
+        if (layer->GetSurface() != nullptr) {
+            if (rcdLayersEnableMap.count(layer->GetSurface()->GetName()) > 0) {
+                rcdLayersEnableMap[layer->GetSurface()->GetName()] = true;
+                continue;
+            }
         }
 
         Drawing::AutoCanvasRestore acr(*canvas, true);
@@ -539,11 +545,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 
-    if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_TOP_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(canvas.get());
     }
 
-    if (isBottomGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_BOTTOM_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(canvas.get());
     }
     renderFrame->Flush();

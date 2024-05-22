@@ -72,6 +72,8 @@ static int64_t g_transactionTimeCorrection = 0;
 
 static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 
+bool RSProfiler::testing_ = false;
+
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
@@ -80,7 +82,7 @@ constexpr size_t GetParcelMaxCapacity()
 bool RSProfiler::IsEnabled()
 {
     static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED;
+    return ENABLED || testing_;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -95,6 +97,21 @@ uint32_t RSProfiler::GetCommandExecuteCount()
     const uint32_t count = g_commandExecuteCount;
     g_commandExecuteCount = 0;
     return count;
+}
+
+void RSProfiler::EnableSharedMemory()
+{
+    RSMarshallingHelper::EndNoSharedMem();
+}
+
+void RSProfiler::DisableSharedMemory()
+{
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+}
+
+bool RSProfiler::IsSharedMemoryEnabled()
+{
+    return RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id());
 }
 
 bool RSProfiler::IsParcelMock(const Parcel& parcel)
@@ -572,6 +589,7 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
             node->SetContentDirty();
+            node->SetDirty();
         }
     });
 }
@@ -882,6 +900,35 @@ int RSProfiler::PerfTreeFlatten(
         }
     }
     return drawCmdListCount;
+}
+
+void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image)
+{
+    if (!IsSharedMemoryEnabled()) {
+        image = nullptr;
+    }
+}
+
+void RSProfiler::EnableBetaRecord()
+{
+    RSSystemProperties::SetBetaRecordingMode(1);
+}
+
+bool RSProfiler::IsBetaRecordEnabled()
+{
+    return RSSystemProperties::GetBetaRecordingMode() != 0;
+}
+
+bool RSProfiler::IsBetaRecordSavingTriggered()
+{
+    constexpr uint32_t savingMode = 2u;
+    return RSSystemProperties::GetBetaRecordingMode() == savingMode;
+}
+
+bool RSProfiler::IsBetaRecordEnabledWithMetrics()
+{
+    constexpr uint32_t metricsMode = 3u;
+    return RSSystemProperties::GetBetaRecordingMode() == metricsMode;
 }
 
 } // namespace OHOS::Rosen

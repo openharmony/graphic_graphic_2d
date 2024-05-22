@@ -69,7 +69,7 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
         uint32_t jsFilterMode = 0;
         if (!ConvertFromJsValue(env, argv[ARGC_ZERO], jsFilterMode)) {
             ROSEN_LOGE("JsSamplingOptions::Constructor argv[0] is invalid");
-            return NapiGetUndefined(env);
+            return nullptr;
         }
         samplingOptions = std::make_shared<SamplingOptions>(FilterMode(jsFilterMode));
         jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);

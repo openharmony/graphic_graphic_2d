@@ -30,20 +30,27 @@ group("test") {
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscolor_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsfuntionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rshgmconfigdata_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslistenedcanvas_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderframeratelinker_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosgl_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceframeohosvulkan_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohosraster_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rstaskdispatcher_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
+    "render_service_base/unittest/drawable:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
@@ -70,5 +77,9 @@ group("test") {
 
   if (tp_feature_enable) {
     deps += [ "render_service/unittest/touch_screen:unittest" ]
+  }
+
+  if (graphic_2d_feature_enable_rspipeline) {
+    deps += [ "render_service/unittest/drawable:unittest" ]
   }
 }

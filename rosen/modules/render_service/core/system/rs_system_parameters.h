@@ -68,6 +68,7 @@ public:
     static bool GetDrawingEffectRegionEnabledDfx();
     static bool GetRenderStop();
     static bool GetPrevalidateHwcNodeEnabled();
+    static bool GetControlBufferConsumeEnabled();
 };
 
 } // namespace Rosen

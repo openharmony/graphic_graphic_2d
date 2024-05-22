@@ -33,6 +33,9 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
     std::lock_guard<std::mutex> lock(nodeMutex_);
+    if (ptr && ptr->fallbackAnimationOnDestroy_) {
+        ptr->FallbackAnimationsToRoot();
+    }
     node_.push_back(ptr);
 }
 

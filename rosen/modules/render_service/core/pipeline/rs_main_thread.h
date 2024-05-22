@@ -116,7 +116,7 @@ public:
         return std::move(taskFuture);
     }
 
-    const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
+    const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
         RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;
@@ -193,7 +193,10 @@ public:
     void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
+    void SetScreenPowerOnChanged(bool val);
+    bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
+    bool IsCurtainScreenUsingStatusChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
@@ -235,6 +238,7 @@ public:
 
     DeviceType GetDeviceType() const;
     bool IsSingleDisplay();
+    bool HasMirrorDisplay() const;
     bool GetNoNeedToPostTask();
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;
@@ -299,7 +303,9 @@ public:
 
     void SetDiscardJankFrames(bool discardJankFrames)
     {
-        discardJankFrames_.store(discardJankFrames);
+        if (discardJankFrames_.load() != discardJankFrames) {
+            discardJankFrames_.store(discardJankFrames);
+        }
     }
 
     bool GetSkipJankAnimatorFrame() const
@@ -491,6 +497,9 @@ private:
     // Used to refresh the whole display when AccessibilityConfig is changed
     bool isAccessibilityConfigChanged_ = false;
 
+    // Used to refresh the whole display when curtain screen status is changed
+    bool isCurtainScreenUsingStatusChanged_ = false;
+
     // used for blocking mainThread when hardwareThread has 2 and more task to Execute
     mutable std::mutex hardwareThreadTaskMutex_;
     std::condition_variable hardwareThreadTaskCond_;
@@ -500,7 +509,9 @@ private:
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
     bool qosPidCal_ = false;
+
     std::atomic<bool> isDirty_ = false;
+    std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
     std::atomic<int32_t> focusAppPid_ = -1;

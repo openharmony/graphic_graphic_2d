@@ -82,18 +82,18 @@ bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_va
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message)
 {
     napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
-static const char* ARGB_STRING[4] = {"alpha", "red", "green", "blue"};
-static const char* LTRB_STRING[4] = {"left", "top", "right", "bottom"};
+static const char* g_argbString[4] = {"alpha", "red", "green", "blue"};
+static const char* g_ltrbString[4] = {"left", "top", "right", "bottom"};
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
 {
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         int32_t* curChannel = argb + idx;
-        napi_get_named_property(env, jsValue, ARGB_STRING[idx], &tempValue);
+        napi_get_named_property(env, jsValue, g_argbString[idx], &tempValue);
         if (napi_get_value_int32(env, tempValue, curChannel) != napi_ok ||
             *curChannel < 0 || *curChannel > Color::RGB_MAX) {
             return false;
@@ -107,7 +107,7 @@ bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t si
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         double* curEdge = ltrb + idx;
-        napi_get_named_property(env, jsValue, LTRB_STRING[idx], &tempValue);
+        napi_get_named_property(env, jsValue, g_ltrbString[idx], &tempValue);
         if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
             return false;
         }

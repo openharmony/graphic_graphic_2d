@@ -29,7 +29,7 @@ constexpr int32_t OPINC_ROOT_TOTAL_MAX = 1;
 
 bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()
 {
-    return RSSystemProperties::GetDdgrOpincType() == OHOS::Rosen::DdgrOpincType::DDGR_AUTOCACHE;
+    return RSSystemProperties::GetDdgrOpincType() == OHOS::Rosen::DdgrOpincType::OPINC_AUTOCACHE;
 }
 
 bool RSRenderNodeDrawable::IsOpincRealDrawCacheEnable()
@@ -102,8 +102,8 @@ void RSRenderNodeDrawable::ResumeOpincCanvasTranslate(RSPaintFilterCanvas& canva
 void RSRenderNodeDrawable::DrawableCacheStateReset(RSRenderParams& params)
 {
     isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
-    rootNodeStragyType_ = NodeStragyType::CACHE_NONE;
-    temNodeStragyType_ = NodeStragyType::CACHE_NONE;
+    rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
+    temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     recordState_ = NodeRecordState::RECORD_NONE;
     opListDrawAreas_.ResetOpInfo();
     isOpincRootNode_ = false;
@@ -113,7 +113,7 @@ void RSRenderNodeDrawable::DrawableCacheStateReset(RSRenderParams& params)
 
 bool RSRenderNodeDrawable::IsOpListDrawAreaEnable()
 {
-    return (rootNodeStragyType_ == NodeStragyType::DDGR_AUTOCACHE) &&
+    return (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE) &&
         (recordState_ == NodeRecordState::RECORD_CALCULATE);
 }
 
@@ -126,8 +126,8 @@ bool RSRenderNodeDrawable::IsTranslate(Drawing::Matrix& mat)
 void RSRenderNodeDrawable::NodeCacheStateDisable()
 {
     recordState_ = NodeRecordState::RECORD_DISABLE;
-    rootNodeStragyType_ = NodeStragyType::CACHE_DISABLE;
-    temNodeStragyType_ = NodeStragyType::CACHE_DISABLE;
+    rootNodeStragyType_ = NodeStrategyType::CACHE_DISABLE;
+    temNodeStragyType_ = NodeStrategyType::CACHE_DISABLE;
     isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
     if (opCanCache_) {
         opCanCache_ = false;
@@ -135,7 +135,7 @@ void RSRenderNodeDrawable::NodeCacheStateDisable()
     }
 }
 
-bool RSRenderNodeDrawable::BeforeDrawCacheProcessChildNode(NodeStragyType& cacheStragy,
+bool RSRenderNodeDrawable::BeforeDrawCacheProcessChildNode(NodeStrategyType& cacheStragy,
     RSRenderParams& params)
 {
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
@@ -143,12 +143,12 @@ bool RSRenderNodeDrawable::BeforeDrawCacheProcessChildNode(NodeStragyType& cache
         cacheStragy, recordState_, temNodeStragyType_);
 #endif
     // find root node
-    if (cacheStragy != NodeStragyType::CACHE_NONE) {
+    if (cacheStragy != NodeStrategyType::CACHE_NONE) {
         if (recordState_ == NodeRecordState::RECORD_CACHED &&
-            rootNodeStragyType_ == NodeStragyType::DDGR_AUTOCACHE) {
+            rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE) {
             DrawableCacheStateReset(params);
         }
-        if (rootNodeStragyType_ == NodeStragyType::CACHE_DISABLE) {
+        if (rootNodeStragyType_ == NodeStrategyType::CACHE_DISABLE) {
             NodeCacheStateDisable();
         }
         return false;
@@ -161,11 +161,11 @@ void RSRenderNodeDrawable::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
 {
     auto isOffscreen = (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN);
     auto size = params.GetCacheSize();
-    if (!isOffscreen &&
+    if (params.OpincGetRootFlag() && !isOffscreen &&
         size.y_ > BITMAP_CACHE_SIZE_MIN && size.x_ > BITMAP_CACHE_SIZE_MIN) {
         if (IsOpincRealDrawCacheEnable()) {
-            recordState_ = NodeRecordState::RECORD_NONE;
-            rootNodeStragyType_ = NodeStragyType::CACHE_NONE;
+            recordState_ = NodeRecordState::RECORD_CALCULATE;
+            rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
         }
     }
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
@@ -174,7 +174,7 @@ void RSRenderNodeDrawable::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
 #endif
 }
 
-void RSRenderNodeDrawable::BeforeDrawCache(NodeStragyType& cacheStragy,
+void RSRenderNodeDrawable::BeforeDrawCache(NodeStrategyType& cacheStragy,
     Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt)
 {
     temNodeStragyType_ = cacheStragy;
@@ -203,11 +203,11 @@ void RSRenderNodeDrawable::BeforeDrawCache(NodeStragyType& cacheStragy,
     OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
 }
 
-void RSRenderNodeDrawable::AfterDrawCache(NodeStragyType& cacheStragy,
+void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
     Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt, int& opincRootTotalCount)
 {
     OpincCalculateAfter(canvas, isOpincDropNodeExt);
-    if (rootNodeStragyType_ == NodeStragyType::DDGR_AUTOCACHE && recordState_ == NodeRecordState::RECORD_CALCULATE) {
+    if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE && recordState_ == NodeRecordState::RECORD_CALCULATE) {
         bool isOnlyTranslate = false;
         auto totalMatrix = canvas.GetTotalMatrix();
         auto rootAlpha = canvas.GetAlpha();
@@ -221,9 +221,9 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStragyType& cacheStragy,
                 NodeCacheStateDisable();
             }
         }
-    } else if (rootNodeStragyType_ == NodeStragyType::DDGR_AUTOCACHE &&
+    } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {
-        if (opincRootTotalCount < OPINC_ROOT_TOTAL_MAX && (!params.OpincGetCachedMark())) {
+        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!params.OpincGetCachedMark())) {
             opincRootTotalCount++;
             params.OpincSetCachedMark(true);
             recordState_ = NodeRecordState::RECORD_CACHED;
@@ -290,7 +290,7 @@ void RSRenderNodeDrawable::DrawAutoCacheDfx(RSPaintFilterCanvas& canvas,
     auto& info = opListDrawAreas_.GetOpInfo();
     std::string extra =
         "Re:" + std::to_string(reuseCount_) +
-        " S:" + (rootNodeStragyType_ == NodeStragyType::DDGR_AUTOCACHE ? "img" : "op") +
+        " S:" + (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE ? "img" : "op") +
         " Op" + std::to_string(info.num) +
         " Pe" + std::to_string(info.percent);
     autoCacheRenderNodeInfos.push_back({dfxRect, extra});
@@ -316,7 +316,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
     AppendFormat(ret, ", rr{%.1f %.1f %.1f %.1f}",
         0.f, 0.f, bounds.GetWidth(), bounds.GetHeight());
     AppendFormat(ret, ", ur{%.1f %.1f %.1f %.1f}",
-        unionRect.GetLeft(), unionRect.GetTop(), unionRect.GetWidth(), unionRect.GetHeight(),);
+        unionRect.GetLeft(), unionRect.GetTop(), unionRect.GetWidth(), unionRect.GetHeight());
 #endif
     return ret;
 }

@@ -21,6 +21,7 @@
 #include <string>
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xeg.h"
 
 #define VK_NO_PROTOTYPES 1
 
@@ -141,6 +142,10 @@ public:
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
 #undef DEFINE_FUNC
+
+#define DEFINE_XEG_FUNC(name) Func<PFN_##name> (name)
+    DEFINE_XEG_FUNC(HMS_XEG_SetFreqAdjustEnable);
+#undef DEFINE_XEG_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
     {

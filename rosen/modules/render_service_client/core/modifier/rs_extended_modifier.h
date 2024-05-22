@@ -39,6 +39,9 @@ public:
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
+#if defined(RS_ENABLE_VK)
+    static void DeleteVkImage(void *context);
+#endif
 };
 
 class RSC_EXPORT RSExtendedModifier : public RSModifier {

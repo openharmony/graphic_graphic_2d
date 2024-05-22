@@ -185,7 +185,6 @@ private:
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
     int32_t idleFps_ = 60;
     HgmMultiAppStrategy multiAppStrategy_;

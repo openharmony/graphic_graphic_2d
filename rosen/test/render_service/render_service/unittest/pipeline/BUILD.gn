@@ -59,6 +59,9 @@ group("unittest") {
       ":RSSubThreadTest",
     ]
   }
+  if (graphic_2d_feature_enable_rspipeline) {
+    deps += [ ":RSUifirstManagerTest" ]
+  }
 }
 
 ###############################################################################
@@ -360,6 +363,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_surface_capture_task_parallel_test.cpp",
     "rs_surface_capture_task_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
@@ -892,6 +896,7 @@ ohos_unittest("RSUnmarshalThreadTest") {
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
   ]
   defines = []
@@ -931,6 +936,20 @@ ohos_unittest("RSUniHWcPrevalidateUtilTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+}
+
+## Build RSUifirstManagerTest
+ohos_unittest("RSUifirstManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uifirst_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 

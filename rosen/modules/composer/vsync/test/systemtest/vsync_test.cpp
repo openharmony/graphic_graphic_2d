@@ -35,7 +35,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 int32_t appVSyncFlag = 0;
-constexpr int32_t SOFT_VSYNC_PERIOD = 16;
 constexpr int32_t SAMPLER_NUMBER = 6;
 static void OnVSyncApp(int64_t time, void *data)
 {
@@ -45,134 +44,23 @@ static void OnVSyncApp(int64_t time, void *data)
 }
 class VSyncTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp();
-    void TearDown();
-    pid_t ChildProcessMain();
-    static void ThreadMain();
+    void Process1();
+    void Process2();
 
-    sptr<VSyncController> appController = nullptr;
-    sptr<VSyncController> rsController = nullptr;
-    sptr<VSyncDistributor> appDistributor = nullptr;
-    sptr<VSyncDistributor> rsDistributor = nullptr;
+    sptr<VSyncSampler> vsyncSampler = nullptr;
     sptr<VSyncGenerator> vsyncGenerator = nullptr;
-    static inline sptr<VSyncSampler> vsyncSampler = nullptr;
-    std::thread samplerThread;
+    sptr<VSyncController> vsyncController = nullptr;
+    sptr<VSyncDistributor> vsyncDistributor = nullptr;
+    sptr<VSyncConnection> vsyncConnection = nullptr;
 
-    static inline int32_t pipeFd[2] = {};
-    static inline int32_t ipcSystemAbilityID = 34156;
+    static inline pid_t pid = 0;
+    static inline int pipeFd[2] = {};
+    static inline int pipe1Fd[2] = {};
+    static inline int32_t systemAbilityID = 345135;
 };
 
-void VSyncTest::SetUpTestCase()
+static void InitNativeTokenInfo()
 {
-    vsyncSampler = CreateVSyncSampler();
-}
-
-void VSyncTest::TearDownTestCase()
-{
-    vsyncSampler = nullptr;
-}
-
-void VSyncTest::SetUp()
-{
-    vsyncGenerator = CreateVSyncGenerator();
-    appController = new VSyncController(vsyncGenerator, 0);
-    rsController = new VSyncController(vsyncGenerator, 0);
-
-    appDistributor = new VSyncDistributor(appController, "appController");
-    rsDistributor = new VSyncDistributor(rsController, "rsController");
-
-    samplerThread = std::thread(std::bind(&VSyncTest::ThreadMain));
-    samplerThread.join();
-}
-
-void VSyncTest::TearDown()
-{
-    vsyncGenerator = nullptr;
-    appController = nullptr;
-    rsController = nullptr;
-    appDistributor = nullptr;
-    rsDistributor = nullptr;
-
-    if (samplerThread.joinable()) {
-        samplerThread.join();
-    }
-}
-
-pid_t VSyncTest::ChildProcessMain()
-{
-    std::cout << "ChildProcessMain in\n";
-    pipe(pipeFd);
-    pid_t pid = fork();
-    if (pid != 0) {
-        return pid;
-    }
-
-    sptr<IRemoteObject> robj = nullptr;
-    while (true) {
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        robj = sam->GetSystemAbility(ipcSystemAbilityID);
-        if (robj != nullptr) {
-            break;
-        }
-        sleep(0);
-    }
-
-    auto conn = iface_cast<IVSyncConnection>(robj);
-    sptr<VSyncReceiver> receiver = new VSyncReceiver(conn);
-    receiver->Init();
-
-    VSyncReceiver::FrameCallback fcb = {
-        .userData_ = nullptr,
-        .callback_ = OnVSyncApp,
-    };
-    std::cout << "RequestNextVSync\n";
-    receiver->RequestNextVSync(fcb);
-    while (appVSyncFlag == 0) {
-        sleep(1);
-        std::cout << "ChildProcessMain appVSyncFlag is " << appVSyncFlag << std::endl;
-    }
-    EXPECT_EQ(appVSyncFlag, 1);
-    int64_t period;
-    int64_t timeStamp;
-    EXPECT_EQ(receiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
-    std::cout << "period =  " << period << ",timeStamp = " << timeStamp << std::endl;
-    write(pipeFd[1], &appVSyncFlag, sizeof(appVSyncFlag));
-    close(pipeFd[0]);
-    close(pipeFd[1]);
-    exit(0);
-    return 0;
-}
-
-void VSyncTest::ThreadMain()
-{
-    bool ret = true;
-    std::condition_variable con;
-    std::mutex mtx;
-    std::unique_lock<std::mutex> locker(mtx);
-    int32_t count = 0;
-    while (count <= SAMPLER_NUMBER) {
-        const auto &now = std::chrono::steady_clock::now().time_since_epoch();
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-        ret = vsyncSampler->AddSample(timestamp);
-        con.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD));
-        count++;
-    }
-}
-
-/*
-* Function: RequestNextVSync001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. RequestNextVSync by IPC
- */
-HWTEST_F(VSyncTest, RequestNextVSync001, Function | MediumTest | Level2)
-{
-    auto pid = ChildProcessMain();
-    ASSERT_GE(pid, 0);
-
     uint64_t tokenId;
     const char *perms[2];
     perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
@@ -191,18 +79,88 @@ HWTEST_F(VSyncTest, RequestNextVSync001, Function | MediumTest | Level2)
     SetSelfTokenID(tokenId);
     int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
+}
 
-    sptr<VSyncConnection> connServer = new VSyncConnection(appDistributor, "app");
-    appDistributor->AddConnection(connServer);
-    auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    sam->AddSystemAbility(ipcSystemAbilityID, connServer->AsObject());
-    read(pipeFd[0], &appVSyncFlag, sizeof(appVSyncFlag));
-    while (appVSyncFlag == 0) {
-        std::cout << "RequestNextVSync001 appVSyncFlag is " << appVSyncFlag << std::endl;
+void VSyncTest::Process1()
+{
+    InitNativeTokenInfo();
+    vsyncGenerator = CreateVSyncGenerator();
+    vsyncSampler = CreateVSyncSampler();
+    int32_t count = 0;
+    int64_t timestamp = 16666667; // 16666667ns
+    while (count <= SAMPLER_NUMBER) {
+        vsyncSampler->AddSample(timestamp);
+        usleep(1000); // 1000us
+        timestamp += 16666667; // 16666667ns
+        count++;
     }
-    close(pipeFd[0]);
+    vsyncController = new VSyncController(vsyncGenerator, 0);
+    vsyncDistributor = new VSyncDistributor(vsyncController, "test");
+    vsyncConnection = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->AddConnection(vsyncConnection);
+    auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sam->AddSystemAbility(systemAbilityID, vsyncConnection);
     close(pipeFd[1]);
-    sam->RemoveSystemAbility(ipcSystemAbilityID);
-    waitpid(pid, nullptr, 0);
+    close(pipe1Fd[0]);
+    char buf[10] = "start";
+    write(pipe1Fd[1], buf, sizeof(buf));
+    read(pipeFd[0], buf, sizeof(buf));
+    sam->RemoveSystemAbility(systemAbilityID);
+    close(pipeFd[0]);
+    close(pipe1Fd[1]);
+    exit(0);
+}
+
+void VSyncTest::Process2()
+{
+    close(pipeFd[0]);
+    close(pipe1Fd[1]);
+    char buf[10];
+    read(pipe1Fd[0], buf, sizeof(buf));
+    auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto robj = sam->GetSystemAbility(systemAbilityID);
+    std::cout << "(robj==nullptr):" << (robj==nullptr) << std::endl;
+    auto conn = iface_cast<IVSyncConnection>(robj);
+    sptr<VSyncReceiver> receiver = new VSyncReceiver(conn);
+    receiver->Init();
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = nullptr,
+        .callback_ = OnVSyncApp,
+    };
+    std::cout << "RequestNextVSync\n";
+    receiver->RequestNextVSync(fcb);
+    sleep(1);
+    std::cout << "ChildProcessMain appVSyncFlag is " << appVSyncFlag << std::endl;
+    EXPECT_EQ(appVSyncFlag, 1);
+    int64_t period;
+    int64_t timeStamp;
+    EXPECT_EQ(receiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: RequestNextVSyncTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: RequestNextVSyncTest
+ */
+HWTEST_F(VSyncTest, RequestNextVSyncTest, Function | MediumTest | Level2)
+{
+    if (pipe(pipeFd) < 0) {
+        exit(1);
+    }
+    if (pipe(pipe1Fd) < 0) {
+        exit(0);
+    }
+    pid = fork();
+    if (pid < 0) {
+        exit(1);
+    }
+    if (pid != 0) {
+        Process1();
+    } else {
+        Process2();
+    }
 }
 }
