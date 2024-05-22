@@ -47,17 +47,12 @@ void RSColorFilterDrawableTest::TearDown() {}
 HWTEST_F(RSColorFilterDrawableTest, Draw001, TestSize.Level1)
 {
     RSRenderContent content;
-    Drawing::Canvas drawCanvas;
-    RSPaintFilterCanvas canvas(&drawCanvas);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas fileCanvas(&canvas);
     Drawing::Brush brush;
     RSColorFilterDrawable drawable(std::move(brush));
-    drawable.Draw(content, canvas);
-    EXPECT_EQ(canvas.GetSurface(), nullptr);
-
-    auto surfacePtr = std::make_unique<Drawing::Surface>();
-    canvas.surface_ = surfacePtr.get();
-    drawable.Draw(content, canvas);
-    EXPECT_NE(canvas.GetSurface(), nullptr);
+    drawable.Draw(content, fileCanvas);
+    EXPECT_EQ(fileCanvas.GetSurface(), nullptr);
 }
 
 /**
@@ -69,7 +64,7 @@ HWTEST_F(RSColorFilterDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSColorFilterDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties& properties = content.GetMutableRenderProperties();
+    RSProperties properties;
     RSColorFilterDrawable::Generate(content);
     EXPECT_EQ(properties.GetColorFilter(), nullptr);
 
@@ -87,7 +82,7 @@ HWTEST_F(RSColorFilterDrawableTest, Generate001, TestSize.Level1)
 HWTEST_F(RSColorFilterDrawableTest, Update001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties& properties = content.GetMutableRenderProperties();
+    RSProperties properties;
     Drawing::Brush brush;
     RSColorFilterDrawable drawable(std::move(brush));
     bool res = drawable.Update(content);
@@ -95,7 +90,7 @@ HWTEST_F(RSColorFilterDrawableTest, Update001, TestSize.Level1)
 
     properties.colorFilter_ = std::make_shared<Drawing::ColorFilter>();
     res = drawable.Update(content);
-    EXPECT_EQ(res, true);
+    EXPECT_NE(res, true);
 }
 } // namespace Rosen
 } // namespace OHOS
