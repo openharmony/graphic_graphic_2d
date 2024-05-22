@@ -119,6 +119,26 @@ HWTEST_F(SkiaImageTest, BuildSubset001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BuildSubset002
+ * @tc.desc: Test BuildSubset002
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaImageTest, BuildSubset002, TestSize.Level1)
+{
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
+    ASSERT_TRUE(bitmap != nullptr);
+    EXPECT_TRUE(bitmap->Build(151, 150, { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE }));
+    std::shared_ptr<Image> image = bitmap->MakeImage();
+    ASSERT_TRUE(image != nullptr);
+    RectI rect;
+    GPUContext context;
+    bool result = skiaImage->BuildSubset(image, rect, context);
+    ASSERT_FALSE(result);
+}
+
+/**
  * @tc.name: BuildFromTexture001
  * @tc.desc: Test BuildFromTexture
  * @tc.type: FUNC
@@ -157,6 +177,24 @@ HWTEST_F(SkiaImageTest, BuildFromSurface001, TestSize.Level1)
     auto ret = skiaImage->BuildFromSurface(*gpuContext, *surface, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace);
     ASSERT_TRUE(!ret);
     ASSERT_TRUE(skiaImage->GetColorSpace() == nullptr);
+}
+
+/**
+ * @tc.name: BuildFromSurface002
+ * @tc.desc: Test BuildFromSurface
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaImageTest, BuildFromSurface002, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    auto gpuContext = skiaCanvas->GetGPUContext();
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    Surface surFace;
+    auto ret = skiaImage->BuildFromSurface(*gpuContext, surFace, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -223,25 +261,6 @@ HWTEST_F(SkiaImageTest, MakeFromYUVAPixmaps, TestSize.Level1)
     ASSERT_TRUE(image == nullptr);
 }
 
-/**
- * @tc.name: BuildSubset002
- * @tc.desc: Test BuildSubset002
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaImageTest, BuildSubset002, TestSize.Level1)
-{
-    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
-    ASSERT_TRUE(bitmap != nullptr);
-    EXPECT_TRUE(bitmap->Build(151, 150, { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE }));
-    std::shared_ptr<Image> image = bitmap->MakeImage();
-    ASSERT_TRUE(image != nullptr);
-    RectI rect;
-    GPUContext context;
-    bool result = skiaImage->BuildSubset(image, rect, context);
-    ASSERT_FALSE(result);
-}
 
 /**
  * @tc.name: BuildFromCompressed
@@ -274,24 +293,6 @@ HWTEST_F(SkiaImageTest, BuildFromTexture002, TestSize.Level1)
     bool buildFromTexture = skiaImage->BuildFromTexture(
         context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
     ASSERT_FALSE(buildFromTexture);
-}
-
-/**
- * @tc.name: BuildFromSurface002
- * @tc.desc: Test BuildFromSurface
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaImageTest, BuildFromSurface002, TestSize.Level1)
-{
-    auto skiaCanvas = std::make_shared<SkiaCanvas>();
-    auto gpuContext = skiaCanvas->GetGPUContext();
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    Surface surFace;
-    auto ret = skiaImage->BuildFromSurface(*gpuContext, surFace, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace);
-    ASSERT_FALSE(ret);
 }
 
 /**
@@ -548,12 +549,12 @@ HWTEST_F(SkiaImageTest, CanPeekPixels001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetWidth001
- * @tc.desc: Test GetWidth
+ * @tc.name: GetImage001
+ * @tc.desc: Test GetImage
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
-HWTEST_F(SkiaImageTest, GetWidth001, TestSize.Level1)
+HWTEST_F(SkiaImageTest, GetImage001, TestSize.Level1)
 {
     sk_sp<SkImage> img;
     SkiaImage skiaImage;

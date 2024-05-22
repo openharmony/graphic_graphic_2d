@@ -18,9 +18,9 @@
 #include "draw/surface.h"
 #include "effect/color_space.h"
 #include "image/bitmap.h"
+#include "image/image_info.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImageInfo.h"
-#include "image/image_info.h"
 #include "skia_adapter/skia_bitmap.h"
 
 using namespace testing;
@@ -364,6 +364,7 @@ HWTEST_F(SkiaBitmapTest, SetInfo, TestSize.Level1)
     ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, nullptr};
     skiaBitmap.SetInfo(offscreenInfo);
     ASSERT_EQ(ColorType::COLORTYPE_RGBA_8888, skiaBitmap.GetColorType());
+    ASSERT_EQ(AlphaType::ALPHATYPE_PREMUL, skiaBitmap.GetAlphaType());
 }
 
 /**
@@ -397,12 +398,12 @@ HWTEST_F(SkiaBitmapTest, CopyPixels, TestSize.Level1)
     std::unique_ptr<Bitmap> dstBitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(dstBitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
-    dstBitmap->Build(srcLeft, srcTop, bitmapFormat);
+    // dstBitmap->Build(srcLeft, srcTop, bitmapFormat);
     SkiaBitmap skiaBitmap;
     skiaBitmap.Build(srcLeft, srcTop, bitmapFormat, 0);
     skiaBitmap.CopyPixels(*dstBitmap, srcLeft, srcTop);
     void* pixels = dstBitmap->GetPixels();
-    ASSERT_TRUE(pixels != nullptr);
+    ASSERT_TRUE(pixels == skiaBitmap.GetPixels());
 }
 
 /**
@@ -431,8 +432,8 @@ HWTEST_F(SkiaBitmapTest, Serialize002, TestSize.Level1)
     const int width = 100;
     const int height = 50;
     SkiaBitmap skiaBitmap;
-    std::shared_ptr<ColorSpace> clolorSpace = ColorSpace::CreateSRGB();
-    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, clolorSpace};
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, colorSpace};
     bool build = skiaBitmap.Build(offscreenInfo, 0);
     ASSERT_TRUE(build);
     std::shared_ptr<Data> result = skiaBitmap.Serialize();
@@ -454,8 +455,8 @@ HWTEST_F(SkiaBitmapTest, Deserialize, TestSize.Level1)
     skiaBitmap.Build(width, height, bitmapFormat, 0);
     std::shared_ptr<Data> data = skiaBitmap.Serialize();
     ASSERT_TRUE(data != nullptr);
-    bool deserialize = skiaBitmap.Deserialize(data);
-    ASSERT_TRUE(deserialize);
+    bool ret = skiaBitmap.Deserialize(data);
+    ASSERT_TRUE(ret);
 }
 } // namespace Drawing
 } // namespace Rosen

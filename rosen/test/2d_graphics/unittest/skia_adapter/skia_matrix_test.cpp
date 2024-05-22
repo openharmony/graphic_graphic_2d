@@ -208,12 +208,12 @@ HWTEST_F(SkiaMatrixTest, PostConcat002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetScale001
- * @tc.desc: Test PostConcat
+ * @tc.name: SetMatrix001
+ * @tc.desc: Test SetMatrix
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
-HWTEST_F(SkiaMatrixTest, SetScale001, TestSize.Level1)
+HWTEST_F(SkiaMatrixTest, SetMatrix001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
     skiaMatrix.SetMatrix(5, 5, 5, 5, 5, 5, 5, 5, 5);
@@ -221,7 +221,7 @@ HWTEST_F(SkiaMatrixTest, SetScale001, TestSize.Level1)
 
 /**
  * @tc.name: SetSkew001
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test SetSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -233,7 +233,7 @@ HWTEST_F(SkiaMatrixTest, SetSkew001, TestSize.Level1)
 
 /**
  * @tc.name: SetSkew002
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test SetSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -245,7 +245,7 @@ HWTEST_F(SkiaMatrixTest, SetSkew002, TestSize.Level1)
 
 /**
  * @tc.name: PreSkew001
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test PreSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -257,7 +257,7 @@ HWTEST_F(SkiaMatrixTest, PreSkew001, TestSize.Level1)
 
 /**
  * @tc.name: PreSkew002
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test PreSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -269,7 +269,7 @@ HWTEST_F(SkiaMatrixTest, PreSkew002, TestSize.Level1)
 
 /**
  * @tc.name: PostSkew001
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test PostSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -281,7 +281,7 @@ HWTEST_F(SkiaMatrixTest, PostSkew001, TestSize.Level1)
 
 /**
  * @tc.name: PostSkew002
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test PostSkew
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -293,7 +293,7 @@ HWTEST_F(SkiaMatrixTest, PostSkew002, TestSize.Level1)
 
 /**
  * @tc.name: Invert001
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test Invert
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
@@ -306,11 +306,11 @@ HWTEST_F(SkiaMatrixTest, Invert001, TestSize.Level1)
 
 /**
  * @tc.name: Equals001
- * @tc.desc: Test PostConcat
+ * @tc.desc: Test Equals
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
-HWTEST_F(SkiaMatrixTest, Equals002, TestSize.Level1)
+HWTEST_F(SkiaMatrixTest, Equals001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
     Matrix a;
