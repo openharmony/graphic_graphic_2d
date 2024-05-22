@@ -131,6 +131,7 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
+    void SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);

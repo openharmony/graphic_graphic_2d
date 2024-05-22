@@ -132,6 +132,26 @@ public:
         return priority_;
     }
 
+    void SetHDRPresent(bool hasHdrPresent)
+    {
+        hasHdrPresent_ = hasHdrPresent;
+    }
+
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        brightnessRatio_ = brightnessRatio;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
@@ -182,6 +202,8 @@ private:
     std::atomic<bool> isTextureValid_ = false;
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
+    bool hasHdrPresent_ = false;
+    float brightnessRatio_ = 1.0f; // 1.of means no discount.
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

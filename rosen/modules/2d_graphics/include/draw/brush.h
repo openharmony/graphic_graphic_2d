@@ -222,6 +222,18 @@ public:
     bool AsBlendMode();
 
     /**
+     * @brief Set whether to discount the drawing(for HDR).
+     * @param disableBrightnessRatio setting for HDR ratio.
+     */
+    void SetForceBrightnessDisable(bool forceBrightnessDisable);
+
+    /**
+     * @brief Queries Whether the current draw can discount.
+     * @return true if can not be discount, otherwise false.
+     */
+    bool IsForceBrightnessDisable() const { return forceBrightnessDisable_; }
+
+    /**
      * @brief Sets all Brush contents to their initial values. This is equivalent to replacing
      *        Brush with the result of Brush().
      */
@@ -251,6 +263,7 @@ private:
 
     bool antiAlias_;
     bool hasFilter_ = false;
+    bool forceBrightnessDisable_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen

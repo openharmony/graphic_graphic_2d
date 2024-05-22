@@ -254,6 +254,9 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
             return;
         }
     }
+    if (!nodeDrawable) {
+        return;
+    }
 
     const auto& param = nodeDrawable->GetRenderParams();
     if (!param) {
@@ -285,6 +288,8 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     rscanvas->SetIsParallelCanvas(true);
     rscanvas->SetDisableFilterCache(true);
     rscanvas->SetParallelThreadIdx(threadIndex_);
+    rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
+    rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
