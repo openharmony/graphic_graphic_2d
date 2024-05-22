@@ -38,7 +38,6 @@ public:
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
-    std::vector<DrawRect> pathsBounds;
     std::vector<OH_Drawing_Path *> fPaths;
     //    const float w = sqrt(2.0f) / 2; // 2被除数
     void Makepath1();

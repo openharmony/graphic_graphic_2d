@@ -25,6 +25,7 @@
 #include <native_drawing/drawing_surface.h>
 #include <string>
 #include "napi/native_api.h"
+#include <multimedia/image_framework/image/pixelmap_native.h>
 
 #define DEFAULT_WIDTH 720
 #define DEFAULT_HEIGHT 720
@@ -76,7 +77,8 @@ protected:
     void CreateGpuCanvas();
     void BitmapCanvasToFile(napi_env env);
     void GpuCanvasToFile(napi_env env, bool saveFile = true);
-    void Pixmap2File(napi_env env, napi_value pixelMap);
+    void Pixmap2RawFile(void *pixelmap, uint32_t pixelMapSize);
+    void Pixmap2ImageFile(OH_PixelmapNative* pixelMap);
 
     std::chrono::high_resolution_clock::time_point LogStart();
     void LogEnd(std::chrono::high_resolution_clock::time_point start);
