@@ -1413,13 +1413,11 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
     if (newWidthDstHeight > newHeightDstWidth) {
-        uint32_t srcRectWidth = newWidth;
+        newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;
-        newHeight = newHeight * newWidth / srcRectWidth;
     } else if (newWidthDstHeight < newHeightDstWidth) {
-        uint32_t srcRectHeight = newHeight;
+        newWidth = newWidth * dstHeight / newHeight;
         newHeight = dstHeight;
-        newWidth = newWidth * newHeight / srcRectHeight;
     } else {
         newHeight = dstHeight;
         newWidth = dstWidth;
