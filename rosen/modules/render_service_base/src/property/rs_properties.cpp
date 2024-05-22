@@ -1352,7 +1352,7 @@ std::string RSProperties::GetBgBrightnessDescription() const
     }
     std::string description = "BackgroundBrightnessInternal, rate: " + std::to_string(bgBrightnessParams_->rate_) +
         " lightUpDegree: " + std::to_string(bgBrightnessParams_->lightUpDegree_) +
-        " cubicCoeff: " + std::to_string(bgBrightnessParams_->cubicCoeff_) + 
+        " cubicCoeff: " + std::to_string(bgBrightnessParams_->cubicCoeff_) +
         " quadCoeff: " + std::to_string(bgBrightnessParams_->quadCoeff_) +
         " saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
         " fgBrightnessFract: " + std::to_string(bgBrightnessFract_);
