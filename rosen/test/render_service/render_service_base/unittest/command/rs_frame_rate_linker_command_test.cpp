@@ -49,7 +49,7 @@ HWTEST_F(RSFrameRateLinkerCommandTest, Destroy, TestSize.Level1)
     EXPECT_EQ(linkerMap.GetFrameRateLinker(linkerId), nullptr);
 
     FrameRateLinkerId linkerId1 = 1;
-    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
+    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId1);
     linkerMap.RegisterFrameRateLinker(linkerPtr);
     EXPECT_NE(linkerMap.GetFrameRateLinker(linkerId1), nullptr);
     RSFrameRateLinkerCommandHelper::Destroy(context, linkerId1);
