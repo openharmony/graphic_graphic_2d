@@ -412,7 +412,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return false;
     }
 

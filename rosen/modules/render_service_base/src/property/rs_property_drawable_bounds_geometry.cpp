@@ -1016,7 +1016,7 @@ RSPropertyDrawable::DrawablePtr RSBackgroundImageDrawable::Generate(const RSRend
 {
     auto& properties = content.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return nullptr;
     }
     bgImage->SetDstRect(properties.GetBgImageRect());
@@ -1027,7 +1027,7 @@ bool RSBackgroundImageDrawable::Update(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return false;
     }
     bgImage->SetDstRect(properties.GetBgImageRect());
