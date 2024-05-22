@@ -31,6 +31,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_gpu_context_test.cpp",
     "drawing_image_test.cpp",
     "drawing_matrix_test.cpp",
+    "drawing_memory_stream_test.cpp",
     "drawing_path_effect_test.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
@@ -41,7 +42,6 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_surface_test.cpp",
     "drawing_text_typography_test.cpp",
     "drawing_typeface_test.cpp",
-    "drawing_memory_stream_test.cpp",
   ]
 
   include_dirs = [
