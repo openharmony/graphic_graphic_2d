@@ -258,7 +258,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetTop002, TestSize.Le
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetTop(rect, 10); // 10 means top
     // 验证函数中对空指针的处理是否符合预期
-    ASSERT_TRUE(rect == nullptr) << "Function should return false and rect should remain NULL if passed NULL to NativeDrawingRectTest_RectSetTop";
+    ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -289,7 +289,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetBottom002, TestSize
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetBottom(rect, 10); // 10 means Bottom
     // 验证函数中对空指针的处理是否符合预期
-    ASSERT_TRUE(rect == nullptr) << "Function should return false and rect should remain NULL if passed NULL to OH_Drawing_RectSetBottom";
+    ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -320,7 +320,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetLeft002, TestSize.L
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetLeft(rect, 10); // 10 means Left
     // 验证函数中对空指针的处理是否符合预期
-    ASSERT_TRUE(rect == nullptr) << "Function should return false and rect should remain NULL if passed NULL to NativeDrawingRectTest_RectSetLeft";
+    ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -335,8 +335,8 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetRight001, TestSize.
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
     OH_Drawing_RectSetRight(rect, 10);                                 // 10 means Right
     // 检查设置的下边距离值是否和预期相符
-    ASSERT_FLOAT_EQ(OH_Drawing_RectGetRight(rect), 10) << "The return value of OH_Drawing_RectGetRight is equal to 10";
-    ASSERT_NE(OH_Drawing_RectGetRight(rect), 0.f) << "The result of OH-OH_Drawing_RectGetRight is not equal to 0.f";
+    ASSERT_FLOAT_EQ(OH_Drawing_RectGetRight(rect), 10);
+    ASSERT_NE(OH_Drawing_RectGetRight(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -351,7 +351,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetRight002, TestSize.
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetRight(rect, 10); // 10 means Right
     // 验证函数中对空指针的处理是否符合预期
-    ASSERT_TRUE(rect == nullptr) << "Function should return false and rect should remain NULL if passed NULL to OH_Drawing_RectSetRight";
+    ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
 

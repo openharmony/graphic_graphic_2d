@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
-
 #include "drawing_color.h"
 #include "drawing_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
 #include "drawing_round_rect.h"
-#include "utils/scalar.h"
+#include "gtest/gtest.h"
+
 #include "utils/round_rect.h"
+#include "utils/scalar.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,8 +29,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class NativeDrawingRoundRectTest : public testing::Test
-{
+class NativeDrawingRoundRectTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -51,12 +50,11 @@ void NativeDrawingRoundRectTest::TearDown() {}
  */
 HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos001, TestSize.Level1)
 {
-
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 100, 200, 200);
-    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
     ASSERT_NE(nullptr, roundRect);
 
-    OH_Drawing_Corner_Radii radius = {10, 10};
+    OH_Drawing_Corner_Radii radius = { 10, 10 };
 
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT, radius);
 
@@ -77,12 +75,11 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos001, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos002, TestSize.Level1)
 {
-
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 100, 200, 200);
-    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
     ASSERT_NE(nullptr, roundRect);
 
-    OH_Drawing_Corner_Radii radius = {10, 10};
+    OH_Drawing_Corner_Radii radius = { 10, 10 };
 
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_RIGHT, radius);
 
@@ -104,12 +101,11 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos002, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos003, TestSize.Level1)
 {
-
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 100, 200, 200);
-    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
     ASSERT_NE(nullptr, roundRect);
 
-    OH_Drawing_Corner_Radii radius = {10, 10};
+    OH_Drawing_Corner_Radii radius = { 10, 10 };
 
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_RIGHT, radius);
 
@@ -131,12 +127,11 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos003, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos004, TestSize.Level1)
 {
-
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 100, 200, 200);
-    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
     ASSERT_NE(nullptr, roundRect);
 
-    OH_Drawing_Corner_Radii radius = {10, 10};
+    OH_Drawing_Corner_Radii radius = { 10, 10 };
 
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, radius);
 
@@ -158,9 +153,10 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos004, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRoundRectTest, OH_Drawing_RoundRectGetCorner001, TestSize.Level1)
 {
-    OH_Drawing_RoundRect *nullRoundRect = nullptr;
+    OH_Drawing_RoundRect* nullRoundRect = nullptr;
 
-    OH_Drawing_Corner_Radii radii = OH_Drawing_RoundRectGetCorner(nullRoundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT);
+    OH_Drawing_Corner_Radii radii =
+        OH_Drawing_RoundRectGetCorner(nullRoundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT);
 
     EXPECT_EQ(radii.x, 0);
     EXPECT_EQ(radii.y, 0);
