@@ -57,6 +57,7 @@ public:
 private:
     RSLuminanceControl() = default;
     ~RSLuminanceControl();
+#ifdef ROSEN_OHOS
     bool LoadLibrary();
     bool LoadStatusControl();
     bool LoadLumControl();
@@ -89,7 +90,7 @@ private:
     GetHdrTmoNitsFunc getHdrTmoNits_{nullptr};
     GetHdrDisplayNitsFunc getHdrDisplayNits_{nullptr};
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
-
+#endif
 };
 
 } // namespace Rosen
