@@ -108,7 +108,7 @@ RSPropertyDrawable::DrawablePtr RSBorderDrawable::Generate(const RSRenderContent
     } else if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(pen)) {
         return std::make_unique<RSBorderFourLineDrawable>(
             std::move(brush), std::move(pen), properties, true);
-    } else if (border->ApplyPathStyle(pen)) {
+    } else if (border->ApplyPathStyle(pen) && border->ApplySimpleBorder(properties.GetRRect())) {
         return std::make_unique<RSBorderPathDrawable>(
             std::move(brush), std::move(pen), properties, true);
     } else {
