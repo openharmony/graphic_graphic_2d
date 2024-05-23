@@ -16,7 +16,7 @@
 #include "luminance/rs_luminance_control.h"
 
 namespace {
-constexpr float HDR_DEFAULT_TMO_NIT = 500.0f;
+constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
 }
 
 namespace OHOS {
@@ -41,6 +41,7 @@ bool RSLuminanceControl::IsDimmingOn(ScreenId screenId)
 {
     return false;
 }
+
 void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
 {
     // Update HDR dimming index.

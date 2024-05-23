@@ -688,7 +688,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         return;
     }
     if (parameter.inputColorSpace.colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-        parameter.inputColorSpace.colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ) {
+        parameter.inputColorSpace.colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG) {
         params.paint.SetHdr(true);
     }
     params.paint.SetShaderEffect(outputShader);
