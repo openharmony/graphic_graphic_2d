@@ -24,7 +24,7 @@ group("unittest") {
     "recording:unittest",
     "render_context:unittest",
     "skia_adapter:unittest",
-    "utils:unittest",
     "text:unittest",
+    "utils:unittest",
   ]
 }
