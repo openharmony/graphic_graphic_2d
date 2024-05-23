@@ -329,7 +329,7 @@ bool RSFilterDrawable::IsForceClearFilterCache() const
 
 bool RSFilterDrawable::IsForceUseFilterCache() const
 {
-    return forceUseCache_;
+    return stagingForceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const
