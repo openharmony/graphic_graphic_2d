@@ -136,12 +136,12 @@ HWTEST_F(TypefaceTest, GetUniqueID001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetUnitsPerEm002
+ * @tc.name: GetUnitsPerEm001
  * @tc.desc: Test GetUnitsPerEm
  * @tc.type: FUNC
  * @tc.require:I91EDT
  */
-HWTEST_F(TypefaceTest, GetUniqueID002, TestSize.Level1)
+HWTEST_F(TypefaceTest, GetUnitsPerEm001, TestSize.Level1)
 {
     auto typeface = std::make_shared<Typeface>(nullptr);
     ASSERT_TRUE(typeface != nullptr);
@@ -186,7 +186,7 @@ HWTEST_F(TypefaceTest, Serialize001, TestSize.Level1)
 {
     auto typeface = Typeface::MakeDefault();
     ASSERT_TRUE(typeface != nullptr);
-    ASSERT_TRUE(typeface->Serialize() 1 = nullptr);
+    ASSERT_TRUE(typeface->Serialize() == nullptr);
 }
 
 /**
