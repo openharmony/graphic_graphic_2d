@@ -51,6 +51,8 @@ if (enable_text_gine) {
       deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
 
+    external_deps = [ "hilog:libhilog" ]
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
