@@ -20,7 +20,7 @@
 #include "skia_adapter/skia_typeface.h"
 
 #include "text/text_blob.h"
-#include "text/typeface.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -269,8 +269,8 @@ HWTEST_F(SkiaTypefaceTest, GetItalic002, TestSize.Level1)
  */
 HWTEST_F(SkiaTypefaceTest, GetUniqueID002, TestSize.Level1)
 {
-    auto typeface = std::make_shared<Typeface>(nullptr);
-    ASSERT_TRUE(typeface->GetUniqueID() >= 0);
+    auto typeface = std::make_shared<SkiaTypeface>(nullptr);
+    ASSERT_TRUE(typeface->GetUniqueID() == 0);
 }
 
 /**
@@ -281,8 +281,8 @@ HWTEST_F(SkiaTypefaceTest, GetUniqueID002, TestSize.Level1)
  */
 HWTEST_F(SkiaTypefaceTest, GetUnitsPerEm002, TestSize.Level1)
 {
-    auto typeface = std::make_shared<Typeface>(nullptr);
-    ASSERT_TRUE(typeface->GetUnitsPerEm() >= 0);
+    auto typeface = std::make_shared<SkiaTypeface>(nullptr);
+    ASSERT_TRUE(typeface->GetUnitsPerEm() == 0);
 }
 
 /**
