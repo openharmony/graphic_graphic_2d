@@ -20,6 +20,7 @@ ohos_unittest("2d_graphics_text_test") {
   module_out_path = module_output_path
 
   sources = [
+    "font_mgr_test.cpp",
     "typeface_test.cpp",
   ]
 
