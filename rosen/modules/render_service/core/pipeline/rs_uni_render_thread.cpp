@@ -249,7 +249,10 @@ void RSUniRenderThread::Render()
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
+    DrawableV2::RSRenderNodeDrawable::ClearTotalProcessedNodeCount();
     rootNodeDrawable_->OnDraw(canvas);
+    RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
+        DrawableV2::RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     RSMainThread::Instance()->PerfForBlurIfNeeded();
 

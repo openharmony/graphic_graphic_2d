@@ -72,6 +72,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     DrawAll(canvas, bounds);
@@ -535,18 +536,33 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 }
 
-int RSRenderNodeDrawable::GetProcessedNodeCount()
+int RSRenderNodeDrawable::GetProcessedCanvasNodeCount()
 {
-    return processedNodeCount_;
+    return processedCanvasNodeCount_;
 }
 
-void RSRenderNodeDrawable::ProcessedNodeCountInc()
+void RSRenderNodeDrawable::ProcessedCanvasNodeCountInc()
 {
-    ++processedNodeCount_;
+    ++processedCanvasNodeCount_;
 }
 
-void RSRenderNodeDrawable::ClearProcessedNodeCount()
+void RSRenderNodeDrawable::ClearProcessedCanvasNodeCount()
 {
-    processedNodeCount_ = 0;
+    processedCanvasNodeCount_ = 0;
+}
+
+int RSRenderNodeDrawable::GetTotalProcessedNodeCount()
+{
+    return totalProcessedNodeCount_;
+}
+
+void RSRenderNodeDrawable::TotalProcessedNodeCountInc()
+{
+    ++totalProcessedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ClearTotalProcessedNodeCount()
+{
+    totalProcessedNodeCount_ = 0;
 }
 } // namespace OHOS::Rosen::DrawableV2
