@@ -89,12 +89,12 @@ HWTEST_F(SkiaSurfaceTest, MakeFromBackendRenderTarget001, TestSize.Level1)
     TextureInfo info;
     info.SetWidth(10);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    auto surface1 = SkiaSurface::MakeFromBackendRenderTarget(
+    auto target1 = SkiaSurface::MakeFromBackendRenderTarget(
         gpuContext.get(), info, TextureOrigin::TOP_LEFT, ColorType::COLORTYPE_RGBA_8888, colorSpace, nullptr, nullptr);
-    auto surface2 = SkiaSurface::MakeFromBackendRenderTarget(
+    auto target2 = SkiaSurface::MakeFromBackendRenderTarget(
         gpuContext.get(), info, TextureOrigin::TOP_LEFT, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(surface1 == nullptr);
-    ASSERT_TRUE(surface2 == nullptr);
+    ASSERT_TRUE(target1 == nullptr);
+    ASSERT_TRUE(target2 == nullptr);
 }
 
 /**
@@ -111,12 +111,12 @@ HWTEST_F(SkiaSurfaceTest, MakeFromBackendTexture001, TestSize.Level1)
     auto gpuContext = skiaCanvas->GetGPUContext();
     TextureInfo info;
     info.SetWidth(10);
-    auto surface = SkiaSurface::MakeFromBackendTexture(
+    auto texture1 = SkiaSurface::MakeFromBackendTexture(
         nullptr, info, TextureOrigin::TOP_LEFT, 1, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(surface == nullptr);
-    auto surface = SkiaSurface::MakeFromBackendTexture(
+    ASSERT_TRUE(texture1 == nullptr);
+    auto texture2 = SkiaSurface::MakeFromBackendTexture(
         gpuContext.get(), info, TextureOrigin::TOP_LEFT, 1, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(surface == nullptr);
+    ASSERT_TRUE(texture2 == nullptr);
 }
 
 /**
