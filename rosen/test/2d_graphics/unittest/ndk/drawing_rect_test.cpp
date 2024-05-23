@@ -287,7 +287,6 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetBottom002, TestSize
 {
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetBottom(rect, 10); // 10 means Bottom
-    // 验证函数中对空指针的处理是否符合预期
     ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
