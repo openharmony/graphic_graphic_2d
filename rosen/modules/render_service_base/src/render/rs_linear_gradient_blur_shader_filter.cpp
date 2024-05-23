@@ -54,7 +54,7 @@ void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
 float RSLinearGradientBlurShaderFilter::GetLinearGradientBlurRadius() const
 {
     if (linearGradientBlurPara_ == nullptr) {
-        return -1;
+        return 0;
     }
     return linearGradientBlurPara_->blurRadius_;
 }

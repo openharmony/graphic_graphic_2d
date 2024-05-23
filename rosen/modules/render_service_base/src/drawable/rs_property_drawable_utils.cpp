@@ -472,6 +472,9 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     g_blurCnt++;
     auto clipIBounds = canvas->GetDeviceClipBounds();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
+        rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
@@ -481,9 +484,6 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         return;
     }
 #endif
-    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
-    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
-        rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     auto imageRect = clipIBounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);
     if (imageSnapshot == nullptr) {
