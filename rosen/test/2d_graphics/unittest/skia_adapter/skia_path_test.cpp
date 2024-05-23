@@ -85,7 +85,7 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
 
 /**
  * @tc.name: RArcTo001
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: Test RArcTo
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -93,11 +93,12 @@ HWTEST_F(SkiaPathTest, RArcTo001, TestSize.Level1)
 {
     SkiaPath skiaPath;
     skiaPath.RArcTo(0, 0, 90, PathDirection::CW_DIRECTION, 90, 90); // 90: angle, 90: endX and endY
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 /**
  * @tc.name: InitWithInterpolate001
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: Test InitWithInterpolate
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -107,11 +108,12 @@ HWTEST_F(SkiaPathTest, InitWithInterpolate001, TestSize.Level1)
     Path path;
     Path path2;
     skiaPath.InitWithInterpolate(path, path2, 2); // 2: weight
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 /**
  * @tc.name: TransformWithPerspectiveClip001
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: TransformWithPerspectiveClip
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -121,11 +123,12 @@ HWTEST_F(SkiaPathTest, TransformWithPerspectiveClip001, TestSize.Level1)
     Path path;
     Matrix matrix;
     skiaPath.TransformWithPerspectiveClip(matrix, &path, true);
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 /**
  * @tc.name: OpWith001
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: Test OpWith
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -135,11 +138,12 @@ HWTEST_F(SkiaPathTest, OpWith001, TestSize.Level1)
     Path path;
     Path path2;
     skiaPath.OpWith(path, path2, PathOp::DIFFERENCE);
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 /**
  * @tc.name: Offset001
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: Test Offset
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -147,11 +151,12 @@ HWTEST_F(SkiaPathTest, Offset001, TestSize.Level1)
 {
     SkiaPath skiaPath;
     skiaPath.Offset(100, 100);
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 /**
  * @tc.name: Offset002
- * @tc.desc: Test SkiaPath's funstions
+ * @tc.desc: Test Offset
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
@@ -160,6 +165,7 @@ HWTEST_F(SkiaPathTest, Offset002, TestSize.Level1)
     SkiaPath skiaPath;
     Path path;
     skiaPath.Offset(path, 100, 100);
+    ASSERT_TRUE(skiaPath.IsValid());
 }
 
 } // namespace Drawing
