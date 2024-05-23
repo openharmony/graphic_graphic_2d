@@ -157,7 +157,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         return;
     }
 
-    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC && !pixelMap->IsAstc()) {
+    if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
@@ -182,8 +182,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
             RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
             sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
             nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
-            nativeBuffer_ = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
-            fileData->BuildFromOHNativeBuffer(nativeBuffer_, pixelMap->GetCapacity());
+            OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
+            fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity());
         } else {
             const void* data = pixelMap->GetPixels();
             const int seekSize = 16;
