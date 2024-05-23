@@ -199,7 +199,7 @@ void RSRenderThread::RequestNextVSync()
         SendFrameEvent(true);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
-            .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
+            .callbackWithId_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1, std::placeholders::_2),
         };
         if (receiver_ != nullptr) {
             receiver_->RequestNextVSync(fcb);
@@ -308,7 +308,7 @@ void RSRenderThread::RenderLoop()
     }
 }
 
-void RSRenderThread::OnVsync(uint64_t timestamp)
+void RSRenderThread::OnVsync(uint64_t timestamp, int64_t frameCount)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
 #ifdef ROSEN_PREVIEW
