@@ -296,7 +296,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     }
 
     auto outImage =
-        geRender->ApplyImageEffect(canvas, *effectContainer, image, src, src, Drawing::SamplingOptions());
+        geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
     if (outImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
         return;
