@@ -52,6 +52,7 @@
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -3574,19 +3575,27 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
         return cacheImage;
     }
 
-    if (cacheImage != nullptr) {
-        auto renderContext = renderEngine_->GetRenderContext();
-        if (renderContext != nullptr) {
-            auto grContext = renderContext->GetDrGPUContext();
-            auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
-            if (grContext != nullptr && imageBackendTexure.IsValid()) {
-                Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
-                    Drawing::AlphaType::ALPHATYPE_PREMUL};
-                image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
-                    Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
+    if (cacheImage == nullptr) {
+        return image;
+    }
+
+    auto renderContext = renderEngine_->GetRenderContext();
+    if (renderContext != nullptr) {
+        auto grContext = renderContext->GetDrGPUContext();
+        auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
+        SharedTextureContext* sharedContext = new SharedTextureContext(cacheImage);
+        if (grContext != nullptr && imageBackendTexure.IsValid()) {
+            Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
+                Drawing::AlphaType::ALPHATYPE_PREMUL};
+            if (!image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
+                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr,
+                SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+                delete sharedContext;
+                RS_LOGE("RSUniRenderVisitor::GetCacheImageFromMirrorNode image is nullptr");
             }
         }
     }
+        
     return image;
 }
 
@@ -4129,7 +4138,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         AssignGlobalZOrderAndCreateLayer(appWindowNodesInZOrder_);
         node.SetGlobalZOrder(globalZOrder_++);
         node.SetRenderWindowsName(windowsName_);
-        node.SetDamageRegion(rects);
+        node.SetDirtyRects(rects);
         processor_->ProcessDisplaySurface(node);
         AssignGlobalZOrderAndCreateLayer(hardwareEnabledTopNodes_);
     }

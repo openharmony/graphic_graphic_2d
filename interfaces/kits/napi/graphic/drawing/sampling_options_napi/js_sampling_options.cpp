@@ -66,11 +66,8 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
         samplingOptions = std::make_shared<SamplingOptions>();
         jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);
     } else {
-        uint32_t jsFilterMode = 0;
-        if (!ConvertFromJsValue(env, argv[ARGC_ZERO], jsFilterMode)) {
-            ROSEN_LOGE("JsSamplingOptions::Constructor argv[0] is invalid");
-            return nullptr;
-        }
+        int32_t jsFilterMode = 0;
+        GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, jsFilterMode);
         samplingOptions = std::make_shared<SamplingOptions>(FilterMode(jsFilterMode));
         jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);
     }

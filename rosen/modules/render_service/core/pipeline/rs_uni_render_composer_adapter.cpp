@@ -111,7 +111,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     std::vector<GraphicIRect> dirtyRects;
-    for (auto& rect : node.GetDamageRegion()) {
+    // layer damage always relative to the top-left, no matter gl or vk
+    std::vector<RectI> flipDirtyRects = RSUniRenderUtil::GetFilpDirtyRects(node.GetDirtyRects(), screenInfo_);
+    for (const auto& rect : flipDirtyRects) {
         dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
     }
     if (dirtyRects.empty()) {

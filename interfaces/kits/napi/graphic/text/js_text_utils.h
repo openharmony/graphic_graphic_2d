@@ -320,7 +320,7 @@ inline std::u16string Str8ToStr16(const std::string &str)
     return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
 }
 
-inline void SetTextStyleDoubleValueFromJS(napi_env env, napi_value argValue, const std::string str, double& cValue)
+inline void SetDoubleValueFromJS(napi_env env, napi_value argValue, const std::string str, double& cValue)
 {
     napi_value tempValue = nullptr;
     napi_get_named_property(env, argValue, str.c_str(), &tempValue);
@@ -330,7 +330,7 @@ inline void SetTextStyleDoubleValueFromJS(napi_env env, napi_value argValue, con
     ConvertFromJsValue(env, tempValue, cValue);
 }
 
-inline void SetTextStyleBooleValueFromJS(napi_env env, napi_value argValue, const std::string str, bool& cValue)
+inline void SetBoolValueFromJS(napi_env env, napi_value argValue, const std::string str, bool& cValue)
 {
     napi_value tempValue = nullptr;
     napi_get_named_property(env, argValue, str.c_str(), &tempValue);
@@ -557,7 +557,7 @@ inline void SetLineMetricsSizeTValueFromJS(napi_env env, napi_value argValue, co
 
 bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::string> &fontFamilies);
 
-bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
+bool SetColorFromJS(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
 
 bool GetDecorationFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
 
@@ -569,6 +569,10 @@ bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan
 
 void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle);
 
+void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle);
+
 size_t GetParamLen(napi_env env, napi_value param);
 
 bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetrics& fontMetrics);
@@ -576,9 +580,25 @@ bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetric
 bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics);
 
 bool GetLineMetricsFromJS(napi_env env, napi_value argValue, LineMetrics& runMetrics);
+bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string& str, napi_value& propertyValue);
+
+template<class Type>
+void SetEnumValueFromJS(napi_env env, napi_value argValue, const std::string str, Type& typeValue)
+{
+    napi_value propertyValue = nullptr;
+    if (!GetNamePropertyFromJS(env, argValue, str, propertyValue)) {
+        return;
+    }
+
+    ConvertFromJsValue(env, propertyValue, typeValue);
+}
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle);
 
 void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+
+void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

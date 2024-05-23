@@ -362,6 +362,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
         origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
     if (!ret) {
+        delete sharedContext;
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
         return nullptr;
     }

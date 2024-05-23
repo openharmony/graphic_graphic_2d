@@ -1106,7 +1106,9 @@ void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
-    image->SetNodeId(GetId());
+    if (image) {
+        image->SetNodeId(GetId());
+    }
     SetProperty<RSBgImageModifier, RSProperty<std::shared_ptr<RSImage>>>(RSModifierType::BG_IMAGE, image);
 }
 

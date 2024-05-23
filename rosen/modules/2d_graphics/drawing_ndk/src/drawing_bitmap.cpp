@@ -163,7 +163,7 @@ void OH_Drawing_BitmapBuild(OH_Drawing_Bitmap* cBitmap, const uint32_t width, co
     const OH_Drawing_BitmapFormat* cBitmapFormat)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
-    if (bitmap == nullptr) {
+    if (bitmap == nullptr || cBitmapFormat == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }

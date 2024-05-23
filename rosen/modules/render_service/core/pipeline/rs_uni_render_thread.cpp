@@ -518,6 +518,7 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         this->clearMemDeeply_ = clearMemDeeply_ || deeply;
         this->SetClearMoment(moment);
+        this->clearMemoryFinished_ = false;
         this->exitedPidSet_.emplace(pid);
     }
     auto task =
