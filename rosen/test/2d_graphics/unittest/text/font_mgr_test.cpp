@@ -67,8 +67,8 @@ HWTEST_F(FontMgrTest, MatchFamilyStyleCharacter001, TestSize.Level1)
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     FontStyle fontStyle;
     const char* bcp47[] = { "en-US" };
-    int bcp47Count = 1;      
-    int32_t character = 'A';  
+    int bcp47Count = 1;
+    int32_t character = 'A';
     Typeface* typeface = FontMgr->MatchFamilyStyleCharacter("serif", fontStyle, bcp47, bcp47Count, character);
     ASSERT_TRUE(typeface != nullptr);
 }
@@ -110,7 +110,7 @@ HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     std::string familyName;
-    FontMgr->GetFamilyName(0, familyName); 
+    FontMgr->GetFamilyName(0, familyName);
 }
 
 /**
