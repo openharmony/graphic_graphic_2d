@@ -398,7 +398,6 @@ HWTEST_F(SkiaBitmapTest, CopyPixels, TestSize.Level1)
     std::unique_ptr<Bitmap> dstBitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(dstBitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
-    // dstBitmap->Build(srcLeft, srcTop, bitmapFormat);
     SkiaBitmap skiaBitmap;
     skiaBitmap.Build(srcLeft, srcTop, bitmapFormat, 0);
     skiaBitmap.CopyPixels(*dstBitmap, srcLeft, srcTop);
