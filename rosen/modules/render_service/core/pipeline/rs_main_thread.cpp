@@ -53,6 +53,7 @@
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
+#include "metadata_helper.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
@@ -279,6 +280,29 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 #endif
 }
 
+static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    const auto& surfaceBuffer = surfaceNode.GetBuffer();
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
+        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        return false;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK) {
+        if (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG) {
+            return true;
+        }
+    }
+    return false;
+}
+
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -501,6 +525,7 @@ void RSMainThread::Init()
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     SubscribeAppState();
     PrintCurrentStatus();
+    RSLuminanceControl::Get().Init();
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -1099,10 +1124,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
+    bool hasHdrVideo = false;
     bufferTimestamps_.clear();
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this, &needRequestNextVsync](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &needRequestNextVsync, &hasHdrVideo](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
         }
@@ -1167,8 +1193,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceHandler.GetAvailableBufferCount() > 0 || surfaceHandler.HasBufferCache()) {
             needRequestNextVsync = true;
         }
+        if (!hasHdrVideo) {
+            hasHdrVideo = CheckIsHdrSurface(*surfaceNode);
+        }
     });
-
+    RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, HDR_TYPE::VIDEO);
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
@@ -1845,26 +1874,7 @@ void RSMainThread::Render()
         CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
     }
-
-    if (auto screenManager = CreateOrGetScreenManager()) {
-        auto& rsLuminance = RSLuminanceControl::Get();
-        for (const auto& child : *rootNode->GetSortedChildren()) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-            if (displayNode == nullptr) {
-                continue;
-            }
-
-            auto screenId = displayNode->GetScreenId();
-            if (rsLuminance.IsDimmingOn(screenId)) {
-                rsLuminance.DimmingIncrease(screenId);
-            }
-            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
-                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
-                screenManager->SetScreenBacklight(screenId, newLevel);
-                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
-            }
-        }
-    }
+    UpdateLuminance();
 }
 
 void RSMainThread::OnUniRenderDraw()
@@ -2996,7 +3006,6 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
         MemoryManager::CountMemory(pids,
             RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), mems);
     });
-    
 #endif
 }
 
@@ -3595,6 +3604,40 @@ float RSMainThread::GetCurrentSteadyTimeMsFloat() const
     int64_t curSteadyTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
     float curSteadyTime = curSteadyTimeUs / MS_TO_US;
     return curSteadyTime;
+}
+
+void RSMainThread::UpdateLuminance()
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        return;
+    }
+    bool isNeedRefreshAll{false};
+    if (auto screenManager = CreateOrGetScreenManager()) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        for (const auto& child : *rootNode->GetSortedChildren()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+            if (displayNode == nullptr) {
+                continue;
+            }
+
+            auto screenId = displayNode->GetScreenId();
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
+            }
+            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+                screenManager->SetScreenBacklight(screenId, newLevel);
+                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+        }
+    }
+    if (isNeedRefreshAll) {
+        isCurtainScreenUsingStatusChanged_ = true;
+        SetDirtyFlag();
+        RequestNextVSync();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
