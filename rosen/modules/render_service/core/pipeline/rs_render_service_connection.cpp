@@ -126,7 +126,7 @@ void RSRenderServiceConnection::MoveRenderNodeMap(
 void RSRenderServiceConnection::RemoveRenderNodeMap(
     std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
 {
-    // temp solution for DongHu to resolve with dma leak
+    // temp solution to address the dma leak
     for (auto& [_, node] : *subRenderNodeMap) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
         if (surfaceNode && surfaceNode->GetName().find("ShellAssistantAnco") != std::string::npos) {

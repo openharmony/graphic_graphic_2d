@@ -212,8 +212,8 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
   }
 
-  if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
-      use_rosen_drawing) {
+  if (defined(rs_enable_recording_dcl) && rs_enable_recording_dcl &&
+      defined(use_rosen_drawing) && use_rosen_drawing) {
     deps += [
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
