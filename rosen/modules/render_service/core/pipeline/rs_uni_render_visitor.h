@@ -388,7 +388,6 @@ private:
     bool DrawBlurInCache(RSRenderNode& node);
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
-    bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     // return if srcRect is allowed by dss restriction
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false);

@@ -1826,7 +1826,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     // [planning] degree only multiples of 90 now
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = degree % ROTATION_90 != 0;
-    if (hasRotate || IsRosenWebHardwareDisabled(*hwcNode, degree)) {
+    if (hasRotate) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by rotation:%d",
             hwcNode->GetName().c_str(), hwcNode->GetId(), degree);
         hwcNode->SetHardwareForcedDisabledState(true);
@@ -5132,17 +5132,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     return true;
 }
 
-bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const
-{
-    if (node.IsRosenWeb()) {
-        return rotation == ROTATION_90 || rotation == ROTATION_270 ||
-            RSUniRenderUtil::Is3DRotation(node.GetTotalMatrix()) ||
-            (node.GetBuffer() && (node.GetDstRect().width_ > node.GetBuffer()->GetWidth())) ||
-            (node.GetBuffer() && (node.GetDstRect().height_ > node.GetBuffer()->GetHeight()));
-    }
-    return false;
-}
-
 bool RSUniRenderVisitor::ForceHardwareComposer(RSSurfaceRenderNode& node) const
 {
     auto bufferPixelFormat = node.GetBuffer()->GetFormat();
@@ -5359,7 +5348,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || backgroundTransparent ||
-                    IsRosenWebHardwareDisabled(node, rotation) ||
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
                     canvas_->HasOffscreenLayer()) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
@@ -5370,7 +5358,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     "isUpdateCachedSurface_:%d IsHardwareComposerEnabled:%d node.IsHardwareForcedDisabled():%d",
                     node.IsHardwareEnabledType(), backgroundTransparent,
                     node.IsHardwareForcedDisabledByFilter(), canvas_->GetAlpha(),
-                    IsRosenWebHardwareDisabled(node, rotation),
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()), isUpdateCachedSurface_,
                     IsHardwareComposerEnabled(), node.IsHardwareForcedDisabled());
             }
