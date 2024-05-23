@@ -1879,7 +1879,7 @@ void RSMainThread::Render()
 
 void RSMainThread::OnUniRenderDraw()
 {
-    if (!isUniRender_) {
+    if (!isUniRender_ || SkipRenderFrameIfScreenOff()) {
         return;
     }
 
@@ -3640,6 +3640,30 @@ void RSMainThread::UpdateLuminance()
         SetDirtyFlag();
         RequestNextVSync();
     }
+}
+
+bool RSMainThread::SkipRenderFrameIfScreenOff() const
+{
+    if (!RSSystemProperties::GetScreenOffSkipRenderFrameEnabled()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSMainThread::SkipRenderFrameIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    ScreenId id = screenManager->GetDefaultScreenId();
+    if (!screenManager->IsScreenPowerOff(id)) {
+        RS_LOGD("RSMainThread::SkipRenderFrameIfScreenOff screen_%{public}lu power on, can't skip.", id);
+        return false;
+    }
+    if (screenManager->PowerOffNeedProcessOneFrame() && screenManager->GetScreenPowerOffProcessedFrame(id) == 0) {
+        RS_LOGD("RSMainThread::SkipRenderFrameIfScreenOff screen_%{public}lu power off, refresh one frame.", id);
+        screenManager->ScreenPowerOffProcessedFrameInc(id);
+        return false;
+    }
+    RS_LOGD("RSMainThread::SkipRenderFrameIfScreenOff screen_%{public}lu power off, skip render frame.", id);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -181,6 +181,18 @@ public:
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
+    virtual void MarkPowerOffNeedProcessOneFrame() = 0;
+
+    virtual void ResetPowerOffNeedProcessOneFrame() = 0;
+
+    virtual bool PowerOffNeedProcessOneFrame() const = 0;
+
+    virtual bool IsScreenPowerOff(ScreenId id) const = 0;
+
+    virtual void ScreenPowerOffProcessedFrameInc(ScreenId id) = 0;
+
+    virtual uint32_t GetScreenPowerOffProcessedFrame(ScreenId id) const = 0;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
 #endif
@@ -353,6 +365,17 @@ public:
 
     bool IsAllScreensPowerOff() const override;
 
+    void MarkPowerOffNeedProcessOneFrame() override;
+
+    void ResetPowerOffNeedProcessOneFrame() override;
+
+    bool PowerOffNeedProcessOneFrame() const override;
+
+    bool IsScreenPowerOff(ScreenId id) const override;
+
+    void ScreenPowerOffProcessedFrameInc(ScreenId id) override;
+
+    uint32_t GetScreenPowerOffProcessedFrame(ScreenId id) const override;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
 #endif
@@ -434,7 +457,7 @@ private:
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
-
+    std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;
     bool isFoldScreenFlag_ = false;

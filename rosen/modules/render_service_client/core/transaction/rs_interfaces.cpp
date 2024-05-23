@@ -249,6 +249,12 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
     return renderServiceClient_->GetVirtualScreenResolution(id);
 }
 
+void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
+{
+    RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame");
+    renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
+}
+
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     RS_LOGI("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64

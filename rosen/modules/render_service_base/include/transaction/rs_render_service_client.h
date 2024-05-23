@@ -181,6 +181,8 @@ public:
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
+    void MarkPowerOffNeedProcessOneFrame();
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);

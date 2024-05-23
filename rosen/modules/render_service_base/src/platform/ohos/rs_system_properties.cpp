@@ -980,5 +980,13 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
     static bool flag = system::GetParameter("rosen.gpu.overdraw.optimize.enabled", "0") != "0";
     return flag;
 }
+
+bool RSSystemProperties::GetScreenOffSkipRenderFrameEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipprocessenabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

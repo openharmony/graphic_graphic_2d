@@ -350,6 +350,8 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
+    // when power status change, recount processed frame.
+    powerOffProcessedFrame_ = 0;
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
@@ -969,6 +971,16 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
 const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
 {
     return filteredAppSet_;
+}
+
+uint32_t RSScreen::GetPowerOffProcessedFrame() const
+{
+    return powerOffProcessedFrame_;
+}
+
+void RSScreen::PowerOffProcessedFrameInc()
+{
+    powerOffProcessedFrame_++;
 }
 } // namespace impl
 } // namespace Rosen

@@ -952,6 +952,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         }
 
         RS_LOGD("[UL_POWER]RSScreenManager %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
+        ResetPowerOffNeedProcessOneFrame();
     }
     screenPowerStatus_[id] = status;
 }
@@ -1603,6 +1604,48 @@ int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceTy
     return SetScreenColorSpaceLocked(id, colorSpace);
 }
 
+void RSScreenManager::MarkPowerOffNeedProcessOneFrame()
+{
+    powerOffNeedProcessOneFrame_ = true;
+}
+
+void RSScreenManager::ResetPowerOffNeedProcessOneFrame()
+{
+    powerOffNeedProcessOneFrame_ = false;
+}
+
+bool RSScreenManager::PowerOffNeedProcessOneFrame() const
+{
+    return powerOffNeedProcessOneFrame_;
+}
+
+bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenPowerStatus_.count(id) == 0) {
+        return false;
+    }
+    return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+}
+
+void RSScreenManager::ScreenPowerOffProcessedFrameInc(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        return ;
+    }
+    screens_.at(id)->PowerOffProcessedFrameInc();
+}
+
+uint32_t RSScreenManager::GetScreenPowerOffProcessedFrame(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        return 0;
+    }
+    return screens_.at(id)->GetPowerOffProcessedFrame();
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()
