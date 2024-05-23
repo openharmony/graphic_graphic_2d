@@ -25,11 +25,11 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSemaphore.h"
-#include "native_buffer_inner.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
