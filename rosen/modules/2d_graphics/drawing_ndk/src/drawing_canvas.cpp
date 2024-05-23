@@ -419,10 +419,10 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
 }
 
 void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap,
-    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* sampling)
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampling)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cBitmap == nullptr || dst == nullptr || sampling == nullptr) {
+    if (canvas == nullptr || cBitmap == nullptr || dst == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
@@ -432,10 +432,11 @@ void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawin
         return;
     }
     if (src == nullptr) {
-        canvas->DrawImageRect(*image, CastToRect(*dst), CastToSamplingOptions(*sampling));
+        canvas->DrawImageRect(*image, CastToRect(*dst),
+            cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
     } else {
         canvas->DrawImageRect(*image, CastToRect(*src),
-            CastToRect(*dst), CastToSamplingOptions(*sampling));
+            CastToRect(*dst), cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
     }
 }
 
@@ -723,9 +724,12 @@ void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cP
     OH_Drawing_Point3D cDevLightPos, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
     OH_Drawing_CanvasShadowFlags flag)
 {
-    if (cCanvas == nullptr || cPath == nullptr ||
-        flag < SHADOW_FLAGS_NONE || flag > SHADOW_FLAGS_ALL) {
+    if (cCanvas == nullptr || cPath == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (flag < SHADOW_FLAGS_NONE || flag > SHADOW_FLAGS_ALL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
@@ -755,27 +759,28 @@ void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas* cCanvas)
 }
 
 void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Image* cImage,
-    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampling,
     OH_Drawing_SrcRectConstraint constraint)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cImage == nullptr || src == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+    if (canvas == nullptr || cImage == nullptr || src == nullptr || dst == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst),
-        CastToSamplingOptions(*cSampingOptions), static_cast<SrcRectConstraint>(constraint));
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst), cSampling
+        ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions(), static_cast<SrcRectConstraint>(constraint));
 }
 
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
-    OH_Drawing_SamplingOptions* cSampingOptions)
+    OH_Drawing_SamplingOptions* cSampling)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cImage == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+    if (canvas == nullptr || cImage == nullptr || dst == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst),
+        cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
 }
 
 bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo,
