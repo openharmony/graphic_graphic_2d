@@ -120,6 +120,7 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingPathforTextBlob001, TestSize.Level1)
     auto blob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
     ASSERT_TRUE(blob != nullptr);
     auto path = SkiaTextBlob::GetDrawingPathforTextBlob(glyphId, blob.get());
+    ASSERT_TRUE(path.IsValid());
 }
 
 /**
