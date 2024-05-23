@@ -113,7 +113,7 @@ HWTEST_F(SkiaPathTest, InitWithInterpolate001, TestSize.Level1)
 
 /**
  * @tc.name: TransformWithPerspectiveClip001
- * @tc.desc: TransformWithPerspectiveClip
+ * @tc.desc: Test TransformWithPerspectiveClip
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
