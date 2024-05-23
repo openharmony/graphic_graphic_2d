@@ -161,6 +161,23 @@ HWTEST_F(SkiaImageTest, BuildFromTexture001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BuildFromTexture002
+ * @tc.desc: Test BuildFromTexture
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaImageTest, BuildFromTexture002, TestSize.Level1)
+{
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    GPUContext context;
+    TextureInfo textureInfo;
+    BitmapFormat bitmapFormat;
+    bool buildFromTexture = skiaImage->BuildFromTexture(
+        context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
+    ASSERT_FALSE(buildFromTexture);
+}
+
+/**
  * @tc.name: BuildFromSurface001
  * @tc.desc: Test BuildFromSurface
  * @tc.type: FUNC
@@ -276,23 +293,6 @@ HWTEST_F(SkiaImageTest, BuildFromCompressed, TestSize.Level1)
     GPUContext context;
     bool result = skiaImage->BuildFromCompressed(context, nullptr, width, height, CompressedType::ETC2_RGB8_UNORM);
     ASSERT_FALSE(result);
-}
-
-/**
- * @tc.name: BuildFromTexture002
- * @tc.desc: Test BuildFromTexture
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaImageTest, BuildFromTexture002, TestSize.Level1)
-{
-    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    GPUContext context;
-    TextureInfo textureInfo;
-    BitmapFormat bitmapFormat;
-    bool buildFromTexture = skiaImage->BuildFromTexture(
-        context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
-    ASSERT_FALSE(buildFromTexture);
 }
 
 /**
