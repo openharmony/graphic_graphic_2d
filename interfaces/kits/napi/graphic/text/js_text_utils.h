@@ -401,6 +401,10 @@ bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan
 
 void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle);
 
+void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle);
+
 size_t GetParamLen(napi_env env, napi_value param);
 
 bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string& str, napi_value& propertyValue);

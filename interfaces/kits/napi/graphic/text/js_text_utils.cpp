@@ -146,11 +146,8 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
         textStyle.fontFamilies = fontFamilies;
     }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
-    SetDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
-    SetDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
-    SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
-    SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
-    SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+    SetTextStyleBaseType(env, argValue, textStyle);
+    ReceiveFontFeature(env, argValue, textStyle);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
     std::string text = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
@@ -180,6 +177,52 @@ bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string&
     }
 
     return true;
+}
+
+void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value allFeatureValue = nullptr;
+    napi_get_named_property(env, argValue, "fontFeatures", &allFeatureValue);
+    uint32_t arrayLength = 0;
+    if (napi_get_array_length(env, allFeatureValue, &arrayLength) != napi_ok ||
+        !arrayLength) {
+        ROSEN_LOGE("The parameter of font features is unvaild");
+        return;
+    }
+
+    for (uint32_t further = 0; further < arrayLength; further++) {
+        napi_value singleElementValue;
+        if (napi_get_element(env, allFeatureValue, further, &singleElementValue) != napi_ok) {
+            ROSEN_LOGE("This parameter of the font features is unvaild");
+            break;
+        }
+        napi_value featureElement;
+        std::string name;
+        if (napi_get_named_property(env, singleElementValue, "name", &featureElement) != napi_ok ||
+            !ConvertFromJsValue(env, featureElement, name)) {
+            ROSEN_LOGE("This time that the name of parameter in font features is unvaild");
+            break;
+        }
+
+        int value = 0;
+        if (napi_get_named_property(env, singleElementValue, "value", &featureElement) != napi_ok ||
+            !ConvertFromJsValue(env, featureElement, value)) {
+            ROSEN_LOGE("This time that the value of parameter in font features is unvaild");
+            break;
+        }
+        textStyle.fontFeatures.SetFeature(name, value);
+    }
+    return;
+}
+
+void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    SetDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
+    SetDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
+    SetDoubleValueFromJS(env, argValue, "baselineShift", textStyle.baseLineShift);
+    SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
+    SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
+    SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
 }
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
