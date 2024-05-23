@@ -614,7 +614,9 @@ Drawing::Point RSBorder::GetTLIP(const Drawing::RoundRect& rrect, const Drawing:
             }
         } else {
             x = rrect.GetRect().GetLeft();
-            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
+            y = std::max(y - height / 2.f,
+                         std::min(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW));
         }
     } else {
         y = rrect.GetRect().GetTop() + TOPW;
@@ -659,7 +661,9 @@ Drawing::Point RSBorder::GetTRIP(const Drawing::RoundRect& rrect, const Drawing:
             }
         } else {
             x = rrect.GetRect().GetLeft() + rrect.GetRect().GetWidth();
-            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
+            y = std::max(y - height / 2.f,
+                         std::min(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW));
         }
     } else {
         y = rrect.GetRect().GetTop() + TOPW;
