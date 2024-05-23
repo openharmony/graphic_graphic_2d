@@ -281,6 +281,21 @@ inline napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* m
         napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, metrics->fDescent));
         napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, metrics->fBottom));
         napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, metrics->fLeading));
+        napi_set_named_property(env, objValue, "flags", CreateJsNumber(env, metrics->fFlags)); 
+        napi_set_named_property(env, objValue, "avgCharWidth", CreateJsNumber(env, metrics->fAvgCharWidth)); 
+        napi_set_named_property(env, objValue, "maxCharWidth", CreateJsNumber(env, metrics->fMaxCharWidth)); 
+        napi_set_named_property(env, objValue, "xMin", CreateJsNumber(env, metrics->fXMin)); 
+        napi_set_named_property(env, objValue, "xMax", CreateJsNumber(env, metrics->fXMax)); 
+        napi_set_named_property(env, objValue, "xHeight", CreateJsNumber(env, metrics->fXHeight)); 
+        napi_set_named_property(env, objValue, "capHeight", CreateJsNumber(env, metrics->fCapHeight)); 
+        napi_set_named_property(env, objValue, "underlineThickness", CreateJsNumber(env,
+            metrics->fUnderlineThickness));
+        napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
+            metrics->fUnderlinePosition));
+        napi_set_named_property(env, objValue, "strikeoutThickness", CreateJsNumber(env,
+            metrics->fStrikeoutThickness));
+        napi_set_named_property(env, objValue, "strikeoutPosition", CreateJsNumber(env,
+            metrics->fStrikeoutPosition));
     }
     return objValue;
 }

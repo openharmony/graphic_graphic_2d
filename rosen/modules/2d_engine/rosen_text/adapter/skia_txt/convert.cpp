@@ -187,19 +187,65 @@ SPText::TextStyle Convert(const TextStyle& style)
 
     return textStyle;
 }
+
+void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
+{
+    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+    textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
+    textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+    textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+    textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+    textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
+    textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
+}
+
+void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
+{
+    if (style.isSymbolGlyph) {
+        CopyTextStyleSymbol(style, textStyle);
+    }
+
+    if (style.background.has_value()) {
+        textStyle.backgroundBrush = style.background->brush;
+        textStyle.backgroundPen = style.background->pen;
+    }
+
+    if (style.foreground.has_value()) {
+        textStyle.foregroundBrush = style.foreground->brush;
+        textStyle.foregroundPen = style.foreground->pen;
+    }
+
+    for (const auto& [color, offset, radius] : style.textShadows) {
+        Drawing::Color shadowColor;
+        shadowColor.SetColorQuad(color);
+        Drawing::Point shadowOffset(offset.x(), offset.y());
+        textStyle.shadows.emplace_back(shadowColor, shadowOffset, radius);
+    }
+
+    for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+    }
+
+    if (!style.fontVariations.GetAxisValues().empty()) {
+        for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
+            textStyle.fontVariations.SetAxisValue(axis, value);
+        }
+    }
+}
+
 TextStyle Convert(const SPText::TextStyle& style)
 {
     TextStyle textStyle;
-    textStyle.color = style.color;
-    textStyle.decoration = static_cast<OHOS::Rosen::TextDecoration>(style.decoration);
-    textStyle.decorationColor = style.decorationColor;
-    textStyle.decorationStyle = static_cast<OHOS::Rosen::TextDecorationStyle>(style.decorationStyle);
+    textStyle.color.SetColorQuad(style.color);
+    textStyle.decoration = static_cast<TextDecoration>(style.decoration);
+    textStyle.decorationColor.SetColorQuad(style.decorationColor);
+    textStyle.decorationStyle = static_cast<TextDecorationStyle>(style.decorationStyle);
     textStyle.decorationThicknessScale = style.decorationThicknessMultiplier;
-    textStyle.styleId = style.styleId;
-    textStyle.fontWeight = static_cast<OHOS::Rosen::FontWeight>(style.fontWeight);
-    textStyle.fontWidth = static_cast<OHOS::Rosen::FontWidth>(style.fontWidth);
-    textStyle.fontStyle = static_cast<OHOS::Rosen::FontStyle>(style.fontStyle);
-    textStyle.baseline = static_cast<OHOS::Rosen::TextBaseline>(style.baseline);
+    textStyle.fontWeight = static_cast<FontWeight>(style.fontWeight);
+    textStyle.fontWidth = static_cast<FontWidth>(style.fontWidth);
+    textStyle.fontStyle = static_cast<FontStyle>(style.fontStyle);
+    textStyle.baseline = static_cast<TextBaseline>(style.baseline);
+
     textStyle.halfLeading = style.halfLeading;
     textStyle.fontFamilies = style.fontFamilies;
     textStyle.fontSize = style.fontSize;
@@ -215,6 +261,8 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    SplitTextStyleConvert(textStyle, style);
+
     return textStyle;
 }
 } // namespace AdapterTxt

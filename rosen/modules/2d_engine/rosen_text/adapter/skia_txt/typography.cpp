@@ -16,6 +16,7 @@
 #include "typography.h"
 
 #include <mutex>
+#include <numeric>
 
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
@@ -26,7 +27,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace skt = skia::textlayout;
 namespace {
 std::mutex g_layoutMutex;
 }
@@ -301,6 +301,10 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
     std::vector<LineMetrics> lineMetrics;
     if (paragraph_ != nullptr) {
         auto metrics = paragraph_->GetLineMetrics();
+
+        lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
+            [](const int a, const SPText::LineMetrics& b) { return a + b.runMetrics.size(); }));
+
         for (SPText::LineMetrics& spLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
             if (!spLineMetrics.runMetrics.empty()) {
@@ -322,11 +326,10 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
             line.y = spLineMetrics.topHeight;
             line.startIndex = spLineMetrics.startIndex;
             line.endIndex = spLineMetrics.endIndex;
-            std::vector<TextStyle> lineMetricsStyles;
             for (const auto& [index, styleMtrics] : spLineMetrics.runMetrics) {
-                lineMetricsStyles.push_back(Convert(*styleMtrics.textStyle));
+                lineMetricsStyles_.push_back(Convert(*styleMtrics.textStyle));
                 line.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
-                    std::forward_as_tuple(&lineMetricsStyles.back(), styleMtrics.fontMetrics));
+                    std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.fontMetrics));
             }
         }
     }
@@ -369,9 +372,11 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     lineMetrics->baseline = skLineMetrics.fBaseline;
     std::vector<TextStyle> lineMetricsStyles;
     for (const auto& [index, styleMtrics] : skLineMetrics.fLineMetrics) {
-        lineMetricsStyles.push_back(SkStyleToTextStyle(*styleMtrics.text_style));
+        SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMtrics.text_style);
+        lineMetricsStyles_.emplace_back(Convert(spTextStyle));
+
         lineMetrics->runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
-        std::forward_as_tuple(&lineMetricsStyles.back(), styleMtrics.font_metrics));
+            std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
     }
     return true;
 }
@@ -389,34 +394,6 @@ FontStyle GetTxtFontStyle(RSFontStyle::Slant slant)
 {
     return slant == RSFontStyle::Slant::UPRIGHT_SLANT ?
         FontStyle::NORMAL : FontStyle::ITALIC;
-}
-
-OHOS::Rosen::TextStyle Typography::SkStyleToTextStyle(const skt::TextStyle& skStyle)
-{
-    TextStyle txt;
-
-    txt.color = skStyle.getColor();
-    txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
-    txt.decorationColor = skStyle.getDecorationColor();
-    txt.decorationStyle = static_cast<TextDecorationStyle>(skStyle.getDecorationStyle());
-    txt.decorationThicknessScale = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
-    txt.fontWeight = GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
-    txt.fontStyle = GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
-
-    txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
-
-    for (const SkString& fontFamily : skStyle.getFontFamilies()) {
-        txt.fontFamilies.emplace_back(fontFamily.c_str());
-    }
-
-    txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
-    txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
-    txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
-    txt.heightScale = SkScalarToDouble(skStyle.getHeight());
-
-    txt.locale = skStyle.getLocale().c_str();
-
-    return txt;
 }
 
 Drawing::FontMetrics Typography::GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle)

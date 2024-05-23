@@ -23,7 +23,6 @@
 
 #include "draw/color.h"
 #include "js_drawing_utils.h"
-#include "line_metrics.h"
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -439,7 +438,7 @@ inline napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
     return objValue;
 }
 
-inline napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics fontMetrics)
+inline napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
@@ -479,19 +478,20 @@ inline napi_value CreateRunMetricsJsValue(napi_env env, RunMetrics runMetrics)
     return objValue;
 }
 
-inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map) {
-    napi_value result;
+inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map)
+{
+    napi_value result = nullptr;
     napi_status status = napi_create_object(env, &result);
     if (status != napi_ok) {
         ROSEN_LOGE("ConvertMapToNapiMap create napi object failed");
         return nullptr;
     }
-    napi_value jsSize;
+    napi_value jsSize = nullptr;
     napi_create_uint32(env, map.size(), &jsSize);
     napi_set_named_property(env, result, "size", jsSize);
     for (const auto &[key, val] : map) {
         const std::string &name = std::to_string(key);
-        status = napi_set_property(env, result, CreateJsValue(env,name), CreateRunMetricsJsValue(env, val));
+        status = napi_set_property(env, result, CreateJsValue(env, name), CreateRunMetricsJsValue(env, val));
         if (status != napi_ok) {
             return nullptr;
         }
@@ -499,7 +499,7 @@ inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMe
     return result;
 }
 
-inline napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics lineMetrics)
+inline napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);

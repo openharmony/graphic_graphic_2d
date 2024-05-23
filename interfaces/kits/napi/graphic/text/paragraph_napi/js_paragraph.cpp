@@ -169,10 +169,6 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsParagraph::OnPaint Argv is invalid");
         return NapiGetUndefined(env);
     }
-    if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
-        recordingCanvas->SetIsCustomTypeface(true);
-    }
     paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
 
     return NapiGetUndefined(env);
@@ -588,7 +584,7 @@ napi_value JsParagraph::OnGetLineMetricsAt(napi_env env, napi_callback_info info
         ROSEN_LOGE("JsParagraph::OnGetLineMetricsAt Argv is invalid");
         return NapiGetUndefined(env);
     }
-    OHOS::Rosen::LineMetrics lineMetrics;
+    LineMetrics lineMetrics;
     paragraph_->GetLineMetricsAt(lineNumber, &lineMetrics);
     return CreateLineMetricsJsValue(env, lineMetrics);
 }

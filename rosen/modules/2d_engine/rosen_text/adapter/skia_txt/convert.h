@@ -38,6 +38,7 @@ DEFINE_CONVERT_FUNC(std::shared_ptr<OHOS::Rosen::FontCollection>, FONT_COLLECTIO
 DEFINE_CONVERT_FUNC(SPText::PositionWithAffinity, IndexAndAffinity);
 DEFINE_CONVERT_FUNC(SPText::Range<size_t>, Boundary);
 DEFINE_CONVERT_FUNC(SPText::TextBox, TextRect);
+DEFINE_CONVERT_FUNC(SPText::TextStyle, TextStyle);
 
 // from rosen_text to txt
 DEFINE_CONVERT_FUNC(TextRectHeightStyle, SPText::RectHeightStyle);
@@ -46,7 +47,6 @@ DEFINE_CONVERT_FUNC(TypographyStyle, SPText::ParagraphStyle);
 DEFINE_CONVERT_FUNC(PlaceholderSpan, SPText::PlaceholderRun);
 DEFINE_CONVERT_FUNC(TextStyle, SPText::TextStyle);
 
-DEFINE_CONVERT_FUNC(SPText::TextStyle, OHOS::Rosen::TextStyle);
 #undef DEFINE_CONVERT_FUNC
 } // namespace AdapterTxt
 } // namespace Rosen
