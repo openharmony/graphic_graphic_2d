@@ -163,13 +163,13 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Copy006, TestSize.Level1)
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect002, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     EXPECT_NE(nullptr, rect);
 
     OH_Drawing_Rect *rectt = nullptr;
     ASSERT_TRUE(rectt == nullptr);
 
-    OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(300, 250, 600, 400); // 250 300 400 600 矩形
+    OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(300, 250, 600, 400); // 250 300 400 600  rect param
     EXPECT_NE(nullptr, otherOne);
 
     OH_Drawing_Rect *otherTwo = nullptr;
@@ -198,10 +198,10 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect002, TestSize.Lev
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectJoin001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500  rect param
     EXPECT_NE(nullptr, rect);
 
-    OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(300, 250, 600, 400); // 250 300 400 600 矩形
+    OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(300, 250, 600, 400); // 250 300 400 600  rect param
     EXPECT_NE(nullptr, otherOne);
 
     bool ret = OH_Drawing_RectJoin(rect, otherOne);
