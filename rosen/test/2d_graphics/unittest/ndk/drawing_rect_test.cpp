@@ -239,9 +239,9 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectJoin002, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetTop001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     OH_Drawing_RectSetTop(rect, 10);                                   // 10 means top
-    // 检查设置的上边距离值是否和预期相符
+
     ASSERT_FLOAT_EQ(OH_Drawing_RectGetTop(rect), 10); // 10 equal to number
     ASSERT_NE(OH_Drawing_RectGetTop(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
@@ -257,9 +257,8 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetTop002, TestSize.Le
 {
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetTop(rect, 10); // 10 means top
-    // 验证函数中对空指针的处理是否符合预期
+
     ASSERT_TRUE(rect == nullptr);
-    OH_Drawing_RectDestroy(rect);
 }
 
 /*
@@ -270,9 +269,9 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetTop002, TestSize.Le
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetBottom001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     OH_Drawing_RectSetBottom(rect, 10);                                // 10 means Bottom
-    // 检查设置的下边距离值是否和预期相符
+
     ASSERT_FLOAT_EQ(OH_Drawing_RectGetBottom(rect), 10); // 10 equal to number
     ASSERT_NE(OH_Drawing_RectGetBottom(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
@@ -301,9 +300,9 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetBottom002, TestSize
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetLeft001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     OH_Drawing_RectSetLeft(rect, 10);                                  // 10 means Left
-    // 检查设置的左边距离值是否和预期相符
+
     ASSERT_FLOAT_EQ(OH_Drawing_RectGetLeft(rect), 10); // 10 equal to number
     ASSERT_NE(OH_Drawing_RectGetLeft(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
@@ -319,7 +318,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetLeft002, TestSize.L
 {
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetLeft(rect, 10); // 10 means Left
-    // 验证函数中对空指针的处理是否符合预期
+
     ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
@@ -332,11 +331,10 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetLeft002, TestSize.L
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetRight001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     OH_Drawing_RectSetRight(rect, 10);                                 // 10 means Right
-    // 检查设置的下边距离值是否和预期相符
+
     ASSERT_FLOAT_EQ(OH_Drawing_RectGetRight(rect), 10);
-    ASSERT_NE(OH_Drawing_RectGetRight(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -350,7 +348,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetRight002, TestSize.
 {
     OH_Drawing_Rect *rect = nullptr;
     OH_Drawing_RectSetRight(rect, 10); // 10 means Right
-    // 验证函数中对空指针的处理是否符合预期
+
     ASSERT_TRUE(rect == nullptr);
     OH_Drawing_RectDestroy(rect);
 }
@@ -363,7 +361,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetRight002, TestSize.
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetTop001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50, 50, 250, 250 rect param
     float top = OH_Drawing_RectGetTop(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(top, 50)); // 50 means top
     OH_Drawing_RectDestroy(rect);
@@ -391,7 +389,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetTop002, TestSize.Le
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetBottom001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50, 50, 250, 250 rect param
     float bottom = OH_Drawing_RectGetBottom(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(bottom, 250)); // 250 means bottom
     OH_Drawing_RectDestroy(rect);
@@ -419,7 +417,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetBottom002, TestSize
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetLeft001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 rect param
     float left = OH_Drawing_RectGetLeft(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(left, 50)); // 50 means left
     OH_Drawing_RectDestroy(rect);
@@ -447,7 +445,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetLeft002, TestSize.L
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectGetRight001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 矩形
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(50, 50, 250, 250); // 50 250 rect param
     float right = OH_Drawing_RectGetRight(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(right, 250)); // 250 means right
     OH_Drawing_RectDestroy(rect);
@@ -505,11 +503,11 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectCopy001, TestSize.Leve
 {
     OH_Drawing_Rect *rectSrc = nullptr;
     ASSERT_TRUE(rectSrc == nullptr);
-    OH_Drawing_Rect *rectDst = OH_Drawing_RectCreate(11, 22, 333, 444); // 11,22,333,444 矩形
+    OH_Drawing_Rect *rectDst = OH_Drawing_RectCreate(11, 22, 333, 444); // 11,22,333,444 rect param
     OH_Drawing_RectCopy(rectDst, rectSrc);
     ASSERT_TRUE(rectDst == nullptr);
 
-    OH_Drawing_Rect *rectSrc1 = OH_Drawing_RectCreate(0, 0, 400, 800); // 400 800 矩形
+    OH_Drawing_Rect *rectSrc1 = OH_Drawing_RectCreate(0, 0, 400, 800); // 400 800 v
     OH_Drawing_Rect *rectDst1 = nullptr;
     ASSERT_TRUE(rectDst1 == nullptr);
     OH_Drawing_RectCopy(rectDst1, rectSrc);
