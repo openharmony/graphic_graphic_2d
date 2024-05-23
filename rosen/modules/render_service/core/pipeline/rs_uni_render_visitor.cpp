@@ -1504,7 +1504,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node, true);
     if (node.LastFrameSubTreeSkipped() && curSurfaceDirtyManager_) {
-        node.MergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
+        node.ForceMergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
     }
     bool animationBackup = ancestorNodeHasAnimation_;
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
