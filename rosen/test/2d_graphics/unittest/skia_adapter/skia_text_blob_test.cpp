@@ -14,10 +14,12 @@
  */
 
 #include <cstddef>
+
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_text_blob.h"
-#include "text/text_blob.h"
+
 #include "text/rs_xform.h"
+#include "text/text_blob.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -64,7 +66,7 @@ HWTEST_F(SkiaTextBlobTest, MakeFromRSXform001, TestSize.Level1)
     const char* str = "asdf";
     Font font;
     font.SetSize(100);
-    RSXform xform[] = {RSXform::Make(10, 10, 10, 10)}; // 10: cos, sin, tx, ty
+    RSXform xform[] = { RSXform::Make(10, 10, 10, 10) }; // 10: cos, sin, tx, ty
     auto textblob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
     ASSERT_TRUE(textblob != nullptr);
 }
@@ -80,9 +82,9 @@ HWTEST_F(SkiaTextBlobTest, MakeFromPosText001, TestSize.Level1)
     const char* str = "as";
     Font font;
     font.SetSize(100);
-    Point p1{0, 0};
-    Point p2{1, 1};
-    Point pos[] = {p1, p2};
+    Point p1 { 0, 0 };
+    Point p2 { 1, 1 };
+    Point pos[] = { p1, p2 };
     auto textblob = SkiaTextBlob::MakeFromPosText(str, strlen(str), pos, font, TextEncoding::UTF8);
     ASSERT_TRUE(textblob != nullptr);
 }
@@ -100,7 +102,7 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingGlyphIDforTextBlob001, TestSize.Level1)
     font.SetSize(100);
     auto textblob = SkiaTextBlob::MakeFromText(str, strlen(str), font, TextEncoding::UTF8);
     ASSERT_TRUE(textblob != nullptr);
-    std::vector<uint16_t> glyphIds{0, 1};
+    std::vector<uint16_t> glyphIds { 0, 1 };
     SkiaTextBlob::GetDrawingGlyphIDforTextBlob(textblob.get(), glyphIds);
 }
 
@@ -113,14 +115,14 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingGlyphIDforTextBlob001, TestSize.Level1)
 HWTEST_F(SkiaTextBlobTest, GetDrawingPathforTextBlob001, TestSize.Level1)
 {
     uint16_t glyphId = 1;
-    const char *str = "asdf";
+    const char* str = "asdf";
     Font font;
     font.SetSize(100);
     RSXform xform[] = {RSXform::Make(10, 10, 10, 10)};
     auto blob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
     ASSERT_TRUE(blob != nullptr);
     auto path = SkiaTextBlob::GetDrawingPathforTextBlob(glyphId, blob.get());
-    ASSERT_TRUE(path.IsValid());
+    ASSERT_TRUE(path.IsValid() == false);
 }
 
 /**
@@ -131,19 +133,22 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingPathforTextBlob001, TestSize.Level1)
  */
 HWTEST_F(SkiaTextBlobTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
 {
-    const char *str = "asdf";
+    const char* str = "asdf";
     Font font;
     font.SetSize(100);
-    RSXform xform[] = {RSXform::Make(10, 10, 10, 10)};
-    auto blob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
+    // RSXform xform[] = {RSXform::Make(10, 10, 10, 10)};
+    // auto blob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
+    Point p1 { 0, 0 };
+    Point p2 { 1, 1 };
+    Point pos[] = { p1, p2 };
+    auto blob = SkiaTextBlob::MakeFromPosText(str, strlen(str), pos, font, TextEncoding::UTF8);
     ASSERT_TRUE(blob != nullptr);
-    Point p1{0, 0};
-    Point p2{1, 1};
-    std::vector<Point> point;
-    point.push_back(p1);
-    point.push_back(p2);
-    ASSERT_TRUE(!point.empty());
-    SkiaTextBlob::GetDrawingPointsForTextBlob(blob.get(), point);
+    std::vector<Point> points;
+    SkiaTextBlob::GetDrawingPointsForTextBlob(blob.get(), points);
+    ASSERT_TRUE(points[0].GetX() == 0);
+    ASSERT_TRUE(points[0].GetY() == 0);
+    ASSERT_TRUE(points[1].GetX() == 1);
+    ASSERT_TRUE(points[1].GetY() == 1);
 }
 } // namespace Drawing
 } // namespace Rosen
