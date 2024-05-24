@@ -15,7 +15,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("test") {
   testonly = true
-
   deps = [
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer:fuzztest",
@@ -25,25 +24,60 @@ group("test") {
     "render_service/unittest/screen_manager:unittest",
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
+    "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsaibarfilter_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsanimationfraction_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsanimationratedecider_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsapplicationagentstub_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsbackgroundthread_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsblurfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommondef_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommontools_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsdirtyregionmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsdisplaynodecommand_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsdisplayrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsframereport_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsfuntionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsisurfaceocclusionchangecallbackipcinterfacecodeaccessverifier_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rslineargradientblurfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslistenedcanvas_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rspath_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rspropertydrawableframegeometry_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rspropertydrawableutilities_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsproxyrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderdisplaysync_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrootrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsscreencapability_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsscreenhdrcapability_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsshader_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsshadow_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsspringmodel_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosgl_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceframeohosvulkan_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfacenodecommand_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceocclusionchangecallbackproxy_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceocclusionchangecallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohosraster_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssystemproperties_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsthreadhandlergeneric_fuzzer:fuzztest",
+    "render_service_base/fuzztest/skresourcemanager_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
+    "render_service_base/unittest/drawable:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
@@ -55,9 +89,11 @@ group("test") {
     "render_service_base/unittest/render:unittest",
     "render_service_base/unittest/screen_manager:unittest",
     "render_service_base/unittest/transaction:unittest",
+    "render_service_client/fuzztest/rsextendedmodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsproxynode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
     "render_service_client/unittest/jank_detector:unittest",
@@ -65,10 +101,17 @@ group("test") {
     "render_service_client/unittest/pipeline:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
-    "render_service_profiler/unittest:unittest",
   ]
 
   if (tp_feature_enable) {
     deps += [ "render_service/unittest/touch_screen:unittest" ]
+  }
+
+  if (graphic_2d_feature_enable_rspipeline) {
+    deps += [ "render_service/unittest/drawable:unittest" ]
+  }
+
+  if (graphic_2d_feature_rs_enable_profiler) {
+    deps += [ "render_service_profiler/unittest:unittest" ]
   }
 }
