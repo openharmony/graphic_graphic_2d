@@ -74,7 +74,6 @@ group("test") {
     "render_service_client/unittest/pipeline:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
-    "render_service_profiler/unittest:unittest",
   ]
 
   if (tp_feature_enable) {
@@ -83,5 +82,9 @@ group("test") {
 
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ "render_service/unittest/drawable:unittest" ]
+  }
+
+  if (graphic_2d_feature_rs_enable_profiler) {
+    deps += [ "render_service_profiler/unittest:unittest" ]
   }
 }
