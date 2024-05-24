@@ -349,7 +349,7 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
-
+    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(currRefreshRate_));
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
         if (forceUpdateCallback_ != nullptr) {
@@ -640,7 +640,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(bool isSafe)
 
 void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    HgmTaskHandleThread::Instance().PostTask([this, packageList = packageList] () {
+    HgmTaskHandleThread::Instance().PostTask([this, packageList] () {
         if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
@@ -830,9 +830,7 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
     }
 
     std::lock_guard<std::mutex> lock(voteMutex_);
-    if (voteRecord_.find(eventName) == voteRecord_.end()) {
-        voteRecord_[eventName] = {};
-    }
+    voteRecord_.try_emplace(eventName, std::vector<std::pair<pid_t, VoteRange>>());
     auto& vec = voteRecord_[eventName];
 
     // clear

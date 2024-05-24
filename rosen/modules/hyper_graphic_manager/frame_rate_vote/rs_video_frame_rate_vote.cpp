@@ -84,7 +84,7 @@ uint32_t RSVideoFrameRateVote::CalculateVideoFrameRate()
     return avgRate;
 }
 
-uint32_t RSVideoFrameRateVote::Calculate(int64_t oneSecond)
+uint32_t RSVideoFrameRateVote::Calculate(int64_t oneSecond) const
 {
     uint32_t avgRate = 0;
     int64_t timeDiff = videoTimestamp_[VECTOR_END] - videoTimestamp_[VECTOR_START];

@@ -138,7 +138,7 @@ private:
     void UpdateAppSupportStatus();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
     void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
-    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAnimationStatus);
+    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);
@@ -193,7 +193,7 @@ private:
     HgmTouchManager touchManager_;
     int32_t lastTouchState_ = IDLE_STATE;
     bool startCheck_ = false;
-    bool prepareCheck_;
+    bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
 };
 } // namespace Rosen

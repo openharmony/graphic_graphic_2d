@@ -42,13 +42,13 @@ public:
     void HandleLightFactorStatus(bool isSafe);
 
     void CalcVote();
-    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
 
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
 
     std::string GetAppStrategyConfigName(const std::string& pkgName) const;
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const;
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
     void UpdateXmlConfigCache();
     PolicyConfigData::ScreenSetting& GetScreenSetting() const { return screenSettingCache_; }
