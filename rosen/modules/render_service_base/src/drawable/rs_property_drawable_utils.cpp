@@ -189,10 +189,6 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
     std::shared_ptr<Drawing::Pixmap> dst;
     const int buffLen = scaledImage->GetWidth() * scaledImage->GetHeight();
     auto pixelPtr = std::make_unique<uint32_t[]>(buffLen);
-    if (pixelPtr == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn pixelPtr is null");
-        return false;
-    }
     auto info = scaledImage->GetImageInfo();
     dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr.get(), info.GetWidth() * info.GetBytesPerPixel());
     bool flag = scaledImage->ReadPixels(*dst, 0, 0);
