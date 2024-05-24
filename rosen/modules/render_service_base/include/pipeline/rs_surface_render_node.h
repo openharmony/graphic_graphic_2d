@@ -452,7 +452,7 @@ public:
         UIFirstIsPurge_ = IsPurge;
     }
 
-    bool GetUIFirstIsPurge()
+    bool GetUIFirstIsPurge() const
     {
         return UIFirstIsPurge_;
     }

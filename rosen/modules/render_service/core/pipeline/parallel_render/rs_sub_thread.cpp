@@ -38,17 +38,10 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 
 #ifdef RES_SCHED_ENABLE
-#include "res_type.h"
-#include "res_sched_client.h"
+#include "qos.h"
 #endif
 
 namespace OHOS::Rosen {
-namespace {
-#ifdef RES_SCHED_ENABLE
-    const uint32_t RS_SUB_QOS_LEVEL = 7;
-    constexpr const char* RS_BUNDLE_NAME = "render_service";
-#endif
-}
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
@@ -69,17 +62,8 @@ pid_t RSSubThread::Start()
     });
     PostTask([this]() {
 #ifdef RES_SCHED_ENABLE
-        std::string strBundleName = RS_BUNDLE_NAME;
-        std::string strPid = std::to_string(getpid());
-        std::string strTid = std::to_string(gettid());
-        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
-        std::unordered_map<std::string, std::string> mapPayload;
-        mapPayload["pid"] = strPid;
-        mapPayload[strTid] = strQos;
-        mapPayload["bundleName"] = strBundleName;
-        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
-        int64_t value = 0;
-        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSSubThread%{public}d: SetThreadQos retcode = %{public}d", threadIndex_, ret);
 #endif
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {

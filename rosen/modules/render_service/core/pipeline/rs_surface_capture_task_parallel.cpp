@@ -46,7 +46,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
