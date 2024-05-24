@@ -110,15 +110,15 @@ static const std::vector<struct JsEnumInt> g_blurType = {
 };
 
 static const std::vector<struct JsEnumInt> g_fontMetricsFlags = {
-    { "UNDERLINE_THICKNESS_VALID", static_cast<size_t>(
+    { "UNDERLINE_THICKNESS_VALID", static_cast<int32_t>(
         Drawing::FontMetrics::FontMetricsFlags::UNDERLINE_THICKNESS_IS_VALID_FLAG) },
-    { "UNDERLINE_POSITION_VALID", static_cast<size_t>(
+    { "UNDERLINE_POSITION_VALID", static_cast<int32_t>(
         Drawing::FontMetrics::FontMetricsFlags::UNDERLINE_POSITION_IS_VALID_FLAG) },
-    { "STRIKETHROUGH_THICKNESS_VALID", static_cast<size_t>(
+    { "STRIKETHROUGH_THICKNESS_VALID", static_cast<int32_t>(
         Drawing::FontMetrics::FontMetricsFlags::STRIKEOUT_THICKNESS_IS_VALID_FLAG) },
-    { "STRIKETHROUGH_POSITION_VALID", static_cast<size_t>(
+    { "STRIKETHROUGH_POSITION_VALID", static_cast<int32_t>(
         Drawing::FontMetrics::FontMetricsFlags::STRIKEOUT_POSITION_IS_VALID_FLAG) },
-    { "BOUNDS_INVALID", static_cast<size_t>(Drawing::FontMetrics::FontMetricsFlags::BOUNDS_INVALID_FLAG) },
+    { "BOUNDS_INVALID", static_cast<int32_t>(Drawing::FontMetrics::FontMetricsFlags::BOUNDS_INVALID_FLAG) },
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
