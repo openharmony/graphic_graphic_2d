@@ -388,9 +388,6 @@ HWTEST_F(SkiaTypefaceTest, SerializeTypeface002, TestSize.Level1)
     bool isCustomTypeface = true;
     DrawTextBlobOpItem::ConstructorHandle* handle = nullptr;
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    if (DrawOpItem::customTypefaceQueryfunc_) {
-        typeface = DrawOpItem::customTypefaceQueryfunc_(handle->globalUniqueId);
-    }
     TextBlob::Context customContext { typeface, isCustomTypeface };
     auto serializedData = SkiaTypeface::SerializeTypeface(skTypeface.get(), &customContext);
     ASSERT_TRUE(serializedData != nullptr);
