@@ -109,6 +109,7 @@ void TypefaceCreateFromStream::OnTestPerformance(OH_Drawing_Canvas* canvas)
         memoryStream = OH_Drawing_MemoryStreamCreate(data, length, true);
         typeface = OH_Drawing_TypefaceCreateFromStream(memoryStream, 0);
         OH_Drawing_TypefaceDestroy(typeface);
+        OH_Drawing_MemoryStreamDestroy(memoryStream);
     }
     memoryStream = OH_Drawing_MemoryStreamCreate(data, length, true);
     typeface = OH_Drawing_TypefaceCreateFromStream(memoryStream, 0);
@@ -119,5 +120,6 @@ void TypefaceCreateFromStream::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
     OH_Drawing_TextBlobDestroy(textblob);
     OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_MemoryStreamDestroy(memoryStream);
     OH_Drawing_FontDestroy(font);
 }
