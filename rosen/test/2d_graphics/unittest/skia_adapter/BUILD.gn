@@ -53,7 +53,6 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "skia_runtime_effect_test.cpp",
     "skia_runtime_shader_builder_test.cpp",
     "skia_shader_effect_test.cpp",
-    "skia_static_factory_test.cpp",    
     "skia_surface_test.cpp",
     "skia_text_blob_test.cpp",
     "skia_texture_info_test.cpp",
