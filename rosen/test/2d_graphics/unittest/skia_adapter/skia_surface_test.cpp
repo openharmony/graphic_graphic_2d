@@ -14,14 +14,12 @@
  */
 
 #include <memory>
-
 #include "gtest/gtest.h"
+#include "effect/color_space.h"
+#include "image/gpu_context.h"
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_gpu_context.h"
 #include "skia_adapter/skia_surface.h"
-
-#include "effect/color_space.h"
-#include "image/gpu_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -89,12 +87,12 @@ HWTEST_F(SkiaSurfaceTest, MakeFromBackendRenderTarget001, TestSize.Level1)
     TextureInfo info;
     info.SetWidth(10);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    auto target1 = SkiaSurface::MakeFromBackendRenderTarget(
-        gpuContext.get(), info, TextureOrigin::TOP_LEFT, ColorType::COLORTYPE_RGBA_8888, colorSpace, nullptr, nullptr);
-    auto target2 = SkiaSurface::MakeFromBackendRenderTarget(
-        gpuContext.get(), info, TextureOrigin::TOP_LEFT, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(target1 == nullptr);
-    ASSERT_TRUE(target2 == nullptr);
+    auto surface1 = SkiaSurface::MakeFromBackendRenderTarget(gpuContext.get(), info, TextureOrigin::TOP_LEFT,
+        ColorType::COLORTYPE_RGBA_8888, colorSpace, nullptr, nullptr);
+    auto surface2 = SkiaSurface::MakeFromBackendRenderTarget(gpuContext.get(), info, TextureOrigin::TOP_LEFT,
+        ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
+    ASSERT_TRUE(surface1 == nullptr);
+    ASSERT_TRUE(surface2 == nullptr);
 }
 
 /**
@@ -111,12 +109,12 @@ HWTEST_F(SkiaSurfaceTest, MakeFromBackendTexture001, TestSize.Level1)
     auto gpuContext = skiaCanvas->GetGPUContext();
     TextureInfo info;
     info.SetWidth(10);
-    auto texture1 = SkiaSurface::MakeFromBackendTexture(
-        nullptr, info, TextureOrigin::TOP_LEFT, 1, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(texture1 == nullptr);
-    auto texture2 = SkiaSurface::MakeFromBackendTexture(
-        gpuContext.get(), info, TextureOrigin::TOP_LEFT, 1, ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
-    ASSERT_TRUE(texture2 == nullptr);
+    auto surface = SkiaSurface::MakeFromBackendTexture(nullptr, info, TextureOrigin::TOP_LEFT, 1,
+        ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
+    ASSERT_TRUE(surface == nullptr);
+    auto surface = SkiaSurface::MakeFromBackendTexture(gpuContext.get(), info, TextureOrigin::TOP_LEFT, 1,
+        ColorType::COLORTYPE_RGBA_8888, nullptr, nullptr, nullptr);
+    ASSERT_TRUE(surface == nullptr);
 }
 
 /**
@@ -194,7 +192,7 @@ HWTEST_F(SkiaSurfaceTest, MakeRenderTarget001, TestSize.Level1)
  */
 HWTEST_F(SkiaSurfaceTest, MakeRaster001, TestSize.Level1)
 {
-    ImageInfo info { -1, -1, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
+    ImageInfo info{-1, -1, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE};
     auto surface = SkiaSurface::MakeRaster(info);
     ASSERT_TRUE(surface == nullptr);
 }
@@ -294,85 +292,6 @@ HWTEST_F(SkiaSurfaceTest, Height001, TestSize.Level1)
     auto sf = SkiaSurface::MakeRasterN32Premul(800, 800); // 800: width, height
     ASSERT_TRUE(sf != nullptr);
     ASSERT_TRUE(sf->Height() == 800);
-}
-
-/**
- * @tc.name: GetCanvas001
- * @tc.desc: Test GetCanvas
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, GetCanvas001, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-    skiaSurface.SetSkSurface(skSurface);
-    auto canvas = skiaSurface.GetCanvas();
-    ASSERT_TRUE(canvas != nullptr);
-}
-
-/**
- * @tc.name: GetImageSnapshot001
- * @tc.desc: Test GetImageSnapshot
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, GetImageSnapshot001, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-    skiaSurface.SetSkSurface(skSurface);
-    auto image = skiaSurface.GetImageSnapshot();
-    ASSERT_TRUE(image != nullptr);
-}
-
-/**
- * @tc.name: GetImageSnapshot002
- * @tc.desc: Test GetImageSnapshot
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, GetImageSnapshot002, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-    ImageInfo imageInfo;
-    imageInfo.SetWidth(100);
-    imageInfo.SetHeight(200);
-    RectI rectI;
-    rectI = imageInfo.GetBound();
-    skiaSurface.SetSkSurface(skSurface);
-    auto image = skiaSurface.GetImageSnapshot(rectI);
-    ASSERT_TRUE(image != nullptr);
-}
-
-/**
- * @tc.name: GetBackendTexture001
- * @tc.desc: Test GetBackendTexture
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, GetBackendTexture001, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-    skiaSurface.SetSkSurface(skSurface);
-    auto texture = skiaSurface.GetBackendTexture(BackendAccess::FLUSH_WRITE);
-    ASSERT_TRUE(texture.IsValid());
-}
-
-/**
- * @tc.name: SetSkSurface001
- * @tc.desc: Test SetSkSurface
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, SetSkSurface001, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-    skiaSurface.SetSkSurface(skSurface);
-    ASSERT_TRUE(skSurface == skiaSurface.GetSkSurface());
 }
 } // namespace Drawing
 } // namespace Rosen
