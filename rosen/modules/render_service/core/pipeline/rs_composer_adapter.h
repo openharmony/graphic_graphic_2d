@@ -20,35 +20,11 @@
 
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "rs_base_render_util.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
-struct ComposeInfo {
-    GraphicIRect srcRect;
-    GraphicIRect dstRect;
-    GraphicIRect boundRect;
-    GraphicIRect visibleRect;
-    GraphicMatrix matrix;
-    int32_t gravity;
-    int32_t zOrder { 0 };
-    GraphicLayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    GraphicBlendType blendType;
-    bool needClient;
-};
-
-static inline int RotateEnumToInt(ScreenRotation rotation)
-{
-    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
-        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
-        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
-    auto iter = screenRotationEnumToIntMap.find(rotation);
-    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
-}
-
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)>;
 class RSComposerAdapter {
 public:
@@ -67,6 +43,7 @@ public:
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     /* only used for mock tests */
     void SetHdiBackendDevice(HdiDevice* device);
+    void SetColorFilterMode(ColorFilterMode colorFilterMode);
 
 private:
     // check if the node is out of the screen region.
@@ -97,6 +74,7 @@ private:
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;
+    ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
     // The offset on dst screen for all layers.
     int32_t offsetX_ = 0;

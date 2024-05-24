@@ -22,7 +22,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
-#include "rs_base_render_util.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
@@ -335,6 +334,9 @@ bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSur
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
+    if (colorFilterMode_ == ColorFilterMode::INVERT_COLOR_ENABLE_MODE) {
+        needClient = true;
+    }
     return needClient;
 }
 
@@ -610,6 +612,11 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     LayerRotate(layer, node);
     // do not crop or scale down for displayNode's layer.
     return layer;
+}
+
+void RSComposerAdapter::SetColorFilterMode(ColorFilterMode colorFilterMode)
+{
+    colorFilterMode_ = colorFilterMode;
 }
 
 static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
