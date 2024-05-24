@@ -340,9 +340,9 @@ inline napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* m
             metrics->fUnderlineThickness));
         napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
             metrics->fUnderlinePosition));
-        napi_set_named_property(env, objValue, "strikeoutThickness", CreateJsNumber(env,
+        napi_set_named_property(env, objValue, "strikethroughThickness", CreateJsNumber(env,
             metrics->fStrikeoutThickness));
-        napi_set_named_property(env, objValue, "strikeoutPosition", CreateJsNumber(env,
+        napi_set_named_property(env, objValue, "strikethroughPosition", CreateJsNumber(env,
             metrics->fStrikeoutPosition));
     }
     return objValue;

@@ -428,8 +428,8 @@ inline napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "letterSpacing", CreateJsNumber(env, textStyle.letterSpacing));
         napi_set_named_property(env, objValue, "wordSpacing", CreateJsNumber(env, textStyle.wordSpacing));
         napi_set_named_property(env, objValue, "heightScale", CreateJsNumber(env, textStyle.heightScale));
-        napi_set_named_property(env, objValue, "halfLeading", CreateJsNumber(env, textStyle.halfLeading));
-        napi_set_named_property(env, objValue, "heightOnly", CreateJsNumber(env, textStyle.heightOnly));
+        napi_set_named_property(env, objValue, "halfLeading", CreateJsValue(env, textStyle.halfLeading));
+        napi_set_named_property(env, objValue, "heightOnly", CreateJsValue(env, textStyle.heightOnly));
         napi_set_named_property(env, objValue, "ellipsis", CreateStringJsValue(env, textStyle.ellipsis));
         napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
             env, static_cast<uint32_t>(textStyle.ellipsisModal)));
