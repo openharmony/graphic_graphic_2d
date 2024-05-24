@@ -387,7 +387,7 @@ inline napi_value CreateTextRectJsValue(napi_env env, TextRect textrect)
     return objValue;
 }
 
-inline napi_value CreateArrayStringJsValue(napi_env env, std::vector<std::string&> vectorString)
+inline napi_value CreateArrayStringJsValue(napi_env env, std::vector<std::string> vectorString)
 {
     napi_value jsArray = nullptr;
     if (napi_create_array_with_length(env, vectorString.size(), &jsArray) == napi_ok) {
@@ -490,7 +490,7 @@ inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMe
     napi_create_uint32(env, map.size(), &jsSize);
     napi_set_named_property(env, result, "size", jsSize);
     for (const auto &[key, val] : map) {
-        status = napi_set_property(env, result, CreateJsValue(env, key), CreateRunMetricsJsValue(env, val));
+        status = napi_set_property(env, result, CreateJsNumber(env, key), CreateRunMetricsJsValue(env, val));
         if (status != napi_ok) {
             return nullptr;
         }
