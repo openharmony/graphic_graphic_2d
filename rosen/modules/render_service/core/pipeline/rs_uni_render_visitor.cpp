@@ -1818,6 +1818,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     float alpha = 1.f;
     AccumulateMatrixAndAlpha(hwcNode, totalMatrix, alpha);
     hwcNode->SetTotalMatrix(totalMatrix);
+    hwcNode->SetGlobalAlpha(alpha);
     if (!ROSEN_EQ(alpha, 1.f)) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by accumulated alpha:%.2f",
             hwcNode->GetName().c_str(), hwcNode->GetId(), alpha);
