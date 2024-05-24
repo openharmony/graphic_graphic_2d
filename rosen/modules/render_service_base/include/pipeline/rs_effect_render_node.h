@@ -32,11 +32,6 @@ public:
         return Type;
     }
 
-    bool GetUifirstSupportFlag() override
-    {
-        return false;
-    }
-
     bool OpincGetNodeSupportFlag() override
     {
         return false;
