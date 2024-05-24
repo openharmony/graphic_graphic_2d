@@ -361,9 +361,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     now -= phase;
     if (now < 0) {
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
-            if (expectTimeFlag_) { // Ensure that nextTime is not earlier than referenceTime.
-                auto num = ((-now) / periodRecord_) * periodRecord_;
-                ScopedBytrace trace("sgb num:" + std::to_string(num) + ", now:" + std::to_string(now));
+            if (expectTimeFlag_ || refreshRateIsChanged_) { // Ensure that nextTime is not earlier than referenceTime.
                 now += ((-now) / periodRecord_) * periodRecord_;
             }
             now -= periodRecord_;
@@ -378,7 +376,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     // 3 / 5 and 1 / 10 are just empirical value
     int64_t threshold = refreshRateIsChanged_ ? (1 * periodRecord_ / 10) : (3 * periodRecord_ / 5);
     // between 8000000(8ms) and 8500000(8.5ms)
-    if (!refreshRateIsChanged_ && periodRecord_ > 8000000 && periodRecord_ < 8500000) {
+    if (!refreshRateIsChanged_ && frameRateChanging_ && periodRecord_ > 8000000 && periodRecord_ < 8500000) {
         threshold = 4 * periodRecord_ / 5; // 4 / 5 is an empirical value
     }
     // 3 / 5 just empirical value

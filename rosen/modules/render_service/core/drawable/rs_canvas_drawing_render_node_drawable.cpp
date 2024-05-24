@@ -112,24 +112,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     canvasDrawingRenderNode->SetDrawCmdListsVisited(true);
 }
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-struct SharedTextureContext {
-    SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
-        : sharedImage_(std::move(sharedImage)) {}
-
-private:
-    std::shared_ptr<Drawing::Image> sharedImage_;
-};
-
-static void DeleteSharedTextureContext(void* context)
-{
-    SharedTextureContext* cleanupHelper = static_cast<SharedTextureContext*>(context);
-    if (cleanupHelper != nullptr) {
-        delete cleanupHelper;
-    }
-}
-#endif
-
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
     DrawContent(*canvas_, rect);
@@ -262,8 +244,9 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
             SharedTextureContext* sharedContext = new SharedTextureContext(image_); // last image
             image_ = std::make_shared<Drawing::Image>();
             bool ret = image_->BuildFromTexture(*rscanvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin,
-                info, nullptr, DeleteSharedTextureContext, sharedContext);
+                info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
             if (!ret) {
+                delete sharedContext;
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush image BuildFromTexture failed");
                 return;
             }
@@ -497,7 +480,8 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
     SharedTextureContext* sharedContext = new SharedTextureContext(image_); // will move image
     auto preImageInNewContext = std::make_shared<Drawing::Image>();
     if (!preImageInNewContext->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
-        origin, bitmapFormat, nullptr, DeleteSharedTextureContext, sharedContext)) {
+        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+        delete sharedContext;
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture preImageInNewContext is nullptr");
         ClearPreSurface(preSurface);
         return false;

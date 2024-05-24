@@ -88,6 +88,10 @@ public:
     void OpincCanvasUnionTranslate(RSPaintFilterCanvas& canvas);
     void ResumeOpincCanvasTranslate(RSPaintFilterCanvas& canvas);
 
+    static int GetTotalProcessedNodeCount();
+    static void TotalProcessedNodeCountInc();
+    static void ClearTotalProcessedNodeCount();
+
     // opinc dfx
     std::string GetNodeDebugInfo();
 
@@ -154,9 +158,6 @@ protected:
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
 
-    static int GetProcessedNodeCount();
-    static void ProcessedNodeCountInc();
-    static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
 
 private:
@@ -177,7 +178,7 @@ private:
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
-    static inline std::atomic<int> processedNodeCount_ = 0;
+    static inline std::atomic<int> totalProcessedNodeCount_ = 0;
     // used foe render group cache
 
     // opinc cache state

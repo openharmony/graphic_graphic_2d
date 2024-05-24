@@ -32,6 +32,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_profiler.h"
 #include "rs_frame_report.h"
@@ -242,12 +243,14 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface get backendTexture failed");
         return nullptr;
     }
+    SharedTextureContext* sharedContext = new SharedTextureContext(completeImage);
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
-        origin, info, nullptr);
+        origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
+        delete sharedContext;
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
         return nullptr;
     }

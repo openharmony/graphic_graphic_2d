@@ -52,18 +52,15 @@ std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuCon
     return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
         colorType, colorSpace, deleteFunc, cleanupHelper);
 }
+#endif
 
 std::shared_ptr<Surface> Surface::MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
-        return nullptr;
-    }
     return StaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
         colorSpace, deleteVkImage, cleanHelper);
 }
-#endif
 
 std::shared_ptr<Surface> Surface::MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo)
 {

@@ -41,6 +41,7 @@
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
@@ -169,13 +170,13 @@ static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRend
     if (!renderThreadParams) {
         return {};
     }
-    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
+    auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
     auto dirtyManager = displayNodeSp->GetSyncDirtyManager();
 
     RSUniRenderUtil::MergeDirtyHistory(displayNodeSp, bufferAge, false, true);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
-        curAllSurfaces, RSUniRenderThread::Instance().GetDrawStatusVec(), false, true);
-    RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(curAllSurfaces, dirtyManager->GetDirtyRegion());
+        curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, dirtyManager->GetDirtyRegion());
 
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
@@ -477,6 +478,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (lemScreen[0] == '2') { // Small folding screen
                 exFoldScreen_ = false;
             }
+            if (displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw wired screen projection.");
+                WiredScreenProjection(displayNodeSp, *params, processor);
+                return;
+            }
             DrawMirrorScreen(displayNodeSp, *params, processor);
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
@@ -631,7 +637,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     displayNodeSp->SetGlobalZOrder(globalZOrder);
-    displayNodeSp->SetDamageRegion(damageRegionrects);
+    displayNodeSp->SetDirtyRects(damageRegionrects);
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess();
     RS_TRACE_END();
@@ -820,6 +826,45 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
     RSUniRenderThread::ResetCaptureParam();
 }
 
+void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
+    RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
+{
+    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
+    if (!exFoldScreen_) {
+        canvasRotation_ = true;
+    } else {
+        canvasRotation_ = false;
+    }
+    auto renderFrame = RequestFrame(displayNodeSp, params, processor);
+    if (!renderFrame) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection failed to request frame");
+        return;
+    }
+    auto drSurface = renderFrame->GetFrame()->GetSurface();
+    if (!drSurface) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection DrawingSurface is null");
+        return;
+    }
+    curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    if (!curCanvas_) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection failed to create canvas");
+        return;
+    }
+    curCanvas_->Save();
+    ScaleMirrorIfNeed(*displayNodeSp, processor);
+    RotateMirrorCanvasIfNeed(*displayNodeSp);
+    auto mirroredNode = params.GetMirrorSource().lock();
+    bool forceCPU = false;
+    auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*mirroredNode, forceCPU);
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    drawParams.isMirror = true;
+    renderEngine->DrawDisplayNodeWithParams(*curCanvas_, *mirroredNode, drawParams);
+    curCanvas_->Restore();
+    renderFrame->Flush();
+    processor->ProcessDisplaySurface(*displayNodeSp);
+    processor->PostProcess();
+}
+
 void RSDisplayRenderNodeDrawable::SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo)
 {
     auto mirroredNode = node.GetMirrorSource().lock();
@@ -891,11 +936,16 @@ std::shared_ptr<Drawing::Image> RSDisplayRenderNodeDrawable::GetCacheImageFromMi
     if (auto renderContext = renderEngine->GetRenderContext()) {
         auto grContext = renderContext->GetDrGPUContext();
         auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
+        SharedTextureContext* sharedContext = new SharedTextureContext(cacheImage);
         if (grContext != nullptr && imageBackendTexure.IsValid()) {
             Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
                 Drawing::AlphaType::ALPHATYPE_PREMUL};
-            image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
-                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
+            if (!image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
+                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr,
+                SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+                delete sharedContext;
+                RS_LOGE("RSDisplayRenderNodeDrawable::GetCacheImageFromMirrorNode image is nullptr");
+            }
         }
     }
     return image;

@@ -52,6 +52,7 @@
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -1504,7 +1505,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node, true);
     if (node.LastFrameSubTreeSkipped() && curSurfaceDirtyManager_) {
-        node.MergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
+        node.ForceMergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
     }
     bool animationBackup = ancestorNodeHasAnimation_;
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
@@ -1826,7 +1827,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     // [planning] degree only multiples of 90 now
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = degree % ROTATION_90 != 0;
-    if (hasRotate || IsRosenWebHardwareDisabled(*hwcNode, degree)) {
+    if (hasRotate) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by rotation:%d",
             hwcNode->GetName().c_str(), hwcNode->GetId(), degree);
         hwcNode->SetHardwareForcedDisabledState(true);
@@ -1950,7 +1951,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     for (auto it : strategy) {
         if (it.second != RequestCompositionType::DEVICE) {
             auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(it.first);
-            if (node == nullptr || node->GetForceHardware()) {
+            if (node == nullptr || node->GetForceHardware() || node->GetProtectedLayer()) {
                 continue;
             }
             node->SetHardwareForcedDisabledState(true);
@@ -2360,7 +2361,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
         CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
         UpdateSubSurfaceNodeRectInSkippedSubTree(node);
     }
-    if (node.GetRenderProperties().NeedFilter()) {
+    if (node.HasBlurFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
         auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.IsEffectNodeNeedTakeSnapShot()) ?
             GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
@@ -3574,19 +3575,27 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
         return cacheImage;
     }
 
-    if (cacheImage != nullptr) {
-        auto renderContext = renderEngine_->GetRenderContext();
-        if (renderContext != nullptr) {
-            auto grContext = renderContext->GetDrGPUContext();
-            auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
-            if (grContext != nullptr && imageBackendTexure.IsValid()) {
-                Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
-                    Drawing::AlphaType::ALPHATYPE_PREMUL};
-                image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
-                    Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
+    if (cacheImage == nullptr) {
+        return image;
+    }
+
+    auto renderContext = renderEngine_->GetRenderContext();
+    if (renderContext != nullptr) {
+        auto grContext = renderContext->GetDrGPUContext();
+        auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
+        SharedTextureContext* sharedContext = new SharedTextureContext(cacheImage);
+        if (grContext != nullptr && imageBackendTexure.IsValid()) {
+            Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
+                Drawing::AlphaType::ALPHATYPE_PREMUL};
+            if (!image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
+                Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr,
+                SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+                delete sharedContext;
+                RS_LOGE("RSUniRenderVisitor::GetCacheImageFromMirrorNode image is nullptr");
             }
         }
     }
+        
     return image;
 }
 
@@ -4129,7 +4138,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         AssignGlobalZOrderAndCreateLayer(appWindowNodesInZOrder_);
         node.SetGlobalZOrder(globalZOrder_++);
         node.SetRenderWindowsName(windowsName_);
-        node.SetDamageRegion(rects);
+        node.SetDirtyRects(rects);
         processor_->ProcessDisplaySurface(node);
         AssignGlobalZOrderAndCreateLayer(hardwareEnabledTopNodes_);
     }
@@ -5132,17 +5141,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     return true;
 }
 
-bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const
-{
-    if (node.IsRosenWeb()) {
-        return rotation == ROTATION_90 || rotation == ROTATION_270 ||
-            RSUniRenderUtil::Is3DRotation(node.GetTotalMatrix()) ||
-            (node.GetBuffer() && (node.GetDstRect().width_ > node.GetBuffer()->GetWidth())) ||
-            (node.GetBuffer() && (node.GetDstRect().height_ > node.GetBuffer()->GetHeight()));
-    }
-    return false;
-}
-
 bool RSUniRenderVisitor::ForceHardwareComposer(RSSurfaceRenderNode& node) const
 {
     auto bufferPixelFormat = node.GetBuffer()->GetFormat();
@@ -5359,7 +5357,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || backgroundTransparent ||
-                    IsRosenWebHardwareDisabled(node, rotation) ||
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
                     canvas_->HasOffscreenLayer()) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
@@ -5370,7 +5367,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     "isUpdateCachedSurface_:%d IsHardwareComposerEnabled:%d node.IsHardwareForcedDisabled():%d",
                     node.IsHardwareEnabledType(), backgroundTransparent,
                     node.IsHardwareForcedDisabledByFilter(), canvas_->GetAlpha(),
-                    IsRosenWebHardwareDisabled(node, rotation),
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()), isUpdateCachedSurface_,
                     IsHardwareComposerEnabled(), node.IsHardwareForcedDisabled());
             }

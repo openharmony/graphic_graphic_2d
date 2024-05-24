@@ -1106,7 +1106,9 @@ void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
-    image->SetNodeId(GetId());
+    if (image) {
+        image->SetNodeId(GetId());
+    }
     SetProperty<RSBgImageModifier, RSProperty<std::shared_ptr<RSImage>>>(RSModifierType::BG_IMAGE, image);
 }
 
@@ -1801,6 +1803,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
         }
         auto deleteType = modifier->GetModifierType();
         bool isExist = false;
+        modifiers_.erase(iter);
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
                 modifiersTypeMap_.emplace((int16_t)deleteType, value);
@@ -1808,7 +1811,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
                 break;
             }
         }
-        modifiers_.erase(iter);
         if (!isExist) {
             modifiersTypeMap_.erase((int16_t)deleteType);
         }

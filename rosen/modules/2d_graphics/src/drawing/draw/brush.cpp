@@ -180,11 +180,21 @@ void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
     forceBrightnessDisable_ = forceBrightnessDisable;
 }
 
+bool Brush::IsHdr() const
+{
+    return isHdr_;
+}
+
+void Brush::SetHdr(bool isHdr)
+{
+    isHdr_ = isHdr;
+}
+
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
-        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_;
+        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ && b1.isHdr_ == b2.isHdr_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)

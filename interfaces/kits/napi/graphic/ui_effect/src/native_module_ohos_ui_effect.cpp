@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "../include/native_module_ohos_ui_effect.h"
+#include "native_module_ohos_ui_effect.h"
 #include "hilog/log.h"
 
 using OHOS::HiviewDFX::HiLog;

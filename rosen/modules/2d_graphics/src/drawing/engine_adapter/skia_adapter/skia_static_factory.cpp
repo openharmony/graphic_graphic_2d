@@ -79,17 +79,14 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUConte
     return SkiaSurface::MakeFromBackendRenderTarget(gpuContext, info, origin,
         colorType, colorSpace, deleteVkImage, cleanHelper);
 }
+#endif
 std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
-        return nullptr;
-    }
     return SkiaSurface::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
         colorSpace, deleteVkImage, cleanHelper);
 }
-#endif
 std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)
 {

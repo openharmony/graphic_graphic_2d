@@ -12,26 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
-#define UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
+#include "ge_hash.h"
 
-#include <iostream>
+#include <cstring>
+
+#include "ge_hash_refer.h"
 
 namespace OHOS {
-namespace Rosen {
-
-class VisualEffectPara {
-public:
-    enum ParaType {
-        NONE,
-        BACKGROUND_COLOR_EFFECT,
-    };
-
-    VisualEffectPara()  = default;
-    virtual ~VisualEffectPara() = default;
-
-    ParaType type_;
-};
-} // namespace Rosen
+namespace GraphicsEffectEngine {
+uint32_t Hash32Next(uint32_t hash, const void* data, size_t bytes, uint32_t seed)
+{
+    return static_cast<uint32_t>(GEHash(&hash, sizeof(hash), GEHash(data, bytes, seed, SECRET), SECRET));
+}
+uint64_t Hash64Next(uint64_t hash, const void* data, size_t bytes, uint64_t seed)
+{
+    return GEHash(&hash, sizeof(hash), GEHash(data, bytes, seed, SECRET), SECRET);
+}
+} // namespace GraphicsEffectEngine
 } // namespace OHOS
-#endif // UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H

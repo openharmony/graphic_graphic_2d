@@ -152,6 +152,15 @@ public:
         return brightnessRatio_;
     }
 
+    std::shared_ptr<RSSurfaceRenderNode> GetSurfaceRenderNode() const;
+
+    const Occlusion::Region& GetVisibleDirtyRegion() const;
+    void SetVisibleDirtyRegion(const Occlusion::Region& region);
+    void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
+    void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
+    void SetDirtyRegionAlignedEnable(bool enable);
+    void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
+    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 

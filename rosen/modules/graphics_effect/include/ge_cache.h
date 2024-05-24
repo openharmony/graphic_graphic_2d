@@ -33,12 +33,6 @@ public:
     void Set(size_t key, const std::shared_ptr<Drawing::Image>& value);
     const std::shared_ptr<Drawing::Image>& Get(size_t key) const;
 
-    template<typename T>
-    std::size_t hash(const std::size_t& current_hash, const T& value)
-    {
-        return std::hash<T>(current_hash ^ value);
-    }
-
 private:
     GECache() = default;
     ~GECache() = default;

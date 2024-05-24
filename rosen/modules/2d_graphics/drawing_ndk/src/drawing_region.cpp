@@ -15,6 +15,8 @@
 
 #include "drawing_region.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "utils/region.h"
 
 using namespace OHOS;
@@ -45,6 +47,7 @@ bool OH_Drawing_RegionContains(OH_Drawing_Region* cRegion, int32_t x, int32_t y)
 {
     Region* region = CastToRegion(cRegion);
     if (region == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return region->Contains(x, y);
@@ -55,6 +58,7 @@ bool OH_Drawing_RegionOp(OH_Drawing_Region* cRegion, const OH_Drawing_Region* cD
     Region* region = CastToRegion(cRegion);
     Region* dst = CastToRegion(const_cast<OH_Drawing_Region*>(cDst));
     if (region == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return region->Op(*dst, static_cast<RegionOp>(op));
@@ -65,6 +69,7 @@ bool OH_Drawing_RegionSetRect(OH_Drawing_Region* cRegion, const OH_Drawing_Rect*
     const Rect* rect = CastToRect(cRect);
     Region* region = CastToRegion(cRegion);
     if (region == nullptr || rect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     int left = rect->GetLeft();
@@ -81,6 +86,7 @@ bool OH_Drawing_RegionSetPath(OH_Drawing_Region* cRegion, const OH_Drawing_Path*
     const Path* path = CastToPath(cPath);
     Region* clip = CastToRegion(const_cast<OH_Drawing_Region*>(cClip));
     if (region == nullptr || path == nullptr || clip == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return region->SetPath(*path, *clip);

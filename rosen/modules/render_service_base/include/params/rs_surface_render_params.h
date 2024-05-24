@@ -64,6 +64,10 @@ public:
     {
         return isLeashWindow_;
     }
+    bool IsAppWindow() const
+    {
+        return isAppWindow_;
+    }
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
@@ -190,6 +194,10 @@ public:
     {
         return childrenDirtyRect_;
     }
+    const RectI& GetDstRect() const
+    {
+        return dstRect_;
+    }
     void SetSurfaceCacheContentStatic(bool contentStatic);
     bool GetSurfaceCacheContentStatic() const;
     bool GetPreSurfaceCacheContentStatic() const;
@@ -262,6 +270,7 @@ protected:
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
+    bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
@@ -275,6 +284,7 @@ private:
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 
+    RectI dstRect_;
     RectI oldDirtyInSurface_;
     RectI childrenDirtyRect_;
     RectI absDrawRect_;

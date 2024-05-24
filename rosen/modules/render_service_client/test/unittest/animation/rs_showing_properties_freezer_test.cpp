@@ -17,7 +17,7 @@
 
 #include "common/rs_color.h"
 #include "modifier/rs_showing_properties_freezer.h"
-#include "render/rs_light_up_effect_filter.h"
+#include "render/rs_blur_filter.h"
 #include "ui/rs_canvas_node.h"
 
 using namespace testing;
@@ -347,8 +347,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetFilterTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest start";
-    float lightUpDegree = 1.0f;
-    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto filter = std::make_shared<RSBlurFilter>(1.0f, 1.0f);
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetBackgroundFilter(filter);
     auto result1 = canvasNode->GetShowingProperties().GetBackgroundFilter();

@@ -111,7 +111,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     std::vector<GraphicIRect> dirtyRects;
-    for (auto& rect : node.GetDamageRegion()) {
+    // layer damage always relative to the top-left, no matter gl or vk
+    std::vector<RectI> flipDirtyRects = RSUniRenderUtil::GetFilpDirtyRects(node.GetDirtyRects(), screenInfo_);
+    for (const auto& rect : flipDirtyRects) {
         dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
     }
     if (dirtyRects.empty()) {
@@ -665,11 +667,11 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer, RSSurf
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
     if (newWidthDstHeight > newHeightDstWidth) {
+        newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;
-        newHeight = srcRect.h * newWidth / srcRect.w;
     } else if (newWidthDstHeight < newHeightDstWidth) {
+        newWidth = newWidth * dstHeight / newHeight;
         newHeight = dstHeight;
-        newWidth = srcRect.w * newHeight / srcRect.h;
     } else {
         newHeight = dstHeight;
         newWidth = dstWidth;
@@ -678,11 +680,11 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer, RSSurf
     if (newWidth < dstWidth) {
         uint32_t dw = dstWidth - newWidth;
         auto halfdw = dw / 2;
-        dstRect.x += halfdw;
+        dstRect.x += static_cast<int32_t>(halfdw);
     } else if (newHeight < dstHeight) {
         uint32_t dh = dstHeight - newHeight;
         auto halfdh = dh / 2;
-        dstRect.y += halfdh;
+        dstRect.y += static_cast<int32_t>(halfdh);
     }
     dstRect.h = static_cast<int32_t>(newHeight);
     dstRect.w = static_cast<int32_t>(newWidth);

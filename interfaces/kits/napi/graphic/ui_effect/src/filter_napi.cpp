@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "filter_napi.h"
 #include "image_napi_utils.h"
-#include "../include/filter_napi.h"
 
 namespace {
     constexpr uint32_t NUM_0 = 0;

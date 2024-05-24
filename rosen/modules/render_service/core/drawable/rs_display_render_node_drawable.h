@@ -53,6 +53,8 @@ private:
     void AdjustZOrderAndDrawSurfaceNode(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
+    void WiredScreenProjection(std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams& params,
+        std::shared_ptr<RSProcessor> processor);
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
     void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
     void RotateMirrorCanvasOnExFoldScreen(RSDisplayRenderParams& params, ScreenRotation& rotation, float mainWidth,

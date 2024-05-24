@@ -32,6 +32,8 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_SCREEN_ROTATION,
     DISPLAY_NODE_SET_BOOT_ANIMATION,
     DISPLAY_NODE_SET_ROG_SIZE,
+    DISPLAY_NODE_ADD_TO_TREE,
+    DISPLAY_NODE_REMOVE_FROM_TREE,
     DISPLAY_NODE_SET_NODE_PID,
 };
 
@@ -45,6 +47,8 @@ public:
     static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
     static void SetRogSize(RSContext&, NodeId, uint32_t, uint32_t);
+    static void AddDisplayNodeToTree(RSContext&, NodeId);
+    static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
 };
 
@@ -69,6 +73,10 @@ ADD_COMMAND(RSDisplayNodeSetBootAnimation,
 ADD_COMMAND(RSDisplayNodeSetRogSize,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_ROG_SIZE, DisplayNodeCommandHelper::SetRogSize,
     NodeId, uint32_t, uint32_t))
+ADD_COMMAND(RSDisplayNodeAddToTree,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_ADD_TO_TREE, DisplayNodeCommandHelper::AddDisplayNodeToTree, NodeId))
+ADD_COMMAND(RSDisplayNodeRemoveFromTree,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_REMOVE_FROM_TREE, DisplayNodeCommandHelper::RemoveDisplayNodeFromTree, NodeId))
 ADD_COMMAND(RSDisplayNodeSetNodePid,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_NODE_PID, DisplayNodeCommandHelper::SetScbNodePid,
     NodeId, std::vector<int32_t>, int32_t))

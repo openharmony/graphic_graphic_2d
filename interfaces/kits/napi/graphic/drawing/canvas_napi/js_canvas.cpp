@@ -961,7 +961,7 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
     double sx = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, sx);
     double sy = 0.0;
-    GET_DOUBLE_PARAM(ARGC_TWO, sx);
+    GET_DOUBLE_PARAM(ARGC_TWO, sy);
 
     m_canvas->Rotate(degree, sx, sy);
     return nullptr;

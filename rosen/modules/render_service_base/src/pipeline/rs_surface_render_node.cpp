@@ -1097,6 +1097,9 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
         ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());
         RSRTRefreshCallback::Instance().ExecuteRefresh();
     }
+    if (isTextureExportNode) {
+        SetContentDirty();
+    }
 
     {
         std::lock_guard<std::mutex> lock(mutexRT_);
@@ -2544,6 +2547,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
+    surfaceParams->isAppWindow_ = IsAppWindow();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
@@ -2553,6 +2557,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->protectedLayerIds_= protectedLayerIds_;
     surfaceParams->name_= name_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
+    surfaceParams->SetVisibleRegion(visibleRegion_);
+    surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
+    surfaceParams->dstRect_ = dstRect_;
     surfaceParams->overDrawBufferNodeCornerRadius_ = GetOverDrawBufferNodeCornerRadius();
     surfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     surfaceParams->SetNeedSync(true);

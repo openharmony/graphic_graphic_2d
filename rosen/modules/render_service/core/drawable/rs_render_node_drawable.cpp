@@ -72,6 +72,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     DrawAll(canvas, bounds);
@@ -362,6 +363,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
         origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
     if (!ret) {
+        delete sharedContext;
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
         return nullptr;
     }
@@ -535,18 +537,18 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 }
 
-int RSRenderNodeDrawable::GetProcessedNodeCount()
+int RSRenderNodeDrawable::GetTotalProcessedNodeCount()
 {
-    return processedNodeCount_;
+    return totalProcessedNodeCount_;
 }
 
-void RSRenderNodeDrawable::ProcessedNodeCountInc()
+void RSRenderNodeDrawable::TotalProcessedNodeCountInc()
 {
-    ++processedNodeCount_;
+    ++totalProcessedNodeCount_;
 }
 
-void RSRenderNodeDrawable::ClearProcessedNodeCount()
+void RSRenderNodeDrawable::ClearTotalProcessedNodeCount()
 {
-    processedNodeCount_ = 0;
+    totalProcessedNodeCount_ = 0;
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -128,7 +128,7 @@ void HgmMultiAppStrategy::CalcVote()
     OnStrategyChange();
 }
 
-HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes)
+HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const
 {
     strategyRes = voteRes_.second;
     return voteRes_.first;
@@ -157,7 +157,7 @@ std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkg
     return NULL_STRATEGY_CONFIG_NAME;
 }
 
-HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes)
+HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const
 {
     auto& strategyConfigs = GetStrategyConfigs();
     auto& strategyName = GetScreenSetting().strategy;
@@ -251,7 +251,7 @@ void HgmMultiAppStrategy::FollowFocus()
 void HgmMultiAppStrategy::UseMax()
 {
     auto &strategyConfigs = GetStrategyConfigs();
-    for (auto &param : pkgs_) {
+    for (const auto &param : pkgs_) {
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
         auto strategyName = GetAppStrategyConfigName(pkgName);
         if (strategyName == NULL_STRATEGY_CONFIG_NAME || strategyConfigs.find(strategyName) == strategyConfigs.end()) {
@@ -342,7 +342,7 @@ void HgmMultiAppStrategy::OnStrategyChange()
     HGM_LOGI("multi app strategy change: [%{public}d, %{public}d]", voteRes_.second.min, voteRes_.second.max);
     for (auto &callback : strategyChangeCallbacks_) {
         if (callback != nullptr) {
-            HgmTaskHandleThread::Instance().PostTask([callback = callback, strategy = voteRes_.second] () {
+            HgmTaskHandleThread::Instance().PostTask([callback, strategy = voteRes_.second] () {
                 callback(strategy);
             });
         }

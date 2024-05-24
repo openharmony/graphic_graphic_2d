@@ -66,6 +66,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
 
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
+    void PurgeCacheBetweenFrames();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);

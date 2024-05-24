@@ -65,6 +65,9 @@ void RSDrawFrame::RenderFrame()
     }
     JankStatsRenderFrameEnd(doJankStats);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+    if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
+        unirenderInstance_.PurgeCacheBetweenFrames();
+    }
 }
 
 void RSDrawFrame::NotifyClearGpuCache()

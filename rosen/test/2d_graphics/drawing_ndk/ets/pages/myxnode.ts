@@ -17,7 +17,6 @@ import drawing from "@ohos.graphics.drawing";
 import { NodeController, FrameNode, RenderNode, DrawContext, Size } from "@ohos.arkui.node"
 import nativeXNode from "libmyxnode.so";
 import {PrintCallback} from "./printcallback";
-
 const TAG = '[DrawingTest]';
 let printCallback: PrintCallback;
 
@@ -61,7 +60,7 @@ export class MyNodeController extends NodeController {
   private rootNode: FrameNode | null = null;
   myRenderNode = new MyRenderNode();
 
-  makeNode(uiContext: UIContext): FrameNode {
+  makeNode(uiContext): FrameNode {
     console.info(TAG, 'MyNodeController makeNode');
     this.rootNode = new FrameNode(uiContext);
     if (this.rootNode === null) {

@@ -248,9 +248,6 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
-    if (conn == nullptr) {
-        return nullptr;
-    }
     return conn;
 }
 

@@ -340,3 +340,7 @@ use_memmgr = false
 if (defined(global_parts_info.resourceschedule_memmgr)) {
   use_memmgr = true
 }
+
+if (defined(use_clang_coverage) && use_clang_coverage) {
+  graphic_2d_feature_rs_enable_profiler = false
+}

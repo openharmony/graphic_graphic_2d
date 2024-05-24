@@ -12,26 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_FILTER_PIXEL_STRETCH_PARA_H
-#define UIEFFECT_FILTER_PIXEL_STRETCH_PARA_H
 
-#include "common/rs_vector4.h"
-#include "effect/shader_effect.h"
-#include "filter_para.h"
+#include "drawing_error_code.h"
 
-namespace OHOS {
-namespace Rosen {
-class PixelStretchPara : public FilterPara {
-public:
-    PixelStretchPara()
-    {
-        this->type_ = FilterPara::ParaType::PIXEL_STRETCH;
-    }
-    ~PixelStretchPara() {}
+OH_Drawing_ErrorCode g_drawingErrorCode = OH_DRAWING_SUCCESS;
 
-    Vector4f stretchPercent_;
-    Drawing::TileMode stretchTileMode_ = Drawing::TileMode::CLAMP;
-};
-} // namespace Rosen
-} // namespace OHOS
-#endif // UIEFFECT_FILTER_PIXEL_STRETCH_PARA_H
+OH_Drawing_ErrorCode OH_Drawing_ErrorCodeGet()
+{
+    return g_drawingErrorCode;
+}

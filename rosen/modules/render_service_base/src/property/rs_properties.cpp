@@ -1331,6 +1331,34 @@ bool RSProperties::IsBgBrightnessValid() const
     return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessFract_, 1.0);
 }
 
+std::string RSProperties::GetFgBrightnessDescription() const
+{
+    if (fgBrightnessParams_ == std::nullopt) {
+        return "fgBrightnessParams is nullptr";
+    }
+    std::string description = "ForegroundBrightness, rate: " + std::to_string(fgBrightnessParams_->rate_) +
+        " lightUpDegree: " + std::to_string(fgBrightnessParams_->lightUpDegree_) +
+        " cubicCoeff: " + std::to_string(fgBrightnessParams_->cubicCoeff_) +
+        " quadCoeff: " + std::to_string(fgBrightnessParams_->quadCoeff_) +
+        " saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
+        " fgBrightnessFract: " + std::to_string(bgBrightnessFract_);
+    return description;
+}
+
+std::string RSProperties::GetBgBrightnessDescription() const
+{
+    if (bgBrightnessParams_ == std::nullopt) {
+        return "bgBrightnessParams is nullptr";
+    }
+    std::string description = "BackgroundBrightnessInternal, rate: " + std::to_string(bgBrightnessParams_->rate_) +
+        " lightUpDegree: " + std::to_string(bgBrightnessParams_->lightUpDegree_) +
+        " cubicCoeff: " + std::to_string(bgBrightnessParams_->cubicCoeff_) +
+        " quadCoeff: " + std::to_string(bgBrightnessParams_->quadCoeff_) +
+        " saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
+        " fgBrightnessFract: " + std::to_string(bgBrightnessFract_);
+    return description;
+}
+
 void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 {
     greyCoef_ = greyCoef;
@@ -2307,7 +2335,7 @@ void RSProperties::GenerateBackgroundBlurFilter()
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
-    if (RSSystemProperties::GetHpsBlurEnabled()) {
+    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
         std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
             std::make_shared<RSHpsBlurShaderFilter>(backgroundBlurRadiusX_, 1.f, 1.f);
         originalFilter =
@@ -2392,7 +2420,7 @@ void RSProperties::GenerateForegroundBlurFilter()
         std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
-    if (RSSystemProperties::GetHpsBlurEnabled()) {
+    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
         std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
             std::make_shared<RSHpsBlurShaderFilter>(foregroundBlurRadiusX_, 1.f, 1.f);
         originalFilter =

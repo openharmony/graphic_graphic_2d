@@ -133,6 +133,11 @@ void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     impl_->PurgeUnlockAndSafeCacheGpuResources();
 }
+void GPUContext::PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
+    const std::set<pid_t>& protectedPidSet)
+{
+    impl_->PurgeCacheBetweenFrames(scratchResourcesOnly, exitedPidSet, protectedPidSet);
+}
 
 void GPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
