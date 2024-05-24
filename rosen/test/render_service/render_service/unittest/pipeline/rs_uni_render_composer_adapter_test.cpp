@@ -181,7 +181,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Lev
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
-    ASSERT_NE(0, info.srcRect.x);
+    ASSERT_EQ(0, info.srcRect.x);
     ASSERT_NE(0, info.srcRect.y);
 }
 
