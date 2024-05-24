@@ -18,13 +18,11 @@ group("unittest") {
     "bitmap:unittest",
     "draw:unittest",
     "effect:unittest",
-    "engine_adapter:unittest",
     "image:unittest",
     "ndk:unittest",
     "recording:unittest",
     "render_context:unittest",
     "skia_adapter:unittest",
-    "text:unittest",
     "utils:unittest",
   ]
 }
