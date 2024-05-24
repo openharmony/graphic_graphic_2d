@@ -156,12 +156,12 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Copy006, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingRectTest_Intersect002
+ * @tc.name: NativeDrawingRectTest_Intersect003
  * @tc.desc: test for the Intersect methods of Rect.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect002, TestSize.Level1)
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect003, TestSize.Level1)
 {
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300); // 100 200 300 500 rect param
     EXPECT_NE(nullptr, rect);
