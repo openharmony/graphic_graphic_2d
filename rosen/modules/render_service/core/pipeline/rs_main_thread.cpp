@@ -1799,14 +1799,16 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     if (waitForRT) {
         RSUniRenderThread::Instance().PostSyncTask([processor]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
+            auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+            hgmCore.SetDirectCompositionFlag(true);
             processor->PostProcess();
         });
     } else {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        hgmCore.SetDirectCompositionFlag(true);
         processor->PostProcess();
     }
 
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.SetDirectCompositionFlag(true);
     RS_LOGD("RSMainThread::DoDirectComposition end");
     return true;
 }
