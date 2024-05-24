@@ -78,7 +78,7 @@ HWTEST_F(RSEglImageManagerTest, CreateInvalidImageCache001, TestSize.Level1)
 HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize.Level1)
 {
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || !RSUniRenderJudgement::IsUniRender()) {
         return;
     }
     NodeId id = 0;
@@ -122,7 +122,7 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
 HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1)
 {
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || !RSUniRenderJudgement::IsUniRender()) {
         return;
     }
     NodeId id = 0;

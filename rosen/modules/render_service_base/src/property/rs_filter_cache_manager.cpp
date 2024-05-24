@@ -240,6 +240,10 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     // Create an offscreen canvas with the same size as the filter region.
     auto offscreenRect = dstRect;
     auto offscreenSurface = surface->MakeSurface(offscreenRect.GetWidth(), offscreenRect.GetHeight());
+    if (offscreenSurface == nullptr) {
+        RS_LOGD("RSFilterCacheManager::GenerateFilteredSnapshot offscreenSurface is nullptr");
+        return;
+    }
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
 
     // Src rect and dst rect, with origin at (0, 0).

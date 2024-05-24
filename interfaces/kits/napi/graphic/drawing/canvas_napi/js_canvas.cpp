@@ -276,6 +276,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
             return nullptr;
         }
         JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(g_drawingCanvas);
+        if (!jsCanvas) {
+            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+            return nullptr;
+        }
         status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsCanvas;
@@ -299,6 +303,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         Canvas* canvas = new Canvas();
         canvas->Bind(bitmap);
         JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
+        if (!jsCanvas) {
+            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+            return nullptr;
+        }
         status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsCanvas;
@@ -762,7 +770,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     napi_value verticesArray = argv[ARGC_THREE];
     uint32_t verticesSize = 0;
     napi_get_array_length(env, verticesArray, &verticesSize);
-    uint64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
+    int64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertices are invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
@@ -786,7 +794,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     napi_value colorsArray = argv[ARGC_FIVE];
     uint32_t colorsSize = 0;
     napi_get_array_length(env, colorsArray, &colorsSize);
-    uint64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
+    int64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
 
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
@@ -953,7 +961,7 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
     double sx = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, sx);
     double sy = 0.0;
-    GET_DOUBLE_PARAM(ARGC_TWO, sx);
+    GET_DOUBLE_PARAM(ARGC_TWO, sy);
 
     m_canvas->Rotate(degree, sx, sy);
     return nullptr;

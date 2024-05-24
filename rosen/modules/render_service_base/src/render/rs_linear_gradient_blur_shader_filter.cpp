@@ -53,6 +53,9 @@ void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
 
 float RSLinearGradientBlurShaderFilter::GetLinearGradientBlurRadius() const
 {
+    if (linearGradientBlurPara_ == nullptr) {
+        return 0;
+    }
     return linearGradientBlurPara_->blurRadius_;
 }
 } // namespace Rosen

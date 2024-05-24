@@ -108,7 +108,7 @@ RSPropertyDrawable::DrawablePtr RSBorderDrawable::Generate(const RSRenderContent
     } else if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(pen)) {
         return std::make_unique<RSBorderFourLineDrawable>(
             std::move(brush), std::move(pen), properties, true);
-    } else if (border->ApplyPathStyle(pen)) {
+    } else if (border->ApplyPathStyle(pen) && border->ApplySimpleBorder(properties.GetRRect())) {
         return std::make_unique<RSBorderPathDrawable>(
             std::move(brush), std::move(pen), properties, true);
     } else {
@@ -1016,7 +1016,7 @@ RSPropertyDrawable::DrawablePtr RSBackgroundImageDrawable::Generate(const RSRend
 {
     auto& properties = content.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return nullptr;
     }
     bgImage->SetDstRect(properties.GetBgImageRect());
@@ -1027,7 +1027,7 @@ bool RSBackgroundImageDrawable::Update(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return false;
     }
     bgImage->SetDstRect(properties.GetBgImageRect());

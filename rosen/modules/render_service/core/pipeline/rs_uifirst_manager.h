@@ -58,6 +58,9 @@ public:
     void OnProcessEventComplete(DataBaseRs& info);
     void PrepareCurrentFrameEvent();
 
+    // animate procss
+    void OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene);
+
     bool NodeIsInCardWhiteList(RSRenderNode& node);
     bool GetCurrentFrameSkipFirstWait() const
     {
@@ -91,6 +94,13 @@ public:
         rotationChanged_ = rotationChanged;
     }
 
+    bool IsRecentTaskScene() const
+    {
+        return isRecentTaskScene_.load();
+    }
+
+    void AddCapturedNodes(NodeId id);
+
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -109,9 +119,11 @@ private:
 
     void ProcessResetNode();
     void ProcessDoneNode();
+    void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
+    void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -170,6 +182,9 @@ private:
         { "LAUNCHER_SCROLL" }, // desktop swipe
         { "SCROLL_2_AA" }, // desktop to negativeScreen
     };
+    // for recents scene
+    std::atomic<bool> isRecentTaskScene_ = false;
+    std::vector<NodeId> capturedNodes_;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

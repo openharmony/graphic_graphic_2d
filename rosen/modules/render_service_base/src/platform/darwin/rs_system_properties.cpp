@@ -242,6 +242,11 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return false;
 }
 
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    return 0;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     return false;

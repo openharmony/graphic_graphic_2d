@@ -354,6 +354,8 @@ void RSProfiler::OnFrameBegin()
 
     g_frameBeginTimestamp = RawNowNano();
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    StartBetaRecord();
 }
 
 void RSProfiler::OnFrameEnd()
@@ -366,6 +368,7 @@ void RSProfiler::OnFrameEnd()
     ProcessCommands();
     ProcessSendingRdc();
     RecordUpdate();
+    UpdateBetaRecord();
 
     CalcNodeWeigthOnFrameEnd();
     g_renderServiceCpuId = Utils::GetCpuId();
@@ -688,6 +691,8 @@ void RSProfiler::RecordUpdate()
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
     }
+
+    WriteBetaRecordMetrics(g_recordFile, timeSinceRecordStart);
 }
 
 void RSProfiler::Respond(const std::string& message)
@@ -1107,7 +1112,10 @@ void RSProfiler::RecordStart(const ArgList& args)
     ImageCache::Reset();
     g_lastCacheImageCount = 0;
 
-    g_recordFile.Create(RSFile::GetDefaultPath());
+    if (!OpenBetaRecordFile(g_recordFile)) {
+        g_recordFile.Create(RSFile::GetDefaultPath());
+    }
+
     g_recordFile.AddLayer(); // add 0 layer
 
     FilterMockNode(*g_context);
@@ -1147,23 +1155,25 @@ void RSProfiler::RecordStop(const ArgList& args)
 
     std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
 
-    // DOUBLE WORK - send header of file
-    const char headerType = 0;
-    stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
-    stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
+    if (!IsBetaRecordStarted()) {
+        // DOUBLE WORK - send header of file
+        const char headerType = 0;
+        stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
+        stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
 
-    const int32_t pidCount = g_recordFile.GetHeaderPids().size();
-    stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
-    for (auto item : g_recordFile.GetHeaderPids()) {
-        stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+        const int32_t pidCount = g_recordFile.GetHeaderPids().size();
+        stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
+        for (auto item : g_recordFile.GetHeaderPids()) {
+            stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+        }
+
+        int sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
+        stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
+        stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
+
+        ImageCache::Serialize(stream);
+        Network::SendBinary(stream.str().data(), stream.str().size());
     }
-
-    int sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
-    stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
-    stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
-
-    ImageCache::Serialize(stream);
-    Network::SendBinary(stream.str().data(), stream.str().size());
     g_recordFile.Close();
     g_recordStartTime = 0.0;
 

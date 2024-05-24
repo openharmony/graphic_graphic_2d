@@ -203,6 +203,8 @@ enum class SystemAnimatedScenes : uint32_t {
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
     ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
+    ENTER_RECENTS, // Enter recents
+    EXIT_RECENTS, // Exit recents
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 

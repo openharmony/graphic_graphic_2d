@@ -80,6 +80,8 @@ public:
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
     }
 
+    void ResetRenderParams();
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -1100,6 +1102,9 @@ public:
     void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes);
     std::string SubSurfaceNodesDump() const;
 
+    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
+    bool IsNodeToBeCaptured() const;
+
     void SetDoDirectComposition(bool flag)
     {
         doDirectComposition_ = flag;
@@ -1357,6 +1362,7 @@ private:
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     bool isSubSurfaceNode_ = false;
+    bool isNodeToBeCaptured_ = false;
 
     bool doDirectComposition_ = true;
 

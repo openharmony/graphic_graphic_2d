@@ -235,6 +235,28 @@ std::vector<RectI> RSUniRenderUtil::ScreenIntersectDirtyRects(const Occlusion::R
     return retRects;
 }
 
+std::vector<RectI> RSUniRenderUtil::GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return srcRects;
+    }
+#endif
+
+    return FilpRects(srcRects, screenInfo);
+}
+
+std::vector<RectI> RSUniRenderUtil::FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
+{
+    std::vector<RectI> retRects;
+    for (const RectI& rect : srcRects) {
+        retRects.emplace_back(RectI(rect.left_, screenInfo.GetRotatedHeight() - rect.top_ - rect.height_,
+            rect.width_, rect.height_));
+    }
+    return retRects;
+}
+
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
     const sptr<IConsumerSurface>& surface, RectF& localBounds)
 {
@@ -1413,13 +1435,11 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
     if (newWidthDstHeight > newHeightDstWidth) {
-        uint32_t srcRectWidth = newWidth;
+        newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;
-        newHeight = newHeight * newWidth / srcRectWidth;
     } else if (newWidthDstHeight < newHeightDstWidth) {
-        uint32_t srcRectHeight = newHeight;
+        newWidth = newWidth * dstHeight / newHeight;
         newHeight = dstHeight;
-        newWidth = newWidth * newHeight / srcRectHeight;
     } else {
         newHeight = dstHeight;
         newWidth = dstWidth;

@@ -1106,7 +1106,9 @@ void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
-    image->SetNodeId(GetId());
+    if (image) {
+        image->SetNodeId(GetId());
+    }
     SetProperty<RSBgImageModifier, RSProperty<std::shared_ptr<RSImage>>>(RSModifierType::BG_IMAGE, image);
 }
 
@@ -1801,6 +1803,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
         }
         auto deleteType = modifier->GetModifierType();
         bool isExist = false;
+        modifiers_.erase(iter);
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
                 modifiersTypeMap_.emplace((int16_t)deleteType, value);
@@ -1808,7 +1811,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
                 break;
             }
         }
-        modifiers_.erase(iter);
         if (!isExist) {
             modifiersTypeMap_.erase((int16_t)deleteType);
         }
@@ -2172,7 +2174,7 @@ void RSNode::AddChild(SharedPtr child, int index)
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
-    if (GetType() == RSUINodeType::SURFACE_NODE) {
+    if (child->GetType() == RSUINodeType::SURFACE_NODE) {
         ROSEN_LOGI("RSNode::AddChild, NodeId: %{public}" PRIu64 ", ChildId: %{public}" PRIu64, id_, childId);
         RS_TRACE_NAME_FMT("RSNode::AddChild, NodeId: %" PRIu64 ", ChildId: %" PRIu64, id_, childId);
     }

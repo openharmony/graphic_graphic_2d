@@ -16,6 +16,7 @@
 #include <memory>
 
 #include <malloc.h>
+#include <parameters.h>
 #include "graphic_common_c.h"
 #include "rs_trace.h"
 #include "hgm_core.h"
@@ -50,6 +51,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
@@ -178,7 +180,8 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
-    if (tid_ == gettid()) {
+    static bool isAln = system::GetParameter("const.build.product", "") == "ALN";
+    if (isAln && tid_ == gettid()) {
         task();
         return;
     }
@@ -518,6 +521,7 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         this->clearMemDeeply_ = clearMemDeeply_ || deeply;
         this->SetClearMoment(moment);
+        this->clearMemoryFinished_ = false;
         this->exitedPidSet_.emplace(pid);
     }
     auto task =
@@ -555,6 +559,26 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
                 / GetRefreshRate());
 }
 
+void RSUniRenderThread::PurgeCacheBetweenFrames()
+{
+    if (!RSSystemProperties::GetReleaseResourceEnabled()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("MEM PurgeCacheBetweenFrames add task");
+    PostTask(
+        [this]() {
+            auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+            if (!grContext) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("PurgeCacheBetweenFrames");
+            std::set<int> protectedPidSet = { RSMainThread::Instance()->GetDesktopPidForRotationScene() };
+            MemoryManager::PurgeCacheBetweenFrames(grContext, true, this->exitedPidSet_, protectedPidSet);
+            RemoveTask(PURGE_CACHE_BETWEEN_FRAMES);
+        },
+        PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+}
+
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
 {
     if (!rootNodeDrawable_) {
@@ -587,12 +611,7 @@ void RSUniRenderThread::UpdateDisplayNodeScreenId()
     if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
         auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
         if (displayNode) {
-            auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
-            if (!params) {
-                RS_LOGE("RSUniRenderThread::UpdateDisplayNodeScreenId params is nullptr");
-                return;
-            }
-            displayNodeScreenId_ = params->GetScreenId();
+            displayNodeScreenId_ = displayNode->GetScreenId();
         }
     }
 }

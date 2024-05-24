@@ -111,13 +111,11 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* 
     return EngineStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
         colorType, colorSpace, deleteVkImage, cleanHelper);
 }
+#endif
 std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
-        return nullptr;
-    }
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return DDGRStaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
@@ -127,7 +125,6 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuCo
     return EngineStaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
         colorSpace, deleteVkImage, cleanHelper);
 }
-#endif
 std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)
 {

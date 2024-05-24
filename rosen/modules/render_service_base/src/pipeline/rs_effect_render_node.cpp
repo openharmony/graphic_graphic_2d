@@ -125,7 +125,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 
 void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged)
 {
-    if (GetRenderProperties().GetBackgroundFilter()) {
+    if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
     auto filterDrawable = GetFilterDrawable(false);

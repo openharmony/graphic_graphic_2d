@@ -230,7 +230,7 @@ std::shared_ptr<Data> SkiaBitmap::Serialize() const
     int width = skiaBitmap_.width();
     int height = skiaBitmap_.height();
     const void *addr = skiaBitmap_.pixmap().addr();
-    size_t pixmapSize = rb * static_cast<size_t>(height);
+    size_t pixmapSize = skiaBitmap_.computeByteSize();
 
     writer.writeUInt(pixmapSize);
     if (addr == nullptr) {

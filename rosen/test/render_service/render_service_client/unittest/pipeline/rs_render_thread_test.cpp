@@ -152,7 +152,7 @@ HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
     auto renderThread = std::make_shared<RSRenderThread>();
     uint64_t timestamp = 123456; //for test
     renderThread->activeWindowCnt_ = 1;
-    renderThread->OnVsync(timestamp);
+    renderThread->OnVsync(timestamp, 0);
     EXPECT_EQ(timestamp, 123456);
 }
 

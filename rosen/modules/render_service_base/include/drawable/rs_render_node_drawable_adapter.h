@@ -93,7 +93,7 @@ public:
 protected:
     // Util functions
     std::string DumpDrawableVec() const;
-    bool QuickReject(Drawing::Canvas& canvas, RectF localDrawRect);
+    bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
 
     // Draw functions

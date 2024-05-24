@@ -30,19 +30,28 @@ namespace OHOS::Rosen {
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 namespace DrawableV2 {
+constexpr int TRACE_LEVEL_TWO = 2;
 void RSPropertyDrawable::OnSync()
 {
     if (!needSync_) {
         return;
     }
     std::swap(drawCmdList_, stagingDrawCmdList_);
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
     needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) { ptr->drawCmdList_->Playback(*canvas); };
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        ptr->drawCmdList_->Playback(*canvas);
+        if (!ptr->propertyDescription_.empty()) {
+            RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
+                ptr->propertyDescription_.c_str(), rect->ToString().c_str());
+        }
+    };
 }
 
 // ============================================================================
@@ -320,7 +329,7 @@ bool RSFilterDrawable::IsForceClearFilterCache() const
 
 bool RSFilterDrawable::IsForceUseFilterCache() const
 {
-    return forceUseCache_;
+    return stagingForceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const

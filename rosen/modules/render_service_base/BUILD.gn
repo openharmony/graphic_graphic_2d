@@ -171,9 +171,6 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
-    #luminance
-    "src/luminance/rs_luminance_control.cpp",
-
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
@@ -290,6 +287,18 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
+
+  if (rosen_is_ohos) {
+    sources += [
+      #luminance
+      "src/luminance/rs_luminance_control.cpp",
+    ]
+  } else {
+    sources += [
+      #luminance
+      "src/luminance/mingw/rs_luminance_control.cpp",
+    ]
+  }
 
   if (is_cross_platform) {
     sources -= [

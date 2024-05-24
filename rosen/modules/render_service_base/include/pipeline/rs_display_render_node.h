@@ -415,14 +415,14 @@ public:
         lastSurfaceIds_ = std::move(lastSurfaceIds);
     }
 
-    const std::vector<RectI>& GetDamageRegion() const
+    const std::vector<RectI>& GetDirtyRects() const
     {
-        return damageRegion_;
+        return dirtyRects_;
     }
 
-    void SetDamageRegion(const std::vector<RectI>& rects)
+    void SetDirtyRects(const std::vector<RectI>& rects)
     {
-        damageRegion_ = rects;
+        dirtyRects_ = rects;
     }
 
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
@@ -507,7 +507,7 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     std::vector<NodeId> lastSurfaceIds_;
-    std::vector<RectI> damageRegion_;
+    std::vector<RectI> dirtyRects_;
 
     std::vector<int32_t> oldScbPids_ {};
     int32_t currentScbPid_ = -1;

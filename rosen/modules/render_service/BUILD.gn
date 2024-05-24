@@ -212,8 +212,8 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
   }
 
-  if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
-      use_rosen_drawing) {
+  if (defined(rs_enable_recording_dcl) && rs_enable_recording_dcl &&
+      defined(use_rosen_drawing) && use_rosen_drawing) {
     deps += [
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
@@ -233,6 +233,7 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_beta_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",

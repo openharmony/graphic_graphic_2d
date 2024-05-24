@@ -66,8 +66,6 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
         return false;
     }
-    RS_LOGD("bhdr pixelMap%{public}d, colorspace%{public}d", pixelMap_->GetPixelFormat(),
-        pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
     if (!pixelMap_->IsHdr()) {
         return false;
     }
@@ -322,9 +320,11 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
     bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
     for (int i = minX; i <= maxX; ++i) {
+        auto left = dstRect_.left_ + i * dstRect_.width_;
+        auto right = left + dstRect_.width_;
         for (int j = minY; j <= maxY; ++j) {
-            dst_ = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
-                dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
+            auto top = dstRect_.top_ + j * dstRect_.height_;
+            dst_ = Drawing::Rect(left, top, right, top + dstRect_.height_);
             if (isAstc) {
                 canvas.Save();
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);

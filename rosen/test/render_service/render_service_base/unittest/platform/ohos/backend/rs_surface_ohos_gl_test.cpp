@@ -90,7 +90,11 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
 {
-    RSSurfaceOhosGl rsSurface(IConsumerSurface::Create());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef ACE_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     if (renderContext) {
@@ -106,7 +110,11 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
     rsSurface.ClearBuffer();
 
     {
-        RSSurfaceOhosGl rsSurface(IConsumerSurface::Create());
+        sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+        ASSERT_TRUE(cSurface != nullptr);
+        sptr<IBufferProducer> bp = cSurface->GetProducer();
+        sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+        RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef ACE_ENABLE_GPU
         RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
         if (renderContext) {
@@ -156,7 +164,11 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
 {
-    RSSurfaceOhosGl rsSurface(IConsumerSurface::Create());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef ACE_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     if (renderContext) {
@@ -173,7 +185,11 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
     EXPECT_EQ(rsSurface.mEglSurface, EGL_NO_SURFACE);
     
     {
-        RSSurfaceOhosGl rsSurface(IConsumerSurface::Create());
+        sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+        ASSERT_TRUE(cSurface != nullptr);
+        sptr<IBufferProducer> bp = cSurface->GetProducer();
+        sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+        RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef ACE_ENABLE_GPU
         RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
         if (renderContext) {

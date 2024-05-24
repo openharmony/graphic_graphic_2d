@@ -30,6 +30,8 @@
 
 #define R 400
 
+#define FLOAT_PI 3.14159265f
+
 struct RECT {
     float x;
     float y;
@@ -60,34 +62,30 @@ void AddArcMeas::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_CanvasTranslate(canvas, R + 20, R + 20); // 20距离
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(pen, true);
-    OH_Drawing_CanvasAttachPen(canvas, pen);
 
     OH_Drawing_Pen *measPen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(measPen, true);
     OH_Drawing_PenSetColor(measPen, 0xFFFF0000);
 
     OH_Drawing_Rect *oval = OH_Drawing_RectCreate(-R, -R, R, R);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasDrawOval(canvas, oval);
     OH_Drawing_CanvasDetachPen(canvas);
 
     for (float deg = 0; deg < 360; deg += 10) { // 360,10 cout
-        const float rad = (deg) / 180 * M_PI;
-        float rx = cos(rad) * R;
-        float ry = sin(rad) * R;
+        const float rad = (deg) * (FLOAT_PI / 180);
+        float rx = cosf(rad) * R;
+        float ry = sinf(rad) * R;
         OH_Drawing_CanvasAttachPen(canvas, pen);
         OH_Drawing_CanvasDrawLine(canvas, 0, 0, rx, ry);
+        OH_Drawing_CanvasDetachPen(canvas);
 
-        OH_Drawing_Path *meas = OH_Drawing_PathCreate();
-        OH_Drawing_PathAddArc(meas, oval, 0, deg);
-        float arcLen = rad * R;
-
-        OH_Drawing_CanvasAttachPen(canvas, measPen);
-        if (deg != 0)
-            // 没有getPosTan工具函数，先用已有的point替代
+        if (deg != 0) {
+            OH_Drawing_CanvasAttachPen(canvas, measPen);
             OH_Drawing_CanvasDrawLine(canvas, 0, 0, rx, ry);
-        OH_Drawing_PathDestroy(meas);
+            OH_Drawing_CanvasDetachPen(canvas);
+        }
     }
-    OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_PenDestroy(measPen);
     OH_Drawing_RectDestroy(oval);

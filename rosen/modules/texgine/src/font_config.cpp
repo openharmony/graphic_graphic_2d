@@ -35,7 +35,7 @@ namespace TextEngine {
 #define FAILED 1
 
 const std::string DEFAULT_DIR = "/system/fonts/";
-const std::string FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
+const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -148,7 +148,7 @@ int FontConfigJson::ParseFile(const char* fname)
 {
     if (fname == nullptr) {
         LOGSO_FUNC_LINE(DEBUG) << "ParseFile fname is nullptr";
-        fname = FONT_DEFAULT_CONFIG.c_str();
+        fname = FONT_DEFAULT_CONFIG;
     }
 
     LOGSO_FUNC_LINE(INFO) << "ParseFile fname is: " << fname;
@@ -164,7 +164,7 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
 {
     if (fname == nullptr) {
         LOGSO_FUNC_LINE(DEBUG) << "ParseFontFileMap fname is nullptr";
-        fname = FONT_DEFAULT_CONFIG.c_str();
+        fname = FONT_DEFAULT_CONFIG;
     }
 
     LOGSO_FUNC_LINE(INFO) << "ParseFontFileMap fname is: " << fname;

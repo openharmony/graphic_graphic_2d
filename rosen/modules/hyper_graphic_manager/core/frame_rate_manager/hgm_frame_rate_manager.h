@@ -156,6 +156,7 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
+    static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
     VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
@@ -180,6 +181,7 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
+    std::unordered_set<std::string> gameScenes_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;

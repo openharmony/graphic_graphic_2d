@@ -647,10 +647,6 @@ bool SkiaCanvas::OpCalculateBefore(const Matrix& matrix)
         return false;
     }
     auto tmp = std::make_shared<SkiaCanvasAutoCache>(skCanvas_);
-    if (!tmp) {
-        LOGD("opinc create opinccanvas null");
-        return false;
-    }
     tmp->Init(m->ExportSkiaMatrix());
     skiaCanvasOp_ = tmp;
     skCanvasBackup_ = skiaCanvasOp_.get();

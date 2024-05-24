@@ -54,6 +54,7 @@ RSDrawingFilter::RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter)
     hash_ = shaderFilter->Hash();
     shaderFilters_.reserve(SHADER_FILTERS_SIZE);
     shaderFilters_.emplace_back(shaderFilter);
+    imageFilterHash_ = static_cast<uint32_t>(0);
 }
 
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
@@ -275,8 +276,8 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
 void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
-    auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    if (effectContainer == nullptr) {
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    if (visualEffectContainer == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect visualEffectContainer is null");
         return;
     }
@@ -285,7 +286,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
         if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
             continue;
         }
-        filter->GenerateGEVisualEffect(effectContainer);
+        filter->GenerateGEVisualEffect(visualEffectContainer);
     };
 
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
@@ -295,7 +296,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     }
 
     auto outImage =
-        geRender->ApplyImageEffect(canvas, *effectContainer, image, src, src, Drawing::SamplingOptions());
+        geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
     if (outImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
         return;

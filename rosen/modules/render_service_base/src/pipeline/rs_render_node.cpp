@@ -796,7 +796,7 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
-void RSRenderNode::MergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
+void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
     if (geoUpdateDelay_) {
         dirtyManager.MergeDirtyRect(clipRect.IntersectRect(absChildrenRect_));
@@ -809,17 +809,19 @@ void RSRenderNode::SubTreeSkipPrepare(
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
     if (isDirty || clipAbsDrawRectChange_) {
-        auto dirtyRect = absChildrenRect_;
+        auto dirtyRect = subTreeDirtyRegion_;
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
-            dirtyRect = dirtyRect.JoinRect(absChildrenRect_);
+            subTreeDirtyRegion_ = absChildrenRect_.IntersectRect(clipRect);
+            dirtyRect = dirtyRect.JoinRect(subTreeDirtyRegion_);
         }
-        if (HasChildrenOutOfRect()) {
-            dirtyManager.MergeDirtyRect(clipRect.IntersectRect(dirtyRect));
+        if (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_) {
+            dirtyManager.MergeDirtyRect(dirtyRect);
         }
     }
     SetGeoUpdateDelay(accumGeoDirty);
     lastFrameSubTreeSkipped_ = true;
+    lastFrameHasChildrenOutOfRect_ = HasChildrenOutOfRect();
 }
 
 // attention: current all base node's dirty ops causing content dirty
@@ -1802,7 +1804,7 @@ void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyMa
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
         return;
     }
-    auto filterDrawable = GetFilterDrawable(false);
+    auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
@@ -2323,8 +2325,8 @@ void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
     // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
-    constexpr auto FRAME_NOT_EMPTY = 1 << 4;
-    constexpr auto NODE_NOT_EMPTY = 1 << 5;
+    constexpr uint8_t FRAME_NOT_EMPTY = 1 << 4;
+    constexpr uint8_t NODE_NOT_EMPTY = 1 << 5;
 
     stagingDrawCmdList_.clear();
     drawCmdListNeedSync_ = true;

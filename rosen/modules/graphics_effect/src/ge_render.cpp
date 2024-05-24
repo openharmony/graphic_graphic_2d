@@ -37,7 +37,6 @@ void GERender::DrawImageEffect(Drawing::Canvas& canvas, Drawing::GEVisualEffectC
         LOGE("GERender::DrawImageRect image is null");
         return;
     }
-    std::vector<std::shared_ptr<GEShaderFilter>> geShaderFilters = GenerateShaderFilter(veContainer);
 
     auto resImage = ApplyImageEffect(canvas, veContainer, image, src, dst, sampling);
     Drawing::Brush brush;

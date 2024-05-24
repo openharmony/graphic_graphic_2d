@@ -12,31 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_EFFECT_BRIGHTNESS_BLENDER_H
-#define UIEFFECT_EFFECT_BRIGHTNESS_BLENDER_H
+#ifndef GRAPHICS_EFFECT_GE_HASH_H
+#define GRAPHICS_EFFECT_GE_HASH_H
+#include <cstdint>
+#include <memory>
 
-#include "common/rs_vector3.h"
-#include "blender.h"
-
+#include "ge_hash_refer.h"
 namespace OHOS {
-namespace Rosen {
-class BrightnessBlender : public Blender {
-public:
-    BrightnessBlender()
-    {
-        this->blenderType_ = Blender::BRIGHTNESS_BLENDER;
-    }
-    ~BrightnessBlender() {}
-
-    float cubicRate_;
-    float quadRate_;
-    float linearRate_;
-    float degree_;
-    float saturation_;
-    Vector3f positiveCoeff_;
-    Vector3f negetiveCoeff_;
-    float fraction_;
-};
-} // namespace Rosen
+namespace GraphicsEffectEngine {
+uint32_t Hash32Next(uint32_t previousHash, const void* data, size_t bytes, uint32_t seed = 0);
+uint64_t Hash64Next(uint64_t previousHash, const void* data, size_t bytes, uint64_t seed = 0);
+} // namespace GraphicsEffectEngine
 } // namespace OHOS
-#endif // UIEFFECT_EFFECT_BRIGHTNESS_BLENDER_H
+#endif // GRAPHICS_EFFECT_GE_HASH_H

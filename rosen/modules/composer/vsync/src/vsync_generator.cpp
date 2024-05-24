@@ -361,9 +361,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     now -= phase;
     if (now < 0) {
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
-            if (expectTimeFlag_) { // Ensure that nextTime is not earlier than referenceTime.
-                auto num = ((-now) / periodRecord_) * periodRecord_;
-                ScopedBytrace trace("sgb num:" + std::to_string(num) + ", now:" + std::to_string(now));
+            if (expectTimeFlag_ || refreshRateIsChanged_) { // Ensure that nextTime is not earlier than referenceTime.
                 now += ((-now) / periodRecord_) * periodRecord_;
             }
             now -= periodRecord_;
