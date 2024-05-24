@@ -226,9 +226,6 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectJoin002, TestSize.Leve
 
     bool ret = OH_Drawing_RectJoin(rect, otherOne);
     EXPECT_EQ(ret, false);
-
-    OH_Drawing_RectDestroy(rect);
-    OH_Drawing_RectDestroy(otherOne);
 }
 
 /*
