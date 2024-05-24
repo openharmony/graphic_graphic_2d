@@ -69,22 +69,12 @@ void BitmapReadPixels::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_BitmapBuild(cBitmap, width, height, &bitmapFormat);
     OH_Drawing_Image_Info imageInfo { width, height, fCT, fAT };
     void* pixels = new uint32_t[width * height];
-    bool resFail = false;
     bool resTrue = false;
     // 将位图中的矩形区域像素数据读取到指定的内存缓冲区中,循环攻击此接口
     for (int i = 0; i < testCount_; i++) {
         resTrue =
             OH_Drawing_BitmapReadPixels(cBitmap, &imageInfo, pixels, width * 4, 0, 0); // 4目标像素数据每行的字节数
     }
-    resFail = OH_Drawing_BitmapReadPixels(nullptr, nullptr, nullptr, width * 4, 0, 0); // 4字节数
-    // 对于像素数据读取,无参数传入应返回错误(为方便观察,与正确返回对比,额外写的错误返回)
-    DRAWING_LOGI("The OH_Drawing_BitmapReadPixels interface has no parameters passed in,the result should return an "
-                 "error=%{public}s",
-        resFail ? "true" : "false");
-    // 对于像素数据读取,有参数传入应返回正确
-    DRAWING_LOGI("The OH_Drawing_BitmapReadPixels interface has a parameter passed in, and the result should be "
-                 "returned correctly=%{public}s",
-        resTrue ? "true" : "false");
     if (resTrue == true) {
         OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, width, height);
         OH_Drawing_CanvasDrawRect(canvas, rect);
