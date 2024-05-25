@@ -32,4 +32,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
- #endif // SK_IMAGE_CHAIN_UNITTEST_H
+#endif // SK_IMAGE_CHAIN_UNITTEST_H
