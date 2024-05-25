@@ -269,6 +269,7 @@ public:
     }
 
     void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
+    void SurfaceOcclusionCallback();
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
@@ -356,7 +357,6 @@ private:
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
-    void SurfaceOcclusionCallback();
     void InitRSEventDetector();
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();

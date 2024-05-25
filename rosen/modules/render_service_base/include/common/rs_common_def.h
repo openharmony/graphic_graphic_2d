@@ -226,6 +226,7 @@ enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
     ARKTS_CARD,
+    NONFOCUS_WINDOW,
 };
 
 enum class SelfDrawingNodeType : uint8_t {
