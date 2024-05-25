@@ -375,7 +375,6 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     lineMetrics->endIndex = skLineMetrics.fEndIndex;
     lineMetrics->lineNumber = skLineMetrics.fLineNumber;
     lineMetrics->baseline = skLineMetrics.fBaseline;
-    std::vector<TextStyle> lineMetricsStyles;
     for (const auto& [index, styleMtrics] : skLineMetrics.fLineMetrics) {
         SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMtrics.text_style);
         lineMetricsStyles_.emplace_back(Convert(spTextStyle));

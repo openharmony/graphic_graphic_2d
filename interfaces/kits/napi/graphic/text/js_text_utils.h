@@ -387,7 +387,7 @@ inline napi_value CreateTextRectJsValue(napi_env env, TextRect textrect)
     return objValue;
 }
 
-inline napi_value CreateArrayStringJsValue(napi_env env, std::vector<std::string> vectorString)
+inline napi_value CreateArrayStringJsValue(napi_env env, std::vector<std::string>& vectorString)
 {
     napi_value jsArray = nullptr;
     if (napi_create_array_with_length(env, vectorString.size(), &jsArray) == napi_ok) {
@@ -408,64 +408,9 @@ inline napi_value CreateStringJsValue(napi_env env, std::u16string& u16String)
     return jsStr;
 }
 
-inline napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "decoration", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.decoration)));
-        napi_set_named_property(env, objValue, "color", CreateJsNumber(env,
-            (uint32_t)textStyle.color.CastToColorQuad()));
-        napi_set_named_property(env, objValue, "fontWeight", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.fontWeight)));
-        napi_set_named_property(env, objValue, "fontStyle", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.fontStyle)));
-        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.baseline)));
-        napi_set_named_property(env, objValue, "fontFamilies", CreateArrayStringJsValue(env, textStyle.fontFamilies));
-        napi_set_named_property(env, objValue, "fontSize", CreateJsNumber(env, textStyle.fontSize));
-        napi_set_named_property(env, objValue, "letterSpacing", CreateJsNumber(env, textStyle.letterSpacing));
-        napi_set_named_property(env, objValue, "wordSpacing", CreateJsNumber(env, textStyle.wordSpacing));
-        napi_set_named_property(env, objValue, "heightScale", CreateJsNumber(env, textStyle.heightScale));
-        napi_set_named_property(env, objValue, "halfLeading", CreateJsValue(env, textStyle.halfLeading));
-        napi_set_named_property(env, objValue, "heightOnly", CreateJsValue(env, textStyle.heightOnly));
-        napi_set_named_property(env, objValue, "ellipsis", CreateStringJsValue(env, textStyle.ellipsis));
-        napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.ellipsisModal)));
-        napi_set_named_property(env, objValue, "locale", CreateJsValue(env, textStyle.locale));
-    }
-    return objValue;
-}
+napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
 
-inline napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "flags", CreateJsNumber(env, fontMetrics.fFlags));
-        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, fontMetrics.fTop)); // float type
-        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, fontMetrics.fAscent));
-        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, fontMetrics.fDescent));
-        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, fontMetrics.fBottom));
-        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, fontMetrics.fLeading));
-        napi_set_named_property(env, objValue, "avgCharWidth", CreateJsNumber(env, fontMetrics.fAvgCharWidth));
-        napi_set_named_property(env, objValue, "maxCharWidth", CreateJsNumber(env, fontMetrics.fMaxCharWidth));
-        napi_set_named_property(env, objValue, "xMin", CreateJsNumber(env, fontMetrics.fXMin));
-        napi_set_named_property(env, objValue, "xMax", CreateJsNumber(env, fontMetrics.fXMax));
-        napi_set_named_property(env, objValue, "xHeight", CreateJsNumber(env, fontMetrics.fXHeight));
-        napi_set_named_property(env, objValue, "capHeight", CreateJsNumber(env, fontMetrics.fCapHeight));
-        napi_set_named_property(env, objValue, "underlineThickness", CreateJsNumber(env,
-            fontMetrics.fUnderlineThickness));
-        napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
-            fontMetrics.fUnderlinePosition));
-        napi_set_named_property(env, objValue, "strikeoutThickness", CreateJsNumber(env,
-            fontMetrics.fStrikeoutThickness));
-        napi_set_named_property(env, objValue, "strikeoutPosition", CreateJsNumber(env,
-            fontMetrics.fStrikeoutPosition));
-    }
-    return objValue;
-}
+napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics);
 
 inline napi_value CreateRunMetricsJsValue(napi_env env, RunMetrics runMetrics)
 {
@@ -478,45 +423,9 @@ inline napi_value CreateRunMetricsJsValue(napi_env env, RunMetrics runMetrics)
     return objValue;
 }
 
-inline napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map)
-{
-    napi_value result = nullptr;
-    napi_status status = napi_create_object(env, &result);
-    if (status != napi_ok) {
-        ROSEN_LOGE("ConvertMapToNapiMap create napi object failed");
-        return nullptr;
-    }
-    napi_value jsSize = nullptr;
-    napi_create_uint32(env, map.size(), &jsSize);
-    napi_set_named_property(env, result, "size", jsSize);
-    for (const auto &[key, val] : map) {
-        status = napi_set_property(env, result, CreateJsNumber(env, key), CreateRunMetricsJsValue(env, val));
-        if (status != napi_ok) {
-            return nullptr;
-        }
-    }
-    return result;
-}
+napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map);
 
-inline napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "startIndex", CreateJsNumber(env, (uint32_t)lineMetrics.startIndex));
-        napi_set_named_property(env, objValue, "endIndex", CreateJsNumber(env, (uint32_t)lineMetrics.endIndex));
-        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, lineMetrics.ascender));
-        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, lineMetrics.descender));
-        napi_set_named_property(env, objValue, "height", CreateJsNumber(env, lineMetrics.height));
-        napi_set_named_property(env, objValue, "width", CreateJsNumber(env, lineMetrics.width));
-        napi_set_named_property(env, objValue, "left", CreateJsNumber(env, lineMetrics.x));
-        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.baseline));
-        napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.lineNumber));
-        napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.y));
-        napi_set_named_property(env, objValue, "runMetrics", ConvertMapToNapiMap(env, lineMetrics.runMetrics));
-    }
-    return objValue;
-}
+napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics);
 
 inline void SetFontMetricsFloatValueFromJS(napi_env env, napi_value argValue, const std::string& str, float& cValue)
 {
