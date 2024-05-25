@@ -170,7 +170,7 @@ HWTEST_F(TypefaceTest, MakeClone001, TestSize.Level1)
  */
 HWTEST_F(TypefaceTest, MakeClone002, TestSize.Level1)
 {
-    auto typeface = Typeface::MakeDefault();//std::make_unique<Typeface>(nullptr);
+    auto typeface = Typeface::MakeDefault();
     ASSERT_TRUE(typeface != nullptr);
     FontArguments arg;
     auto typefaceclone = typeface->MakeClone(arg);
