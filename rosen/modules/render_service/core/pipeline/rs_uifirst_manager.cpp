@@ -30,7 +30,9 @@ namespace Rosen {
 namespace {
     static constexpr int EVENT_START_TIMEOUT = 500;
     static constexpr int EVENT_STOP_TIMEOUT = 150;
+    static constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
+    constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
     static inline int64_t GetCurSysTime()
     {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
@@ -702,8 +704,11 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 
 void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
 {
-    EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId};
+    EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};
     std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
+    for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
+        it->disableNodes.clear();
+    }
     globalFrameEvent_.push_back(std::move(eventInfo));
     currentFrameCanSkipFirstWait_ = EventsCanSkipFirstWait(globalFrameEvent_);
 }
@@ -716,6 +721,17 @@ void RSUifirstManager::OnProcessEventComplete(DataBaseRs& info)
         if (it->uniqueId == info.uniqueId && it->sceneId == info.sceneId) {
             // delay delete for animation continue
             it->stopTime = curSysTime;
+            break;
+        }
+    }
+}
+
+void RSUifirstManager::EventDisableLeashWindowCache(NodeId id, EventInfo& info)
+{
+    std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
+    for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
+        if (it->uniqueId == info.uniqueId && it->sceneId == info.sceneId) {
+            it->disableNodes.insert(id);
             break;
         }
     }
@@ -833,7 +849,13 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
         return false;
     }
     for (auto& item : currentFrameEvent_) {
-        if (appPids.count(item.appPid)) {
+        if (item.disableNodes.count(node.GetId())) {
+            return true;
+        }
+        if (appPids.count(item.appPid) && (node.GetUifirstStartTime() > 0) &&
+            (node.GetUifirstStartTime() < (item.startTime - EVENT_DISABLE_UIFIRST_GAP)) &&
+            (item.sceneId.find(EVENT_DISABLE_UIFIRST) != std::string::npos)) {
+            EventDisableLeashWindowCache(node.GetId(), item);
             return true; // app has animation, stop leashwindow uifirst
         }
     }
@@ -951,6 +973,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             }
             auto func = std::bind(&RSUifirstManager::ProcessTreeStateChange, std::placeholders::_1);
             node.RegisterTreeStateChangeCallback(func);
+            node.SetUifirstStartTime(GetCurSysTime());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType); // clear pending reset status
         } else { // keep disable
             RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
@@ -963,6 +986,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lx", node.GetId());
+            node.SetUifirstStartTime(-1); // -1: default start time
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
         }
     }

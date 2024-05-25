@@ -36,6 +36,7 @@ public:
         int64_t uniqueId = 0;
         int32_t appPid = -1;
         std::string sceneId;
+        std::set<NodeId> disableNodes;
     };
 
     void AddProcessDoneNode(NodeId id);
@@ -137,6 +138,7 @@ private:
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
+    void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
