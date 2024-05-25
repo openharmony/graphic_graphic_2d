@@ -387,7 +387,7 @@ void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas,
 
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_ - 1));
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_));
 }
 
 void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
