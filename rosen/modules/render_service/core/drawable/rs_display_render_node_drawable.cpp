@@ -492,10 +492,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
-            int bufferAge = expandProcessor->GetBufferAge();
             RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp);
             std::vector<RectI> damageRegionRects;
-            if (uniParam->IsVirtualDirtyEnabled()) {
+            // disable expand screen dirty when skipFrameInterval > 1, because the dirty history is incorrect
+            if (uniParam->IsVirtualDirtyEnabled() && curScreenInfo.skipFrameInterval <= 1) {
+                int32_t bufferAge = expandProcessor->GetBufferAge();
                 damageRegionRects = MergeDirtyHistory(displayNodeSp, bufferAge, screenInfo, rsDirtyRectsDfx);
                 uniParam->Reset();
                 if (!uniParam->IsVirtualDirtyDfxEnabled()) {
@@ -704,31 +705,31 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty mirroredNode is nullptr.");
         return mappedDamageRegionRects;
     }
-
     auto mirroredProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     if (!mirroredProcessor) {
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty convert to virtual processor failed.");
         return mappedDamageRegionRects;
     }
-
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty ScreenManager is nullptr");
         return mappedDamageRegionRects;
     }
     ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirroredNode->GetScreenId());
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
 
-    int bufferAge = mirroredProcessor->GetBufferAge();
-    std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredNode, bufferAge, mainScreenInfo);
+    int32_t bufferAge = mirroredProcessor->GetBufferAge();
+    int32_t actualAge = curScreenInfo.skipFrameInterval ? curScreenInfo.skipFrameInterval * bufferAge : bufferAge;
+    std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredNode, actualAge, mainScreenInfo);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
         mappedDamageRegionRects.emplace_back(mappedRect);
     }
-
-    if (!(lastMatrix_ == canvasMatrix)) {
+    if (!(lastMatrix_ == canvasMatrix) || isLastFrameHasSecSurface_) {
         displayNode.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
+        isLastFrameHasSecSurface_ = false;
     }
     displayNode.UpdateDisplayDirtyManager(bufferAge, false, true);
     auto extraDirty = displayNode.GetSyncDirtyManager()->GetDirtyRegion();
@@ -759,6 +760,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
     curCanvas_->SetDisableFilterCache(true);
     if (hasSecSurface[mirroredNode->GetScreenId()]) {
+        isLastFrameHasSecSurface_ = true;
         SetCanvasBlack(*processor);
         return;
     }

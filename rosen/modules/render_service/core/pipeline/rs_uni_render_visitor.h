@@ -410,6 +410,11 @@ private:
     {
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
+    bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
+    {
+        return !node.GetSkipLayer() && (screenInfo_.filteredAppSet.empty() ||
+            screenInfo_.filteredAppSet.find(node.GetId()) != screenInfo_.filteredAppSet.end());
+    }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);

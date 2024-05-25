@@ -91,6 +91,7 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
+    bool isLastFrameHasSecSurface_ = false;
     Drawing::Matrix lastMatrix_;
 };
 } // namespace DrawableV2
