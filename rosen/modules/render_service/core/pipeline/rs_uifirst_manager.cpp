@@ -17,6 +17,8 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
+#include "luminance/rs_luminance_control.h"
+#include "params/rs_display_render_params.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -245,6 +247,32 @@ void RSUifirstManager::ProcessDoneNode()
     }
 }
 
+void RSUifirstManager::SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+    if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
+        return;
+    }
+    auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!ancestor) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
+    if (!displayParams) {
+        return;
+    }
+    bool hdrPresent = displayParams->GetHDRPresent();
+    ScreenId id = displayParams->GetScreenId();
+    RSLuminanceControl::Get().SetHdrStatus(id, hdrPresent);
+    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(id);
+    drawable->SetHDRPresent(isHdrOn);
+    if (isHdrOn) {
+        // 0 means defalut brightnessRatio
+        drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
+    }
+    RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
+        drawable->GetBrightnessRatio());
+}
 
 void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
     std::shared_ptr<RSSurfaceRenderNode>>& pendingNode)
@@ -254,6 +282,12 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
         auto id = it->first;
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
+            ++it;
+            continue;
+        }
+        SyncHDRDisplayParam(drawable);
+        // Skipping drawing is not allowed when there is an HDR display.
+        if (drawable->GetHDRPresent()) {
             ++it;
             continue;
         }
