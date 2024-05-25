@@ -136,8 +136,6 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
     const char* str = "asdf";
     Font font;
     font.SetSize(100);
-    // RSXform xform[] = {RSXform::Make(10, 10, 10, 10)};
-    // auto blob = SkiaTextBlob::MakeFromRSXform(str, strlen(str), xform, font, TextEncoding::UTF8);
     Point p1 { 0, 0 };
     Point p2 { 1, 1 };
     Point pos[] = { p1, p2 };
