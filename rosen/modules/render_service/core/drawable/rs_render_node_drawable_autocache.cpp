@@ -177,6 +177,9 @@ void RSRenderNodeDrawable::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
 void RSRenderNodeDrawable::BeforeDrawCache(NodeStrategyType& cacheStragy,
     Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt)
 {
+    if (!autoCacheEnable_) {
+        return;
+    }
     temNodeStragyType_ = cacheStragy;
     if (!BeforeDrawCacheProcessChildNode(cacheStragy, params)) {
         OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
@@ -206,6 +209,9 @@ void RSRenderNodeDrawable::BeforeDrawCache(NodeStrategyType& cacheStragy,
 void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
     Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt, int& opincRootTotalCount)
 {
+    if (!autoCacheEnable_) {
+        return;
+    }
     OpincCalculateAfter(canvas, isOpincDropNodeExt);
     if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE && recordState_ == NodeRecordState::RECORD_CALCULATE) {
         bool isOnlyTranslate = false;
