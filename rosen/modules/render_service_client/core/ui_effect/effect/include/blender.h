@@ -15,8 +15,6 @@
 #ifndef UIEFFECT_EFFECT_BLENDER_H
 #define UIEFFECT_EFFECT_BLENDER_H
 
-#include <iostream>
-
 namespace OHOS {
 namespace Rosen {
 class Blender {

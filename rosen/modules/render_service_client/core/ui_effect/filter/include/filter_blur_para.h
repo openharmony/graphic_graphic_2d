@@ -25,7 +25,7 @@ public:
     {
         this->type_ = FilterPara::ParaType::BLUR;
     }
-    ~FilterBlurPara() {}
+    ~FilterBlurPara() override = default;
     
     void SetRadius(float radius)
     {

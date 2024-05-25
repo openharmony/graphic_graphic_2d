@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 enum class TileMode : uint32_t {
     CLAMP = 0,
     REPEAT = 1,

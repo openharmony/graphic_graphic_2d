@@ -15,7 +15,6 @@
 #ifndef UIEFFECT_FILTER_H
 #define UIEFFECT_FILTER_H
 
-#include <iostream>
 #include "filter_para.h"
 
 namespace OHOS {
@@ -25,12 +24,12 @@ public:
     Filter() = default;
     ~Filter() = default;
 
-    void AddPara(std::shared_ptr<FilterPara> para)
+    void AddPara(const std::shared_ptr<FilterPara>& para)
     {
         filterParas_.emplace_back(para);
     }
 
-    std::vector<std::shared_ptr<FilterPara>> GetAllPara() const
+    const std::vector<std::shared_ptr<FilterPara>>& GetAllPara() const
     {
         return filterParas_;
     }

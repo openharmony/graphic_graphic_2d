@@ -15,11 +15,8 @@
 #ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
 #define UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
 
-#include <iostream>
-
 namespace OHOS {
 namespace Rosen {
-
 class VisualEffectPara {
 public:
     enum ParaType {

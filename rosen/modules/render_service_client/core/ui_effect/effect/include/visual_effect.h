@@ -15,7 +15,6 @@
 #ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_H
 #define UIEFFECT_EFFECT_VISUAL_EFFECT_H
 
-#include <iostream>
 #include "visual_effect_para.h"
 
 namespace OHOS {
@@ -25,12 +24,12 @@ public:
     VisualEffect() = default;
     ~VisualEffect() = default;
 
-    void AddPara(std::shared_ptr<VisualEffectPara> para)
+    void AddPara(const std::shared_ptr<VisualEffectPara>& para)
     {
         visualEffectParas_.emplace_back(para);
     }
 
-    std::vector<std::shared_ptr<VisualEffectPara>> GetAllPara() const
+    const std::vector<std::shared_ptr<VisualEffectPara>>& GetAllPara() const
     {
         return visualEffectParas_;
     }

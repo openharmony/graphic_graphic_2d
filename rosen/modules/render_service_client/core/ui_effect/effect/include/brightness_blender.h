@@ -26,7 +26,7 @@ public:
     {
         this->blenderType_ = Blender::BRIGHTNESS_BLENDER;
     }
-    ~BrightnessBlender() {}
+    ~BrightnessBlender() override = default;
 
     void SetCubicRate(float cubicRate)
     {
@@ -83,7 +83,7 @@ public:
         positiveCoeff_ = positiveCoeff;
     }
 
-    Vector3f GetPositiveCoeff() const
+    const Vector3f& GetPositiveCoeff() const
     {
         return positiveCoeff_;
     }
@@ -93,7 +93,7 @@ public:
         negativeCoeff_ = negativeCoeff;
     }
 
-    Vector3f GetNegativeCoeff() const
+    const Vector3f& GetNegativeCoeff() const
     {
         return negativeCoeff_;
     }

@@ -15,7 +15,6 @@
 #ifndef UIEFFECT_EFFECT_BACKGROUND_COLOR_EFFECT_PARA_H
 #define UIEFFECT_EFFECT_BACKGROUND_COLOR_EFFECT_PARA_H
 
-#include <iostream>
 #include "brightness_blender.h"
 #include "visual_effect_para.h"
 
@@ -27,14 +26,14 @@ public:
     {
         this->type_ = VisualEffectPara::ParaType::BACKGROUND_COLOR_EFFECT;
     }
-    ~BackgroundColorEffectPara() {}
+    ~BackgroundColorEffectPara() override = default;
 
-    void SetBlender(std::shared_ptr<Blender> blender)
+    void SetBlender(const std::shared_ptr<Blender>& blender)
     {
         blender_ = blender;
     }
 
-    std::shared_ptr<Blender> GetBlender() const
+    const std::shared_ptr<Blender>& GetBlender() const
     {
         return blender_;
     }
