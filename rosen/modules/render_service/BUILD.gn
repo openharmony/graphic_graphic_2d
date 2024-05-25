@@ -135,6 +135,7 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_display_render_node_drawable.cpp",
     "core/drawable/rs_effect_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_drawable_autocache.cpp",
     "core/drawable/rs_root_render_node_drawable.cpp",
     "core/drawable/rs_surface_render_node_drawable.cpp",
     "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
@@ -196,10 +197,6 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
 
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-  }
-
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
@@ -215,8 +212,8 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
   }
 
-  if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
-      use_rosen_drawing) {
+  if (defined(rs_enable_recording_dcl) && rs_enable_recording_dcl &&
+      defined(use_rosen_drawing) && use_rosen_drawing) {
     deps += [
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
@@ -236,6 +233,7 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_beta_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",

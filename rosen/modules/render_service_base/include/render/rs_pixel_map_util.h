@@ -39,6 +39,7 @@ public:
     static void DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
                              const Drawing::scalar px, const Drawing::scalar py);
     static bool IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap);
+    static bool IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::SamplingOptions& sampling);
     static std::shared_ptr<Drawing::Image> ConvertYUVPixelMapToDrawingImage(
         std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
 };

@@ -482,6 +482,35 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     return true;
 }
 
+template<>
+bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
+    const std::shared_ptr<const RSRenderPropertyBase>& value) const
+{
+    auto animatableProperty =
+        std::static_pointer_cast<const RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
+    if (animatableProperty == nullptr) {
+        return true;
+    }
+
+    auto filter = RSRenderProperty<std::shared_ptr<RSFilter>>::stagingValue_;
+    auto otherFilter = animatableProperty->Get();
+    if ((filter != nullptr) && (otherFilter != nullptr)) {
+        return filter->IsEqual(otherFilter);
+    } else if ((filter == nullptr) && (otherFilter == nullptr)) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual: "
+            "both values compared are null Pointers!");
+        return true;
+    } else if (filter == nullptr) {
+        ROSEN_LOGE(
+            "RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual: the staging value is a null pointer!");
+        return otherFilter->IsEqualZero();
+    } else {
+        ROSEN_LOGE("RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual: "
+            "the value of the comparison is a null pointer!");
+        return filter->IsEqualZero();
+    }
+}
+
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;
 template class RSRenderAnimatableProperty<Quaternion>;

@@ -48,11 +48,14 @@ struct GradData {
 
 constexpr int K_NUM_COLOR_CHOICES = 40; // 40 定义了颜色数组的大小
 uint32_t g_colors[K_NUM_COLOR_CHOICES] = {
-    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF,
-    0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF,
-    0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00,
-    0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000,
-    0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, // 8 lines, 40 colors
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, // 8 lines, 40 colors
 };
 
 constexpr GradData G_GRAD_DATA[] = { { 40, g_colors, nullptr } }; // 40  表示颜色数量
@@ -62,19 +65,9 @@ GradData g_data = G_GRAD_DATA[0];
 OH_Drawing_ShaderEffect* MakeLinear(const OH_Drawing_Point* firstPoint, const OH_Drawing_Point* secondPoint,
     const GradData& g_data, OH_Drawing_TileMode tileMode)
 {
-    int fCount = 40;     // 40  表示颜色数量
-    int arraySize = 100; // 100 用于存储渐变效果中每种颜色的相对位置
-    float positions[arraySize];
-    // 初始化数组的前两个元素为0.0f
-    positions[0] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    positions[1] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    // 用等间距的值填充数组的其余部分
-    for (int i = 2; i < fCount; ++i) {
-        positions[i] = static_cast<float>(i) / (fCount - 1.0f);
-    }
     DRAWING_LOGI("GradientsGM MakeLinear");
     OH_Drawing_ShaderEffect* MakeLinear = OH_Drawing_ShaderEffectCreateLinearGradient(
-        firstPoint, secondPoint, g_data.fColors, positions, fCount, tileMode);
+        firstPoint, secondPoint, g_data.fColors, g_data.fPos, g_data.fCount, tileMode);
     return MakeLinear;
 }
 OH_Drawing_ShaderEffect* MakeRadial(const OH_Drawing_Point* firstPoint, const OH_Drawing_Point* secondPoint,
@@ -86,18 +79,8 @@ OH_Drawing_ShaderEffect* MakeRadial(const OH_Drawing_Point* firstPoint, const OH
     OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } };                           // 100.0, 100.0 坐标点
     OH_Drawing_Point2D Point = { (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2 }; // 取[0] 和[2] 的元素中点
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(Point.x, Point.y);
-    int fCount = 40;     // 40  表示颜色数量
-    int arraySize = 100; // 100 用于存储渐变效果中每种颜色的相对位置
-    float positions[arraySize];
-    // 初始化数组的前两个元素为0.0f
-    positions[0] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    positions[1] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    // 用等间距的值填充数组的其余部分
-    for (int i = 2; i < fCount; ++i) {
-        positions[i] = static_cast<float>(i) / (fCount - 1.0f);
-    }
-    OH_Drawing_ShaderEffect* MakeRadial =
-        OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, Point.x, g_data.fColors, positions, fCount, tileMode);
+    OH_Drawing_ShaderEffect* MakeRadial = OH_Drawing_ShaderEffectCreateRadialGradient(
+        centerPt, Point.x, g_data.fColors, g_data.fPos, g_data.fCount, tileMode);
     OH_Drawing_PointDestroy(centerPt);
     return MakeRadial;
 }
@@ -109,18 +92,8 @@ OH_Drawing_ShaderEffect* MakeSweep(const OH_Drawing_Point* firstPoint, const OH_
     OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } };                           // 100 设置点
     OH_Drawing_Point2D Point = { (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2 }; // 取[0] 和[2] 的元素中点
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(Point.x, Point.y);
-    int fCount = 40;     // 40  表示颜色数量
-    int arraySize = 100; // 100 用于存储渐变效果中每种颜色的相对位置
-    float positions[arraySize];
-    // 初始化数组的前两个元素为0.0f
-    positions[0] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    positions[1] = 0.0f; // 0.0f 用于初始化positions数组的元素
-    // 用等间距的值填充数组的其余部分
-    for (int i = 2; i < fCount; ++i) {
-        positions[i] = static_cast<float>(i) / (fCount - 1.0f);
-    }
     OH_Drawing_ShaderEffect* MakeSweep =
-        OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, g_data.fColors, positions, fCount, tileMode);
+        OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, g_data.fColors, g_data.fPos, g_data.fCount, tileMode);
     OH_Drawing_PointDestroy(centerPt);
     return MakeSweep;
 }
@@ -157,6 +130,7 @@ void Gradients::OnTestFunction(OH_Drawing_Canvas* canvas)
             OH_Drawing_BrushSetShaderEffect(brush, effect);
             OH_Drawing_CanvasAttachBrush(canvas, brush);
             OH_Drawing_CanvasDrawRect(canvas, rectAngLe);
+            OH_Drawing_CanvasDetachBrush(canvas);
             OH_Drawing_CanvasTranslate(canvas, 0, 120); // y平移 120
             OH_Drawing_ShaderEffectDestroy(effect);
         }
@@ -165,7 +139,6 @@ void Gradients::OnTestFunction(OH_Drawing_Canvas* canvas)
     }
     DRAWING_LOGI("GradientsGM::OnTestFunction end");
     OH_Drawing_RectDestroy(rectAngLe);
-    OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_BrushDestroy(brush);
     OH_Drawing_PointDestroy(firstPoint);
     OH_Drawing_PointDestroy(secondPoint);

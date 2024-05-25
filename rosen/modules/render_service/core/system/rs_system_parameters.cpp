@@ -155,5 +155,12 @@ bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.prevalidateHwcNode.Enabled", "1")).c_str()) != 0;
     return prevalidateHwcNodeEnabled;
 }
+
+bool RSSystemParameters::GetControlBufferConsumeEnabled()
+{
+    static bool controlBufferConsume =
+        std::atoi((system::GetParameter("persist.sys.graphic.controlBufferConsume.Enabled", "1")).c_str()) != 0;
+    return controlBufferConsume;
+}
 } // namespace Rosen
 } // namespace OHOS

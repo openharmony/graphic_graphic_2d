@@ -41,6 +41,7 @@ public:
     bool DidExceedMaxLines() override;
     void Layout(double width) override;
     void Paint(Canvas* canvas, double x, double y) override;
+    void Paint(Canvas* canvas, Path* path, double hOffset, double vOffset) override;
 
     std::vector<TypographyProperties::TextBox> GetRectsForRange(
         size_t start,

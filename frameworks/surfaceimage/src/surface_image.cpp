@@ -105,7 +105,10 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
@@ -157,7 +160,7 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
     if (imageCacheSeqs_.count(currentSurfaceImage_) > 0) {
         const auto &image = imageCacheSeqs_.at(currentSurfaceImage_).eglImage_;
         glBindTexture(textureTarget_, textureId);
-        int32_t error = glGetError();
+        GLenum error = glGetError();
         if (error != GL_NO_ERROR) {
             BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
                 textureTarget_, textureId_, error);
@@ -188,7 +191,7 @@ SurfaceError SurfaceImage::DetachContext()
 
     textureId_ = 0;
     glBindTexture(textureTarget_, 0);
-    int32_t error = glGetError();
+    GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d",
             textureTarget_, textureId_, error);
@@ -210,6 +213,18 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
+        return SURFACE_ERROR_UNKOWN;
+    }
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+                        currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
+    if (ret != EOK) {
+        BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");
         return SURFACE_ERROR_UNKOWN;
     }
     return SURFACE_ERROR_OK;
@@ -269,7 +284,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
 
     const auto &image = imageCacheSeqs_.at(seqNum).eglImage_;
     glBindTexture(textureTarget_, textureId_);
-    int32_t error = glGetError();
+    GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
             textureTarget_, textureId_, error);

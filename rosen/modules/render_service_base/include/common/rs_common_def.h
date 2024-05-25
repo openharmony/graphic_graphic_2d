@@ -107,6 +107,42 @@ enum class FilterCacheType : uint8_t {
     BOTH              = SNAPSHOT | FILTERED_SNAPSHOT,
 };
 
+// opinc state
+enum NodeCacheState : uint8_t {
+    STATE_INIT = 0,
+    STATE_CHANGE,
+    STATE_UNCHANGE,
+    STATE_DISABLE,
+};
+
+enum NodeChangeType : uint8_t {
+    KEEP_UNCHANGE = 0,
+    SELF_DIRTY,
+};
+
+// opinc cache state
+enum NodeStrategyType : uint8_t {
+    CACHE_NONE = 0,
+    DDGR_OPINC_DYNAMIC,
+    OPINC_AUTOCACHE,
+    NODE_GROUP,
+    CACHE_DISABLE,
+};
+
+enum NodeRecordState : uint8_t {
+    RECORD_NONE = 0,
+    RECORD_CALCULATE,
+    RECORD_CACHING,
+    RECORD_CACHED,
+    RECORD_DISABLE,
+};
+
+enum DrawAreaEnableState : uint8_t {
+    DRAW_AREA_INIT = 0,
+    DRAW_AREA_ENABLE,
+    DRAW_AREA_DISABLE,
+};
+
 // priority for node, higher number means lower priority
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
@@ -145,6 +181,11 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
+enum BufferHandleAttrKey : uint32_t {
+    // used in set roi region to codec, must be the same as HDI
+    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+};
+
 // types for PC SystemAnimatedScenes
 enum class SystemAnimatedScenes : uint32_t {
     ENTER_MISSION_CENTER, // Enter the mission center
@@ -162,6 +203,8 @@ enum class SystemAnimatedScenes : uint32_t {
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
     ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
+    ENTER_RECENTS, // Enter recents
+    EXIT_RECENTS, // Exit recents
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
@@ -183,6 +226,7 @@ enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
     ARKTS_CARD,
+    NONFOCUS_WINDOW,
 };
 
 enum class SelfDrawingNodeType : uint8_t {

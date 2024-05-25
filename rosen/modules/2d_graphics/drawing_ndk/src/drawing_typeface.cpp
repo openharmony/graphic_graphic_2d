@@ -14,10 +14,12 @@
  */
 
 #include "drawing_typeface.h"
+
 #include <mutex>
 #include <unordered_map>
 
 #include "drawing_canvas_utils.h"
+
 #include "text/typeface.h"
 #include "utils/log.h"
 #include "utils/object_mgr.h"
@@ -68,6 +70,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromStream(OH_Drawing_MemoryStream* cMemoryStream, int32_t index)
 {
     if (cMemoryStream == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::unique_ptr<MemoryStream> memoryStream(CastToMemoryStream(cMemoryStream));

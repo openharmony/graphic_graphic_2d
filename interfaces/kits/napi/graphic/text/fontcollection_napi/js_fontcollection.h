@@ -32,11 +32,14 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
     static napi_value LoadFontSync(napi_env env, napi_callback_info info);
+    static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
+    static napi_value ClearCaches(napi_env env, napi_callback_info info);
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
     static thread_local napi_ref constructor_;
     napi_value OnLoadFont(napi_env env, napi_callback_info info);
+    napi_value OnClearCaches(napi_env env, napi_callback_info info);
     std::unique_ptr<Global::Resource::ResourceManager> GetResourManager(const std::string& moudleName);
     bool SpiltAbsoluteFontPath(std::string& absolutePath);
     bool ParseResourcePath(napi_env env, napi_value value, const std::string familyName);

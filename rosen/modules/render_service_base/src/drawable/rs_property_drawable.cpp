@@ -30,19 +30,28 @@ namespace OHOS::Rosen {
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 namespace DrawableV2 {
+constexpr int TRACE_LEVEL_TWO = 2;
 void RSPropertyDrawable::OnSync()
 {
     if (!needSync_) {
         return;
     }
     std::swap(drawCmdList_, stagingDrawCmdList_);
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
     needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) { ptr->drawCmdList_->Playback(*canvas); };
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        ptr->drawCmdList_->Playback(*canvas);
+        if (!ptr->propertyDescription_.empty()) {
+            RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
+                ptr->propertyDescription_.c_str(), rect->ToString().c_str());
+        }
+    };
 }
 
 // ============================================================================
@@ -114,13 +123,13 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(
-            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }
@@ -173,6 +182,7 @@ void RSFilterDrawable::OnSync()
     stagingForceUseCache_ = false;
     stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
+    forceClearCacheWithLastFrame_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
@@ -246,7 +256,12 @@ void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
     isOccluded_ = isOccluded;
 }
 
-void RSFilterDrawable::CheckClearFilterCache()
+void RSFilterDrawable::ForceClearCacheWithLastFrame()
+{
+    forceClearCacheWithLastFrame_ = true;
+}
+
+void RSFilterDrawable::ClearCacheIfNeeded()
 {
     if (cacheManager_ == nullptr) {
         return;
@@ -260,6 +275,13 @@ void RSFilterDrawable::CheckClearFilterCache()
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
         cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_, pendingPurge_);
 
+    if (forceClearCacheWithLastFrame_) {
+        cacheUpdateInterval_ = 0;
+        pendingPurge_ = false;
+        clearType_ = FilterCacheType::BOTH;
+        isFilterCacheValid_ = false;
+        return;
+    }
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
         UpdateFlags(FilterCacheType::NONE, false);
@@ -295,9 +317,19 @@ bool RSFilterDrawable::IsFilterCacheValid() const
     return isFilterCacheValid_;
 }
 
-bool RSFilterDrawable::GetFilterForceClearCache() const
+bool RSFilterDrawable::IsSkippingFrame() const
+{
+    return (filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0;
+}
+
+bool RSFilterDrawable::IsForceClearFilterCache() const
 {
     return forceClearCache_;
+}
+
+bool RSFilterDrawable::IsForceUseFilterCache() const
+{
+    return stagingForceUseCache_;
 }
 
 bool RSFilterDrawable::NeedPendingPurge() const
@@ -357,6 +389,11 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         cacheUpdateInterval_--;
         pendingPurge_ = true;
     }
+}
+
+bool RSFilterDrawable::IsAIBarCacheValid() const
+{
+    return (filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

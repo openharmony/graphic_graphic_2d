@@ -255,7 +255,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Bitmap& val)
     return true;
 }
 
-static void sk_free_releaseproc(const void* ptr, void*)
+static void SkFreeReleaseproc(const void* ptr, void*)
 {
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
@@ -409,7 +409,7 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     if (pixmapSize < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         skData->BuildWithCopy(addr, pixmapSize);
     } else {
-        skData->BuildWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
+        skData->BuildWithProc(addr, pixmapSize, SkFreeReleaseproc, nullptr);
     }
     val = Drawing::Image::MakeRasterData(imageInfo, skData, rb);
     // add to MemoryTrack for memoryManager

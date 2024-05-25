@@ -19,6 +19,7 @@
 #include <vector>
 #include <atomic>
 #include "image/bitmap.h"
+#include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
 #include "draw/pen.h"
@@ -27,12 +28,38 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_composer_adapter.h"
 #include "pixel_map.h"
 #include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
+struct ComposeInfo {
+    GraphicIRect srcRect;
+    GraphicIRect dstRect;
+    GraphicIRect boundRect;
+    GraphicIRect visibleRect;
+    std::vector<GraphicIRect> dirtyRects;
+    GraphicMatrix matrix;
+    int32_t gravity { 0 };
+    int32_t zOrder { 0 };
+    GraphicLayerAlpha alpha;
+    sptr<SurfaceBuffer> buffer;
+    sptr<SurfaceBuffer> preBuffer;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    GraphicBlendType blendType;
+    bool needClient = false;
+};
+
+static inline int RotateEnumToInt(ScreenRotation rotation)
+{
+    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
+        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
+        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
+    auto iter = screenRotationEnumToIntMap.find(rotation);
+    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
+}
+
+class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
@@ -129,7 +156,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF& localBounds, BufferDrawParam& params);
+        RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately

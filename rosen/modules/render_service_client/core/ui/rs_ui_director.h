@@ -27,7 +27,7 @@ class Surface;
 namespace Rosen {
 class RSSurfaceNode;
 class RSTransactionData;
-using TaskRunner = std::function<void(const std::function<void()>&)>;
+using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 
 class RSC_EXPORT RSUIDirector final {
@@ -79,6 +79,8 @@ private:
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event);
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED);
+    static void PostDelayTask(
+        const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED);
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;

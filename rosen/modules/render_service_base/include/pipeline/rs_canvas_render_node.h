@@ -58,6 +58,8 @@ public:
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
+    bool OpincGetNodeSupportFlag() override;
+
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::CANVAS_NODE;

@@ -43,6 +43,8 @@ public:
 
     const TextBlobBuilder::RunBuffer& AllocRunPos(const Font& font, int count, const Rect* bounds) override;
 
+    const TextBlobBuilder::RunBuffer& AllocRunRSXform(const Font& font, int count) override;
+
 private:
     SkTextBlobBuilder skTextBlobBuilder_;
     TextBlobBuilder::RunBuffer drawingRunBuffer_;

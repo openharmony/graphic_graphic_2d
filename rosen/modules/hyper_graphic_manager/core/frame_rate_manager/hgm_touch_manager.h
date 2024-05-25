@@ -44,6 +44,7 @@ public:
 
     std::string GetPkgName() const { return pkgName_; }
 protected:
+    std::string State2String(State state) const override;
     bool CheckChangeStateValid(State lastState, State newState) override;
     void ExecuteCallback(const std::function<void()>& callback) override;
 private:

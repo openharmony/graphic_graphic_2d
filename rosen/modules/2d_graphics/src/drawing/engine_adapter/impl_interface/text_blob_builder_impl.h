@@ -37,6 +37,8 @@ public:
     virtual const TextBlobBuilder::RunBuffer& AllocRunPos(const Font& font, int count,
         const Rect* bounds) = 0;
 
+    virtual const TextBlobBuilder::RunBuffer& AllocRunRSXform(const Font& font, int count) = 0;
+
 protected:
     TextBlobBuilderImpl() noexcept = default;
 };

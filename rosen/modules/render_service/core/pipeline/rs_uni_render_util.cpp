@@ -45,6 +45,7 @@
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
@@ -52,6 +53,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
+constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 }
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion, bool renderParallel)
@@ -62,8 +64,18 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         return;
     }
 
+    if (!renderParallel) {
+        MergeDirtyHistoryForNode(node, bufferAge, params, useAlignedDirtyRegion);
+    } else {
+        MergeDirtyHistoryForDrawable(node, bufferAge, params, useAlignedDirtyRegion);
+    }
+}
+
+void RSUniRenderUtil::MergeDirtyHistoryForNode(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
+    RSDisplayRenderParams* params, bool useAlignedDirtyRegion)
+{
     // TO-DO curAllSurfaces will use surface node ptr vector
-    auto& curAllSurfaces = renderParallel ? params->GetAllMainAndLeashSurfaces() : node->GetCurAllSurfaces();
+    auto& curAllSurfaces = node->GetCurAllSurfaces();
     // update all child surfacenode history
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -71,7 +83,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceNode->GetId());
-        auto surfaceDirtyManager = renderParallel ? surfaceNode->GetSyncDirtyManager() : surfaceNode->GetDirtyManager();
+        auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
             ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
@@ -80,7 +92,37 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
     }
 
     // update display dirtymanager
-    node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion, renderParallel);
+    node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion, false);
+}
+
+void RSUniRenderUtil::MergeDirtyHistoryForDrawable(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
+    RSDisplayRenderParams* params, bool useAlignedDirtyRegion)
+{
+    auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
+    // update all child surfacenode history
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it->get());
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
+            continue;
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceParams->GetId());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceDirtyManager) {
+            continue;
+        }
+        if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
+            ROSEN_LOGW("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
+        }
+        surfaceDirtyManager->IntersectDirtyRect(surfaceParams->GetOldDirtyInSurface());
+        surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    }
+
+    // update display dirtymanager
+    node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion, true);
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::vector<RSBaseRenderNode::SharedPtr>& allSurfaceNodes,
@@ -124,6 +166,52 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::vector<RSBaseRen
     return allSurfaceVisibleDirtyRegion;
 }
 
+Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+    std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion)
+{
+    Occlusion::Region allSurfaceVisibleDirtyRegion;
+    for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it->get());
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGI("MergeVisibleDirtyRegion surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
+            continue;
+        }
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surfaceDirtyManager is nullptr");
+            continue;
+        }
+        auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
+        Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_, surfaceDirtyRect.GetRight(),
+            surfaceDirtyRect.GetBottom() };
+        auto visibleRegion = surfaceParams->GetVisibleRegion();
+        Occlusion::Region surfaceDirtyRegion { dirtyRect };
+        Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
+
+        surfaceNodeDrawable->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        if (!surfaceVisibleDirtyRegion.IsEmpty()) {
+            hasVisibleDirtyRegionSurfaceVec.emplace_back(surfaceParams->GetId());
+        }
+        if (useAlignedDirtyRegion) {
+            Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
+            surfaceNodeDrawable->SetAlignedVisibleDirtyRegion(alignedRegion);
+            allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
+        } else {
+            allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+        }
+    }
+    return allSurfaceVisibleDirtyRegion;
+}
+
 void RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(
     std::vector<RSBaseRenderNode::SharedPtr>& allSurfaces, const RectI& globalDirtyRegion)
 {
@@ -150,6 +238,108 @@ void RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(
     }
 }
 
+void RSUniRenderUtil::MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displayNode,
+    int32_t bufferAge, bool renderParallel)
+{
+    auto params = static_cast<RSDisplayRenderParams*>(displayNode.GetRenderParams().get());
+    if (!params && renderParallel) {
+        RS_LOGE("RSUniRenderUtil::MergeDirtyHistory params is nullptr");
+        return;
+    }
+
+    // TO-DO curAllSurfaces will use surface node ptr vector
+    auto& curAllSurfaces = renderParallel ? params->GetAllMainAndLeashSurfaces() : displayNode.GetCurAllSurfaces();
+    // update all child surfacenode history
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto surfaceNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceNode->GetId());
+        auto surfaceDirtyManager = renderParallel ? surfaceNode->GetSyncDirtyManager() : surfaceNode->GetDirtyManager();
+        surfaceDirtyManager->MergeDirtyHistoryInVirtual(bufferAge);
+    }
+
+    // update display dirtymanager
+    auto displayDirtyManager = renderParallel ? displayNode.GetSyncDirtyManager() : displayNode.GetDirtyManager();
+    displayDirtyManager->MergeDirtyHistoryInVirtual(bufferAge);
+}
+
+Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
+    std::vector<RSRenderNode::SharedPtr>& allSurfaceNodes, bool renderParallel)
+{
+    Occlusion::Region allSurfaceVisibleDirtyRegion;
+    for (auto it = allSurfaceNodes.rbegin(); it != allSurfaceNodes.rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow() || surfaceNode->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        auto surfaceParams =
+            static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!surfaceParams && renderParallel) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
+            continue;
+        }
+        if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos || surfaceParams->GetIsSkipLayer()) {
+            continue;
+        }
+        auto surfaceDirtyManager = renderParallel ? surfaceNode->GetSyncDirtyManager() : surfaceNode->GetDirtyManager();
+        auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegionInVirtual();
+        Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
+            surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
+        auto visibleRegion = renderParallel ?
+            surfaceParams->GetVisibleRegionInVirtual() : surfaceNode->GetVisibleRegionInVirtual();
+        Occlusion::Region surfaceDirtyRegion { dirtyRect };
+        Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
+        surfaceNode->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+    }
+    return allSurfaceVisibleDirtyRegion;
+}
+
+void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
+    const RectI& globalDirtyRegion)
+{
+    // Set Surface Global Dirty Region
+    for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it->get());
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGW("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
+            continue;
+        }
+        if (!surfaceParams->IsMainWindowType()) {
+            continue;
+        }
+        // set display dirty region to surfaceNodeDrawable
+        surfaceNodeDrawable->SetGlobalDirtyRegion(globalDirtyRegion, true);
+        surfaceNodeDrawable->SetDirtyRegionAlignedEnable(false);
+    }
+    Occlusion::Region curVisibleDirtyRegion;
+    for (auto& it : allSurfaceDrawables) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it.get());
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
+            continue;
+        }
+        if (!surfaceParams->IsMainWindowType()) {
+            continue;
+        }
+        // set display dirty region to surfaceNodeDrawable
+        surfaceNodeDrawable->SetDirtyRegionBelowCurrentLayer(curVisibleDirtyRegion);
+        auto visibleDirtyRegion = surfaceNodeDrawable->GetVisibleDirtyRegion();
+        curVisibleDirtyRegion = curVisibleDirtyRegion.Or(visibleDirtyRegion);
+    }
+}
+
 std::vector<RectI> RSUniRenderUtil::ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo)
 {
     const std::vector<Occlusion::Rect>& rects = region.GetRegionRects();
@@ -171,6 +361,28 @@ std::vector<RectI> RSUniRenderUtil::ScreenIntersectDirtyRects(const Occlusion::R
 #endif
     }
     RS_LOGD("ScreenIntersectDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
+    return retRects;
+}
+
+std::vector<RectI> RSUniRenderUtil::GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return srcRects;
+    }
+#endif
+
+    return FilpRects(srcRects, screenInfo);
+}
+
+std::vector<RectI> RSUniRenderUtil::FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
+{
+    std::vector<RectI> retRects;
+    for (const RectI& rect : srcRects) {
+        retRects.emplace_back(RectI(rect.left_, screenInfo.GetRotatedHeight() - rect.top_ - rect.height_,
+            rect.width_, rect.height_));
+    }
     return retRects;
 }
 
@@ -327,9 +539,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
 
-    auto buoundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
-    auto buoundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
-    params.dstRect = Drawing::Rect(0, 0, buoundWidth, buoundHeight);
+    auto boundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
+    auto boundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
+    params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
 
     const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
     if (buffer == nullptr) {
@@ -344,9 +556,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
         return params;
     }
     auto transform = consumer->GetTransform();
-    RectF localBounds = { 0.0f, 0.0f, buoundWidth, buoundHeight };
+    RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
     auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, nodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
@@ -905,14 +1117,6 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
     }
 }
 
-void RSUniRenderUtil::FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
-{
-    auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas.SetMatrix(matrix);
-}
-
 void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
     float alpha, const std::string& extraInfo)
 {
@@ -1201,9 +1405,6 @@ void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& no
     node.SetSrcRect(srcRect);
     auto dstRect = node.GetDstRect();
     auto originalDstRect = node.GetOriginalDstRect();
-    if (originalDstRect.IsEmpty()) {
-        originalDstRect = dstRect;
-    }
     dstRect.left_ += (dstRect.width_ - originalDstRect.width_) / 2;
     dstRect.top_ += (dstRect.height_ - originalDstRect.height_) / 2;
     dstRect.width_ = originalDstRect.width_;
@@ -1245,7 +1446,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     }
     static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
-    int surfaceNodeRotation = node.GetForceHardware() ? -1 * rotationDegree :
+    int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     int totalRotation = (RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform()))) % 360;
@@ -1363,11 +1564,11 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
     if (newWidthDstHeight > newHeightDstWidth) {
+        newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;
-        newHeight = srcRect.height_ * newWidth / srcRect.width_;
     } else if (newWidthDstHeight < newHeightDstWidth) {
+        newWidth = newWidth * dstHeight / newHeight;
         newHeight = dstHeight;
-        newWidth = srcRect.width_ * newHeight / srcRect.height_;
     } else {
         newHeight = dstHeight;
         newWidth = dstWidth;
@@ -1376,11 +1577,11 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     if (newWidth < dstWidth) {
         uint32_t dw = dstWidth - newWidth;
         auto halfdw = dw / 2;
-        dstRect.left_ += halfdw;
+        dstRect.left_ += static_cast<int32_t>(halfdw);
     } else if (newHeight < dstHeight) {
         uint32_t dh = dstHeight - newHeight;
         auto halfdh = dh / 2;
-        dstRect.top_ += halfdh;
+        dstRect.top_ += static_cast<int32_t>(halfdh);
     }
     dstRect.height_ = static_cast<int32_t>(newHeight);
     dstRect.width_ = static_cast<int32_t>(newWidth);
@@ -1390,6 +1591,56 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
         " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_, srcRect.left_,
         srcRect.top_, srcRect.width_, srcRect.height_);
+}
+
+void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+    Drawing::GPUContext* grContext, bool optFenceWait)
+{
+    if (!surface || !grContext) {
+        RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("Render surface flush and submit");
+#ifdef RS_ENABLE_VK
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
+        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+
+        VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
+        exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+        exportSemaphoreCreateInfo.pNext = nullptr;
+        exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        VkSemaphoreCreateInfo semaphoreInfo;
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
+        semaphoreInfo.flags = 0;
+        VkSemaphore semaphore;
+        vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+        RS_TRACE_NAME_FMT("VkSemaphore %p", semaphore);
+        GrBackendSemaphore backendSemaphore;
+        backendSemaphore.initVulkan(semaphore);
+
+        DestroySemaphoreInfo* destroyInfo =
+            new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+
+        Drawing::FlushInfo drawingFlushInfo;
+        drawingFlushInfo.backendSurfaceAccess = true;
+        drawingFlushInfo.numSemaphores = 1;
+        drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+        drawingFlushInfo.finishedProc = [](void *context) {
+            DestroySemaphoreInfo::DestroySemaphore(context);
+        };
+        drawingFlushInfo.finishedContext = destroyInfo;
+        surface->Flush(&drawingFlushInfo);
+        grContext->Submit();
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
+    } else {
+        surface->FlushAndSubmit(true);
+    }
+#else
+    surface->FlushAndSubmit(true);
+#endif
 }
 
 } // namespace Rosen

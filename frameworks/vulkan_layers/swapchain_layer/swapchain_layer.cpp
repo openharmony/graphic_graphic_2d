@@ -34,10 +34,14 @@
 #include <graphic_common.h>
 #include <native_window.h>
 #include <vulkan/vulkan.h>
+#include <scoped_bytrace.h>
 #include "vk_dispatch_table_helper.h"
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
+#if USE_APS_IGAMESERVICE_FUNC
+#include "vulkan_slice_report.h"
+#endif
 
 #define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
 using namespace OHOS;
@@ -416,6 +420,7 @@ static bool IsFencePending(int fd)
 void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image &image,
                            bool deferIfPending)
 {
+    ScopedBytrace trace(__func__);
     if (releaseFence != -1 && !image.requested) {
         SWLOGE("%{public}s, can't provide a release fence for non-requested images", __func__);
         DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -467,6 +472,7 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
 
 void ReleaseSwapchain(VkDevice device, Swapchain* swapchain)
 {
+    ScopedBytrace trace(__func__);
     if (swapchain->surface.swapchainHandle != HandleFromSwapchain(swapchain)) {
         return;
     }
@@ -666,10 +672,14 @@ VKAPI_ATTR VkResult SetWindowQueueSize(NativeWindow* window, const VkSwapchainCr
 VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo)
 {
     GraphicColorDataSpace colorDataSpace = GetColorDataspace(createInfo->imageColorSpace);
+    SWLOGD("Swapchain translate VkColorSpaceKHR:%{public}d to GraphicColorDataSpace:%{public}d",
+        static_cast<int>(createInfo->imageColorSpace), static_cast<int>(colorDataSpace));
     if (colorDataSpace == GRAPHIC_COLOR_DATA_SPACE_UNKNOWN) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
     GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
+    SWLOGD("Swapchain translate VkFormat:%{public}d to GraphicPixelFormat:%{public}d",
+        static_cast<int>(createInfo->imageFormat), static_cast<int>(pixelFormat));
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
 
     NativeWindow* window = surface.window;
@@ -688,6 +698,8 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
     }
     // Set Transform
     OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
+    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
+        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
     if (SetWindowTransform(window, transformType) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
@@ -740,6 +752,7 @@ void InitImageCreateInfo(const VkSwapchainCreateInfoKHR* createInfo, VkImageCrea
 VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
     VkImageCreateInfo &imageCreate, VkDevice device)
 {
+    ScopedBytrace trace(__func__);
     VkLayerDispatchTable* pDisp =
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
@@ -789,6 +802,7 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
 static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHandle,
                                      const VkAllocationCallbacks* allocator)
 {
+    ScopedBytrace trace(__func__);
     Swapchain* swapchain = SwapchainFromHandle(swapchainHandle);
     if (swapchain == nullptr) {
         return;
@@ -815,6 +829,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
 VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
     const VkAllocationCallbacks* allocator, VkSwapchainKHR* swapchainHandle)
 {
+    ScopedBytrace trace(__func__);
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
     if (surface.swapchainHandle != createInfo->oldSwapchain) {
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
@@ -835,8 +850,10 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode,
-        TranslateVulkanToNativeTransform(createInfo->preTransform));
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
+    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
+        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
+    Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode, transformType);
 
     VkSwapchainImageCreateInfoOHOS swapchainImageCreate = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_OHOS,
@@ -866,6 +883,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
 VKAPI_ATTR void VKAPI_CALL DestroySwapchainKHR(
     VkDevice device, VkSwapchainKHR vkSwapchain, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DestroySwapchainInternal(device, vkSwapchain, pAllocator);
 }
 
@@ -894,6 +912,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetSwapchainImagesKHR(
 VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchainHandle,
     uint64_t timeout, VkSemaphore semaphore, VkFence vkFence, uint32_t* imageIndex)
 {
+    ScopedBytrace trace(__func__);
     Swapchain &swapchain = *SwapchainFromHandle(swapchainHandle);
     NativeWindow* nativeWindow = swapchain.surface.window;
     VkResult result = VK_SUCCESS;
@@ -966,8 +985,8 @@ VkResult GetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
 
     NativeWindow* window = SurfaceFromHandle(surface)->window;
 
-    int width = 0;
-    int height = 0;
+    int32_t width = 0;
+    int32_t height = 0;
     int err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow get buffer geometry failed: (%{public}d)", err);
@@ -1009,6 +1028,7 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
 VkResult ReleaseImage(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     Swapchain::Image &img, int32_t &fence)
 {
+    ScopedBytrace trace(__func__);
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
     VkResult result = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
         queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
@@ -1032,10 +1052,11 @@ struct Region::Rect* GetRegionRect(
                     alignof(Region::Rect), VK_SYSTEM_ALLOCATION_SCOPE_COMMAND));
 }
 
-void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect)
+void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect, int32_t bufferHeight)
 {
     rect->x = layer->offset.x;
-    rect->y = layer->offset.y;
+    // flip rect to adapt to bottom-left coordinate
+    rect->y = bufferHeight - layer->extent.height - layer->offset.y;
     rect->w = layer->extent.width;
     rect->h = layer->extent.height;
 }
@@ -1043,9 +1064,19 @@ void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect)
 VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rects,
     Swapchain &swapchain, Swapchain::Image &img, int32_t fence)
 {
+    ScopedBytrace trace(__func__);
     const VkAllocationCallbacks* defaultAllocator = &GetDefaultAllocator();
     Region localRegion = {};
     if (memset_s(&localRegion, sizeof(localRegion), 0, sizeof(Region)) != EOK) {
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
+    NativeWindow* window = swapchain.surface.window;
+    // Get buffer width and height for flip damage rect
+    int32_t bufferWidth = 0;
+    int32_t bufferHeight = 0;
+    int err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &bufferHeight, &bufferWidth);
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow get buffer geometry failed, error num: %{public}d", err);
         return VK_ERROR_SURFACE_LOST_KHR;
     }
     if (region != nullptr) {
@@ -1059,15 +1090,14 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
             }
         }
         for (int32_t r = 0; r < rectangleCount; ++r) {
-            InitRegionRect(&region->pRectangles[r], &rects[r]);
+            InitRegionRect(&region->pRectangles[r], &rects[r], bufferHeight);
         }
 
         localRegion.rects = rects;
         localRegion.rectNumber = rectangleCount;
     }
-    NativeWindow* window = swapchain.surface.window;
     // the acquire fence will be close by BufferQueue module
-    int err = NativeWindowFlushBuffer(window, img.buffer, fence, localRegion);
+    err = NativeWindowFlushBuffer(window, img.buffer, fence, localRegion);
     VkResult scResult = VK_SUCCESS;
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow FlushBuffer failed: (%{public}d)", err);
@@ -1100,6 +1130,7 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
 VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     VkQueue queue, const VkPresentInfoKHR* presentInfo)
 {
+    ScopedBytrace trace(__func__);
     VkResult ret = VK_SUCCESS;
 
     const VkPresentRegionKHR* regions = GetPresentRegions(presentInfo);
@@ -1133,6 +1164,9 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     if (rects != nullptr) {
         defaultAllocator->pfnFree(defaultAllocator->pUserData, rects);
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
+#endif
     return ret;
 }
 
@@ -1169,6 +1203,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
     const VkSurfaceCreateInfoOHOS* pCreateInfo,
     const VkAllocationCallbacks* allocator, VkSurfaceKHR* outSurface)
 {
+    ScopedBytrace trace(__func__);
     if (allocator == nullptr) {
         allocator = &GetDefaultAllocator();
     }
@@ -1198,6 +1233,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
 VKAPI_ATTR void VKAPI_CALL DestroySurfaceKHR(
     VkInstance instance, VkSurfaceKHR vkSurface, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     Surface* surface = SurfaceFromHandle(vkSurface);
     if (surface == nullptr) {
         return;
@@ -1213,8 +1249,8 @@ VKAPI_ATTR void VKAPI_CALL DestroySurfaceKHR(
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
     VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR* capabilities)
 {
-    int width = 0;
-    int height = 0;
+    int32_t width = 0;
+    int32_t height = 0;
     OH_NativeBuffer_TransformType transformHint = NATIVEBUFFER_ROTATE_NONE;
     uint32_t defaultQueueSize = MAX_BUFFER_SIZE;
     if (surface != VK_NULL_HANDLE) {
@@ -1265,6 +1301,7 @@ VKAPI_ATTR void VKAPI_CALL SetHdrMetadataEXT(
 VKAPI_ATTR VkResult VKAPI_CALL ReleaseSwapchainImagesEXT(
     VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo)
 {
+    ScopedBytrace trace(__func__);
     Swapchain& swapchain = *SwapchainFromHandle(pReleaseInfo->swapchain);
     if (swapchain.shared) {
         return VK_SUCCESS;
@@ -1468,6 +1505,7 @@ Extension GetExtensionBitFromName(const char* name)
 VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
 {
+    ScopedBytrace trace(__func__);
     VkLayerInstanceCreateInfo* chainInfo = GetChainInfo(pCreateInfo, VK_LAYER_LINK_INFO);
 
     if (chainInfo == nullptr || chainInfo->u.pLayerInfo == nullptr) {
@@ -1487,6 +1525,9 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     if (result != VK_SUCCESS) {
         return result;
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
+#endif
 
     LayerData* instanceLayerData = GetLayerDataPtr(GetDispatchKey(*pInstance));
     instanceLayerData->instance = *pInstance;
@@ -1505,6 +1546,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
 VKAPI_ATTR void VKAPI_CALL DestroyInstance(
     VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey instanceKey = GetDispatchKey(instance);
     LayerData* curLayerData = GetLayerDataPtr(instanceKey);
     curLayerData->instanceDispatchTable->DestroyInstance(instance, pAllocator);
@@ -1552,6 +1594,7 @@ VkResult AddDeviceExtensions(VkPhysicalDevice gpu, const LayerData* gpuLayerData
 VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
     const VkDeviceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDevice* pDevice)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey gpuKey = GetDispatchKey(gpu);
     LayerData* gpuLayerData = GetLayerDataPtr(gpuKey);
 
@@ -1613,6 +1656,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
 
 VKAPI_ATTR void VKAPI_CALL DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey deviceKey = GetDispatchKey(device);
     LayerData* deviceData = GetLayerDataPtr(deviceKey);
     deviceData->deviceDispatchTable->DestroyDevice(device, pAllocator);

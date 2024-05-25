@@ -70,6 +70,7 @@ void ConvexPaths::OnTestFunction(OH_Drawing_Canvas* canvas)
     for (int f = 0; f < fPaths.size(); ++f) {
         OH_Drawing_PathDestroy(fPaths[f]);
     }
+    fPaths.clear();
 }
 
 void ConvexPaths::MakePath1()
@@ -82,7 +83,7 @@ void ConvexPaths::MakePath1()
 
     OH_Drawing_Path* path_2 = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path_2, 0, 50);           // 50 coordinate
-    OH_Drawing_PathQuadTo(path_2, 50, 100, 0, 100); // 50 100 coordinate
+    OH_Drawing_PathQuadTo(path_2, 50, 0, 100, 50); // 50 100 coordinate
     OH_Drawing_PathQuadTo(path_2, 50, 100, 0, 50);  // 50 100 coordinate
     fPaths.push_back(path_2);
 
@@ -160,7 +161,7 @@ void ConvexPaths::MakePath2()
     // cubics
     OH_Drawing_Path* cubic_path1 = OH_Drawing_PathCreate();
     OH_Drawing_Path* cubic_path2 = OH_Drawing_PathCreate();
-    OH_Drawing_PathCubicTo(cubic_path1, 1, 1, 10, 90, 0, 10);    // 1 10 90 10 coordinate
+    OH_Drawing_PathCubicTo(cubic_path1, 1, 1, 10, 90, 0, 100);    // 1 10 90 100 coordinate
     OH_Drawing_PathCubicTo(cubic_path2, 100, 50, 20, 100, 0, 0); // 100 50 20 100 coordinate
     fPaths.push_back(cubic_path1);
     fPaths.push_back(cubic_path2);
@@ -330,8 +331,8 @@ void ConvexPaths::MakePath6()
     // small circle. This is listed last so that it has device coords far
     // from the origin (small area relative to x,y values).
     OH_Drawing_Path* Circle_path1 = OH_Drawing_PathCreate();
-    auto Circle_bound1 = OH_Drawing_RectCreate(0, 0, 1.2, 1.2); // 1.2 矩形对象，边框
-    OH_Drawing_PathAddArc(Circle_path1, Circle_bound1, 0, 360); // 360 坐标
+    // auto Circle_bound1 = OH_Drawing_RectCreate(0, 0, 1.2, 1.2); // 1.2 矩形对象，边框
+    OH_Drawing_PathAddCircle(Circle_path1, 0, 0, 1.2, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 360 坐标
     fPaths.push_back(Circle_path1);
 }
 

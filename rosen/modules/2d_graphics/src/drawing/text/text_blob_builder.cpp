@@ -33,6 +33,11 @@ const TextBlobBuilder::RunBuffer& TextBlobBuilder::AllocRunPos(const Font& font,
 {
     return textBlobBuilderImpl_->AllocRunPos(font, count, bounds);
 }
+
+const TextBlobBuilder::RunBuffer& TextBlobBuilder::AllocRunRSXform(const Font& font, int count)
+{
+    return textBlobBuilderImpl_->AllocRunRSXform(font, count);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

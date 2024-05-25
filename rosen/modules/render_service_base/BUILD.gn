@@ -171,9 +171,6 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
-    #luminance
-    "src/luminance/rs_luminance_control.cpp",
-
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
@@ -181,8 +178,8 @@ ohos_source_set("render_service_base_src") {
 
     #params
     "src/params/rs_canvas_drawing_render_params.cpp",
-    "src/params/rs_canvas_render_params.cpp",
     "src/params/rs_display_render_params.cpp",
+    "src/params/rs_effect_render_params.cpp",
     "src/params/rs_render_params.cpp",
     "src/params/rs_render_thread_params.cpp",
     "src/params/rs_surface_render_params.cpp",
@@ -205,6 +202,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_autocache.cpp",
     "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
@@ -248,6 +246,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
+    "src/render/rs_hps_blur_shader_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -267,6 +266,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
+    "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
 
     #transaction
@@ -287,6 +287,18 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
+
+  if (rosen_is_ohos) {
+    sources += [
+      #luminance
+      "src/luminance/rs_luminance_control.cpp",
+    ]
+  } else {
+    sources += [
+      #luminance
+      "src/luminance/mingw/rs_luminance_control.cpp",
+    ]
+  }
 
   if (is_cross_platform) {
     sources -= [
@@ -434,8 +446,6 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  include_dirs += [ "//third_party/skia/src" ]
-
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/graphics_effect:libgraphics_effect",
@@ -447,11 +457,6 @@ ohos_source_set("render_service_base_src") {
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
-
-  if (graphic_2d_feature_enable_opinc) {
-    include_dirs += opinc_adapter_opt_set.opinc_include_set
-    sources += opinc_adapter_opt_set.opinc_src_set
-  }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]

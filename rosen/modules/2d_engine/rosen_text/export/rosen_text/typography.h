@@ -120,6 +120,7 @@ public:
     virtual void Layout(double width) = 0;
     virtual void Paint(SkCanvas *canvas, double x, double y) = 0; // SKIA
     virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0; // DRAWING
+    virtual void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) = 0; // DRAWING
 
     virtual std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
         TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) = 0;

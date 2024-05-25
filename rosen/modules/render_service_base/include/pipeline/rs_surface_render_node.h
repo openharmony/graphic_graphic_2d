@@ -80,6 +80,8 @@ public:
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
     }
 
+    void ResetRenderParams();
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -133,6 +135,7 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
     bool GetForceHardware() const;
     void SetForceHardware(bool flag);
 
@@ -387,7 +390,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsNeedSetVSync();
+    bool IsSCBNode();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
@@ -443,6 +446,16 @@ public:
 
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
+
+    void SetUIFirstIsPurge(bool IsPurge)
+    {
+        UIFirstIsPurge_ = IsPurge;
+    }
+
+    bool GetUIFirstIsPurge()
+    {
+        return UIFirstIsPurge_;
+    }
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
@@ -531,6 +544,11 @@ public:
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
+    }
+
+    const Occlusion::Region& GetVisibleRegionInVirtual() const
+    {
+        return visibleRegionInVirtual_;
     }
 
     const Occlusion::Region& GetVisibleRegionForCallBack() const
@@ -702,6 +720,11 @@ public:
     void SetVisibleRegion(Occlusion::Region region)
     {
         visibleRegion_ = region;
+    }
+
+    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    {
+        visibleRegionInVirtual_ = region;
     }
 
     inline bool IsEmptyAppWindow() const
@@ -972,6 +995,11 @@ public:
         return RSRenderNode::GetUifirstSupportFlag();
     }
 
+    bool OpincGetNodeSupportFlag() override
+    {
+        return false;
+    }
+
     void UpdateSurfaceCacheContentStaticFlag();
 
     void UpdateSurfaceSubTreeDirtyFlag();
@@ -1059,6 +1087,43 @@ public:
         return bufferRelMatrix_;
     }
 
+    void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode)
+    {
+        isGpuOverDrawBufferOptimizeNode_ = overDrawNode;
+    }
+    bool IsGpuOverDrawBufferOptimizeNode() const
+    {
+        return isGpuOverDrawBufferOptimizeNode_;
+    }
+
+    void SetOverDrawBufferNodeCornerRadius(const Vector4f& radius)
+    {
+        overDrawBufferNodeCornerRadius_ = radius;
+    }
+    const Vector4f& GetOverDrawBufferNodeCornerRadius() const
+    {
+        return overDrawBufferNodeCornerRadius_;
+    }
+    
+    bool HasSubSurfaceNodes() const;
+    void SetIsSubSurfaceNode(bool isSubSurfaceNode);
+    bool IsSubSurfaceNode() const;
+    const std::map<NodeId, RSSurfaceRenderNode::WeakPtr>& GetChildSubSurfaceNodes() const;
+    void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes);
+    std::string SubSurfaceNodesDump() const;
+
+    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
+    bool IsNodeToBeCaptured() const;
+
+    void SetDoDirectComposition(bool flag)
+    {
+        doDirectComposition_ = flag;
+    }
+
+    bool GetDoDirectComposition() const
+    {
+        return doDirectComposition_;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1076,6 +1141,8 @@ private:
     {
         return isHardwareForcedDisabledBySrcRect_;
     }
+    void OnSubSurfaceChanged();
+    void UpdateChildSubSurfaceNodes(RSSurfaceRenderNode::SharedPtr node, bool isOnTheTree);
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
     void UpdateRenderParams() override;
@@ -1135,6 +1202,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
@@ -1281,6 +1349,7 @@ private:
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
     bool isForeground_ = false;
+    bool UIFirstIsPurge_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1299,7 +1368,16 @@ private:
     bool hasTransparentSurface_ = false;
 
     bool ancoForceDoDirect_ = false;
+    bool isGpuOverDrawBufferOptimizeNode_ = false;
+    Vector4f overDrawBufferNodeCornerRadius_;
 
+    std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
+    bool isSubSurfaceNode_ = false;
+    bool isNodeToBeCaptured_ = false;
+
+    bool doDirectComposition_ = true;
+
+    friend class RSUifirstManager;
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;

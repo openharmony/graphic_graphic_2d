@@ -74,6 +74,15 @@ void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
     }
 }
 
+void RSNodeCommandHelper::MarkSuggestOpincNode(RSContext& context, NodeId nodeId,
+    bool isOpincNode, bool isNeedCalculate)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
+    }
+}
+
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();

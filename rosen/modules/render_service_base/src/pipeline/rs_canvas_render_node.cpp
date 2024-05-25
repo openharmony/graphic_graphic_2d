@@ -110,6 +110,20 @@ void RSRenderNode::RegisterClearSurfaceFunc(ClearSurfaceTask task)
     clearSurfaceTask_ = task;
 }
 
+bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
+{
+    const auto& property = GetRenderProperties();
+    if (GetSharedTransitionParam() ||
+        property.IsSpherizeValid() ||
+        property.NeedFilter() ||
+        property.GetUseEffect() ||
+        property.GetColorBlend().has_value() ||
+        IsSelfDrawingNode()) {
+        return false;
+    }
+    return true && RSRenderNode::OpincGetNodeSupportFlag();
+}
+
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

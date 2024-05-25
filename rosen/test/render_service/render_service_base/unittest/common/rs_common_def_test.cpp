@@ -50,4 +50,18 @@ HWTEST_F(RSCommonDefTest, New001, TestSize.Level1)
     MemObject* memObject = new (std::nothrow) MemObject(1);
     delete memObject;
 }
+
+
+/**
+ * @tc.name: operatorTest
+ * @tc.desc: test results of operator new operator delete
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSCommonDefTest, operatorTest, TestSize.Level1)
+{
+    auto* memObject = new MemObject(1);
+    ASSERT_NE(memObject, nullptr);
+    delete memObject;
+}
 } // namespace OHOS::Rosen

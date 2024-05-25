@@ -39,15 +39,16 @@ public:
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const std::string& pkgName, TouchState touchState);
+    void HandleLightFactorStatus(bool isSafe);
 
     void CalcVote();
-    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
 
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
 
     std::string GetAppStrategyConfigName(const std::string& pkgName) const;
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const;
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
     void UpdateXmlConfigCache();
     PolicyConfigData::ScreenSetting& GetScreenSetting() const { return screenSettingCache_; }
@@ -75,6 +76,7 @@ private:
     }};
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
+    bool lightFactorStatus_ = false;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;

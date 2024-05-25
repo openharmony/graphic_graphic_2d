@@ -62,10 +62,11 @@ public:
 private:
     void DrawMotionBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const;
-    static std::shared_ptr<Drawing::ShaderEffect> MakeMotionBlurShader(
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeMotionBlurShader(
         std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
         Vector2f& rectOffset, float radius);
     static bool RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2);
+    void CaculateRect(Vector2f& rectOffset, Vector2f& scaleSize, Vector2f& scaleAnchorCoord) const;
     static void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst);
 

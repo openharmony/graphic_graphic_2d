@@ -143,7 +143,7 @@ private:
     void UpdateAppSupportStatus();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
     void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
-    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAnimationStatus);
+    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);
@@ -161,6 +161,7 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
+    static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
     VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, const DvsyncInfo& dvsyncInfo);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
@@ -186,19 +187,19 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
+    std::unordered_set<std::string> gameScenes_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
     int32_t idleFps_ = 60;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
     int32_t lastTouchState_ = IDLE_STATE;
     bool startCheck_ = false;
-    bool prepareCheck_;
+    bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
     uint32_t lastVoteMin_ = 0;
     uint32_t lastVoteMax_ = 144;

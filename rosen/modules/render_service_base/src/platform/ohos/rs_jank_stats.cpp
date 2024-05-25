@@ -94,7 +94,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     isCurrentFrameSwitchToNotDoDirectComposition_ = isLastFrameDoDirectComposition_ && !doDirectComposition;
     if (!doDirectComposition) { UpdateEndTime(); }
     if (discardJankFrames) { ClearAllAnimation(); }
-    SetRSJankStats(dynamicRefreshRate);
+    SetRSJankStats(skipJankAnimatorFrame, dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isReportEventResponse_) {
@@ -181,9 +181,12 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
 }
 
 // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
-void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
+void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshRate */)
 {
-    auto frameTime = GetEffectiveFrameTime(true);
+    if (skipJankStats) {
+        return;
+    }
+    const int64_t frameTime = GetEffectiveFrameTime(true);
     const int64_t missedVsync = static_cast<int64_t>(frameTime / VSYNC_PERIOD);
     if (missedVsync <= 0) {
         return;
@@ -217,7 +220,7 @@ void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
         return;
     }
 
-    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %d frameTime %f", missedVsync, frameTime);
+    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %" PRId64 " frameTime %" PRId64, missedVsync, frameTime);
 
     if (type != JANK_FRAME_6_FREQ) {
         RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
@@ -410,18 +413,18 @@ void RSJankStats::SetAppFirstFrame(pid_t appPid)
     firstFrameAppPids_.push(appPid);
 }
 
-void RSJankStats::SetImplicitAnimationEnd(bool needReport)
+void RSJankStats::SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!needReport) {
+    if (!isImplicitAnimationEnd) {
         return;
     }
-
+    RS_TRACE_NAME("RSJankStats::SetImplicitAnimationEnd");
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isDisplayAnimator_) {
             continue;
         }
-        animateJankFrames_[animationId].isImplicitAnimationEnd_ = true;
+        jankFrames.isImplicitAnimationEnd_ = true;
     }
 }
 
@@ -432,11 +435,12 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     int64_t inputTime = ConvertTimeToSystime(info.inputTime);
     int64_t beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
     int64_t responseLatency = rtEndTime_ - inputTime;
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse %s", GetSceneDescription(info).c_str());
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse responseLatency is %" PRId64 "ms: %s",
+                      responseLatency, GetSceneDescription(info).c_str());
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
-        "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
-        "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
+        "VERSION_CODE", info.versionCode, "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName,
+        "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl,
         "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
         "ANIMATION_START_TIME", static_cast<uint64_t>(beginVsyncTime), "RENDER_TIME", static_cast<uint64_t>(rtEndTime_),
         "RESPONSE_LATENCY", static_cast<uint64_t>(responseLatency));
@@ -452,7 +456,8 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
     int64_t animationStartLatency = beginVsyncTime - inputTime;
     int64_t animationEndLatency = endVsyncTime - beginVsyncTime;
     int64_t completedLatency = GetCurrentSystimeMs() - inputTime;
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventComplete %s", GetSceneDescription(info).c_str());
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventComplete e2eLatency is %" PRId64 "ms: %s",
+                      completedLatency, GetSceneDescription(info).c_str());
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
         "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
@@ -566,6 +571,7 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
 
 void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
 {
+    RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, accumulatedBufferCount_);
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;
     }
@@ -590,6 +596,7 @@ void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
             RecordJankFrameSingle(missedFramesByInterval, recordStats);
         }
     }
+    RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, 0);
 }
 
 void RSJankStats::RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats)

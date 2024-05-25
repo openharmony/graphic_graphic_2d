@@ -59,13 +59,15 @@ private:
     void SortNodeStats(bool isSortByNodeCountDescendingOrder = true);
     std::pair<RSNodeDescription, RSNodeCount> GetNodeStatsToReportByIndex(size_t index) const;
     RSNodeDescription CheckEmptyAndReviseNodeDescription(const RSNodeDescription& nodeDescription) const;
+    std::pair<uint32_t, uint32_t> GetCurrentRSNodeLimit() const;
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
 
     static constexpr int64_t TIMESTAMP_INITIAL = -1;
     static constexpr int64_t REPORT_INTERVAL_LIMIT = 10000; // 10s
-    static constexpr uint32_t RS_NODE_LIMIT = 500;
-    static constexpr uint32_t RS_NODE_REPORT_LIMIT = 750;
+    static constexpr int RS_NODE_LIMIT_PROPERTY_MIN = 1;
+    static constexpr int RS_NODE_LIMIT_PROPERTY_MAX = 1000;
+    static constexpr float RS_NODE_LIMIT_REPORT_RATIO = 1.5f;
     static inline const std::string RS_NODE_LIMIT_EXCEEDED_EVENT_NAME = "RS_NODE_LIMIT_EXCEEDED";
 
     int64_t lastReportTime_ = TIMESTAMP_INITIAL;

@@ -17,8 +17,8 @@
 
 #include <fcntl.h>
 #include <memory>
-#include <multimedia/image_framework/image_pixel_map_mdk.h>
-#include <multimedia/image_framework/image_packer_mdk.h>
+#include <multimedia/image_framework/image/pixelmap_native.h>
+#include <multimedia/image_framework/image/image_packer_native.h>
 #include <native_drawing/drawing_brush.h>
 #include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_filter.h>
@@ -143,7 +143,7 @@ void TestBase::CreateBitmapCanvas()
     }
     bitmap_ = OH_Drawing_BitmapCreate();
     // 定义bitmap的像素格式
-    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL};
     // 构造对应格式的bitmap
     OH_Drawing_BitmapBuild(bitmap_, bitmapWidth_, bitmapHeight_, &cFormat);
 
@@ -163,7 +163,7 @@ void TestBase::CreateGpuCanvas()
 {
     OH_Drawing_GpuContextOptions options{false};
     imageInfo_ = {static_cast<int32_t>(bitmapWidth_), static_cast<int32_t>(bitmapHeight_),
-        COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE};
+        COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL};
     gpuContext_ = OH_Drawing_GpuContextCreateFromGL(options);
     surface_ = OH_Drawing_SurfaceCreateFromGpuContext(gpuContext_, true, imageInfo_);
     gpuCanvas_ = OH_Drawing_SurfaceGetCanvas(surface_);
@@ -174,37 +174,55 @@ void TestBase::BitmapCanvasToFile(napi_env env)
 {
     DRAWING_LOGE("BitmapCanvasToFile");
     //创建pixmap
-    napi_value pixelMap = nullptr;
-    struct OhosPixelMapCreateOps createOps;
-    createOps.width = bitmapWidth_;
-    createOps.height = bitmapHeight_;
-    createOps.pixelFormat = 3; // 3 for png
-    createOps.alphaType = 0; // 0 for type
-    createOps.editable = 1; // 1 for editable
-    size_t bufferSize = createOps.width * createOps.height * 4;
-    void *bitmapAddr = OH_Drawing_BitmapGetPixels(bitmap_);
-    int32_t res = OH_PixelMap_CreatePixelMap(env, createOps, (uint8_t *)bitmapAddr, bufferSize, &pixelMap);
-    if (res != IMAGE_RESULT_SUCCESS || pixelMap == nullptr) {
-        DRAWING_LOGE(" failed to OH_PixelMap_CreatePixelMap width = %{public}u, height = %{public}u",
-            bitmapWidth_, bitmapHeight_);
+    OH_Pixelmap_InitializationOptions *createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    if (ret != IMAGE_SUCCESS || !createOps) {
+        DRAWING_LOGE("BitmapCanvasToFile OH_PixelmapInitializationOptions_Create failed %{public}d", ret);
         return;
     }
 
-    Pixmap2File(env, pixelMap);
+    OH_PixelmapInitializationOptions_SetWidth(createOps, bitmapWidth_);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, bitmapHeight_);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2); // 2 is ALPHA_FORMAT_PREMUL
+
+    size_t bufferSize = bitmapWidth_ * bitmapHeight_ * 4;
+    void *bitmapAddr = OH_Drawing_BitmapGetPixels(bitmap_);
+    OH_PixelmapNative *pixelMap = nullptr;
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t *)bitmapAddr, bufferSize, createOps, &pixelMap);
+    if (ret != IMAGE_SUCCESS || pixelMap == nullptr) {
+        DRAWING_LOGE(" failed to OH_PixelMap_CreatePixelMap width = %{public}u, height = %{public}u",
+            bitmapWidth_, bitmapHeight_);
+        OH_PixelmapInitializationOptions_Release(createOps);
+        return;
+    }
+
+    Pixmap2RawFile(bitmapAddr, bufferSize);
+    Pixmap2ImageFile(pixelMap);
+
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(createOps);
 }
 
 void TestBase::GpuCanvasToFile(napi_env env, bool saveFile)
 {
     DRAWING_LOGI("GpuCanvasToFile");
     //创建pixmap
-    napi_value pixelMap = nullptr;
-    struct OhosPixelMapCreateOps createOps;
-    createOps.width = bitmapWidth_;
-    createOps.height = bitmapHeight_;
-    createOps.pixelFormat = 3; // 3 for png
-    createOps.alphaType = 0;
-    createOps.editable = 1;
-    size_t bufferSize = createOps.width * createOps.height * 4;
+    OH_Pixelmap_InitializationOptions *createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    if (ret != IMAGE_SUCCESS || !createOps) {
+        DRAWING_LOGE("GpuCanvasToFile OH_PixelmapInitializationOptions_Create failed %{public}d", ret);
+        return;
+    }
+
+    OH_PixelmapInitializationOptions_SetWidth(createOps, bitmapWidth_);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, bitmapHeight_);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);  // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2); // 2 is ALPHA_FORMAT_PREMUL
+
+    size_t bufferSize = bitmapWidth_ * bitmapHeight_ * 4;
     if (dstPixels_) {
         free(dstPixels_);
         dstPixels_ = nullptr;
@@ -212,71 +230,105 @@ void TestBase::GpuCanvasToFile(napi_env env, bool saveFile)
     dstPixels_ = malloc(bitmapWidth_ * bitmapHeight_ * 4); // 4 for rgba
     if (dstPixels_ == nullptr) {
         DRAWING_LOGE("dstPixels_ malloc failed");
+        OH_PixelmapInitializationOptions_Release(createOps);
         return;
     }
     bool output = OH_Drawing_CanvasReadPixels(gpuCanvas_, &imageInfo_, dstPixels_, 4 * bitmapWidth_, 0, 0);
     if (!output) {
         DRAWING_LOGE("read pixels failed");
+        OH_PixelmapInitializationOptions_Release(createOps);
         return;
     }
     if (bitmap_) {
         OH_Drawing_BitmapDestroy(bitmap_);
     }
     bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo_, dstPixels_, 4 * bitmapWidth_); // 4 for rgba
-    int32_t res = OH_PixelMap_CreatePixelMap(env, createOps, (uint8_t *)dstPixels_, bufferSize, &pixelMap);
-    if (res != IMAGE_RESULT_SUCCESS || pixelMap == nullptr) {
+
+    OH_PixelmapNative *pixelMap = nullptr;
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t *)dstPixels_, bufferSize, createOps, &pixelMap);
+    if (ret != IMAGE_SUCCESS || pixelMap == nullptr) {
         DRAWING_LOGE("failed to CreatePixelMap width = %{public}u, height = %{public}u", bitmapWidth_, bitmapHeight_);
         return;
     }
 
     if (saveFile) {
-        Pixmap2File(env, pixelMap);
+        Pixmap2RawFile(dstPixels_, bufferSize);
+        Pixmap2ImageFile(pixelMap);
     }
 }
 
-void TestBase::Pixmap2File(napi_env env, napi_value pixelMap)
+void TestBase::Pixmap2RawFile(void *pixelmap, uint32_t pixelMapSize)
 {
-    // 使用napi_value 承接创建的编码器对象
-    napi_value packer;
-    // 通过 napi_env 创建编码器，返回result为 IMAGE_RESULT_SUCCESS则创建成功
-    int32_t result = OH_ImagePacker_Create(env, &packer);
-    if (result != IMAGE_RESULT_SUCCESS) {
-        DRAWING_LOGE("failed to OH_ImagePacker_Create");
-        return;
-    }
-    // 通过 napi_env 及上述创建的编码器对象初始化原生实例对象
-    ImagePacker_Native* nativePacker = OH_ImagePacker_InitNative(env, packer);
-    if (nativePacker == nullptr) {
-        DRAWING_LOGE("failed to OH_ImagePacker_InitNative");
-        return;
-    }
-    // 编码参数
-    ImagePacker_Opts opts;
-    // 配置编码格式（必须）
-    opts.format = "image/png";
-    // 配置编码质量（必须）
-    opts.quality = 100; // 100 quality
     // 打开需要输出的文件（请确保应用有权限访问这个路径）
-    std::string path = "/data/storage/el2/base/files/" + fileName_ + ".png";
+    std::string path = "/data/storage/el2/base/files/" + fileName_ + ".dat";
+    auto err = remove(path.c_str());
+    if (err) {
+        DRAWING_LOGE("failed to remove path: %{public}s", path.c_str());
+    }
     int fd = open(path.c_str(), O_RDWR | O_CREAT);
     if (fd <= 0) {
-        DRAWING_LOGE("failed to open fd = %{public}d", fd);
+        DRAWING_LOGE("failed to open fd = %{public}d path = %{public}s", fd, path.c_str());
+        return;
+    }
+
+    auto result = write(fd, pixelmap, pixelMapSize);
+    if (result != pixelMapSize) {
+        DRAWING_LOGE("failed to Pixmap2RawFile");
+    }
+    // 关闭输出文件
+    close(fd);
+}
+
+void TestBase::Pixmap2ImageFile(OH_PixelmapNative* pixelMap)
+{
+    OH_ImagePackerNative *packer = nullptr;
+    auto result = OH_ImagePackerNative_Create(&packer);
+    if (result != IMAGE_SUCCESS || !packer) {
+        DRAWING_LOGE("failed to OH_ImagePackerNative_Create");
+        return;
+    }
+
+    OH_PackingOptions *opts = nullptr;
+    result = OH_PackingOptions_Create(&opts);
+    if (result != IMAGE_SUCCESS || !opts) {
+        DRAWING_LOGE("failed to OH_PackingOptions_Create");
+        return;
+    }
+
+    char format[] = "image/png";
+    Image_MimeType imageMimeType { format, strlen(format) };
+    OH_PackingOptions_SetMimeType(opts, &imageMimeType);
+    uint32_t quality = 100;
+    OH_PackingOptions_SetQuality(opts, quality);
+
+    // 打开需要输出的文件（请确保应用有权限访问这个路径）
+    std::string path = "/data/storage/el2/base/files/" + fileName_ + ".png";
+    auto err = remove(path.c_str());
+    if (err) {
+        DRAWING_LOGE("failed to remove path: %{public}s", path.c_str());
+    }
+    int fd = open(path.c_str(), O_RDWR | O_CREAT);
+    if (fd <= 0) {
+        DRAWING_LOGE("failed to open fd = %{public}d path = %{public}s", fd, path.c_str());
+        OH_PackingOptions_Release(opts);
+        OH_ImagePackerNative_Release(packer);
         return;
     }
 
     // 开始对输入source进行编码过程，返回result为 IMAGE_RESULT_SUCCESS则编码成功
-    result = OH_ImagePacker_PackToFile(nativePacker, pixelMap, &opts, fd);
-    if (result != IMAGE_RESULT_SUCCESS) {
-        DRAWING_LOGE("failed to OH_ImagePacker_PackToFile");
+    result = OH_ImagePackerNative_PackToFileFromPixelmap(packer, opts, pixelMap, fd);
+    if (result != IMAGE_SUCCESS) {
+        DRAWING_LOGE("failed to OH_ImagePackerNative_PackToFileFromImageSource");
         close(fd);
+        OH_PackingOptions_Release(opts);
+        OH_ImagePackerNative_Release(packer);
         return;
     }
 
-    // 调用OH_ImagePacker_Release, 销毁编码器
-    int32_t ret = OH_ImagePacker_Release(nativePacker);
     // 关闭输出文件
     close(fd);
-    DRAWING_LOGE("end");
+    OH_PackingOptions_Release(opts);
+    OH_ImagePackerNative_Release(packer);
 }
 
 void TestBase::Destroy()

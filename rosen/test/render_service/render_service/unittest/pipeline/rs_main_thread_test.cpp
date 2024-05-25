@@ -37,7 +37,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
-constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
+constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
@@ -2441,7 +2441,7 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel002, TestSize.Level1)
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
         mainThread->lastVisMapForVsyncRate_.clear();
         mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+        ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
     }
 }
 
@@ -2536,7 +2536,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes004, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2568,7 +2568,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes005, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2600,7 +2600,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes006, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2632,7 +2632,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes007, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2664,7 +2664,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes008, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2696,7 +2696,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**

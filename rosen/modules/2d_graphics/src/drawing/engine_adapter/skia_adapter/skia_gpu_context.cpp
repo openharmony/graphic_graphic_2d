@@ -266,6 +266,16 @@ void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
 
+void SkiaGPUContext::PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
+    const std::set<pid_t>& protectedPidSet)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::PurgeCacheBetweenFrames,grContext_ is nullptr");
+        return;
+    }
+    grContext_->purgeCacheBetweenFrames(scratchResourcesOnly, exitedPidSet, protectedPidSet);
+}
+
 void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {

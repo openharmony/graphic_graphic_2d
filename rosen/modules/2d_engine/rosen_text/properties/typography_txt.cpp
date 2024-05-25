@@ -88,6 +88,11 @@ void TypographyTxt::Paint(Canvas* drawCanvas, double x, double y)
     paragraphTxt_->Paint(drawCanvas, x, y);
 }
 
+void TypographyTxt::Paint(Canvas* drawCanvas, Path* path, double hOffset, double vOffset)
+{
+    paragraphTxt_->Paint(drawCanvas, path, hOffset, vOffset));
+}
+
 std::vector<TypographyProperties::TextBox> TypographyTxt::GetRectsForRange(
     size_t start,
     size_t end,

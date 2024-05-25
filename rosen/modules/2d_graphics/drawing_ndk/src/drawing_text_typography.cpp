@@ -513,12 +513,22 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
+    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+        potisionX, potisionY);
+}
+
+void OH_Drawing_TypographyPaintOnPath(
+    OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas, OH_Drawing_Path* path, double hOffset, double vOffset)
+{
     auto drawingCanvas = reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas);
+    if (!path) {
+        return;
+    }
+    auto drawingpath = reinterpret_cast<OHOS::Rosen::Drawing::Path*>(path);
     if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
         (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
     }
-    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas,
-        potisionX, potisionY);
+    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas, drawingpath, hOffset, vOffset);
 }
 
 double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)
@@ -1390,7 +1400,7 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     for (size_t i = 0; i < lineMetrics.size(); ++i) {
         lineMetricsArr[i] = lineMetrics[i];
     }
-    MgrSetArrSize((void *)(lineMetricsArr), lineMetrics.size());
+    MgrSetArrSize(static_cast<void *>(lineMetricsArr), lineMetrics.size());
     return (OH_Drawing_LineMetrics*)lineMetricsArr;
 }
 
@@ -1399,13 +1409,13 @@ size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics* lineMetrics)
     if (lineMetrics == nullptr) {
         return 0;
     }
-    return GetArrSizeFromMgr((void *)(lineMetrics));
+    return GetArrSizeFromMgr(static_cast<void *>(lineMetrics));
 }
 
 void OH_Drawing_DestroyLineMetrics(OH_Drawing_LineMetrics* lineMetrics)
 {
     if (lineMetrics) {
-        MgrRemoveSize((void *)(lineMetrics));
+        MgrRemoveSize(static_cast<void *>(lineMetrics));
         delete[] lineMetrics;
         lineMetrics = nullptr;
     }

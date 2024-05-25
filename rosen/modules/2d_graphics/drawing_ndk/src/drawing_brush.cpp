@@ -15,6 +15,8 @@
 
 #include "drawing_brush.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "draw/brush.h"
 
 using namespace OHOS;
@@ -60,6 +62,7 @@ OH_Drawing_Brush* OH_Drawing_BrushCopy(OH_Drawing_Brush* cBrush)
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_Brush*)new Brush(*brush);
@@ -73,6 +76,7 @@ void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
 bool OH_Drawing_BrushIsAntiAlias(const OH_Drawing_Brush* cBrush)
 {
     if (cBrush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return CastToBrush(*cBrush).IsAntiAlias();
@@ -82,6 +86,7 @@ void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush* cBrush, bool aa)
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     brush->SetAntiAlias(aa);
@@ -90,6 +95,7 @@ void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush* cBrush, bool aa)
 uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush* cBrush)
 {
     if (cBrush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return CastToBrush(*cBrush).GetColor().CastToColorQuad();
@@ -99,6 +105,7 @@ void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, uint32_t color)
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     brush->SetColor(color);
@@ -107,6 +114,7 @@ void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, uint32_t color)
 uint8_t OH_Drawing_BrushGetAlpha(const OH_Drawing_Brush* cBrush)
 {
     if (cBrush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return CastToBrush(*cBrush).GetAlpha();
@@ -116,6 +124,7 @@ void OH_Drawing_BrushSetAlpha(OH_Drawing_Brush* cBrush, uint8_t alpha)
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     brush->SetAlpha(alpha);
@@ -125,6 +134,11 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush* cBrush, OH_Drawing_Shader
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cShaderEffect == nullptr) {
+        brush->SetShaderEffect(nullptr);
         return;
     }
     brush->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
@@ -134,6 +148,11 @@ void OH_Drawing_BrushSetShadowLayer(OH_Drawing_Brush* cBrush, OH_Drawing_ShadowL
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cShadowLayer == nullptr) {
+        brush->SetLooper(nullptr);
         return;
     }
     brush->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowLayer), [](auto p) {}});
@@ -143,6 +162,7 @@ void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFil
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     if (cFilter == nullptr) {
@@ -157,10 +177,12 @@ void OH_Drawing_BrushGetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFil
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Filter* filter = const_cast<Filter*>(CastToFilter(cFilter));
     if (filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     *filter = brush->GetFilter();
@@ -170,6 +192,7 @@ void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
@@ -179,6 +202,7 @@ void OH_Drawing_BrushReset(OH_Drawing_Brush* cBrush)
 {
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     brush->Reset();

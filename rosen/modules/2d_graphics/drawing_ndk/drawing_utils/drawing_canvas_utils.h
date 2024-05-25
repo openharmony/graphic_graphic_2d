@@ -16,6 +16,7 @@
 #ifndef DRAWING_CANVAS_H
 #define DRAWING_CANVAS_H
 #include "draw/canvas.h"
+#include "drawing_error_code.h"
 #include "utils/rect.h"
 #include "utils/sampling_options.h"
 
@@ -43,4 +44,6 @@ inline std::shared_ptr<OHOS::Rosen::Drawing::Typeface> g_LoadZhCnTypeface()
     }
     return typeface;
 }
+
+extern OH_Drawing_ErrorCode g_drawingErrorCode;
 #endif // DRAWING_CANVAS_H

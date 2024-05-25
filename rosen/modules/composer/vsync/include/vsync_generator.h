@@ -60,7 +60,8 @@ public:
     virtual bool IsEnable() = 0;
     virtual VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                        const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                                       uint32_t generatorRefreshRate) = 0;
+                                                       uint32_t generatorRefreshRate,
+                                                       int64_t expectNextVsyncTime = 0) = 0;
     virtual int64_t GetVSyncPulse() = 0;
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
@@ -74,6 +75,7 @@ public:
 
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
     virtual void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
+    virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -95,7 +97,8 @@ public:
     bool IsEnable() override;
     VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                               uint32_t generatorRefreshRate) override;
+                                               uint32_t generatorRefreshRate,
+                                               int64_t expectNextVsyncTime = 0) override;
     int64_t GetVSyncPulse() override;
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
@@ -109,6 +112,7 @@ public:
 
     void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
     void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
+    void SetFrameRateChangingStatus(bool frameRateChanging) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -144,6 +148,7 @@ private:
     void SubScribeSystemAbility();
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
+    VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
@@ -185,6 +190,8 @@ private:
     int32_t periodCheckCounter_ = 0;
     int64_t lastPeriod_ = 0;
     sptr<VSyncDistributor> appVSyncDistributor_;
+    int64_t expectNextVsyncTime_ = 0;
+    bool expectTimeFlag_ = false;
 };
 } // impl
 } // namespace Rosen

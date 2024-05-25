@@ -58,9 +58,11 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     } while (ret != -1);
 
     VSyncCallback cb = nullptr;
+    VSyncCallbackWithId cbWithId = nullptr;
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
+        cbWithId = vsyncCallbacksWithId_;
         RNVFlag_ = false;
     }
     now = data[0];
@@ -78,8 +80,9 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     // 1, 2: index of array data.
     ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
         " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
-    if (dataCount > 0 && cb != nullptr) {
-        cb(now, userData_);
+    if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
+        // data[2] is frameCount
+        cbWithId != nullptr ? cbWithId(now, data[2], userData_) : cb(now, userData_);
     }
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
@@ -115,7 +118,8 @@ VsyncError VSyncReceiver::Init()
 
     int32_t retVal = fcntl(fd_, F_SETFL, O_NONBLOCK); // set fd to NonBlock mode
     if (retVal != 0) {
-        VLOGW("%{public}s fcntl set fd_ NonBlock failed", __func__);
+        VLOGW("%{public}s fcntl set fd_:%{public}d NonBlock failed, retVal:%{public}d, errno:%{public}d",
+            __func__, fd_, retVal, errno);
     }
 
     listener_->SetName(name_);
@@ -172,6 +176,16 @@ VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)
     return connection_->SetVSyncRate(rate);
 }
 
+/* 设置每帧回调 */
+VsyncError VSyncReceiver::SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen)
+{
+    if (isOpen) {
+        return SetVSyncRate(callback, 1);
+    } else {
+        return SetVSyncRate(callback, -1);
+    }
+}
+
 VsyncError VSyncReceiver::GetVSyncPeriod(int64_t &period)
 {
     int64_t timeStamp;
@@ -187,14 +201,14 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
     }
     if (isThreadShared == false) {
         if (listener_->period_ == 0 || listener_->timeStamp_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->period_;
         timeStamp = listener_->timeStamp_;
     } else {
         if (listener_->periodShared_ == 0 || listener_->timeStampShared_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = listener_->periodShared_;

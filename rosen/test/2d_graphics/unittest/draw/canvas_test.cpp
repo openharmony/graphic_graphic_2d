@@ -387,9 +387,12 @@ HWTEST_F(CanvasTest, CanvasDrawAtlasTest001, TestSize.Level1)
     Rect rect[] = { {0, 0, 50, 50}, {50, 50, 100, 100}};
     canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, nullptr, 2,
         BlendMode::SRC, SamplingOptions(), nullptr);
-    Brush brush;
     ColorQuad colors[] = {0xffffffff, 0xff000000};
     Rect cullRect(0, 0, 100, 100);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), nullptr, rect, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, nullptr, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
     canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, 2,
         BlendMode::SRC, SamplingOptions(), &cullRect);
     canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, -10,
