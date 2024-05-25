@@ -1055,6 +1055,15 @@ bool VSyncDistributor::HasPendingUIRNV()
 #endif
 }
 
+VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    std::lock_guard<std::mutex> locker(mutex_);
+    dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
+#endif
+    return VSYNC_ERROR_OK;
+}
+
 uint32_t VSyncDistributor::GetRefreshRate()
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -1080,15 +1089,6 @@ bool VSyncDistributor::IsUiDvsyncOn()
 #else
     return false;
 #endif
-}
-
-VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
-{
-#if defined(RS_ENABLE_DVSYNC)
-    std::lock_guard<std::mutex> locker(mutex_);
-    dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
-#endif
-    return VSYNC_ERROR_OK;
 }
 
 int64_t VSyncDistributor::GetUiCommandDelayTime()

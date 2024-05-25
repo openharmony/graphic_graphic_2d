@@ -775,6 +775,11 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
     mainThread->transactionDataLastWaitTime_[0] = 0;
     mainThread->timestamp_ = REFRESH_PERIOD * SKIP_COMMAND_FREQ_LIMIT + 1;
     mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
     // default data with index 0
     auto data = std::make_unique<RSTransactionData>();
     ASSERT_NE(data, nullptr);
