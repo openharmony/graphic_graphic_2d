@@ -1735,7 +1735,7 @@ void RSNode::SetPaintOrder(bool drawContentLast)
 
 void RSNode::ClearAllModifiers()
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);    
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     for (auto [id, modifier] : modifiers_) {
         if (modifier) {
             modifier->DetachFromNode();
@@ -2176,8 +2176,11 @@ void RSNode::AddChild(SharedPtr child, int index)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
-        ROSEN_LOGI("RSNode::AddChild, NodeId: %{public}" PRIu64 ", ChildId: %{public}" PRIu64, id_, childId);
-        RS_TRACE_NAME_FMT("RSNode::AddChild, NodeId: %" PRIu64 ", ChildId: %" PRIu64, id_, childId);
+        auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
+        ROSEN_LOGI("RSNode::AddChild, Id: %{public}" PRIu64 ", SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s]",
+            id_, childId, surfaceNode->GetName().c_str());
+        RS_TRACE_NAME_FMT("RSNode::AddChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
+            id_, childId, surfaceNode->GetName().c_str());
     }
 }
 
@@ -2229,6 +2232,13 @@ void RSNode::RemoveChild(SharedPtr child)
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    if (child->GetType() == RSUINodeType::SURFACE_NODE) {
+        auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
+        ROSEN_LOGI("RSNode::RemoveChild, Id: %{public}" PRIu64 ", SurfaceNode:[Id: %{public}" PRIu64 ", "
+            "name: %{public}s]", id_, childId, surfaceNode->GetName().c_str());
+        RS_TRACE_NAME_FMT("RSNode::RemoveChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
+            id_, childId, surfaceNode->GetName().c_str());
+    }
 }
 
 void RSNode::RemoveChildByNodeId(NodeId childId)
