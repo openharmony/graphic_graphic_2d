@@ -916,7 +916,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
  * @tc.name: LayerScaleFitTest01
  * @tc.desc: LayerScaleFit test
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SDDH
  */
 HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest01, TestSize.Level2)
 {
@@ -941,7 +941,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest01, TestSize.Level2)
  * @tc.name: LayerScaleFitTest02
  * @tc.desc: LayerScaleFit test
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SDDH
  */
 HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest02, TestSize.Level2)
 {
@@ -966,7 +966,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest02, TestSize.Level2)
  * @tc.name: LayerScaleFitTest03
  * @tc.desc: LayerScaleFit test
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SDDH
  */
 HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest03, TestSize.Level2)
 {
