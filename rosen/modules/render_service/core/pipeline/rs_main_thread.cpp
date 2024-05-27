@@ -901,6 +901,20 @@ void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransaction
     }
 }
 
+void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex)
+{
+#ifdef ROSEN_EMULATOR
+    transactionFlags += " cache [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
+    RequestNextVSync();
+#else
+    if (rsVSyncDistributor_->IsUiDvsyncOn()) {
+        transactionFlags += " cache (" + std::to_string(pid) + "," + std::to_string(curIndex) + ")";
+        RS_TRACE_NAME("trigger NextVsync for Dvsync-Cached command");
+        RequestNextVSync("fromRsMainCommand", timestamp_);
+    }
+#endif
+}
+
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
@@ -918,11 +932,9 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             }
             auto curIndex = (*iter)->GetIndex();
             if (curIndex == lastIndex + 1) {
-                if ((*iter)->GetTimestamp() >= timestamp_) {
-#ifdef ROSEN_EMULATOR
-                    transactionFlags += "cache [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
-                    RequestNextVSync();
-#endif
+                if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime())
+                    >= timestamp_) {
+                    RequestNextVsyncForCachedCommand(transactionFlags, pid, curIndex);
                     break;
                 }
                 ++lastIndex;
@@ -1058,6 +1070,30 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     rsTransactionData->Process(*context_);
 }
 
+void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
+{
+    bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
+    auto hostPid = rsTransactionData->GetHostPid();
+    if (hostPid == -1 || ExtractPid(rsTransactionData->GetSyncId()) == static_cast<uint32_t>(hostPid)) {
+        // Synchronous commands initiated directly from the SCB
+        if (isNeedCloseSync) {
+            syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
+        } else {
+            syncTransactionCount_ -= 1;
+        }
+    } else {
+        // Synchronous command initiated by uiextension host
+        auto count = subSyncTransactionCounts_[hostPid];
+        if (rsTransactionData->GetSyncTransactionNum() > 0) {
+            count += rsTransactionData->GetSyncTransactionNum();
+            syncTransactionCount_ -= 1;
+        } else {
+            count -= 1;
+        }
+        count == 0 ? subSyncTransactionCounts_.erase(hostPid) : subSyncTransactionCounts_[hostPid] = count;
+    }
+}
+
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
 {
     if (!rsTransactionData->IsNeedSync()) {
@@ -1073,7 +1109,6 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         return;
     }
 
-    bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
     if (syncTransactionData_.empty()) {
         if (handler_) {
             auto task = [this, syncId = rsTransactionData->GetSyncId()]() {
@@ -1095,12 +1130,9 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     if (syncTransactionData_.count(pid) == 0) {
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
-    syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
-    if (!isNeedCloseSync) {
-        syncTransactionCount_ -= 1;
-    }
+    ProcessSyncTransactionCount(rsTransactionData);
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0) {
+    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
         ProcessAllSyncTransactionData();
     }
 }
@@ -1116,6 +1148,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
+    subSyncTransactionCounts_.clear();
     RequestNextVSync();
 }
 
@@ -1596,8 +1629,12 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_) {
         return;
     }
+    DvsyncInfo info;
+    info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
+    info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
+    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     // Check and processing refresh rate task.
-    frameRateMgr_->ProcessPendingRefreshRate(timestamp);
+    frameRateMgr_->ProcessPendingRefreshRate(timestamp, rsRate, info);
 
     // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
     if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
@@ -1605,13 +1642,14 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     } else {
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
-            idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
+            idleTimerExpiredFlag_, info);
     }
 
     if (rsVSyncDistributor_->IsDVsyncOn()) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
-        if (pendingRefreshRate != nullptr) {
+        if (pendingRefreshRate != nullptr
+            && (!info.isUiDvsyncOn || rsRate == *pendingRefreshRate)) {
             hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
             frameRateMgr_->ResetPendingRefreshRate();
         }
@@ -1799,14 +1837,16 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     if (waitForRT) {
         RSUniRenderThread::Instance().PostSyncTask([processor]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
+            auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+            hgmCore.SetDirectCompositionFlag(true);
             processor->PostProcess();
         });
     } else {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        hgmCore.SetDirectCompositionFlag(true);
         processor->PostProcess();
     }
 
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.SetDirectCompositionFlag(true);
     RS_LOGD("RSMainThread::DoDirectComposition end");
     return true;
 }
@@ -1834,6 +1874,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
         renderThreadParams_->SetRequestNextVsyncFlag(needRequestNextVsyncAnimate_);
         renderThreadParams_->SetPendingScreenRefreshRate(hgmCore.GetPendingScreenRefreshRate());
+        renderThreadParams_->SetPendingConstraintRelativeTime(hgmCore.GetPendingConstraintRelativeTime());
         renderThreadParams_->SetForceCommitLayer(isHardwareEnabledBufferUpdated_ || forceUpdateUniRenderFlag_);
         renderThreadParams_->SetOcclusionEnabled(RSSystemProperties::GetOcclusionEnabled());
     }
@@ -1853,6 +1894,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
         UniRender(rootNode);
+        frameCount_++;
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doWindowAnimate_);
@@ -2301,7 +2343,7 @@ void RSMainThread::SurfaceOcclusionCallback()
                 continue;
             }
             visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
-                GetVisibleRegionForCallBack().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+                GetVisibleRegion().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
             auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
             bool vectorEmpty = partitionVector.empty();
             if (vectorEmpty && (visibleAreaRatio > 0.0f)) {

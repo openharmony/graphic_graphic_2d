@@ -825,6 +825,13 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return blurExtraFilterEnabled;
 }
 
+bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
+{
+    static bool purgeResourcesEveryEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "0").c_str()) != 0);
+    return purgeResourcesEveryEnabled;
+}
+
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
@@ -876,8 +883,9 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
-    static bool enable = (strcmp(CachedParameterGetChanged(g_Handle, nullptr), "true") == 0);
-    return enable;
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
 }
 
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()

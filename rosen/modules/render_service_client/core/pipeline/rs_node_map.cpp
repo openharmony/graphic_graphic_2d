@@ -92,6 +92,22 @@ void RSNodeMap::UnregisterNode(NodeId id)
     }
 }
 
+bool RSNodeMap::RegisterAnimationInstanceId(AnimationId animId, NodeId id, int32_t instanceId)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    animationNodeIdInstanceIdMap_.emplace(animId, std::make_pair(id, instanceId));
+    return true;
+}
+
+void RSNodeMap::UnregisterAnimation(AnimationId animId)
+{
+    if (!g_instance_valid.load()) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    animationNodeIdInstanceIdMap_.erase(animId);
+}
+
 template<>
 const std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id) const
 {
@@ -117,6 +133,20 @@ int32_t RSNodeMap::GetNodeInstanceId(NodeId id) const
         return INSTANCE_ID_UNDEFINED;
     }
     return itr->second;
+}
+
+int32_t RSNodeMap::GetInstanceIdForReleasedNode(NodeId id) const
+{
+    if (!g_instance_valid.load()) {
+        return INSTANCE_ID_UNDEFINED;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (const auto& [animId, node] : animationNodeIdInstanceIdMap_) {
+        if (node.first == id) {
+            return node.second;
+        }
+    }
+    return INSTANCE_ID_UNDEFINED;
 }
 
 const std::shared_ptr<RSNode> RSNodeMap::GetAnimationFallbackNode() const

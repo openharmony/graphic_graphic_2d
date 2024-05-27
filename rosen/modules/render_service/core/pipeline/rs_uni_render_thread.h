@@ -64,8 +64,10 @@ public:
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
+    uint64_t GetPendingConstraintRelativeTime() const;
 
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
+    void PurgeCacheBetweenFrames();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -74,6 +76,14 @@ public:
     void DumpMem(DfxString& log);
     void TrimMem(std::string& dumpString, std::string& type);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
+    uint64_t GetFrameCount() const
+    {
+        return frameCount_;
+    }
+    void IncreaseFrameCount()
+    {
+        frameCount_++;
+    }
     bool GetWatermarkFlag();
     
     bool IsCurtainScreenOn() const;
@@ -163,6 +173,7 @@ private:
     mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
+    std::atomic<uint64_t> frameCount_ = 0;
 
     pid_t tid_ = 0;
 

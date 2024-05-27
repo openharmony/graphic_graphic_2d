@@ -143,14 +143,16 @@ void HgmFrameRateManager::InitTouchManager()
     });
 }
 
-void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp)
+void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo)
 {
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    if (pendingRefreshRate_ != nullptr) {
+    if (pendingRefreshRate_ != nullptr && (!dvsyncInfo.isUiDvsyncOn || rsRate == *pendingRefreshRate_)) {
+        hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
         pendingRefreshRate_.reset();
+        pendingConstraintRelativeTime_ = 0;
     }
 }
 
@@ -252,7 +254,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                 const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
-                                                bool isDvsyncOn)
+                                                const DvsyncInfo& dvsyncInfo)
 {
     RS_TRACE_FUNC();
     Reset();
@@ -277,14 +279,14 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     UpdateGuaranteedPlanVote(timestamp);
-    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo);
+    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo, dvsyncInfo);
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp, isDvsyncOn);
+        HandleFrameRateChangeForLTPO(timestamp);
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
@@ -295,7 +297,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         }
     }
 
-    if (isDvsyncOn) {
+    if (dvsyncInfo.isRsDvsyncOn) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     }
 
@@ -344,12 +346,13 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
 
     FrameRateRange finalRange;
     FrameRateVoteInfo frameRateVoteInfo;
-    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo);
+    DvsyncInfo dvsyncInfo;
+    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo, dvsyncInfo);
     auto& hgmCore = HgmCore::Instance();
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
-
+    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(currRefreshRate_));
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
         if (forceUpdateCallback_ != nullptr) {
@@ -410,16 +413,28 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
 {
-    auto lastRefreshRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    auto& hgmCore = HgmCore::Instance();
+    auto lastRefreshRate = hgmCore.GetPendingScreenRefreshRate();
+    uint64_t targetTime = 0;
     // low refresh rate switch to high refresh rate immediately.
     if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
-        HgmCore::Instance().SetPendingScreenRefreshRate(currRefreshRate_);
+        hgmCore.SetPendingScreenRefreshRate(currRefreshRate_);
+        if (hgmCore.IsLowRateToHighQuickEnabled() && controller_) {
+            targetTime = controller_->CalcVSyncQuickTriggerTime(timestamp, lastRefreshRate);
+            if (targetTime > timestamp && targetTime > 0) {
+                pendingConstraintRelativeTime_ = targetTime - timestamp;
+            } else {
+                pendingConstraintRelativeTime_ = 0;
+            }
+            hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
+            pendingConstraintRelativeTime_ = 0;
+        }
     }
 
-    RSTaskMessage::RSTask task = [this, lastRefreshRate]() {
-        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
+    RSTaskMessage::RSTask task = [this, lastRefreshRate, targetTime]() {
+        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_, targetTime);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != lastRefreshRate) {
             if (forceUpdateCallback_ != nullptr) {
@@ -543,6 +558,7 @@ void HgmFrameRateManager::Reset()
 {
     currRefreshRate_ = 0;
     controllerRate_ = 0;
+    pendingConstraintRelativeTime_ = 0;
     pendingRefreshRate_.reset();
     appChangeData_.clear();
 }
@@ -640,7 +656,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(bool isSafe)
 
 void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    HgmTaskHandleThread::Instance().PostTask([this, packageList = packageList] () {
+    HgmTaskHandleThread::Instance().PostTask([this, packageList] () {
         if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
@@ -830,9 +846,7 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
     }
 
     std::lock_guard<std::mutex> lock(voteMutex_);
-    if (voteRecord_.find(eventName) == voteRecord_.end()) {
-        voteRecord_[eventName] = {};
-    }
+    voteRecord_.try_emplace(eventName, std::vector<std::pair<pid_t, VoteRange>>());
     auto& vec = voteRecord_[eventName];
 
     // clear
@@ -897,12 +911,11 @@ bool HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, VoteRange ra
     return false;
 }
 
-VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo)
+VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo,
+                                                      const DvsyncInfo& dvsyncInfo)
 {
     if (!isRefreshNeed_) {
-        uint32_t lastPendingRate = HgmCore::Instance().GetPendingScreenRefreshRate();
-        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]", lastPendingRate);
-        return std::make_pair(lastPendingRate, lastPendingRate);
+        return ProcessRefreshRateVoteNoRefreshNeeded(dvsyncInfo);
     }
     UpdateVoteRule();
     std::lock_guard<std::mutex> voteNameLock(voteNameMutex_);
@@ -938,10 +951,23 @@ VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRa
         frameRateVoteInfo.SetVoteInfo(voter, max);
     }
 
+    lastVoteMin_ = min;
+    lastVoteMax_ = max;
     isRefreshNeed_ = false;
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_), curRefreshRateMode_, min, max);
     return std::make_pair(min, max);
+}
+
+VoteRange HgmFrameRateManager::ProcessRefreshRateVoteNoRefreshNeeded(const DvsyncInfo& dvsyncInfo)
+{
+    if (dvsyncInfo.isUiDvsyncOn) {
+        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d,%d]", lastVoteMin_, lastVoteMax_);
+        return std::make_pair(lastVoteMin_, lastVoteMax_);
+    }
+    uint32_t lastPendingRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]", lastPendingRate);
+    return std::make_pair(lastPendingRate, lastPendingRate);
 }
 
 void HgmFrameRateManager::UpdateVoteRule()

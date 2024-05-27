@@ -89,8 +89,6 @@ config("libgraphic_utils_public_config") {
 ohos_shared_library("libgraphic_utils") {
   public_configs = [ ":libgraphic_utils_public_config" ]
 
-  public_deps = [ "color_manager:color_manager" ]
-
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -100,6 +98,7 @@ ohos_shared_library("libgraphic_utils") {
 
   deps = [
     ":buffer_handle",
+    ":color_manager",
     ":cpudraw",
     ":gl_utils",
     ":libgslogger",

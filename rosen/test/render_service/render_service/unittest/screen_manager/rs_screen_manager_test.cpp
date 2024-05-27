@@ -601,6 +601,33 @@ HWTEST_F(RSScreenManagerTest, SetScreenMirror_001, testing::ext::TestSize.Level2
 }
 
 /*
+ * @tc.name: SetScreenConstraint_001
+ * @tc.desc: Test SetScreenConstraint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenConstraint_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto mirrorId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, mirrorId);
+    // timestamp is 10000000 ns
+    screenManager->SetScreenConstraint(mirrorId, 10000000, ScreenConstraintType::CONSTRAINT_NONE);
+}
+
+/*
  * @tc.name: SetScreenActiveMode_001
  * @tc.desc: Test SetScreenActiveMode
  * @tc.type: FUNC

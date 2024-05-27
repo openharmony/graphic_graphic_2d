@@ -70,7 +70,7 @@ private:
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool animationStart_ = true;
+    bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 };
 }

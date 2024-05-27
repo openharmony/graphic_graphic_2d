@@ -166,20 +166,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         return;
     }
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
-    // need to sync the hgm data from main thread.
-    // Temporary sync the timestamp to fix the duplicate time stamp issue.
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t rate = 0;
-    if (hgmCore.GetDirectCompositionFlag()) {
-        rate = hgmCore.GetPendingScreenRefreshRate();
-        hgmCore.SetDirectCompositionFlag(false);
-    } else {
-        rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-    }
-    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
-    uint64_t currTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
-        currentRate = currentRate, timestamp = currTimestamp]() {
+    RefreshRateParam param = GetRefreshRateParam();
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
@@ -187,10 +175,11 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
-
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
-        ExecuteSwitchRefreshRate(rate);
-        PerformSetActiveMode(output, timestamp);
+        uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu",
+            currentRate, param.frameTimestamp);
+        ExecuteSwitchRefreshRate(param.rate);
+        PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -212,13 +201,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     };
     unExecuteTaskNum_++;
 
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
-        uint64_t expectCommitTime = static_cast<uint64_t>(currTimestamp + static_cast<uint64_t>(pipelineOffset) -
-            static_cast<uint64_t>(period));
+        uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
+            static_cast<uint64_t>(pipelineOffset) - static_cast<uint64_t>(period));
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -226,12 +216,44 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers " \
             "expectCommitTime: %lu, currTime: %lu, delayTime: %ld, pipelineOffset: %ld, period: %ld",
             expectCommitTime, currTime, delayTime, pipelineOffset, period);
-        if (period == 0 || delayTime <= 0) {
+        if (RSMainThread::Instance()->rsVSyncDistributor_->IsUiDvsyncOn() || period == 0 || delayTime <= 0) {
             PostTask(task);
         } else {
             PostDelayTask(task, delayTime);
         }
     }
+}
+
+RefreshRateParam RSHardwareThread::GetRefreshRateParam()
+{
+    // need to sync the hgm data from main thread.
+    // Temporary sync the timestamp to fix the duplicate time stamp issue.
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    bool directComposition = hgmCore.GetDirectCompositionFlag();
+    if (directComposition) {
+        hgmCore.SetDirectCompositionFlag(false);
+    }
+    RefreshRateParam param;
+    if (directComposition) {
+        param = {
+            .rate = hgmCore.GetPendingScreenRefreshRate(),
+            .frameTimestamp = hgmCore.GetCurrentTimestamp(),
+            .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
+        };
+    } else {
+        param = {
+            .rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+            .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+            .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+        };
+    }
+    return param;
+}
+
+void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
+{
+    RS_TRACE_NAME_FMT("RSHardwareThread::OnScreenVBlankIdleCallback screenId: %d now: %lu", screenId, timestamp);
+    vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
 }
 
 void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
@@ -256,7 +278,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 }
 
-void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp)
+void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
@@ -265,6 +287,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         return;
     }
 
+    vblankIdleCorrector_.ProcessScreenConstraint(timestamp, constraintRelativeTime);
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;

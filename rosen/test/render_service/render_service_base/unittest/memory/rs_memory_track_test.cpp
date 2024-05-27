@@ -61,4 +61,145 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest, testing::ext::TestSize.Level1)
     auto mem = memoryGraphic.GetCpuMemorySize();
     ASSERT_EQ(mem, 0);
 }
+
+/**
+ * @tc.name: DumpMemoryStatisticsTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func;
+    MemoryTrack::Instance().DumpMemoryStatistics(log, func);
+    int ret = 0;
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddPictureRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
+{
+    const void* addr;
+    MemoryInfo info;
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+    int ret = 0;
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: RemovePictureRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest, testing::ext::TestSize.Level1)
+{
+    const void* addr;
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+    int ret = 0;
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: UpdatePictureInfoTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, UpdatePictureInfoTest, testing::ext::TestSize.Level1)
+{
+    const void* addr;
+    NodeId nodeId = 1;
+    pid_t pid = -1;
+    MemoryTrack::Instance().UpdatePictureInfo(addr, nodeId, pid);
+    int ret = 0;
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetAppMemorySizeInMBTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetAppMemorySizeInMBTest, testing::ext::TestSize.Level1)
+{
+    float ret = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: MemoryType2StringTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest, testing::ext::TestSize.Level1)
+{
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
+    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
+    ASSERT_EQ(ret, "pixelmap");
+}
+
+/**
+ * @tc.name: GenerateDumpTitleTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1)
+{
+    MemoryInfo info;
+    // for test
+    uint64_t windowId = 1;
+    std::string windowName = "My Window";
+    RectI nodeFrameRect;
+    std::string ret = MemoryTrack::Instance().GenerateDumpTitle();
+    ASSERT_TRUE(!ret.empty());
+    ret = MemoryTrack::Instance().GenerateDetail(info, windowId, windowName, nodeFrameRect);
+    ASSERT_TRUE(!ret.empty());
+}
+
+/**
+ * @tc.name: DumpMemoryNodeStatisticsTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize.Level1)
+{
+    // for test
+    DfxString log;
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func;
+    MemoryTrack::Instance().DumpMemoryNodeStatistics(log);
+    MemoryTrack::Instance().DumpMemoryPicStatistics(log, func);
+    int ret = 1;
+    ASSERT_EQ(ret, 1);
+}
+
+/**
+ * @tc.name: RemoveNodeFromMapTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest, testing::ext::TestSize.Level1)
+{
+    // fot test
+    const NodeId id = 1;
+    // fot test
+    pid_t pid = -1;
+    // fot test
+    size_t size = sizeof(10);
+    MemoryTrack::Instance().RemoveNodeFromMap(id, pid, size);
+    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, size, id);
+    int ret = 1;
+    ASSERT_EQ(ret, 1);
+}
 } // namespace OHOS::Rosen

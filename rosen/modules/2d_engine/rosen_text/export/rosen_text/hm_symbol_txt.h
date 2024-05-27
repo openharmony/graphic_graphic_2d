@@ -83,10 +83,10 @@ private:
 
     // animationMode_ is the implementation mode of the animation effect:
     // common_animations: the 0 is the byLayer effect and 1 is the wholeSymbol effect;
-    // variable_color : the 0 is the cumulative  effect and 1 is the iteratuve effect.
+    // variable_color : the 0 is the cumulative effect and 1 is the iteratuve effect.
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool animationStart_ = true;
+    bool animationStart_ = false;
     std::map<std::string, int> visualMap_;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 };

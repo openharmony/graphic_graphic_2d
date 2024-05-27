@@ -32,11 +32,6 @@ public:
         return Type;
     }
 
-    bool GetUifirstSupportFlag() override
-    {
-        return false;
-    }
-
     bool OpincGetNodeSupportFlag() override
     {
         return false;
@@ -82,7 +77,10 @@ public:
     }
     void InitRenderParams() override;
     void MarkFilterHasEffectChildren() override;
+    virtual bool EffectNodeShouldPaint() const override;
     void OnFilterCacheStateChanged() override;
+    bool FirstFrameHasEffectChildren() const override;
+    void MarkClearFilterCacheIfEffectChildrenChanged() override;
 
 protected:
     RectI GetFilterRect() const override;
@@ -91,6 +89,8 @@ protected:
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync) override;
     
 private:
+    bool FirstFrameHasNoEffectChildren() const;
+
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;
