@@ -65,14 +65,14 @@ static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
     return reinterpret_cast<const Point&>(cPoint);
 }
 
-static const Point CastToPoint(const OH_Drawing_Point2D& cPoint)
+static const Point& CastToPoint(const OH_Drawing_Point2D& cPoint)
 {
-    return {cPoint.x, cPoint.y};
+    return reinterpret_cast<const Point&>(cPoint);
 }
 
-static Point3 CastToPoint3(OH_Drawing_Point3D& cPoint3)
+static const Point3& CastToPoint3(OH_Drawing_Point3D& cPoint3)
 {
-    return {cPoint3.x, cPoint3.y, cPoint3.z};
+    return reinterpret_cast<const Point3&>(cPoint3);
 }
 
 static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)

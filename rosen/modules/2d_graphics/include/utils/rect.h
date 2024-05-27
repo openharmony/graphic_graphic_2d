@@ -113,19 +113,19 @@ public:
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
 
     int32_t left_;
-    int32_t right_;
     int32_t top_;
+    int32_t right_;
     int32_t bottom_;
 };
 
-inline RectI::RectI() noexcept : left_(0), right_(0), top_(0), bottom_(0) {}
+inline RectI::RectI() noexcept : left_(0), top_(0), right_(0), bottom_(0) {}
 
 inline RectI::RectI(const RectI& r) noexcept
-    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom())
+    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
 {}
 
 inline RectI::RectI(const int l, const int t, const int r, const int b) noexcept
-    : left_(l), right_(r), top_(t), bottom_(b)
+    : left_(l), top_(t), right_(r), bottom_(b)
 {}
 
 inline bool RectI::IsValid() const
@@ -305,23 +305,23 @@ public:
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
 
     scalar left_;
-    scalar right_;
     scalar top_;
+    scalar right_;
     scalar bottom_;
 };
 
-inline RectF::RectF() noexcept : left_(0.0), right_(0.0), top_(0.0), bottom_(0.0) {}
+inline RectF::RectF() noexcept : left_(0.0), top_(0.0), right_(0.0), bottom_(0.0) {}
 
 inline RectF::RectF(const RectF& r) noexcept
-    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom())
+    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
 {}
 
 inline RectF::RectF(const RectI& r) noexcept
-    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom())
+    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
 {}
 
 inline RectF::RectF(const scalar l, const scalar t, const scalar r, const scalar b) noexcept
-    : left_(l), right_(r), top_(t), bottom_(b)
+    : left_(l), top_(t), right_(r), bottom_(b)
 {}
 
 inline bool RectF::IsValid() const
