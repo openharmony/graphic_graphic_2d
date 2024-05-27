@@ -84,8 +84,6 @@ public:
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    // use floor value of translateX and translateY in matrix of canvas to avoid jittering
-    static void FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
     static bool IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation);
 #ifdef RS_ENABLE_VK
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
