@@ -573,7 +573,8 @@ HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter001, TestSize.Level1)
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0],
     floatData[1]);
     surfaceNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -589,7 +590,8 @@ HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter002, TestSize.Level2)
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1],
     floatData[2]);
     surfaceNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -605,7 +607,8 @@ HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter003, TestSize.Level3)
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2],
     floatData[3]);
     surfaceNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -621,7 +624,8 @@ HWTEST_F(RSSurfaceNodeTest, SetFilter001, TestSize.Level1)
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0],
     floatData[1]);
     surfaceNode->SetFilter(filter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -637,7 +641,8 @@ HWTEST_F(RSSurfaceNodeTest, SetFilter002, TestSize.Level2)
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1],
     floatData[2]);
     surfaceNode->SetFilter(filter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -653,7 +658,8 @@ HWTEST_F(RSSurfaceNodeTest, SetFilter003, TestSize.Level3)
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2],
     floatData[3]);
     surfaceNode->SetFilter(filter);
-    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[3]);
 }
 
 /**
