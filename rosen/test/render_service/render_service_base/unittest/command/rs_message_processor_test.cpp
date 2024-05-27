@@ -82,8 +82,49 @@ HWTEST_F(RSMessageProcessorTest, AddUIMessage001, TestSize.Level1)
     EXPECT_EQ(nullptr, RSMessageProcessor::Instance().GetTransaction(0));
 
     pid = 0;
+    auto transactionData = std::make_shared<RSTransactionData>();
+    RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
     RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+}
+
+/**
+ * @tc.name: AddUIMessage002
+ * @tc.desc: test results of AddUIMessage
+ * @tc.type: FUNC
+ * @tc.require: issueI9SBEZ
+ */
+HWTEST_F(RSMessageProcessorTest, AddUIMessage002, TestSize.Level1)
+{
+    uint32_t pid = 1;
+    std::unique_ptr<RSCommand> command = nullptr;
+    RSMessageProcessor::Instance().AddUIMessage(pid, std::move(command));
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+
+    pid = 0;
+    auto transactionData = std::make_shared<RSTransactionData>();
+    RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
+    RSMessageProcessor::Instance().AddUIMessage(pid, std::move(command));
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+    EXPECT_EQ(false, RSMessageProcessor::Instance().HasTransaction(pid));
+}
+
+/**
+ * @tc.name: GetTransaction001
+ * @tc.desc: test results of GetTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueI9SBEZ
+ */
+HWTEST_F(RSMessageProcessorTest, GetTransaction001, TestSize.Level1)
+{
+    uint32_t pid = 10;
+    EXPECT_EQ(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
+
+    pid = 0;
+    auto transactionData = std::make_shared<RSTransactionData>();
+    RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
+    EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
+    EXPECT_EQ(RSMessageProcessor::Instance().transactionMap_, RSMessageProcessor::Instance().GetAllTransactions());
 }
 } // namespace Rosen
 } // namespace OHOS
