@@ -103,6 +103,18 @@ int32_t HdiDeviceImpl::RegScreenVBlankCallback(uint32_t screenId, VBlankCallback
     return g_composer->RegDisplayVBlankCallback(screenId, callback, data);
 }
 
+int32_t HdiDeviceImpl::RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->RegDisplayVBlankIdleCallback(callback, data);
+}
+
+int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, uint64_t timestamp, uint32_t type)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayConstraint(screenId, frameId, timestamp, type);
+}
+
 int32_t HdiDeviceImpl::SetScreenVsyncEnabled(uint32_t screenId, bool enabled)
 {
     ScopedBytrace trace("SetScreenVsyncEnabled, screenId:" + std::to_string(screenId) +
