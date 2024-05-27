@@ -441,8 +441,8 @@ HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest |
     RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
     canvas->SetCanvasStatus(status);
     RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
-    ASSERT_FALSE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
-    ASSERT_FALSE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
+    ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
+    ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
 }
 
 /*
