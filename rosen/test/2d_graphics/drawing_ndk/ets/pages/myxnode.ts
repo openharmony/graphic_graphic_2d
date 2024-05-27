@@ -18,6 +18,7 @@ import { NodeController, FrameNode, RenderNode, DrawContext, Size } from "@ohos.
 import nativeXNode from "libmyxnode.so";
 import {PrintCallback} from "./printcallback";
 const TAG = '[DrawingTest]';
+import {Global} from './global';
 let printCallback: PrintCallback;
 
 export class MyRenderNode extends RenderNode {
@@ -46,6 +47,12 @@ export class MyRenderNode extends RenderNode {
   async TestFunctional(context: DrawContext) {
     console.info(TAG, 'MyRenderNode TestFunctional', this.caseNameStr);
     nativeXNode.TestFunctional(context, this.caseNameStr);
+    let width = nativeXNode.GetPixelMapWidth(this.caseNameStr);
+    let height = nativeXNode.GetPixelMapHeight(this.caseNameStr);
+    if (width && height) {
+      Global.pixelmapHeight = height;
+      Global.pixelmapWidth = width;
+    }
     printCallback('XNode TestFunctional ok');
   }
 
