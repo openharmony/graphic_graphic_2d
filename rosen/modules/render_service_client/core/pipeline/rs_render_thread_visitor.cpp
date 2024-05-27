@@ -509,7 +509,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     auto width = curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth();
     auto height = curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight();
-    if (isRenderForced_ || (width != height && (width == 0 || height == 0)) ||
+    if (isRenderForced_ || width == 0 || height == 0 ||
         !(gravityMatrix == Drawing::Matrix())) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
