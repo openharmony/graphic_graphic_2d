@@ -14,7 +14,6 @@
  */
 
 #include <cstddef>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_static_factory.h"
@@ -28,7 +27,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class skiaStaticFactory : public testing::Test {
+class skiaStaticFactoryTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -36,10 +35,10 @@ public:
     void TearDown() override;
 };
 
-void skiaStaticFactory::SetUpTestCase() {}
-void skiaStaticFactory::TearDownTestCase() {}
-void skiaStaticFactory::SetUp() {}
-void skiaStaticFactory::TearDown() {}
+void skiaStaticFactoryTest::SetUpTestCase() {}
+void skiaStaticFactoryTest::TearDownTestCase() {}
+void skiaStaticFactoryTest::SetUp() {}
+void skiaStaticFactoryTest::TearDown() {}
 
 /**
  * @tc.name: MakeFromRSXform001
@@ -47,7 +46,7 @@ void skiaStaticFactory::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:I91EDT
  */
-HWTEST_F(skiaStaticFactory, MakeFromRSXform001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeFromRSXform001, TestSize.Level1)
 {
     const char* str = "asdf";
     Font font;
@@ -64,7 +63,7 @@ HWTEST_F(skiaStaticFactory, MakeFromRSXform001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, MakeFromStream001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeFromStream001, TestSize.Level1)
 {
     MemoryStream memoryStream;
     int index = 0;
@@ -80,7 +79,7 @@ HWTEST_F(skiaStaticFactory, MakeFromStream001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, MakeFromName001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeFromName001, TestSize.Level1)
 {
     char familyName[] = "qewe";
 
@@ -98,7 +97,7 @@ HWTEST_F(skiaStaticFactory, MakeFromName001, TestSize.Level1)
  */
 
 #ifdef RS_ENABLE_VK
-HWTEST_F(skiaStaticFactory, MakeFromBackendRenderTarget001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeFromBackendRenderTarget001, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::GPUContext gpuContext;
     TextureInfo texttureinfo;
@@ -120,7 +119,7 @@ HWTEST_F(skiaStaticFactory, MakeFromBackendRenderTarget001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, MakeFromYUVAPixmaps001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeFromYUVAPixmaps001, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::GPUContext gpuContext;
     YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
@@ -138,7 +137,7 @@ HWTEST_F(skiaStaticFactory, MakeFromYUVAPixmaps001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, DeserializeTypeface001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, DeserializeTypeface001, TestSize.Level1)
 {
     const char* data = "fcdsafsa";
 
@@ -152,7 +151,7 @@ HWTEST_F(skiaStaticFactory, DeserializeTypeface001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, AsBlendMode001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, AsBlendMode001, TestSize.Level1)
 {
     Brush brush;
     brush.SetAntiAlias(true);
@@ -168,7 +167,7 @@ HWTEST_F(skiaStaticFactory, AsBlendMode001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, MakeDataFromFileName001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, MakeDataFromFileName001, TestSize.Level1)
 {
     const char data[] = "";
     auto skiaStatic = SkiaStaticFactory::MakeDataFromFileName(data);
@@ -181,7 +180,7 @@ HWTEST_F(skiaStaticFactory, MakeDataFromFileName001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:I91EDT
  */
-HWTEST_F(skiaStaticFactory, GetDrawingPathforTextBlob001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, GetDrawingPathforTextBlob001, TestSize.Level1)
 {
     uint16_t glyphId = 65;
 
@@ -201,7 +200,7 @@ HWTEST_F(skiaStaticFactory, GetDrawingPathforTextBlob001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, GetDrawingPointsForTextBlob001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
 {
     Rosen::Drawing::Font font;
     font.SetSize(100);
@@ -222,7 +221,7 @@ HWTEST_F(skiaStaticFactory, GetDrawingPointsForTextBlob001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, GetGroupParameters001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, GetGroupParameters001, TestSize.Level1)
 {
     uint16_t groupSum = 1;
     uint16_t animationMode = 1;
@@ -240,7 +239,7 @@ HWTEST_F(skiaStaticFactory, GetGroupParameters001, TestSize.Level1)
  * @tc.require:I91EDT
  */
 
-HWTEST_F(skiaStaticFactory, CreateEmpty001, TestSize.Level1)
+HWTEST_F(skiaStaticFactoryTest, CreateEmpty001, TestSize.Level1)
 {
     auto skiaStatic = SkiaStaticFactory::CreateEmpty();
     ASSERT_TRUE(skiaStatic != nullptr);
