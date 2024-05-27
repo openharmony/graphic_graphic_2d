@@ -39,6 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
+constexpr uint8_t ASTC_HEADER_SIZE = 16;
 
 #ifdef RS_ENABLE_VK
 Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
@@ -189,9 +190,9 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
             }
         } else {
             const void* data = pixelMap->GetPixels();
-            if (pixelMap->GetCapacity() > ASTC_HEAD_BYTES &&
-                !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEAD_BYTES),
-                pixelMap->GetCapacity() - ASTC_HEAD_BYTES)) {
+            if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
+                !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE)) {
                 LOGE("PreProcessPixelMap data BuildWithoutCopy fail");
                 return;
             }
