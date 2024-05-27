@@ -56,6 +56,13 @@ enum TouchStatus : uint32_t {
     TOUCH_PULL_UP = 14,
 };
 
+enum CleanPidCallbackType : uint32_t {
+    LIGHT_FACTOR,
+    PACKAGE_EVENT,
+    TOUCH_EVENT,
+    GAMES,
+};
+
 struct DvsyncInfo {
     bool isRsDvsyncOn = false;
     bool isUiDvsyncOn = false;
@@ -102,10 +109,10 @@ public:
     HgmFrameRateManager() = default;
     ~HgmFrameRateManager() = default;
 
-    void HandleLightFactorStatus(bool isSafe);
-    void HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+    void HandleLightFactorStatus(pid_t pid, bool isSafe);
+    void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -138,6 +145,8 @@ public:
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
+
+    static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
 private:
     void Reset();
     void UpdateAppSupportStatus();
@@ -156,12 +165,13 @@ private:
     void HandleIdleEvent(bool isIdle);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
+    void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(pid_t pid, std::string eventName, bool eventStatus,
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
+    bool MergeLtpo2IdleVote(VoteRange& mergedVoteRange);
     VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, const DvsyncInfo& dvsyncInfo);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
@@ -189,6 +199,8 @@ private:
     std::unordered_set<pid_t> pidRecord_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
     std::unordered_set<std::string> gameScenes_;
+    std::mutex cleanPidCallbackMutex_;
+    std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;

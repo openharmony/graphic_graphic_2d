@@ -1271,16 +1271,24 @@ void RSRenderServiceConnection::ReportJankStats()
 
 void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
 {
-    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(isSafe);
+    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(remotePid_, isSafe);
 }
 
 void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    mainThread_->GetFrameRateMgr()->HandlePackageEvent(listSize, packageList);
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyPackageEvent: frameRateMgr is nullptr.");
+        return;
+    }
+    mainThread_->GetFrameRateMgr()->HandlePackageEvent(remotePid_, listSize, packageList);
 }
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyRefreshRateEvent: frameRateMgr is nullptr.");
+        return;
+    }
     mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
 }
 
@@ -1290,7 +1298,7 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t to
         RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
         return;
     }
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(touchStatus, touchCnt);
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
 }
 
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)

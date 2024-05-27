@@ -46,62 +46,39 @@ void HgmFrameRateMgrTest::SetUp() {}
 void HgmFrameRateMgrTest::TearDown() {}
 
 /**
- * @tc.name: UniProcessDataForLtpo
- * @tc.desc: Verify the result of UniProcessDataForLtpo function
+ * @tc.name: MergeRangeByPriority
+ * @tc.desc: Verify the result of MergeRangeByPriority function
  * @tc.type: FUNC
- * @tc.require: I7DMS1
+ * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, MergeRangeByPriority, Function | SmallTest | Level1)
 {
-    auto &instance = HgmCore::Instance();
-    ScreenId id = 8;
-    sptr<HgmScreen> screen = nullptr;
-    int32_t width = 1344;
-    int32_t height = 2772;
-    uint32_t rate = 120;
-    uint32_t rate2 = 60;
-    uint32_t rate3 = 90;
-    int32_t mode = 1;
-    int32_t mode2 = 2;
-    int32_t mode3 = 3;
-    instance.AddScreen(id, 1, screenSize);
-    instance.AddScreenInfo(id, width, height, rate, mode);
-    instance.AddScreenInfo(id, width, height, rate2, mode2);
-    instance.AddScreenInfo(id, width, height, rate3, mode3);
-    instance.SetActiveScreenId(id);
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
-    ASSERT_NE(rsFrameRateLinker, nullptr);
-    rsFrameRateLinker->SetExpectedRange({0, 120, 60});
+    VoteRange voteRange0 = { OLED_40_HZ, OLED_120_HZ };
+    VoteRange voteRange1 = { OLED_30_HZ, OLED_40_HZ };
+    VoteRange voteRange2 = { OLED_60_HZ, OLED_90_HZ };
+    VoteRange voteRange3 = { OLED_120_HZ, OLED_144_HZ };
+    VoteRange voteRange4 = { OLED_30_HZ, OLED_144_HZ };
+    VoteRange voteRangeRes;
 
-    std::shared_ptr<RSRenderFrameRateLinker> appFrameLinker1 = std::make_shared<RSRenderFrameRateLinker>();
-    ASSERT_NE(appFrameLinker1, nullptr);
-    appFrameLinker1->SetExpectedRange({0, 120, 90});
-    std::shared_ptr<RSRenderFrameRateLinker> appFrameLinker2 = std::make_shared<RSRenderFrameRateLinker>();
-    ASSERT_NE(appFrameLinker2, nullptr);
-    appFrameLinker2->SetExpectedRange({0, 120, 120});
-    std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> appFrameLinkers =
-        {{1, appFrameLinker1}, {2, appFrameLinker2}};
+    voteRangeRes = voteRange0;
+    HgmFrameRateManager::MergeRangeByPriority(voteRangeRes, voteRange1);
+    ASSERT_EQ(voteRangeRes.first, OledRefreshRate::OLED_40_HZ);
+    ASSERT_EQ(voteRangeRes.second, OledRefreshRate::OLED_40_HZ);
 
-    uint64_t timestamp = 10000000;
-    bool flag = false;
-    pid_t pid = 0;
-    sptr<VSyncGenerator> vsyncGenerator = CreateVSyncGenerator();
-    sptr<VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
-    sptr<VSyncController> appController = new VSyncController(vsyncGenerator, 0);
-    std::shared_ptr<HgmVSyncGeneratorController> controller =
-        std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
-    ASSERT_NE(controller, nullptr);
-    std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
-    DvsyncInfo info;
-    PART("CaseDescription") {
-        STEP("1. get a HgmFrameRateManager and check the result of UniProcessDataForLtpo") {
-            ASSERT_NE(frameRateMgr, nullptr);
-            HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(pid, nullptr);
-            frameRateMgr->Init(rsController, appController, vsyncGenerator);
-            frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, info);
-        }
-    }
+    voteRangeRes = voteRange0;
+    HgmFrameRateManager::MergeRangeByPriority(voteRangeRes, voteRange2);
+    ASSERT_EQ(voteRangeRes.first, OledRefreshRate::OLED_60_HZ);
+    ASSERT_EQ(voteRangeRes.second, OledRefreshRate::OLED_90_HZ);
+
+    voteRangeRes = voteRange0;
+    HgmFrameRateManager::MergeRangeByPriority(voteRangeRes, voteRange3);
+    ASSERT_EQ(voteRangeRes.first, OledRefreshRate::OLED_120_HZ);
+    ASSERT_EQ(voteRangeRes.second, OledRefreshRate::OLED_120_HZ);
+
+    voteRangeRes = voteRange0;
+    HgmFrameRateManager::MergeRangeByPriority(voteRangeRes, voteRange4);
+    ASSERT_EQ(voteRangeRes.first, OledRefreshRate::OLED_40_HZ);
+    ASSERT_EQ(voteRangeRes.second, OledRefreshRate::OLED_120_HZ);
 }
 
 /**
