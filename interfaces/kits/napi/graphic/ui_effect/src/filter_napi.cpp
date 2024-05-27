@@ -196,7 +196,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
         FILTER_LOG_E("para is nullptr");
         return _this;
     }
-    para->radius_ = radius;
+    para->SetRadius(radius);
     filterObj->AddPara(para);
 
     return _this;
@@ -246,7 +246,7 @@ static bool GetStretchPercent(napi_env env, napi_value param, std::shared_ptr<Pi
             return false;
         }
     }
-    para->stretchPercent_ = tmpPercent_;
+    para->SetStretchPercent(tmpPercent_);
     return true;
 }
 
@@ -271,7 +271,7 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     if (argCount >= NUM_2) {
         tileMode = ParserArgumentType(env, argValue[NUM_1]);
     }
-    para->stretchTileMode_ = tileMode;
+    para->SetTileMode(tileMode);
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
     if (filterObj == nullptr) {
