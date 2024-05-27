@@ -101,6 +101,7 @@ public:
     virtual int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const = 0;
     virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
     virtual const std::unordered_set<uint64_t>& GetFilteredAppSet() const = 0;
+    virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
 };
 
 namespace impl {
@@ -175,6 +176,7 @@ public:
     int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const override;
     int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
     const std::unordered_set<uint64_t>& GetFilteredAppSet() const override;
+    int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
 
 private:
     // create hdiScreen and get some information from drivers.

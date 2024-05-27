@@ -148,9 +148,11 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
     if (pendingRefreshRate_ != nullptr && (!dvsyncInfo.isUiDvsyncOn || rsRate == *pendingRefreshRate_)) {
+        hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
         pendingRefreshRate_.reset();
+        pendingConstraintRelativeTime_ = 0;
     }
 }
 
@@ -284,7 +286,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp, dvsyncInfo.isRsDvsyncOn);
+        HandleFrameRateChangeForLTPO(timestamp);
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
@@ -411,16 +413,28 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
 {
-    auto lastRefreshRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    auto& hgmCore = HgmCore::Instance();
+    auto lastRefreshRate = hgmCore.GetPendingScreenRefreshRate();
+    uint64_t targetTime = 0;
     // low refresh rate switch to high refresh rate immediately.
     if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
-        HgmCore::Instance().SetPendingScreenRefreshRate(currRefreshRate_);
+        hgmCore.SetPendingScreenRefreshRate(currRefreshRate_);
+        if (hgmCore.IsLowRateToHighQuickEnabled() && controller_) {
+            targetTime = controller_->CalcVSyncQuickTriggerTime(timestamp, lastRefreshRate);
+            if (targetTime > timestamp && targetTime > 0) {
+                pendingConstraintRelativeTime_ = targetTime - timestamp;
+            } else {
+                pendingConstraintRelativeTime_ = 0;
+            }
+            hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
+            pendingConstraintRelativeTime_ = 0;
+        }
     }
 
-    RSTaskMessage::RSTask task = [this, lastRefreshRate]() {
-        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
+    RSTaskMessage::RSTask task = [this, lastRefreshRate, targetTime]() {
+        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_, targetTime);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != lastRefreshRate) {
             if (forceUpdateCallback_ != nullptr) {
@@ -544,6 +558,7 @@ void HgmFrameRateManager::Reset()
 {
     currRefreshRate_ = 0;
     controllerRate_ = 0;
+    pendingConstraintRelativeTime_ = 0;
     pendingRefreshRate_.reset();
     appChangeData_.clear();
 }

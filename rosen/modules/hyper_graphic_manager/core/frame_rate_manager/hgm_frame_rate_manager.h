@@ -146,7 +146,7 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp);
     void FrameRateReport() const;
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
@@ -170,6 +170,7 @@ private:
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
     std::shared_ptr<uint32_t> pendingRefreshRate_;
+    uint64_t pendingConstraintRelativeTime_ = 0;
     std::shared_ptr<HgmVSyncGeneratorController> controller_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
 
