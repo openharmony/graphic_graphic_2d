@@ -507,9 +507,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     (void)RSPropertiesPainter::GetGravityMatrix(
         Gravity::RESIZE, RectF { 0.0f, 0.0f, bufferWidth, bufferHeight }, rootWidth, rootHeight, gravityMatrix);
 
-    if (isRenderForced_ ||
-        curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth() == 0 ||
-        curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight() == 0 ||
+    auto width = curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth();
+    auto height = curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight();
+    if (isRenderForced_ || (width != height && (width == 0 || height == 0)) ||
         !(gravityMatrix == Drawing::Matrix())) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
@@ -810,6 +810,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (!node.GetIsTextureExportNode()) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
+    }
+
+    if (node.GetIsTextureExportNode()) {
+        canvas_->Save();
+        auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        RSPropertiesPainter::DrawBackground(node.GetRenderProperties(), *canvas_);
+        canvas_->Restore();
     }
 
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.

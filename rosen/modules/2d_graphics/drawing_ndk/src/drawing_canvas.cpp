@@ -113,10 +113,12 @@ void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas* cCanvas)
 void OH_Drawing_CanvasBind(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitmap)
 {
     if (cBitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Bind(CastToBitmap(*cBitmap));
@@ -125,10 +127,12 @@ void OH_Drawing_CanvasBind(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitma
 void OH_Drawing_CanvasAttachPen(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->AttachPen(CastToPen(*cPen));
@@ -138,6 +142,7 @@ void OH_Drawing_CanvasDetachPen(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DetachPen();
@@ -146,10 +151,12 @@ void OH_Drawing_CanvasDetachPen(OH_Drawing_Canvas* cCanvas)
 void OH_Drawing_CanvasAttachBrush(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Brush* cBrush)
 {
     if (cBrush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->AttachBrush(CastToBrush(*cBrush));
@@ -159,6 +166,7 @@ void OH_Drawing_CanvasDetachBrush(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DetachBrush();
@@ -168,6 +176,7 @@ void OH_Drawing_CanvasSave(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Save();
@@ -178,21 +187,12 @@ void OH_Drawing_CanvasSaveLayer(OH_Drawing_Canvas* cCanvas,
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
 
-    std::unique_ptr<Drawing::Rect> bounds = nullptr;
-    std::unique_ptr<Brush> brush = nullptr;
-    if (cRect != nullptr) {
-        bounds = std::make_unique<Drawing::Rect>();
-        *bounds = CastToRect(*cRect);
-    }
-    if (cBrush != nullptr) {
-        brush = std::make_unique<Brush>();
-        *brush = CastToBrush(*cBrush);
-    }
-
-    SaveLayerOps slr = SaveLayerOps(bounds.get(), brush.get());
+    SaveLayerOps slr = SaveLayerOps(reinterpret_cast<const Drawing::Rect*>(cRect),
+        reinterpret_cast<const Drawing::Brush*>(cBrush));
     canvas->SaveLayer(slr);
 }
 
@@ -200,6 +200,7 @@ void OH_Drawing_CanvasRestore(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Restore();
@@ -209,6 +210,7 @@ uint32_t OH_Drawing_CanvasGetSaveCount(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return canvas->GetSaveCount();
@@ -218,6 +220,7 @@ void OH_Drawing_CanvasRestoreToCount(OH_Drawing_Canvas* cCanvas, uint32_t saveCo
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->RestoreToCount(saveCount);
@@ -227,6 +230,7 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas* cCanvas, float x1, float y1, f
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Point startPt(x1, y1);
@@ -237,10 +241,12 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas* cCanvas, float x1, float y1, f
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath)
 {
     if (cPath == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawPath(CastToPath(*cPath));
@@ -269,10 +275,12 @@ void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMod
     uint32_t count, const OH_Drawing_Point2D* pts)
 {
     if (pts == nullptr || count == 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Point* point = new Point[count];
@@ -311,11 +319,13 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
 {
     if (positions == nullptr || texs == nullptr || colors == nullptr || indices == nullptr
         || vertexCount < 0 || indexCount < 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
 
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
 
@@ -346,10 +356,12 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
 void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Brush* cBrush)
 {
     if (cBrush == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawBackground(CastToBrush(*cBrush));
@@ -358,10 +370,12 @@ void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas* cCanvas, const OH_Drawin
 void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Region* cRegion)
 {
     if (cRegion == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawRegion(CastToRegion(*cRegion));
@@ -370,10 +384,12 @@ void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Re
 void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap, float left, float top)
 {
     if (cBitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
@@ -403,10 +419,11 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
 }
 
 void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap,
-    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* sampling)
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampling)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cBitmap == nullptr || dst == nullptr || sampling == nullptr) {
+    if (canvas == nullptr || cBitmap == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     const Bitmap& bitmap = CastToBitmap(*cBitmap);
@@ -415,20 +432,23 @@ void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawin
         return;
     }
     if (src == nullptr) {
-        canvas->DrawImageRect(*image, CastToRect(*dst), CastToSamplingOptions(*sampling));
+        canvas->DrawImageRect(*image, CastToRect(*dst),
+            cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
     } else {
         canvas->DrawImageRect(*image, CastToRect(*src),
-            CastToRect(*dst), CastToSamplingOptions(*sampling));
+            CastToRect(*dst), cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
     }
 }
 
 void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawRect(CastToRect(*cRect));
@@ -437,10 +457,16 @@ void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
 void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point* cPoint, float radius)
 {
     if (cPoint == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (radius <= 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawCircle(CastToPoint(*cPoint), radius);
@@ -449,10 +475,12 @@ void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Po
 void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawOval(CastToRect(*cRect));
@@ -462,10 +490,12 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect*
     float startAngle, float sweepAngle)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawArc(CastToRect(*cRect), startAngle, sweepAngle);
@@ -474,10 +504,12 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect*
 void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* cRoundRect)
 {
     if (cRoundRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawRoundRect(CastToRoundRect(*cRoundRect));
@@ -486,10 +518,12 @@ void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_TextBlob* cTextBlob, float x, float y)
 {
     if (cTextBlob == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
@@ -515,10 +549,12 @@ void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->ClipRect(CastToRect(*cRect), CClipOpCastToClipOp(cClipOp), doAntiAlias);
@@ -528,10 +564,12 @@ void OH_Drawing_CanvasClipRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
 {
     if (cRoundRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->ClipRoundRect(CastToRoundRect(*cRoundRect), CClipOpCastToClipOp(cClipOp), doAntiAlias);
@@ -541,10 +579,12 @@ void OH_Drawing_CanvasClipPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
 {
     if (cPath == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->ClipPath(CastToPath(*cPath), CClipOpCastToClipOp(cClipOp), doAntiAlias);
@@ -554,6 +594,7 @@ void OH_Drawing_CanvasRotate(OH_Drawing_Canvas* cCanvas, float degrees, float px
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Rotate(degrees, px, py);
@@ -563,6 +604,7 @@ void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas* cCanvas, float dx, float dy)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Translate(dx, dy);
@@ -572,6 +614,7 @@ void OH_Drawing_CanvasScale(OH_Drawing_Canvas* cCanvas, float sx, float sy)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Scale(sx, sy);
@@ -581,6 +624,7 @@ void OH_Drawing_CanvasSkew(OH_Drawing_Canvas* cCanvas, float sx, float sy)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Shear(sx, sy);
@@ -590,6 +634,7 @@ void OH_Drawing_CanvasClear(OH_Drawing_Canvas* cCanvas, uint32_t color)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->Clear(color);
@@ -599,6 +644,7 @@ int32_t OH_Drawing_CanvasGetWidth(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return canvas->GetWidth();
@@ -608,6 +654,7 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return canvas->GetHeight();
@@ -616,10 +663,12 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas* cCanvas)
 void OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas* cCanvas, OH_Drawing_Rect* cRect)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Drawing::Rect rect = canvas->GetLocalClipBounds();
@@ -631,6 +680,7 @@ void OH_Drawing_CanvasGetTotalMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matr
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cMatrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Matrix matrix = canvas->GetTotalMatrix();
@@ -642,6 +692,7 @@ void OH_Drawing_CanvasConcatMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cMatrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->ConcatMatrix(*reinterpret_cast<Matrix*>(cMatrix));
@@ -673,8 +724,12 @@ void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cP
     OH_Drawing_Point3D cDevLightPos, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
     OH_Drawing_CanvasShadowFlags flag)
 {
-    if (cCanvas == nullptr || cPath == nullptr ||
-        flag < SHADOW_FLAGS_NONE || flag > SHADOW_FLAGS_ALL) {
+    if (cCanvas == nullptr || cPath == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (flag < SHADOW_FLAGS_NONE || flag > SHADOW_FLAGS_ALL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return;
     }
     Canvas* canvas = CastToCanvas(cCanvas);
@@ -687,6 +742,7 @@ void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* m
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->SetMatrix(CastToMatrix(*matrix));
@@ -696,31 +752,35 @@ void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     canvas->ResetMatrix();
 }
 
 void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Image* cImage,
-    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampling,
     OH_Drawing_SrcRectConstraint constraint)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cImage == nullptr || src == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+    if (canvas == nullptr || cImage == nullptr || src == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst),
-        CastToSamplingOptions(*cSampingOptions), static_cast<SrcRectConstraint>(constraint));
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst), cSampling
+        ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions(), static_cast<SrcRectConstraint>(constraint));
 }
 
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
-    OH_Drawing_SamplingOptions* cSampingOptions)
+    OH_Drawing_SamplingOptions* cSampling)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr || cImage == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+    if (canvas == nullptr || cImage == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst),
+        cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
 }
 
 bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo,
@@ -728,6 +788,7 @@ bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_In
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cImageInfo == nullptr || dstPixels == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     ImageInfo imageInfo(cImageInfo->width, cImageInfo->height,
@@ -739,6 +800,7 @@ bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cBitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return canvas->ReadPixels(CastToBitmap(*cBitmap), srcX, srcY);

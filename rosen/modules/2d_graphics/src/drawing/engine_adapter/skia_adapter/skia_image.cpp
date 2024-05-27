@@ -570,7 +570,7 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         int32_t width = pixmap.width();
         int32_t height = pixmap.height();
         const void* addr = pixmap.addr();
-        size_t size = rb * static_cast<size_t>(height);
+        size_t size = pixmap.computeByteSize();
 
         writer.writeUInt(size);
         writer.writeByteArray(addr, size);

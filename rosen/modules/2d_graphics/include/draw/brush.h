@@ -222,6 +222,18 @@ public:
     bool AsBlendMode();
 
     /**
+     * @brief Set whether to discount the drawing(for HDR).
+     * @param disableBrightnessRatio setting for HDR ratio.
+     */
+    void SetForceBrightnessDisable(bool forceBrightnessDisable);
+
+    /**
+     * @brief Queries Whether the current draw can discount.
+     * @return true if can not be discount, otherwise false.
+     */
+    bool IsForceBrightnessDisable() const { return forceBrightnessDisable_; }
+
+    /**
      * @brief Sets all Brush contents to their initial values. This is equivalent to replacing
      *        Brush with the result of Brush().
      */
@@ -237,6 +249,18 @@ public:
      */
     std::shared_ptr<BlurDrawLooper> GetLooper() const;
 
+    /**
+     * @brief Queries the brush HDR state.
+     * @return true if Brush is used for HDR video which has HLG/ST2084 OETF, otherwise false.
+     */
+    bool IsHdr() const;
+
+    /**
+     * @brief Set HDR state.
+     * @param bool HDR state.
+     */
+    void SetHdr(bool isHdr);
+
     friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);
     friend DRAWING_API bool operator!=(const Brush& b1, const Brush& b2);
 
@@ -251,6 +275,8 @@ private:
 
     bool antiAlias_;
     bool hasFilter_ = false;
+    bool forceBrightnessDisable_ = false;
+    bool isHdr_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen

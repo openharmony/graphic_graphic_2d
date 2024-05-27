@@ -69,6 +69,19 @@ void HgmTouchManager::HandleThirdFrameIdle()
     ChangeState(TouchState::IDLE_STATE);
 }
 
+std::string HgmTouchManager::State2String(State state) const
+{
+    static std::map<TouchState, std::string> stateStringMap = {
+        { TouchState::DOWN_STATE, "TouchDown" },
+        { TouchState::UP_STATE, "TouchUp" },
+        { TouchState::IDLE_STATE, "TouchIdle" },
+    };
+    if (auto iter = stateStringMap.find(state); iter != stateStringMap.end()) {
+        return iter->second;
+    }
+    return std::to_string(state);
+}
+
 bool HgmTouchManager::CheckChangeStateValid(TouchState lastState, TouchState newState)
 {
     static std::map<TouchState, std::set<TouchState>> stateChangeMap = {

@@ -39,6 +39,7 @@ constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
+constexpr uint32_t RGBA_MAX = 255;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -121,10 +122,10 @@ enum NodeChangeType : uint8_t {
 };
 
 // opinc cache state
-enum NodeStragyType : uint8_t {
+enum NodeStrategyType : uint8_t {
     CACHE_NONE = 0,
     DDGR_OPINC_DYNAMIC,
-    DDGR_AUTOCACHE,
+    OPINC_AUTOCACHE,
     NODE_GROUP,
     CACHE_DISABLE,
 };
@@ -181,6 +182,11 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
+enum BufferHandleAttrKey : uint32_t {
+    // used in set roi region to codec, must be the same as HDI
+    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+};
+
 // types for PC SystemAnimatedScenes
 enum class SystemAnimatedScenes : uint32_t {
     ENTER_MISSION_CENTER, // Enter the mission center
@@ -198,6 +204,8 @@ enum class SystemAnimatedScenes : uint32_t {
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
     ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
+    ENTER_RECENTS, // Enter recents
+    EXIT_RECENTS, // Exit recents
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
@@ -219,6 +227,7 @@ enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
     ARKTS_CARD,
+    NONFOCUS_WINDOW,
 };
 
 enum class SelfDrawingNodeType : uint8_t {

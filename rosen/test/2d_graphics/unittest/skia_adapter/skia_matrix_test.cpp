@@ -207,6 +207,127 @@ HWTEST_F(SkiaMatrixTest, PostConcat002, TestSize.Level1)
     skiaMatrix.PostConcat(matrix44);
 }
 
+/**
+ * @tc.name: SetMatrix001
+ * @tc.desc: Test SetMatrix
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, SetMatrix001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetMatrix(5, 5, 5, 5, 5, 5, 5, 5, 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SCALE_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SCALE_Y) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_Y) == 5);
+}
+
+/**
+ * @tc.name: SetSkew001
+ * @tc.desc: Test SetSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, SetSkew001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSkew(10.0, 10.0);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 10);
+}
+
+/**
+ * @tc.name: SetSkew002
+ * @tc.desc: Test SetSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, SetSkew002, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSkew(10.0, 10.0, 20.0, 20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_X) == -10*20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_Y) == -10*20);
+}
+
+/**
+ * @tc.name: PreSkew001
+ * @tc.desc: Test PreSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreSkew001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PreSkew(5.0, 5.0);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 5);
+}
+
+/**
+ * @tc.name: PreSkew002
+ * @tc.desc: Test PreSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PreSkew002, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PreSkew(10.0, 10.0, 20.0, 20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_X) == -10*20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_Y) == -10*20);
+}
+
+/**
+ * @tc.name: PostSkew001
+ * @tc.desc: Test PostSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostSkew001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PostSkew(5.0, 5.0);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 5);
+}
+
+/**
+ * @tc.name: PostSkew002
+ * @tc.desc: Test PostSkew
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, PostSkew002, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.PostSkew(10.0, 10.0, 20.0, 20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_X) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SKEW_Y) == 10);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_X) == -10*20);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::TRANS_Y) == -10*20);
+}
+
+/**
+ * @tc.name: Invert001
+ * @tc.desc: Test Invert
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, Invert001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    Matrix inverse;
+    ASSERT_TRUE(skiaMatrix.Invert(inverse) == true);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

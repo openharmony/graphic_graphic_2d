@@ -70,4 +70,25 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker001, TestSize.Level1)
     RSTagTracker tagTracker(gpuContext, tag);
     tagTracker.SetTagEnd();
 }
+
+/**
+ * @tc.name: UpdateReleaseResourceEnabled
+ * @tc.desc: Test UpdateReleaseResourceEnabled and SetTagEnd
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTagTrackerTest, UpdateReleaseResourceEnabled, TestSize.Level1)
+{
+    Drawing::GPUResourceTag tag(0, 0, 0, 0);
+    Drawing::GPUContext gpuContext;
+    RSTagTracker tagTracker(&gpuContext, tag);
+    tagTracker.SetTagEnd();
+    RSTagTracker::UpdateReleaseResourceEnabled(true);
+    tagTracker.SetTagEnd();
+    ASSERT_TRUE(tagTracker.isSetTagEnd_);
+    NodeId nodeId = 1;
+    RSTagTracker tagTrackerTwo(&gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    RSTagTracker tagTrackerThree(&gpuContext, RSTagTracker::TAGTYPE::TAG_FILTER);
+    ASSERT_NE(&gpuContext, nullptr);
+}
 } // namespace OHOS::Rosen

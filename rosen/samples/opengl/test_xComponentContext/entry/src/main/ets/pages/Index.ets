@@ -38,9 +38,9 @@ struct Index {
           .fontWeight(500)
           .margin({ bottom: 24, right: 12 })
           .onClick(() => {
-            console.log(TAG, "Draw Path click");
+            console.log(TAG, 'Draw Path click');
             if (this.xComponentContext) {
-              console.log(TAG, "Draw + ");
+              console.log(TAG, 'Draw + ');
               this.xComponentContext.drawPattern();
             }
           })

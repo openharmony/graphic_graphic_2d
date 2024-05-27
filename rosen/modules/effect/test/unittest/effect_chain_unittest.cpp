@@ -107,12 +107,12 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest004, TestSize.Level1)
     /**
      * @tc.steps: step2. Call createFromConfig to load file
      */
-    const std::string jsonStr_ = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
         { "format": "png", "src": "/data/accounts/account_0/appdata/com.example.myapplication/files/
         milk.png" } } ], "connections" : [ { "from" : "myJPGInput", "to" : "myJPGOutput" } ] })";
     std::ofstream outFile;
     outFile.open("test.json");
-    outFile << jsonStr_.c_str() << std::endl;
+    outFile << jsonStr.c_str() << std::endl;
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");
@@ -137,10 +137,10 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest005, TestSize.Level1)
     /**
      * @tc.steps: step2. Call createFromConfig to load file
      */
-    const std::string jsonStr_ = R"({"connections" : [ { "from" : "myJPGInput", "to" : "myJPGOutput" } ] })";
+    const std::string jsonStr = R"({"connections" : [ { "from" : "myJPGInput", "to" : "myJPGOutput" } ] })";
     std::ofstream outFile;
     outFile.open("test.json");
-    outFile << jsonStr_.c_str() << std::endl;
+    outFile << jsonStr.c_str() << std::endl;
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");
@@ -165,12 +165,12 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest006, TestSize.Level1)
     /**
      * @tc.steps: step2. Call createFromConfig to load file
      */
-    const std::string jsonStr_ = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
         { "format": "png", "src": "/data/accounts/account_0/appdata/com.example.myapplication/files/
         milk.png" } } ] })";
     std::ofstream outFile;
     outFile.open("test.json");
-    outFile << jsonStr_.c_str() << std::endl;
+    outFile << jsonStr.c_str() << std::endl;
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");
@@ -195,11 +195,11 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest007, TestSize.Level1)
     /**
      * @tc.steps: step2. Call createFromConfig to load file
      */
-    const std::string jsonStr_ = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput"
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput"
         } ], "connections" : [ { "from" : "myJPGInput", "to" : "myJPGOutput" } ] })";
     std::ofstream outFile;
     outFile.open("test.json");
-    outFile << jsonStr_.c_str() << std::endl;
+    outFile << jsonStr.c_str() << std::endl;
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");
@@ -224,12 +224,12 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest008, TestSize.Level1)
     /**
      * @tc.steps: step2. Call createFromConfig to load file
      */
-    const std::string jsonStr_ = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
         { "format": "png", "src": "/data/accounts/account_0/appdata/com.example.myapplication/files/
         milk.png" } } ], "connections" : [ {} ] })";
     std::ofstream outFile;
     outFile.open("test.json");
-    outFile << jsonStr_.c_str() << std::endl;
+    outFile << jsonStr.c_str() << std::endl;
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");

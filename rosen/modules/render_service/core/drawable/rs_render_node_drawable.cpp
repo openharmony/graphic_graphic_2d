@@ -72,6 +72,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     DrawAll(canvas, bounds);
@@ -222,6 +223,25 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     }
 }
 
+void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
+{
+    if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
+            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo); // alpha 0.2 by default
+        }
+    }
+
+    if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
+        for (const auto& info : autoCacheRenderNodeInfos_) {
+            RSUniRenderUtil::DrawRectForDfx(
+                canvas, info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
+        }
+    }
+}
+
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
 {
     cacheType_ = cacheType;
@@ -343,6 +363,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
         origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
     if (!ret) {
+        delete sharedContext;
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
         return nullptr;
     }
@@ -380,6 +401,7 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         samplingOptions, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
         canvas.DetachBrush();
         DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
+        return;
     }
     if (canvas.GetTotalMatrix().HasPerspective()) {
         // In case of perspective transformation, make dstRect 1px outset to anti-alias
@@ -451,7 +473,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    RS_TRACE_NAME("UpdateCacheSurface");
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
     if (GetCachedSurface(threadId) == nullptr) {
@@ -516,18 +537,18 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 }
 
-int RSRenderNodeDrawable::GetProcessedNodeCount()
+int RSRenderNodeDrawable::GetTotalProcessedNodeCount()
 {
-    return processedNodeCount_;
+    return totalProcessedNodeCount_;
 }
 
-void RSRenderNodeDrawable::ProcessedNodeCountInc()
+void RSRenderNodeDrawable::TotalProcessedNodeCountInc()
 {
-    ++processedNodeCount_;
+    ++totalProcessedNodeCount_;
 }
 
-void RSRenderNodeDrawable::ClearProcessedNodeCount()
+void RSRenderNodeDrawable::ClearTotalProcessedNodeCount()
 {
-    processedNodeCount_ = 0;
+    totalProcessedNodeCount_ = 0;
 }
 } // namespace OHOS::Rosen::DrawableV2

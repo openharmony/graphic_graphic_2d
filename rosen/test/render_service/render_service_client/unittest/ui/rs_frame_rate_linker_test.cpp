@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "ui/rs_frame_rate_linker.h"
+#include "animation/rs_transition.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,11 +49,11 @@ HWTEST_F(RSFrameRateLinkerTest, Create, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFrameRateRange
+ * @tc.name: UpdateFrameRateRange001
  * @tc.desc: Test UpdateFrameRateRange
  * @tc.type: FUNC
  */
-HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange, TestSize.Level1)
+HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange001, TestSize.Level1)
 {
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
     ASSERT_NE(frameRateLinker, nullptr);
@@ -64,11 +65,42 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFrameRateRangeImme
+ * @tc.name: UpdateFrameRateRange002
+ * @tc.desc: Test UpdateFrameRateRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange002, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    FrameRateRange initial = {0, 0, 0};
+    frameRateLinker->UpdateFrameRateRange(initial, true);
+    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+
+    frameRateLinker->UpdateFrameRateRange(initial, false);
+    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+
+    FrameRateRange initialRange = {30, 144, 60};
+    frameRateLinker->UpdateFrameRateRange(initialRange, true);
+    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+
+    frameRateLinker->UpdateFrameRateRange(initialRange, false);
+    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    frameRateLinker->UpdateFrameRateRange(initialRange, false);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateFrameRateRangeImme001
  * @tc.desc: Test UpdateFrameRateRangeImme
  * @tc.type: FUNC
  */
-HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
+HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme001, TestSize.Level1)
 {
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
     ASSERT_NE(frameRateLinker, nullptr);
@@ -77,6 +109,30 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
     frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
     frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, false);
     frameRateLinker->UpdateFrameRateRangeImme(newRange, false);
+}
+
+/**
+ * @tc.name: UpdateFrameRateRangeImme002
+ * @tc.desc: Test UpdateFrameRateRangeImme
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme002, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    FrameRateRange initial = {0, 0, 0};
+    frameRateLinker->UpdateFrameRateRangeImme(initial, true);
+    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+
+    frameRateLinker->UpdateFrameRateRangeImme(initial, false);
+    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+
+    FrameRateRange initialRange = {30, 144, 60};
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, true);
+    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
+    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
 }
 
 /**

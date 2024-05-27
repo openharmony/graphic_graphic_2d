@@ -63,5 +63,18 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSi
     EXPECT_EQ(fontCollection->RegisterTypeface(typeface), true);
     EXPECT_EQ(fontCollection->RegisterTypeface(typeface), true);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest003
+ * @tc.desc: test for ClearCaches
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
+{
+    auto fontCollection = OHOS::Rosen::FontCollection::From(nullptr);
+    fontCollection->ClearCaches();
+    std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
+    EXPECT_EQ(fontMgr != nullptr, true);
+}
 } // namespace Rosen
 } // namespace OHOS

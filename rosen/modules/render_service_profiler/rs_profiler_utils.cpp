@@ -22,17 +22,15 @@
 #include <regex>
 #include <sstream>
 #include <string>
-#ifdef REPLAY_TOOL_CLIENT
-#include <filesystem>
-#else
+#ifndef REPLAY_TOOL_CLIENT
 #include <dirent.h>
 #include <sched.h>
 #include <securec.h>
 #include <unistd.h>
-
 #include "directory_ex.h"
-
 #include "platform/common/rs_log.h"
+#else
+#include "rs_adapt.h"
 #endif // REPLAY_TOOL_CLIENT
 
 namespace OHOS::Rosen {
@@ -235,6 +233,11 @@ bool Utils::Move(void* destination, size_t destinationSize, const void* source, 
     return memmove_s(destination, destinationSize, source, size) == EOK;
 }
 
+bool Utils::Set(void* data, size_t size, int32_t value, size_t count)
+{
+    return memset_s(data, size, value, count) == EOK;
+}
+
 // File system routines
 std::string Utils::GetRealPath(const std::string& path)
 {
@@ -254,6 +257,21 @@ std::string Utils::MakePath(const std::string& directory, const std::string& fil
 std::string Utils::NormalizePath(const std::string& path)
 {
     return (path.rfind('/') != path.size() - 1) ? path + "/" : path;
+}
+
+std::string Utils::GetFileName(const std::string& path)
+{
+    return std::filesystem::path(path).filename().string();
+}
+
+std::string Utils::GetDirectory(const std::string& path)
+{
+    return std::filesystem::path(path).parent_path().string();
+}
+
+bool Utils::IsDirectory(const std::string& path)
+{
+    return std::filesystem::is_directory(path);
 }
 
 void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& files)
@@ -346,6 +364,26 @@ void Utils::LoadContent(const std::string& path, std::string& content)
 static std::stringstream g_recordInMemory(std::ios::in | std::ios::out | std::ios::binary);
 static FILE* g_recordInMemoryFile = reinterpret_cast<FILE*>(1);
 
+static bool HasWriteFlag(const std::string& options)
+{
+    return options.find('w');
+}
+
+static bool HasAppendFlag(const std::string& options)
+{
+    return options.find('a');
+}
+
+static bool ShouldFileBeCreated(const std::string& options)
+{
+    return HasWriteFlag(options) || HasAppendFlag(options);
+}
+
+bool Utils::FileExists(const std::string& path)
+{
+    return std::filesystem::exists(path);
+}
+
 FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 {
     if (path == "RECORD_IN_MEMORY") {
@@ -356,13 +394,27 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         g_recordInMemory.seekp(0);
         return g_recordInMemoryFile;
     }
-    const std::string realPath = GetRealPath(path);
+
+    if (IsDirectory(path)) {
+        RS_LOGE("FileOpen: '%s' is the directory!", path.data()); // NOLINT
+        return nullptr;
+    }
+
+    std::string realPath;
+    if (ShouldFileBeCreated(options) && !FileExists(path)) {
+        const auto directory = GetRealPath(GetDirectory(path));
+        realPath = IsDirectory(directory) ? MakePath(directory, GetFileName(path)) : "";
+    } else {
+        realPath = GetRealPath(path);
+    }
+
     if (realPath.empty()) {
+        RS_LOGE("FileOpen: '%s' is invalid!", path.data()); // NOLINT
         return nullptr;
     }
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {
-        RS_LOGE("Cant open file '%s'!", realPath.data()); // NOLINT
+        RS_LOGE("FileOpen: Cannot open '%s'!", realPath.data()); // NOLINT
     }
     return file;
 }

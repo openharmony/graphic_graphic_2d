@@ -82,18 +82,18 @@ bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_va
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message)
 {
     napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
-static const char* ARGB_STRING[4] = {"alpha", "red", "green", "blue"};
-static const char* LTRB_STRING[4] = {"left", "top", "right", "bottom"};
+static const char* g_argbString[4] = {"alpha", "red", "green", "blue"};
+static const char* g_ltrbString[4] = {"left", "top", "right", "bottom"};
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
 {
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         int32_t* curChannel = argb + idx;
-        napi_get_named_property(env, jsValue, ARGB_STRING[idx], &tempValue);
+        napi_get_named_property(env, jsValue, g_argbString[idx], &tempValue);
         if (napi_get_value_int32(env, tempValue, curChannel) != napi_ok ||
             *curChannel < 0 || *curChannel > Color::RGB_MAX) {
             return false;
@@ -107,12 +107,41 @@ bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t si
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         double* curEdge = ltrb + idx;
-        napi_get_named_property(env, jsValue, LTRB_STRING[idx], &tempValue);
+        napi_get_named_property(env, jsValue, g_ltrbString[idx], &tempValue);
         if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
             return false;
         }
     }
     return true;
+}
+
+napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (metrics != nullptr && objValue != nullptr) {
+        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, metrics->fTop));
+        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, metrics->fAscent));
+        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, metrics->fDescent));
+        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, metrics->fBottom));
+        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, metrics->fLeading));
+        napi_set_named_property(env, objValue, "flags", CreateJsNumber(env, metrics->fFlags));
+        napi_set_named_property(env, objValue, "avgCharWidth", CreateJsNumber(env, metrics->fAvgCharWidth));
+        napi_set_named_property(env, objValue, "maxCharWidth", CreateJsNumber(env, metrics->fMaxCharWidth));
+        napi_set_named_property(env, objValue, "xMin", CreateJsNumber(env, metrics->fXMin));
+        napi_set_named_property(env, objValue, "xMax", CreateJsNumber(env, metrics->fXMax));
+        napi_set_named_property(env, objValue, "xHeight", CreateJsNumber(env, metrics->fXHeight));
+        napi_set_named_property(env, objValue, "capHeight", CreateJsNumber(env, metrics->fCapHeight));
+        napi_set_named_property(env, objValue, "underlineThickness", CreateJsNumber(env,
+            metrics->fUnderlineThickness));
+        napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
+            metrics->fUnderlinePosition));
+        napi_set_named_property(env, objValue, "strikethroughThickness", CreateJsNumber(env,
+            metrics->fStrikeoutThickness));
+        napi_set_named_property(env, objValue, "strikethroughPosition", CreateJsNumber(env,
+            metrics->fStrikeoutPosition));
+    }
+    return objValue;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

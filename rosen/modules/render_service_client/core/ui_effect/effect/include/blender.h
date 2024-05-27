@@ -12,10 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef UIEFFECT_EFFECT_BLENDER_H
+#define UIEFFECT_EFFECT_BLENDER_H
 
-#include "params/rs_canvas_render_params.h"
-
-namespace OHOS::Rosen {
-RSCanvasRenderParams::RSCanvasRenderParams(NodeId id) : RSRenderParams(id) {}
-
-} // namespace OHOS::Rosen
+namespace OHOS {
+namespace Rosen {
+class Blender {
+public:
+    enum BlenderType {
+        NONE,
+        BRIGHTNESS_BLENDER,
+    };
+    Blender() = default;
+    virtual ~Blender() = default;
+    BlenderType blenderType_;
+};
+} // namespace Rosen
+} // namespace OHOS
+#endif // UIEFFECT_EFFECT_BLENDER_H

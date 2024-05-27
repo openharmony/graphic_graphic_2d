@@ -209,8 +209,8 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
         } else if (ret == 0) {
             WLOGE("shader not exist");
         } else {
-            errno_t ret = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
-            if (ret != EOK) {
+            errno_t status = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
+            if (status != EOK) {
                 WLOGE("memcpy_s failed");
                 return ret;
             }

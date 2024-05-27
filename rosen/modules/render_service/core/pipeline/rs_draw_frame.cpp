@@ -51,6 +51,7 @@ void RSDrawFrame::RenderFrame()
         RsFrameReport::GetInstance().RSRenderStart();
     }
     JankStatsRenderFrameStart();
+    unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     const bool doJankStats = IsUniRenderAndOnVsync();
@@ -65,6 +66,9 @@ void RSDrawFrame::RenderFrame()
     }
     JankStatsRenderFrameEnd(doJankStats);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+    if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
+        unirenderInstance_.PurgeCacheBetweenFrames();
+    }
 }
 
 void RSDrawFrame::NotifyClearGpuCache()

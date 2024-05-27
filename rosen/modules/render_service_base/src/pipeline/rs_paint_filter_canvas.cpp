@@ -998,7 +998,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     Brush b(brush);
-    if (hasHdrPresent_ && !isCapture_) {
+    if (hasHdrPresent_ && !isCapture_ && !brush.IsForceBrightnessDisable() && !b.IsHdr()) {
         RS_LOGD("hdr PaintFilter %{public}d AttachBrush", targetColorGamut_);
         PaintFilter(b);
     }

@@ -44,4 +44,17 @@ HWTEST_F(RSBackgroundThreadTest, PostTaskTest, TestSize.Level1)
     std::function<void()> func = []() -> void {};
     RSBackgroundThread::Instance().PostTask(func);
 }
+
+/**
+ * @tc.name: PostSyncTaskTest
+ * @tc.desc: Verify function PostSyncTask
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSBackgroundThreadTest, PostSyncTaskTest, TestSize.Level1)
+{
+    std::function<void()> func = []() -> void {};
+    RSBackgroundThread::Instance().PostSyncTask(func);
+    EXPECT_TRUE(RSBackgroundThread::Instance().handler_!=nullptr);
+}
 } // namespace OHOS::Rosen

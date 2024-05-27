@@ -131,6 +131,8 @@ public:
         // <bufferName, fps>
         std::unordered_map<std::string, std::string> appBufferList;
         SceneConfigMap sceneList;
+        // <SCENE_APP_START_ANIMATION, placeholder>
+        std::unordered_map<std::string, std::string> gameSceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
     };

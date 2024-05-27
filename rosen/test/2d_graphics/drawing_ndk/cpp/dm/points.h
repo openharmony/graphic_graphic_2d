@@ -20,7 +20,7 @@
 #include <native_drawing/drawing_point.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 
 class Points : public TestBase {

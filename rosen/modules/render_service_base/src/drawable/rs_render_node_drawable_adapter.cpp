@@ -23,6 +23,7 @@
 #include "drawable/rs_render_node_shadow_drawable.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_display_render_params.h"
+#include "params/rs_effect_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -105,6 +106,10 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->renderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
             break;
+        case RSRenderNodeType::EFFECT_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
+            break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
@@ -181,6 +186,22 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     for (auto i = start; i < end; i++) {
         drawCmdList_[i](&canvas, &rect);
     }
+}
+
+void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const
+{
+    if (drawCmdList_.empty() || index < 0 || index >= static_cast<int8_t>(drawCmdList_.size())) {
+        return;
+    }
+
+    if (UNLIKELY(skipType_ != SkipType::NONE)) {
+        auto skipIndex_ = GetSkipIndex();
+        if (index == skipIndex_) {
+            return;
+        }
+    }
+    
+    drawCmdList_[index](&canvas, &rect);
 }
 
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
@@ -299,7 +320,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
     return str;
 }
 
-bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF localDrawRect)
+bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (paintFilterCanvas->IsDirtyRegionStackEmpty() || paintFilterCanvas->GetIsParallelCanvas()) {
@@ -366,7 +387,7 @@ void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas,
 
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_ - 1));
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_));
 }
 
 void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

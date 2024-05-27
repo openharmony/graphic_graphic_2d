@@ -39,6 +39,24 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     }
 }
 
+void DisplayNodeCommandHelper::AddDisplayNodeToTree(RSContext& context, NodeId id)
+{
+    auto& nodeMap = context.GetMutableNodeMap();
+    auto node = nodeMap.GetRenderNode<RSDisplayRenderNode>(id);
+    context.GetGlobalRootRenderNode()->AddChild(node);
+
+    ROSEN_LOGD("DisplayNodeCommandHelper::AddDisplayNodeToTree, id:[%{public}" PRIu64 "]", id);
+}
+
+void DisplayNodeCommandHelper::RemoveDisplayNodeFromTree(RSContext& context, NodeId id)
+{
+    auto& nodeMap = context.GetMutableNodeMap();
+    auto node = nodeMap.GetRenderNode<RSDisplayRenderNode>(id);
+    context.GetGlobalRootRenderNode()->RemoveChild(node);
+
+    ROSEN_LOGD("DisplayNodeCommandHelper::RemoveDisplayNodeFromTree, id:[%{public}" PRIu64 "]", id);
+}
+
 void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64_t screenId)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
@@ -102,5 +120,13 @@ void DisplayNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
     }
 }
 
+void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
+    const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
+        ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
+        node->SetScbNodePid(oldScbPids, currentScbPid);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
