@@ -337,7 +337,7 @@ bool DoSetCacheDir(const uint8_t* data, size_t size)
 
     // test
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    std::string cacheFilePath = "test";;
+    std::string cacheFilePath = "test";
     director->SetCacheDir(cacheFilePath);
     return true;
 }
