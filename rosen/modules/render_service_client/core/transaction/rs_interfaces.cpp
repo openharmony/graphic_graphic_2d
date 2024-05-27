@@ -251,7 +251,7 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 
 void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
 {
-    RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame");
+    RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame.");
     renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
 }
 

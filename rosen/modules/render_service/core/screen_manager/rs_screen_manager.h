@@ -181,17 +181,14 @@ public:
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
+    // used to skip render frame or render only one frame when screen power is off.
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
     virtual void ResetPowerOffNeedProcessOneFrame() = 0;
 
-    virtual bool PowerOffNeedProcessOneFrame() const = 0;
+    virtual bool GetPowerOffNeedProcessOneFrame() const = 0;
 
     virtual bool IsScreenPowerOff(ScreenId id) const = 0;
-
-    virtual void ScreenPowerOffProcessedFrameInc(ScreenId id) = 0;
-
-    virtual uint32_t GetScreenPowerOffProcessedFrame(ScreenId id) const = 0;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
@@ -203,6 +200,8 @@ public:
     virtual void ForceRefreshOneFrameIfNoRNV() = 0;
 
     virtual void ClearFrameBufferIfNeed() = 0;
+
+    virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -365,17 +364,15 @@ public:
 
     bool IsAllScreensPowerOff() const override;
 
+    // used to skip render frame or render only one frame when screen power is off.
     void MarkPowerOffNeedProcessOneFrame() override;
 
     void ResetPowerOffNeedProcessOneFrame() override;
 
-    bool PowerOffNeedProcessOneFrame() const override;
+    bool GetPowerOffNeedProcessOneFrame() const override;
 
     bool IsScreenPowerOff(ScreenId id) const override;
 
-    void ScreenPowerOffProcessedFrameInc(ScreenId id) override;
-
-    uint32_t GetScreenPowerOffProcessedFrame(ScreenId id) const override;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
 #endif
@@ -387,6 +384,8 @@ public:
 
     void ClearFrameBufferIfNeed() override;
 
+    int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -395,6 +394,8 @@ private:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
     static void OnHwcDead(void *data);
     void OnHwcDeadEvent();
+    static void OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data);
+    void OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns);
     void CleanAndReinit();
     void ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output);
     void AddScreenToHgm(std::shared_ptr<HdiOutput> &output);
@@ -457,7 +458,10 @@ private:
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
+
+    uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
+
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;
     bool isFoldScreenFlag_ = false;

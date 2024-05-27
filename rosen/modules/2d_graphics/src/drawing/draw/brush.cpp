@@ -175,6 +175,11 @@ bool Brush::AsBlendMode()
     return StaticFactory::AsBlendMode(*this);
 }
 
+void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
+{
+    forceBrightnessDisable_ = forceBrightnessDisable;
+}
+
 bool Brush::IsHdr() const
 {
     return isHdr_;

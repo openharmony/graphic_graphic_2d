@@ -423,3 +423,13 @@ void TestBase::StyleSettingsDestroy(OH_Drawing_Canvas *canvas)
         stylePathEffect_ = nullptr;
     }
 }
+
+uint32_t TestBase::GetBitmapWidth()
+{
+    return bitmapWidth_;
+}
+
+uint32_t TestBase::GetBitmapHeight()
+{
+    return bitmapHeight_;
+}

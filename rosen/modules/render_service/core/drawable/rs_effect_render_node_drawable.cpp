@@ -54,7 +54,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
-        !effectParams->ChildHasVisibleEffect()) {
+        !effectParams->GetHasEffectChildren()) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
+using RSRenderNodeDrawableAdapterSharedPtr = DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr;
 RSDisplayRenderParams::RSDisplayRenderParams(NodeId id) : RSRenderParams(id) {}
 
 std::vector<RSBaseRenderNode::SharedPtr>& RSDisplayRenderParams::GetAllMainAndLeashSurfaces()
@@ -24,10 +25,21 @@ std::vector<RSBaseRenderNode::SharedPtr>& RSDisplayRenderParams::GetAllMainAndLe
     return allMainAndLeashSurfaces_;
 }
 
+std::vector<RSRenderNodeDrawableAdapterSharedPtr>& RSDisplayRenderParams::GetAllMainAndLeashSurfaceDrawables()
+{
+    return allMainAndLeashSurfaceDrawables_;
+}
+
 void RSDisplayRenderParams::SetAllMainAndLeashSurfaces(
     std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces)
 {
     std::swap(allMainAndLeashSurfaces_, allMainAndLeashSurfaces);
+}
+
+void RSDisplayRenderParams::SetAllMainAndLeashSurfaceDrawables(
+    std::vector<RSRenderNodeDrawableAdapterSharedPtr>& allMainAndLeashSurfaceDrawables)
+{
+    std::swap(allMainAndLeashSurfaceDrawables_, allMainAndLeashSurfaceDrawables);
 }
 
 void RSDisplayRenderParams::SetMainAndLeashSurfaceDirty(bool isDirty)
@@ -107,7 +119,15 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSDisplayRenderParams::OnSync targetDisplayParams is nullptr");
         return;
     }
-    targetDisplayParams->allMainAndLeashSurfaces_ = allMainAndLeashSurfaces_;
+    allMainAndLeashSurfaceDrawables_.clear();
+    for (auto& surfaceNode : allMainAndLeashSurfaces_) {
+        auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceNode->GetId());
+        if (ptr == nullptr) {
+            continue;
+        }
+        allMainAndLeashSurfaceDrawables_.push_back(ptr);
+    }
+    targetDisplayParams->allMainAndLeashSurfaceDrawables_ = allMainAndLeashSurfaceDrawables_;
     targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
     targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
     targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
@@ -141,6 +161,7 @@ std::string RSDisplayRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(mirroredId_);
     ret += RENDER_BASIC_PARAM_TO_STRING(compositeType_);
     ret += RENDER_BASIC_PARAM_TO_STRING(allMainAndLeashSurfaces_.size());
+    ret += RENDER_BASIC_PARAM_TO_STRING(allMainAndLeashSurfaceDrawables_.size());
     ret += RENDER_PARAM_TO_STRING(screenInfo_);
     ret += "}";
     return ret;

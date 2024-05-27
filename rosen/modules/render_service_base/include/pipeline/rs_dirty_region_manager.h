@@ -193,9 +193,9 @@ private:
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;
-    const unsigned HISTORY_QUEUE_MAX_SIZE = 6;
+    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
     // may add new set function for bufferAge
-    unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
+    unsigned int bufferAge_ = 0;
     bool isDirtyRegionAlignedEnable_ = false;
     bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;

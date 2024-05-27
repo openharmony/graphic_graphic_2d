@@ -448,7 +448,7 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetScreenOffSkipRenderFrameEnabled()
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
     return false;
 }

@@ -101,8 +101,7 @@ public:
     virtual int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const = 0;
     virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
     virtual const std::unordered_set<uint64_t>& GetFilteredAppSet() const = 0;
-    virtual uint32_t GetPowerOffProcessedFrame() const = 0;
-    virtual void PowerOffProcessedFrameInc() = 0;
+    virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
 };
 
 namespace impl {
@@ -177,8 +176,7 @@ public:
     int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const override;
     int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
     const std::unordered_set<uint64_t>& GetFilteredAppSet() const override;
-    uint32_t GetPowerOffProcessedFrame() const override;
-    void PowerOffProcessedFrameInc() override;
+    int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -239,7 +237,6 @@ private:
     static std::map<GraphicHDRFormat, ScreenHDRFormat> HDI_HDR_FORMAT_TO_RS_MAP;
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
     std::unordered_set<uint64_t> filteredAppSet_ = {};
-    uint32_t powerOffProcessedFrame_ = 0;
 };
 } // namespace impl
 } // namespace Rosen

@@ -16,6 +16,7 @@
 #include <memory>
 
 #include <malloc.h>
+#include <parameters.h>
 #include "graphic_common_c.h"
 #include "rs_trace.h"
 #include "hgm_core.h"
@@ -179,7 +180,8 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
-    if (tid_ == gettid()) {
+    static bool isAln = system::GetParameter("const.build.product", "") == "ALN";
+    if (isAln && tid_ == gettid()) {
         task();
         return;
     }
@@ -356,6 +358,12 @@ uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     return renderThreadParams_->GetPendingScreenRefreshRate();
 }
+
+uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
+{
+    return renderThreadParams_->GetPendingConstraintRelativeTime();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {

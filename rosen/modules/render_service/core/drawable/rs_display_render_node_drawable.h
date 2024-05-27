@@ -53,6 +53,8 @@ private:
     void AdjustZOrderAndDrawSurfaceNode(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
+    void WiredScreenProjection(std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams& params,
+        std::shared_ptr<RSProcessor> processor);
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
     void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
     void RotateMirrorCanvasOnExFoldScreen(RSDisplayRenderParams& params, ScreenRotation& rotation, float mainWidth,
@@ -81,6 +83,7 @@ private:
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSRenderNode& node);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
+    bool SkipDisplayIfScreenOff() const;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -89,6 +92,7 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
+    bool isLastFrameHasSecSurface_ = false;
     Drawing::Matrix lastMatrix_;
 };
 } // namespace DrawableV2

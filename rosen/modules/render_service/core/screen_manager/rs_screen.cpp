@@ -350,8 +350,6 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
-    // when power status change, recount processed frame.
-    powerOffProcessedFrame_ = 0;
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
@@ -973,14 +971,18 @@ const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
     return filteredAppSet_;
 }
 
-uint32_t RSScreen::GetPowerOffProcessedFrame() const
+int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)
 {
-    return powerOffProcessedFrame_;
-}
-
-void RSScreen::PowerOffProcessedFrameInc()
-{
-    powerOffProcessedFrame_++;
+    if (IsVirtual()) {
+        return StatusCode::SUCCESS;
+    }
+    if (hdiScreen_ != nullptr) {
+        int32_t result = hdiScreen_->SetScreenConstraint(frameId, timestamp, static_cast<uint32_t>(type));
+        if (result == GRAPHIC_DISPLAY_SUCCESS) {
+            return StatusCode::SUCCESS;
+        }
+    }
+    return StatusCode::HDI_ERROR;
 }
 } // namespace impl
 } // namespace Rosen

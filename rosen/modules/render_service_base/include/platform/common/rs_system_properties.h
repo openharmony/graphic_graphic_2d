@@ -234,7 +234,7 @@ public:
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
-    static bool GetScreenOffSkipRenderFrameEnabled();
+    static bool GetSkipDisplayIfScreenOffEnabled();
 
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();

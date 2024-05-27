@@ -171,6 +171,12 @@ HWTEST_F(RSDisplayNodeTest, SetScreenId001, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
     ASSERT_TRUE(displayNode != nullptr);
     displayNode->SetScreenId(1);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetScreenId(1);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -183,6 +189,12 @@ HWTEST_F(RSDisplayNodeTest, ClearChildrenTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     displayNode->ClearChildren();
+
+    displayNode->children_.push_back(0);
+    displayNode->children_.push_back(1);
+    displayNode->children_.push_back(2);
+    displayNode->ClearChildren();
+    EXPECT_TRUE(!displayNode->children_.empty());
 }
 
 /**
@@ -211,6 +223,12 @@ HWTEST_F(RSDisplayNodeTest, SetBootAnimationTest, TestSize.Level1)
     ASSERT_EQ(true, displayNode->GetBootAnimation());
     displayNode->SetBootAnimation(false);
     ASSERT_EQ(false, displayNode->GetBootAnimation());
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetBootAnimation(false);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -283,6 +301,12 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayNodeMirrorConfig, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
     displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -310,6 +334,12 @@ HWTEST_F(RSDisplayNodeTest, SetScreenRotation, TestSize.Level1)
     rotation = 4;
     displayNode->SetScreenRotation(rotation);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetScreenRotation(rotation);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -358,5 +388,26 @@ HWTEST_F(RSDisplayNodeTest, SetScreenRotationTest003, TestSize.Level1)
     displayNode->SetScreenRotation(3);
     displayNode->SetScreenRotation(4);
     EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: SetSecurityDisplay003
+ * @tc.desc: SetScreenRotation Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay003, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->SetSecurityDisplay(false);
+    EXPECT_FALSE(displayNode->GetSecurityDisplay());
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetSecurityDisplay(false);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 } // namespace OHOS::Rosen
