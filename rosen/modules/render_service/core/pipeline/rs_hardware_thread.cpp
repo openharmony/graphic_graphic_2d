@@ -67,7 +67,7 @@ namespace {
 const std::string RCD_TOP_LAYER_NAME = "RCDTopSurfaceNode";
 const std::string RCD_BOTTOM_LAYER_NAME = "RCDBottomSurfaceNode";
 }
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
