@@ -507,9 +507,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     (void)RSPropertiesPainter::GetGravityMatrix(
         Gravity::RESIZE, RectF { 0.0f, 0.0f, bufferWidth, bufferHeight }, rootWidth, rootHeight, gravityMatrix);
 
-    auto width = curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth();
-    auto height = curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight();
-    if (isRenderForced_ || (width != height && (width == 0 || height == 0)) ||
+    if (isRenderForced_ ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth() == 0 ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight() == 0 ||
         !(gravityMatrix == Drawing::Matrix())) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
