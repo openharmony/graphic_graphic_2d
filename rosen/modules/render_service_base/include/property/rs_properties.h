@@ -628,6 +628,8 @@ private:
     void CalculateFrameOffset();
     void CheckGreyCoef();
 
+    void UpdateFilter();
+
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;

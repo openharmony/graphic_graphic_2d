@@ -28,6 +28,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_aibar_shader_filter.h"
+#include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
@@ -1510,6 +1511,7 @@ void RSProperties::SetShadowOffsetX(float offsetX)
     }
     shadow_->SetOffsetX(offsetX);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1522,6 +1524,7 @@ void RSProperties::SetShadowOffsetY(float offsetY)
     }
     shadow_->SetOffsetY(offsetY);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1567,6 +1570,7 @@ void RSProperties::SetShadowRadius(float radius)
         isDrawn_ = true;
     }
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1591,6 +1595,7 @@ void RSProperties::SetShadowMask(bool shadowMask)
     }
     shadow_->SetMask(shadowMask);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -3651,38 +3656,50 @@ void RSProperties::OnApplyModifiers()
         filterNeedUpdate_ = true;
     }
     if (filterNeedUpdate_) {
-        filterNeedUpdate_ = false;
-        GenerateBackgroundFilter();
-        GenerateForegroundFilter();
-        if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-            filterNeedUpdate_ = true;
-        }
-        if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
-            backgroundFilter_.reset();
-        }
-        if (filter_ != nullptr && !filter_->IsValid()) {
-            filter_.reset();
-        }
-        if (IsForegroundEffectRadiusValid()) {
-            auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
-            foregroundFilter_ = foregroundEffectFilter;
-        } else if (IsSpherizeValid()) {
-            auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-            foregroundFilter_ = spherizeEffectFilter;
-        } else {
-            foregroundFilter_.reset();
-        }
-        if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
-            auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
-            foregroundFilter_ = motionBlurFilter;
-        }
-        needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                      IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
-                      IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                      foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                      IsBgBrightnessValid();
+        UpdateFilter();
     }
     GenerateRRect();
+}
+
+void RSProperties::UpdateFilter()
+{
+    filterNeedUpdate_ = false;
+    GenerateBackgroundFilter();
+    GenerateForegroundFilter();
+    if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        filterNeedUpdate_ = true;
+    }
+    if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
+        backgroundFilter_.reset();
+    }
+    if (filter_ != nullptr && !filter_->IsValid()) {
+        filter_.reset();
+    }
+    if (IsForegroundEffectRadiusValid()) {
+        auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
+        foregroundFilter_ = foregroundEffectFilter;
+    } else if (IsSpherizeValid()) {
+        auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+        foregroundFilter_ = spherizeEffectFilter;
+    } else if (GetShadowMask()) {
+        float elevation = GetShadowElevation();
+        Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
+        Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
+        auto colorfulShadowFilter =
+            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        foregroundFilter_ = colorfulShadowFilter;
+    } else {
+        foregroundFilter_.reset();
+    }
+    if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
+        auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
+        foregroundFilter_ = motionBlurFilter;
+    }
+    needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
+                  IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
+                  IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+                  foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
+                  IsBgBrightnessValid();
 }
 
 void RSProperties::CalculatePixelStretch()
