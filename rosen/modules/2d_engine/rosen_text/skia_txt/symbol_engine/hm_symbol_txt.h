@@ -63,7 +63,7 @@ public:
     bool GetAnimationStart() const;
 
     Drawing::DrawingCommonSubType GetCommonSubType() const;
-     
+
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
