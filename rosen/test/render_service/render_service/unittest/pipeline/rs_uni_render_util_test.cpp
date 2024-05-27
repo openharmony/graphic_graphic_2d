@@ -911,4 +911,79 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
     nodesTest2.consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest2);
 }
+
+/*
+ * @tc.name: LayerScaleFitTest01
+ * @tc.desc: LayerScaleFit test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest01, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    auto srcRect = node.GetSrcRect();
+    srcRect.width_ = 100;
+    srcRect.height_ = 100;
+    node.SetSrcRect(srcRect);
+    auto dstRect = node.GetDstRect();
+    dstRect.width_ = 200;
+    dstRect.height_ = 200;
+    node.SetDstRect(dstRect);
+    rsUniRenderUtil.LayerScaleFit(node);
+    ASSERT_EQ(node.GetDstRect().width_, 200);
+    ASSERT_EQ(node.GetDstRect().height_, 200);
+}
+
+/*
+ * @tc.name: LayerScaleFitTest02
+ * @tc.desc: LayerScaleFit test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest02, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    auto srcRect = node.GetSrcRect();
+    srcRect.width_ = 100;
+    srcRect.height_ = 200;
+    node.SetSrcRect(srcRect);
+    auto dstRect = node.GetDstRect();
+    dstRect.width_ = 300;
+    dstRect.height_ = 400;
+    node.SetDstRect(dstRect);
+    rsUniRenderUtil.LayerScaleFit(node);
+    ASSERT_EQ(node.GetDstRect().width_, 200);
+    ASSERT_EQ(node.GetDstRect().height_, 400);
+}
+
+/*
+ * @tc.name: LayerScaleFitTest03
+ * @tc.desc: LayerScaleFit test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest03, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    auto srcRect = node.GetSrcRect();
+    srcRect.width_ = 400;
+    srcRect.height_ = 600;
+    node.SetSrcRect(srcRect);
+    auto dstRect = node.GetDstRect();
+    dstRect.width_ = 100;
+    dstRect.height_ = 200;
+    node.SetDstRect(dstRect);
+    rsUniRenderUtil.LayerScaleFit(node);
+    ASSERT_EQ(node.GetDstRect().width_, 100);
+    ASSERT_EQ(node.GetDstRect().height_, 150);
+}
 } // namespace OHOS::Rosen
