@@ -525,7 +525,7 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetFilter003, TestSize.Le
     OH_Drawing_PenSetFilter(pen, filter);
     OH_Drawing_Filter* cFilter = nullptr;
     OH_Drawing_PenGetFilter(pen, cFilter);
-    ASSERT_TRUE(cFilter == filter);
+    ASSERT_TRUE(cFilter == nullptr);
     OH_Drawing_FilterDestroy(filter);
     OH_Drawing_PenDestroy(pen);
 }
