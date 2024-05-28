@@ -269,6 +269,48 @@ HWTEST_F(GpuContextTest, SetResourceCacheLimitsTest002, TestSize.Level1)
     size_t maxResourceBytes = 1000;
     gpuContext->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
+
+/**
+ * @tc.name: ReleaseResourcesAndAbandonContextTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, ReleaseResourcesAndAbandonContextTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->ReleaseResourcesAndAbandonContext();
+}
+
+/**
+ * @tc.name: PurgeUnlockedResourcesByTagTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeUnlockedResourcesByTagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag tag(0, 0, 0, 0);
+    gpuContext->PurgeUnlockedResourcesByTag(true, tag);
+}
+
+/**
+ * @tc.name: ReleaseByTagTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag tag(0, 0, 0, 0);
+    gpuContext->ReleaseByTag(tag);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

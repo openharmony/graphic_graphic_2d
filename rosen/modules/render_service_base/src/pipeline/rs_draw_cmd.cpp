@@ -25,11 +25,11 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSemaphore.h"
-#include "native_buffer_inner.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -39,6 +39,9 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+constexpr uint8_t ASTC_HEADER_SIZE = 16;
+#endif
 
 #ifdef RS_ENABLE_VK
 Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
@@ -157,7 +160,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         return;
     }
 
-    if (RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
+    if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
@@ -176,11 +179,25 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     }
 
     if (pixelMap->IsAstc()) {
-        const void* data = pixelMap->GetPixels();
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-        const int seekSize = 16;
-        if (pixelMap->GetCapacity() > seekSize) {
-            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
+        if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+            RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+            sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+            nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
+            if (!fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
+                LOGE("PreProcessPixelMap data BuildFromOHNativeBuffer fail");
+                return;
+            }
+        } else {
+            const void* data = pixelMap->GetPixels();
+            if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
+                !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE)) {
+                LOGE("PreProcessPixelMap data BuildWithoutCopy fail");
+                return;
+            }
         }
         rsImage_->SetCompressData(fileData);
         return;

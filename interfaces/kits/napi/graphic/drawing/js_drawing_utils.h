@@ -319,19 +319,7 @@ inline napi_value GetStringAndConvertToJsValue(napi_env env, std::string str)
     return objValue;
 }
 
-inline napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (metrics != nullptr && objValue != nullptr) {
-        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, metrics->fTop));
-        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, metrics->fAscent));
-        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, metrics->fDescent));
-        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, metrics->fBottom));
-        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, metrics->fLeading));
-    }
-    return objValue;
-}
+napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics);
 
 inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect> rect)
 {

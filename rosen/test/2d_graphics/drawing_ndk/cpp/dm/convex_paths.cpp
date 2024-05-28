@@ -99,8 +99,7 @@ void ConvexPaths::MakePath1()
     fPaths.push_back(rect_path2);
 
     OH_Drawing_Path* Circle_path = OH_Drawing_PathCreate();
-    float sweepAngle = 360;
-    OH_Drawing_PathAddArc(Circle_path, OH_Drawing_RectCreate(r.left, r.top, r.right, r.bottom), 0, sweepAngle);
+    OH_Drawing_PathAddCircle(Circle_path, 50, 50, 50, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 50 is radius
     fPaths.push_back(Circle_path);
 
     OH_Drawing_Path* Oval_path1 = OH_Drawing_PathCreate();

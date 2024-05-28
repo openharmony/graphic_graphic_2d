@@ -36,6 +36,14 @@ public:
     bool BuildFromMalloc(const void* data, size_t length);
 
     /**
+     * @brief               Create a new Data from OHOS NativeBuffer.
+     * @param nativeBuffer  A pointer to OH_NativeBuffer.
+     * @param length        Length of NativeBuffer.
+     * @return              If create Data succeeded, return true.
+     */
+    bool BuildFromOHNativeBuffer(OH_NativeBuffer* nativeBuffer, size_t length);
+
+    /**
      * @brief         Create a new Data by copying the specified data.
      * @param data    A pointer to data. It must not be nullptr.
      * @param length  Length of data.

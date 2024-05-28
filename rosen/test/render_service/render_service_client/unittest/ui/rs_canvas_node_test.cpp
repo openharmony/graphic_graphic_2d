@@ -18,6 +18,7 @@
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
+#include "draw/paint.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3495,6 +3496,169 @@ HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallback, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
     canvasNode->SetBoundsChangedCallback(canvasNode->boundsChangedCallback_);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: BeginRecording001
+ * @tc.desc: test results of BeginRecording
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, BeginRecording001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->recordingUpdated_ = true;
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(!canvasNode->recordingUpdated_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: CreateTextureExportRenderNodeInRT001
+ * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, CreateTextureExportRenderNodeInRT001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->CreateTextureExportRenderNodeInRT();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: FinishRecording001
+ * @tc.desc: test results of FinishRecording
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, FinishRecording001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ =
+        std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ =
+        std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    Drawing::Paint paint;
+    auto item = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, 0);
+    canvasNode->recordingCanvas_->cmdList_->drawOpItems_.push_back(item);
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(canvasNode->recordingUpdated_);
+
+    canvasNode->BeginRecording(200, 300);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ = nullptr;
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawOnNode001
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: SetFreeze001
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, SetFreeze001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetFreeze(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    RSSystemProperties::GetUniRenderEnabled();
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    canvasNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: SetHDRPresent001
+ * @tc.desc: test results of SetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, SetHDRPresent001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHDRPresent(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(false);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(false);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged001
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
+    canvasNode->OnBoundsSizeChanged();
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 } // namespace OHOS::Rosen

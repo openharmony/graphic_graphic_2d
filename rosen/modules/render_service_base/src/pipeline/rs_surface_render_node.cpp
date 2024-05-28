@@ -1326,6 +1326,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.gravity = static_cast<int32_t>(properties.GetFrameGravity());
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
+    layer.alpha = GetGlobalAlpha();
     isHardwareForcedDisabled_ = isProtectedLayer_ ? false : isHardwareForcedDisabled_;
     RS_LOGD("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: node: %{public}s-%{public}" PRIu64 ","
         " src: %{public}s, dst: %{public}s, bounds: [%{public}d, %{public}d]"
@@ -1948,7 +1949,7 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     auto nodeParent = GetParent().lock();
     if (nodeParent && nodeParent->IsScale()) {
         isParentScaling_ = true;
-        if (GetDstRectChanged()) {
+        if (GetDstRectChanged() && !isOcclusionInSpecificScenes_) {
             return false;
         }
     }
@@ -2385,6 +2386,10 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId)
 {
+    RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        "on tree: %{public}d", GetName().c_str(), GetId(), flag);
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
+        "on tree: %d", GetName().c_str(), GetId(), flag);
     instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
     if (IsLeashWindow()) {
         firstLevelNodeId = GetId();
@@ -2450,8 +2455,7 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     } else {
         hasTransparentSurface_ = IsTransparent();
     }
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation
-        && QueryIfAllHwcChildrenForceDisabledByFilter();
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation;
 }
 
 bool RSSurfaceRenderNode::GetHasTransparentSurface() const

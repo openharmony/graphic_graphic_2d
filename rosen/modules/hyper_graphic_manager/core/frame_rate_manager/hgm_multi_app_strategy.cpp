@@ -27,7 +27,6 @@ namespace Rosen {
 namespace {
     static PolicyConfigData::ScreenSetting defaultScreenSetting;
     static PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
-    static std::unordered_map<std::string, std::string> defaultAppTypes;
     const std::string NULL_STRATEGY_CONFIG_NAME = "null";
 }
 
@@ -44,12 +43,24 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     pkgs_ = pkgs;
 
-    // update pid of pkg
-    pidAppTypeMap_.clear();
-    for (auto &param : pkgs_) {
-        HGM_LOGI("pkg update:%{public}s", param.c_str());
-        auto [pkgName, pid, appType] = AnalyzePkgParam(param);
-        pidAppTypeMap_[pkgName] = { pid, appType };
+    {
+        std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
+        // update pid of pkg
+        for (auto &[pid, appType] : foregroundPidAppType_) {
+            backgroundPidAppType_[pid] = appType;
+        }
+        foregroundPidAppType_.clear();
+        pidAppTypeMap_.clear();
+        for (auto &param : pkgs_) {
+            RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
+            HGM_LOGI("pkg update:%{public}s", param.c_str());
+            auto [pkgName, pid, appType] = AnalyzePkgParam(param);
+            pidAppTypeMap_[pkgName] = { pid, appType };
+            if (pid > DEFAULT_PID) {
+                foregroundPidAppType_[pid] = appType;
+                backgroundPidAppType_.erase(pid);
+            }
+        }
     }
 
     CalcVote();
@@ -139,6 +150,17 @@ void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCal
     strategyChangeCallbacks_.emplace_back(callback);
 }
 
+bool HgmMultiAppStrategy::CheckPidValid(pid_t pid)
+{
+    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    if (configData != nullptr && !configData->safeVoteEnabled) {
+        // disable safe vote
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
+    return backgroundPidAppType_.find(pid) == backgroundPidAppType_.end();
+}
+
 std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName) const
 {
     auto &appConfigMap = GetScreenSetting().appList;
@@ -185,6 +207,13 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
     }
 
     return HGM_ERROR;
+}
+
+void HgmMultiAppStrategy::CleanApp(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
+    foregroundPidAppType_.erase(pid);
+    backgroundPidAppType_.erase(pid);
 }
 
 void HgmMultiAppStrategy::UpdateXmlConfigCache()
@@ -273,15 +302,15 @@ void HgmMultiAppStrategy::UseMax()
     }
 }
 
-std::tuple<std::string, pid_t, std::string> HgmMultiAppStrategy::AnalyzePkgParam(const std::string& param)
+std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(const std::string& param)
 {
     std::string pkgName = param;
     pid_t pid = DEFAULT_PID;
-    std::string appType = "";
+    int32_t appType = DEFAULT_APP_TYPE;
 
     auto index = param.find(":");
     if (index == std::string::npos) {
-        return std::tuple<std::string, pid_t, std::string>(pkgName, pid, appType);
+        return { pkgName, pid, appType };
     }
 
     // split by : index
@@ -292,18 +321,21 @@ std::tuple<std::string, pid_t, std::string> HgmMultiAppStrategy::AnalyzePkgParam
         if (XMLParser::IsNumber(pidAppType)) {
             pid = static_cast<pid_t>(std::stoi(pidAppType));
         }
-        return std::tuple<std::string, pid_t, std::string>(pkgName, pid, appType);
+        return { pkgName, pid, appType };
     }
 
     // split by : index
     auto pidStr = pidAppType.substr(0, index);
-    appType = pidAppType.substr(index + 1, pidAppType.size());
-
     if (XMLParser::IsNumber(pidStr)) {
         pid = static_cast<pid_t>(std::stoi(pidStr));
     }
 
-    return std::tuple<std::string, pid_t, std::string>(pkgName, pid, appType);
+    auto appTypeStr = pidAppType.substr(index + 1, pidAppType.size());
+    if (XMLParser::IsNumber(appTypeStr)) {
+        appType = std::stoi(appTypeStr);
+    }
+
+    return { pkgName, pid, appType };
 }
 
 void HgmMultiAppStrategy::UpdateStrategyByTouch(

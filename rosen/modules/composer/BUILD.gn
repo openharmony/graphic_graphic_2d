@@ -82,6 +82,8 @@ ohos_shared_library("libcomposer") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 

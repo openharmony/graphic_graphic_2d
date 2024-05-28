@@ -51,6 +51,7 @@ void RSDrawFrame::RenderFrame()
         RsFrameReport::GetInstance().RSRenderStart();
     }
     JankStatsRenderFrameStart();
+    unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     const bool doJankStats = IsUniRenderAndOnVsync();

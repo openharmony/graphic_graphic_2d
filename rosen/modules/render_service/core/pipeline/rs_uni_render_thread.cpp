@@ -358,6 +358,12 @@ uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     return renderThreadParams_->GetPendingScreenRefreshRate();
 }
+
+uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
+{
+    return renderThreadParams_->GetPendingConstraintRelativeTime();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {

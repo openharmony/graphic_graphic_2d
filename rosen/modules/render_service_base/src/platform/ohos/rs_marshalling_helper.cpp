@@ -1876,6 +1876,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel CreateAshmemAllocator fail");
         return false;
     }
+    RS_PROFILER_WRITE_PARCEL_DATA(parcel);
     int fd = ashmemAllocator->GetFd();
     if (!(static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(fd))) {
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel WriteFileDescriptor error");
@@ -1901,14 +1902,7 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
         return parcel.ReadUnpadBuffer(size);
     }
     // read from ashmem
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    if (!ashmemAllocator) {
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel CreateAshmemAllocator fail");
-        return nullptr;
-    }
-    isMalloc = true;
-    return ashmemAllocator->CopyFromAshmem(size);
+    return RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
 }
 
 bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
@@ -1929,6 +1923,18 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
     return ashmemAllocator != nullptr;
 }
 
+const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
+{
+    isMalloc = false;
+    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
+    if (!ashmemAllocator) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");
+        return nullptr;
+    }
+    isMalloc = true;
+    return ashmemAllocator->CopyFromAshmem(size);
+}
 
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
 {

@@ -33,6 +33,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
 
 private:
     static inline BrokerDelegator<VSyncConnectionProxy> delegator_;

@@ -883,8 +883,9 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
-    static bool enable = (strcmp(CachedParameterGetChanged(g_Handle, nullptr), "true") == 0);
-    return enable;
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
 }
 
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()

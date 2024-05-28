@@ -190,8 +190,8 @@ friend class RsVulkanContext;
 private:
     std::mutex vkMutex_;
     std::mutex graphicsQueueMutex_;
-    void* handle_;
-    bool acquiredMandatoryProcAddresses_;
+    void* handle_ = nullptr;
+    bool acquiredMandatoryProcAddresses_ = false;
     VkInstance instance_ = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
@@ -199,7 +199,7 @@ private:
     VkQueue hardwareQueue_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
-    VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_;
+    VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;

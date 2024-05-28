@@ -37,6 +37,7 @@ struct RSLayerInfo {
     Drawing::Matrix matrix;
     int32_t gravity = 0;
     int32_t zOrder = 0;
+    float alpha = 1.f;
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> preBuffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -48,7 +49,7 @@ struct RSLayerInfo {
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (buffer == layerInfo.buffer) && (preBuffer == layerInfo.preBuffer) &&
             (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
-            (transformType == layerInfo.transformType);
+            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
     }
 #endif
 };
