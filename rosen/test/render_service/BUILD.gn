@@ -67,6 +67,7 @@ group("test") {
     "render_service_base/unittest/screen_manager:unittest",
     "render_service_base/unittest/transaction:unittest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsmodifierextractor_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
