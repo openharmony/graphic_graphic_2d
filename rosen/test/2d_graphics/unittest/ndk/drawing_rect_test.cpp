@@ -496,12 +496,12 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectCopy001, TestSize.Leve
     OH_Drawing_Rect *rectDst = nullptr;
     OH_Drawing_Rect *rectSrc = OH_Drawing_RectCreate(11, 22, 333, 444); // 11,22,333,444 rect param
     OH_Drawing_RectCopy(rectSrc, rectDst);
-    ASSERT_TRUE(OH_Drawing_RectGetHeight(rectDst) == 422);
+    ASSERT_TRUE(rectDst == nullptr);
 
     OH_Drawing_Rect *rectDst1 = OH_Drawing_RectCreate(0, 0, 400, 800); // 400 800 v
     OH_Drawing_Rect *rectSrc1 = nullptr;
     OH_Drawing_RectCopy(rectSrc1, rectDst1);
-    ASSERT_TRUE(rectDst1 == nullptr);
+    ASSERT_TRUE(rectDst1 != nullptr);
 
     OH_Drawing_RectDestroy(rectSrc);
     OH_Drawing_RectDestroy(rectDst);

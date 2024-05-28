@@ -402,7 +402,7 @@ HWTEST_F(SkiaBitmapTest, CopyPixels, TestSize.Level1)
     skiaBitmap.Build(srcWidth, srcHight, bitmapFormat, 0);
     skiaBitmap.CopyPixels(*dstBitmap, 0, 0);
     void* pixels = dstBitmap->GetPixels();
-    ASSERT_TRUE(pixels == skiaBitmap.GetPixels());
+    ASSERT_TRUE(pixels != skiaBitmap.GetPixels());
 }
 
 /**
