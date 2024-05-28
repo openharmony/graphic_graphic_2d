@@ -260,9 +260,13 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
 HWTEST_F(FontParserTest, RangesTest1, TestSize.Level1)
 {
     Ranges ranges;
-    struct Ranges::Range range = {0, 2, 1};
+    struct Ranges::Range range = { 0, 2, 1 };
     ranges.AddRange(range);
+    struct Ranges::Range range2 = { 4, 5, 2 };
+    ranges.AddRange(range2);
     EXPECT_EQ(ranges.GetGlyphId(3), Ranges::INVALID_GLYPH_ID);
+    EXPECT_EQ(ranges.GetGlyphId(0), 1);
+    EXPECT_EQ(ranges.GetGlyphId(4), 6);
     ranges.Dump();
 }
 } // namespace TextEngine
