@@ -1921,10 +1921,10 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
     auto absRect = GetDstRect();
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
-    Vector4<int> cornerRadius(static_cast<int>(std::ceil(tmpCornerRadius.x_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.y_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.z_)),
-                                static_cast<int>(std::ceil(tmpCornerRadius.w_)));
+    Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
+                                static_cast<int>(std::round(tmpCornerRadius.y_)),
+                                static_cast<int>(std::round(tmpCornerRadius.z_)),
+                                static_cast<int>(std::round(tmpCornerRadius.w_)));
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
