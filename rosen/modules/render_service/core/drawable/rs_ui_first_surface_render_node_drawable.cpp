@@ -263,7 +263,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     uint32_t threadIndex, bool isUIFirst)
 {
-    RS_TRACE_NAME("DrawCacheSurface");
     if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
@@ -286,6 +285,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         }
     }
     Drawing::Brush brush;
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
@@ -470,6 +470,16 @@ bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic: [%d] name [%s] Id:%" PRIu64 "",
         surfaceParams->GetSurfaceCacheContentStatic(), surfaceParams->GetName().c_str(), surfaceParams->GetId());
     return surfaceParams->GetSurfaceCacheContentStatic();
+}
+
+void RSSurfaceRenderNodeDrawable::SetTaskFrameCount(uint64_t frameCount)
+{
+    frameCount_ = frameCount;
+}
+
+uint64_t RSSurfaceRenderNodeDrawable::GetTaskFrameCount() const
+{
+    return frameCount_;
 }
 
 void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)

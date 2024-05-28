@@ -45,6 +45,11 @@ AnimationId RSAnimation::GenerateId()
 
 RSAnimation::RSAnimation() : id_(GenerateId()) {}
 
+RSAnimation::~RSAnimation()
+{
+    RSNodeMap::MutableInstance().UnregisterAnimation(id_);
+}
+
 void RSAnimation::SetFinishCallback(const std::function<void()>& finishCallback)
 {
     if (finishCallback == nullptr) {

@@ -1664,17 +1664,6 @@ const RectI RSRenderNode::GetFilterCachedRegion() const
     return lastFilterRegion_;
 }
 
-bool RSRenderNode::IsEffectNodeNeedTakeSnapShot() const
-{
-    return GetRenderProperties().GetBackgroundFilter() != nullptr &&
-        !lastFrameHasVisibleEffect_ && ChildHasVisibleEffect();
-}
-
-bool RSRenderNode::IsEffectNodeShouldNotPaint() const
-{
-    return IsInstanceOf<RSEffectRenderNode>() && !ChildHasVisibleEffect();
-}
-
 bool RSRenderNode::HasBlurFilter() const
 {
     return GetRenderProperties().GetBackgroundFilter() || GetRenderProperties().GetFilter();

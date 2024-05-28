@@ -55,6 +55,18 @@ HWTEST_F(EglWrapperDisplayTest, GetWrapperDisplay002, Level2)
 }
 
 /**
+ * @tc.name: GetEglNativeDisplayEXT001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, GetEglNativeDisplayEXT001, Level1)
+{
+    auto result = gWrapperHook.wrapper.eglGetPlatformDisplayEXT(0, nullptr, 0);
+    ASSERT_EQ(EGL_NO_DISPLAY, result);
+}
+
+
+/**
  * @tc.name: MakeCurrent001
  * @tc.desc:
  * @tc.type: FUNC
@@ -102,6 +114,19 @@ HWTEST_F(EglWrapperDisplayTest, CreateEglContext002, Level2)
     auto result = eglWrapperDisplay->CreateEglContext(nullptr, EGL_NO_CONTEXT, 0);
     ASSERT_EQ(EGL_NO_CONTEXT, result);
     gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: CreateEglContext003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreateEglContext003, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreateEglContext(nullptr, nullptr, 0);
+    ASSERT_EQ(EGL_NO_CONTEXT, result);
 }
 
 /**
@@ -167,6 +192,157 @@ HWTEST_F(EglWrapperDisplayTest, CreatePixmapSurface002, Level2)
 }
 
 /**
+ * @tc.name: QueryContext001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, QueryContext001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->QueryContext(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: QueryContext002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, QueryContext002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->QueryContext(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: QuerySurface001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, QuerySurface001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->QuerySurface(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: QuerySurface002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, QuerySurface002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->QuerySurface(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: BindTexImage001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, BindTexImage001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->BindTexImage(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: BindTexImage002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, BindTexImage002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->BindTexImage(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: ReleaseTexImage001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, ReleaseTexImage001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->ReleaseTexImage(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: ReleaseTexImage002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, ReleaseTexImage002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->ReleaseTexImage(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: SurfaceAttrib001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SurfaceAttrib001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->SurfaceAttrib(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: SurfaceAttrib002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SurfaceAttrib002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->SurfaceAttrib(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+
+/**
  * @tc.name: CreatePbufferFromClientBuffer001
  * @tc.desc:
  * @tc.type: FUNC
@@ -184,6 +360,19 @@ HWTEST_F(EglWrapperDisplayTest, CreatePbufferFromClientBuffer001, Level1)
 }
 
 /**
+ * @tc.name: CreatePbufferFromClientBuffer002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreatePbufferFromClientBuffer002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreatePbufferFromClientBuffer(0, nullptr, nullptr, 0);
+    ASSERT_EQ(EGL_NO_SURFACE, result);
+}
+
+/**
  * @tc.name: CreateImage001
  * @tc.desc:
  * @tc.type: FUNC
@@ -197,6 +386,36 @@ HWTEST_F(EglWrapperDisplayTest, CreateImage001, Level1)
 
     auto result = eglWrapperDisplay->CreateImage(EGL_NO_CONTEXT, 0, nullptr, nullptr);
     ASSERT_EQ(EGL_NO_IMAGE_KHR, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: CreateImage002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreateImage002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreateImage(nullptr, 0, nullptr, nullptr);
+    ASSERT_EQ(EGL_NO_IMAGE_KHR, result);
+}
+
+/**
+ * @tc.name: DestroyImage001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, DestroyImage001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->DestroyImage(nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
     gWrapperHook.isLoad = temp;
 }
 
@@ -274,6 +493,24 @@ HWTEST_F(EglWrapperDisplayTest, LockSurfaceKHR001, Level1)
 }
 
 /**
+ * @tc.name: LockSurfaceKHR002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, LockSurfaceKHR002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->LockSurfaceKHR(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+
+/**
  * @tc.name: UnlockSurfaceKHR001
  * @tc.desc:
  * @tc.type: FUNC
@@ -291,6 +528,19 @@ HWTEST_F(EglWrapperDisplayTest, UnlockSurfaceKHR001, Level1)
 }
 
 /**
+ * @tc.name: UnLockSurfaceKHR002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, UnLockSurfaceKHR002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->UnlockSurfaceKHR(nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
  * @tc.name: CreateImageKHR001
  * @tc.desc:
  * @tc.type: FUNC
@@ -302,9 +552,22 @@ HWTEST_F(EglWrapperDisplayTest, CreateImageKHR001, Level1)
     auto temp = gWrapperHook.isLoad;
     gWrapperHook.isLoad = false;
 
-    auto result = eglWrapperDisplay->CreateImageKHR(nullptr, 0, nullptr, nullptr);
+    auto result = eglWrapperDisplay->CreateImageKHR(EGL_NO_CONTEXT, 0, nullptr, nullptr);
     ASSERT_EQ(EGL_NO_IMAGE_KHR, result);
     gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: CreateImageKHR002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreateImageKHR002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreateImageKHR(nullptr, 0, nullptr, nullptr);
+    ASSERT_EQ(EGL_NO_IMAGE_KHR, result);
 }
 
 /**
@@ -355,6 +618,36 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR001, Level1)
 }
 
 /**
+ * @tc.name: SwapBuffersWithDamageKHR002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->SwapBuffersWithDamageKHR(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
+ * @tc.name: SwapBuffersWithDamageKHR003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR003, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->SwapBuffersWithDamageKHR(nullptr, 0, -1);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
  * @tc.name: SetDamageRegionKHR001
  * @tc.desc:
  * @tc.type: FUNC
@@ -368,6 +661,36 @@ HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR001, Level1)
 }
 
 /**
+ * @tc.name: SetDamageRegionKHR002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->SetDamageRegionKHR(nullptr, 0, -1);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: SetDamageRegionKHR003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR003, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->SetDamageRegionKHR(nullptr, 0, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
+}
+
+/**
  * @tc.name: GetCompositorTimingSupportedANDROID001
  * @tc.desc:
  * @tc.type: FUNC
@@ -378,6 +701,23 @@ HWTEST_F(EglWrapperDisplayTest, GetCompositorTimingSupportedANDROID001, Level1)
 
     auto result = eglWrapperDisplay->GetCompositorTimingSupportedANDROID(nullptr, 0);
     ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: GetCompositorTimingSupportedANDROID002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, GetCompositorTimingSupportedANDROID002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->GetCompositorTimingSupportedANDROID(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+    gWrapperHook.isLoad = temp;
 }
 
 /**
@@ -416,7 +756,24 @@ HWTEST_F(EglWrapperDisplayTest, CreatePlatformWindowSurfaceEXT001, Level1)
     auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
 
     auto result = eglWrapperDisplay->CreatePlatformWindowSurfaceEXT(nullptr, nullptr, nullptr);
-    ASSERT_EQ(EGL_FALSE, result);
+    ASSERT_EQ(EGL_NO_SURFACE, result);
+}
+
+/**
+ * @tc.name: CreatePlatformWindowSurfaceEXT002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreatePlatformWindowSurfaceEXT002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->CreatePlatformWindowSurfaceEXT(nullptr, nullptr, nullptr);
+    ASSERT_EQ(EGL_NO_SURFACE, result);
+    gWrapperHook.isLoad = temp;
 }
 
 /**
@@ -429,7 +786,24 @@ HWTEST_F(EglWrapperDisplayTest, CreatePlatformPixmapSurfaceEXT001, Level1)
     auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
 
     auto result = eglWrapperDisplay->CreatePlatformPixmapSurfaceEXT(nullptr, nullptr, nullptr);
-    ASSERT_EQ(EGL_FALSE, result);
+    ASSERT_EQ(EGL_NO_SURFACE, result);
+}
+
+/**
+ * @tc.name: CreatePlatformPixmapSurfaceEXT002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreatePlatformPixmapSurfaceEXT002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
+
+    auto result = eglWrapperDisplay->CreatePlatformPixmapSurfaceEXT(nullptr, nullptr, nullptr);
+    ASSERT_EQ(EGL_NO_SURFACE, result);
+    gWrapperHook.isLoad = temp;
 }
 
 /**
@@ -444,4 +818,18 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT001, Level1)
     auto result = eglWrapperDisplay->SwapBuffersWithDamageEXT(nullptr, nullptr, 0);
     ASSERT_EQ(EGL_FALSE, result);
 }
+
+/**
+ * @tc.name: SwapBuffersWithDamageEXT002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT002, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->SetDamageRegionKHR(nullptr, nullptr,   -1);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
 } // OHOS::Rosen

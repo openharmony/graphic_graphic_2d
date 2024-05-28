@@ -160,6 +160,16 @@ public:
         return syncId_;
     }
 
+    void SetHostPid(const int32_t hostPid)
+    {
+        hostPid_ = hostPid;
+    }
+
+    int32_t GetHostPid() const
+    {
+        return hostPid_;
+    }
+
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -175,6 +185,7 @@ private:
     bool needCloseSync_ { false };
     bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
+    int32_t hostPid_ { -1 };
     uint64_t syncId_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;

@@ -175,11 +175,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
         DrawableV2::RSBackgroundFilterDrawable::OnGenerate(nodeTwo));
     ASSERT_NE(drawableTwo, nullptr);
-    drawableTwo->stagingHasEffectChildren_ = true;
     drawableTwo->OnSync();
-    ASSERT_FALSE(drawableTwo->stagingHasEffectChildren_);
-    drawableTwo->OnSync();
-    ASSERT_FALSE(drawableTwo->stagingHasEffectChildren_);
     ASSERT_TRUE(drawableTwo->CreateDrawFunc());
 }
 

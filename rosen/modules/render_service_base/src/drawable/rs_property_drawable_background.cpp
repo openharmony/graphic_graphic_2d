@@ -482,11 +482,6 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 void RSBackgroundEffectDrawable::OnSync()
 {
     RSFilterDrawable::OnSync();
-    // clear both cache image when it has no effect children and will not draw in this frame
-    if (!stagingHasEffectChildren_) {
-        lastCacheType_ = FilterCacheType::NONE;
-    }
-    stagingHasEffectChildren_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

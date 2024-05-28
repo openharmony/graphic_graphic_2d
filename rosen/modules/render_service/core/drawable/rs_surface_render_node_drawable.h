@@ -132,6 +132,38 @@ public:
         return priority_;
     }
 
+    void SetHDRPresent(bool hasHdrPresent)
+    {
+        hasHdrPresent_ = hasHdrPresent;
+    }
+
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        brightnessRatio_ = brightnessRatio;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+    void SetTaskFrameCount(uint64_t frameCount);
+
+    uint64_t GetTaskFrameCount() const;
+
+    std::shared_ptr<RSSurfaceRenderNode> GetSurfaceRenderNode() const;
+
+    const Occlusion::Region& GetVisibleDirtyRegion() const;
+    void SetVisibleDirtyRegion(const Occlusion::Region& region);
+    void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
+    void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
+    void SetDirtyRegionAlignedEnable(bool enable);
+    void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
+    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
@@ -182,6 +214,9 @@ private:
     std::atomic<bool> isTextureValid_ = false;
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
+    bool hasHdrPresent_ = false;
+    float brightnessRatio_ = 1.0f; // 1.of means no discount.
+    uint64_t frameCount_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

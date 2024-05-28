@@ -106,7 +106,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     return true;
 }
 
-int RSUniRenderVirtualProcessor::GetBufferAge()
+int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
 {
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::GetBufferAge renderFrame_ is null.");

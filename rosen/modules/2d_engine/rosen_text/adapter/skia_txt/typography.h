@@ -73,6 +73,7 @@ public:
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
+    std::vector<TextStyle> lineMetricsStyles_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

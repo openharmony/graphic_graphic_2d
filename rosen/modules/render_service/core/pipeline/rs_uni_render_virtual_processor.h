@@ -67,7 +67,7 @@ public:
         return canvasMatrix_;
     }
     void SetDirtyInfo(std::vector<RectI>& damageRegion_);
-    int GetBufferAge();
+    int32_t GetBufferAge() const;
 private:
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node);

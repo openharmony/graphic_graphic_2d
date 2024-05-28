@@ -37,6 +37,7 @@ struct RSLayerInfo {
     Drawing::Matrix matrix;
     int32_t gravity = 0;
     int32_t zOrder = 0;
+    float alpha = 1.f;
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> preBuffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -48,7 +49,7 @@ struct RSLayerInfo {
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (buffer == layerInfo.buffer) && (preBuffer == layerInfo.preBuffer) &&
             (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
-            (transformType == layerInfo.transformType);
+            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
     }
 #endif
 };
@@ -63,6 +64,10 @@ public:
     bool IsLeashWindow() const
     {
         return isLeashWindow_;
+    }
+    bool IsAppWindow() const
+    {
+        return isAppWindow_;
     }
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -190,6 +195,10 @@ public:
     {
         return childrenDirtyRect_;
     }
+    const RectI& GetDstRect() const
+    {
+        return dstRect_;
+    }
     void SetSurfaceCacheContentStatic(bool contentStatic);
     bool GetSurfaceCacheContentStatic() const;
     bool GetPreSurfaceCacheContentStatic() const;
@@ -262,6 +271,7 @@ protected:
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
+    bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
@@ -275,6 +285,7 @@ private:
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 
+    RectI dstRect_;
     RectI oldDirtyInSurface_;
     RectI childrenDirtyRect_;
     RectI absDrawRect_;

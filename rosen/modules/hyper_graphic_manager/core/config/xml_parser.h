@@ -58,7 +58,8 @@ private:
                          const std::string &valueName = "value", const std::string &keyName = "name");
     int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
     int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
-    int32_t ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting);
+    int32_t ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting);
+    int32_t ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
 
     xmlDoc *xmlDocument_;

@@ -250,5 +250,14 @@ bool VSyncReceiver::IsRequestedNextVSync()
     }
     return listener_->GetRNVFlag();
 }
+
+VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
+}
 } // namespace Rosen
 } // namespace OHOS

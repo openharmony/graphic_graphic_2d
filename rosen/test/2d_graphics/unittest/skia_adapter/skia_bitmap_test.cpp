@@ -15,9 +15,13 @@
 
 #include <cstddef>
 #include "gtest/gtest.h"
-#include "skia_adapter/skia_bitmap.h"
-#include "image/bitmap.h"
 #include "draw/surface.h"
+#include "effect/color_space.h"
+#include "image/bitmap.h"
+#include "image/image_info.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkImageInfo.h"
+#include "skia_adapter/skia_bitmap.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -312,6 +316,146 @@ HWTEST_F(SkiaBitmapTest, Serialize001, TestSize.Level1)
     skiaBitmap.ClearWithColor(0xFF000000);
     skiaBitmap.Serialize();
     skiaBitmap.Deserialize(std::make_shared<Data>());
+}
+
+/**
+ * @tc.name: Build003
+ * @tc.desc: Test Build
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, Build003, TestSize.Level1)
+{
+    const int width = -100;
+    const int height = -50;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL};
+    SkiaBitmap skiaBitmap;
+    bool build = skiaBitmap.Build(width, height, bitmapFormat, 0);
+    ASSERT_FALSE(build);
+}
+
+/**
+ * @tc.name: Build004
+ * @tc.desc: Test Build
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, Build004, TestSize.Level1)
+{
+    const int width = -100;
+    const int height = -50;
+    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, nullptr};
+    SkiaBitmap skiaBitmap;
+    bool build = skiaBitmap.Build(offscreenInfo, 0);
+    ASSERT_FALSE(build);
+}
+
+/**
+ * @tc.name: SetInfo
+ * @tc.desc: Test SetInfo
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, SetInfo, TestSize.Level1)
+{
+    const int width = 100;
+    const int height = 50;
+    SkiaBitmap skiaBitmap;
+    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, nullptr};
+    skiaBitmap.SetInfo(offscreenInfo);
+    ASSERT_EQ(ColorType::COLORTYPE_RGBA_8888, skiaBitmap.GetColorType());
+    ASSERT_EQ(AlphaType::ALPHATYPE_PREMUL, skiaBitmap.GetAlphaType());
+}
+
+/**
+ * @tc.name: ComputeByteSize
+ * @tc.desc: Test ComputeByteSize
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, ComputeByteSize, TestSize.Level1)
+{
+    const int width = 100;
+    const int height = 50;
+    SkiaBitmap skiaBitmap;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    bool build = skiaBitmap.Build(width, height, bitmapFormat, 0);
+    ASSERT_TRUE(build);
+    size_t byteSize = skiaBitmap.ComputeByteSize();
+    ASSERT_TRUE(byteSize >= 0);
+}
+
+/**
+ * @tc.name: CopyPixels
+ * @tc.desc: Test CopyPixels
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, CopyPixels, TestSize.Level1)
+{
+    const int srcLeft = 100;
+    const int srcTop = 50;
+    std::unique_ptr<Bitmap> dstBitmap = std::make_unique<Bitmap>();
+    ASSERT_TRUE(dstBitmap != nullptr);
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    SkiaBitmap skiaBitmap;
+    skiaBitmap.Build(srcLeft, srcTop, bitmapFormat, 0);
+    skiaBitmap.CopyPixels(*dstBitmap, srcLeft, srcTop);
+    void* pixels = dstBitmap->GetPixels();
+    ASSERT_TRUE(pixels == skiaBitmap.GetPixels());
+}
+
+/**
+ * @tc.name: MakeImage
+ * @tc.desc: Test MakeImage
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, MakeImage, TestSize.Level1)
+{
+    SkBitmap skBitmap;
+    SkiaBitmap skiaBitmap;
+    skiaBitmap.SetSkBitmap(skBitmap);
+    std::shared_ptr<Image> result = skiaBitmap.MakeImage();
+    ASSERT_TRUE(result == nullptr);
+}
+
+/**
+ * @tc.name: Serialize002
+ * @tc.desc: Test Serialize
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, Serialize002, TestSize.Level1)
+{
+    const int width = 100;
+    const int height = 50;
+    SkiaBitmap skiaBitmap;
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, colorSpace};
+    bool build = skiaBitmap.Build(offscreenInfo, 0);
+    ASSERT_TRUE(build);
+    std::shared_ptr<Data> result = skiaBitmap.Serialize();
+    ASSERT_TRUE(result != nullptr);
+}
+
+/**
+ * @tc.name: Deserialize
+ * @tc.desc: Test Deserialize
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, Deserialize, TestSize.Level1)
+{
+    const int width = 100;
+    const int height = 50;
+    SkiaBitmap skiaBitmap;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL};
+    skiaBitmap.Build(width, height, bitmapFormat, 0);
+    std::shared_ptr<Data> data = skiaBitmap.Serialize();
+    ASSERT_TRUE(data != nullptr);
+    bool ret = skiaBitmap.Deserialize(data);
+    ASSERT_TRUE(ret);
 }
 } // namespace Drawing
 } // namespace Rosen

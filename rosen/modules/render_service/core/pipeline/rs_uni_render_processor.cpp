@@ -64,10 +64,11 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d]",
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f]",
         node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight());
+        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
 
     layer->SetSurface(node.GetConsumer());
     layer->SetBuffer(layerInfo.buffer, layerInfo.acquireFence);
@@ -77,7 +78,8 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 
     GraphicLayerAlpha alpha;
     alpha.enGlobalAlpha = true;
-    alpha.gAlpha = 255; // Alpha of 255 indicates opacity
+    // Alpha of 255 indicates opacity
+    alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
