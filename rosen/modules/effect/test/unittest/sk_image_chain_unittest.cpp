@@ -102,6 +102,7 @@ HWTEST_F(SKImageChainUnittest, DrawTest003, TestSize.Level1)
     ASSERT_NE(cpuSurface, nullptr);
 
     auto canvas = cpuSurface->getCanvas();
+    ASSERT_NE(canvas, nullptr);
     auto skImageChain = std::make_shared<SKImageChain>(canvas, nullptr);
     ASSERT_NE(skImageChain, nullptr);
 
