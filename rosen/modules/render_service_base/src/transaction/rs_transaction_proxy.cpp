@@ -253,6 +253,18 @@ void RSTransactionProxy::SetSyncTransactionNum(const int32_t transactionCount)
     }
 }
 
+void RSTransactionProxy::SetHostPid(const int32_t hostPid)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->SetHostPid(hostPid);
+    }
+
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        implicitRemoteTransactionDataStack_.top()->SetHostPid(hostPid);
+    }
+}
+
 void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
 {
     if (!implicitCommonTransactionDataStack_.empty()) {

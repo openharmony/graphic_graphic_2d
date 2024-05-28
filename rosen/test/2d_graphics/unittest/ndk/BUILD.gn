@@ -31,14 +31,18 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_gpu_context_test.cpp",
     "drawing_image_test.cpp",
     "drawing_matrix_test.cpp",
+    "drawing_memory_stream_test.cpp",
     "drawing_path_effect_test.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
     "drawing_rect_test.cpp",
     "drawing_region_test.cpp",
     "drawing_register_font_test.cpp",
+    "drawing_round_rect_test.cpp",
+    "drawing_shader_effect_test.cpp",
     "drawing_surface_test.cpp",
     "drawing_text_typography_test.cpp",
+    "drawing_typeface_test.cpp",
   ]
 
   include_dirs = [
@@ -59,7 +63,8 @@ ohos_unittest("2d_graphics_ndk_test") {
   }
 
   deps = [
-    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "//third_party/googletest:gtest_main",

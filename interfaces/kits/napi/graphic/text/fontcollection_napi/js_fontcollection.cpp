@@ -50,6 +50,7 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
+        DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
     };
 
     napi_value constructor = nullptr;
@@ -359,6 +360,23 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
+    return NapiGetUndefined(env);
+}
+
+napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
+    return (me != nullptr) ? me->OnClearCaches(env, info) : nullptr;
+}
+
+napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info)
+{
+    if (fontcollection_ == nullptr) {
+        ROSEN_LOGE("JsFontCollection is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "JsFontCollection::OnClearCaches fontCollection is nullptr.");
+    }
+    fontcollection_->ClearCaches();
     return NapiGetUndefined(env);
 }
 } // namespace OHOS::Rosen

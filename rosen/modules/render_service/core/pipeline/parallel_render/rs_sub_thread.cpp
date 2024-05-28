@@ -29,6 +29,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 
@@ -37,22 +38,10 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 
 #ifdef RES_SCHED_ENABLE
-#include "res_type.h"
-#include "res_sched_client.h"
-#endif
-
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "qos.h"
 #endif
 
 namespace OHOS::Rosen {
-namespace {
-#ifdef RES_SCHED_ENABLE
-    const uint32_t RS_SUB_QOS_LEVEL = 7;
-    constexpr const char* RS_BUNDLE_NAME = "render_service";
-#endif
-}
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
@@ -73,17 +62,8 @@ pid_t RSSubThread::Start()
     });
     PostTask([this]() {
 #ifdef RES_SCHED_ENABLE
-        std::string strBundleName = RS_BUNDLE_NAME;
-        std::string strPid = std::to_string(getpid());
-        std::string strTid = std::to_string(gettid());
-        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
-        std::unordered_map<std::string, std::string> mapPayload;
-        mapPayload["pid"] = strPid;
-        mapPayload[strTid] = strQos;
-        mapPayload["bundleName"] = strBundleName;
-        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
-        int64_t value = 0;
-        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSSubThread%{public}d: SetThreadQos retcode = %{public}d", threadIndex_, ret);
 #endif
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {
@@ -259,9 +239,19 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
             return;
         }
     }
+    if (!nodeDrawable) {
+        return;
+    }
 
     const auto& param = nodeDrawable->GetRenderParams();
     if (!param) {
+        return;
+    }
+
+    if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
+        nodeDrawable->HasCachedTexture()) {
+        RS_TRACE_NAME_FMT("subthread skip node id %llu", param->GetId());
+        doingCacheProcessNum--;
         return;
     }
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
@@ -290,51 +280,15 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     rscanvas->SetIsParallelCanvas(true);
     rscanvas->SetDisableFilterCache(true);
     rscanvas->SetParallelThreadIdx(threadIndex_);
+    rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
+    rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    if (cacheSurface) {
-        RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-
-        VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
-        exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
-        exportSemaphoreCreateInfo.pNext = nullptr;
-        exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-
-        VkSemaphoreCreateInfo semaphoreInfo;
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
-        semaphoreInfo.flags = 0;
-        VkSemaphore semaphore;
-        vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
-        RS_TRACE_NAME_FMT("VkSemaphore %p", semaphore);
-        GrBackendSemaphore backendSemaphore;
-        backendSemaphore.initVulkan(semaphore);
-
-        DestroySemaphoreInfo* destroyInfo =
-            new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
-
-        Drawing::FlushInfo drawingFlushInfo;
-        drawingFlushInfo.backendSurfaceAccess = true;
-        drawingFlushInfo.numSemaphores = 1;
-        drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-        drawingFlushInfo.finishedProc = [](void *context) {
-            DestroySemaphoreInfo::DestroySemaphore(context);
-        };
-        drawingFlushInfo.finishedContext = destroyInfo;
-        cacheSurface->Flush(&drawingFlushInfo);
-        grContext_->Submit();
-        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-    } else {
-        cacheSurface->FlushAndSubmit(true);
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
     }
-#else
-    cacheSurface->FlushAndSubmit(true);
-#endif
-    }
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
@@ -400,6 +354,7 @@ void RSSubThread::ResetGrContext()
     if (grContext_ == nullptr) {
         return;
     }
+    grContext_->PurgeUnlockedResources(true);
     grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
 }

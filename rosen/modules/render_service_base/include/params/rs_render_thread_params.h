@@ -56,6 +56,16 @@ public:
         return isRegionDebugEnabled_;
     }
 
+    bool IsVirtualDirtyEnabled() const
+    {
+        return isVirtualDirtyEnabled_;
+    }
+
+    bool IsVirtualDirtyDfxEnabled() const
+    {
+        return isVirtualDirtyDfxEnabled_;
+    }
+
     bool IsOpDropped() const
     {
         return isOpDropped_;
@@ -99,6 +109,16 @@ public:
     uint32_t GetPendingScreenRefreshRate() const
     {
         return pendingScreenRefreshRate_;
+    }
+
+    void SetPendingConstraintRelativeTime(uint64_t relativeTime)
+    {
+        pendingConstraintRelativeTime_ = relativeTime;
+    }
+
+    uint64_t GetPendingConstraintRelativeTime() const
+    {
+        return pendingConstraintRelativeTime_;
     }
 
     Occlusion::Region& GetAccumulatedDirtyRegion()
@@ -243,7 +263,7 @@ public:
         context_ = context;
     }
 
-    const std::shared_ptr<RSContext>& GetContext() const
+    const std::shared_ptr<RSContext> GetContext() const
     {
         return context_.lock();
     }
@@ -275,6 +295,7 @@ private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
+    uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool isRegionDebugEnabled_ = false;
@@ -287,6 +308,8 @@ private:
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
+    bool isVirtualDirtyDfxEnabled_ = false;
+    bool isVirtualDirtyEnabled_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;

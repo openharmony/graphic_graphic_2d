@@ -20,8 +20,9 @@
 #include <hilog/log.h>
 
 #include "plugin_render.h"
-#include "../common/common.h"
+#include "common.h"
 
+namespace OHOS {
 std::unordered_map<std::string, PluginRender *> PluginRender::m_instance;
 OH_NativeXComponent_Callback PluginRender::m_callback;
 
@@ -165,3 +166,4 @@ void PluginRender::Release(std::string &id)
         m_instance.erase(m_instance.find(id));
     }
 }
+} // namespace OHOS

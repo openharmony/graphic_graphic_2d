@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <sys/mman.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -25,8 +26,8 @@
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_utils.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -39,6 +40,7 @@
 #include "common/rs_common_def.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS::Rosen {
 
@@ -72,6 +74,8 @@ static int64_t g_transactionTimeCorrection = 0;
 
 static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 
+bool RSProfiler::testing_ = false;
+
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
@@ -80,7 +84,7 @@ constexpr size_t GetParcelMaxCapacity()
 bool RSProfiler::IsEnabled()
 {
     static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED;
+    return ENABLED || testing_;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -95,6 +99,21 @@ uint32_t RSProfiler::GetCommandExecuteCount()
     const uint32_t count = g_commandExecuteCount;
     g_commandExecuteCount = 0;
     return count;
+}
+
+void RSProfiler::EnableSharedMemory()
+{
+    RSMarshallingHelper::EndNoSharedMem();
+}
+
+void RSProfiler::DisableSharedMemory()
+{
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+}
+
+bool RSProfiler::IsSharedMemoryEnabled()
+{
+    return RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id());
 }
 
 bool RSProfiler::IsParcelMock(const Parcel& parcel)
@@ -572,6 +591,7 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
             node->SetContentDirty();
+            node->SetDirty();
         }
     });
 }
@@ -882,6 +902,88 @@ int RSProfiler::PerfTreeFlatten(
         }
     }
     return drawCmdListCount;
+}
+
+void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image)
+{
+    if (!IsSharedMemoryEnabled()) {
+        image = nullptr;
+    }
+}
+
+void RSProfiler::EnableBetaRecord()
+{
+    RSSystemProperties::SetBetaRecordingMode(1);
+}
+
+bool RSProfiler::IsBetaRecordEnabled()
+{
+    return RSSystemProperties::GetBetaRecordingMode() != 0;
+}
+
+bool RSProfiler::IsBetaRecordSavingTriggered()
+{
+    constexpr uint32_t savingMode = 2u;
+    return RSSystemProperties::GetBetaRecordingMode() == savingMode;
+}
+
+bool RSProfiler::IsBetaRecordEnabledWithMetrics()
+{
+    constexpr uint32_t metricsMode = 3u;
+    return RSSystemProperties::GetBetaRecordingMode() == metricsMode;
+}
+
+static uint64_t NewAshmemDataCacheId()
+{
+    static uint32_t id = 0u;
+    return Utils::ComposeDataId(Utils::GetPid(), id++);
+}
+
+static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
+{
+    if (g_mode != Mode::WRITE) {
+        return;
+    }
+
+    if (data && (size > 0)) {
+        Image ashmem;
+        ashmem.data.insert(ashmem.data.end(), data, data + size);
+        ImageCache::Add(id, std::move(ashmem));
+    }
+}
+
+static const uint8_t* GetCachedAshmemData(uint64_t id)
+{
+    const auto ashmem = (g_mode == Mode::READ) ? ImageCache::Get(id) : nullptr;
+    return ashmem ? ashmem->data.data() : nullptr;
+}
+
+void RSProfiler::WriteParcelData(Parcel& parcel)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+
+    parcel.WriteUint64(NewAshmemDataCacheId());
+}
+
+const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
+{
+    if (!IsEnabled()) {
+        return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
+    }
+
+    const uint64_t id = parcel.ReadUint64();
+    if (auto data = GetCachedAshmemData(id)) {
+        constexpr uint32_t skipBytes = 24u;
+        parcel.SkipBytes(skipBytes);
+        isMalloc = false;
+        return data;
+    }
+
+    auto data = RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
+    CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), size);
+    return data;
 }
 
 } // namespace OHOS::Rosen

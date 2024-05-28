@@ -61,6 +61,15 @@ enum class ScreenRotation : uint32_t {
     INVALID_SCREEN_ROTATION,
 };
 
+/*
+ * @brief Enumerates screen constraint types, the frame to be displayed on screen at a given time.
+ */
+enum class ScreenConstraintType : uint32_t {
+    CONSTRAINT_NONE = 0,      /**< No constraint */
+    CONSTRAINT_ABSOLUTE,      /**< Absolute timestamp */
+    CONSTRAINT_RELATIVE,      /**< Relative timestamp */
+};
+
 enum class ScreenScaleMode : uint32_t {
     FILL_MODE = 0,
     UNISCALE_MODE,

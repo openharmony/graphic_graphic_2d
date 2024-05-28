@@ -15,6 +15,8 @@
 
 #include "drawing_round_rect.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "utils/round_rect.h"
 
 using namespace OHOS;
@@ -66,6 +68,7 @@ void OH_Drawing_RoundRectSetCorner(OH_Drawing_RoundRect* cRoundRect, OH_Drawing_
 {
     RoundRect* rounRect = CastToRoundRect(cRoundRect);
     if (rounRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     rounRect->SetCornerRadius(CCornerPosCastToCornerPos(pos), radiusXY.x, radiusXY.y);
@@ -75,6 +78,7 @@ OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect* cRou
 {
     RoundRect* rounRect = CastToRoundRect(cRoundRect);
     if (rounRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return {0, 0};
     }
     Point radiusXY = rounRect->GetCornerRadius(CCornerPosCastToCornerPos(pos));

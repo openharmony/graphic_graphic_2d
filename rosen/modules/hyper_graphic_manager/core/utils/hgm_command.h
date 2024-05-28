@@ -126,11 +126,13 @@ public:
         std::unordered_map<std::string, std::string> appList;
         MultiAppStrategyType multiAppStrategyType;
         std::string multiAppStrategyName;
-        // <pkgName, appType>
-        std::unordered_map<std::string, std::string> appTypes;
+        // <appType, strategyName>
+        std::unordered_map<int32_t, std::string> appTypes;
         // <bufferName, fps>
         std::unordered_map<std::string, std::string> appBufferList;
         SceneConfigMap sceneList;
+        // <SCENE_APP_START_ANIMATION, placeholder>
+        std::unordered_map<std::string, std::string> gameSceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
     };
@@ -143,6 +145,7 @@ public:
     // <"120", "1">
     std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings_;
     bool xmlCompatibleMode_ = false;
+    bool safeVoteEnabled = true;
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;

@@ -63,7 +63,11 @@
 #endif
 
 namespace OHOS::Rosen {
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
+namespace {
+const std::string RCD_TOP_LAYER_NAME = "RCDTopSurfaceNode";
+const std::string RCD_BOTTOM_LAYER_NAME = "RCDBottomSurfaceNode";
+}
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
@@ -162,14 +166,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         return;
     }
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
-    // need to sync the hgm data from main thread.
-    // Temporary sync the timestamp to fix the duplicate time stamp issue.
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
-    uint64_t currTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
-        currentRate = currentRate, timestamp = currTimestamp]() {
+    RefreshRateParam param = GetRefreshRateParam();
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
@@ -177,10 +175,11 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
-
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
-        ExecuteSwitchRefreshRate(rate);
-        PerformSetActiveMode(output, timestamp);
+        uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu",
+            currentRate, param.frameTimestamp);
+        ExecuteSwitchRefreshRate(param.rate);
+        PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -202,13 +201,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     };
     unExecuteTaskNum_++;
 
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
-        uint64_t expectCommitTime = static_cast<uint64_t>(currTimestamp + static_cast<uint64_t>(pipelineOffset) -
-            static_cast<uint64_t>(period));
+        uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
+            static_cast<uint64_t>(pipelineOffset) - static_cast<uint64_t>(period));
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -216,12 +216,44 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers " \
             "expectCommitTime: %lu, currTime: %lu, delayTime: %ld, pipelineOffset: %ld, period: %ld",
             expectCommitTime, currTime, delayTime, pipelineOffset, period);
-        if (period == 0 || delayTime <= 0) {
+        if (RSMainThread::Instance()->rsVSyncDistributor_->IsUiDvsyncOn() || period == 0 || delayTime <= 0) {
             PostTask(task);
         } else {
             PostDelayTask(task, delayTime);
         }
     }
+}
+
+RefreshRateParam RSHardwareThread::GetRefreshRateParam()
+{
+    // need to sync the hgm data from main thread.
+    // Temporary sync the timestamp to fix the duplicate time stamp issue.
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    bool directComposition = hgmCore.GetDirectCompositionFlag();
+    if (directComposition) {
+        hgmCore.SetDirectCompositionFlag(false);
+    }
+    RefreshRateParam param;
+    if (directComposition) {
+        param = {
+            .rate = hgmCore.GetPendingScreenRefreshRate(),
+            .frameTimestamp = hgmCore.GetCurrentTimestamp(),
+            .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
+        };
+    } else {
+        param = {
+            .rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+            .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+            .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+        };
+    }
+    return param;
+}
+
+void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
+{
+    RS_TRACE_NAME_FMT("RSHardwareThread::OnScreenVBlankIdleCallback screenId: %d now: %lu", screenId, timestamp);
+    vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
 }
 
 void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
@@ -232,12 +264,14 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         return;
     }
 
+    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
+    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
+        lastScreenId = id;
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
@@ -246,7 +280,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 }
 
-void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp)
+void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
@@ -255,6 +289,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         return;
     }
 
+    vblankIdleCorrector_.ProcessScreenConstraint(timestamp, constraintRelativeTime);
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;
@@ -279,14 +314,10 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
-        if (!hgmCore.GetLtpoEnabled()) {
-            hdiBackend_->StartSample(output);
-        } else {
-            auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-            int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-            hdiBackend_->StartSample(output);
-        }
+        auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
+        int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
+        hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
+        hdiBackend_->StartSample(output);
     }
 }
 
@@ -327,18 +358,21 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     bool isProtected = false;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-        for (const auto& layer : layers) {
-            if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
-                isProtected = true;
-                break;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+            for (const auto& layer : layers) {
+                if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+                    isProtected = true;
+                    break;
+                }
             }
+            if (RSSystemProperties::IsUseVulkan()) {
+                RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+            }
+        } else {
+            RsVulkanContext::GetSingleton().SetIsProtected(false);
         }
-        if (RSSystemProperties::IsUseVulkan()) {
-            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-        }
-    } else {
-        RsVulkanContext::GetSingleton().SetIsProtected(false);
     }
 #endif
 
@@ -380,8 +414,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif
 #endif // RS_ENABLE_EGLIMAGE
-    bool isTopGpuDraw = false;
-    bool isBottomGpuDraw = false;
+    std::map<std::string, bool> rcdLayersEnableMap = {{RCD_TOP_LAYER_NAME, false}, {RCD_BOTTOM_LAYER_NAME, false}};
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -392,13 +425,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             continue;
         }
 
-        if (layer->GetSurface()->GetName() == "RCDTopSurfaceNode") {
-            isTopGpuDraw = true;
-            continue;
-        }
-        if (layer->GetSurface()->GetName() == "RCDBottomSurfaceNode") {
-            isBottomGpuDraw = true;
-            continue;
+        if (layer->GetSurface() != nullptr) {
+            if (rcdLayersEnableMap.count(layer->GetSurface()->GetName()) > 0) {
+                rcdLayersEnableMap[layer->GetSurface()->GetName()] = true;
+                continue;
+            }
         }
 
         Drawing::AutoCanvasRestore acr(*canvas, true);
@@ -539,11 +570,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 
-    if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_TOP_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(canvas.get());
     }
 
-    if (isBottomGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (rcdLayersEnableMap[RCD_BOTTOM_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(canvas.get());
     }
     renderFrame->Flush();

@@ -41,9 +41,8 @@ void BootVideoPlayer::Play()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlayVideo begin");
-    while (mediaPlayer_ == nullptr) {
+    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
         LOGI("mediaPlayer is nullptr, try create again");
-        mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
         usleep(SLEEP_TIME_US);
     }
 
@@ -79,6 +78,7 @@ void BootVideoPlayer::Play()
         LOGE("PlayVideo Prepare fail, errorCode: %{public}d", ret);
         return;
     }
+    LOGI("PlayVideo end");
 #else
     LOGI("player framework is disabled");
 #endif
@@ -90,6 +90,7 @@ bool BootVideoPlayer::SetVideoSound()
     LOGI("SetVideoSound start");
     if (!isSoundEnabled_) {
         LOGI("sound disabled on screen: " BPUBU64 "", screenId_);
+        mediaPlayer_->SetVolume(0, 0);
         return true;
     }
     Media::Format format;

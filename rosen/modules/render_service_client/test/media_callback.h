@@ -40,9 +40,9 @@ public:
     MediaCallback() = default;
     ~MediaCallback() = default;
 
-    void OnError(OHOS::Media::PlayerErrorType errorType, int32_t errorCode) override
+    void OnError(int32_t errorCode, const std::string &errorMsg) override
     {
-        std::cout << "OnError callback, errorType: "<< errorType << "errorCode: " << errorCode << std::endl;
+        std::cout << "OnError callback, errorCode: "<< errorCode << "errorMsg: " << errorMsg.c_str() << std::endl;
     }
 
     void OnInfo(OHOS::Media::PlayerOnInfoType type, int32_t extra, const OHOS::Media::Format &InfoBody = {}) override

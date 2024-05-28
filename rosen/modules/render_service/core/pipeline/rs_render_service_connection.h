@@ -100,6 +100,10 @@ private:
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
+#ifdef RS_ENABLE_VK
+    bool Set2DRenderCtrl(bool enable) override;
+#endif
+
     void RemoveVirtualScreen(ScreenId id) override;
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;

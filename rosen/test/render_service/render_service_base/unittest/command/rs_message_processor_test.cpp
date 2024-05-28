@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "command/rs_message_processor.h"
+#include "include/command/rs_command_templates.h"
+
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -51,7 +53,37 @@ HWTEST_F(RSMessageProcessorTest, testing, TestSize.Level1)
     RSMessageProcessor::Instance().GetAllTransactions();
 
     RSMessageProcessor::Instance().GetTransaction(0);
+    EXPECT_EQ(nullptr, RSMessageProcessor::Instance().GetTransaction(0));
 }
 
+/**
+ * @tc.name: ReInitializeMovedMap001
+ * @tc.desc: test results of ReInitializeMovedMap
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSMessageProcessorTest, ReInitializeMovedMap001, TestSize.Level1)
+{
+    RSMessageProcessor::Instance().ReInitializeMovedMap();
+    EXPECT_EQ(false, RSMessageProcessor::Instance().HasTransaction());
+}
+
+/**
+ * @tc.name: AddUIMessage001
+ * @tc.desc: test results of AddUIMessage
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSMessageProcessorTest, AddUIMessage001, TestSize.Level1)
+{
+    uint32_t pid = 1;
+    RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+    EXPECT_EQ(nullptr, RSMessageProcessor::Instance().GetTransaction(0));
+
+    pid = 0;
+    RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+}
 } // namespace Rosen
 } // namespace OHOS

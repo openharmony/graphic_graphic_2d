@@ -83,8 +83,8 @@ public:
             return GSERROR_NOT_INIT;
         }
 
-        auto func = [callback](int64_t time) {
-            callback.callback_(time, callback.userData_);
+        auto func = [callback](int64_t time, int64_t frameCount) {
+            callback.callbackWithId_(time, frameCount, callback.userData_);
         };
         client_->SetVsyncCallback(func);
         client_->RequestNextVsync();
@@ -142,6 +142,13 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 {
     return {0};
 }
+
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
+{
+    return false;
+}
+#endif
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {

@@ -61,7 +61,7 @@ ohos_shared_library("libcomposer") {
 
   public_configs = [ ":composer_public_config" ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/utils:scoped_bytrace",
     "vsync:libvsync",
   ]
@@ -82,6 +82,8 @@ ohos_shared_library("libcomposer") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 

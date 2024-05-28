@@ -114,6 +114,10 @@ bool EglCoreInit()
     }
 
 #if USE_IGRAPHICS_EXTENDS_HOOKS
+    if (!layer.GetIGraphicsLogicStatus()) {
+        return true;
+    }
+
     EglWrapperHook& hookLayer(EglWrapperHook::GetInstance());
     if (!hookLayer.Hook(&gWrapperHook)) {
         WLOGE("EglWrapperHookLayer init Failed!");

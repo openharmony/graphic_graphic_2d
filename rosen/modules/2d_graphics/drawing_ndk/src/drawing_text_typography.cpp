@@ -367,7 +367,8 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
             break;
         }
-        case FONT_STYLE_ITALIC: {
+        case FONT_STYLE_ITALIC:
+        case FONT_STYLE_OBLIQUE: {
             rosenFontStyle = FontStyle::ITALIC;
             break;
         }
@@ -1400,7 +1401,7 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     for (size_t i = 0; i < lineMetrics.size(); ++i) {
         lineMetricsArr[i] = lineMetrics[i];
     }
-    MgrSetArrSize((void *)(lineMetricsArr), lineMetrics.size());
+    MgrSetArrSize(static_cast<void *>(lineMetricsArr), lineMetrics.size());
     return (OH_Drawing_LineMetrics*)lineMetricsArr;
 }
 
@@ -1409,13 +1410,13 @@ size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics* lineMetrics)
     if (lineMetrics == nullptr) {
         return 0;
     }
-    return GetArrSizeFromMgr((void *)(lineMetrics));
+    return GetArrSizeFromMgr(static_cast<void *>(lineMetrics));
 }
 
 void OH_Drawing_DestroyLineMetrics(OH_Drawing_LineMetrics* lineMetrics)
 {
     if (lineMetrics) {
-        MgrRemoveSize((void *)(lineMetrics));
+        MgrRemoveSize(static_cast<void *>(lineMetrics));
         delete[] lineMetrics;
         lineMetrics = nullptr;
     }
@@ -3222,12 +3223,9 @@ static FontStyle GetFontStyle(OH_Drawing_FontStyle style)
             fontStyle = FontStyle::NORMAL;
             break;
         }
-        case FONT_STYLE_ITALIC: {
-            fontStyle = FontStyle::ITALIC;
-            break;
-        }
+        case FONT_STYLE_ITALIC:
         case FONT_STYLE_OBLIQUE: {
-            fontStyle = FontStyle::OBLIQUE;
+            fontStyle = FontStyle::ITALIC;
             break;
         }
         default: {

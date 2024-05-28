@@ -293,6 +293,86 @@ HWTEST_F(SkiaSurfaceTest, Height001, TestSize.Level1)
     ASSERT_TRUE(sf != nullptr);
     ASSERT_TRUE(sf->Height() == 800);
 }
+
+/**
+ * @tc.name: GetCanvas001
+ * @tc.desc: Test GetCanvas
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, GetCanvas001, TestSize.Level1)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
+    SkiaSurface skiaSurface;
+    skiaSurface.SetSkSurface(skSurface);
+    auto canvas = skiaSurface.GetCanvas();
+    ASSERT_TRUE(canvas != nullptr);
+}
+
+/**
+ * @tc.name: GetImageSnapshot001
+ * @tc.desc: Test GetImageSnapshot
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, GetImageSnapshot001, TestSize.Level1)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
+    SkiaSurface skiaSurface;
+    skiaSurface.SetSkSurface(skSurface);
+    auto snapshot = skiaSurface.GetImageSnapshot();
+    ASSERT_TRUE(snapshot != nullptr);
+}
+
+/**
+ * @tc.name: GetImageSnapshot001
+ * @tc.desc: Test GetImageSnapshot
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, GetImageSnapshot002, TestSize.Level1)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
+    SkiaSurface skiaSurface;
+    ImageInfo imageInfo;
+    imageInfo.SetWidth(100);
+    imageInfo.SetHeight(200);
+    RectI rectI;
+    rectI = imageInfo.GetBound();
+    skiaSurface.SetSkSurface(skSurface);
+    auto snapshot = skiaSurface.GetImageSnapshot(rectI);
+    ASSERT_TRUE(snapshot != nullptr);
+}
+
+/**
+ * @tc.name: GetBackendTexture001
+ * @tc.desc: Test GetBackendTexture
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, GetBackendTexture001, TestSize.Level1)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
+    SkiaSurface skiaSurface;
+
+    skiaSurface.SetSkSurface(skSurface);
+    auto texture = skiaSurface.GetBackendTexture(BackendAccess::FLUSH_WRITE);
+    ASSERT_TRUE(texture.IsValid());
+}
+
+/**
+ * @tc.name: SetSkSurface001
+ * @tc.desc: Test SetSkSurface
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, SetSkSurface001, TestSize.Level1)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
+    SkiaSurface skiaSurface;
+    skiaSurface.SetSkSurface(skSurface);
+    ASSERT_TRUE(skSurface == skiaSurface.GetSkSurface());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

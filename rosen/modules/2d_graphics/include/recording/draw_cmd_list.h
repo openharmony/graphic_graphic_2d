@@ -182,6 +182,7 @@ public:
 
     void UpdateNodeIdToPicture(NodeId nodeId);
 
+    size_t CountTextBlobNum();
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

@@ -15,6 +15,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 
+#include "platform/common/rs_log.h"
 #include "utils/camera3d.h"
 
 namespace OHOS {
@@ -306,7 +307,12 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
 {
     RectI absRect;
     // Check if the matrix has skew or negative scaling
-    if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
+    if (!ROSEN_EQ(trans_->perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->perspX_, 0.f, EPSILON)) {
+        Drawing::Rect src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+        Drawing::Rect dts;
+        matrix.MapRect(dts, src);
+        absRect = RectI(dts.GetLeft(), dts.GetTop(), dts.GetWidth(), dts.GetHeight());
+    } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
         // Map the rectangle's points to the absolute matrix
         std::vector<Drawing::Point> p(RECT_POINT_NUM);

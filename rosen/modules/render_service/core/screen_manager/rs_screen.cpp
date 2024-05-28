@@ -636,6 +636,8 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         RS_LOGW("RSScreen %{public}s: virtual screen not support SetScreenBacklight.", __func__);
         return;
     }
+
+    RS_LOGI("RSScreen_%{public}" PRIu64 " SetScreenBacklight, level is %{public}u", id_, level);
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
@@ -967,6 +969,20 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
 const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
 {
     return filteredAppSet_;
+}
+
+int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)
+{
+    if (IsVirtual()) {
+        return StatusCode::SUCCESS;
+    }
+    if (hdiScreen_ != nullptr) {
+        int32_t result = hdiScreen_->SetScreenConstraint(frameId, timestamp, static_cast<uint32_t>(type));
+        if (result == GRAPHIC_DISPLAY_SUCCESS) {
+            return StatusCode::SUCCESS;
+        }
+    }
+    return StatusCode::HDI_ERROR;
 }
 } // namespace impl
 } // namespace Rosen

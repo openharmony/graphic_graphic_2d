@@ -25,11 +25,11 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSemaphore.h"
-#include "native_buffer_inner.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -39,6 +39,9 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+constexpr uint8_t ASTC_HEADER_SIZE = 16;
+#endif
 
 #ifdef RS_ENABLE_VK
 Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
@@ -70,6 +73,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    imageInfo_ = imageInfo;
 }
 
 RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -87,6 +91,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
         rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
+        imageInfo_ = imageInfo;
     }
 }
 
@@ -109,6 +114,12 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    if (pixelmap && pixelmap->IsAstc()) {
+        if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+            recordingCanvas->DrawPixelMapWithParm(pixelmap, imageInfo_, sampling);
+            return;
+        }
+    }
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
@@ -120,7 +131,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
         return;
     }
-    PreProcessPixelMap(canvas, pixelmap);
+    PreProcessPixelMap(canvas, pixelmap, sampling);
 #endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
@@ -142,13 +153,14 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap)
+void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::SamplingOptions& sampling)
 {
     if (!pixelMap) {
         return;
     }
 
-    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+    if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
@@ -167,11 +179,25 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     }
 
     if (pixelMap->IsAstc()) {
-        const void* data = pixelMap->GetPixels();
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-        const int seekSize = 16;
-        if (pixelMap->GetCapacity() > seekSize) {
-            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
+        if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+            RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+            sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+            nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
+            if (!fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
+                LOGE("PreProcessPixelMap data BuildFromOHNativeBuffer fail");
+                return;
+            }
+        } else {
+            const void* data = pixelMap->GetPixels();
+            if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
+                !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE)) {
+                LOGE("PreProcessPixelMap data BuildWithoutCopy fail");
+                return;
+            }
         }
         rsImage_->SetCompressData(fileData);
         return;

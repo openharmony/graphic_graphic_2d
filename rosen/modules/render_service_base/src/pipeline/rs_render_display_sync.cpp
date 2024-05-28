@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -107,6 +108,9 @@ bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool i
     if (referenceCount_ % skipRateCount_ != 0) {
         isFrameSkip = true;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "RSRenderDisplaySync::OnFrameSkip preferred: [%d] currentPeroid: [%d] isFrameSkip:[%d]",
+        expectedFrameRateRange_.preferred_, currentPeriod_, isFrameSkip);
     return isFrameSkip;
 }
 

@@ -108,13 +108,6 @@ public:
         auto interpolationValue = RSValueEstimator::Estimate(fraction, startValue_, endValue_);
         auto animationValue = interpolationValue;
         if (isAdditive && property_ != nullptr) {
-            if (property_->GetPropertyType() == RSRenderPropertyType::PROPERTY_FILTER) {
-                skip = !skip;
-                if (skip) {
-                    animationValue = property_->Get();
-                    return animationValue;
-                }
-            }
             animationValue = property_->Get() + (interpolationValue - lastValue_);
         }
         lastValue_ = interpolationValue;
@@ -127,7 +120,6 @@ public:
     }
 
 private:
-    bool skip = true;
     T startValue_ {};
     T endValue_ {};
     T lastValue_ {};
