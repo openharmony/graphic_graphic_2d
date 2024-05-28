@@ -414,6 +414,35 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessSyncTransactionCount
+ * @tc.desc: Test ProcessSyncTransactionCount
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetHostPid(-1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 0;
+    rsTransactionData->SetHostPid(-1);
+    rsTransactionData->MarkNeedCloseSync();
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetSyncTransactionNum(1);
+    rsTransactionData->SetHostPid(1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+}
+
+/**
  * @tc.name: GetContext
  * @tc.desc: Test if context has been initialized
  * @tc.type: FUNC
