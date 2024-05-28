@@ -335,8 +335,6 @@ ohos_source_set("render_service_base_src") {
       #pipeline
       "src/pipeline/rs_display_render_node.cpp",
       "src/pipeline/rs_occlusion_config.cpp",
-      "src/pipeline/rs_uni_render_judgement.cpp",
-      "src/pipeline/sk_resource_manager.cpp",
 
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",
@@ -432,6 +430,7 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     ]
   }
 
