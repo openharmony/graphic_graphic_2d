@@ -932,9 +932,11 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest01, TestSize.Level2)
     dstRect.width_ = 200;
     dstRect.height_ = 200;
     node.SetDstRect(dstRect);
+    int32_t retWidth = dstRect.width_;
+    int32_t retHeight = dstRect.height_;
     rsUniRenderUtil.LayerScaleFit(node);
-    ASSERT_EQ(node.GetDstRect().width_, 200);
-    ASSERT_EQ(node.GetDstRect().height_, 200);
+    ASSERT_EQ(node.GetDstRect().width_, retWidth);
+    ASSERT_EQ(node.GetDstRect().height_, retHeight);
 }
 
 /*
@@ -957,9 +959,11 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest02, TestSize.Level2)
     dstRect.width_ = 300;
     dstRect.height_ = 400;
     node.SetDstRect(dstRect);
+    int32_t retWidth = srcRect.width_ * dstRect.height_ / srcRect.height_;
+    int32_t retHeight = dstRect.height_;
     rsUniRenderUtil.LayerScaleFit(node);
-    ASSERT_EQ(node.GetDstRect().width_, 200);
-    ASSERT_EQ(node.GetDstRect().height_, 400);
+    ASSERT_EQ(node.GetDstRect().width_, retWidth);
+    ASSERT_EQ(node.GetDstRect().height_, retHeight);
 }
 
 /*
@@ -982,8 +986,10 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest03, TestSize.Level2)
     dstRect.width_ = 100;
     dstRect.height_ = 200;
     node.SetDstRect(dstRect);
+    int32_t retWidth = dstRect.width_;
+    int32_t retHeight = srcRect.height_ * dstRect.width_ / srcRect.width_;
     rsUniRenderUtil.LayerScaleFit(node);
-    ASSERT_EQ(node.GetDstRect().width_, 100);
-    ASSERT_EQ(node.GetDstRect().height_, 150);
+    ASSERT_EQ(node.GetDstRect().width_, retWidth);
+    ASSERT_EQ(node.GetDstRect().height_, retHeight);
 }
 } // namespace OHOS::Rosen
