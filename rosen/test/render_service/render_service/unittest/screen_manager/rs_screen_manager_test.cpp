@@ -482,11 +482,25 @@ HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback_001, TestSize.Level1)
 
 /*
  * @tc.name: GetScreenSupportedColorGamuts_001
- * @tc.desc: Test GetScreenSupportedColorGamuts
+ * @tc.desc: Test GetScreenSupportedColorGamuts false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::vector<ScreenColorGamut> mode;
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager->GetScreenSupportedColorGamuts(SCREEN_ID, mode));
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorGamuts_002
+ * @tc.desc: Test GetScreenSupportedColorGamuts succeed.
  * @tc.type: FUNC
  * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -513,11 +527,25 @@ HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_001, TestSize.Level1
 
 /*
  * @tc.name: GetScreenColorGamut_001
- * @tc.desc: Test GetScreenColorGamut
+ * @tc.desc: Test GetScreenColorGamut false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenColorGamut mode;
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager->GetScreenColorGamut(SCREEN_ID, mode));
+}
+
+/*
+ * @tc.name: GetScreenColorGamut_002
+ * @tc.desc: Test GetScreenColorGamut succeed
  * @tc.type: FUNC
  * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -534,6 +562,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_001, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager->SetScreenColorGamut(INVALID_SCREEN_ID, 1));
     ASSERT_EQ(SUCCESS, screenManager->SetScreenColorGamut(id, 1));
     ScreenColorGamut mode;
     ASSERT_EQ(SUCCESS, screenManager->GetScreenColorGamut(id, mode));
@@ -743,9 +772,9 @@ HWTEST_F(RSScreenManagerTest, GetScreenHDRCapabilityLocked_001, TestSize.Level1)
 
 /*
  * @tc.name: GetScreenData_001
- * @tc.desc: Test GetScreenData
+ * @tc.desc: Test GetScreenData is empty.
  * @tc.type: FUNC
- * @tc.require: issueI5ZK2I
+ * @tc.require: issueI9S56D
  */
 HWTEST_F(RSScreenManagerTest, GetScreenData_001, testing::ext::TestSize.Level2)
 {
@@ -754,6 +783,46 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_001, testing::ext::TestSize.Level2)
     RSScreenData screenData1;
     screenData1 = screenManager->GetScreenData(OHOS::Rosen::INVALID_SCREEN_ID);
     ASSERT_EQ(screenData1.GetSupportModeInfo().size(), 0);
+}
+
+/*
+ * @tc.name: GetScreenData_002
+ * @tc.desc: Test GetScreenData, with virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = 1;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+    RSScreenData screenData = screenManager->GetScreenData(screenId);
+    ASSERT_EQ(screenData.GetCapability().GetType(), DISP_INVALID);  // type_ attribute is INVALID for virtual screen.
+    ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
+    ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
+    ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
+}
+
+/*
+ * @tc.name: GetScreenData_003
+ * @tc.desc: Test GetScreenData, with mocked HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
+    RSScreenData screenData = screenManager->GetScreenData(screenId);
+    ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
 }
 
 /*
@@ -780,17 +849,43 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
     dumpString = "";
     screenManager->SurfaceDump(dumpString);
+    ASSERT_STRNE(dumpString.c_str(), empty.c_str());
     dumpString = "";
     screenManager->FpsDump(dumpString, arg);
+    ASSERT_STRNE(dumpString.c_str(), empty.c_str());
+    dumpString = "";
+    screenManager->HitchsDump(dumpString, arg);
+    ASSERT_STRNE(dumpString.c_str(), empty.c_str());
+    dumpString = "";
+    screenManager->ClearFpsDump(dumpString, arg);
+    screenManager->ClearFrameBufferIfNeed();
+    ASSERT_STRNE(dumpString.c_str(), empty.c_str());
 }
 
 /*
  * @tc.name: ScreenGamutMap_001
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap False.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    int32_t setStatusCode = screenManager->SetScreenGamutMap(SCREEN_ID, mode);
+    ASSERT_EQ(setStatusCode, StatusCode::SCREEN_NOT_FOUND);
+    int32_t getStatusCode = screenManager->GetScreenGamutMap(SCREEN_ID, mode);
+    ASSERT_EQ(getStatusCode, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: ScreenGamutMap_002
  * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Successed
  * @tc.type: FUNC
  * @tc.require: issueI60RFZ
  */
-HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -1089,7 +1184,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenCorrection_001, TestSize.Level1)
  * @tc.name: GetScreenCorrection_002
  * @tc.desc: Test GetScreenCorrection, with virtual screen
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9S56D
  */
 HWTEST_F(RSScreenManagerTest, GetScreenCorrection_002, TestSize.Level1)
 {
@@ -1165,59 +1260,6 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatusLocked_003, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetScreenData_002
- * @tc.desc: Test GetScreenData
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ScreenId screenId = INVALID_SCREEN_ID;
-    screenManager->GetScreenData(screenId);
-}
-
-/*
- * @tc.name: GetScreenData_003
- * @tc.desc: Test GetScreenData, with virtual screen
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ScreenId screenId = 1;
-    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
-    screenManager->MockHdiScreenConnected(rsScreen);
-    RSScreenData screenData = screenManager->GetScreenData(screenId);
-    ASSERT_EQ(screenData.GetCapability().GetType(), DISP_INVALID);  // type_ attribute is INVALID for virtual screen.
-    ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
-    ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
-    ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
-}
-
-/*
- * @tc.name: GetScreenData_004
- * @tc.desc: Test GetScreenData, with mocked HDI device
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenData_004, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ScreenId screenId = mockScreenId_;
-    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
-    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    screenManager->MockHdiScreenConnected(rsScreen);
-    screenManager->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
-    RSScreenData screenData = screenManager->GetScreenData(screenId);
-    ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
-}
-
-/*
  * @tc.name: GetScreenBacklight_002
  * @tc.desc: Test GetScreenBacklight
  * @tc.type: FUNC
@@ -1233,7 +1275,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight_002, TestSize.Level1)
 
 /*
  * @tc.name: SetScreenBacklight_001
- * @tc.desc: Test SetScreenBacklight
+ * @tc.desc: Test SetScreenBacklight false.
  * @tc.type: FUNC
  * @tc.require: issueI7AABN
  */
@@ -1243,6 +1285,38 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
     ScreenId screenId = INVALID_SCREEN_ID;
     uint32_t level = static_cast<uint32_t>(1);
     screenManager->SetScreenBacklight(screenId, level);
+}
+
+/*
+ * @tc.name: SetScreenBacklight_002
+ * @tc.desc: Test SetScreenBacklight succeed.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenBacklight_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    uint32_t level = static_cast<uint32_t>(1);
+    screenManager->SetScreenBacklight(id, level);
+    auto ret = screenManager->GetScreenBacklight(id);
+    ASSERT_EQ(ret, level);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
 }
 
 /*
@@ -1478,11 +1552,26 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorSpace_001, TestSize.Level1)
 
 /*
  * @tc.name: ResizeVirtualScreen_001
- * @tc.desc: Test ResizeVirtualScreen
+ * @tc.desc: Test ResizeVirtualScreen false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto ret = screenManager->ResizeVirtualScreen(OHOS::Rosen::INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH,
+        VIRTUAL_SCREEN_HEIGHT);
+    ASSERT_EQ(SCREEN_NOT_FOUND, ret);
+}
+
+/*
+ * @tc.name: ResizeVirtualScreen_002
+ * @tc.desc: Test ResizeVirtualScreen succeed.
  * @tc.type: FUNC
  * @tc.require: issueI8F2HB
  */
-HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -1631,6 +1720,34 @@ HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
+    auto activeScreenId = screenManager->GetActiveScreenId();
+    ASSERT_EQ(screenManager->GetDefaultScreenId(), activeScreenId);
+}
+
+/*
+ * @tc.name: IsAllScreensPowerOff_001
+ * @tc.desc: Test ScreenPowerStatus are empty.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, IsAllScreensPowerOff_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto powerStatus = screenManager->IsAllScreensPowerOff();
+    ASSERT_EQ(false, powerStatus);
+}
+
+/*
+ * @tc.name: IsAllScreensPowerOff_002
+ * @tc.desc: There is screen power on.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, IsAllScreensPowerOff_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
     std::string name = "virtualScreen01";
     uint32_t width = 480;
     uint32_t height = 320;
@@ -1644,8 +1761,66 @@ HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    id = screenManager->GetActiveScreenId();
-    ASSERT_EQ(INVALID_SCREEN_ID, id);
+    screenManager->SetScreenPowerStatus(id, ScreenPowerStatus::POWER_STATUS_ON);
+    auto powerStatus = screenManager->IsAllScreensPowerOff();
+    ASSERT_EQ(false, powerStatus);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: ForceRefreshOneFrameIfNoRNV_001
+ * @tc.desc: Test ForceRefreshOneFrameIfNoRNV.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->ForceRefreshOneFrameIfNoRNV();
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenScaleMode_001
+ * @tc.desc: Test SetVirtualMirrorScreenScaleMode false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenScaleMode_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto scaleMode = screenManager->SetVirtualMirrorScreenScaleMode(SCREEN_ID, ScreenScaleMode::INVALID_MODE);
+    ASSERT_EQ(false, scaleMode);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenScaleMode_002
+ * @tc.desc: Test SetVirtualMirrorScreenScaleMode succeed.
+ * @tc.type: FUNC
+ * @tc.require: issueI9S56D
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenScaleMode_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    auto scaleMode = screenManager->SetVirtualMirrorScreenScaleMode(id, ScreenScaleMode::FILL_MODE);
+    ASSERT_EQ(true, scaleMode);
 
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
