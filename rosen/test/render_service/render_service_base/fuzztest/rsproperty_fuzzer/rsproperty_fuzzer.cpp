@@ -222,6 +222,10 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     float alpha = GetData<float>();
 
     properties.SetBorderWidth(widthVector);
+    properties.SetBorderDashWidth(widthVector);
+    properties.SetBorderDashGap(widthVector);
+    properties.SetOutlineDashWidth(widthVector);
+    properties.SetOutlineDashGap(widthVector);
     properties.SetBorderStyle(style);
     properties.SetBackgroundFilter(backgroundFilter);
     properties.SetFilter(filter);
