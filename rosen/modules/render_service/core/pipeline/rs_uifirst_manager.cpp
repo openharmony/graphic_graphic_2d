@@ -517,7 +517,7 @@ void RSUifirstManager::ClearSubthreadRes()
 void RSUifirstManager::ForceClearSubthreadRes()
 {
     noUifirstNodeFrameCount_ = 0;
-    RSSubThreadManager::Instance()->ForceReleaseResource();
+    RSSubThreadManager::Instance()->ReleaseTexture();
 }
 
 void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
