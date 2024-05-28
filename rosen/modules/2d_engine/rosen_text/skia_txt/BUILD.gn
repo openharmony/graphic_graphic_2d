@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
@@ -106,6 +106,10 @@ template("skia_libtxt") {
       "//third_party/skia:skia_$platform",
     ]
 
+    if (is_cross_platform) {
+      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+    }
+
     external_deps += [ "hilog:libhilog" ]
 
     if (!is_cross_platform) {
@@ -149,6 +153,11 @@ ohos_source_set("skia_paragraph") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//third_party/skia/modules/skparagraph",
   ]
+
+  if (is_arkui_x) {
+    include_dirs +=
+        [ "//foundation/multimedia/image_framework/mock/native/include/log" ]
+  }
   defines = []
 
   sources = [
@@ -201,19 +210,22 @@ ohos_source_set("skia_unicode") {
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = []
   defines = []
+  sources = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]
   defines += [ "SKUNICODE_IMPLEMENTATION=1" ]
-  sources = [ "$skunicode_root/src/SkUnicode.cpp" ]
   defines += [ "SK_UNICODE_AVAILABLE" ]
-  sources += [
-    "$skunicode_root/src/SkUnicode_icu.cpp",
-    "$skunicode_root/src/SkUnicode_icu.h",
-    "$skunicode_root/src/SkUnicode_icu_bidi.cpp",
-    "$skunicode_root/src/SkUnicode_icu_bidi.h",
-  ]
   defines += [ "SK_UNICODE_ICU_IMPLEMENTATION" ]
-  sources += [ "$skunicode_root/src/SkUnicode_icu_builtin.cpp" ]
+  if (!is_arkui_x) {
+    sources += [ "$skunicode_root/src/SkUnicode.cpp" ]
+    sources += [
+      "$skunicode_root/src/SkUnicode_icu.cpp",
+      "$skunicode_root/src/SkUnicode_icu.h",
+      "$skunicode_root/src/SkUnicode_icu_bidi.cpp",
+      "$skunicode_root/src/SkUnicode_icu_bidi.h",
+    ]
+    sources += [ "$skunicode_root/src/SkUnicode_icu_builtin.cpp" ]
+  }
 
   platform = current_os
   if (platform == "mingw") {
