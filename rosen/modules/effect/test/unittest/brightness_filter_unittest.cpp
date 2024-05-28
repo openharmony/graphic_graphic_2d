@@ -112,7 +112,7 @@ HWTEST_F(BrightnessFilterUnittest, GetVertexShader001, TestSize.Level1)
     /**
      * @tc.steps: step2. Call GetVertexShader to get the strings
      */
-    string result = R"SHADER(#version 320 es
+    std::string result = R"SHADER(#version 320 es
         precision mediump float;
 
         layout (location = 0) in vec3 vertexCoord;
@@ -170,7 +170,7 @@ HWTEST_F(BrightnessFilterUnittest, GetFragmentShader001, TestSize.Level1)
     /**
      * @tc.steps: step2. Call GetFragmentShader to get the strings
      */
-    string result = R"SHADER(#version 320 es
+    std::string result = R"SHADER(#version 320 es
         precision mediump float;
         in vec2 texCoord;
         out vec4 fragColor;
