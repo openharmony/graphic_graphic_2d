@@ -3642,6 +3642,7 @@ void RSProperties::OnApplyModifiers()
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
+        needFilter_ = needFilter_ || (colorFilter_ != nullptr);
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
