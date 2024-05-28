@@ -1448,7 +1448,8 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     UpdateRotationStatusForEffectNode(node);
     CheckFilterCacheNeedForceClearOrSave(node);
     RectI prepareClipRect = prepareClipRect_;
-    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+    dirtyFlag_ =
+        node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
 
     // 1. Recursively traverse child nodes
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
@@ -3011,7 +3012,8 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
-        dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+        dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
+            *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
     } else {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
     }

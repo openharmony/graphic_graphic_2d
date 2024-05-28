@@ -1280,24 +1280,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
-        if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {
-            // case a. use parent surface matrix with sandbox
-            auto translateMatrix = Drawing::Matrix();
-            translateMatrix.Translate(sandbox->x_, sandbox->y_);
-            properties.GetBoundsGeometry()->SetContextMatrix(translateMatrix);
-            accumGeoDirty = properties.UpdateGeometryByParent(&parentSurfaceMatrix, std::nullopt) || accumGeoDirty;
-            properties.GetBoundsGeometry()->SetContextMatrix(std::nullopt);
-        } else if (parent != nullptr) {
-            // case b. use parent matrix
-            auto parentMatrix = &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-            auto offset = !IsInstanceOf<RSSurfaceRenderNode>() ?
-                std::make_optional<Drawing::Point>(parent->GetRenderProperties().GetFrameOffsetX(),
-                parent->GetRenderProperties().GetFrameOffsetY()) : std::nullopt;
-            accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
-        } else {
-            // case c. no parent
-            accumGeoDirty = properties.UpdateGeometryByParent(nullptr, std::nullopt) || accumGeoDirty;
-        }
+        UpdateDrawRect(accumGeoDirty, clipRect, parentSurfaceMatrix);
         // planning: double check if it would be covered by updateself without geo update
         // currently CheckAndUpdateGeoTrans without dirty check
         auto& geoPtr = properties.boundsGeo_;
@@ -1329,6 +1312,32 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     properties.ResetDirty();
     isLastVisible_ = shouldPaint_;
     return accumGeoDirty;
+}
+
+void RSRenderNode::UpdateDrawRect(
+    bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
+{
+    auto parent = GetParent().lock();
+    auto& properties = GetMutableRenderProperties();
+    if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {
+        // case a. use parent sur_face matrix with sandbox
+        auto translateMatrix = Drawing::Matrix();
+        translateMatrix.Translate(sandbox->x_, sandbox->y_);
+        properties.GetBoundsGeometry()->SetContextMatrix(translateMatrix);
+        accumGeoDirty = properties.UpdateGeometryByParent(&parentSurfaceMatrix, std::nullopt) || accumGeoDirty;
+        properties.GetBoundsGeometry()->SetContextMatrix(std::nullopt);
+    } else if (parent != nullptr) {
+        // case b. use parent matrix
+        auto parentMatrix = &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+        auto offset = !IsInstanceOf<RSSurfaceRenderNode>()
+                          ? std::make_optional<Drawing::Point>(parent->GetRenderProperties().GetFrameOffsetX(),
+                                parent->GetRenderProperties().GetFrameOffsetY())
+                          : std::nullopt;
+        accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
+    } else {
+        // case c. no parent
+        accumGeoDirty = properties.UpdateGeometryByParent(nullptr, std::nullopt) || accumGeoDirty;
+    }
 }
 
 void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager)

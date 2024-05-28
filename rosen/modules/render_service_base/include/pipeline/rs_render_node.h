@@ -272,7 +272,8 @@ public:
     const RectI& GetAbsDrawRect() const;
 
     void ResetChangeState();
-    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
+    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
+        const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
@@ -835,6 +836,7 @@ private:
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
