@@ -483,12 +483,10 @@ bool SkiaImage::GetROPixels(Bitmap& bitmap) const
         return false;
     }
     auto context = as_IB(skiaImage_.get())->directContext();
-    SkBitmap skiaBitmap;
-    if (!as_IB(skiaImage_.get())->getROPixels(context, &skiaBitmap)) {
+    if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap.GetImpl<SkiaBitmap>()->GetSkBitmap())) {
         LOGD("skiaImge getROPixels failed");
         return false;
     }
-    bitmap.GetImpl<SkiaBitmap>()->SetSkBitmap(skiaBitmap);
     return true;
 }
 

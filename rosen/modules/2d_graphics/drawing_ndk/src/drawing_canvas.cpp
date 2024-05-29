@@ -252,25 +252,6 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
     canvas->DrawPath(CastToPath(*cPath));
 }
 
-static PointMode pointModeCastToPointMode(const OH_Drawing_PointMode& pointMode)
-{
-    PointMode mode = PointMode::POINTS_POINTMODE;
-    switch (pointMode) {
-        case POINT_MODE_POINTS:
-            mode = PointMode::POINTS_POINTMODE;
-            break;
-        case POINT_MODE_LINES:
-            mode = PointMode::LINES_POINTMODE;
-            break;
-        case POINT_MODE_POLYGON:
-            mode = PointMode::POLYGON_POINTMODE;
-            break;
-        default:
-            break;
-    }
-    return mode;
-}
-
 void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMode mode,
     uint32_t count, const OH_Drawing_Point2D* pts)
 {
@@ -283,15 +264,8 @@ void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMod
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    Point* point = new Point[count];
-    if (point == nullptr) {
-        return;
-    }
-    for (uint32_t i = 0; i < count; ++i) {
-        point[i] = CastToPoint(pts[i]);
-    }
-    canvas->DrawPoints(pointModeCastToPointMode(mode), count, point);
-    delete [] point;
+    const Point* points = reinterpret_cast<const Point*>(&pts);
+    canvas->DrawPoints(static_cast<PointMode>(mode), count, points);
 }
 
 static VertexMode vertexMmodeCastToVertexMmode(const OH_Drawing_VertexMode& vertexMmode)
