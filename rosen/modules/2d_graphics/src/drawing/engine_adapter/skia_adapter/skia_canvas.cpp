@@ -264,10 +264,7 @@ void SkiaCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
         return;
     }
 
-    SkPoint skPts[count];
-    for (size_t i = 0; i < count; ++i) {
-        skPts[i] = {pts[i].GetX(), pts[i].GetY()};
-    }
+    const SkPoint* skPts = reinterpret_cast<const SkPoint*>(&pts);
 
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
     for (int i = 0; i < paints.count_; i++) {
@@ -1203,22 +1200,14 @@ void SkiaCanvas::AttachPaint(const Paint& paint)
 
 void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const
 {
-    Rect rect = roundRect.GetRect();
-    SkRect outer = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+    const SkRect* outer = reinterpret_cast<const SkRect*>(&roundRect.GetRect());
+    if (roundRect.IsSimpleRoundRect()) {
+        skRRect.setRectXY(*outer, roundRect.GetSimpleX(), roundRect.GetSimpleY());
+        return;
+    }
 
-    SkVector radii[4];
-    Point p;
-
-    p = roundRect.GetCornerRadius(RoundRect::TOP_LEFT_POS);
-    radii[SkRRect::kUpperLeft_Corner] = { p.GetX(), p.GetY() };
-    p = roundRect.GetCornerRadius(RoundRect::TOP_RIGHT_POS);
-    radii[SkRRect::kUpperRight_Corner] = { p.GetX(), p.GetY() };
-    p = roundRect.GetCornerRadius(RoundRect::BOTTOM_RIGHT_POS);
-    radii[SkRRect::kLowerRight_Corner] = { p.GetX(), p.GetY() };
-    p = roundRect.GetCornerRadius(RoundRect::BOTTOM_LEFT_POS);
-    radii[SkRRect::kLowerLeft_Corner] = { p.GetX(), p.GetY() };
-
-    skRRect.setRectRadii(outer, radii);
+    const SkVector* radii = reinterpret_cast<const SkVector*>(&roundRect.GetCornerRadius(RoundRect::TOP_LEFT_POS));
+    skRRect.setRectRadii(*outer, radii);
 }
 
 bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol)
