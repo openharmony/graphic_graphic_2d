@@ -309,6 +309,11 @@ int64_t RSDisplaySoloist::GetVSyncPeriod()
 #endif
     }
 
+    if (period == 0 && !useExclusiveThread_) {
+        RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
+        period = soloistManager.GetVSyncPeriod();
+    }
+
     return period;
 }
 
