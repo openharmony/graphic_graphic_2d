@@ -62,6 +62,9 @@ Note: If the text contains special characters, please escape them according to t
                 <filteritem type="filename" name="*.cfg" desc="cfg no need to add policy"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
+                <filteritem type="filename" name="test.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="test.png" desc="sample renderings"/>
+                <filteritem type="filename" name="graphic_rosen_architecture.jpg" desc="readme graphic ipg"/>
                 <filteritem type="filename" name="graphic.png" desc="readme graphic png"/>
                 <filteritem type="filename" name="icon.png" desc="png for hap"/>
                 <filteritem type="filename" name="bootpic.zip" desc="bootanimation"/>
