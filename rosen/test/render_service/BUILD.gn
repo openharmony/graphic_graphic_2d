@@ -69,6 +69,7 @@ group("test") {
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsproxynode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
     "render_service_client/unittest/jank_detector:unittest",
