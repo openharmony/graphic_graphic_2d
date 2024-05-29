@@ -77,6 +77,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = surfaceNodeConfig.isSync,
+        .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
 
@@ -86,7 +87,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.bundleName);
+            config.id, config.name, static_cast<uint8_t>(config.nodeType),
+            config.bundleName, config.surfaceWindowType);
         transactionProxy->AddCommand(command, isWindow);
     } else {
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {

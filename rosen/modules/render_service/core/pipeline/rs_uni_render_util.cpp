@@ -810,8 +810,7 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
             node->IsScale(), node->IsScaleInPreFrame(), node->GetForceUIFirst(), isNeedAssignToSubThread);
     }
     std::string surfaceName = node->GetName();
-    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    bool needFilterSCB = node->GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     RS_LOGE("RSUniRenderUtil::IsNodeAssignSubThread %s", surfaceName.c_str());
 
     if (needFilterSCB || node->IsSelfDrawingType()) {

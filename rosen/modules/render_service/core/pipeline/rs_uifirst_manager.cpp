@@ -897,8 +897,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     }
 
     std::string surfaceName = node.GetName();
-    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }
@@ -920,8 +919,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
 
     std::string surfaceName = node.GetName();
-    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }

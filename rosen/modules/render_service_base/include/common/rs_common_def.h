@@ -235,6 +235,11 @@ enum class SelfDrawingNodeType : uint8_t {
     VIDEO,
 };
 
+enum class SurfaceWindowType : uint8_t {
+    DEFAULT_WINDOW = 0,
+    SYSTEM_SCB_WINDOW = 1,
+};
+
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
@@ -243,6 +248,7 @@ struct RSSurfaceRenderNodeConfig {
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
     bool isSync = false;
+    enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
 // types for RSSurfaceExt
