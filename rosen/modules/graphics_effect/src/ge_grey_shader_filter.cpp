@@ -39,6 +39,7 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
     if (shader == nullptr) {
         return image;
     }
+    
     Drawing::RuntimeShaderBuilder builder(shader->GetShader());
     Drawing::Matrix matrix;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,

@@ -41,12 +41,13 @@ std::shared_ptr<Drawing::Image> GEAIBarShaderFilter::ProcessImage(Drawing::Canva
         LOGE("GEAIBarShaderFilter::ProcessImage image is null");
         return image;
     }
-    // std::shared_ptr<GEShader>
+
     auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_AIBAR);
     if (shader == nullptr) {
         return image;
     }
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = std::make_shared<Drawing::RuntimeShaderBuilder>(shader->GetShader());
+
+    auto builder = std::make_shared<Drawing::RuntimeShaderBuilder>(shader->GetShader());
  
     Drawing::Matrix matrix;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,

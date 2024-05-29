@@ -91,11 +91,9 @@ static const bool IS_ADVANCED_FILTER_USABLE_CHECK_ONCE = IsAdvancedFilterUsable(
 GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params)
     : radius_(params.radius)
 {
-
-    LOGD("create KawaseBlurShaderFilter, GEShaderStore::GetInstance::GetShader");
     GEShaderStore::GetInstance()->GetShader(SHADER_BLUR);
     // Advanced Filter
-    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE ) {
+    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE) {
         GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
     }
     GEShaderStore::GetInstance()->GetShader(SHADER_MIX);
@@ -140,7 +138,19 @@ std::shared_ptr<Drawing::ShaderEffect> GEKawaseBlurShaderFilter::ApplySimpleFilt
     return Drawing::ShaderEffect::CreateImageShader(*tmpSimpleBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         linear, Drawing::Matrix());
 }
+static std::shared_ptr<GEShader> GetAvailableShader()
+{
+    // Advanced Filter: check is AF usable only the first time
+    std::shared_ptr<GEShader> shader = nullptr;
+    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE) {
+        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
+    }
+    if (shader == nullptr) {
+        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLUR);
+    }
 
+    return shader;
+}
 std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
 {
@@ -153,11 +163,9 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     ComputeRadiusAndScale(radius_);
 
     float tmpRadius = static_cast<float>(blurRadius_ / DILATED_CONVOLUTION_LARGE_RADIUS);
-    int numberOfPasses =
+    int numberOfPasses = 
         std::min(MAX_PASSES_LARGE_RADIUS, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
-    if (numberOfPasses < 1) {                                                              // 1 : min pass num
-        numberOfPasses = 1;                                                                // 1 : min pass num
-    }
+    numberOfPasses = std::max(numberOfPasses, 1); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
 
     auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), input->GetWidth());
@@ -168,17 +176,11 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     Drawing::Matrix blurMatrix = BuildMatrix(src, scaledInfo, input);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
-    // Advanced Filter: check is AF usable only the first time
-    std::shared_ptr<GEShader> shader = nullptr;
-    if ( IS_ADVANCED_FILTER_USABLE_CHECK_ONCE ) { 
-        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
-    }
+    auto shader = GetAvailableShader();
     if (shader == nullptr) {
-        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLUR);
-        if (shader == nullptr) {
-            return image;
-        }
+        return image;
     }
+
     auto tmpShader = Drawing::ShaderEffect::CreateImageShader(
         *input, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix);
     
