@@ -324,6 +324,12 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(const uint64_t tid)
         RS_LOGE("Failed to get bitmap, image is null!");
         return bitmap;
     }
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) && (GetTid() != tid)) {
+        RS_LOGE("Failed to get bitmap, image is used by multi threads");
+        return bitmap;
+    }
+#endif
     if (!image_->AsLegacyBitmap(bitmap)) {
         RS_LOGE("Failed to get bitmap, asLegacyBitmap failed");
     }
