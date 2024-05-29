@@ -104,7 +104,7 @@ protected:
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for render group
-    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params) const;
+    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params);
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -135,6 +135,12 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
+    std::vector<Drawing::RectI> filterRects_;
+#ifdef ROSEN_OHOS
+    static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+#else
+    static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+#endif
 
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,

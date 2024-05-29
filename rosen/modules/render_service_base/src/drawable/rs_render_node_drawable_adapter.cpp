@@ -31,6 +31,11 @@
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+#ifdef ROSEN_OHOS
+thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+#else
+RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+#endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
@@ -320,7 +325,7 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF loc
 }
 
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
-    Drawing::Canvas& canvas, const RSRenderParams& params) const
+    Drawing::Canvas& canvas, const RSRenderParams& params)
 {
     if (uifirstDrawCmdList_.empty()) {
         return;
@@ -341,6 +346,9 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+                if (curDrawingCacheRoot_ != nullptr) {
+                    curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                }
             } else {
                 drawCmdList_[index](&canvas, &bounds);
             }
@@ -352,6 +360,9 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            if (curDrawingCacheRoot_ != nullptr) {
+                curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+            }
         } else {
             drawCmdList_[index](&canvas, &bounds);
         }
