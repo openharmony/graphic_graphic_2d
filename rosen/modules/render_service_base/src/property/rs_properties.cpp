@@ -1797,11 +1797,17 @@ RectF RSProperties::GetLocalBoundsAndFramesRect() const
 
 RectF RSProperties::GetBoundsRect() const
 {
+    auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
-        return {0, 0, GetFrameWidth(), GetFrameHeight()};
+        if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
+            return {0, 0, GetFrameWidth(), GetFrameHeight()};
+        }
     } else {
-        return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+        if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
+            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+        }
     }
+    return rect;
 }
 
 RectF RSProperties::GetFrameRect() const
