@@ -1594,7 +1594,7 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-    Drawing::GPUContext* grContext, bool optFenceWait)
+    const Drawing::GPUContext* grContext, bool optFenceWait)
 {
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");

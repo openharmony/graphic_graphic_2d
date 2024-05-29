@@ -270,7 +270,7 @@ void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>
     if (bufferToRelease.empty()) {
         return;
     }
-    for (auto& item : bufferToRelease) {
+    for (const auto& item : bufferToRelease) {
         if (!item.buffer || !item.consumer) {
             continue;
         }

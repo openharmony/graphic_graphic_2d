@@ -204,7 +204,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 
 void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    ScreenInfo& screenInfo)
+    const ScreenInfo& screenInfo)
 {
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
@@ -645,8 +645,7 @@ void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
     if (!node) {
         return;
     }
-    auto parentNode =
-        node ? RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock()) : nullptr;
+    auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
     // while node's parent isn't LEASH_WINDOW_NODE, itselt need SetNeedDrawFocusChange
     if (!parentNode || parentNode->GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         node->SetNeedDrawFocusChange(true);

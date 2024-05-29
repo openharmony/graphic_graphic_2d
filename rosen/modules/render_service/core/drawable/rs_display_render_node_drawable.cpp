@@ -723,7 +723,8 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
 
     int32_t bufferAge = mirroredProcessor->GetBufferAge();
-    int32_t actualAge = curScreenInfo.skipFrameInterval ? curScreenInfo.skipFrameInterval * bufferAge : bufferAge;
+    int32_t actualAge = curScreenInfo.skipFrameInterval ?
+        static_cast<int32_t>(curScreenInfo.skipFrameInterval) * bufferAge : bufferAge;
     std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredNode, actualAge, mainScreenInfo);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {

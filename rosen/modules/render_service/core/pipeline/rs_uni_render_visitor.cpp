@@ -5175,7 +5175,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     }
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appNodes;
     if (node.LeashWindowRelatedAppWindowOccluded(appNodes) && !isSecurityDisplay_) {
-        for (auto& appNode : appNodes) {
+        for (const auto& appNode : appNodes) {
             if (appNode) {
                 MarkSubHardwareEnableNodeState(*appNode);
             }
