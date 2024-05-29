@@ -33,20 +33,27 @@ std::shared_ptr<GEShaderStore> GEShaderStore::GetInstance()
     return g_ShaderStoreInstance;
 }
 
+void GEShaderStore::RegisterShader(ShaderIndex key, const std::string& name, ShaderType type, const std::string& shader,
+    const Drawing::RuntimeEffectOptions* opt)
+{
+    auto sh = std::make_shared<GEShader>(name, type, shader, opt);
+    shaderObjMap_[key] = sh;
+}
+
 void GEShaderStore::Initialize()
 {
     LOGD("GEShaderStore::Initialize");
-    REGISTER_SHADER(SHADER_AIBAR, "AIBAR", TYPE_NO_REFERENCE, g_aibarString, nullptr);
-    REGISTER_SHADER(SHADER_GREY, "Grey", TYPE_NO_REFERENCE, g_greyGradationString, nullptr);
-    REGISTER_SHADER(SHADER_BLUR, "blur", TYPE_REFERENCE_AROUND, g_blurString, nullptr);
+    RegisterShader(SHADER_AIBAR, "AIBAR", TYPE_NO_REFERENCE, g_aibarString, nullptr);
+    RegisterShader(SHADER_GREY, "Grey", TYPE_NO_REFERENCE, g_greyGradationString, nullptr);
+    RegisterShader(SHADER_BLUR, "blur", TYPE_REFERENCE_AROUND, g_blurString, nullptr);
     Drawing::RuntimeEffectOptions opt;
     opt.useAF = true;
-    REGISTER_SHADER(SHADER_BLURAF, "blurAf", TYPE_REFERENCE_AROUND, g_blurStringAF, &opt);
-    REGISTER_SHADER(SHADER_MIX, "mix", TYPE_REFERENCE_AROUND, g_mixString, nullptr);
-    REGISTER_SHADER(SHADER_HORIBLUR, "horizontal", TYPE_REFERENCE_AROUND, g_hBlurString, nullptr);
-    REGISTER_SHADER(SHADER_VERTBLUR, "vertical", TYPE_REFERENCE_AROUND, g_vBlurString, nullptr);
-    REGISTER_SHADER(SHADER_MASKBLUR, "maskblur", TYPE_REFERENCE_AROUND, g_maskBlurString, nullptr);
-    REGISTER_SHADER(SHADER_SIMPLE, "Simple", TYPE_NO_REFERENCE, g_simpleString, nullptr);
+    RegisterShader(SHADER_BLURAF, "blurAf", TYPE_REFERENCE_AROUND, g_blurStringAF, &opt);
+    RegisterShader(SHADER_MIX, "mix", TYPE_REFERENCE_AROUND, g_mixString, nullptr);
+    RegisterShader(SHADER_HORIBLUR, "horizontal", TYPE_REFERENCE_AROUND, g_hBlurString, nullptr);
+    RegisterShader(SHADER_VERTBLUR, "vertical", TYPE_REFERENCE_AROUND, g_vBlurString, nullptr);
+    RegisterShader(SHADER_MASKBLUR, "maskblur", TYPE_REFERENCE_AROUND, g_maskBlurString, nullptr);
+    RegisterShader(SHADER_SIMPLE, "Simple", TYPE_NO_REFERENCE, g_simpleString, nullptr);
 }
 
 static std::string GetKey(const std::vector<ShaderIndex>& which)
@@ -152,7 +159,7 @@ GEShader::GEShader(const std::shared_ptr<GEShader> rth)
     }
 }
 
-GEShader::~GEShader() 
+GEShader::~GEShader()
 {
     if (opt_ != nullptr) {
         delete opt_;
@@ -221,7 +228,7 @@ GE_Error GEShader::Compile(const Drawing::RuntimeEffectOptions* ops)
         shader = Drawing::RuntimeEffect::CreateForShader(shaderStr_, *ops);
     } else {
         shader = Drawing::RuntimeEffect::CreateForShader(shaderStr_);
-    } 
+    }
 
     if (shader == nullptr) {
         LOGE("GEShader::Compile %{public}s failed", name_.c_str());
@@ -302,7 +309,7 @@ static std::string PrepareSecondString(
     return oss.str();
 }
 
-static std::string GenSimpleUUIDString() 
+static std::string GenSimpleUUIDString()
 {
     const std::string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     static constexpr int maxNumberRange = 99; // the max random number
@@ -325,7 +332,7 @@ the two shaders should follow the rules as below:
 GE_Error GEShader::CombineShaderString(std::string& cbStr, const std::string& shaderA, const std::string& shaderB)
 {
     // each valid shader string should be have 5 matches;
-    static constexpr int validMatchCount = 5; 
+    static constexpr int validMatchCount = 5;
     static constexpr int sectionParam = 1; // 1 : the string before main
     static constexpr int sectionMainTitle = 2; // 2 : the string of main(...)
     static constexpr int sectionMainBody = 3; // 3 : the string in main

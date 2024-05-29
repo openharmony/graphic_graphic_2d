@@ -56,6 +56,5 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
     return greyImage;
 };
 
-
 } // namespace Rosen
 } // namespace OHOS

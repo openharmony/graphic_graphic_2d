@@ -82,14 +82,11 @@ public:
     std::shared_ptr<GEShader> GetShader(const std::vector<ShaderIndex>& which);
 private:
     void Initialize();
+    void RegisterShader(ShaderIndex key, const std::string& name, ShaderType type, const std::string& shader,
+        const Drawing::RuntimeEffectOptions* opt);
     std::unordered_map<std::string, std::shared_ptr<GEShader>> shaderMap_ = {};
     std::unordered_map<ShaderIndex, std::shared_ptr<GEShader>> shaderObjMap_ = {};
 };
-
-#define REGISTER_SHADER(key, name, type, shader, opt) do { \
-        auto sh = std::make_shared<GEShader>((name), (type), (shader), (opt)); \
-        shaderObjMap_[(key)] = sh; \
-    } while (0)
 
 } // namespace Rosen
 } // namespace OHOS
