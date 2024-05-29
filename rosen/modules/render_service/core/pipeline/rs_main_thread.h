@@ -321,6 +321,11 @@ public:
 
     bool IsRequestedNextVSync();
 
+    bool GetNextDVsyncAnimateFlag() const
+    {
+        return needRequestNextVsyncAnimate_;
+    }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
