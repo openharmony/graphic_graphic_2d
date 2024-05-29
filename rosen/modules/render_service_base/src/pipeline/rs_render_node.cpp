@@ -3092,6 +3092,9 @@ void RSRenderNode::OnTreeStateChanged()
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
 {
+    if (!isOnTheTree_) {
+        return false;
+    }
     if (disappearingTransitionCount_ > 0) {
         return true;
     }
