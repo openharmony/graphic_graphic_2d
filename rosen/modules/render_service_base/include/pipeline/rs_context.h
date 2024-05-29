@@ -35,6 +35,7 @@ enum ClearMemoryMoment : uint32_t {
     SCENEBOARD_SURFACE_NODE_HIDE,
     LOW_MEMORY,
     NO_CLEAR,
+    DEFAULT_CLEAN,
 };
 
 class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {

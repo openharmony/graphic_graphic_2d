@@ -53,6 +53,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 }
 class RSOverDrawDfx {
 public:
@@ -368,6 +369,7 @@ void RSDisplayRenderNodeDrawable::RemoveClearMemoryTask() const
     if (!unirenderThread.GetClearMemoryFinished()) {
         unirenderThread.RemoveTask(CLEAR_GPU_CACHE);
     }
+    unirenderThread.RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
 }
 
 void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
@@ -376,6 +378,7 @@ void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
     if (!unirenderThread.GetClearMemoryFinished()) {
         unirenderThread.ClearMemoryCache(unirenderThread.GetClearMoment(), unirenderThread.GetClearMemDeeply());
     }
+    unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
 }
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
@@ -401,6 +404,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // if start process DisplayRenderNode, restart the delaytime of clearMemoryTask
     RemoveClearMemoryTask();
+    PostClearMemoryTask();
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
@@ -617,7 +621,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
     }
-    PostClearMemoryTask();
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
