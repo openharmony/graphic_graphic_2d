@@ -857,9 +857,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
     // the main display that's why no need additional scale.
-    float mirrorScaleX = 1.0f;
-    float mirrorScaleY = 1.0f;
-    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, mirrorScaleX, mirrorScaleY));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, 1.0f, 1.0f));
 
     curCanvas_->Save();
     Drawing::Region clipRegion;
