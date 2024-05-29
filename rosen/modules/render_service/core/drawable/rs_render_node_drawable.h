@@ -143,7 +143,7 @@ protected:
     static inline bool isOpincDropNodeExt_ = true;
     static inline int opincRootTotalCount_ = 0;
 
-    // used foe render group cache
+    // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;
     void DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect);
@@ -157,6 +157,7 @@ protected:
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
 
     static thread_local bool drawBlurForCache_;
 
