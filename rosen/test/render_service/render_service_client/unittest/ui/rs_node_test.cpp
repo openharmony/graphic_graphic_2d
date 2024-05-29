@@ -6702,6 +6702,10 @@ HWTEST_F(RSNodeTest, IsInstanceOf, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkDrivenRender(false);
+    rsNode->MarkDrivenRenderItemIndex(0);
+    rsNode->MarkDrivenRenderFramePaintState(false);
+    rsNode->MarkContentChanged(0);
     rsNode->SetInstanceId(1);
     ASSERT_EQ(rsNode->GetInstanceId(), 1);
 }
