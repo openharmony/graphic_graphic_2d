@@ -956,7 +956,7 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
 
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "1") != "0";
+    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
     return flag;
 }
 
