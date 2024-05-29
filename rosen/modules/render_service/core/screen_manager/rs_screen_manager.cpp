@@ -1204,7 +1204,11 @@ std::shared_ptr<HdiOutput> RSScreenManager::GetOutput(ScreenId id) const
         RS_LOGW("RSScreenManager::GetOutput: There is no screen for id %{public}" PRIu64 ".", id);
         return nullptr;
     }
-    return screens_.at(id)->GetOutput();
+    auto iter = screens_.find(id);
+    if (iter != screens_.end() && iter->second != nullptr) {
+        return iter->second->GetOutput();
+    }
+    return nullptr;
 }
 
 int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback)
