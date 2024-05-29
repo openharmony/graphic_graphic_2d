@@ -766,7 +766,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         Drawing::Matrix matrix;
         auto srcWidth = params.srcRect.GetWidth();
-        auto srcHeight = params.srcRect.GetHeight()
+        auto srcHeight = params.srcRect.GetHeight();
         auto sx = params.dstRect.GetWidth() / srcWidth;
         auto sy = params.dstRect.GetHeight() / srcHeight;
         auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
