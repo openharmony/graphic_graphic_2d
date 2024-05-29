@@ -16,13 +16,14 @@
 #ifndef DRAW_CMD_H
 #define DRAW_CMD_H
 
-#include <cstdint>
-#include <unordered_map>
-#include <functional>
-#include <stack>
-#include <utility>
-#include <ctime>
 #include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <functional>
+#include <shared_mutex>
+#include <stack>
+#include <unordered_map>
+#include <utility>
 
 #include "draw/canvas.h"
 #include "draw/paint.h"
@@ -116,6 +117,7 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
+static std::shared_timed_mutex UnmarshallingFuncMapMutex_;
 class UnmarshallingPlayer {
 public:
     using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
