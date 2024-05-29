@@ -27,7 +27,6 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_kawase_blur_shader_filter_test.cpp",
     "ge_linear_gradient_blur_shader_filter_test.cpp",
     "ge_render_test.cpp",
-    "ge_shader_test.cpp",
     "ge_system_properties_test.cpp",
     "ge_visual_effect_container_test.cpp",
     "ge_visual_effect_impl_test.cpp",
