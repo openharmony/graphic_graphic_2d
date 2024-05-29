@@ -129,7 +129,6 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     if (argc == ARGC_TWO) {
         runBuffer = textBlobBuilder->AllocRunPos(*font, size);
     } else {
-        CHECK_EACH_PARAM(ARGC_TWO, napi_object);
         Rect drawingRect;
         napi_valuetype isRectNullptr;
         if (!OnMakeDrawingRect(env, argv[ARGC_TWO], drawingRect, isRectNullptr)) {

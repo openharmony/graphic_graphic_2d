@@ -747,7 +747,6 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     CHECK_EACH_PARAM(ARGC_TWO, napi_number);
     CHECK_EACH_PARAM(ARGC_THREE, napi_object);
     CHECK_EACH_PARAM(ARGC_FOUR, napi_number);
-    CHECK_EACH_PARAM(ARGC_FIVE, napi_object);
     CHECK_EACH_PARAM(ARGC_SIX, napi_number);
 
     PixelMapNapi* pixelMapNapi = nullptr;
