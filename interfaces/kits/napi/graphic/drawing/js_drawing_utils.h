@@ -126,6 +126,14 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_JSVALUE_PARAM(argc, value)                                                                                 \
+    do {                                                                                                               \
+        if (!ConvertFromJsValue(env, argv[argc], value)) {                                                             \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+    } while (0)
+
 namespace Drawing {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
