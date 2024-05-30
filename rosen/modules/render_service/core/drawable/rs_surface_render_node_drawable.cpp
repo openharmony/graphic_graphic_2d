@@ -629,10 +629,11 @@ std::shared_ptr<RSSurfaceRenderNode> RSSurfaceRenderNodeDrawable::GetSurfaceRend
 
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const
 {
+    static Occlusion::Region defaultRegion;
     auto surfaceNode = GetSurfaceRenderNode();
     if (surfaceNode == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion surfaceNode is nullptr");
-        return {};
+        return defaultRegion;
     }
     return surfaceNode->GetVisibleDirtyRegion();
 }
@@ -687,7 +688,7 @@ void RSSurfaceRenderNodeDrawable::SetDirtyRegionBelowCurrentLayer(Occlusion::Reg
     surfaceNode->SetDirtyRegionBelowCurrentLayer(region);
 }
 
-const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNodeDrawable::GetSyncDirtyManager() const
+std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNodeDrawable::GetSyncDirtyManager() const
 {
     auto surfaceNode = GetSurfaceRenderNode();
     if (surfaceNode == nullptr) {

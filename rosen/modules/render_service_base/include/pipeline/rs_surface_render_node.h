@@ -467,7 +467,7 @@ public:
     bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)

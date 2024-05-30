@@ -645,7 +645,7 @@ const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetDirtyManage
     return dirtyManager_;
 }
 
-const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetSyncDirtyManager() const
+std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetSyncDirtyManager() const
 {
     return syncDirtyManager_;
 }
