@@ -29,7 +29,6 @@ def main():
     
     source_dir = os.path.realpath(sys.argv[1])
     if (not os.path.isdir(source_dir)):
-        print(source_dir)
         sys.stderr.write("Source path MUST be a directory")
         sys.stderr.write(os.linesep)
         exit(errno.EINVAL)
