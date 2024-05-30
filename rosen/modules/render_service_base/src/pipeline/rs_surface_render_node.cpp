@@ -2443,6 +2443,9 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
 
 bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
 {
+    if (!IsFirstLevelNode()) {
+        return false;
+    }
     hasTransparentSurface_ = false;
     if (IsLeashWindow()) {
         for (auto &child : *GetSortedChildren()) {
