@@ -3660,7 +3660,7 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
             }
         }
     }
-        
+
     return image;
 }
 
@@ -6179,6 +6179,8 @@ void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
             screenInfo_.width, screenInfo_.height);
         rcd_msg::GetInstance().SendMsg<ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
             node.GetScreenRotation());
+        rcd_msg::GetInstance().SendMsg<int>(TOPIC_RCD_DISPLAY_NOTCH,
+            node.GetNotchStatus());
     }
 }
 
