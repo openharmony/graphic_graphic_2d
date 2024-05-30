@@ -524,11 +524,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
     RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
-    bool hdrPresent = params->GetHDRPresent();
-    RS_LOGD("SetHDRPresent: %{public}d OnDraw", hdrPresent);
-    ScreenId screenId = curScreenInfo.id;
-    RSLuminanceControl::Get().SetHdrStatus(screenId, hdrPresent);
-    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
+    bool isHdrOn = params->GetHDRPresent();
+    RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
@@ -564,6 +561,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    ScreenId screenId = curScreenInfo.id;
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(screenId);
     if (isHdrOn) {

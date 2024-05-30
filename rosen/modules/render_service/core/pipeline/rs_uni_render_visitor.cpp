@@ -33,6 +33,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "luminance/rs_luminance_control.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -755,6 +756,15 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     }
     RS_LOGD("SetHDRPresent: [%{public}d] prepare", hasHdrpresent_);
     curDisplayNode_->SetHDRPresent(hasHdrpresent_);
+    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingDisplayParams) {
+        RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get StagingRenderParams failed.");
+        return;
+    }
+    ScreenId screenId = stagingDisplayParams->GetScreenId();
+    RSLuminanceControl::Get().SetHdrStatus(screenId, hasHdrpresent_);
+    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
+    curDisplayNode_->SetHDRPresent(isHdrOn);
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
@@ -766,10 +776,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
             RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
         }
     }
-    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
-    if (stagingDisplayParams) {
-        stagingDisplayParams->SetNewPixelFormat(newPixelFormat_);
-    }
+    stagingDisplayParams->SetNewPixelFormat(newPixelFormat_);
 }
 
 void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
