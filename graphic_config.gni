@@ -338,13 +338,20 @@ if (defined(global_parts_info.resourceschedule_memmgr)) {
 }
 
 _ace_adapter_dir = rebase_path("$ace_root/adapter", root_build_dir)
-_graphic_2d_adapter_dir = rebase_path("$graphic_2d_root/adapter", root_build_dir)
+_graphic_2d_adapter_dir =
+    rebase_path("$graphic_2d_root/adapter", root_build_dir)
 
 if (defined(is_arkui_x) && is_arkui_x) {
   # In case of arkui-x compilation, copy android and ios adapters from ace_engine
-  exec_script("$graphic_2d_root/copy_arkui_adapters.py", [_ace_adapter_dir, _graphic_2d_adapter_dir])
+  exec_script("$graphic_2d_root/copy_arkui_adapters.py",
+              [
+                _ace_adapter_dir,
+                _graphic_2d_adapter_dir,
+              ])
 }
-adapters = exec_script("$ace_root/build/search.py", [ _graphic_2d_adapter_dir ], "list lines")
+adapters = exec_script("$ace_root/build/search.py",
+                       [ _graphic_2d_adapter_dir ],
+                       "list lines")
 if (defined(use_clang_coverage) && use_clang_coverage) {
   graphic_2d_feature_rs_enable_profiler = false
 }

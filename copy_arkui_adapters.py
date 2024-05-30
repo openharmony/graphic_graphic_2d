@@ -47,8 +47,9 @@ def main():
         if not os.path.isfile(file_path):
             continue
 
-        if not os.path.exists(os.path.join(dest_dir, item, "build")):
-            shutil.copytree(os.path.join(source_dir, item, "build"), os.path.join(dest_dir, item, "build"))
+        dest_dir_build_folder = os.path.join(dest_dir, item, "build")
+        if not os.path.exists(dest_dir_build_folder):
+            shutil.copytree(os.path.join(source_dir, item, "build"), dest_dir_build_folder)
 
 if __name__ == "__main__":
     main()
