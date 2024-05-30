@@ -231,8 +231,8 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value element;
         Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-        Drawing::Point offset(ARGC_ZERO, ARGC_ZERO);
-        double runTimeRadius = ARGC_ZERO;
+        Drawing::Point offset(Drawing::ARGC_ZERO, Drawing::ARGC_ZERO);
+        double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
             ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
             return;
