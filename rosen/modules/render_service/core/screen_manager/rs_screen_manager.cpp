@@ -452,6 +452,10 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
             }
             if (screens_.count(id) != 0 && screenBacklight_.count(id) != 0 &&
                 (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON)) {
+                if (screens_[id] == nullptr) {
+                    RS_LOGW("ProcessScreenHotPlugEvents:screen %{public}" PRIu64 " not found", id);
+                    continue;
+                }
                 screens_[id]->SetScreenBacklight(screenBacklight_[id]);
                 auto mainThread = RSMainThread::Instance();
                 mainThread->PostTask([mainThread]() {
@@ -482,6 +486,10 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
     }
 
     int32_t initModeId = 0;
+    if (screens_[thisId] == nullptr) {
+        RS_LOGW("AddScreenToHgm:screen %{public}" PRIu64 " not found", thisId);
+        return;
+    }
     auto initMode = screens_[thisId]->GetActiveMode();
     if (!initMode) {
         RS_LOGE("RSScreenManager failed to get initial mode");
@@ -632,6 +640,10 @@ void RSScreenManager::HandleDefaultScreenDisConnectedLocked()
 {
     defaultScreenId_ = INVALID_SCREEN_ID;
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("HandleDefaultScreenDisConnectedLocked:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (!screen->IsVirtual()) {
             defaultScreenId_ = id;
             break;
@@ -862,6 +874,10 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     }
     uint64_t surfaceId = surface->GetUniqueId();
     for (auto &[screenId, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("SetVirtualScreenSurface:screen %{public}" PRIu64 " not found", screenId);
+            continue;
+        }
         if (!screen->IsVirtual() || screenId == id) {
             continue;
         }
@@ -900,6 +916,10 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
 
     // Update other screens' mirrorId.
     for (auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("RemoveVirtualScreenLocked:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (screen->MirrorId() == id) {
             screen->SetMirror(INVALID_SCREEN_ID);
         }
@@ -1218,6 +1238,10 @@ int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallb
     // when the callback first registered, maybe there were some physical screens already connected,
     // so notify to remote immediately.
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("AddScreenChangeCallback:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (!screen->IsVirtual()) {
             callback->OnScreenChanged(id, ScreenEvent::CONNECTED);
         }
@@ -1282,6 +1306,10 @@ void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
     int32_t index = 0;
     dumpString += "\n-- Clear fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("ClearFpsDump:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         screen->ClearFpsDump(index, dumpString, arg);
         index++;
     }
