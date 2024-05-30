@@ -45,7 +45,7 @@ ohos_static_library("buffer_handle") {
     "ipc:ipc_single",
   ]
 
-  public_external_deps = [ 
+  public_external_deps = [
     "hdf_core:libhdi",
     "hilog:libhilog",
   ]
