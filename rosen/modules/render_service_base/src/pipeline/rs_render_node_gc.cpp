@@ -32,10 +32,15 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
-    std::lock_guard<std::mutex> lock(nodeMutex_);
-    if (ptr && ptr->fallbackAnimationOnDestroy_) {
+    if (ptr == nullptr) {
+        return;
+    }
+    if (ptr->fallbackAnimationOnDestroy_) {
         ptr->FallbackAnimationsToRoot();
     }
+    ptr->fullChildrenList_ = nullptr;
+    ptr->disappearingChildren_.clear();
+    std::lock_guard<std::mutex> lock(nodeMutex_);
     node_.push_back(ptr);
 }
 

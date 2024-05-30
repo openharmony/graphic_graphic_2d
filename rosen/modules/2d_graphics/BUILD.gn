@@ -168,6 +168,11 @@ template("graphics2d_source_set") {
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {
+      sanitize = {
+        boundary_sanitize = true
+        integer_overflow = true
+        ubsan = true
+      }
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
       if (defined(

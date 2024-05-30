@@ -300,7 +300,6 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectSetLeft001, TestSize.L
     OH_Drawing_RectSetLeft(rect, 10);                                  // 10 means Left
 
     ASSERT_FLOAT_EQ(OH_Drawing_RectGetLeft(rect), 10); // 10 equal to number
-    ASSERT_FLOAT_EQ(OH_Drawing_RectGetLeft(rect), 0.f);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -494,17 +493,15 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetWidth002, TestSize.Leve
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectCopy001, TestSize.Level1)
 {
-    OH_Drawing_Rect *rectSrc = nullptr;
-    ASSERT_TRUE(rectSrc == nullptr);
-    OH_Drawing_Rect *rectDst = OH_Drawing_RectCreate(11, 22, 333, 444); // 11,22,333,444 rect param
-    OH_Drawing_RectCopy(rectDst, rectSrc);
+    OH_Drawing_Rect *rectDst = nullptr;
+    OH_Drawing_Rect *rectSrc = OH_Drawing_RectCreate(11, 22, 333, 444); // 11,22,333,444 rect param
+    OH_Drawing_RectCopy(rectSrc, rectDst);
     ASSERT_TRUE(rectDst == nullptr);
 
-    OH_Drawing_Rect *rectSrc1 = OH_Drawing_RectCreate(0, 0, 400, 800); // 400 800 v
-    OH_Drawing_Rect *rectDst1 = nullptr;
-    ASSERT_TRUE(rectDst1 == nullptr);
-    OH_Drawing_RectCopy(rectDst1, rectSrc);
-    ASSERT_TRUE(rectDst1 == nullptr);
+    OH_Drawing_Rect *rectDst1 = OH_Drawing_RectCreate(0, 0, 400, 800); // 400 800 v
+    OH_Drawing_Rect *rectSrc1 = nullptr;
+    OH_Drawing_RectCopy(rectSrc1, rectDst1);
+    ASSERT_TRUE(rectDst1 != nullptr);
 
     OH_Drawing_RectDestroy(rectSrc);
     OH_Drawing_RectDestroy(rectDst);

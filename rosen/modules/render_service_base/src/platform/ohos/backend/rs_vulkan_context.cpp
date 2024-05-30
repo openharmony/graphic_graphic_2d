@@ -152,8 +152,6 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(GetPhysicalDeviceMemoryProperties2, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures2, instance_);
 
-    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", instance_);
-
     return true;
 }
 
@@ -345,6 +343,8 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
+
+    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", device_);
 
     return true;
 }

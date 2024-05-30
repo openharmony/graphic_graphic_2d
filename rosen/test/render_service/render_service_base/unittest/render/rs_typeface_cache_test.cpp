@@ -76,7 +76,7 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypefaceTest001, TestSize.Level1)
     auto typeface = Drawing::Typeface::MakeDefault();
     RSTypefaceCache::Instance().CacheDrawingTypeface(1, typeface);
     RSTypefaceCache::Instance().CacheDrawingTypeface(2, typeface);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -88,7 +88,7 @@ HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefaceByGlobalUniqueIdTest001, Test
 {
     auto typeface = Drawing::Typeface::MakeDefault();
     RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(1);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -111,7 +111,7 @@ HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefacesByPidTest001, TestSize.Level
 {
     auto typeface = Drawing::Typeface::MakeDefault();
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(2);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -122,7 +122,7 @@ HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefacesByPidTest001, TestSize.Level
 HWTEST_F(RSTypefaceCacheTest, AddDelayDestroyQueueTest001, TestSize.Level1)
 {
     RSTypefaceCache::Instance().AddDelayDestroyQueue(1);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -134,7 +134,7 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
 {
     auto typeface = Drawing::Typeface::MakeDefault();
     RSTypefaceCache::Instance().HandleDelayDestroyQueue();
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

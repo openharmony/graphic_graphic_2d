@@ -21,6 +21,7 @@ group("napi_packages") {
     "graphic/hdr_capability:hdrcapability_napi",
     "graphic/hyper_graphic_manager:libhgmnapi",
     "graphic/text:textnapi",
+    "graphic/ui_effect:uieffect_napi",
     "graphic/webgl:libwebglnapi",
   ]
 }

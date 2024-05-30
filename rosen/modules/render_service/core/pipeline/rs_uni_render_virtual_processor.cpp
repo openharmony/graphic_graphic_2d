@@ -251,7 +251,7 @@ void RSUniRenderVirtualProcessor::JudgeResolution(RSDisplayRenderNode& node)
 void RSUniRenderVirtualProcessor::CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation)
 {
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
+    auto& geoPtr = property.GetBoundsGeometry();
     if (geoPtr) {
         // if need rotation, canvas shouid be set to original absolute position
         if (canvasRotation) {

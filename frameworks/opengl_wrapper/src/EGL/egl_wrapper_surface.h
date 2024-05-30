@@ -18,6 +18,10 @@
 
 #include <EGL/egl.h>
 #include "egl_wrapper_object.h"
+#include "external_window.h"
+#include "surface.h"
+#include "window.h"
+
 namespace OHOS {
 class EglWrapperDisplay;
 
@@ -34,6 +38,8 @@ public:
     {
         return window_;
     };
+
+    static void Disconnect(OHNativeWindow *window);
 
 protected:
     ~EglWrapperSurface() override;

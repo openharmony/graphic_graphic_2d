@@ -60,8 +60,10 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }
 
-void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU)
+void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+    const ScreenInfo& screenInfo)
 {
+    (void) screenInfo;
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;

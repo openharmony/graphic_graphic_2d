@@ -171,11 +171,11 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     IMG_JS_ARGS(env, info, status, argc, argv, _this);
     if (!IMG_IS_OK(status)) {
         FILTER_LOG_I("FilterNapi parse input falid");
-        return nullptr;
+        return _this;
     }
     float radius = 0.0f;
     if (argc != 1) {
-        return nullptr;
+        return _this;
     }
     if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_number) {
         double tmp = 0.0f;
@@ -189,14 +189,14 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&filterObj)));
     if (filterObj == nullptr) {
         FILTER_LOG_E("filterNapi is nullptr");
-        return nullptr;
+        return _this;
     }
     std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
     if (para == nullptr) {
         FILTER_LOG_E("para is nullptr");
-        return nullptr;
+        return _this;
     }
-    para->radius_ = radius;
+    para->SetRadius(radius);
     filterObj->AddPara(para);
 
     return _this;
@@ -246,7 +246,7 @@ static bool GetStretchPercent(napi_env env, napi_value param, std::shared_ptr<Pi
             return false;
         }
     }
-    para->stretchPercent_ = tmpPercent_;
+    para->SetStretchPercent(tmpPercent_);
     return true;
 }
 
@@ -265,19 +265,18 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
 
     if (argCount >= NUM_1) {
-        tileMode = ParserArgumentType(env, argValue[NUM_1 - 1]);
-    }
-    para->stretchTileMode_ = tileMode;
-    if (argCount >= NUM_2) {
-        IMG_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_1], para),
+        IMG_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
             nullptr, FILTER_LOG_E("fail to parse coordinates"));
     }
-
+    if (argCount >= NUM_2) {
+        tileMode = ParserArgumentType(env, argValue[NUM_1]);
+    }
+    para->SetTileMode(tileMode);
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
     if (filterObj == nullptr) {
         FILTER_LOG_E("filterNapi is nullptr");
-        return nullptr;
+        return thisVar;
     }
     filterObj->AddPara(para);
 

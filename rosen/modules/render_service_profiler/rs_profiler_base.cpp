@@ -231,7 +231,7 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
     if (g_mode == Mode::WRITE) {
         g_commandParseBuffer.packetTime = Utils::ToSeconds(time);
         g_commandParseBuffer.packetSize = parcel.GetDataSize();
-        int index = g_commandLoopIndexEnd++;
+        uint32_t index = g_commandLoopIndexEnd++;
         index %= COMMAND_LOOP_SIZE;
         g_commandLoop[index] = g_commandParseBuffer;
         g_commandParseBuffer.cmdCount = 0;
@@ -501,7 +501,7 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     parcel.SetMaxCapacity(GetParcelMaxCapacity());
     const_cast<RSRenderModifier&>(modifier).Marshalling(parcel);
 
-    const int32_t dataSize = parcel.GetDataSize();
+    const size_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
     data.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
 }
@@ -651,7 +651,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
 
 static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data)
 {
-    int32_t bufferSize = 0;
+    size_t bufferSize = 0;
     data.read(reinterpret_cast<char*>(&bufferSize), sizeof(bufferSize));
 
     std::vector<uint8_t> buffer;
@@ -798,7 +798,7 @@ std::string RSProfiler::GetCommandParcelList(double recordStartTime)
         return "";
     }
 
-    int index = g_commandLoopIndexStart;
+    uint32_t index = g_commandLoopIndexStart;
     g_commandLoopIndexStart++;
     index %= COMMAND_LOOP_SIZE;
 
@@ -906,7 +906,7 @@ int RSProfiler::PerfTreeFlatten(
 
 void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image)
 {
-    if (!IsSharedMemoryEnabled()) {
+    if (IsEnabled() && !IsSharedMemoryEnabled()) {
         image = nullptr;
     }
 }

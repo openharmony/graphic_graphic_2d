@@ -507,6 +507,16 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
     return renderService->GetVirtualScreenResolution(id);
 }
 
+void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+
+    renderService->MarkPowerOffNeedProcessOneFrame();
+}
+
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

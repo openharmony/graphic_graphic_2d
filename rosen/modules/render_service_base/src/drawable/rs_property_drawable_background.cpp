@@ -284,6 +284,9 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask() && mask->GetImage()) {
+        Drawing::AutoCanvasRestore maskSave(canvas, true);
+        canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
     }
 
     // back to mask layer
