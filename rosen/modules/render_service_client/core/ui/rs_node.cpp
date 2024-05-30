@@ -1037,8 +1037,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
             auto diameMax = particleParams[i].emitterConfig_.radius_ * 2 * scaleMax; // diameter = 2 * radius
-            left[i] = std::min(bounds.x_ - diameMax, position.x_ - diameMax);
-            top[i] = std::min(bounds.y_ - diameMax, position.y_ - diameMax);
+            left[i] = std::min(bounds.x_ - diameMax, bounds.x_ + position.x_ - diameMax);
+            top[i] = std::min(bounds.y_ - diameMax, bounds.y_ + position.y_ - diameMax);
             right[i] = std::max(boundsRight + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
             bottom[i] = std::max(boundsBottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
@@ -1055,8 +1055,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             }
             float imageSizeWidthMax = imageSizeWidth * scaleMax;
             float imageSizeHeightMax = imageSizeHeight * scaleMax;
-            left[i] = std::min(bounds.x_ - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
-            top[i] = std::min(bounds.y_ - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
+            left[i] = std::min(bounds.x_ - imageSizeWidthMax, bounds.x_ + position.x_ - imageSizeWidthMax);
+            top[i] = std::min(bounds.y_ - imageSizeHeightMax, bounds.y_ + position.y_ - imageSizeHeightMax);
             right[i] = std::max(boundsRight + imageSizeWidthMax + imageSizeWidthMax,
                 position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
             bottom[i] = std::max(boundsBottom + imageSizeHeightMax + imageSizeHeightMax,
@@ -1067,7 +1067,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     float t = *std::min_element(top.begin(), top.end());
     boundsRight = *std::max_element(right.begin(), right.end());
     boundsBottom = *std::max_element(bottom.begin(), bottom.end());
-    std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(l, t, boundsRight - l, boundsBottom - t);
+    std::shared_ptr<RectF> overlayRect =
+        std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t);
     SetDrawRegion(overlayRect);
 }
 

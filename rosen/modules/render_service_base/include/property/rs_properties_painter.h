@@ -148,8 +148,6 @@ private:
         std::vector<Drawing::Point>& ctrlPoints, const std::vector<Drawing::Point>& texCoords);
     static std::vector<Drawing::Point> InitCtrlPoints(float width, float height, float degree);
     static float CalcOffsetSquare(float& width, float& height, const float degree, const bool isWidthGreater);
-    static void DrawParticle(const std::shared_ptr<RSRenderParticle>& particle, const std::shared_ptr<RectF>& bounds,
-        RSPaintFilterCanvas& canvas);
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

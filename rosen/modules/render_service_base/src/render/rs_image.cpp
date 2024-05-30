@@ -240,6 +240,21 @@ void RSImage::ApplyImageFit()
     dstRect_ = ApplyImageFitSwitch(imageParameter, imageFit_, tempRectF);
 }
 
+ImageFit RSImage::GetImageFit()
+{
+    return imageFit_;
+}
+
+RectF RSImage::GetDstRect()
+{
+    return dstRect_;
+}
+
+void RSImage::SetFrameRect(RectF frameRect)
+{
+    frameRect_ = frameRect;
+}
+
 bool RSImage::HasRadius() const
 {
     return hasRadius_;
