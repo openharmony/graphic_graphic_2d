@@ -674,7 +674,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(std::shared_ptr<RSDisplayRend
     }
     if (mirroredNode->GetSecurityDisplay() != displayNodeSp->GetSecurityDisplay() && hasSpicalLayer) {
         DrawMirror(displayNodeSp, params, processor, &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
-    } else if (hardwareNodes.size() > 0) {
+    } else if (hardwareNodes.size() > 0 && RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()) {
         DrawMirror(displayNodeSp, params, processor,
             &RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes, *uniParam);
     } else {
