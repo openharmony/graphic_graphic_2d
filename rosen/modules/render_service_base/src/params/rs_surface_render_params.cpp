@@ -344,6 +344,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
+    targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     RSRenderParams::OnSync(target);
 }
 
@@ -363,4 +364,14 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
+bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+{
+    if (IsMainWindowType()) {
+        return curSurfaceDrawRegion.IsEmpty();
+    }
+    if (IsLeashWindow()) {
+        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+    }
+    return false;
+}
 } // namespace OHOS::Rosen

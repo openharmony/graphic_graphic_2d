@@ -1331,6 +1331,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
 
+    // Update whether leash window's visible region is empty after prepare children
+    UpdateLeashWindowVisibleRegionEmpty(node);
+
     if (node.IsLeashWindow() && RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()) {
         CheckIsGpuOverDrawBufferOptimizeNode(node);
     }
@@ -1668,8 +1671,10 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
     // only need collect first level node's security & skip layer info
+    // and update it's uifirst gravity
     if (node.GetId() == node.GetFirstLevelNodeId()) {
         UpdateSecuritySkipAndProtectedLayersRecord(node);
+        node.UpdateUIFirstFrameGravity();
     }
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
@@ -1688,6 +1693,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         RSMainThread::Instance()->CheckAndUpdateInstanceContentStaticStatus(curSurfaceNode_);
         curSurfaceNode_->UpdateSurfaceCacheContentStaticFlag();
         curSurfaceNode_->UpdateSurfaceSubTreeDirtyFlag();
+        curSurfaceNode_->SetLeashWindowVisibleRegionEmpty(false);
     }
     // 2. update surface info and CheckIfOcclusionReusable
     node.SetAncestorDisplayNode(curDisplayNode_); // set for boot animation
@@ -1730,6 +1736,28 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     // 3. Update HwcNode Info for appNode
     UpdateHwcNodeInfoForAppNode(node);
     return true;
+}
+
+void RSUniRenderVisitor::UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node)
+{
+    if (!node.IsLeashWindow()) {
+        return;
+    }
+    bool hasAppWindow = false;
+    bool childrenHasVisbleRegion = false;
+    for (const auto& child : *node.GetSortedChildren()) {
+        const auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (childSurfaceNode && childSurfaceNode->IsAppWindow()) {
+            hasAppWindow = true;
+            if (!childSurfaceNode->GetVisibleRegion().IsEmpty()) {
+                childrenHasVisbleRegion = true;
+            }
+        }
+    }
+    // attention: don't set leash window's visible region empty while it doesn't have app window as child
+    if (hasAppWindow && !childrenHasVisbleRegion) {
+        node.SetLeashWindowVisibleRegionEmpty(true);
+    }
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
