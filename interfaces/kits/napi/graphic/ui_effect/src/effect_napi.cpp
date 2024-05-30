@@ -14,20 +14,13 @@
  */
 #include "effect_napi.h"
 #include "image_napi_utils.h"
- 
+
 namespace {
-    constexpr uint32_t NUM_0 = 0;
     constexpr uint32_t NUM_1 = 1;
-    constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
-    constexpr uint32_t NUM_4 = 4;
-    constexpr uint32_t NUM_5 = 5;
-    constexpr uint32_t NUM_6 = 6;
-    constexpr uint32_t NUM_7 = 7;
     constexpr uint32_t NUM_8 = 8;
-    constexpr uint32_t NUM_9 = 9;
 }
- 
+
 namespace OHOS {
 namespace Rosen {
 static const std::string CLASS_NAME = "VisualEffect";
@@ -77,7 +70,6 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("define properties fail"));
     return exports;
 }
- 
  
 napi_value EffectNapi::Constructor(napi_env env, napi_callback_info info)
 {
@@ -134,7 +126,52 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
 }
- 
+
+napi_value ParseJsValue(napi_env env, napi_value jsObject, const std::string& name)
+{
+    napi_value value = nullptr;
+    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    return value;
+}
+
+bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
+{
+    bool result = true;
+    napi_status status = napi_has_named_property(env, jsObject, "cubicRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "quadRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "linearRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "degree", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "saturation", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "fraction", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "positiveCoeff", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "negativeCoeff", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    return true;
+}
+
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
@@ -147,26 +184,36 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
             delete blenderObj;
         },
         nullptr, nullptr);
- 
-    napi_value argValue[NUM_9] = {0};
-    size_t argCount = NUM_9;
-    napi_status status;
-    IMG_JS_ARGS(env, info, status, argCount, argValue, object);
- 
-    if (argCount < NUM_8) {
-        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
+
+    size_t argc = 1;
+    napi_value argv[1];
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (argc != 1) {
+        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, argc number is not 1.");
         return nullptr;
     }
-    
-    napi_set_named_property(env, object, "cubicRate", argValue[NUM_0]);
-    napi_set_named_property(env, object, "quadRate", argValue[NUM_1]);
-    napi_set_named_property(env, object, "linearRate", argValue[NUM_2]);
-    napi_set_named_property(env, object, "degree", argValue[NUM_3]);
-    napi_set_named_property(env, object, "saturation", argValue[NUM_4]);
-    napi_set_named_property(env, object, "positiveCoeff", argValue[NUM_5]);
-    napi_set_named_property(env, object, "negativeCoeff", argValue[NUM_6]);
-    napi_set_named_property(env, object, "fraction", argValue[NUM_7]);
- 
+
+    napi_value nativeObj = argv[0];
+    if (nativeObj == nullptr) {
+        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, nativeObj is nullptr.");
+        return nullptr;
+    }
+
+    if (!CheckCreateBrightnessBlender (env, nativeObj)) {
+        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, object, "cubicRate", ParseJsValue(env, nativeObj, "cubicRate"));
+    napi_set_named_property(env, object, "quadRate", ParseJsValue(env, nativeObj, "quadRate"));
+    napi_set_named_property(env, object, "linearRate", ParseJsValue(env, nativeObj, "linearRate"));
+    napi_set_named_property(env, object, "degree", ParseJsValue(env, nativeObj, "degree"));
+    napi_set_named_property(env, object, "saturation", ParseJsValue(env, nativeObj, "saturation"));
+    napi_set_named_property(env, object, "positiveCoeff", ParseJsValue(env, nativeObj, "positiveCoeff"));
+    napi_set_named_property(env, object, "negativeCoeff", ParseJsValue(env, nativeObj, "negativeCoeff"));
+    napi_set_named_property(env, object, "fraction", ParseJsValue(env, nativeObj, "fraction"));
+
     if (object == nullptr) {
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
     }
