@@ -178,6 +178,7 @@ private:
     friend class RSRenderThread;
     friend class RSMainThread;
     friend class RSDrawFrame;
+    friend class RSSurfaceCaptureTaskParallel;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
