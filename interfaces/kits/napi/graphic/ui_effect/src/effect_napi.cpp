@@ -141,7 +141,7 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
     if (!((status == napi_ok) && result)) {
         return false;
     }
-    status = napi_has_named_property(env, jsObject, "quadRate", &result);
+    status = napi_has_named_property(env, jsObject, "quadraticRate", &result);
     if (!((status == napi_ok) && result)) {
         return false;
     }
@@ -161,11 +161,11 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
     if (!((status == napi_ok) && result)) {
         return false;
     }
-    status = napi_has_named_property(env, jsObject, "positiveCoeff", &result);
+    status = napi_has_named_property(env, jsObject, "positiveCoefficient", &result);
     if (!((status == napi_ok) && result)) {
         return false;
     }
-    status = napi_has_named_property(env, jsObject, "negativeCoeff", &result);
+    status = napi_has_named_property(env, jsObject, "negativeCoefficient", &result);
     if (!((status == napi_ok) && result)) {
         return false;
     }
@@ -206,12 +206,12 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     }
 
     napi_set_named_property(env, object, "cubicRate", ParseJsValue(env, nativeObj, "cubicRate"));
-    napi_set_named_property(env, object, "quadRate", ParseJsValue(env, nativeObj, "quadRate"));
+    napi_set_named_property(env, object, "quadraticRate", ParseJsValue(env, nativeObj, "quadraticRate"));
     napi_set_named_property(env, object, "linearRate", ParseJsValue(env, nativeObj, "linearRate"));
     napi_set_named_property(env, object, "degree", ParseJsValue(env, nativeObj, "degree"));
     napi_set_named_property(env, object, "saturation", ParseJsValue(env, nativeObj, "saturation"));
-    napi_set_named_property(env, object, "positiveCoeff", ParseJsValue(env, nativeObj, "positiveCoeff"));
-    napi_set_named_property(env, object, "negativeCoeff", ParseJsValue(env, nativeObj, "negativeCoeff"));
+    napi_set_named_property(env, object, "positiveCoefficient", ParseJsValue(env, nativeObj, "positiveCoefficient"));
+    napi_set_named_property(env, object, "negativeCoefficient", ParseJsValue(env, nativeObj, "negativeCoefficient"));
     napi_set_named_property(env, object, "fraction", ParseJsValue(env, nativeObj, "fraction"));
 
     if (object == nullptr) {
@@ -297,7 +297,7 @@ bool EffectNapi::ParseBrightnessBlender(
         blender->SetCubicRate(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "quadRate", val)) {
+    if (ParseJsDoubleValue(jsObject, env, "quadraticRate", val)) {
         blender->SetQuadRate(static_cast<float>(val));
         parseTimes++;
     }
@@ -317,11 +317,11 @@ bool EffectNapi::ParseBrightnessBlender(
         blender->SetFraction(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "positiveCoeff", tmpVector3)) {
+    if (ParseJsVec3Value(jsObject, env, "positiveCoefficient", tmpVector3)) {
         blender->SetPositiveCoeff(tmpVector3);
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "negativeCoeff", tmpVector3)) {
+    if (ParseJsVec3Value(jsObject, env, "negativeCoefficient", tmpVector3)) {
         blender->SetNegativeCoeff(tmpVector3);
         parseTimes++;
     }
