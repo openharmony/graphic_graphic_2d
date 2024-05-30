@@ -589,7 +589,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
             vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
             float diffuseStrength = 0.0;
             float shininess = 8.0;
-            mediump vec4 fragColor;
+            mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
             // ambient
             vec4 ambient = lightColor * ambientStrength;
