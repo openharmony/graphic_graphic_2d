@@ -18,24 +18,99 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-    bool HMSymbolTxt::operator ==(HMSymbolTxt const &sym) const
-    {
-        if (colorList_.size() != sym.colorList_.size()) {
-            return false;
-        }
-        for (size_t i = 0; i < colorList_.size(); i++) {
-            if (colorList_[i].a != sym.colorList_[i].a ||
-                colorList_[i].r != sym.colorList_[i].r ||
-                colorList_[i].g != sym.colorList_[i].g ||
-                colorList_[i].b != sym.colorList_[i].b) {
-                    return false;
-                }
-        }
-        if (renderMode_ != sym.renderMode_ || effectStrategy_ != sym.effectStrategy_) {
-            return false;
-        }
-        return true;
+bool HMSymbolTxt::operator ==(HMSymbolTxt const &sym) const
+{
+    if (colorList_.size() != sym.colorList_.size()) {
+        return false;
     }
+    for (size_t i = 0; i < colorList_.size(); i++) {
+        if (colorList_[i].a != sym.colorList_[i].a ||
+            colorList_[i].r != sym.colorList_[i].r ||
+            colorList_[i].g != sym.colorList_[i].g ||
+            colorList_[i].b != sym.colorList_[i].b) {
+                return false;
+            }
+    }
+    if (renderMode_ != sym.renderMode_ || effectStrategy_ != sym.effectStrategy_) {
+        return false;
+    }
+    return true;
 }
+
+void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
+{
+    colorList_ = colorList;
 }
+
+void HMSymbolTxt::SetRenderColor(const RSSColor& colorList)
+{
+    colorList_ = {colorList};
 }
+
+void HMSymbolTxt::SetRenderMode(RSSymbolRenderingStrategy renderMode)
+{
+    renderMode_ = renderMode;
+}
+
+void HMSymbolTxt::SetSymbolEffect(const RSEffectStrategy& effectStrategy)
+{
+    effectStrategy_ = effectStrategy;
+}
+
+std::vector<RSSColor> HMSymbolTxt::GetRenderColor() const
+{
+    return colorList_;
+}
+
+RSSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const
+{
+    return renderMode_;
+}
+
+RSEffectStrategy HMSymbolTxt::GetEffectStrategy() const
+{
+    return effectStrategy_;
+}
+
+void HMSymbolTxt::SetAnimationMode(const uint16_t animationMode)
+{
+    animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
+}
+
+void HMSymbolTxt::SetRepeatCount(const int repeatCount)
+{
+    repeatCount_ = repeatCount;
+}
+
+void HMSymbolTxt::SetAnimationStart(const bool animationStart)
+{
+    animationStart_ = animationStart;
+}
+
+uint16_t HMSymbolTxt::GetAnimationMode() const
+{
+    return animationMode_;
+}
+
+int HMSymbolTxt::GetRepeatCount() const
+{
+    return repeatCount_;
+}
+
+bool HMSymbolTxt::GetAnimationStart() const
+{
+    return animationStart_;
+}
+
+void HMSymbolTxt::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
+{
+    commonSubType_ = commonSubType;
+}
+
+Drawing::DrawingCommonSubType HMSymbolTxt::GetCommonSubType() const
+{
+    return commonSubType_;
+}
+} // SPText
+} // Rosen
+} // OHOS

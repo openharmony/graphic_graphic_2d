@@ -37,7 +37,6 @@
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
@@ -46,6 +45,7 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,7 +73,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
             curNode = parentNode;
         }
         curNodeParams = static_cast<RSSurfaceRenderParams*>(curNode->GetRenderParams().get());
-        if (curNodeParams && curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW) {
+        if (curNodeParams && (curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW ||
+            curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW) &&
+            curNodeParams->GetShouldPaint()) {
             surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
                 DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         } else {

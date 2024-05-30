@@ -447,5 +447,10 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

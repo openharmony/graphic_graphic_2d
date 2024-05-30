@@ -84,6 +84,9 @@ public:
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
 
+    void DrawAtlas(const Drawing::Image* atlas, const Drawing::RSXform xform[], const Drawing::Rect tex[],
+        const Drawing::ColorQuad colors[], int count, Drawing::BlendMode mode,
+        const Drawing::SamplingOptions& sampling, const Drawing::Rect* cullRect) override;
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,
         const Drawing::scalar px, const Drawing::scalar py, const Drawing::SamplingOptions& sampling) override;

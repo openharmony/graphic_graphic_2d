@@ -46,6 +46,8 @@
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image) RSProfiler::MarshalDrawingImage(image)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
+#define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
+#define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -67,6 +69,8 @@
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
+#define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
+#define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -147,6 +151,9 @@ public:
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
     RSB_EXPORT static void MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image);
     RSB_EXPORT static void SetDirtyRegion(const Occlusion::Region& dirtyRegion);
+
+    RSB_EXPORT static void WriteParcelData(Parcel& parcel);
+    RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);

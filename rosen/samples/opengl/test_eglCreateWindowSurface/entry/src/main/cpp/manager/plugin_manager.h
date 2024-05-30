@@ -23,6 +23,7 @@
 
 #include "plugin_render.h"
 
+namespace OHOS {
 class PluginManager {
 public:
     ~PluginManager();
@@ -42,4 +43,5 @@ private:
     std::unordered_map<std::string, OH_NativeXComponent *> m_nativeXComponentMap;
     std::unordered_map<std::string, PluginRender *> m_pluginRenderMap;
 };
-#endif
+} // namespace OHOS
+#endif // PLUGIN_MANAGER_H

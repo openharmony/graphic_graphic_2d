@@ -180,6 +180,9 @@ void VSyncGenerator::ThreadLoop()
                 bool modelChanged = UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp);
                 if (modelChanged) {
                     ScopedBytrace func("VSyncGenerator: LTPO mode change");
+                    locker.unlock();
+                    appVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
+                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
                     continue;
                 }
             }
@@ -376,7 +379,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     // 3 / 5 and 1 / 10 are just empirical value
     int64_t threshold = refreshRateIsChanged_ ? (1 * periodRecord_ / 10) : (3 * periodRecord_ / 5);
     // between 8000000(8ms) and 8500000(8.5ms)
-    if (!refreshRateIsChanged_ && periodRecord_ > 8000000 && periodRecord_ < 8500000) {
+    if (!refreshRateIsChanged_ && frameRateChanging_ && periodRecord_ > 8000000 && periodRecord_ < 8500000) {
         threshold = 4 * periodRecord_ / 5; // 4 / 5 is an empirical value
     }
     // 3 / 5 just empirical value
@@ -675,6 +678,11 @@ VsyncError VSyncGenerator::StartRefresh()
 void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor)
 {
     rsVSyncDistributor_ = rsVSyncDistributor;
+}
+
+void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
+{
+    appVSyncDistributor_ = appVSyncDistributor;
 }
 
 void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)

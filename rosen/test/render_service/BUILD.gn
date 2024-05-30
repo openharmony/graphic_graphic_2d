@@ -28,6 +28,7 @@ group("test") {
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsanimationfraction_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbackgroundthread_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
@@ -44,6 +45,7 @@ group("test") {
     "render_service_base/fuzztest/rspropertydrawableutilities_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsshader_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsspringmodel_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosgl_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosvulkan_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
@@ -75,7 +77,6 @@ group("test") {
     "render_service_client/unittest/pipeline:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
-    "render_service_profiler/unittest:unittest",
   ]
 
   if (tp_feature_enable) {
@@ -84,5 +85,9 @@ group("test") {
 
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ "render_service/unittest/drawable:unittest" ]
+  }
+
+  if (graphic_2d_feature_rs_enable_profiler) {
+    deps += [ "render_service_profiler/unittest:unittest" ]
   }
 }

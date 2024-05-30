@@ -97,6 +97,8 @@ public:
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
+    void MarkPowerOffNeedProcessOneFrame() override;
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;

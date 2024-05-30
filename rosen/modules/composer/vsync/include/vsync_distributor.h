@@ -58,6 +58,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
@@ -72,6 +73,7 @@ public:
     uint32_t vsyncPulseFreq_ = 1;
     int64_t referencePulseCount_ = 0;
     uint32_t refreshRate_ = 0;
+    bool rnvTrigger_ = false;
 private:
     VsyncError CleanAllLocked();
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -121,6 +123,11 @@ public:
     void MarkRSAnimate();
     void UnmarkRSAnimate();
     bool HasPendingUIRNV();
+    uint32_t GetRefreshRate();
+    void RecordVsyncModeChange(uint32_t refreshReate, int64_t period);
+    bool IsUiDvsyncOn();
+    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
+    int64_t GetUiCommandDelayTime();
 
 private:
 
@@ -147,6 +154,7 @@ private:
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
+    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     VsyncError SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bool isSystemAnimateScene = false);
 
 #ifdef COMPOSER_SCHED_ENABLE
