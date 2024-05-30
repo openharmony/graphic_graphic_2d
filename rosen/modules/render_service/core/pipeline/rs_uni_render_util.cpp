@@ -246,52 +246,59 @@ void RSUniRenderUtil::MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displayNod
         RS_LOGE("RSUniRenderUtil::MergeDirtyHistory params is nullptr");
         return;
     }
-
-    // TO-DO curAllSurfaces will use surface node ptr vector
-    auto& curAllSurfaces = renderParallel ? params->GetAllMainAndLeashSurfaces() : displayNode.GetCurAllSurfaces();
-    // update all child surfacenode history
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+    auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it->get());
+        if (surfaceNodeDrawable == nullptr) {
             continue;
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceNode->GetId());
-        auto surfaceDirtyManager = renderParallel ? surfaceNode->GetSyncDirtyManager() : surfaceNode->GetDirtyManager();
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
+            continue;
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceParams->GetId());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceDirtyManager) {
+            continue;
+        }
         surfaceDirtyManager->MergeDirtyHistoryInVirtual(bufferAge);
     }
-
     // update display dirtymanager
-    auto displayDirtyManager = renderParallel ? displayNode.GetSyncDirtyManager() : displayNode.GetDirtyManager();
+    auto displayDirtyManager = displayNode.GetSyncDirtyManager();
     displayDirtyManager->MergeDirtyHistoryInVirtual(bufferAge);
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
-    std::vector<RSRenderNode::SharedPtr>& allSurfaceNodes, bool renderParallel)
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables, bool renderParallel)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
-    for (auto it = allSurfaceNodes.rbegin(); it != allSurfaceNodes.rend(); ++it) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow() || surfaceNode->GetDstRect().IsEmpty()) {
+    for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(it->get());
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGI("MergeVisibleDirtyRegion surfaceNodeDrawable is nullptr");
             continue;
         }
-        auto surfaceParams =
-            static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (!surfaceParams && renderParallel) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
             RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
             continue;
         }
-        if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos || surfaceParams->GetIsSkipLayer()) {
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty() ||
+            surfaceParams->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
+            surfaceParams->GetIsSkipLayer()) {
             continue;
         }
-        auto surfaceDirtyManager = renderParallel ? surfaceNode->GetSyncDirtyManager() : surfaceNode->GetDirtyManager();
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surfaceDirtyManager is nullptr");
+            continue;
+        }
         auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegionInVirtual();
         Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
             surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-        auto visibleRegion = renderParallel ?
-            surfaceParams->GetVisibleRegionInVirtual() : surfaceNode->GetVisibleRegionInVirtual();
+        auto visibleRegion = surfaceParams->GetVisibleRegionInVirtual();
         Occlusion::Region surfaceDirtyRegion { dirtyRect };
         Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
-        surfaceNode->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
         allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
     }
     return allSurfaceVisibleDirtyRegion;

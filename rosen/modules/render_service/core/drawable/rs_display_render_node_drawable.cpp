@@ -201,11 +201,11 @@ static std::vector<RectI> MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displa
     if (!renderThreadParams) {
         return {};
     }
-    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
+    auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
     auto dirtyManager = displayNode.GetSyncDirtyManager();
 
     RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNode, bufferAge, true);
-    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(curAllSurfaces, true);
+    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(curAllSurfaceDrawables, true);
 
     RectI rect = dirtyManager->GetRectFlipWithinSurface(dirtyManager->GetDirtyRegionInVirtual());
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);

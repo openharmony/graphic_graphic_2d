@@ -182,9 +182,9 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
-enum BufferHandleAttrKey : uint32_t {
-    // used in set roi region to codec, must be the same as HDI
-    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+enum GrallocBufferAttr : uint32_t {
+    // used in set roi region to codec, must be the same as private key in codec
+    GRALLOC_BUFFER_ATTR_BUFFER_ROI_INFO = 2054,
 };
 
 // types for PC SystemAnimatedScenes
