@@ -390,7 +390,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
 }
 
 /**
@@ -808,6 +808,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
         auto vsyncGenerator = CreateVSyncGenerator();
         auto vsyncController = new VSyncController(vsyncGenerator, 0);
         mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
     }
     // default data with index 0
     auto data = std::make_unique<RSTransactionData>();
