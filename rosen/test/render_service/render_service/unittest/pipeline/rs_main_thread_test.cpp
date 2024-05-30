@@ -390,7 +390,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
 }
 
 /**
@@ -411,6 +411,35 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionCount
+ * @tc.desc: Test ProcessSyncTransactionCount
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetHostPid(-1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 0;
+    rsTransactionData->SetHostPid(-1);
+    rsTransactionData->MarkNeedCloseSync();
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetSyncTransactionNum(1);
+    rsTransactionData->SetHostPid(1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
 }
 
 /**
@@ -775,6 +804,12 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
     mainThread->transactionDataLastWaitTime_[0] = 0;
     mainThread->timestamp_ = REFRESH_PERIOD * SKIP_COMMAND_FREQ_LIMIT + 1;
     mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
+    }
     // default data with index 0
     auto data = std::make_unique<RSTransactionData>();
     ASSERT_NE(data, nullptr);

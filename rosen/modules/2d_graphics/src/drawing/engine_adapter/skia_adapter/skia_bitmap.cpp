@@ -223,6 +223,11 @@ void SkiaBitmap::SetSkBitmap(const SkBitmap& skBitmap)
     skiaBitmap_ = skBitmap;
 }
 
+SkBitmap& SkiaBitmap::GetSkBitmap()
+{
+    return skiaBitmap_;
+}
+
 std::shared_ptr<Data> SkiaBitmap::Serialize() const
 {
     SkBinaryWriteBuffer writer;

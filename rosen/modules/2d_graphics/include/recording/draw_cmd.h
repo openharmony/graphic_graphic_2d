@@ -16,13 +16,14 @@
 #ifndef DRAW_CMD_H
 #define DRAW_CMD_H
 
-#include <cstdint>
-#include <unordered_map>
-#include <functional>
-#include <stack>
-#include <utility>
-#include <ctime>
 #include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <functional>
+#include <shared_mutex>
+#include <stack>
+#include <unordered_map>
+#include <utility>
 
 #include "draw/canvas.h"
 #include "draw/paint.h"
@@ -59,6 +60,7 @@ public:
         BACKGROUND_OPITEM,
         SHADOW_OPITEM,
         SHADOW_STYLE_OPITEM,
+        ATLAS_OPITEM,
         BITMAP_OPITEM,
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
@@ -115,6 +117,7 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
+static std::shared_timed_mutex UnmarshallingFuncMapMutex_;
 class UnmarshallingPlayer {
 public:
     using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
@@ -662,6 +665,51 @@ private:
     bool hasBrush_;
     Brush brush_;
     std::shared_ptr<Image> image_;
+};
+
+class DrawAtlasOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& atlas, const std::pair<uint32_t, size_t>& xform,
+            const std::pair<uint32_t, size_t>& tex, const std::pair<uint32_t, size_t>& colors, BlendMode mode,
+            const SamplingOptions& samplingOptions, bool hasCullRect, const Rect& cullRect,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::ATLAS_OPITEM), atlas(atlas), xform(xform), tex(tex), colors(colors), mode(mode),
+              samplingOptions(samplingOptions), hasCullRect(hasCullRect), cullRect(cullRect),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle atlas;
+        std::pair<uint32_t, size_t> xform;
+        std::pair<uint32_t, size_t> tex;
+        std::pair<uint32_t, size_t> colors;
+        BlendMode mode;
+        SamplingOptions samplingOptions;
+        bool hasCullRect;
+        Rect cullRect;
+        PaintHandle paintHandle;
+    };
+    DrawAtlasOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawAtlasOpItem(const Image* atlas, const std::vector<RSXform>& xform,
+        const std::vector<Rect>& tex, const std::vector<ColorQuad>& colors, BlendMode mode,
+        const SamplingOptions& samplingOptions, bool hasCullRect, const Rect& cullRect, const Paint& paint)
+        : DrawWithPaintOpItem(paint, DrawOpItem::ATLAS_OPITEM), xform_(xform), tex_(tex), colors_(colors), mode_(mode),
+          samplingOptions_(samplingOptions), hasCullRect_(hasCullRect), cullRect_(cullRect),
+          atlas_(std::make_shared<Image>(*atlas)) {}
+    ~DrawAtlasOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+
+private:
+    std::vector<RSXform> xform_;
+    std::vector<Rect> tex_;
+    std::vector<ColorQuad> colors_;
+    BlendMode mode_;
+    SamplingOptions samplingOptions_;
+    bool hasCullRect_;
+    Rect cullRect_;
+    std::shared_ptr<Image> atlas_;
 };
 
 class DrawBitmapOpItem : public DrawWithPaintOpItem {

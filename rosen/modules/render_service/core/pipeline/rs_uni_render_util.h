@@ -113,11 +113,11 @@ public:
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerScaleDown(RSSurfaceRenderNode& Node);
-    static void LayerScaleFit(RSSurfaceRenderNode& Node);
+    static void LayerScaleDown(RSSurfaceRenderNode& node);
+    static void LayerScaleFit(RSSurfaceRenderNode& node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-        Drawing::GPUContext* grContext);
+        Drawing::GPUContext* const grContext, bool optFenceWait = true);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

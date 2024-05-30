@@ -28,6 +28,9 @@ public:
     void SetCacheValid(bool valid);
     bool GetCacheValid() const;
 
+    void SetHasEffectChildren(bool hasEffectChildren);
+    bool GetHasEffectChildren() const;
+
 private:
     bool cacheValid_ = false;
     bool hasEffectChildren_ = false;

@@ -188,7 +188,7 @@ public:
         BufferDrawParam& params);
 
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers,
-        bool forceCPU = false) = 0;
+        bool forceCPU = false, const ScreenInfo& screenInfo = {}) = 0;
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 

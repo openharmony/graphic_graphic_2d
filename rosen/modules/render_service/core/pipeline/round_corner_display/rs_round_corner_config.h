@@ -70,7 +70,7 @@ const char ATTR_CLDWIDTH[] = "CldWidth";
 const char ATTR_CLDHEIGHT[] = "CldHeight";
 const char ATTR_DEFAULT[] = "default";
 
-using XMLReader = struct XMLReader {
+struct XMLReader {
     XMLReader() {}
     virtual ~XMLReader()
     {
@@ -93,13 +93,13 @@ private:
     xmlNodePtr proot = nullptr;
 };
 
-using SupportConfig = struct SupportConfig {
+struct SupportConfig {
     bool support = false;
     int mode = 0;
     bool ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr, std::string modeAttr);
 };
 
-using RoundCornerLayer = struct RoundCornerLayer {
+struct RoundCornerLayer {
     std::string fileName;
     int offsetX = 0;
     int offsetY = 0;
@@ -113,25 +113,25 @@ using RoundCornerLayer = struct RoundCornerLayer {
     bool ReadXmlNode(const xmlNodePtr& ptr, std::vector<std::string> attrArray);
 };
 
-using RoundCornerHardware = struct RoundCornerHardware {
+struct RoundCornerHardware {
     bool resourceChanged = false;
     RoundCornerLayer* topLayer = nullptr;
     RoundCornerLayer* bottomLayer = nullptr;
 };
 
-using RogPortrait = struct RogPortrait {
+struct RogPortrait {
     RoundCornerLayer layerUp;
     RoundCornerLayer layerDown;
     RoundCornerLayer layerHide;
     bool ReadXmlNode(const xmlNodePtr& portraitNodePtr);
 };
 
-using RogLandscape = struct RogLandscape {
+struct RogLandscape {
     RoundCornerLayer layerUp;
     bool ReadXmlNode(const xmlNodePtr& landNodePtr);
 };
 
-using ROGSetting = struct ROGSetting {
+struct ROGSetting {
     int width = 0;
     int height = 0;
     std::unordered_map<std::string, RogPortrait> portraitMap;
@@ -139,28 +139,28 @@ using ROGSetting = struct ROGSetting {
     bool ReadXmlNode(const xmlNodePtr& rogNodePtr);
 };
 
-using SurfaceConfig = struct SurfaceConfig {
+struct SurfaceConfig {
     SupportConfig topSurface;
     SupportConfig bottomSurface;
     bool ReadXmlNode(const xmlNodePtr& surfaceConfigNodePtr);
 };
 
-using SideRegionConfig = struct SideRegionConfig {
+struct SideRegionConfig {
     SupportConfig sideRegion;
     bool ReadXmlNode(const xmlNodePtr& sideRegionNodePtr);
 };
 
-using HardwareComposer = struct HardwareComposer {
+struct HardwareComposer {
     bool support = false;
     bool ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr);
 };
 
-using HardwareComposerConfig = struct HardwareComposerConfig {
+struct HardwareComposerConfig {
     HardwareComposer hardwareComposer;
     bool ReadXmlNode(const xmlNodePtr& hardwareComposerNodePtr);
 };
 
-using LCDModel = struct LCDModel {
+struct LCDModel {
     LCDModel() {}
     virtual ~LCDModel();
     std::string name;
@@ -175,7 +175,7 @@ using LCDModel = struct LCDModel {
     ROGSetting* GetRog(const int w, const int h) const;
 };
 
-using RCDConfig = struct RCDConfig {
+struct RCDConfig {
     RCDConfig() {}
     virtual ~RCDConfig();
     static void PrintLayer(std::string name, const rs_rcd::RoundCornerLayer& layer);

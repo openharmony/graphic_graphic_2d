@@ -149,6 +149,14 @@ bool RSSystemParameters::GetRenderStop()
     return ConvertToInt(enable, 0) != 0;
 }
 
+bool RSSystemParameters::GetOcclusionCallBackToWMSDebugType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.occlusion.callbacktowms.debug.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
 {
     static bool prevalidateHwcNodeEnabled =

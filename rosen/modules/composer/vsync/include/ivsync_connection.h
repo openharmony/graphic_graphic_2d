@@ -34,6 +34,7 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) = 0;
 
     virtual VsyncError Destroy() = 0;
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IVSyncConnection");
 
@@ -43,6 +44,7 @@ protected:
         IVSYNC_CONNECTION_GET_RECEIVE_FD,
         IVSYNC_CONNECTION_SET_RATE,
         IVSYNC_CONNECTION_DESTROY,
+        IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH,
     };
 };
 } // namespace Vsync

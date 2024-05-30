@@ -292,8 +292,8 @@ bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
 
     context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
     context.parcel.ReadInt32(); // unused csm
-    context.rowPitch = context.parcel.ReadInt32();
-    context.size = context.parcel.ReadInt32();
+    context.rowPitch = static_cast<size_t>(context.parcel.ReadInt32());
+    context.size = static_cast<size_t>(context.parcel.ReadInt32());
 
     const size_t rawSize = context.rowPitch * context.info.size.height;
     return IsValidFormat(context.info.pixelFormat) && (isAstc || (context.size == rawSize));
@@ -441,7 +441,8 @@ void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
             CacheImage(id, imageData, UnmarshallingContext::headerLength, bufferHandle);
         }
     } else {
-        const size_t size = map.isAstc_ ? map.pixelsSize_ : map.rowDataSize_ * map.imageInfo_.size.height;
+        const size_t size = map.isAstc_ ? map.pixelsSize_ :
+            static_cast<size_t>(map.rowDataSize_ * map.imageInfo_.size.height);
         if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
             const auto imageData = GenerateImageData(image, size, map);
             CacheImage(id, imageData, UnmarshallingContext::headerLength);

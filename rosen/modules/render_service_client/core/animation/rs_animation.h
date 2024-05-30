@@ -49,7 +49,7 @@ class RSRenderAnimation;
 
 class RSC_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
 public:
-    virtual ~RSAnimation() = default;
+    virtual ~RSAnimation();
 
     AnimationId GetId() const;
 

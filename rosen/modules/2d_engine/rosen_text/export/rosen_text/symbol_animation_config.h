@@ -38,7 +38,7 @@ enum SymbolAnimationEffectStrategy {
     SYMBOL_REPLACE_DISAPPEAR = 8
 };
 
-using SymbolNode = struct SymbolNode {
+struct SymbolNode {
     Drawing::Path path;
     Drawing::DrawingSColor color;
     Vector4f nodeBoundary;
@@ -46,14 +46,14 @@ using SymbolNode = struct SymbolNode {
     int animationIndex = 0;
     bool isMask = false;
 };
-using SymbolAnimationConfig = struct SymbolAnimationConfig {
+struct SymbolAnimationConfig {
     std::vector<SymbolNode> SymbolNodes;
     uint32_t numNodes = 0;
     SymbolAnimationEffectStrategy effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
     uint64_t symbolSpanId = 0;
     uint16_t animationMode = 0;
     int repeatCount = 1;
-    bool animationStart = true;
+    bool animationStart = false;
     Drawing::DrawingCommonSubType commonSubType = Drawing::DrawingCommonSubType::DOWN;
 };
 }

@@ -106,7 +106,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     return true;
 }
 
-int RSUniRenderVirtualProcessor::GetBufferAge()
+int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
 {
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::GetBufferAge renderFrame_ is null.");
@@ -251,7 +251,7 @@ void RSUniRenderVirtualProcessor::JudgeResolution(RSDisplayRenderNode& node)
 void RSUniRenderVirtualProcessor::CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation)
 {
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
+    auto& geoPtr = property.GetBoundsGeometry();
     if (geoPtr) {
         // if need rotation, canvas shouid be set to original absolute position
         if (canvasRotation) {

@@ -490,10 +490,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
-            Drawing::Rect rect(std::round(surfaceParams.GetBounds().GetLeft()),
-                std::round(surfaceParams.GetBounds().GetTop()), std::round(surfaceParams.GetBounds().GetWidth()),
-                std::round(surfaceParams.GetBounds().GetHeight()));
-            canvas.ClipRect(rect);
+            auto bounds = surfaceParams.GetBounds();
+            canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
+                std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
             canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
         return;
@@ -507,7 +506,12 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     params.dstRect.MakeOutset(1, 1);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenManager = CreateOrGetScreenManager();
-    auto ancestor = surfaceParams.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    auto ancestorDisplayNode = surfaceParams.GetAncestorDisplayNode().lock();
+    if (!ancestorDisplayNode) {
+        RS_LOGE("ancestorDisplayNode return nullptr");
+        return;
+    }
+    auto ancestor = ancestorDisplayNode->ReinterpretCastTo<RSDisplayRenderNode>();
     if (!ancestor) {
         RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
         return;
@@ -625,10 +629,11 @@ std::shared_ptr<RSSurfaceRenderNode> RSSurfaceRenderNodeDrawable::GetSurfaceRend
 
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const
 {
+    static Occlusion::Region defaultRegion;
     auto surfaceNode = GetSurfaceRenderNode();
     if (surfaceNode == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion surfaceNode is nullptr");
-        return {};
+        return defaultRegion;
     }
     return surfaceNode->GetVisibleDirtyRegion();
 }
@@ -683,7 +688,7 @@ void RSSurfaceRenderNodeDrawable::SetDirtyRegionBelowCurrentLayer(Occlusion::Reg
     surfaceNode->SetDirtyRegionBelowCurrentLayer(region);
 }
 
-const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNodeDrawable::GetSyncDirtyManager() const
+std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNodeDrawable::GetSyncDirtyManager() const
 {
     auto surfaceNode = GetSurfaceRenderNode();
     if (surfaceNode == nullptr) {

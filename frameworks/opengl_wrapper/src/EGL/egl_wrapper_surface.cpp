@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 #include "egl_wrapper_surface.h"
-
+#include "external_window.h"
+#include "surface.h"
+#include "window.h"
 #include "wrapper_log.h"
 
 namespace OHOS {
@@ -35,4 +37,12 @@ EglWrapperSurface *EglWrapperSurface::GetWrapperSurface(EGLSurface surf)
     WLOGD("");
     return reinterpret_cast<EglWrapperSurface *>(surf);
 }
+
+void EglWrapperSurface::Disconnect(OHNativeWindow *window)
+{
+    if (window != nullptr) {
+        NativeWindowDisconnect(window);
+    }
+}
+
 } // namespace OHOS

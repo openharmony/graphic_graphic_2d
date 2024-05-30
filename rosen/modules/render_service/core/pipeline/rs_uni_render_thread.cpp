@@ -270,7 +270,7 @@ void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>
     if (bufferToRelease.empty()) {
         return;
     }
-    for (auto& item : bufferToRelease) {
+    for (const auto& item : bufferToRelease) {
         if (!item.buffer || !item.consumer) {
             continue;
         }
@@ -358,6 +358,12 @@ uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     return renderThreadParams_->GetPendingScreenRefreshRate();
 }
+
+uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
+{
+    return renderThreadParams_->GetPendingConstraintRelativeTime();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {

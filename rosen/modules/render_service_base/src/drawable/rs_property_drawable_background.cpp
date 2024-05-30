@@ -284,6 +284,9 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask() && mask->GetImage()) {
+        Drawing::AutoCanvasRestore maskSave(canvas, true);
+        canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
     }
 
     // back to mask layer
@@ -482,11 +485,6 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 void RSBackgroundEffectDrawable::OnSync()
 {
     RSFilterDrawable::OnSync();
-    // clear both cache image when it has no effect children and will not draw in this frame
-    if (!stagingHasEffectChildren_) {
-        lastCacheType_ = FilterCacheType::NONE;
-    }
-    stagingHasEffectChildren_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

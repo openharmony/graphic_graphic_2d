@@ -32,6 +32,11 @@
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+#ifdef ROSEN_OHOS
+thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+#else
+RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+#endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
@@ -206,9 +211,6 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
 
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    if (drawCmdList_.empty()) {
-        return;
-    }
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);
 }
 
@@ -262,10 +264,6 @@ void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const 
 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    const auto& drawCmdList = drawCmdList_;
-    if (drawCmdList.empty()) {
-        return;
-    }
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.endIndex_);
 }
 
@@ -341,7 +339,7 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
 }
 
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
-    Drawing::Canvas& canvas, const RSRenderParams& params) const
+    Drawing::Canvas& canvas, const RSRenderParams& params)
 {
     if (uifirstDrawCmdList_.empty()) {
         return;
@@ -362,6 +360,9 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+                if (curDrawingCacheRoot_ != nullptr) {
+                    curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                }
             } else {
                 drawCmdList_[index](&canvas, &bounds);
             }
@@ -373,6 +374,9 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            if (curDrawingCacheRoot_ != nullptr) {
+                curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+            }
         } else {
             drawCmdList_[index](&canvas, &bounds);
         }
@@ -387,7 +391,7 @@ void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas,
 
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_ - 1));
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_));
 }
 
 void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

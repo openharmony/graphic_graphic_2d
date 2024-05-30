@@ -39,6 +39,7 @@ constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
+constexpr uint32_t RGBA_MAX = 255;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -226,11 +227,17 @@ enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
     ARKTS_CARD,
+    NONFOCUS_WINDOW,
 };
 
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+};
+
+enum class SurfaceWindowType : uint8_t {
+    DEFAULT_WINDOW = 0,
+    SYSTEM_SCB_WINDOW = 1,
 };
 
 struct RSSurfaceRenderNodeConfig {
@@ -241,6 +248,7 @@ struct RSSurfaceRenderNodeConfig {
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
     bool isSync = false;
+    enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
 // types for RSSurfaceExt

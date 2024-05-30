@@ -71,6 +71,9 @@ public:
     void StyleSettings(OH_Drawing_Canvas* canvas, int32_t type);
     void StyleSettingsDestroy(OH_Drawing_Canvas *canvas);
     
+    uint32_t GetBitmapWidth();
+    uint32_t GetBitmapHeight();
+
 protected:
     // cpu bitmap canvas
     void CreateBitmapCanvas();

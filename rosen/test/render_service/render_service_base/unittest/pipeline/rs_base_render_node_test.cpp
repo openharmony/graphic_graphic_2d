@@ -1511,7 +1511,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
  * @tc.name: OpincSetInAppState
  * @tc.desc: test OpincSetInAppStateStart and OpincSetInAppStateEnd
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincSetInAppState, TestSize.Level1)
 {
@@ -1527,7 +1527,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincSetInAppState, TestSize.Level1)
  * @tc.name: OpincQuickMarkStableNode01
  * @tc.desc: test OpincQuickMarkStableNode when content dirty
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
 {
@@ -1544,7 +1544,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
  * @tc.name: OpincQuickMarkStableNode02
  * @tc.desc: test OpincQuickMarkStableNode when subtree dirty
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
 {
@@ -1561,7 +1561,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
  * @tc.name: OpincQuickMarkStableNode03
  * @tc.desc: test OpincQuickMarkStableNode default
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
 {
@@ -1577,7 +1577,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
  * @tc.name: OpincUpdateRootFlag
  * @tc.desc: test OpincUpdateRootFlag
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincUpdateRootFlag, TestSize.Level1)
 {
@@ -1593,7 +1593,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincUpdateRootFlag, TestSize.Level1)
  * @tc.name: IsOpincUnchangeState
  * @tc.desc: test result of IsOpincUnchangeState
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, IsOpincUnchangeState, TestSize.Level1)
 {
@@ -1609,7 +1609,7 @@ HWTEST_F(RSBaseRenderNodeTest, IsOpincUnchangeState, TestSize.Level1)
  * @tc.name: OpincUpdateNodeSupportFlag01
  * @tc.desc: test result of OpincGetNodeSupportFlag
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
 {
@@ -1622,7 +1622,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
  * @tc.name: OpincUpdateNodeSupportFlag02
  * @tc.desc: test result of OpincGetNodeSupportFlag
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
 {
@@ -1635,7 +1635,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
  * @tc.name: IsMarkedRenderGroup01
  * @tc.desc: test result of IsMarkedRenderGroup
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup01, TestSize.Level1)
 {
@@ -1649,7 +1649,7 @@ HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup01, TestSize.Level1)
  * @tc.name: IsMarkedRenderGroup02
  * @tc.desc: test result of IsMarkedRenderGroup
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup02, TestSize.Level1)
 {
@@ -1662,7 +1662,7 @@ HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup02, TestSize.Level1)
  * @tc.name: OpincForcePrepareSubTree
  * @tc.desc: test result of OpincForcePrepareSubTree
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincForcePrepareSubTree, TestSize.Level1)
 {
@@ -1678,7 +1678,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincForcePrepareSubTree, TestSize.Level1)
  * @tc.name: OpincGetRootFlag
  * @tc.desc: test result of OpincGetRootFlag
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, OpincGetRootFlag, TestSize.Level1)
 {
@@ -1692,7 +1692,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincGetRootFlag, TestSize.Level1)
  * @tc.name: MarkSuggestOpincNode
  * @tc.desc: test MarkSuggestOpincNode
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
 {
@@ -1709,7 +1709,7 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
  * @tc.name: GetSuggestOpincNode
  * @tc.desc: test result of GetSuggestOpincNode
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, GetSuggestOpincNode, TestSize.Level1)
 {
@@ -1721,7 +1721,7 @@ HWTEST_F(RSBaseRenderNodeTest, GetSuggestOpincNode, TestSize.Level1)
  * @tc.name: NodeCacheStateChange01
  * @tc.desc: test node cache state change
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange01, TestSize.Level1)
 {
@@ -1739,7 +1739,7 @@ HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange01, TestSize.Level1)
  * @tc.name: NodeCacheStateChange02
  * @tc.desc: test node cache state change
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange02, TestSize.Level1)
 {
@@ -1753,7 +1753,7 @@ HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateChange02, TestSize.Level1)
  * @tc.name: NodeCacheStateReset
  * @tc.desc: test reset node cache state
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9SPVO
  */
 HWTEST_F(RSBaseRenderNodeTest, NodeCacheStateReset, TestSize.Level1)
 {

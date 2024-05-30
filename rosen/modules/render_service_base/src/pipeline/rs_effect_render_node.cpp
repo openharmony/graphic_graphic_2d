@@ -132,12 +132,15 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     if (filterDrawable == nullptr) {
         return;
     }
+    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
+    if (IsForceClearOrUseFilterCache(filterDrawable)) {
+        return;
+    }
     if (CheckFilterCacheNeedForceClear()) {
         filterDrawable->MarkFilterForceClearCache();
     } else if (CheckFilterCacheNeedForceSave()) {
         filterDrawable->MarkFilterForceUseCache();
     }
-    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
 }
 
 void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
@@ -148,13 +151,6 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
     }
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
-        return;
-    }
-    // clear filter cache if no child marked useeffect
-    if (!ChildHasVisibleEffect() && lastFrameHasVisibleEffect_) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty "
-            "hasVisibleEffect:%d", GetId(), ChildHasVisibleEffect());
-        filterDrawable->MarkFilterForceClearCache();
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
@@ -184,7 +180,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceSave"
-        " isBackgroundImage:%d, isRotationChanged_:%d, IsStaticCached():%d,",
+        " isBackgroundImage:%d, isRotationChanged_:%d, IsStaticCached():%d",
         GetId(), GetRenderProperties().GetBgImage() != nullptr, isRotationChanged_, IsStaticCached());
     return GetRenderProperties().GetBgImage() != nullptr || (IsStaticCached() && !isRotationChanged_);
 }
@@ -192,9 +188,8 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
-        " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d,"
-        " hasVisibleEffect:%d", GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_,
-        preStaticStatus_, IsStaticCached(), ChildHasVisibleEffect());
+        " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
+        GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
     return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) || (preStaticStatus_ != IsStaticCached());
 }
 
@@ -236,14 +231,14 @@ void RSEffectRenderNode::InitRenderParams()
 
 void RSEffectRenderNode::MarkFilterHasEffectChildren()
 {
-    // now only background filter need to mark effect child
-    if (GetRenderProperties().GetBackgroundFilter()) {
-        auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable == nullptr) {
-            return;
-        }
-        filterDrawable->MarkHasEffectChildren();
+    if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
+        return;
     }
+    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+    if (effectParams == nullptr) {
+        return;
+    }
+    effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
     if (!RSProperties::FilterCacheEnabled) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
@@ -257,6 +252,42 @@ void RSEffectRenderNode::OnFilterCacheStateChanged()
         return;
     }
     effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
+}
+
+bool RSEffectRenderNode::EffectNodeShouldPaint() const
+{
+    return ChildHasVisibleEffect();
+}
+
+bool RSEffectRenderNode::FirstFrameHasEffectChildren() const
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::FirstFrameHasEffectChildren lastHasVisibleEffect:%d,"
+        "hasVisibleEffect:%d", GetId(), lastFrameHasVisibleEffect_, ChildHasVisibleEffect());
+    return GetRenderProperties().GetBackgroundFilter() != nullptr &&
+        !lastFrameHasVisibleEffect_ && ChildHasVisibleEffect();
+}
+
+bool RSEffectRenderNode::FirstFrameHasNoEffectChildren() const
+{
+    return GetRenderProperties().GetBackgroundFilter() != nullptr &&
+        !ChildHasVisibleEffect() && lastFrameHasVisibleEffect_;
+}
+
+void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
+{
+    // the first frame node has no effect child, it should not be painted and filter cache need to be cleared.
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr || filterDrawable->IsForceClearFilterCache()) {
+        return;
+    }
+    if (!FirstFrameHasEffectChildren() && !FirstFrameHasNoEffectChildren()) {
+        return;
+    }
+    filterDrawable->MarkFilterForceClearCache();
+    // the first frame node has no effect child, force use cache should be cancled.
+    if (filterDrawable->IsForceUseFilterCache()) {
+        filterDrawable->MarkFilterForceUseCache(false);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -367,7 +367,8 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
             break;
         }
-        case FONT_STYLE_ITALIC: {
+        case FONT_STYLE_ITALIC:
+        case FONT_STYLE_OBLIQUE: {
             rosenFontStyle = FontStyle::ITALIC;
             break;
         }
@@ -1393,15 +1394,15 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     if (lineMetrics.size() == 0) {
         return nullptr;
     }
-    LineMetrics* lineMetricsArr = new LineMetrics[lineMetrics.size()];
+    OH_Drawing_LineMetrics* lineMetricsArr = new OH_Drawing_LineMetrics[lineMetrics.size()];
     if (lineMetricsArr == nullptr) {
         return nullptr;
     }
     for (size_t i = 0; i < lineMetrics.size(); ++i) {
-        lineMetricsArr[i] = lineMetrics[i];
+        ConvertLineMetrics(lineMetrics[i], lineMetricsArr[i]);
     }
     MgrSetArrSize(static_cast<void *>(lineMetricsArr), lineMetrics.size());
-    return (OH_Drawing_LineMetrics*)lineMetricsArr;
+    return lineMetricsArr;
 }
 
 size_t OH_Drawing_LineMetricsGetSize(OH_Drawing_LineMetrics* lineMetrics)
@@ -1427,8 +1428,9 @@ bool OH_Drawing_TypographyGetLineMetricsAt(OH_Drawing_Typography* typography, in
     if (typography == nullptr || lineMetric == nullptr) {
         return false;
     }
-    LineMetrics* metric = ConvertToOriginalText<LineMetrics>(lineMetric);
-    if (ConvertToOriginalText<Typography>(typography)->GetLineMetricsAt(lineNumber, metric)) {
+    LineMetrics metric;
+    if (ConvertToOriginalText<Typography>(typography)->GetLineMetricsAt(lineNumber, &metric)) {
+        ConvertLineMetrics(metric, *lineMetric);
         return true;
     }
     return false;
@@ -3222,12 +3224,9 @@ static FontStyle GetFontStyle(OH_Drawing_FontStyle style)
             fontStyle = FontStyle::NORMAL;
             break;
         }
-        case FONT_STYLE_ITALIC: {
-            fontStyle = FontStyle::ITALIC;
-            break;
-        }
+        case FONT_STYLE_ITALIC:
         case FONT_STYLE_OBLIQUE: {
-            fontStyle = FontStyle::OBLIQUE;
+            fontStyle = FontStyle::ITALIC;
             break;
         }
         default: {

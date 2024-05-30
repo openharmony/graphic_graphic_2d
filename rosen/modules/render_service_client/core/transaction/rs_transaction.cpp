@@ -46,6 +46,8 @@ void RSTransaction::CloseSyncTransaction()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
+        ROSEN_LOGD(
+            "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
         transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
@@ -68,12 +70,15 @@ void RSTransaction::Commit()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu", syncId_);
+        RS_TRACE_NAME_FMT(
+            "CommitSyncTransaction syncId: %lu syncCount: %d hostPid: %d", syncId_, transactionCount_, hostPid_);
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
+        transactionProxy->SetHostPid(hostPid_);
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
     }
+    ResetSyncTransactionInfo();
 }
 
 uint64_t RSTransaction::GenerateSyncId()
@@ -96,6 +101,7 @@ void RSTransaction::ResetSyncTransactionInfo()
     std::unique_lock<std::mutex> lock(mutex_);
     syncId_ = 0;
     transactionCount_ = 0;
+    hostPid_ = -1;
 }
 
 RSTransaction* RSTransaction::Unmarshalling(Parcel& parcel)
@@ -119,7 +125,13 @@ bool RSTransaction::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSTransaction marshalling failed");
         return false;
     }
+    if (!parcel.WriteInt32(hostPid_)) {
+        ROSEN_LOGE("RSTransaction marshalling failed");
+        return false;
+    }
     transactionCount_++;
+    RS_TRACE_NAME_FMT("RSTransaction::Marshalling syncId: %lu syncCount: %d", syncId_, transactionCount_);
+    ROSEN_LOGD("Marshalling syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
     return true;
 }
 
@@ -130,6 +142,10 @@ bool RSTransaction::UnmarshallingParam(Parcel& parcel)
         return false;
     }
     if (!parcel.ReadInt32(duration_)) {
+        ROSEN_LOGE("RSTransaction unmarshallingParam failed");
+        return false;
+    }
+    if (!parcel.ReadInt32(hostPid_)) {
         ROSEN_LOGE("RSTransaction unmarshallingParam failed");
         return false;
     }

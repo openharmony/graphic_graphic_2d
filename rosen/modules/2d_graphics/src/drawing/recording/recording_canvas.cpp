@@ -290,6 +290,33 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
     cmdList_->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    std::vector<RSXform> xformVec(xform, xform + count);
+    std::vector<Rect> texVec(tex, tex + count);
+    std::vector<ColorQuad> colorVec;
+    if (colors) {
+        colorVec.assign(colors, colors + count);
+    }
+    Rect rect;
+    bool hasCullRect = false;
+    if (cullRect) {
+        rect = *cullRect;
+        hasCullRect = true;
+    }
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<DrawAtlasOpItem>(atlas, xformVec, texVec, colorVec, mode, sampling, hasCullRect, rect);
+        return;
+    }
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *atlas);
+    auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(*cmdList_, xformVec);
+    auto texData = CmdListHelper::AddVectorToCmdList<Rect>(*cmdList_, texVec);
+    auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*cmdList_, colorVec);
+    AddDrawOpImmediate<DrawAtlasOpItem::ConstructorHandle>(imageHandle, xformData, texData, colorData, mode,
+        sampling, hasCullRect, rect);
+}
+
 void RecordingCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     auto image = bitmap.MakeImage();

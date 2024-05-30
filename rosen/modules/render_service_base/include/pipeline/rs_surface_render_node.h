@@ -353,6 +353,11 @@ public:
         offsetX_ = offset;
     }
 
+    enum SurfaceWindowType GetSurfaceWindowType() const
+    {
+        return surfaceWindowType_;
+    }
+
     int32_t GetOffSetX() const
     {
         return offsetX_;
@@ -447,6 +452,16 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
 
+    void SetUIFirstIsPurge(bool IsPurge)
+    {
+        UIFirstIsPurge_ = IsPurge;
+    }
+
+    bool GetUIFirstIsPurge() const
+    {
+        return UIFirstIsPurge_;
+    }
+
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
@@ -457,7 +472,7 @@ public:
     bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -1038,6 +1053,16 @@ public:
 
     void SetUifirstChildrenDirtyRectParam(RectI rect);
 
+    void SetUifirstStartTime(int64_t startTime)
+    {
+        uifirstStartTime_ = startTime;
+    }
+
+    int64_t GetUifirstStartTime() const
+    {
+        return uifirstStartTime_;
+    }
+
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -1169,6 +1194,7 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
@@ -1332,6 +1358,7 @@ private:
     bool hwcDelayDirtyFlag_ = false;
 
     // UIFirst
+    int64_t uifirstStartTime_ = -1;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
@@ -1339,6 +1366,7 @@ private:
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
     bool isForeground_ = false;
+    bool UIFirstIsPurge_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1366,6 +1394,7 @@ private:
 
     bool doDirectComposition_ = true;
 
+    friend class RSUifirstManager;
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;

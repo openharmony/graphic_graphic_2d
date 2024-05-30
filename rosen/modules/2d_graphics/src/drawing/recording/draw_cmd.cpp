@@ -259,6 +259,7 @@ bool UnmarshallingPlayer::RegisterUnmarshallingFunc(uint32_t type, Unmarshalling
         static std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> opUnmarshallingFuncLUT = {};
         opUnmarshallingFuncLUT_ = &opUnmarshallingFuncLUT;
     }
+    std::unique_lock<std::shared_timed_mutex> lock(UnmarshallingFuncMapMutex_);
     return opUnmarshallingFuncLUT_->emplace(type, func).second;
 }
 
@@ -839,6 +840,51 @@ void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
     canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_, brushPtr);
+}
+
+/* DrawAtlasOpItem */
+REGISTER_UNMARSHALLING_FUNC(DrawAtlas, DrawOpItem::ATLAS_OPITEM, DrawAtlasOpItem::Unmarshalling);
+
+DrawAtlasOpItem::DrawAtlasOpItem(const DrawCmdList& cmdList, DrawAtlasOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ATLAS_OPITEM), mode_(handle->mode),
+      samplingOptions_(handle->samplingOptions), hasCullRect_(handle->hasCullRect), cullRect_(handle->cullRect)
+{
+    atlas_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->atlas);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(atlas_);
+    }
+    xform_ = CmdListHelper::GetVectorFromCmdList<RSXform>(cmdList, handle->xform);
+    tex_ = CmdListHelper::GetVectorFromCmdList<Rect>(cmdList, handle->tex);
+    colors_ = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, handle->colors);
+}
+
+std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawAtlasOpItem>(cmdList, static_cast<DrawAtlasOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawAtlasOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *atlas_);
+    auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(cmdList, xform_);
+    auto texData = CmdListHelper::AddVectorToCmdList<Rect>(cmdList, tex_);
+    auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(cmdList, colors_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, xformData, texData, colorData, mode_, samplingOptions_,
+        hasCullRect_, cullRect_, paintHandle);
+}
+
+void DrawAtlasOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (atlas_ == nullptr) {
+        LOGD("DrawAtlasOpItem atlas is null");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    Rect* rectPtr = hasCullRect_ ? &cullRect_ : nullptr;
+    canvas->DrawAtlas(atlas_.get(), xform_.data(), tex_.data(), colors_.data(), xform_.size(), mode_,
+        samplingOptions_, rectPtr);
 }
 
 /* DrawBitmapOpItem */

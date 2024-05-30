@@ -29,7 +29,9 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
     switch (code) {
         case IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC: {
-            RequestNextVSync();
+            auto fromWhom = data.ReadString();
+            auto ts = data.ReadInt64();
+            RequestNextVSync(fromWhom, ts);
             break;
         }
         case IVSYNC_CONNECTION_GET_RECEIVE_FD: {
@@ -53,6 +55,10 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         }
         case IVSYNC_CONNECTION_DESTROY: {
             return Destroy();
+        }
+        case IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH: {
+            auto dvsyncOn = data.ReadBool();
+            return SetUiDvsyncSwitch(dvsyncOn);
         }
         default: {
             // check add log

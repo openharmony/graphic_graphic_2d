@@ -48,6 +48,7 @@ public:
     RosenError RegScreenHotplug(OnScreenHotplugFunc func, void* data);
     RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
     RosenError RegHwcDeadListener(OnHwcDeadCallback func, void* data);
+    RosenError RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, void* data);
     void Repaint(const OutputPtr &output);
     void ResetDevice();
     /* for RS end */

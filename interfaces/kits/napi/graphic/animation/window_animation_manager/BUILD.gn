@@ -30,6 +30,7 @@ ohos_shared_library("windowanimationmanager_napi") {
   deps = [
     "$graphic_2d_root/rosen/modules/animation/window_animation:window_animation",
     "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
