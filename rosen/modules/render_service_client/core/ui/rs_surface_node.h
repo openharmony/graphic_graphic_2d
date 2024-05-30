@@ -44,6 +44,7 @@ struct RSSurfaceNodeConfig {
     bool isTextureExportNode = false;
     SurfaceId surfaceId = 0;
     bool isSync = true;
+    enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {

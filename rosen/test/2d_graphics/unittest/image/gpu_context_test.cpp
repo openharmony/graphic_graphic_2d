@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameter.h>
+#include <parameters.h>
 #include "gtest/gtest.h"
 
 #include "EGL/egl.h"
@@ -182,6 +184,48 @@ HWTEST_F(GpuContextTest, BuildFromGLTest002, TestSize.Level1)
     options.SetPersistentCache(persistentCache.get());
     EXPECT_TRUE(gpuContext->BuildFromGL(options));
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: GPUContextCreateTest003
+ * @tc.desc: Test for creating a VK GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromVKTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GrVkBackendContext grVkBackendContext;
+    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
+    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
+    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+}
+
+/**
+ * @tc.name: GPUContextCreateTest004
+ * @tc.desc: Test for creating a VK GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromVKTest002, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GrVkBackendContext grVkBackendContext;
+    GPUContextOptions options;
+    options.SetAllowPathMaskCaching(true);
+    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
+    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
+    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+}
+#endif
 
 /**
  * @tc.name: FlushTest001

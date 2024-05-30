@@ -181,6 +181,15 @@ public:
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
+    // used to skip render frame or render only one frame when screen power is off.
+    virtual void MarkPowerOffNeedProcessOneFrame() = 0;
+
+    virtual void ResetPowerOffNeedProcessOneFrame() = 0;
+
+    virtual bool GetPowerOffNeedProcessOneFrame() const = 0;
+
+    virtual bool IsScreenPowerOff(ScreenId id) const = 0;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
 #endif
@@ -355,6 +364,15 @@ public:
 
     bool IsAllScreensPowerOff() const override;
 
+    // used to skip render frame or render only one frame when screen power is off.
+    void MarkPowerOffNeedProcessOneFrame() override;
+
+    void ResetPowerOffNeedProcessOneFrame() override;
+
+    bool GetPowerOffNeedProcessOneFrame() const override;
+
+    bool IsScreenPowerOff(ScreenId id) const override;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
 #endif
@@ -442,6 +460,7 @@ private:
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
 
     uint64_t frameId_ = 0;
+    std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;

@@ -527,6 +527,7 @@ EGLBoolean EglWrapperDisplay::DestroyEglSurface(EGLSurface surf)
     if (table->isLoad && table->egl.eglDestroySurface) {
         ret = table->egl.eglDestroySurface(disp_, sur);
         if (ret == EGL_TRUE) {
+            EglWrapperSurface::Disconnect(reinterpret_cast<OHNativeWindow*>(surfPtr->GetNativeWindow()));
             surfPtr->Destroy();
         } else {
             WLOGE("eglDestroySurface error.");

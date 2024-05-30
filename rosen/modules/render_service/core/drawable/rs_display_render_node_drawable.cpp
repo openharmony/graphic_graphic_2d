@@ -380,6 +380,10 @@ void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    // if screen power off, skip on draw
+    if (SkipDisplayIfScreenOff()) {
+        return;
+    }
     // canvas will generate in every request frame
     (void)canvas;
 
@@ -719,7 +723,8 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
 
     int32_t bufferAge = mirroredProcessor->GetBufferAge();
-    int32_t actualAge = curScreenInfo.skipFrameInterval ? curScreenInfo.skipFrameInterval * bufferAge : bufferAge;
+    int32_t actualAge = curScreenInfo.skipFrameInterval ?
+        static_cast<int32_t>(curScreenInfo.skipFrameInterval) * bufferAge : bufferAge;
     std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredNode, actualAge, mainScreenInfo);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {
@@ -945,7 +950,6 @@ std::shared_ptr<Drawing::Image> RSDisplayRenderNodeDrawable::GetCacheImageFromMi
             if (!image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
                 Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr,
                 SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
-                delete sharedContext;
                 RS_LOGE("RSDisplayRenderNodeDrawable::GetCacheImageFromMirrorNode image is nullptr");
             }
         }
@@ -1187,7 +1191,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
 
 void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
 {
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
         colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
@@ -1216,7 +1220,7 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
 
 void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const
 {
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
 }
 
@@ -1404,5 +1408,35 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     // restore current canvas and cleanup
     offscreenSurface_ = nullptr;
     curCanvas_ = std::move(canvasBackup_);
+}
+
+bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    auto renderNode = renderNode_.lock();
+    if (!screenManager || !renderNode) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff, failed to get screen manager/renderNode!");
+        return false;
+    }
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
+    auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(nodeSp);
+    if (!displayNodeSp) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff, display node is null!.");
+        return false;
+    }
+    ScreenId id = displayNodeSp->GetScreenId();
+    if (!screenManager->IsScreenPowerOff(id)) {
+        return false;
+    }
+    if (screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff screen_%{public}" PRIu64
+            " power off, one more frame.", id);
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS::Rosen::DrawableV2

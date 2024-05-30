@@ -202,10 +202,10 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
 RSUniUICapture::RSUniUICaptureVisitor::RSUniUICaptureVisitor(NodeId nodeId, float scaleX, float scaleY)
     : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY)
 {
-    // Avoid RS restart issue temperorily
-    renderEngine_ = std::make_shared<RSRenderEngine>();
-    renderEngine_->Init();
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
+    if (!isUniRender_) {
+        renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
+    }
 }
 
 void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<ExtendRecordingCanvas> canvas,
@@ -425,9 +425,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
                 params.dstRect.GetWidth(), params.dstRect.GetHeight());
             recordingCanvas->ConcatMatrix(params.matrix);
             recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
-        } else {
-            auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
-            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
     }
     if (isSelfDrawingSurface) {

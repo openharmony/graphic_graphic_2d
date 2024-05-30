@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include "render/rs_typeface_cache.h"
 #include "sandbox_utils.h"
+#include "src/core/SkLRUCache.h"
+#include "platform/common/rs_log.h"
 
 // after 5 vsync count, destory it
 #define DELAY_DESTROY_VSYNC_COUNT 5
@@ -52,46 +54,87 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     std::shared_ptr<Drawing::Typeface> typeface)
 {
     if (typeface && uniqueId > 0) {
-        // 32 for 64-bit unsignd number shift
-        pid_t pid = static_cast<pid_t>(uniqueId >> 32);
-        uint32_t typefaceId = static_cast<uint32_t>(0xFFFFFFFF & uniqueId);
         std::lock_guard<std::mutex> lock(mapMutex_);
-        drawingTypefaceCache_[pid][typefaceId] = typeface;
+        if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
+            return;
+        }
+        std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+        const void* stream = data->GetData();
+        size_t size = data->GetSize();
+        uint32_t  hash_value = SkOpts::hash_fn(stream, size, 0);
+        typefaceHashCode_[uniqueId] = hash_value;
+        if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
+            auto [faceCache, ref] = typefaceHashMap_[hash_value];
+            if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
+                // hash collision
+                typefaceHashCode_[uniqueId] = uniqueId;
+                typefaceHashMap_[uniqueId] = std::make_tuple(typeface, 1);
+            } else {
+                typefaceHashMap_[hash_value] = std::make_tuple(typeface, ref + 1);
+            }
+            return;
+        }
+        typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
     }
 }
 
 void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqueId)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
-    pid_t callingPid = GetTypefacePid(globalUniqueId);
-    auto it = drawingTypefaceCache_.find(callingPid);
-    if (it != drawingTypefaceCache_.end()) {
-        auto innerIt = it->second.find(GetTypefaceId(globalUniqueId));
-        if (innerIt != it->second.end()) {
-            drawingTypefaceCache_[callingPid].erase(innerIt);
-        }
+    if (typefaceHashCode_.find(globalUniqueId) == typefaceHashCode_.end()) {
+        return;
+    }
+    auto hash_value = typefaceHashCode_[globalUniqueId];
+    typefaceHashCode_.erase(globalUniqueId);
+    if (typefaceHashMap_.find(hash_value) == typefaceHashMap_.end()) {
+        return;
+    }
+    auto [typeface, ref] = typefaceHashMap_[hash_value];
+    if (ref == 1) {
+        typefaceHashMap_.erase(hash_value);
+    } else {
+        typefaceHashMap_[hash_value] = std::make_tuple(typeface, ref - 1);
     }
 }
 
 std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint64_t uniqueId) const
 {
-    std::lock_guard<std::mutex> lock(mapMutex_);
-    auto it = drawingTypefaceCache_.find(GetTypefacePid(uniqueId));
-    if (it != drawingTypefaceCache_.end()) {
-        auto innerIt = it->second.find(GetTypefaceId(uniqueId));
-        if (innerIt != it->second.end()) {
-            return innerIt->second;
+    if (uniqueId > 0) {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end() &&
+                typefaceHashMap_.find(typefaceHashCode_.at(uniqueId)) != typefaceHashMap_.end()) {
+            uint32_t hash_value = typefaceHashCode_.at(uniqueId);
+            auto [typeface, ref] = typefaceHashMap_.at(hash_value);
+            return typeface;
         }
     }
     return nullptr;
 }
 
+static void RemoveHashMap(std::unordered_map<uint64_t, TypefaceTuple> &typefaceHashMap, uint64_t hash_value)
+{
+    if (typefaceHashMap.find(hash_value) != typefaceHashMap.end()) {
+        auto [typeface, ref] = typefaceHashMap[hash_value];
+        if (ref == 1) {
+            typefaceHashMap.erase(hash_value);
+        } else {
+            typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1);
+        }
+    }
+}
+
 void RSTypefaceCache::RemoveDrawingTypefacesByPid(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
-    auto it = drawingTypefaceCache_.find(pid);
-    if (it != drawingTypefaceCache_.end()) {
-        drawingTypefaceCache_.erase(it);
+    for (auto it = typefaceHashCode_.begin(); it != typefaceHashCode_.end();) {
+        uint64_t uniqueId = it->first;
+        pid_t pidCache = static_cast<pid_t>(uniqueId >> 32);
+        if (pid == pidCache) {
+            RemoveHashMap(typefaceHashMap_, it->second);
+            it = typefaceHashCode_.erase(it);
+        } else {
+            ++it;
+        }
     }
 }
 void RSTypefaceCache::AddDelayDestroyQueue(uint64_t globalUniqueId)
@@ -112,6 +155,22 @@ void RSTypefaceCache::HandleDelayDestroyQueue()
             ++it;
         }
     }
+}
+
+void RSTypefaceCache::Dump() const
+{
+    RS_LOGI("RSTypefaceCache Dump : [");
+    RS_LOGI("RSTypefaceCache Dump %{public}s",
+        "---pid typefaceID-------------hash_value------------ref_count-----------familyname--------------");
+    for (auto co : typefaceHashCode_) {
+        if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
+            auto [typeface, ref] = typefaceHashMap_.at(co.second);
+            RS_LOGI("%{public}s    %{public}s             %{public}s            %{public}s           %{public}s",
+                "RSTypefaceCache Dump", std::to_string(co.first).c_str(), std::to_string(co.second).c_str(),
+                std::to_string(ref).c_str(), typeface->GetFamilyName().c_str());
+        }
+    }
+    RS_LOGI("RSTypefaceCache ]");
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -105,7 +105,10 @@ public:
     bool ChildHasVisibleEffect() const;
 
     void SetCacheSize(Vector2f size);
-    Vector2f GetCacheSize() const;
+    inline Vector2f GetCacheSize() const
+    {
+        return cacheSize_;
+    }
 
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const;

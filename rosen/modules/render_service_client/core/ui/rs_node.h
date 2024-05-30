@@ -34,6 +34,10 @@
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/visual_effect.h"
+#include "ui_effect/filter/include/filter.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -270,6 +274,12 @@ public:
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
     void SetOutlineRadius(const Vector4f& radius);
 
+    // UIEffect
+    void SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter);
+    void SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter);
+    void SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter);
+    void SetVisualEffect(const VisualEffect* visualEffect);
+
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
@@ -300,6 +310,7 @@ public:
     void SetFrameGravity(Gravity gravity);
 
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
+    void SetClipRRect(const std::shared_ptr<RRect>& rrect);
     void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
@@ -310,7 +321,8 @@ public:
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
-    void SetPixelStretchPercent(const Vector4f& stretchPercent);
+    void SetPixelStretchPercent(const Vector4f& stretchPercent,
+        Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
 
     void SetPaintOrder(bool drawContentLast);
 

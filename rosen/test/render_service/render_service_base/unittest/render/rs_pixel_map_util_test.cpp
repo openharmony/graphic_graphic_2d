@@ -177,5 +177,21 @@ HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImageTest, TestSize.Leve
     auto image = RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap);
     EXPECT_EQ(image, nullptr);
 }
+
+/**
+ * @tc.name: IsSupportZeroCopyTest
+ * @tc.desc: Verify function IsSupportZeroCopy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, IsSupportZeroCopyTest, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    Drawing::SamplingOptions sampling;
+
+    EXPECT_FALSE(RSPixelMapUtil::IsSupportZeroCopy(pixelmap, sampling));
+}
 } // namespace Rosen
 } // namespace OHOS

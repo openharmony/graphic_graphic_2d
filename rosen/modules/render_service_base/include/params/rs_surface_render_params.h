@@ -57,11 +57,11 @@ class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
     ~RSSurfaceRenderParams() override = default;
-    bool IsMainWindowType() const
+    inline bool IsMainWindowType() const
     {
         return isMainWindowType_;
     }
-    bool IsLeashWindow() const
+    inline bool IsLeashWindow() const
     {
         return isLeashWindow_;
     }

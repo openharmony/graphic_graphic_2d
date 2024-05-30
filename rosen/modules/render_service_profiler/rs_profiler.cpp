@@ -150,7 +150,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     for (const auto& rect : rects) {
-        dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth()) * rect.GetHeight();
+        dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth() * rect.GetHeight());
     }
 
     if (displayArea > 0) {
@@ -209,7 +209,7 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
             stream.write(reinterpret_cast<const char*>(&pid), sizeof(pid));
             stream.write(reinterpret_cast<const char*>(&code), sizeof(code));
 
-            const int32_t dataSize = parcel.GetDataSize();
+            const size_t dataSize = parcel.GetDataSize();
             stream.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
             stream.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
 
@@ -343,6 +343,10 @@ void RSProfiler::OnRenderBegin()
 
 void RSProfiler::OnRenderEnd()
 {
+    if (!IsEnabled()) {
+        return;
+    }
+    
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
@@ -569,7 +573,7 @@ std::string RSProfiler::FirstFrameMarshalling()
     stream.write(reinterpret_cast<const char*>(&focusNodeId), sizeof(focusNodeId));
 
     const std::string bundleName = g_mainThread->focusAppBundleName_;
-    int32_t size = bundleName.size();
+    size_t size = bundleName.size();
     stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     stream.write(reinterpret_cast<const char*>(bundleName.data()), size);
 
@@ -603,7 +607,7 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
     uint64_t focusNodeId = 0;
     stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
 
-    int32_t size = 0;
+    size_t size = 0;
     stream.read(reinterpret_cast<char*>(&size), sizeof(size));
     std::string bundleName;
     bundleName.resize(size, ' ');
@@ -886,8 +890,8 @@ void RSProfiler::AttachChild(const ArgList& args)
 
 void RSProfiler::KillPid(const ArgList& args)
 {
-    const uint32_t pid = args.Pid();
-    if (const auto node = GetRenderNode(Utils::GetRootNodeId(pid))) {
+    const pid_t pid = args.Pid();
+    if (const auto node = GetRenderNode(Utils::GetRootNodeId(static_cast<uint64_t>(pid)))) {
         const auto parent = node->GetParent().lock();
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
@@ -1161,13 +1165,13 @@ void RSProfiler::RecordStop(const ArgList& args)
         stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
         stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
 
-        const int32_t pidCount = g_recordFile.GetHeaderPids().size();
+        const uint32_t pidCount = g_recordFile.GetHeaderPids().size();
         stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
         for (auto item : g_recordFile.GetHeaderPids()) {
             stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
         }
 
-        int sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
+        size_t sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
         stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
         stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
 
@@ -1188,10 +1192,16 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
     g_playbackPauseTime = args.Fp64(1);
+    std::string path = args.String(2);
+    if (!Utils::FileExists(path)) {
+        Respond("Can't playback non existing file '" + path + "'");
+        path = RSFile::GetDefaultPath();
+    }
 
     ImageCache::Reset();
 
-    g_playbackFile.Open(RSFile::GetDefaultPath());
+    Respond("Opening file " + path);
+    g_playbackFile.Open(path);
     if (!g_playbackFile.IsOpen()) {
         Respond("Can't open file.");
         return;
@@ -1228,7 +1238,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     std::thread thread([]() {
         while (IsPlaying()) {
-            const int64_t timestamp = RawNowNano();
+            const uint64_t timestamp = RawNowNano();
 
             PlaybackUpdate();
             if (g_playbackStartTime >= 0) {
@@ -1286,7 +1296,7 @@ void RSProfiler::PlaybackUpdate()
             uint32_t code = 0;
             stream.read(reinterpret_cast<char*>(&code), sizeof(code));
 
-            int32_t dataSize = 0;
+            size_t dataSize = 0;
             stream.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
             auto* data = new uint8_t[dataSize];
@@ -1323,7 +1333,7 @@ void RSProfiler::PlaybackUpdate()
 
 void RSProfiler::PlaybackPrepare(const ArgList& args)
 {
-    const uint32_t pid = args.Pid();
+    const pid_t pid = args.Pid();
     if (!g_context || (pid == 0)) {
         return;
     }

@@ -299,6 +299,9 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceR
             }
             auto surfaceParams =
                 static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+            if (surfaceParams == nullptr) {
+                return false;
+            }
             auto surfaceDirtyRect = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
             Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
                 surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
@@ -420,7 +423,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
         processingNodePartialSync_.insert(it->first); // partial sync
         std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
         surfaceNode->GetAllSubSurfaceNodes(allSubSurfaceNodes);
-        for (auto& [id, node] : allSubSurfaceNodes) {
+        for (auto& [id, subSurfaceNode] : allSubSurfaceNodes) {
             processingNodeSkipSync_.insert(id); // skip sync
         }
     }
@@ -517,7 +520,7 @@ void RSUifirstManager::ClearSubthreadRes()
 void RSUifirstManager::ForceClearSubthreadRes()
 {
     noUifirstNodeFrameCount_ = 0;
-    RSSubThreadManager::Instance()->ForceReleaseResource();
+    RSSubThreadManager::Instance()->ReleaseTexture();
 }
 
 void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
@@ -897,8 +900,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     }
 
     std::string surfaceName = node.GetName();
-    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }
@@ -920,8 +922,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
 
     std::string surfaceName = node.GetName();
-    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }

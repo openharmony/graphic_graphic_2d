@@ -22,6 +22,7 @@
 #include "plugin_manager.h"
 #include "common.h"
 
+namespace OHOS {
 PluginManager PluginManager::m_pluginManager;
 
 PluginManager::~PluginManager()
@@ -111,3 +112,4 @@ PluginRender *PluginManager::GetRender(std::string &id)
 
     return m_pluginRenderMap[id];
 }
+} // namespace OHOS

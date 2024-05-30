@@ -175,6 +175,48 @@ HWTEST_F(FontParserTest, NameTableParserTest1, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NameTableParserTest2
+ * @tc.desc: opentype parser test
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
+{
+    auto typeface = Drawing::Typeface::MakeDefault();
+    if (typeface == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr";
+        return;
+    }
+    auto tag = HB_TAG('n', 'a', 'm', 'e');
+    auto size = typeface->GetTableSize(tag);
+    if (size <= 0) {
+        LOGSO_FUNC_LINE(ERROR) << "haven't name";
+        return ;
+    }
+    std::unique_ptr<char[]> tableData = nullptr;
+    tableData = std::make_unique<char[]>(size);
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
+    if (size != retTableData) {
+        LOGSO_FUNC_LINE(ERROR) << "get table data failed size:" << size << ",ret:" << retTableData;
+        return ;
+    }
+    hb_blob_t* hblob = nullptr;
+    hblob = hb_blob_create(
+            reinterpret_cast<const char *>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
+    if (hblob == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "hblob is nullptr";
+        return ;
+    }
+    const char* data_ = nullptr;
+    unsigned int length_ = 0;
+    data_ = hb_blob_get_data(hblob, nullptr);
+    length_ = hb_blob_get_length(hblob);
+    auto parseName = std::make_shared<NameTableParser>(data_, length_);
+    auto nameTable = parseName->Parse(data_, length_);
+    parseName->Dump();
+    EXPECT_NE(nameTable, nullptr);
+}
+
+/**
  * @tc.name: PostTableParserTest1
  * @tc.desc: opentype parser test
  * @tc.type:FUNC
@@ -197,9 +239,12 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
 {
     char test[4] = {'a', 'b', 'c', 'd'};
     struct OpenTypeBasicType::Tag tag;
+    tag.Get();
     struct OpenTypeBasicType::Int16 int16;
+    int16.Get();
     struct OpenTypeBasicType::Uint16 uint16;
     struct OpenTypeBasicType::Int32 int32;
+    int32.Get();
     struct OpenTypeBasicType::Uint32 uint32;
     struct OpenTypeBasicType::Fixed fixed;
     std::copy(std::begin(test), std::end(test), std::begin(tag.tags));
@@ -215,9 +260,13 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
 HWTEST_F(FontParserTest, RangesTest1, TestSize.Level1)
 {
     Ranges ranges;
-    struct Ranges::Range range = {0, 2, 1};
+    struct Ranges::Range range = { 0, 2, 1 };
     ranges.AddRange(range);
+    struct Ranges::Range range2 = { 4, 5, 2 };
+    ranges.AddRange(range2);
     EXPECT_EQ(ranges.GetGlyphId(3), Ranges::INVALID_GLYPH_ID);
+    EXPECT_EQ(ranges.GetGlyphId(0), 1);
+    EXPECT_EQ(ranges.GetGlyphId(4), 6);
     ranges.Dump();
 }
 } // namespace TextEngine

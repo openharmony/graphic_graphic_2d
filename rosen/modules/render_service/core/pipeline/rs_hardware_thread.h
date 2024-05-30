@@ -73,7 +73,9 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
+
     RefreshRateParam GetRefreshRateParam();
+    std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -91,6 +93,7 @@ private:
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
+    std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos_;
 
     HgmRefreshRates hgmRefreshRates_;
     RSVBlankIdleCorrector vblankIdleCorrector_;

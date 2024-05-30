@@ -96,6 +96,7 @@ void RSHardwareThreadTest::SetUp()
         auto vsyncGenerator = CreateVSyncGenerator();
         auto vsyncController = new VSyncController(vsyncGenerator, 0);
         mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
     }
 }
 

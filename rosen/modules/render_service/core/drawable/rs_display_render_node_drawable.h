@@ -83,6 +83,7 @@ private:
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSRenderNode& node);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
+    bool SkipDisplayIfScreenOff() const;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

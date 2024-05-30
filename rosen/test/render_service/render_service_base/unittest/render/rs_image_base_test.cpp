@@ -230,6 +230,20 @@ HWTEST_F(RSImageBaseTest, SetDmaImageTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkYUVImageTest
+ * @tc.desc: Verify function MarkYUVImage
+ * @tc.type:FUNC
+ * @tc.require: issuesI9SX8Q
+ */
+HWTEST_F(RSImageBaseTest, MarkYUVImageTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->MarkYUVImage();
+    EXPECT_TRUE(imageBase->isYUVImage_);
+}
+
+/**
  * @tc.name: UnmarshallingTest
  * @tc.desc: Verify function Unmarshalling
  * @tc.type:FUNC

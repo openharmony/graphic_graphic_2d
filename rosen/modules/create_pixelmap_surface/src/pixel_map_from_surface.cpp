@@ -419,7 +419,6 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper)) {
-        cleanUpHelper->UnRef();
         return nullptr;
     }
     return drawingImage;

@@ -36,14 +36,14 @@ namespace {
     constexpr int32_t pid0 = 10010;
     const std::string strategyName0 = "110";
     const std::string pkgName0 = "com.app10";
-    const std::string appTypeName0 = "appType0";
+    constexpr int32_t appType0 = 20010;
 
     constexpr int32_t fps1 = 15;
     constexpr int32_t downFps1 = 120;
     constexpr int32_t pid1 = 10015;
     const std::string strategyName1 = "115";
     const std::string pkgName1 = "com.app15";
-    const std::string appTypeName1 = "appType1";
+    constexpr int32_t appType1 = 20015;
 }
 
 struct PkgParam {
@@ -95,8 +95,8 @@ void HgmMultiAppStrategyTest::SetUp()
         pkgParam.linker->SetExpectedRange(FrameRateRange(OLED_NULL_HZ, RANGE_MAX_REFRESHRATE, OLED_NULL_HZ));
     }
 
-    appTypes[appTypeName0] = strategyName0;
-    appTypes[appTypeName1] = strategyName1;
+    appTypes[appType0] = strategyName0;
+    appTypes[appType1] = strategyName1;
 }
 
 void HgmMultiAppStrategyTest::SetMultiAppStrategy(
@@ -125,7 +125,7 @@ std::vector<std::string> HgmMultiAppStrategyTest::CreateVotePkgs()
 HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level1)
 {
     PART("CaseDescription") {
-        auto &pkgParam = pkgParams_[0];
+        auto &pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -171,7 +171,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
-        auto &pkgParam = pkgParams_[0];
+        auto &pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -371,12 +371,12 @@ HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
-        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + appTypeName0 });
+        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + std::to_string(appType0) });
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, fps0);
         ASSERT_EQ(strategyConfig.max, fps0);
         
-        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + appTypeName1 });
+        multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + std::to_string(appType1) });
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, fps1);
         ASSERT_EQ(strategyConfig.max, fps1);
@@ -406,6 +406,31 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+    }
+}
+
+/**
+ * @tc.name: BackgroundApp
+ * @tc.desc: Verify the result of BackgroundApp
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
+{
+    constexpr int32_t gameType0 = 10046;
+    PART("CaseDescription") {
+        multiAppStrategy_->HandlePkgsEvent({ pkgName0 + ":" + std::to_string(pid0) });
+        auto foregroundPidAppType = multiAppStrategy_->GetForegroundPidAppType();
+        auto backgroundPidAppType = multiAppStrategy_->GetBackgroundPidAppType();
+        ASSERT_TRUE(foregroundPidAppType.find(pid0) != foregroundPidAppType.end());
+        
+        multiAppStrategy_->HandlePkgsEvent({ pkgName1 + ":" + std::to_string(pid1) + ":" + std::to_string(gameType0) });
+        foregroundPidAppType = multiAppStrategy_->GetForegroundPidAppType();
+        backgroundPidAppType = multiAppStrategy_->GetBackgroundPidAppType();
+        ASSERT_TRUE(foregroundPidAppType.find(pid0) == foregroundPidAppType.end());
+        ASSERT_TRUE(foregroundPidAppType.find(pid1) != foregroundPidAppType.end());
+        ASSERT_TRUE(backgroundPidAppType.find(pid0) != backgroundPidAppType.end());
+        ASSERT_TRUE(backgroundPidAppType.find(pid1) == backgroundPidAppType.end());
     }
 }
 } // namespace Rosen

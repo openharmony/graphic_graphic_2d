@@ -620,7 +620,7 @@ bool RSSystemProperties::GetUIFirstEnabled()
 
 bool RSSystemProperties::GetUIFirstDebugEnabled()
 {
-    static bool debugEnable = system::GetParameter("persist.sys.graphic.uifirstDebugEnabled", "0") != "0";
+    static bool debugEnable = system::GetIntParameter("persist.sys.graphic.uifirstDebugEnabled", 0) != 0;
     return debugEnable;
 }
 
@@ -634,8 +634,7 @@ bool RSSystemProperties::GetUIFirstForceEnabled()
 
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
-    static bool openDebugTrace =
-        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+    static bool openDebugTrace = system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0;
     return openDebugTrace;
 }
 
@@ -883,8 +882,9 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
-    static bool enable = (strcmp(CachedParameterGetChanged(g_Handle, nullptr), "true") == 0);
-    return enable;
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
 }
 
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
@@ -956,7 +956,7 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
 
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "1") != "0";
+    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
     return flag;
 }
 
@@ -979,6 +979,14 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     static bool flag = system::GetParameter("rosen.gpu.overdraw.optimize.enabled", "0") != "0";
     return flag;
+}
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 1) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS
