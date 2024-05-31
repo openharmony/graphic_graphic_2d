@@ -158,7 +158,7 @@ template<typename T, typename>
         return false;
     }
     auto* byte = reinterpret_cast<char*>(&value);
-    for (size_t i = 0; i < sizeof(T); ++i){
+    for (size_t i = 0; i < sizeof(T); ++i) {
         byte[i] = data_[readPointer_ + i];
     }
     readPointer_ += sizeof(T);
@@ -237,7 +237,7 @@ inline bool Packet::WriteTrivial(const T& value)
     }
 
     const auto* byte = reinterpret_cast<const char*>(&value);
-    for (size_t i = 0; i < sizeof(T); ++i){
+    for (size_t i = 0; i < sizeof(T); ++i) {
         data_[writePointer_ + i] = byte[i];
     }
     writePointer_ += sizeof(T);
