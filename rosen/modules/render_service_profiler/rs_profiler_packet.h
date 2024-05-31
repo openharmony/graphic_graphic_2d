@@ -16,6 +16,8 @@
 #ifndef RS_PROFILER_MESSAGE_HELPER_H
 #define RS_PROFILER_MESSAGE_HELPER_H
 
+#include "rs_profiler_utils.h"
+
 #include <bitset>
 #include <iterator>
 #include <type_traits>
@@ -118,7 +120,7 @@ public:
     template<typename T, typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
     [[maybe_unused]] bool Read(T& value);
 
-    template<typename T, typename = std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::size)>>>
+    template<typename T>
     [[maybe_unused]] bool Read(T& value, size_t size);
 
     [[maybe_unused]] bool Read(void* value, size_t size);
@@ -126,7 +128,7 @@ public:
     template<typename T, typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
     T Read();
 
-    template<typename T, typename = std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::size)>>>
+    template<typename T>
     T Read(size_t size);
 
     template<typename T>
@@ -136,9 +138,6 @@ public:
 
 private:
     void SetLength(uint32_t length);
-
-    template<typename T>
-    bool WriteTrivial(const T& value);
 
     void InitData(PacketType type);
 
@@ -154,22 +153,25 @@ private:
 template<typename T, typename>
 [[maybe_unused]] inline bool Packet::Read(T& value)
 {
-    if (readPointer_ + sizeof(T) > data_.size()) {
-        return false;
-    }
-    auto* byte = reinterpret_cast<char*>(&value);
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        byte[i] = data_[readPointer_ + i];
-    }
-    readPointer_ += sizeof(T);
-    return true;
+    return Read(&value, sizeof(value));
 }
 
-template<typename T, typename>
+template<typename T>
 [[maybe_unused]] inline bool Packet::Read(T& value, size_t size)
 {
-    value.resize(size);
-    return Read(reinterpret_cast<void*>(value.data()), size * sizeof(typename T::value_type));
+    if constexpr (HasContiguousLayout<T>::value) {
+        value.resize(size);
+        return Read(value.data(), size * sizeof(typename T::value_type));
+    } else {
+        bool res = true;
+        for (size_t i = 0; i < size; ++i) {
+            typename T::value_type v {};
+            res = res && Read(v);
+            value.emplace(std::move(v));
+        }
+        return res;
+    }
+    return false;
 }
 
 [[maybe_unused]] inline bool Packet::Read(void* value, size_t size)
@@ -177,7 +179,7 @@ template<typename T, typename>
     if (readPointer_ + size > data_.size()) {
         return false;
     }
-    if (::memcpy_s(reinterpret_cast<void*>(value), size, (void*)(data_.data() + readPointer_), size) != 0) {
+    if (!Utils::Move(value, size, data_.data() + readPointer_, size) != 0) {
         return false;
     }
     readPointer_ += size;
@@ -192,7 +194,7 @@ inline T Packet::Read()
     return v;
 }
 
-template<typename T, typename>
+template<typename T>
 inline T Packet::Read(size_t size)
 {
     T v {};
@@ -204,9 +206,9 @@ template<typename T>
 [[maybe_unused]] bool Packet::Write(const T& value)
 {
     if constexpr (std::is_trivially_copyable_v<T>) {
-        return WriteTrivial(value);
+        return Write(&value, sizeof(value));
     } else if constexpr (HasContiguousLayout<T>::value) {
-        return Write(reinterpret_cast<const void*>(value.data()), value.size() * sizeof(typename T::value_type));
+        return Write(value.data(), value.size() * sizeof(typename T::value_type));
     } else {
         bool res = true;
         for (auto it = value.cbegin(); it != value.cend(); ++it) {
@@ -219,9 +221,12 @@ template<typename T>
 
 [[maybe_unused]] inline bool Packet::Write(const void* value, size_t size)
 {
-    data_.resize(data_.size() + size);
-    if (memcpy_s(reinterpret_cast<void*>(data_.data() + writePointer_), size, value, size) != 0) {
-        data_.resize(data_.size() - size);
+    size_t growSize = size - (data_.size() - writePointer_);
+    if (writePointer_ + size > data_.size()) {
+        data_.resize(data_.size() + growSize);
+    }
+    if (!Utils::Move(data_.data() + writePointer_, data_.size() - writePointer_, &value, sizeof(value))) {
+        data_.resize(data_.size() - growSize);
         return false;
     }
     writePointer_ += size;
@@ -229,21 +234,6 @@ template<typename T>
     return true;
 }
 
-template<typename T>
-inline bool Packet::WriteTrivial(const T& value)
-{
-    if (writePointer_ + sizeof(T) > data_.size()) {
-        data_.resize(data_.size() + (sizeof(T) - (data_.size() - writePointer_)));
-    }
-
-    const auto* byte = reinterpret_cast<const char*>(&value);
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        data_[writePointer_ + i] = byte[i];
-    }
-    writePointer_ += sizeof(T);
-    SetLength(data_.size());
-    return true;
-}
 
 } // namespace OHOS::Rosen
 
