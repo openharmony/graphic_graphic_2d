@@ -43,7 +43,7 @@ group("test") {
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspointlightmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rspropertydrawableutilities_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rspropertydrawableframegeometry_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodel_fuzzer:fuzztest",
