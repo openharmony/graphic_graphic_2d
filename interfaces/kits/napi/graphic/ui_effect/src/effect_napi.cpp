@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "effect_napi.h"
-#include "image_napi_utils.h"
+#include "ui_effect_napi_utils.h"
 
 namespace {
     constexpr uint32_t NUM_1 = 1;
