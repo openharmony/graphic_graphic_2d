@@ -17,8 +17,9 @@
 
 namespace OHOS::Rosen {
 
-Packet::Packet(PacketType type)
+Packet::Packet(PacketType type, uint32_t reserve)
 {
+    data_.reserve(reserve);
     InitData(type);
 }
 
@@ -44,17 +45,22 @@ char* Packet::End()
 
 Packet::PacketType Packet::GetType() const
 {
-    return *GetHeaderFieldPtr<PacketType, Header::TYPE>();
+    return static_cast<PacketType>(*reinterpret_cast<const uint8_t*>(data_.data() + HEADER_TYPE_OFFSET));
 }
 
 void Packet::SetType(Packet::PacketType type)
 {
-    *GetHeaderFieldPtr<PacketType, Header::TYPE>() = type;
+    *reinterpret_cast<uint8_t*>(data_.data() + HEADER_TYPE_OFFSET) = static_cast<uint8_t>(type);
 }
 
 uint32_t Packet::GetLength() const
 {
-    return *GetHeaderFieldPtr<uint32_t, Header::LENGTH>();
+    uint32_t length;
+    auto* ptr = reinterpret_cast<char*>(&length);
+    for (size_t i = 0; i < sizeof(length); ++i) {
+        ptr[i] = data_[HEADER_LENGTH_OFFSET + i];
+    }
+    return length;
 }
 
 uint32_t Packet::GetPayloadLength() const
@@ -71,7 +77,10 @@ std::vector<char> Packet::Release()
 
 void Packet::SetLength(uint32_t length)
 {
-    *GetHeaderFieldPtr<uint32_t, Header::LENGTH>() = length;
+    const auto* ptr = reinterpret_cast<const char*>(&length);
+    for (size_t i = 0; i < sizeof(length); ++i) {
+        data_[HEADER_LENGTH_OFFSET + i] = ptr[i];
+    }
 }
 
 void Packet::InitData(PacketType type)

@@ -91,11 +91,9 @@ public:
         LOG_TRACE,
     };
 
-    enum class Header { TYPE = 0, LENGTH = 1 };
-
     static constexpr size_t HEADER_SIZE = sizeof(uint32_t) + sizeof(uint8_t);
 
-    explicit Packet(PacketType type);
+    explicit Packet(PacketType type, uint32_t reserve = DEFAULT_RESERVED_SIZE);
     Packet(const Packet&) = default;
     Packet& operator=(const Packet&) = default;
     Packet(Packet&&) = default;
@@ -141,20 +139,12 @@ private:
     template<typename T>
     bool WriteTrivial(const T& value);
 
-    template<typename T, Header Offset>
-    constexpr const T* GetHeaderFieldPtr() const
-    {
-        return const_cast<Packet*>(this)->GetHeaderFieldPtr<T, Offset>();
-    }
-    template<typename T, Header Offset>
-    constexpr T* GetHeaderFieldPtr()
-    {
-        return reinterpret_cast<T*>(data_.data() + static_cast<int>(Offset));
-    }
-
     void InitData(PacketType type);
 
 private:
+    static constexpr size_t HEADER_TYPE_OFFSET = 0;
+    static constexpr size_t HEADER_LENGTH_OFFSET = sizeof(uint8_t);
+    static constexpr size_t DEFAULT_RESERVED_SIZE = 64;
     size_t readPointer_ = HEADER_SIZE;
     size_t writePointer_ = HEADER_SIZE;
     std::vector<char> data_ = { 0, 0, 0, 0, 0 };
@@ -166,7 +156,10 @@ template<typename T, typename>
     if (readPointer_ + sizeof(T) > data_.size()) {
         return false;
     }
-    value = *reinterpret_cast<T*>(data_.data() + readPointer_);
+    auto* byte = reinterpret_cast<char*>(&value);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        byte[i] = data_[readPointer_ + i];
+    }
     readPointer_ += sizeof(T);
     return true;
 }
@@ -241,7 +234,11 @@ inline bool Packet::WriteTrivial(const T& value)
     if (writePointer_ + sizeof(T) > data_.size()) {
         data_.resize(data_.size() + (sizeof(T) - (data_.size() - writePointer_)));
     }
-    *reinterpret_cast<T*>((data_.data() + writePointer_)) = value;
+
+    const auto* byte = reinterpret_cast<const char*>(&value);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        data_[writePointer_ + i] = byte[i];
+    }
     writePointer_ += sizeof(T);
     SetLength(data_.size());
     return true;
