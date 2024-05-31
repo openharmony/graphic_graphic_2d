@@ -36,7 +36,7 @@ do \
 #define UIEFFECT_JS_ARGS(env, info, status, argc, argv, thisVar) \
 do \
 { \
-    status = napi_get_cb_info(env, info, &argc, argv, &(thisVar), nullptr); \
+    status = napi_get_cb_info(env, info, &(argc), argv, &(thisVar), nullptr); \
 } while (0)
 
 #define UIEFFECT_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
