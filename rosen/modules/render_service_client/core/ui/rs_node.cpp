@@ -418,7 +418,7 @@ const RSShowingPropertiesFreezer& RSNode::GetShowingProperties() const
     return showingPropertiesFreezer_;
 }
 
-void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
+void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation)
 {
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to add animation, animation is null!");
@@ -445,7 +445,10 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
         std::unique_lock<std::mutex> lock(animationMutex_);
         AddAnimationInner(animation);
     }
-    animation->StartInner(shared_from_this());
+
+    if (isStartAnimation) {
+        animation->StartInner(shared_from_this());
+    }
 }
 
 void RSNode::RemoveAllAnimations()

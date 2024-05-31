@@ -42,6 +42,7 @@ public:
 
     void SetZeroThreshold(const float zeroThreshold) override;
 
+    bool IsSupportInteractiveAnimator() override { return true; }
 protected:
     void OnStart() override;
 

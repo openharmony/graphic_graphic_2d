@@ -128,6 +128,22 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
     SetPropertyValue(targetValue);
 }
 
+void RSPropertyAnimation::UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos)
+{
+    auto targetValue = endValue_;
+    if (pos ==RSInteractiveAnimationPosition::START) {
+        targetValue = startValue_;
+    } else if (pos ==RSInteractiveAnimationPosition::END) {
+        targetValue = endValue_;
+    } else if (pos ==RSInteractiveAnimationPosition::CURRENT) {
+        if (IsUiAnimation() && property_ != nullptr) {
+            property_->SetValueFromRender(property_->GetRenderProperty());
+            return;
+        }
+    }
+    SetPropertyValue(targetValue);
+}
+
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()
 {
     if (property_ != nullptr) {

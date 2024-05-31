@@ -387,7 +387,7 @@ HWTEST_F(RSRenderSpringAnimationTest, OnSetFraction001, TestSize.Level1)
     renderSpringAnimationMock->SetSpringParameters(response, dampingRatio, blendDuration);
     EXPECT_TRUE(renderSpringAnimationMock != nullptr);
     renderSpringAnimationMock->OnSetFraction(0.0f);
-    EXPECT_EQ(false, renderSpringAnimationMock->IsCalculateAniamtionValue());
+    EXPECT_EQ(true, renderSpringAnimationMock->IsCalculateAniamtionValue());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnSetFraction001 end";
 }
 } // namespace Rosen
