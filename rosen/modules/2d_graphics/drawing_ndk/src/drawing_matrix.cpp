@@ -341,6 +341,20 @@ bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix* cMatrix)
     return matrix->IsIdentity();
 }
 
+OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* cMatrix, float value[9])
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr || value == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::array<float, 9> buffer;
+    matrix->GetAll(buffer);
+    for (int i = 0; i < 9; ++i) {
+        value[i] = buffer[i];
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_MatrixDestroy(OH_Drawing_Matrix* cMatrix)
 {
     delete CastToMatrix(cMatrix);
