@@ -1825,4 +1825,42 @@ HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenScaleMode_002, TestSize.Leve
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
 }
+
+/*
+ * @tc.name: IsScreenPowerOffTest001
+ * @tc.desc: Test IsScreenPowerOff, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId id = INVALID_SCREEN_ID;
+    ASSERT_FALSE(screenManager->IsScreenPowerOff(id));
+}
+
+/*
+ * @tc.name: IsScreenPowerOffTest002
+ * @tc.desc: Test IsScreenPowerOff, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+        
+    ScreenId id = 1;
+    screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    ASSERT_FALSE(screenManager->IsScreenPowerOff(id));
+    screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
+    ASSERT_FALSE(screenManager->IsScreenPowerOff(id));
+    screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+    ASSERT_TRUE(screenManager->IsScreenPowerOff(id));
+    screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND;
+    ASSERT_TRUE(screenManager->IsScreenPowerOff(id));
+}
 } // namespace OHOS::Rosen

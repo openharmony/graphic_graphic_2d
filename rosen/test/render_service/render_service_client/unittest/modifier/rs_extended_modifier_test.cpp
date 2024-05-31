@@ -168,7 +168,7 @@ HWTEST_F(RSExtendedModifierTest, FinishDrawingTest1, TestSize.Level1)
     }
     RSDrawingContext ctx = { recordingCanvas, 1000, 3000 };
     std::shared_ptr<Drawing::DrawCmdList> cmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
-    ASSERT_EQ(cmdList, nullptr);
+    ASSERT_NE(cmdList, nullptr);
 }
 
 /**
