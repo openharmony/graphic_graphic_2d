@@ -68,11 +68,26 @@ HWTEST_F(RSNodeMapTest, Instance001, TestSize.Level1)
  */
 HWTEST_F(RSNodeMapTest, RegisterNode001, TestSize.Level1)
 {
-    /**
-     * @tc.steps: step1. RSNodeMap001
-     */
-    RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
-    ASSERT_FALSE(RSNodeMap::MutableInstance().RegisterNode(node));
+    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(0);
+    nodePtr->id_ = 0;
+    bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
+    EXPECT_TRUE(res == false);
+
+    nodePtr->id_ = 3;
+    res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: RSNodeMapTest
+ * @tc.desc: test results of RegisterNodeInstanceId
+ * @tc.type:FUNC
+ * @tc.require: issueI9TXX3
+ */
+HWTEST_F(RSNodeMapTest, RegisterNodeInstanceId001, TestSize.Level1)
+{
+    bool res = RSNodeMap::MutableInstance().RegisterNodeInstanceId(1, 1);
+    EXPECT_TRUE(res);
 }
 
 /**
@@ -83,12 +98,14 @@ HWTEST_F(RSNodeMapTest, RegisterNode001, TestSize.Level1)
  */
 HWTEST_F(RSNodeMapTest, UnregisterNode001, TestSize.Level1)
 {
-    /**
-     * @tc.steps: step1. RSNodeMap001
-     */
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr node = RSSurfaceNode::Create(config);
-    RSNodeMap::MutableInstance().UnregisterNode(node->GetId());
+    RSNodeMap::MutableInstance().UnregisterNode(1);
+    EXPECT_TRUE(!RSNodeMap::MutableInstance().nodeIdMap_.empty());
+
+    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(2);
+    nodePtr->id_ = 2;
+    RSNodeMap::MutableInstance().RegisterNode(nodePtr);
+    RSNodeMap::MutableInstance().UnregisterNode(0);
+    EXPECT_TRUE(!RSNodeMap::MutableInstance().nodeIdMap_.empty());
 }
 
 /**
@@ -99,12 +116,30 @@ HWTEST_F(RSNodeMapTest, UnregisterNode001, TestSize.Level1)
  */
 HWTEST_F(RSNodeMapTest, GetNode001, TestSize.Level1)
 {
-    /**
-     * @tc.steps: step1. RSNodeMap001
-     */
-    RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
-    auto nodeone = RSNodeMap::MutableInstance().GetNode(node->GetId());
-    ASSERT_NE(nodeone, nullptr);
+    auto nodeone = RSNodeMap::MutableInstance().GetNode(1);
+    EXPECT_EQ(nodeone, nullptr);
+
+    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(3);
+    nodePtr->id_ = 3;
+    RSNodeMap::MutableInstance().RegisterNode(nodePtr);
+    nodeone = RSNodeMap::MutableInstance().GetNode(3);
+    EXPECT_NE(nodeone, nullptr);
+}
+
+/**
+ * @tc.name: RSNodeMapTest
+ * @tc.desc: test results of GetNodeInstanceId
+ * @tc.type:FUNC
+ * @tc.require: issueI9TXX3
+ */
+HWTEST_F(RSNodeMapTest, GetNodeInstanceId001, TestSize.Level1)
+{
+    RSNodeMap::MutableInstance().RegisterNodeInstanceId(1, 1);
+    auto res = RSNodeMap::MutableInstance().GetNodeInstanceId(1);
+    EXPECT_EQ(res, 1);
+
+    res = RSNodeMap::MutableInstance().GetNodeInstanceId(0);
+    EXPECT_NE(res, 0);
 }
 
 /**
