@@ -118,8 +118,7 @@ bool DoCreateWithConfig(const uint8_t* data, size_t size)
     std::string name(STRING_LEN, GetData<char>());
     uint8_t type = GetData<uint8_t>();
     std::string bundleName(STRING_LEN, GetData<char>());
-    enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
-    SurfaceNodeCommandHelper::CreateWithConfig(context, id, name, type, bundleName, windowType);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, id, name, type, bundleName);
     return true;
 }
 } // namespace Rosen
