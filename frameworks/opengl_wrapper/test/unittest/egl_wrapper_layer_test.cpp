@@ -97,7 +97,7 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     std::vector<std::string> layers;
-    layers = nullptr;
+    layers = {};
     bool result = WrapperLayer.LoadLayers();
     ASSERT_FALSE(result);
 }
