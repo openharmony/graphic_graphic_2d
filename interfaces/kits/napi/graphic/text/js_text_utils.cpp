@@ -542,29 +542,29 @@ static NapiMap CreateNapiMap(napi_env env)
     napi_valuetype value_type;
 
     napi_value global = nullptr;
-    if (!(!napi_get_global(env, &global) && global)) {
+    if (napi_get_global(env, &global) != napi_ok || !global) {
         return res;
     }
 
     napi_value constructor = nullptr;
-    if (!(!napi_get_named_property(env, global, "Map", &constructor) && constructor)) {
+    if (napi_get_named_property(env, global, "Map", &constructor) != napi_ok || !constructor) {
         return res;
     }
 
-    if (!(!napi_typeof(env, constructor, &value_type) && value_type == napi_valuetype::napi_function)) {
+    if (napi_typeof(env, constructor, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
         return res;
     }
 
     napi_value map_instance = nullptr;
-    if (!(!napi_new_instance(env, constructor, 0, nullptr, &map_instance) && map_instance)) {
+    if (napi_new_instance(env, constructor, 0, nullptr, &map_instance) != napi_ok || !map_instance) {
         return res;
     }
 
     napi_value map_set = nullptr;
-    if (!(!napi_get_named_property(env, map_instance, "set", &map_set) && map_set)) {
+    if (napi_get_named_property(env, map_instance, "set", &map_set) != napi_ok || !map_set) {
         return res;
     }
-    if (!(!napi_typeof(env, map_set, &value_type) && value_type == napi_valuetype::napi_function)) {
+    if (napi_typeof(env, map_set, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
         return res;
     }
 
