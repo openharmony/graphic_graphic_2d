@@ -14,7 +14,7 @@
  */
 #ifndef ANISOTROPIC_H
 #define ANISOTROPIC_H
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
@@ -29,8 +29,6 @@ class Anisotropic : public TestBase {
     int kNumLines = 100;
     float kAngleStep = 360.0f / kNumLines;
     int kInnerOffset = 10;
-    int xOff;
-    int yOff;
     float angle = 0.0f;
 
 public:

@@ -120,8 +120,13 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
+    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
+    inline bool LastFrameSubTreeSkipped() const
+    {
+        return lastFrameSubTreeSkipped_;
+    }
 
     inline WeakPtr GetParent() const
     {
@@ -173,7 +178,7 @@ public:
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
     // return children and disappeared children, sorted by z-index
-    ChildrenListSharedPtr GetSortedChildren() const;
+    virtual ChildrenListSharedPtr GetSortedChildren() const;
     uint32_t GetChildrenCount() const;
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
 
@@ -218,7 +223,7 @@ public:
     bool HasRemovedChild() const;
     inline void ResetChildrenRect()
     {
-        childrenRect_ = RectI();
+        childrenRect_.Clear();
     }
     RectI GetChildrenRect() const;
 
@@ -231,11 +236,20 @@ public:
     const std::unordered_set<NodeId>& GetVisibleEffectChild() const;
     void UpdateVisibleEffectChild(RSRenderNode& childNode);
 
-    NodeId GetInstanceRootNodeId() const;
+    inline NodeId GetInstanceRootNodeId() const
+    {
+        return instanceRootNodeId_;
+    }
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
-    NodeId GetFirstLevelNodeId() const;
+    inline NodeId GetFirstLevelNodeId() const
+    {
+        return firstLevelNodeId_;
+    }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
-    NodeId GetUifirstRootNodeId() const;
+    inline NodeId GetUifirstRootNodeId() const
+    {
+        return uifirstRootNodeId_;
+    }
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
@@ -258,7 +272,8 @@ public:
     const RectI& GetAbsDrawRect() const;
 
     void ResetChangeState();
-    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect);
+    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
+        const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
@@ -465,18 +480,23 @@ public:
     OutOfParentType GetOutOfParent() const;
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
-    void MarkFilterHasEffectChildren();
+    virtual void MarkFilterHasEffectChildren() {};
+    virtual void OnFilterCacheStateChanged() {};
 
     // for blur filter cache
+    virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
-    void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool rotationChanged = false);
+    void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+    void CheckFilterCacheAndUpdateDirtySlots(
+        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
@@ -664,8 +684,9 @@ public:
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
-    bool IsEffectNodeNeedTakeSnapShot() const;
-    bool IsEffectNodeShouldNotPaint() const;
+    virtual bool EffectNodeShouldPaint() const { return true; };
+    virtual bool FirstFrameHasEffectChildren() const { return false; }
+    virtual void MarkClearFilterCacheIfEffectChildrenChanged() {}
     bool HasBlurFilter() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
@@ -740,11 +761,13 @@ protected:
     bool clipAbsDrawRectChange_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
-    virtual void MarkFilterCacheFlagsAfterPrepare(
-        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false);
+    virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+    bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
     std::atomic<bool> isStaticCached_ = false;
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
+    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
 
 private:
     NodeId id_;
@@ -784,9 +807,16 @@ private:
     std::atomic<bool> isTunnelHandleChange_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
+    bool lastFrameSubTreeSkipped_ = false;
     bool hasChildrenOutOfRect_ = false;
+    bool lastFrameHasChildrenOutOfRect_ = false;
     RectI childrenRect_;
+    
+    // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
+    // aim to record current frame clipped children dirty region, in abs coords
+    RectI subTreeDirtyRegion_;
+
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     std::vector<NodeId> visibleFilterChild_;
@@ -806,6 +836,7 @@ private:
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
@@ -958,7 +989,6 @@ private:
     RSDrawable::Vec drawableVec_;
 
     // for blur cache
-    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
@@ -980,6 +1010,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    friend class RSRenderNodeGC;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

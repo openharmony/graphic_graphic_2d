@@ -43,6 +43,8 @@ static uint64_t g_frameBeginTimestamp = 0u;
 static double g_dirtyRegionPercentage = 0.0;
 static bool g_rdcSent = true;
 
+static std::atomic<uint32_t> g_lastCacheImageCount = 0;
+
 static RSFile g_recordFile {};
 static double g_recordStartTime = 0.0;
 
@@ -51,13 +53,14 @@ static double g_playbackStartTime = 0.0;
 static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
 static bool g_playbackShouldBeTerminated = false;
+static uint64_t g_playbackPauseTime = 0;
+static int g_playbackWaitFrames = 0;
 
 static std::unordered_set<NodeId> g_nodeSetPerf;
 static std::unordered_map<NodeId, int> g_mapNode2Count;
-static std::unordered_map<NodeId, int> g_mapNode2ComplementTime;
 static NodeId g_calcPerfNode = 0;
 static int g_calcPerfNodeTry = 0;
-constexpr int CALC_PERF_NODE_TIME_COUNT = 5; // 64;
+constexpr int CALC_PERF_NODE_TIME_COUNT = 64; // increased to improve reliability of perfomance measurement
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT];
 static NodeId g_calcPerfNodeParent = 0;
 static int g_calcPerfNodeIndex = 0;
@@ -73,18 +76,46 @@ struct AlignedMessageParcel {
 };
 #pragma pack(pop)
 
-namespace {
-pid_t GetPid(const std::shared_ptr<RSRenderNode>& node)
+void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out)
+{
+    std::string frequency;
+    std::string load;
+    for (uint32_t i = 0; i < in.cpu.cores; i++) {
+        frequency += std::to_string(in.cpu.coreFrequencyLoad[i].current);
+        load += std::to_string(in.cpu.coreFrequencyLoad[i].load);
+        if (i + 1 < in.cpu.cores) {
+            frequency += ";";
+            load += ";";
+        }
+    }
+
+    out.SetTime(static_cast<float>(time));
+    out.SetProperty(RSCaptureData::KEY_CPU_TEMP, in.cpu.temperature);
+    out.SetProperty(RSCaptureData::KEY_CPU_CURRENT, in.cpu.current);
+    out.SetProperty(RSCaptureData::KEY_CPU_LOAD, load);
+    out.SetProperty(RSCaptureData::KEY_CPU_FREQ, frequency);
+    out.SetProperty(RSCaptureData::KEY_GPU_LOAD, in.gpu.frequencyLoad.load);
+    out.SetProperty(RSCaptureData::KEY_GPU_FREQ, in.gpu.frequencyLoad.current);
+}
+
+static pid_t GetPid(const std::shared_ptr<RSRenderNode>& node)
 {
     return node ? Utils::ExtractPid(node->GetId()) : 0;
 }
 
-NodeId GetNodeId(const std::shared_ptr<RSRenderNode>& node)
+static NodeId GetNodeId(const std::shared_ptr<RSRenderNode>& node)
 {
     return node ? Utils::ExtractNodeId(node->GetId()) : 0;
 }
 
-} // namespace
+static void SendTelemetry(double time)
+{
+    if (time >= 0.0) {
+        RSCaptureData captureData;
+        DeviceInfoToCaptureData(time, RSTelemetry::GetDeviceInfo(), captureData);
+        Network::SendCaptureData(captureData);
+    }
+}
 
 /*
     To visualize the damage region (as it's set for KHR_partial_update), you can set the following variable:
@@ -119,7 +150,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     for (const auto& rect : rects) {
-        dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth()) * rect.GetHeight();
+        dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth() * rect.GetHeight());
     }
 
     if (displayArea > 0) {
@@ -178,9 +209,9 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
             stream.write(reinterpret_cast<const char*>(&pid), sizeof(pid));
             stream.write(reinterpret_cast<const char*>(&code), sizeof(code));
 
-            const int32_t dataSize = parcel.GetDataSize();
+            const size_t dataSize = parcel.GetDataSize();
             stream.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
-            stream.write(reinterpret_cast<const char*>(parcel.GetData()), parcel.GetDataSize());
+            stream.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
 
             const int32_t flags = option.GetFlags();
             stream.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
@@ -304,14 +335,18 @@ void RSProfiler::OnProcessCommand()
 void RSProfiler::OnRenderBegin()
 {
     if (!IsEnabled()) {
-        RS_LOGI("RSProfiler::OnRenderBegin(): disabled"); // NOLINT
         return;
     }
+    RS_LOGD("RSProfiler::OnRenderBegin(): enabled"); // NOLINT
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
 void RSProfiler::OnRenderEnd()
 {
+    if (!IsEnabled()) {
+        return;
+    }
+    
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
@@ -323,6 +358,8 @@ void RSProfiler::OnFrameBegin()
 
     g_frameBeginTimestamp = RawNowNano();
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    StartBetaRecord();
 }
 
 void RSProfiler::OnFrameEnd()
@@ -335,6 +372,7 @@ void RSProfiler::OnFrameEnd()
     ProcessCommands();
     ProcessSendingRdc();
     RecordUpdate();
+    UpdateBetaRecord();
 
     CalcNodeWeigthOnFrameEnd();
     g_renderServiceCpuId = Utils::GetCpuId();
@@ -356,14 +394,9 @@ void RSProfiler::CalcNodeWeigthOnFrameEnd()
     constexpr NodeId renderEntireFrame = 1;
 
     std::sort(std::begin(g_calcPerfNodeTime), std::end(g_calcPerfNodeTime));
-    constexpr int middle = CALC_PERF_NODE_TIME_COUNT / 2;
-    constexpr int scale = 100;
-    Respond(
-        "CALC_PERF_NODE_RESULT: " + std::to_string(g_calcPerfNode) + " " +
-        "cnt=" + std::to_string(g_mapNode2Count[g_calcPerfNode]) + " " +
-        std::to_string(g_calcPerfNodeTime[middle]) + ((g_calcPerfNode != renderEntireFrame) ?
-        " node_time=" + std::to_string(scale * (1.0f - (float)g_calcPerfNodeTime[middle] /
-        static_cast<float>(g_mapNode2ComplementTime[renderEntireFrame]))) : ""));
+    constexpr int32_t middle = CALC_PERF_NODE_TIME_COUNT / 2;
+    Respond("CALC_PERF_NODE_RESULT: " + std::to_string(g_calcPerfNode) + " " + "cnt=" +
+            std::to_string(g_mapNode2Count[g_calcPerfNode]) + " " + std::to_string(g_calcPerfNodeTime[middle]));
     Network::SendRSTreeSingleNodePerf(g_calcPerfNode, g_calcPerfNodeTime[middle]);
 
     if (g_calcPerfNode != renderEntireFrame) {
@@ -438,14 +471,25 @@ bool RSProfiler::IsPlaying()
     return IsEnabled() && g_playbackFile.IsOpen();
 }
 
-void RSProfiler::AwakeRenderServiceThread()
+void RSProfiler::ScheduleTask(std::function<void()> && task)
 {
     if (g_mainThread) {
-        g_mainThread->PostTask([]() {
-            g_mainThread->SetAccessibilityConfigChanged();
-            g_mainThread->RequestNextVSync();
-        });
+        g_mainThread->PostTask(std::move(task));
     }
+}
+
+void RSProfiler::RequestNextVSync()
+{
+    ScheduleTask([]() { g_mainThread->RequestNextVSync(); });
+}
+
+void RSProfiler::AwakeRenderServiceThread()
+{
+    ScheduleTask([]() {
+        g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
+        g_mainThread->RequestNextVSync();
+    });
 }
 
 void RSProfiler::ResetAnimationStamp()
@@ -514,9 +558,9 @@ std::string RSProfiler::FirstFrameMarshalling()
 {
     std::stringstream stream;
     SetMode(Mode::WRITE_EMUL);
-    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    DisableSharedMemory();
     MarshalNodes(*g_context, stream);
-    RSMarshallingHelper::EndNoSharedMem();
+    EnableSharedMemory();
     SetMode(Mode::NONE);
 
     const int32_t focusPid = g_mainThread->focusAppPid_;
@@ -529,7 +573,7 @@ std::string RSProfiler::FirstFrameMarshalling()
     stream.write(reinterpret_cast<const char*>(&focusNodeId), sizeof(focusNodeId));
 
     const std::string bundleName = g_mainThread->focusAppBundleName_;
-    int32_t size = bundleName.size();
+    size_t size = bundleName.size();
     stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     stream.write(reinterpret_cast<const char*>(bundleName.data()), size);
 
@@ -548,9 +592,9 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
 
     SetMode(Mode::READ_EMUL);
 
-    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    DisableSharedMemory();
     UnmarshalNodes(*g_context, stream);
-    RSMarshallingHelper::EndNoSharedMem();
+    EnableSharedMemory();
 
     SetMode(Mode::NONE);
 
@@ -563,7 +607,7 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
     uint64_t focusNodeId = 0;
     stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
 
-    int32_t size = 0;
+    size_t size = 0;
     stream.read(reinterpret_cast<char*>(&size), sizeof(size));
     std::string bundleName;
     bundleName.resize(size, ' ');
@@ -614,10 +658,9 @@ void RSProfiler::ProcessSendingRdc()
 
 static uint32_t GetImagesAdded()
 {
-    static std::atomic<uint32_t> lastCount = 0;
     const size_t count = ImageCache::Size();
-    const uint32_t added = count - lastCount;
-    lastCount = count;
+    const uint32_t added = count - g_lastCacheImageCount;
+    g_lastCacheImageCount = count;
     return added;
 }
 
@@ -652,6 +695,8 @@ void RSProfiler::RecordUpdate()
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
     }
+
+    WriteBetaRecordMetrics(g_recordFile, timeSinceRecordStart);
 }
 
 void RSProfiler::Respond(const std::string& message)
@@ -845,8 +890,8 @@ void RSProfiler::AttachChild(const ArgList& args)
 
 void RSProfiler::KillPid(const ArgList& args)
 {
-    const uint32_t pid = args.Pid();
-    if (const auto node = GetRenderNode(Utils::GetRootNodeId(pid))) {
+    const pid_t pid = args.Pid();
+    if (const auto node = GetRenderNode(Utils::GetRootNodeId(static_cast<uint64_t>(pid)))) {
         const auto parent = node->GetParent().lock();
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
@@ -925,7 +970,6 @@ void RSProfiler::GetPerfTree(const ArgList& args)
 
     g_nodeSetPerf.clear();
     g_mapNode2Count.clear();
-    g_mapNode2ComplementTime.clear();
 
     auto& rootNode = g_context->GetGlobalRootRenderNode();
     auto rootNodeChildren = rootNode ? rootNode->GetSortedChildren() : nullptr;
@@ -939,8 +983,9 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         if (!displayNode) {
             continue;
         }
-        const auto& nodes = displayNode->GetCurAllSurfaces();
-        for (auto& node : nodes) {
+        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+        displayNode->CollectSurface(displayNode, curAllSurfaces, true, false);
+        for (auto& node : curAllSurfaces) {
             if (node) {
                 PerfTreeFlatten(*node, g_nodeSetPerf, g_mapNode2Count);
             }
@@ -957,7 +1002,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         std::string sNodeType;
         RSRenderNode::DumpNodeType(node->GetType(), sNodeType);
         outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" +
-            std::to_string(g_mapNode2Count[*it]) + " [" + sNodeType + "]";
+                     std::to_string(g_mapNode2Count[*it]) + " [" + sNodeType + "]";
     }
 
     Network::SendRSTreePerfNodeList(g_nodeSetPerf);
@@ -989,7 +1034,7 @@ void RSProfiler::CalcPerfNode(const ArgList& args)
 
 void RSProfiler::CalcPerfNodeAll(const ArgList& args)
 {
-    if (g_nodeSetPerf.size() == 0) {
+    if (g_nodeSetPerf.empty()) {
         Respond("ERROR");
         return;
     }
@@ -1011,7 +1056,7 @@ void RSProfiler::CalcPerfNodeAllStep()
         AwakeRenderServiceThread();
         return;
     }
-    
+
     if (g_nodeSetPerfCalcIndex - 1 < static_cast<int32_t>(g_nodeSetPerf.size())) {
         auto it = g_nodeSetPerf.begin();
         std::advance(it, g_nodeSetPerfCalcIndex - 1);
@@ -1069,8 +1114,12 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_recordStartTime = 0.0;
 
     ImageCache::Reset();
+    g_lastCacheImageCount = 0;
 
-    g_recordFile.Create(RSFile::GetDefaultPath());
+    if (!OpenBetaRecordFile(g_recordFile)) {
+        g_recordFile.Create(RSFile::GetDefaultPath());
+    }
+
     g_recordFile.AddLayer(); // add 0 layer
 
     FilterMockNode(*g_context);
@@ -1089,7 +1138,7 @@ void RSProfiler::RecordStart(const ArgList& args)
     std::thread thread([]() {
         while (IsRecording()) {
             if (g_recordStartTime >= 0) {
-                Network::SendTelemetry(Now() - g_recordStartTime);
+                SendTelemetry(Now() - g_recordStartTime);
             }
             static constexpr int32_t GFX_METRICS_SEND_INTERVAL = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(GFX_METRICS_SEND_INTERVAL));
@@ -1110,40 +1159,49 @@ void RSProfiler::RecordStop(const ArgList& args)
 
     std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
 
-    // DOUBLE WORK - send header of file
-    const char headerType = 0;
-    stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
-    stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
+    if (!IsBetaRecordStarted()) {
+        // DOUBLE WORK - send header of file
+        const char headerType = 0;
+        stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
+        stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
 
-    const int32_t pidCount = g_recordFile.GetHeaderPids().size();
-    stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
-    for (auto item : g_recordFile.GetHeaderPids()) {
-        stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+        const uint32_t pidCount = g_recordFile.GetHeaderPids().size();
+        stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
+        for (auto item : g_recordFile.GetHeaderPids()) {
+            stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+        }
+
+        size_t sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
+        stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
+        stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
+
+        ImageCache::Serialize(stream);
+        Network::SendBinary(stream.str().data(), stream.str().size());
     }
-
-    int sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
-    stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
-    stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
-
-    ImageCache::Serialize(stream);
-    Network::SendBinary(stream.str().data(), stream.str().size());
-
     g_recordFile.Close();
     g_recordStartTime = 0.0;
 
     ImageCache::Reset();
+    g_lastCacheImageCount = 0;
 
     Respond("Network: Record stop (" + std::to_string(stream.str().size()) + ")");
 }
 
-void RSProfiler::PlaybackStart(const ArgList& args)
+void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
+    g_playbackPauseTime = args.Fp64(1);
+    std::string path = args.String(2);
+    if (!Utils::FileExists(path)) {
+        Respond("Can't playback non existing file '" + path + "'");
+        path = RSFile::GetDefaultPath();
+    }
 
     ImageCache::Reset();
 
-    g_playbackFile.Open(RSFile::GetDefaultPath());
+    Respond("Opening file " + path);
+    g_playbackFile.Open(path);
     if (!g_playbackFile.IsOpen()) {
         Respond("Can't open file.");
         return;
@@ -1152,6 +1210,13 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     // get first frame data
     FirstFrameUnmarshalling(dataFirstFrame);
+    constexpr int defaultWaitFrames = 50;
+    g_playbackWaitFrames = defaultWaitFrames;
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::PlaybackStart(const ArgList& args)
+{
     HiddenSpaceTurnOn();
 
     for (size_t pid : g_playbackFile.GetHeaderPids()) {
@@ -1160,7 +1225,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     g_playbackStartTime = Now();
 
-    const double pauseTime = args.Fp64(1);
+    const double pauseTime = g_playbackPauseTime;
     if (pauseTime > 0.0) {
         const uint64_t currentTime = RawNowNano();
         const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime);
@@ -1173,11 +1238,11 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     std::thread thread([]() {
         while (IsPlaying()) {
-            const int64_t timestamp = RawNowNano();
+            const uint64_t timestamp = RawNowNano();
 
             PlaybackUpdate();
             if (g_playbackStartTime >= 0) {
-                Network::SendTelemetry(Now() - g_playbackStartTime);
+                SendTelemetry(Now() - g_playbackStartTime);
             }
 
             constexpr int64_t timeoutLimit = 8000000;
@@ -1231,7 +1296,7 @@ void RSProfiler::PlaybackUpdate()
             uint32_t code = 0;
             stream.read(reinterpret_cast<char*>(&code), sizeof(code));
 
-            int32_t dataSize = 0;
+            size_t dataSize = 0;
             stream.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
             auto* data = new uint8_t[dataSize];
@@ -1268,7 +1333,7 @@ void RSProfiler::PlaybackUpdate()
 
 void RSProfiler::PlaybackPrepare(const ArgList& args)
 {
-    const uint32_t pid = args.Pid();
+    const pid_t pid = args.Pid();
     if (!g_context || (pid == 0)) {
         return;
     }
@@ -1346,6 +1411,7 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "rstree_dump_json", DumpTreeToJson },
         { "rsrecord_start", RecordStart },
         { "rsrecord_stop", RecordStop },
+        { "rsrecord_replay_prepare", PlaybackPrepareFirstFrame },
         { "rsrecord_replay", PlaybackStart },
         { "rsrecord_replay_stop", PlaybackStop },
         { "rsrecord_pause_now", PlaybackPause },
@@ -1377,6 +1443,11 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
 
 void RSProfiler::ProcessCommands()
 {
+    if (g_playbackWaitFrames > 0) {
+        g_playbackWaitFrames--;
+        AwakeRenderServiceThread();
+    }
+
     std::vector<std::string> commandData;
     if (!Network::PopCommand(commandData)) {
         return;

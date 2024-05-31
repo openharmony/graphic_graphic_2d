@@ -83,6 +83,7 @@ napi_value JsParagraphBuilder::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("popStyle", JsParagraphBuilder::PopStyle),
         DECLARE_NAPI_FUNCTION("addPlaceholder", JsParagraphBuilder::AddPlaceholder),
         DECLARE_NAPI_FUNCTION("build", JsParagraphBuilder::Build),
+        DECLARE_NAPI_FUNCTION("addSymbol", JsParagraphBuilder::AppendSymbol),
     };
 
     napi_value constructor = nullptr;
@@ -224,6 +225,7 @@ napi_value JsParagraphBuilder::Build(napi_env env, napi_callback_info info)
     JsParagraphBuilder* me = CheckParamsAndGetThis<JsParagraphBuilder>(env, info);
     return (me != nullptr) ? me->OnBuild(env, info) : nullptr;
 }
+
 napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
@@ -235,4 +237,29 @@ napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
     return JsParagraph::CreateJsTypography(env, std::move(typography));
 }
 
+napi_value JsParagraphBuilder::AppendSymbol(napi_env env, napi_callback_info info)
+{
+    JsParagraphBuilder* me = CheckParamsAndGetThis<JsParagraphBuilder>(env, info);
+    return (me != nullptr) ? me->OnAppendSymbol(env, info) : nullptr;
+}
+
+napi_value JsParagraphBuilder::OnAppendSymbol(napi_env env, napi_callback_info info)
+{
+    if (typographyCreate_ == nullptr) {
+        return nullptr;
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok ||
+        argc < ARGC_ONE) {
+        return nullptr;
+    }
+
+    uint32_t symbolId = 0;
+    if (!ConvertFromJsNumber(env, argv[0], symbolId)) {
+        return nullptr;
+    }
+    typographyCreate_->AppendSymbol(symbolId);
+    return NapiGetUndefined(env);
+}
 } // namespace OHOS::Rosen

@@ -94,6 +94,7 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     typography = builder->Build();
     if (typography == nullptr) {
         LOGD("typography == nullptr");
+        return;
     }
     double lastLayoutMaxWidth = 1000.0; // width 1000.0
     typography->Layout(lastLayoutMaxWidth);

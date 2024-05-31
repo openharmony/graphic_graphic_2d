@@ -60,4 +60,22 @@ HWTEST_F(RSOffscreenRenderThreadTest, InsertTask, TestSize.Level1)
 {
     ASSERT_TRUE(RSOffscreenRenderThread::Instance().GetCaptureTask(0) == nullptr);
 }
+
+/**
+ * @tc.name: GetCaptureTask
+ * @tc.desc: Test PostTask and GetCaptureTask
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSOffscreenRenderThreadTest, GetCaptureTask, TestSize.Level1)
+{
+    auto task = RSOffscreenRenderThreadTest::DisplayTestInfo;
+    RSOffscreenRenderThread::Instance().handler_.reset();
+    RSOffscreenRenderThread::Instance().PostTask(task);
+    std::function<void()> taskTwo = []() {};
+    RSOffscreenRenderThread::Instance().InSertCaptureTask(1, taskTwo);
+    ASSERT_NE(RSOffscreenRenderThread::Instance().GetCaptureTask(1), nullptr);
+    ASSERT_EQ(RSOffscreenRenderThread::Instance().GetCaptureTask(2), nullptr);
+    RSOffscreenRenderThread::Instance().GetRenderContext();
+}
 } // namespace OHOS::Rosen

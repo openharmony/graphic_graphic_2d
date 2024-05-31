@@ -1,4 +1,4 @@
-/*RSCanvasRenderParams
+/*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
-#define RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+#ifndef SK_IMAGE_CHAIN_UNITTEST_H
+#define SK_IMAGE_CHAIN_UNITTEST_H
 
-#include "params/rs_render_params.h"
+#include <gtest/gtest.h>
 
-namespace OHOS::Rosen {
-class RSCanvasRenderParams : public RSRenderParams {
+namespace OHOS {
+namespace Rosen {
+
+class SKImageChainUnittest : public testing::Test {
 public:
-    explicit RSCanvasRenderParams(NodeId id);
-    virtual ~RSCanvasRenderParams() = default;
-
-private:
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+    void SetUp() override {};
+    void TearDown() override {};
 };
-} // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
+
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // SK_IMAGE_CHAIN_UNITTEST_H

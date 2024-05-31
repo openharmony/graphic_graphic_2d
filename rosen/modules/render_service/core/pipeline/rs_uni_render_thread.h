@@ -64,8 +64,12 @@ public:
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
+    uint64_t GetPendingConstraintRelativeTime() const;
 
+    void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
+    void DefaultClearMemoryCache();
+    void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -74,6 +78,14 @@ public:
     void DumpMem(DfxString& log);
     void TrimMem(std::string& dumpString, std::string& type);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
+    uint64_t GetFrameCount() const
+    {
+        return frameCount_;
+    }
+    void IncreaseFrameCount()
+    {
+        frameCount_++;
+    }
     bool GetWatermarkFlag();
     
     bool IsCurtainScreenOn() const;
@@ -110,7 +122,9 @@ public:
     }
     void SetDiscardJankFrames(bool discardJankFrames)
     {
-        discardJankFrames_.store(discardJankFrames);
+        if (discardJankFrames_.load() != discardJankFrames) {
+            discardJankFrames_.store(discardJankFrames);
+        }
     }
     bool GetSkipJankAnimatorFrame() const
     {
@@ -153,11 +167,15 @@ private:
     // used for stalling renderThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
+    // Those variable is used to manage memory.
+    bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
+    mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
+    std::atomic<uint64_t> frameCount_ = 0;
 
     pid_t tid_ = 0;
 

@@ -90,6 +90,10 @@ public:
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
+#ifdef RS_ENABLE_VK
+    virtual bool Set2DRenderCtrl(bool enable) = 0;
+#endif
+
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
@@ -113,6 +117,8 @@ public:
     virtual void SetShowRefreshRateEnabled(bool enable) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+
+    virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 

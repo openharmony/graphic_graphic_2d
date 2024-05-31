@@ -41,7 +41,7 @@ void Filter::AddNextFilter(sk_sp<SkImageFilter> filter)
 
 std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap()
 {
-    Render(true);
+    Render(false);
     return dstPixelMap_;
 }
 

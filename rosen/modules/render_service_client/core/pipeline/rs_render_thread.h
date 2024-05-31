@@ -136,7 +136,7 @@ private:
     void RenderLoop();
     void CreateAndInitRenderContextIfNeed();
 
-    void OnVsync(uint64_t timestamp);
+    void OnVsync(uint64_t timestamp, int64_t frameCount);
     void ProcessCommands();
     void Animate(uint64_t timestamp);
     void Render();

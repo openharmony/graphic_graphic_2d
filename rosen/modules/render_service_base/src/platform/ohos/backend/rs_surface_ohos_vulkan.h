@@ -72,12 +72,17 @@ public:
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage) override;
     void SetSurfacePixelFormat(int32_t pixelFormat) override;
+    sptr<SurfaceBuffer> GetCurrentBuffer() override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
     {
         mSkContext = skContext;
+    }
+    void ClearSurfaceMap()
+    {
+        mSurfaceMap.clear();
     }
 private:
     struct NativeWindow* mNativeWindow = nullptr;

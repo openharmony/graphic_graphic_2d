@@ -117,6 +117,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_uni_render_visitor.cpp",
     "core/pipeline/rs_uni_ui_capture.cpp",
     "core/pipeline/rs_unmarshal_thread.cpp",
+    "core/pipeline/rs_vblank_idle_corrector.cpp",
     "core/pipeline/rs_virtual_screen_processor.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
@@ -212,8 +213,8 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
   }
 
-  if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
-      use_rosen_drawing) {
+  if (defined(rs_enable_recording_dcl) && rs_enable_recording_dcl &&
+      defined(use_rosen_drawing) && use_rosen_drawing) {
     deps += [
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
@@ -233,6 +234,7 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_beta_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",

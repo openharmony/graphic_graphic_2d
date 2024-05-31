@@ -22,7 +22,9 @@ namespace OHOS::Rosen {
 class RSCanvasDrawingRenderParams : public RSRenderParams {
 public:
     explicit RSCanvasDrawingRenderParams(NodeId id);
-    virtual ~RSCanvasDrawingRenderParams() = default;
+    ~RSCanvasDrawingRenderParams() override = default;
+    void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
     bool IsNeedProcess() const override
     {
         return isNeedProcess_;
@@ -32,7 +34,6 @@ public:
         isNeedProcess_ = isNeedProcess;
         needSync_ = true;
     }
-    virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 private:
     std::atomic<bool> isNeedProcess_ = false;
 };

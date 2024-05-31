@@ -182,7 +182,7 @@ HWTEST_F(RSRenderTaskTest, RSCompositionTask, TestSize.Level1)
     RSDisplayNodeConfig displayConfig;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig, rsContext->weak_from_this());
     auto compositionTask = std::make_shared<RSCompositionTask>(rsDisplayRenderNode);
-    ASSERT_NE(compositionTask->GetIdx(), 10);
+    ASSERT_EQ(compositionTask->GetIdx(), 10);
     compositionTask->SetIdx(20);
     ASSERT_EQ(compositionTask->GetIdx(), 20);
 }

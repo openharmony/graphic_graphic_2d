@@ -49,12 +49,11 @@ namespace {
         "VOTER_THERMAL",
         "VOTER_VIRTUALDISPLAY",
         "VOTER_POWER_MODE",
+        "VOTER_DISPLAY_ENGIN",
         "VOTER_GAMES",
-        "VOTER_MULTI_APP",
         "VOTER_ANCO",
 
-        "VOTER_XML",
-        "VOTER_TOUCH",
+        "VOTER_PACKAGES",
         "VOTER_LTPO",
         "VOTER_SCENE",
         "VOTER_VIDEO",
@@ -80,6 +79,9 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
+        }
+        if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO && configData->xmlCompatibleMode_) {
+            curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         multiAppStrategy_.CalcVote();
@@ -107,12 +109,13 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
-        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_XML", ADD_VOTE, strategy.min, strategy.max);
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_PACKAGES", ADD_VOTE, strategy.min, strategy.max);
 
         idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
         HandleIdleEvent(true);
     });
     InitTouchManager();
+    multiAppStrategy_.CalcVote();
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -139,14 +142,16 @@ void HgmFrameRateManager::InitTouchManager()
     });
 }
 
-void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp)
+void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo)
 {
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    if (pendingRefreshRate_ != nullptr) {
+    if (pendingRefreshRate_ != nullptr && (!dvsyncInfo.isUiDvsyncOn || rsRate == *pendingRefreshRate_)) {
+        hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
         pendingRefreshRate_.reset();
+        pendingConstraintRelativeTime_ = 0;
     }
 }
 
@@ -238,7 +243,9 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool
         DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
     } else {
         StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-            forceUpdateCallback_(true, false);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(true, false);
+            }
         });
     }
 }
@@ -246,7 +253,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                 const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
-                                                bool isDvsyncOn)
+                                                const DvsyncInfo& dvsyncInfo)
 {
     RS_TRACE_FUNC();
     Reset();
@@ -262,6 +269,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         }
         bool needCheckAceAnimatorStatus = true;
         for (auto linker : appFrameRateLinkers) {
+            if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
+                continue;
+            }
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
             if (finalRange.Merge(linker.second->GetExpectedRange())) {
                 frameRateVoteInfo.SetLtpoInfo(linker.second->GetId(), "APP_LINKER");
@@ -271,23 +281,25 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     UpdateGuaranteedPlanVote(timestamp);
-    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo);
+    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo, dvsyncInfo);
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp, isDvsyncOn);
+        HandleFrameRateChangeForLTPO(timestamp);
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
-            forceUpdateCallback_(false, true);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(false, true);
+            }
             FrameRateReport();
         }
     }
 
-    if (isDvsyncOn) {
+    if (dvsyncInfo.isRsDvsyncOn) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     }
 
@@ -328,27 +340,26 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
         HandleIdleEvent(ADD_VOTE);
     } else {
         StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-            forceUpdateCallback_(true, false);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(true, false);
+            }
         });
     }
 
     FrameRateRange finalRange;
     FrameRateVoteInfo frameRateVoteInfo;
-    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo);
+    DvsyncInfo dvsyncInfo;
+    VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo, dvsyncInfo);
     auto& hgmCore = HgmCore::Instance();
-    uint32_t lastPendingRate = hgmCore.GetPendingScreenRefreshRate();
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
-    if ((currRefreshRate_ < lastPendingRate) && !isReduceAllowed_) {
-        // Can't reduce the refreshRate in ltps mode
-        RS_TRACE_NAME_FMT("Can't reduce to [%d], keep [%d] please", currRefreshRate_, lastPendingRate);
-        currRefreshRate_ = lastPendingRate;
-    }
-
+    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(currRefreshRate_));
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
-        forceUpdateCallback_(false, true);
+        if (forceUpdateCallback_ != nullptr) {
+            forceUpdateCallback_(false, true);
+        }
         FrameRateReport();
     }
     ReportHiSysEvent(frameRateVoteInfo);
@@ -396,26 +407,41 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
-        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, appFrameRate = %d, "\
-            "appRange = (%d, %d, %d)", ExtractPid(linker.first), appFrameRate, linker.second->GetExpectedRange().min_,
-            linker.second->GetExpectedRange().max_, linker.second->GetExpectedRange().preferred_);
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
+            "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
+            appFrameRate, linker.second->GetExpectedRange().min_, linker.second->GetExpectedRange().max_,
+            linker.second->GetExpectedRange().preferred_);
     }
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
 {
-    auto lastRefreshRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    auto& hgmCore = HgmCore::Instance();
+    auto lastRefreshRate = hgmCore.GetPendingScreenRefreshRate();
+    uint64_t targetTime = 0;
     // low refresh rate switch to high refresh rate immediately.
     if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
-        HgmCore::Instance().SetPendingScreenRefreshRate(currRefreshRate_);
+        hgmCore.SetPendingScreenRefreshRate(currRefreshRate_);
+        if (hgmCore.IsLowRateToHighQuickEnabled() && controller_) {
+            targetTime = controller_->CalcVSyncQuickTriggerTime(timestamp, lastRefreshRate);
+            if (targetTime > timestamp && targetTime > 0) {
+                pendingConstraintRelativeTime_ = targetTime - timestamp;
+            } else {
+                pendingConstraintRelativeTime_ = 0;
+            }
+            hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
+            pendingConstraintRelativeTime_ = 0;
+        }
     }
 
-    RSTaskMessage::RSTask task = [this, lastRefreshRate]() {
-        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
+    RSTaskMessage::RSTask task = [this, lastRefreshRate, targetTime]() {
+        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_, targetTime);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != lastRefreshRate) {
-            forceUpdateCallback_(false, true);
+            if (forceUpdateCallback_ != nullptr) {
+                forceUpdateCallback_(false, true);
+            }
             FrameRateReport();
         }
     };
@@ -534,6 +560,7 @@ void HgmFrameRateManager::Reset()
 {
     currRefreshRate_ = 0;
     controllerRate_ = 0;
+    pendingConstraintRelativeTime_ = 0;
     pendingRefreshRate_.reset();
     appChangeData_.clear();
 }
@@ -620,16 +647,26 @@ void HgmFrameRateManager::StopScreenTimer(ScreenId screenId)
     }
 }
 
-void HgmFrameRateManager::HandleLightFactorStatus(bool isSafe)
+void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
     HGM_LOGI("HandleLightFactorStatus status:%{public}u", isSafe);
-    isReduceAllowed_ = isSafe;
+    if (pid != DEFAULT_PID) {
+        std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
+    }
+    HgmTaskHandleThread::Instance().PostTask([this, isSafeParam = isSafe] () {
+        multiAppStrategy_.HandleLightFactorStatus(isSafeParam);
+    });
 }
 
-void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+void HgmFrameRateManager::HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    HgmTaskHandleThread::Instance().PostTask([this, packageList = packageList] () {
+    if (pid != DEFAULT_PID) {
+        std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
+    }
+    HgmTaskHandleThread::Instance().PostTask([this, packageList] () {
         if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
@@ -648,20 +685,26 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     }
 
-    HGM_LOGI("HandleRefreshRateEvent: %{public}s(%{public}d)", eventName.c_str(), pid);
+    HGM_LOGI("%{public}s(%{public}d) %{public}s", eventName.c_str(), pid, eventInfo.description.c_str());
     if (eventName == "VOTER_SCENE") {
         HandleSceneEvent(pid, eventInfo);
     } else if (eventName == "VOTER_VIRTUALDISPLAY") {
         HandleVirtualDisplayEvent(pid, eventInfo);
+    } else if (eventName == "VOTER_GAMES") {
+        HandleGamesEvent(pid, eventInfo);
     } else {
         DeliverRefreshRateVote(pid, eventName, eventInfo.eventStatus,
             eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
+    if (pid != DEFAULT_PID) {
+        std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
+    }
 
     static std::mutex hgmTouchEventMutex;
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
@@ -735,6 +778,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
     multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
+    MarkVoteChange();
     FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 
@@ -747,9 +791,24 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     std::string sceneName = eventInfo.description;
+    auto &gameSceneList = multiAppStrategy_.GetScreenSetting().gameSceneList;
 
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
     std::lock_guard<std::mutex> lock(voteMutex_);
+    if (gameSceneList.find(sceneName) != gameSceneList.end()) {
+        if (eventInfo.eventStatus == ADD_VOTE) {
+            if (gameScenes_.find(sceneName) == gameScenes_.end()) {
+                gameScenes_.insert(sceneName);
+                MarkVoteChange();
+            }
+        } else {
+            if (gameScenes_.find(sceneName) != gameScenes_.end()) {
+                gameScenes_.erase(sceneName);
+                MarkVoteChange();
+            }
+        }
+    }
+
     std::pair<std::string, pid_t> info = std::make_pair(sceneName, pid);
     auto scenePos = find(sceneStack_.begin(), sceneStack_.end(), info);
     if (eventInfo.eventStatus == ADD_VOTE) {
@@ -784,6 +843,25 @@ void HgmFrameRateManager::HandleVirtualDisplayEvent(pid_t pid, EventInfo eventIn
     }
 }
 
+void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
+{
+    if (!eventInfo.eventStatus) {
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_GAMES", false);
+        return;
+    }
+    auto [pkgName, gamePid, appType] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
+    if (gamePid == DEFAULT_PID) {
+        HGM_LOGE("unknow game pid: %{public}s, skip", eventInfo.description.c_str());
+        return;
+    }
+    if (pid != DEFAULT_PID) {
+        std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::GAMES);
+    }
+    DeliverRefreshRateVote(gamePid, "VOTER_GAMES", eventInfo.eventStatus,
+        eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
+}
+
 void HgmFrameRateManager::MarkVoteChange()
 {
     isRefreshNeed_ = true;
@@ -804,6 +882,7 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
     }
 
     std::lock_guard<std::mutex> lock(voteMutex_);
+    voteRecord_.try_emplace(eventName, std::vector<std::pair<pid_t, VoteRange>>());
     auto& vec = voteRecord_[eventName];
 
     // clear
@@ -844,61 +923,134 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
     }
 }
 
-VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo)
+bool HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, VoteRange range)
+{
+    auto &[min, max] = rangeRes;
+    auto &[minTemp, maxTemp] = range;
+    if (minTemp > min) {
+        min = minTemp;
+        if (min >= max) {
+            min = max;
+            return true;
+        }
+    }
+    if (maxTemp < max) {
+        max = maxTemp;
+        if (min >= max) {
+            max = min;
+            return true;
+        }
+    }
+    if (min == max) {
+        return true;
+    }
+    return false;
+}
+
+bool HgmFrameRateManager::MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange)
+{
+    bool mergeSuccess = false;
+
+    // [VOTER_LTPO, VOTER_IDLE)
+    for (; voterIter != voters_.end() - 1; voterIter++) {
+        if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
+            continue;
+        }
+        auto vec = voteRecord_[*voterIter];
+        if (vec.empty()) {
+            continue;
+        }
+        auto &[pid, voteRange] = vec.back();
+        auto &[minTemp, maxTemp] = voteRange;
+        if (!multiAppStrategy_.CheckPidValid(pid)) {
+            RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip",
+                voterIter->c_str(), pid, minTemp, maxTemp);
+            HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip",
+                voterIter->c_str(), pid, minTemp, maxTemp);
+            continue;
+        }
+        RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]", voterIter->c_str(), pid, minTemp, maxTemp);
+        // FORMAT voter(pid):[min，max]
+        HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d]", voterIter->c_str(), pid, minTemp, maxTemp);
+        if (mergeSuccess) {
+            mergedVoteRange.first = mergedVoteRange.first > minTemp ? mergedVoteRange.first : minTemp;
+            mergedVoteRange.second = mergedVoteRange.second > maxTemp ? mergedVoteRange.second : maxTemp;
+        } else {
+            mergedVoteRange = voteRange;
+        }
+        mergeSuccess = true;
+    }
+    return mergeSuccess;
+}
+
+VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo,
+                                                      const DvsyncInfo& dvsyncInfo)
 {
     if (!isRefreshNeed_) {
-        uint32_t lastPendingRate = HgmCore::Instance().GetPendingScreenRefreshRate();
-        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]", lastPendingRate);
-        return std::make_pair(lastPendingRate, lastPendingRate);
+        return ProcessRefreshRateVoteNoRefreshNeeded(dvsyncInfo);
     }
     UpdateVoteRule();
     std::lock_guard<std::mutex> voteNameLock(voteNameMutex_);
     std::lock_guard<std::mutex> voteLock(voteMutex_);
 
-    uint32_t min = OLED_MIN_HZ;
-    uint32_t max = OLED_MAX_HZ;
+    VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
+    auto &[min, max] = voteRange;
 
-    for (const auto& voter : voters_) {
+    for (auto voterIter = voters_.begin(); voterIter != voters_.end(); voterIter++) {
+        if (*voterIter == "VOTER_LTPO") {
+            VoteRange info;
+            if (MergeLtpo2IdleVote(voterIter, info)) {
+                MergeRangeByPriority(voteRange, info);
+                frameRateVoteInfo.SetVoteInfo(*voterIter, max);
+            }
+        }
+
+        auto &voter = *voterIter;
+        if (voteRecord_.find(voter) == voteRecord_.end()) {
+            continue;
+        }
+
         auto vec = voteRecord_[voter];
         if (vec.empty()) {
             continue;
         }
-        VoteRange info = vec.back().second;
-        uint32_t minTemp = info.first;
-        uint32_t maxTemp = info.second;
+        auto &[pid, info] = vec.back();
+        auto &[minTemp, maxTemp] = info;
+        if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(pid)) {
+            RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip", voter.c_str(), pid, minTemp, maxTemp);
+            HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip",
+                voter.c_str(), pid, minTemp, maxTemp);
+            continue;
+        }
 
         RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]", voter.c_str(), vec.back().first, minTemp, maxTemp);
         // FORMAT voter(pid):[min，max]
         HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d]",
             voter.c_str(), vec.back().first, minTemp, maxTemp);
-
-        if (minTemp > min) {
-            min = minTemp;
-            if (min >= max) {
-                min = max;
-                frameRateVoteInfo.SetVoteInfo(voter, max);
-                break;
-            }
-        }
-        if (maxTemp < max) {
-            max = maxTemp;
-            frameRateVoteInfo.SetVoteInfo(voter, max);
-            if (min >= max) {
-                max = min;
-                frameRateVoteInfo.SetVoteInfo(voter, max);
-                break;
-            }
-        }
-        if (min == max) {
+        if (MergeRangeByPriority(voteRange, info)) {
             frameRateVoteInfo.SetVoteInfo(voter, max);
             break;
         }
+        frameRateVoteInfo.SetVoteInfo(voter, max);
     }
 
+    lastVoteMin_ = min;
+    lastVoteMax_ = max;
     isRefreshNeed_ = false;
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_), curRefreshRateMode_, min, max);
     return std::make_pair(min, max);
+}
+
+VoteRange HgmFrameRateManager::ProcessRefreshRateVoteNoRefreshNeeded(const DvsyncInfo& dvsyncInfo)
+{
+    if (dvsyncInfo.isUiDvsyncOn) {
+        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d,%d]", lastVoteMin_, lastVoteMax_);
+        return std::make_pair(lastVoteMin_, lastVoteMax_);
+    }
+    uint32_t lastPendingRate = HgmCore::Instance().GetPendingScreenRefreshRate();
+    RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]", lastPendingRate);
+    return std::make_pair(lastPendingRate, lastPendingRate);
 }
 
 void HgmFrameRateManager::UpdateVoteRule()
@@ -944,9 +1096,9 @@ void HgmFrameRateManager::UpdateVoteRule()
     std::lock_guard<std::mutex> lock(voteNameMutex_);
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     std::string srcScene = "VOTER_SCENE";
-    std::string dstScene = (scenePriority == SCENE_BEFORE_XML) ? "VOTER_XML" : "VOTER_TOUCH";
+    std::string dstScene = (scenePriority == SCENE_BEFORE_XML) ? "VOTER_PACKAGES" : "VOTER_TOUCH";
 
-    // priority 1: VOTER_SCENE > VOTER_XML
+    // priority 1: VOTER_SCENE > VOTER_PACKAGES
     // priority 2: VOTER_SCENE > VOTER_TOUCH
     // priority 3: VOTER_SCENE < VOTER_TOUCH
     auto srcPos = find(voters_.begin(), voters_.end(), srcScene);
@@ -969,6 +1121,35 @@ std::string HgmFrameRateManager::GetScreenType(ScreenId screenId)
 
 void HgmFrameRateManager::CleanVote(pid_t pid)
 {
+    if (pid == DEFAULT_PID) {
+        return;
+    }
+    multiAppStrategy_.CleanApp(pid);
+    {
+        std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
+        if (auto iter = cleanPidCallback_.find(pid); iter != cleanPidCallback_.end()) {
+            for (auto cleanPidCallbackType : iter->second) {
+                switch (cleanPidCallbackType) {
+                    case CleanPidCallbackType::LIGHT_FACTOR:
+                        HandleLightFactorStatus(DEFAULT_PID, false);
+                        break;
+                    case CleanPidCallbackType::PACKAGE_EVENT:
+                        HandlePackageEvent(DEFAULT_PID, 0, {}); // handle empty pkg
+                        break;
+                    case CleanPidCallbackType::TOUCH_EVENT:
+                        HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT);
+                        break;
+                    case CleanPidCallbackType::GAMES:
+                        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_GAMES", false);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            iter->second.clear();
+        }
+    }
+
     if (pidRecord_.count(pid) == 0) {
         return;
     }
@@ -980,6 +1161,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
         for (auto it = value.begin(); it != value.end(); it++) {
             if ((*it).first == pid) {
                 it = value.erase(it);
+                MarkVoteChange();
                 break;
             }
         }

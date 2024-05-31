@@ -67,7 +67,9 @@ public:
     static bool GetSkipCanvasNodeOutofScreenEnabled();
     static bool GetDrawingEffectRegionEnabledDfx();
     static bool GetRenderStop();
+    static bool GetOcclusionCallBackToWMSDebugType();
     static bool GetPrevalidateHwcNodeEnabled();
+    static bool GetControlBufferConsumeEnabled();
 };
 
 } // namespace Rosen

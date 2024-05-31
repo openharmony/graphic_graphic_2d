@@ -86,10 +86,10 @@ public:
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
         TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
         void (*deleteVkImage)(void *), void* cleanHelper);
+#endif
     static std::shared_ptr<Surface> MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
         TextureOrigin origin, int sampleCnt, ColorType colorType,
         std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
-#endif
 
     /**
      * @brief              Create Surface from gpuContext and imageInfo.

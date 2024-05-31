@@ -24,7 +24,9 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -44,10 +46,77 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
+
+void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id,
+    sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY)
+{
+    RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
+    auto nodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
+    if (nodePtr == nullptr) {
+        RSSurfaceCaptureTaskParallel::Capture(id, callback, scaleX, scaleY);
+        return;
+    }
+
+    bool needSync = false;
+    if (nodePtr->IsLeashWindow() && nodePtr->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) {
+        auto children = nodePtr->GetSortedChildren();
+        for (auto child : *children) {
+            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurfaceNode && childSurfaceNode->IsMainWindowType() &&
+                childSurfaceNode->GetVisibleRegion().IsEmpty()) {
+                childSurfaceNode->ApplyModifiers();
+                childSurfaceNode->PrepareChildrenForApplyModifiers();
+                needSync = true;
+            }
+        }
+    } else if (nodePtr->IsMainWindowType() && nodePtr->GetVisibleRegion().IsEmpty()) {
+        auto curNode = nodePtr;
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow()) {
+            curNode = parentNode;
+        }
+        if (curNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) {
+            nodePtr->ApplyModifiers();
+            nodePtr->PrepareChildrenForApplyModifiers();
+            needSync = true;
+        }
+    }
+
+    if (needSync) {
+        std::function<void()> syncTask = []() -> void {
+            RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
+            auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+            for (auto& [id, weakPtr] : pendingSyncNodes) {
+                if (auto node = weakPtr.lock()) {
+                    node->Sync();
+                }
+            }
+            pendingSyncNodes.clear();
+        };
+        RSUniRenderThread::Instance().PostSyncTask(syncTask);
+    }
+    RSSurfaceCaptureTaskParallel::Capture(id, callback, scaleX, scaleY);
+}
+
+void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
+    sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY)
+{
+    std::function<void()> captureTask = [id, callback, scaleX, scaleY]() -> void {
+        RS_LOGD("RSSurfaceCaptureTaskParallel::Capture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]",
+            id);
+        RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCapture");
+        RSSurfaceCaptureTaskParallel task(id, scaleX, scaleY);
+        if (!task.Run(callback)) {
+            callback->OnSurfaceCapture(id, nullptr);
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(captureTask);
+}
+
 bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
@@ -63,6 +132,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable = nullptr;
     visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_, RSUniRenderJudgement::IsUniRender());
+    RSSurfaceRenderParams* curNodeParams = nullptr;
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         // Determine whether cache can be used
         auto curNode = surfaceNode;
@@ -70,8 +140,10 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         if (parentNode && parentNode->IsLeashWindow()) {
             curNode = parentNode;
         }
-        auto curNodeParams = static_cast<RSSurfaceRenderParams*>(curNode->GetRenderParams().get());
-        if (curNodeParams && curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW) {
+        curNodeParams = static_cast<RSSurfaceRenderParams*>(curNode->GetRenderParams().get());
+        if (curNodeParams && (curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW ||
+            curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW) &&
+            curNodeParams->GetShouldPaint()) {
             surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
                 DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         } else {
@@ -127,7 +199,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && !isProcOnBgThread_) {
-        surface->FlushAndSubmit(true);
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext);
         Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");
@@ -215,6 +287,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
         };
         RSBackgroundThread::Instance().PostTask(copytask);
+        if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
+            RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
+        }
         return true;
     } else {
         std::shared_ptr<Drawing::Image> img(surface.get()->GetImageSnapshot());

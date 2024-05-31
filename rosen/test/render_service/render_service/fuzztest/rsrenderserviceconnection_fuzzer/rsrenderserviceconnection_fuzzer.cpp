@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 #include "rsrenderserviceconnection_fuzzer.h"
+
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -22,11 +23,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <unordered_map>
+
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
 #include "message_parcel.h"
 #include "securec.h"
+
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -41,8 +44,7 @@ namespace Rosen {
 constexpr size_t MAX_SIZE = 4;
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
-const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
-auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+
 
 namespace {
 const uint8_t* g_data = nullptr;
@@ -76,6 +78,15 @@ bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
     uint32_t pid = GetData<uint32_t>();
     MessageParcel message;
     auto remoteObject = message.ReadRemoteObject();
@@ -91,6 +102,11 @@ bool DoCommitTransaction(const uint8_t* data, size_t size)
     }
 
     if (size < MAX_SIZE) {
+        return false;
+    }
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
         return false;
     }
 
@@ -125,6 +141,16 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     if (size < MAX_SIZE) {
         return false;
     }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
     uint64_t timeoutNS = GetData<uint64_t>();
     auto task = std::make_shared<DerivedSyncTask>(timeoutNS);
     rsConn->ExecuteSynchronousTask(task);
@@ -145,6 +171,11 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
     int pid = GetData<int>();
     rsConn->GetMemoryGraphic(pid);
     return true;
@@ -160,6 +191,10 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
         return false;
     }
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test", .bundleName = "test" };
     rsConn->CreateNode(config);
     rsConn->CreateNodeAndSurface(config);
@@ -181,6 +216,10 @@ bool DoGetScreenBacklight(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
     rsConn->SetScreenBacklight(id, level);
@@ -198,6 +237,14 @@ bool DoGetScreenType(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
     RSScreenType type = (RSScreenType)level;
@@ -215,11 +262,14 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     uint64_t id = GetData<uint64_t>();
     bool isFromRenderThread = GetData<bool>();
     sptr<RSIBufferAvailableCallback> cb = nullptr;
@@ -234,6 +284,15 @@ bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
     }
 
     if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
@@ -255,6 +314,11 @@ bool DoSetVirtualScreenResolution(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     rsConn->SetVirtualScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
     rsConn->GetVirtualScreenResolution(id);
@@ -271,6 +335,14 @@ bool DoGetScreenSupportedColorGamuts(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     std::vector<ScreenColorGamut> mode;
     ScreenId id = GetData<uint64_t>();
     uint32_t screenCol = GetData<uint32_t>();
@@ -292,6 +364,14 @@ bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     rsConn->GetScreenSupportedModes(id);
     return true;
@@ -307,11 +387,14 @@ bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     int32_t modeIdx = GetData<int32_t>();
     rsConn->SetScreenColorGamut(id, modeIdx);
@@ -331,6 +414,14 @@ bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     uint32_t status = GetData<uint32_t>();
     rsConn->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
@@ -348,11 +439,14 @@ bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     uint32_t mapMode = GetData<uint32_t>();
     ScreenGamutMap mode = (ScreenGamutMap)mapMode;
@@ -371,11 +465,14 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     uint32_t num = GetData<uint32_t>();
     rsConn->SetAppWindowNum(num);
     return true;
@@ -388,6 +485,15 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     }
 
     if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
@@ -411,11 +517,14 @@ bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     uint32_t modeId = GetData<uint32_t>();
     rsConn->SetScreenActiveMode(id, modeId);
@@ -430,6 +539,15 @@ bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
     }
 
     if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
         return false;
     }
     int32_t refreshRateMode = GetData<int32_t>();
@@ -447,6 +565,14 @@ bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     uint64_t id = GetData<uint64_t>();
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     rsConn->CreateVSyncConnection("test", token, id);
@@ -463,6 +589,14 @@ bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
@@ -482,6 +616,14 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
     rsConn->GetBitmap(id, bm);
@@ -498,11 +640,14 @@ bool DoGetScreenCapability(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     rsConn->GetScreenCapability(id);
     return true;
@@ -518,11 +663,14 @@ bool DoGetScreenData(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     rsConn->GetScreenData(id);
     return true;
@@ -537,7 +685,15 @@ bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
     if (size < MAX_SIZE) {
         return false;
     }
+    
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     ScreenId id = GetData<uint64_t>();
     RSScreenHDRCapability screenHDRCapability;
     rsConn->GetScreenHDRCapability(id, screenHDRCapability);
@@ -570,6 +726,10 @@ bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
         return false;
     }
 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData> data) {};
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
     rsConn->RegisterOcclusionChangeCallback(cb);
@@ -586,11 +746,14 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
-
+    
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     bool isShow = GetData<bool>();
     std::shared_ptr<Media::PixelMap> pixelMap1;
     rsConn->ShowWatermark(pixelMap1, isShow);
@@ -610,7 +773,11 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-
+    
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     uint64_t nodeId = GetData<uint64_t>();
     float scaleX = GetData<float>();
     float scaleY = GetData<float>();
@@ -631,11 +798,11 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     if (size < MAX_SIZE) {
         return false;
     }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
     sptr<RSIScreenChangeCallback> callback = nullptr;
     rsConn->SetScreenChangeCallback(callback);
     return true;
@@ -651,9 +818,11 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
     MessageParcel datas;
     datas.WriteBuffer(data, size);
     int32_t pid = datas.ReadInt32();

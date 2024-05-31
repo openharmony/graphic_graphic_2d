@@ -103,15 +103,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.dstRect = GraphicIRect {
         0,
         0,
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyWidth())),
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyHeight()))
+        static_cast<int32_t>(screenInfo_.GetRotatedPhyWidth()),
+        static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight())
     };
     const auto& property = node.GetRenderProperties();
     info.boundRect = { 0, 0,
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     std::vector<GraphicIRect> dirtyRects;
-    for (auto& rect : node.GetDamageRegion()) {
+    // layer damage always relative to the top-left, no matter gl or vk
+    std::vector<RectI> flipDirtyRects = RSUniRenderUtil::GetFilpDirtyRects(node.GetDirtyRects(), screenInfo_);
+    for (const auto& rect : flipDirtyRects) {
         dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
     }
     if (dirtyRects.empty()) {
@@ -126,7 +128,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = RSSystemProperties::IsForceClient();
-    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
         matrix.Get(Drawing::Matrix::Index::SKEW_X), matrix.Get(Drawing::Matrix::Index::TRANS_X),
@@ -494,8 +496,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.needClient = GetComposerInfoNeedClient(info, node);
     DealWithNodeGravity(node, info);
 
-    info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_));
-    info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_));
+    info.dstRect.x -= offsetX_;
+    info.dstRect.y -= offsetY_;
     info.visibleRect = info.dstRect;
     std::vector<GraphicIRect> dirtyRects;
     const Rect& dirtyRect = node.GetDamageRegion();
@@ -551,9 +553,8 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
     GraphicIRect originSrcRect = srcRect;
 
     RectI dstRectI(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
-    int32_t screenWidth = static_cast<int32_t>(screenInfo_.phyWidth);
-    int32_t screenHeight = static_cast<int32_t>(screenInfo_.phyHeight);
-    RectI screenRectI(0, 0, screenWidth, screenHeight);
+    RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo_.phyWidth),
+        static_cast<int32_t>(screenInfo_.phyHeight));
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {
         return;
@@ -665,11 +666,11 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer, RSSurf
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
     if (newWidthDstHeight > newHeightDstWidth) {
+        newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;
-        newHeight = srcRect.h * newWidth / srcRect.w;
     } else if (newWidthDstHeight < newHeightDstWidth) {
+        newWidth = newWidth * dstHeight / newHeight;
         newHeight = dstHeight;
-        newWidth = srcRect.w * newHeight / srcRect.h;
     } else {
         newHeight = dstHeight;
         newWidth = dstWidth;
@@ -678,11 +679,11 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer, RSSurf
     if (newWidth < dstWidth) {
         uint32_t dw = dstWidth - newWidth;
         auto halfdw = dw / 2;
-        dstRect.x += halfdw;
+        dstRect.x += static_cast<int32_t>(halfdw);
     } else if (newHeight < dstHeight) {
         uint32_t dh = dstHeight - newHeight;
         auto halfdh = dh / 2;
-        dstRect.y += halfdh;
+        dstRect.y += static_cast<int32_t>(halfdh);
     }
     dstRect.h = static_cast<int32_t>(newHeight);
     dstRect.w = static_cast<int32_t>(newWidth);

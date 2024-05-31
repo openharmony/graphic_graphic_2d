@@ -404,7 +404,7 @@ OH_Drawing_FontEdging OH_Drawing_FontGetEdging(const OH_Drawing_Font*);
 void OH_Drawing_FontDestroy(OH_Drawing_Font*);
 
 /**
- * @brief Defines a run, supplies storage for the metrics of an SkFont.
+ * @brief Defines a run, supplies storage for the metrics of an <b>OH_Drawing_Font</b>.
  *
  * @since 12
  * @version 1.0

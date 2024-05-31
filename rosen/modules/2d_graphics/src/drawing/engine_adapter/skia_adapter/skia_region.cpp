@@ -91,6 +91,17 @@ bool SkiaRegion::IsRect() const
     return skRegion_->isRect();
 }
 
+bool SkiaRegion::IsRegionContained(const Region& other) const
+{
+    auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
+    if (skRegion == nullptr) {
+        LOGD("SkiaRegion::IsRegionContained, skRegion is nullptr");
+        return false;
+    }
+
+    return skRegion_->contains(*skRegion);
+}
+
 bool SkiaRegion::Op(const Region& region, RegionOp op)
 {
     auto skRegion = region.GetImpl<SkiaRegion>()->GetSkRegion();
@@ -99,6 +110,12 @@ bool SkiaRegion::Op(const Region& region, RegionOp op)
         return false;
     }
     return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
+}
+
+bool SkiaRegion::QuickReject(const RectI& rectI) const
+{
+    auto skIRect = SkIRect::MakeLTRB(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());
+    return skRegion_->quickReject(skIRect);
 }
 
 void SkiaRegion::Clone(const Region& other)

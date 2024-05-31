@@ -203,19 +203,6 @@ HWTEST_F(RSImplicitAnimatorTest, PopImplicitParamTest, Level1)
 }
 
 /**
- * @tc.name: CreateEmptyAnimationTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSImplicitAnimatorTest, CreateEmptyAnimationTest, Level1)
-{
-    RSImplicitAnimator rsImplicitAnimator;
-    int res = 1;
-    rsImplicitAnimator.CreateEmptyAnimation();
-    ASSERT_NE(res, 0);
-}
-
-/**
  * @tc.name: ExecuteWithoutAnimationTest
  * @tc.desc:
  * @tc.type:FUNC

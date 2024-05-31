@@ -74,9 +74,8 @@ DrawBitmapRect4::~DrawBitmapRect4() {}
 
 void DrawBitmapRect4::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
-    OH_Drawing_CanvasClear(canvas, 0x88444444);
+    OH_Drawing_CanvasClear(canvas, 0xFF444444);
     OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetAlpha(brush, 128); // 128 透明度值
     OH_Drawing_BrushSetBlendMode(brush, OH_Drawing_BlendMode::BLEND_MODE_XOR);
 
     DrawRect srcR1 = { 0.0f, 0.0f, 4096.0f, 2040.0f };

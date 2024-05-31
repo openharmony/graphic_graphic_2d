@@ -36,7 +36,7 @@ public:
 
 private:
     uint32_t CalculateVideoFrameRate();
-    uint32_t Calculate(int64_t oneSecond);
+    uint32_t Calculate(int64_t oneSecond) const;
     void VoteVideoFrameRate(uint32_t rate);
     void SendDelayTask();
     void CancelDelayTask();

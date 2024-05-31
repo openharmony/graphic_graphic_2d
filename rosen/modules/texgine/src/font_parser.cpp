@@ -376,51 +376,37 @@ private:
 std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(const std::string& fontName,
     const unsigned int languageId)
 {
-    SystemFont sSystemFont;
-    std::shared_ptr<std::vector<std::string>> systemFontList = sSystemFont.GetSystemFontSet();
-    if (systemFontList == nullptr || systemFontList->empty()) {
+    FontConfigJson fontConfigJson;
+    fontConfigJson.ParseFontFileMap();
+    std::shared_ptr<FontFileMap> fontFileMap = fontConfigJson.GetFontFileMap();
+    if (fontFileMap == nullptr || (*fontFileMap).empty()) {
+        LOGSO_FUNC_LINE(ERROR) << "fontFileMap is nullptr";
         return nullptr;
     }
-
-    int systemFontSize = static_cast<int>(systemFontList->size());
-    for (auto font : fontSet_) {
-        for (int i = 0; i < systemFontSize; i++) {
-            if (systemFontSize <= 0) {
-                break;
-            }
-            if ((*systemFontList)[i] == font) {
-                systemFontList->erase(systemFontList->begin() + i);
-                systemFontSize --;
-                break;
-            }
-        }
-
-        systemFontList->push_back(font);
+    if ((*fontFileMap).find(fontName) == (*fontFileMap).end()) {
+        LOGSO_FUNC_LINE(ERROR) << "full name not found";
+        return nullptr;
     }
+    std::string path = SYSTEM_FONT_PATH + (*fontFileMap)[fontName];
 
-    for (int i = static_cast<int>(systemFontList->size()) - 1; i >= 0; --i) {
-        FontParser::FontDescriptor fontDescriptor;
-        fontDescriptor.requestedLid = languageId;
-        fontDescriptor.path = (*systemFontList)[i];
-        const char* path = (*systemFontList)[i].c_str();
-        auto typeface = Drawing::Typeface::MakeFromFile(path);
-        if (typeface == nullptr) {
-            LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
-            continue;
-        }
-        auto fontStyle = typeface->GetFontStyle();
-        fontDescriptor.weight = fontStyle.GetWeight();
-        fontDescriptor.width = fontStyle.GetWidth();
-        if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
-            LOGSO_FUNC_LINE(ERROR) << "parse table failed";
-            return nullptr;
-        }
-        std::string name = SYSTEM_FONT_PATH + fontName;
-        if (fontDescriptor.fullName == fontName || fontDescriptor.path == name) {
-            return std::make_unique<FontDescriptor>(fontDescriptor);
-        }
+    FontParser::FontDescriptor fontDescriptor;
+    fontDescriptor.requestedLid = languageId;
+    fontDescriptor.path = path;
+    auto typeface = Drawing::Typeface::MakeFromFile(path.c_str());
+    if (typeface == nullptr) {
+        LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
+        return nullptr;
     }
-
+    auto fontStyle = typeface->GetFontStyle();
+    fontDescriptor.weight = fontStyle.GetWeight();
+    fontDescriptor.width = fontStyle.GetWidth();
+    if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
+        LOGSO_FUNC_LINE(ERROR) << "parse table failed";
+        return nullptr;
+    }
+    if (fontDescriptor.fullName == fontName) {
+        return std::make_unique<FontDescriptor>(fontDescriptor);
+    }
     return nullptr;
 }
 

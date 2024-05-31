@@ -20,7 +20,7 @@
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 
 class FillType : public TestBase {
     typedef struct {

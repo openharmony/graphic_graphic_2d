@@ -19,6 +19,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
 #include "rs_test_util.h"
+#include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -122,7 +123,8 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
-    uniRenderEngine->DrawLayers(*canvas, layers, false);
+    ScreenInfo screenInfo;
+    uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo);
 }
 
 /**

@@ -200,11 +200,6 @@ void RSRenderParams::SetCacheSize(Vector2f size)
     needSync_ = true;
 }
 
-Vector2f RSRenderParams::GetCacheSize() const
-{
-    return cacheSize_;
-}
-
 void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced)
 {
     if (lastFrameSynced) {

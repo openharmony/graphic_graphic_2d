@@ -78,6 +78,7 @@ public:
     bool ApplyPathStyle(Drawing::Pen& pen) const;
     bool ApplyFourLine(Drawing::Pen& pen) const;
     bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
+    bool ApplySimpleBorder(const RRect& rrect) const;
 
     void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
     void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
@@ -94,6 +95,14 @@ private:
     Drawing::Point GetTRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetBLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetBRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    void DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect, const float offsetX,
+        const float offsetY) const;
+    void DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const float offsetX, const float offsetY) const;
+    void DrawBottomBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const float offsetX, const float offsetY) const;
+    void DrawLeftBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const float offsetX, const float offsetY) const;
     // Vectors containing uniform or four-sided border attributes.
     // If four-sided, the order of contents is left, top, right, bottom.
     std::vector<Color> colors_;

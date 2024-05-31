@@ -260,12 +260,6 @@ public:
         return matrixImplPtr->DowncastingTo<T>();
     }
 
-    template<typename T>
-    const T* GetImplPtr() const
-    {
-        return reinterpret_cast<const T*>(matrixImplPtr.get());
-    }
-
     /**
      * @brief Returns true if matrix is Identity. Identity matrix is:
      *    | 1 0 0 |

@@ -217,12 +217,12 @@ HWTEST_F(RSRenderNodeTest, ResetFilterRectsInCacheTest, TestSize.Level2)
  */
 HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
 {
-    RSRenderNode node(id, context);
-    node.InitRenderParams();
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context);
+    node->InitRenderParams();
     bool isDrawingCacheChanged = true;
 
-    node.SetDrawingCacheChanged(isDrawingCacheChanged);
-    ASSERT_EQ(node.GetDrawingCacheChanged(), isDrawingCacheChanged);
+    node->SetDrawingCacheChanged(isDrawingCacheChanged);
+    ASSERT_EQ(node->GetDrawingCacheChanged(), isDrawingCacheChanged);
 }
 
 /**
@@ -233,13 +233,13 @@ HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
  */
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
 {
-    RSRenderNode node(id, context);
-    node.InitRenderParams();
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context);
+    node->InitRenderParams();
     bool isDrawingCacheChanged = true;
 
-    node.SetDrawingCacheChanged(isDrawingCacheChanged);
-    node.ResetDrawingCacheNeedUpdate();
-    ASSERT_EQ(node.drawingCacheNeedUpdate_, false);
+    node->SetDrawingCacheChanged(isDrawingCacheChanged);
+    node->ResetDrawingCacheNeedUpdate();
+    ASSERT_EQ(node->drawingCacheNeedUpdate_, false);
 }
 
 /**
@@ -250,10 +250,10 @@ HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
  */
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest002, TestSize.Level2)
 {
-    RSRenderNode node(id, context);
-    node.InitRenderParams();
-    node.SetDrawingCacheChanged(true);
-    ASSERT_EQ(node.GetDrawingCacheChanged(), true);
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context);
+    node->InitRenderParams();
+    node->SetDrawingCacheChanged(true);
+    ASSERT_EQ(node->GetDrawingCacheChanged(), true);
 }
 
 /**
