@@ -38,6 +38,7 @@
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
 
 #include "recording/recording_canvas.h"
 
