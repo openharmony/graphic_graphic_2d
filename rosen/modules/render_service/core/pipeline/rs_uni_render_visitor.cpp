@@ -6187,7 +6187,7 @@ void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
         rcd_msg::GetInstance().SendMsg<ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
             node.GetScreenRotation());
         rcd_msg::GetInstance().SendMsg<int>(TOPIC_RCD_DISPLAY_NOTCH,
-            node.GetNotchStatus());
+            RSSystemParameters::GetHideNotchStatus());
     }
 }
 

@@ -132,11 +132,6 @@ public:
         return screenRotation_;
     }
 
-    int GetNotchStatus()
-    {
-        return notchStatus_;
-    }
-
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -456,7 +451,6 @@ private:
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
-    int notchStatus_ = 0; // 0 means default, 1 means hide top area
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
     uint64_t screenId_;
