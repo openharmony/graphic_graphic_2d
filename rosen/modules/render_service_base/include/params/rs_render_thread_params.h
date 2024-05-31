@@ -248,6 +248,16 @@ public:
         return hasCaptureImg_;
     }
 
+    void SetBlackList(std::unordered_set<NodeId> blackList)
+    {
+        blackList_ = blackList;
+    }
+
+    std::unordered_set<NodeId> GetBlackList() const
+    {
+        return blackList_;
+    }
+
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
     {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
@@ -301,6 +311,7 @@ public:
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
+    std::unordered_set<NodeId> blackList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;

@@ -273,6 +273,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUint64(id);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> blackListVector;
+            data.ReadUInt64Vector(&blackListVector);
+            SetVirtualScreenBlackList(id, blackListVector);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

@@ -442,6 +442,15 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     return newVirtualScreenId;
 }
 
+void RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+    if (blackListVector.empty()) {
+        RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
+    }
+}
+
 int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);

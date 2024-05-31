@@ -84,6 +84,7 @@ private:
     void PrepareOffscreenRender(const RSRenderNode& node);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool SkipDisplayIfScreenOff() const;
+    bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -91,6 +92,8 @@ private:
     std::shared_ptr<Drawing::Surface> offscreenSurface_; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
+    std::unordered_set<NodeId> virtualScreenBlackList_ = {};
+    bool hasSpecialLayer_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;
     Drawing::Matrix lastMatrix_;

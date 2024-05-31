@@ -88,6 +88,8 @@ public:
         int32_t flags = 0,
         std::vector<NodeId> filteredAppVector = {}) = 0;
 
+    virtual void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
 #ifdef RS_ENABLE_VK

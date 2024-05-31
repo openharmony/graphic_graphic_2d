@@ -433,6 +433,26 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     return id;
 }
 
+void RSRenderServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    data.WriteUInt64Vector(blackListVector);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenBlackList: Send Request err.");
+    }
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     if (surface == nullptr) {

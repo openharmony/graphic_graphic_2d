@@ -356,6 +356,15 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    // process black list
+    auto blackList = uniParam->GetBlackList();
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) &&
+        !blackList.empty() && blackList.find(surfaceParams->GetId()) != blackList.end()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture: (id:[%{public}" PRIu64 "]) is in black list",
+            surfaceParams->GetId());
+        return;
+    }
+
     bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
     if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
         EnableRecordingOptimization(*surfaceParams)) {

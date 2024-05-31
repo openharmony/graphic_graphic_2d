@@ -32,6 +32,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     CREATE_VIRTUAL_SCREEN,
     SET_VIRTUAL_SCREEN_RESOLUTION,
     SET_VIRTUAL_SCREEN_SURFACE,
+    SET_VIRTUAL_SCREEN_BLACKLIST,
 #ifdef RS_ENABLE_VK
     SET_2D_RENDER_CTRL,
 #endif
