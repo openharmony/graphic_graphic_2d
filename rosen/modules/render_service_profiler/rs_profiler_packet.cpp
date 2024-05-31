@@ -14,7 +14,7 @@
  */
 
 #include "rs_profiler_packet.h"
-
+#include <set>
 namespace OHOS::Rosen {
 
 Packet::Packet(PacketType type, uint32_t reserve)
@@ -55,11 +55,8 @@ void Packet::SetType(Packet::PacketType type)
 
 uint32_t Packet::GetLength() const
 {
-    uint32_t length;
-    auto* ptr = reinterpret_cast<char*>(&length);
-    for (size_t i = 0; i < sizeof(length); ++i) {
-        ptr[i] = data_[HEADER_LENGTH_OFFSET + i];
-    }
+    uint32_t length = 0;
+    Utils::Move(&length, sizeof(length), data_.data() + HEADER_LENGTH_OFFSET, sizeof(length));
     return length;
 }
 
@@ -77,10 +74,7 @@ std::vector<char> Packet::Release()
 
 void Packet::SetLength(uint32_t length)
 {
-    const auto* ptr = reinterpret_cast<const char*>(&length);
-    for (size_t i = 0; i < sizeof(length); ++i) {
-        data_[HEADER_LENGTH_OFFSET + i] = ptr[i];
-    }
+    Utils::Move(data_.data() + HEADER_LENGTH_OFFSET, sizeof(length), &length, sizeof(length));
 }
 
 void Packet::InitData(PacketType type)
