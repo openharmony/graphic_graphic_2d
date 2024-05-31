@@ -230,8 +230,8 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
     textStyle.shadows.clear();
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value element;
-        Drawing::Color colorSrc;
-        Drawing::Point offset;
+        Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
+        Drawing::Point offset(Drawing::ARGC_ZERO, Drawing::ARGC_ZERO);
         double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
             ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
@@ -241,14 +241,14 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            ROSEN_LOGE("The parameter of as private point is unvaild");
-            return;
+            ROSEN_LOGD("The parameter of as private point is unvaild");
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
+            ROSEN_LOGD("The parameter of as private blur radius is unvaild");
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
