@@ -171,9 +171,6 @@ ohos_source_set("render_service_base_src") {
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
 
-    #luminance
-    "src/luminance/rs_luminance_control.cpp",
-
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
@@ -181,8 +178,8 @@ ohos_source_set("render_service_base_src") {
 
     #params
     "src/params/rs_canvas_drawing_render_params.cpp",
-    "src/params/rs_canvas_render_params.cpp",
     "src/params/rs_display_render_params.cpp",
+    "src/params/rs_effect_render_params.cpp",
     "src/params/rs_render_params.cpp",
     "src/params/rs_render_thread_params.cpp",
     "src/params/rs_surface_render_params.cpp",
@@ -245,10 +242,12 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
+    "src/render/rs_colorful_shadow_filter.cpp",
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
+    "src/render/rs_hps_blur_shader_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -261,6 +260,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_maskcolor_shader_filter.cpp",
     "src/render/rs_material_filter.cpp",
     "src/render/rs_motion_blur_filter.cpp",
+    "src/render/rs_particles_drawable.cpp",
     "src/render/rs_path.cpp",
     "src/render/rs_pixel_map_shader.cpp",
     "src/render/rs_pixel_map_util.cpp",
@@ -268,6 +268,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
+    "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
 
     #transaction
@@ -288,6 +289,18 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
+
+  if (rosen_is_ohos) {
+    sources += [
+      #luminance
+      "src/luminance/rs_luminance_control.cpp",
+    ]
+  } else {
+    sources += [
+      #luminance
+      "src/luminance/mingw/rs_luminance_control.cpp",
+    ]
+  }
 
   if (is_cross_platform) {
     sources -= [
@@ -434,8 +447,6 @@ ohos_source_set("render_service_base_src") {
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
   }
-
-  include_dirs += [ "//third_party/skia/src" ]
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",

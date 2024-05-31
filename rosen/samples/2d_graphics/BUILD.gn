@@ -91,7 +91,10 @@ ohos_executable("drawing_engine_sample") {
 
   deps += [ "//third_party/skia:skia_ohos" ]
 
-  public_deps = libgl
+  public_deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
   defines = gpu_defines
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -212,7 +215,10 @@ ohos_executable("drawing_sample_replayer") {
 
   deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
-  public_deps = libgl
+  public_deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
   defines = gpu_defines
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

@@ -91,12 +91,26 @@ public:
     bool IsRect() const;
 
     /**
+     * @brief Determines whether other region is in the region.
+     * @param other Other region object.
+     * @return If true indicates that other and region have area in common.
+     */
+    virtual bool IsRegionContained(const Region& other) const;
+
+    /**
      * @brief Replaces Region with the result of Region op region.
      * @param region Operand.
      * @param op     Operation type.
      * @return Returns true if replaced Region is not empty.
      */
     virtual bool Op(const Region& region, RegionOp op);
+
+     /**
+     * @brief Determines whether rect and region does not intersect.
+     * @param rectI RectI to intersect.
+     * @return Returns true if rect and region is not intersect.
+     */
+    virtual bool QuickReject(const RectI& rectI) const;
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);

@@ -66,6 +66,8 @@ public:
         syncId_ = syncId;
     }
 
+    void SetHostPid(const int32_t hostPid);
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();

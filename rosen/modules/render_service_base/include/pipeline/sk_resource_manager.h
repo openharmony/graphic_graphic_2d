@@ -25,12 +25,26 @@
 #include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+struct SharedTextureContext {
+    SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
+        : sharedImage_(sharedImage) {}
+
+private:
+    std::shared_ptr<Drawing::Image> sharedImage_;
+};
+#endif
+
 class RSB_EXPORT SKResourceManager final {
 public:
     static SKResourceManager& Instance();
     void HoldResource(const std::shared_ptr<Drawing::Image> &img);
     void HoldResource(std::shared_ptr<Drawing::Surface> surface);
     void ReleaseResource();
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    static void DeleteSharedTextureContext(void* context);
+#endif
 private:
     SKResourceManager() = default;
     ~SKResourceManager() = default;

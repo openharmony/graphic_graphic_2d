@@ -22,6 +22,7 @@
 #include "event_handler.h"
 #include "hdi_backend.h"
 #include "rs_main_thread.h"
+#include "rs_vblank_idle_corrector.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
@@ -32,6 +33,13 @@ using UniFallbackCallback = std::function<void(const sptr<Surface>& surface, con
 using OutputPtr = std::shared_ptr<HdiOutput>;
 using LayerPtr = std::shared_ptr<HdiLayer>;
 class ScheduledTask;
+
+struct RefreshRateParam {
+    uint32_t rate = 0;
+    uint64_t frameTimestamp = 0;
+    uint64_t constraintRelativeTime = 0;
+};
+
 class RSHardwareThread {
 public:
     static RSHardwareThread& Instance();
@@ -51,6 +59,7 @@ public:
     void ClearRefreshRateCounts(std::string& dumpString);
     int GetHardwareTid() const;
     GSError ClearFrameBuffers(OutputPtr output);
+    void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -61,9 +70,12 @@ private:
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
-    void PerformSetActiveMode(OutputPtr output, uint64_t timestamp);
+    void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
+
+    RefreshRateParam GetRefreshRateParam();
+    std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -81,8 +93,10 @@ private:
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
+    std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos_;
 
     HgmRefreshRates hgmRefreshRates_;
+    RSVBlankIdleCorrector vblankIdleCorrector_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;

@@ -38,6 +38,26 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     return node;
 }
 
+void RSDisplayNode::AddDisplayNodeToTree()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeAddToTree>(GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGI("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
+}
+
+void RSDisplayNode::RemoveDisplayNodeFromTree()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeRemoveFromTree>(GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGI("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
+}
+
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirroredDisplay_);
@@ -198,6 +218,23 @@ void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
 bool RSDisplayNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetNodePid>(GetId(), oldScbPids, currentScbPid);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    std::ostringstream oldPidsStr;
+    oldPidsStr << " NodeId: " << GetId();
+    oldPidsStr << " currentScbPid: " << currentScbPid;
+    oldPidsStr << " oldScbPids:";
+    for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
+        oldPidsStr << *iter << ",";
+    }
+    ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 
 RSDisplayNode::~RSDisplayNode() = default;

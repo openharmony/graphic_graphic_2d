@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "utils/matrix.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -169,5 +170,66 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateByMatrixFromSelf001, TestSize.Level1)
     rsObjAbsGeometry.UpdateByMatrixFromSelf();
     rsObjAbsGeometry.SetContextMatrix(contextMatrix);
     rsObjAbsGeometry.UpdateByMatrixFromSelf();
+}
+
+/**
+ * @tc.name: ConcatMatrixTest
+ * @tc.desc: Verify function ConcatMatrix
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSObjAbsGeometryTest, ConcatMatrixTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    Drawing::Matrix matrix;
+    rsObjAbsGeometry->ConcatMatrix(matrix);
+    matrix.matrixImplPtr->Translate(10, 10);
+    rsObjAbsGeometry->ConcatMatrix(matrix);
+    rsObjAbsGeometry->absMatrix_ = std::make_optional<Drawing::Matrix>();
+    rsObjAbsGeometry->ConcatMatrix(matrix);
+    EXPECT_TRUE(rsObjAbsGeometry->absMatrix_.has_value());
+}
+
+/**
+ * @tc.name: IsNeedClientComposeTest
+ * @tc.desc: Verify function IsNeedClientCompose
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSObjAbsGeometryTest, IsNeedClientComposeTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    rsObjAbsGeometry->trans_ = std::make_optional<Transform>();
+    EXPECT_TRUE(rsObjAbsGeometry->trans_);
+    EXPECT_FALSE(rsObjAbsGeometry->IsNeedClientCompose());
+}
+
+/**
+ * @tc.name: GetDataRangeTest
+ * @tc.desc: Verify function GetDataRange
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetDataRangeTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    EXPECT_EQ(rsObjAbsGeometry->GetDataRange(0.0f, 1.0f, -1.0f, 1.0f).x_, -1.0f);
+}
+
+/**
+ * @tc.name: UpdateAbsMatrix2DTest
+ * @tc.desc: Verify function UpdateAbsMatrix2D
+ * @tc.type: FUNC
+ * @tc.require: issuesI9OX7J
+ */
+HWTEST_F(RSObjAbsGeometryTest, UpdateAbsMatrix2DTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    rsObjAbsGeometry->trans_ = std::make_optional<Transform>();
+    rsObjAbsGeometry->trans_->rotation_ = 0.5f;
+    rsObjAbsGeometry->trans_->scaleX_ = 0.f;
+    rsObjAbsGeometry->trans_->scaleY_ = 0.f;
+    rsObjAbsGeometry->UpdateAbsMatrix2D();
+    EXPECT_TRUE(rsObjAbsGeometry->trans_.has_value());
 }
 } // namespace OHOS::Rosen

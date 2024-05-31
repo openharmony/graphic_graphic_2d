@@ -16,7 +16,7 @@
 #include <iostream>
 #include <surface.h>
 
-#include "wm/window.h"
+#include "window.h"
 
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"

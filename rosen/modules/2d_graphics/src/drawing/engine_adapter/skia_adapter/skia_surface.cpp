@@ -186,13 +186,11 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
     surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
     return surface;
 }
+#endif
 std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
-        return nullptr;
-    }
     sk_sp<GrDirectContext> grContext = nullptr;
     if (gpuContext) {
         auto skiaGpuContext = gpuContext->GetImpl<SkiaGPUContext>();
@@ -207,16 +205,28 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
         skColorSpace = SkColorSpace::MakeSRGB();
     }
 
-    GrVkImageInfo image_info;
-    SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
-    GrBackendTexture backendRenderTarget(info.GetWidth(), info.GetHeight(), image_info);
+    sk_sp<SkSurface> skSurface = nullptr;
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
-
-    sk_sp<SkSurface> skSurface =
-        SkSurface::MakeFromBackendTexture(grContext.get(),
-        backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
-        sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
-        skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::IsUseVulkan()) {
+        GrVkImageInfo image_info;
+        SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
+        GrBackendTexture backendRenderTarget(info.GetWidth(), info.GetHeight(), image_info);
+        skSurface = SkSurface::MakeFromBackendTexture(grContext.get(),
+            backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
+            skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+    }
+#endif
+#ifdef RS_ENABLE_GL
+    if (!SystemProperties::IsUseVulkan()) {
+        GrBackendTexture glBackendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
+        skSurface = SkSurface::MakeFromBackendTexture(grContext.get(),
+            glBackendTexture, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
+            skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+    }
+#endif
     if (skSurface == nullptr) {
         return nullptr;
     }
@@ -225,7 +235,6 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
     return surface;
 }
-#endif
 
 std::shared_ptr<Surface> SkiaSurface::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)

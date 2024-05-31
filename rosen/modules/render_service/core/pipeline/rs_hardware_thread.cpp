@@ -29,8 +29,6 @@
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "info_collection/rs_layer_compose_collection.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -38,6 +36,8 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -45,6 +45,7 @@
 #endif
 
 #ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "rs_vk_image_manager.h"
 #endif
 
@@ -63,7 +64,7 @@
 #endif
 
 namespace OHOS::Rosen {
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
@@ -162,14 +163,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         return;
     }
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
-    // need to sync the hgm data from main thread.
-    // Temporary sync the timestamp to fix the duplicate time stamp issue.
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
-    uint64_t currTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
-        currentRate = currentRate, timestamp = currTimestamp]() {
+    RefreshRateParam param = GetRefreshRateParam();
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
@@ -177,10 +172,11 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
-
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
-        ExecuteSwitchRefreshRate(rate);
-        PerformSetActiveMode(output, timestamp);
+        uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu",
+            currentRate, param.frameTimestamp);
+        ExecuteSwitchRefreshRate(param.rate);
+        PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -202,13 +198,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     };
     unExecuteTaskNum_++;
 
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
-        uint64_t expectCommitTime = static_cast<uint64_t>(currTimestamp + static_cast<uint64_t>(pipelineOffset) -
-            static_cast<uint64_t>(period));
+        uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
+            static_cast<uint64_t>(pipelineOffset) - static_cast<uint64_t>(period));
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -224,6 +221,38 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
 }
 
+RefreshRateParam RSHardwareThread::GetRefreshRateParam()
+{
+    // need to sync the hgm data from main thread.
+    // Temporary sync the timestamp to fix the duplicate time stamp issue.
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    bool directComposition = hgmCore.GetDirectCompositionFlag();
+    if (directComposition) {
+        hgmCore.SetDirectCompositionFlag(false);
+    }
+    RefreshRateParam param;
+    if (directComposition) {
+        param = {
+            .rate = hgmCore.GetPendingScreenRefreshRate(),
+            .frameTimestamp = hgmCore.GetCurrentTimestamp(),
+            .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
+        };
+    } else {
+        param = {
+            .rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+            .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+            .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+        };
+    }
+    return param;
+}
+
+void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
+{
+    RS_TRACE_NAME_FMT("RSHardwareThread::OnScreenVBlankIdleCallback screenId: %d now: %lu", screenId, timestamp);
+    vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
+}
+
 void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
 {
     static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
@@ -232,12 +261,14 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         return;
     }
 
+    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
+    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
+        lastScreenId = id;
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
@@ -246,7 +277,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 }
 
-void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp)
+void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
@@ -255,6 +286,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         return;
     }
 
+    vblankIdleCorrector_.ProcessScreenConstraint(timestamp, constraintRelativeTime);
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;
@@ -279,14 +311,10 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
-        if (!hgmCore.GetLtpoEnabled()) {
-            hdiBackend_->StartSample(output);
-        } else {
-            auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-            int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-            hdiBackend_->StartSample(output);
-        }
+        auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
+        int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
+        hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
+        hdiBackend_->StartSample(output);
     }
 }
 
@@ -315,7 +343,30 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
     if (uniRenderEngine_ != nullptr) {
         uniRenderEngine_->ResetCurrentContext();
     }
+#ifdef RS_ENABLE_VK
+    auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
+    if (frameBufferSurface) {
+        frameBufferSurface->ClearSurfaceMap();
+    }
+#endif
     return output->ClearFrameBuffer();
+}
+
+std::shared_ptr<RSSurfaceOhos> RSHardwareThread::CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface)
+{
+    std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        rsSurface = std::make_shared<RSSurfaceOhosGl>(surface);
+    }
+#endif
+#if (defined RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
+    }
+#endif
+    RS_LOGD("RSHardwareThread::Redraw: CreateFrameBufferSurfaceOhos.");
+    return rsSurface;
 }
 
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
@@ -327,18 +378,21 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
     bool isProtected = false;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-        for (const auto& layer : layers) {
-            if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
-                isProtected = true;
-                break;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+            for (const auto& layer : layers) {
+                if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+                    isProtected = true;
+                    break;
+                }
             }
+            if (RSSystemProperties::IsUseVulkan()) {
+                RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+            }
+        } else {
+            RsVulkanContext::GetSingleton().SetIsProtected(false);
         }
-        if (RSSystemProperties::IsUseVulkan()) {
-            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-        }
-    } else {
-        RsVulkanContext::GetSingleton().SetIsProtected(false);
     }
 #endif
 
@@ -359,7 +413,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);
     renderFrameConfig.height = static_cast<int32_t>(screenInfo.phyHeight);
-    auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU, true, isProtected);
+    if (frameBufferSurfaceOhos_ == nullptr) {
+        frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
+    }
+    auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos_, renderFrameConfig,
+        forceCPU, true, isProtected);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");
         return;
@@ -369,196 +427,13 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RsDebug RSHardwareThread::Redraw canvas is nullptr.");
         return;
     }
-#ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
-    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
 #endif
-#ifdef RS_ENABLE_GL
-    std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
-#endif
-#endif // RS_ENABLE_EGLIMAGE
-    bool isTopGpuDraw = false;
-    bool isBottomGpuDraw = false;
-    for (const auto& layer : layers) {
-        if (layer == nullptr) {
-            continue;
-        }
-
-        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
-            continue;
-        }
-
-        if (layer->GetSurface()->GetName() == "RCDTopSurfaceNode") {
-            isTopGpuDraw = true;
-            continue;
-        }
-        if (layer->GetSurface()->GetName() == "RCDBottomSurfaceNode") {
-            isBottomGpuDraw = true;
-            continue;
-        }
-
-        Drawing::AutoCanvasRestore acr(*canvas, true);
-        auto dstRect = layer->GetLayerSize();
-        Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
-            static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
-            static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
-        canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
-
-        // prepare BufferDrawParam
-        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
-        params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
-        canvas->ConcatMatrix(params.matrix);
-#ifndef RS_ENABLE_EGLIMAGE
-        RSBaseRenderEngine::DrawBuffer(*canvas, params);
-#else
-        if (!params.useCPU) {
-            if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
-                RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
-                continue;
-            }
-            if (canvas->GetGPUContext() == nullptr) {
-                RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer GrContext is null!");
-                continue;
-            }
-            uint32_t eglTextureId = 0;
-            uint32_t bufferId = 0;
-            (void)eglTextureId;
-            (void)bufferId;
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-                auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
-                    params.acquireFence);
-                if (eglImageCache == nullptr) {
-                    continue;
-                }
-                eglTextureId = eglImageCache->TextureId();
-                if (eglTextureId == 0) {
-                    RS_LOGE("RSHardwareThread::Redraw CreateImageCacheFromBuffer return invalid texture ID");
-                    continue;
-                }
-                bufferId = params.buffer->GetSeqNum();
-                imageCacheSeqs[bufferId] = std::move(eglImageCache);
-            }
-#endif
-            std::shared_ptr<Drawing::Image> image = nullptr;
-            Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
-
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-                Drawing::TextureInfo externalTextureInfo;
-                externalTextureInfo.SetWidth(params.buffer->GetSurfaceBufferWidth());
-                externalTextureInfo.SetHeight(params.buffer->GetSurfaceBufferHeight());
-                externalTextureInfo.SetIsMipMapped(false);
-                externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
-                externalTextureInfo.SetID(eglTextureId);
-                auto glType = GR_GL_RGBA8;
-                auto pixelFmt = params.buffer->GetFormat();
-                if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-                    glType = GR_GL_BGRA8;
-                } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
-                    pixelFmt == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-                    glType = GL_RGB10_A2;
-                }
-                externalTextureInfo.SetFormat(glType);
-
-                image = std::make_shared<Drawing::Image>();
-                if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
-                    Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, drawingColorSpace)) {
-                    RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
-                    return;
-                }
-            }
-#endif
-#ifdef RS_ENABLE_VK
-            if (RSSystemProperties::IsUseVulkan()) {
-                auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
-                    params.buffer, params.acquireFence);
-                if (!imageCache) {
-                    continue;
-                }
-                auto bufferId = params.buffer->GetSeqNum();
-                imageCacheSeqsVK[bufferId] = imageCache;
-                auto& backendTexture = imageCache->GetBackendTexture();
-                image = std::make_shared<Drawing::Image>();
-                if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
-                    Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, drawingColorSpace,
-                    NativeBufferUtils::DeleteVkImage,
-                    imageCache->RefCleanupHelper())) {
-                    RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
-                    return;
-                }
-            }
-#endif
-            if (image == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
-                return;
-            }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-            Drawing::Matrix matrix;
-            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
-            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-            auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
-            auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
-            matrix.SetScaleTranslate(sx, sy, tx, ty);
-            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
-            if (imageShader == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
-            } else {
-                params.paint.SetShaderEffect(imageShader);
-                params.targetColorGamut = colorGamut;
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
-
-                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
-            }
-#endif
-
-            canvas->AttachBrush(params.paint);
-            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-            canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
-                Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-#else
-            canvas->DrawRect(params.dstRect);
-#endif
-            canvas->DetachBrush();
-        } else {
-            RSBaseRenderEngine::DrawBuffer(*canvas, params);
-        }
-#endif
-        // Dfx for redraw region
-        if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
-            RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
-            RSUniRenderUtil::DrawRectForDfx(*canvas, dst, Drawing::Color::COLOR_YELLOW, 0.4f,
-                layer->GetSurface()->GetName());
-        }
-    }
-    LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
-
-    if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(canvas.get());
-    }
-
-    if (isBottomGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(canvas.get());
-    }
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
     renderFrame->Flush();
-#ifdef RS_ENABLE_EGLIMAGE
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        imageCacheSeqsVK.clear();
-    }
-#endif
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        imageCacheSeqs.clear();
-    }
-#endif
-#endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
 

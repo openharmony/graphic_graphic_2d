@@ -15,6 +15,8 @@
 
 #include "drawing_bitmap.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "draw/color.h"
 #include "image/bitmap.h"
 
@@ -141,6 +143,7 @@ void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap* cBitmap)
 OH_Drawing_Bitmap* OH_Drawing_BitmapCreateFromPixels(OH_Drawing_Image_Info* cImageInfo, void* pixels, uint32_t rowBytes)
 {
     if (cImageInfo == nullptr || pixels == nullptr || rowBytes == 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
 
@@ -160,7 +163,8 @@ void OH_Drawing_BitmapBuild(OH_Drawing_Bitmap* cBitmap, const uint32_t width, co
     const OH_Drawing_BitmapFormat* cBitmapFormat)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
-    if (bitmap == nullptr) {
+    if (bitmap == nullptr || cBitmapFormat == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     ColorType colorType = CColorFormatCastToColorType(cBitmapFormat->colorFormat);
@@ -174,6 +178,7 @@ uint32_t OH_Drawing_BitmapGetWidth(OH_Drawing_Bitmap* cBitmap)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
     if (bitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return bitmap->GetWidth();
@@ -183,6 +188,7 @@ uint32_t OH_Drawing_BitmapGetHeight(OH_Drawing_Bitmap* cBitmap)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
     if (bitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return bitmap->GetHeight();
@@ -192,6 +198,7 @@ OH_Drawing_ColorFormat OH_Drawing_BitmapGetColorFormat(OH_Drawing_Bitmap* cBitma
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
     if (bitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return COLOR_FORMAT_UNKNOWN;
     }
     return ColorFormatCastToCColorType(bitmap->GetColorType());
@@ -201,6 +208,7 @@ OH_Drawing_AlphaFormat OH_Drawing_BitmapGetAlphaFormat(OH_Drawing_Bitmap* cBitma
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
     if (bitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return ALPHA_FORMAT_UNKNOWN;
     }
     return AlphaFormatCastToCAlphaType(bitmap->GetAlphaType());
@@ -209,6 +217,7 @@ void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap* cBitmap)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
     if (bitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return bitmap->GetPixels();
@@ -217,6 +226,7 @@ void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap* cBitmap)
 void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap* cBitmap, OH_Drawing_Image_Info* cImageInfo)
 {
     if (cBitmap == nullptr || cImageInfo == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     ImageInfo imageInfo = CastToBitmap(cBitmap)->GetImageInfo();
@@ -231,6 +241,7 @@ bool OH_Drawing_BitmapReadPixels(OH_Drawing_Bitmap* cBitmap, const OH_Drawing_Im
     void* dstPixels, size_t dstRowBytes, int32_t srcX, int32_t srcY)
 {
     if (cBitmap == nullptr || dstInfo == nullptr || dstPixels == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
 

@@ -80,6 +80,16 @@ public:
         return pendingScreenRefreshRate_;
     }
 
+    void SetPendingConstraintRelativeTime(uint64_t relativeTime)
+    {
+        pendingConstraintRelativeTime_ = relativeTime;
+    }
+
+    uint64_t GetPendingConstraintRelativeTime() const
+    {
+        return pendingConstraintRelativeTime_;
+    }
+
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -94,6 +104,16 @@ public:
     {
         return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
             (maxTE_ == VSYNC_MAX_REFRESHRATE);
+    }
+
+    bool IsVBlankIdleCorrectEnabled() const
+    {
+        return vBlankIdleCorrectSwitch_;
+    }
+
+    bool IsLowRateToHighQuickEnabled() const
+    {
+        return lowRateToHighQuickSwitch_;
     }
 
     bool IsLTPOSwitchOn() const
@@ -127,6 +147,16 @@ public:
         maxTE_ = maxTE;
     }
 
+    bool GetDirectCompositionFlag() const
+    {
+        return doDirectComposition_;
+    }
+
+    void SetDirectCompositionFlag(bool doDirectComposition)
+    {
+        doDirectComposition_ = doDirectComposition;
+    }
+
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
@@ -152,6 +182,7 @@ public:
 
     // for LTPO
     void SetLtpoConfig();
+    void SetScreenConstraintConfig();
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
@@ -198,13 +229,17 @@ private:
 
     // for LTPO
     uint32_t pendingScreenRefreshRate_ = 0;
+    uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t timestamp_ = 0;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
+    bool vBlankIdleCorrectSwitch_ = false;
+    bool lowRateToHighQuickSwitch_ = false;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
+    bool doDirectComposition_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

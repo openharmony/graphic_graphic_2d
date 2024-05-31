@@ -35,6 +35,7 @@ enum ClearMemoryMoment : uint32_t {
     SCENEBOARD_SURFACE_NODE_HIDE,
     LOW_MEMORY,
     NO_CLEAR,
+    DEFAULT_CLEAN,
 };
 
 class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {
@@ -178,6 +179,7 @@ private:
     friend class RSRenderThread;
     friend class RSMainThread;
     friend class RSDrawFrame;
+    friend class RSSurfaceCaptureTaskParallel;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

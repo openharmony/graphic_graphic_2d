@@ -28,14 +28,16 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_aibar_shader_filter.h"
+#include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
+#include "render/rs_hps_blur_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_material_filter.h"
 #include "render/rs_linear_gradient_blur_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_spherize_effect_filter.h"
 #include "src/core/SkOpts.h"
 
 namespace OHOS {
@@ -421,7 +423,8 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
 bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     const std::optional<Drawing::Point>& offset)
 {
-    auto prevAbsMatrix = prevAbsMatrix_;
+    static thread_local Drawing::Matrix prevAbsMatrix;
+    prevAbsMatrix.Swap(prevAbsMatrix_);
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
     prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
     if (!RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
@@ -1322,14 +1325,40 @@ float RSProperties::GetBgBrightnessFract() const
 
 bool RSProperties::IsFgBrightnessValid() const
 {
-    return fgBrightnessParams_.has_value() && ROSEN_GE(fgBrightnessFract_, 0.0) &&
-        ROSEN_LE(fgBrightnessFract_, 1.0);
+    return fgBrightnessParams_.has_value() && ROSEN_LNE(fgBrightnessFract_, 1.0);
 }
 
 bool RSProperties::IsBgBrightnessValid() const
 {
-    return bgBrightnessParams_.has_value() && ROSEN_GE(bgBrightnessFract_, 0.0) &&
-        ROSEN_LE(bgBrightnessFract_, 1.0);
+    return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessFract_, 1.0);
+}
+
+std::string RSProperties::GetFgBrightnessDescription() const
+{
+    if (fgBrightnessParams_ == std::nullopt) {
+        return "fgBrightnessParams is nullptr";
+    }
+    std::string description = "ForegroundBrightness, rate: " + std::to_string(fgBrightnessParams_->rate_) +
+        " lightUpDegree: " + std::to_string(fgBrightnessParams_->lightUpDegree_) +
+        " cubicCoeff: " + std::to_string(fgBrightnessParams_->cubicCoeff_) +
+        " quadCoeff: " + std::to_string(fgBrightnessParams_->quadCoeff_) +
+        " saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
+        " fgBrightnessFract: " + std::to_string(bgBrightnessFract_);
+    return description;
+}
+
+std::string RSProperties::GetBgBrightnessDescription() const
+{
+    if (bgBrightnessParams_ == std::nullopt) {
+        return "bgBrightnessParams is nullptr";
+    }
+    std::string description = "BackgroundBrightnessInternal, rate: " + std::to_string(bgBrightnessParams_->rate_) +
+        " lightUpDegree: " + std::to_string(bgBrightnessParams_->lightUpDegree_) +
+        " cubicCoeff: " + std::to_string(bgBrightnessParams_->cubicCoeff_) +
+        " quadCoeff: " + std::to_string(bgBrightnessParams_->quadCoeff_) +
+        " saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
+        " fgBrightnessFract: " + std::to_string(bgBrightnessFract_);
+    return description;
 }
 
 void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
@@ -1483,6 +1512,7 @@ void RSProperties::SetShadowOffsetX(float offsetX)
     }
     shadow_->SetOffsetX(offsetX);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1495,6 +1525,7 @@ void RSProperties::SetShadowOffsetY(float offsetY)
     }
     shadow_->SetOffsetY(offsetY);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1540,6 +1571,7 @@ void RSProperties::SetShadowRadius(float radius)
         isDrawn_ = true;
     }
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1564,6 +1596,7 @@ void RSProperties::SetShadowMask(bool shadowMask)
     }
     shadow_->SetMask(shadowMask);
     SetDirty();
+    filterNeedUpdate_ = true;
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -1704,7 +1737,7 @@ RRect RSProperties::GetClipRRect() const
 
 bool RSProperties::GetClipToRRect() const
 {
-    return clipRRect_.has_value();
+    return clipRRect_.has_value() && !clipRRect_->rect_.IsEmpty();
 }
 
 void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)
@@ -1769,11 +1802,17 @@ RectF RSProperties::GetLocalBoundsAndFramesRect() const
 
 RectF RSProperties::GetBoundsRect() const
 {
+    auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
-        return {0, 0, GetFrameWidth(), GetFrameHeight()};
+        if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
+            return {0, 0, GetFrameWidth(), GetFrameHeight()};
+        }
     } else {
-        return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+        if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
+            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+        }
     }
+    return rect;
 }
 
 RectF RSProperties::GetFrameRect() const
@@ -1950,6 +1989,10 @@ void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
     isSpherizeValid_ = spherizeDegree_ > SPHERIZE_VALID_EPSILON;
+    if (isSpherizeValid_) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -2303,8 +2346,14 @@ void RSProperties::GenerateBackgroundBlurFilter()
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
- 
-    if (RSSystemProperties::GetKawaseEnabled()) {
+
+    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
+        std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
+            std::make_shared<RSHpsBlurShaderFilter>(backgroundBlurRadiusX_, 1.f, 1.f);
+        originalFilter =
+            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
+                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
+    } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadiusX_);
         if (originalFilter == nullptr) {
@@ -2326,8 +2375,8 @@ void RSProperties::GenerateBackgroundBlurFilter()
  
 void RSProperties::GenerateBackgroundMaterialBlurFilter()
 {
-    if (backgroundColorMode_ == BLUR_COLOR_MODE::AVERAGE) {
-        backgroundColorMode_ = BLUR_COLOR_MODE::FASTAVERAGE;
+    if (backgroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
+        backgroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
     uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
@@ -2341,8 +2390,13 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
- 
-    if (RSSystemProperties::GetKawaseEnabled()) {
+
+    static constexpr float epsilon = 0.999f;
+    if (ROSEN_LE(backgroundBlurRadius_, epsilon) && (colorFilter != nullptr)) {
+        auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
+        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
+                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
+    } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -2377,7 +2431,14 @@ void RSProperties::GenerateForegroundBlurFilter()
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
         std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
-    if (RSSystemProperties::GetKawaseEnabled()) {
+
+    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
+        std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
+            std::make_shared<RSHpsBlurShaderFilter>(foregroundBlurRadiusX_, 1.f, 1.f);
+        originalFilter =
+            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
+                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
+    } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadiusX_);
         if (originalFilter == nullptr) {
@@ -2399,8 +2460,8 @@ void RSProperties::GenerateForegroundBlurFilter()
  
 void RSProperties::GenerateForegroundMaterialBlurFilter()
 {
-    if (backgroundColorMode_ == BLUR_COLOR_MODE::AVERAGE) {
-        backgroundColorMode_ = BLUR_COLOR_MODE::FASTAVERAGE;
+    if (foregroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
+        foregroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
@@ -2415,8 +2476,13 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
- 
-    if (RSSystemProperties::GetKawaseEnabled()) {
+
+    static constexpr float epsilon = 0.999f;
+    if (ROSEN_LE(foregroundBlurRadius_, epsilon) && (colorFilter != nullptr)) {
+        auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
+        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
+                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
+    } else if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -2439,7 +2505,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     maskColorShaderFilter->InitColorMod();
     filter_->SetFilterType(RSFilter::MATERIAL);
 }
- 
+
 void RSProperties::GenerateAIBarFilter()
 {
     std::vector<float> aiInvertCoef = RSAIBarShaderFilter::GetAiInvertCoef();
@@ -2448,7 +2514,12 @@ void RSProperties::GenerateAIBarFilter()
         Drawing::ImageFilter::CreateBlurImageFilter(aiBarRadius, aiBarRadius, Drawing::TileMode::CLAMP, nullptr);
     std::shared_ptr<RSAIBarShaderFilter> aiBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(aiBarShaderFilter);
- 
+
+    if (originalFilter == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateAIBarFilter originalFilter is null");
+        return;
+    }
+
     if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(aiBarRadius);
@@ -2460,7 +2531,7 @@ void RSProperties::GenerateAIBarFilter()
     backgroundFilter_ = originalFilter;
     backgroundFilter_->SetFilterType(RSFilter::AIBAR);
 }
- 
+
 void RSProperties::GenerateLinearGradientBlurFilter()
 {
     auto linearBlurFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(linearGradientBlurPara_,
@@ -3582,6 +3653,7 @@ void RSProperties::OnApplyModifiers()
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
+        needFilter_ = needFilter_ || (colorFilter_ != nullptr);
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
@@ -3592,36 +3664,50 @@ void RSProperties::OnApplyModifiers()
         filterNeedUpdate_ = true;
     }
     if (filterNeedUpdate_) {
-        filterNeedUpdate_ = false;
-        GenerateBackgroundFilter();
-        GenerateForegroundFilter();
-        if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-            filterNeedUpdate_ = true;
-        }
-        if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
-            backgroundFilter_.reset();
-        }
-        if (filter_ != nullptr && !filter_->IsValid()) {
-            filter_.reset();
-        }
-        if (IsForegroundEffectRadiusValid()) {
-            auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
-            foregroundFilter_ = foregroundEffectFilter;
-        }
-        if (!IsForegroundEffectRadiusValid()) {
-            foregroundFilter_.reset();
-        }
-        if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
-            auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
-            foregroundFilter_ = motionBlurFilter;
-        }
-        needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                      IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
-                      IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                      foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                      IsBgBrightnessValid();
+        UpdateFilter();
     }
     GenerateRRect();
+}
+
+void RSProperties::UpdateFilter()
+{
+    filterNeedUpdate_ = false;
+    GenerateBackgroundFilter();
+    GenerateForegroundFilter();
+    if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        filterNeedUpdate_ = true;
+    }
+    if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
+        backgroundFilter_.reset();
+    }
+    if (filter_ != nullptr && !filter_->IsValid()) {
+        filter_.reset();
+    }
+    if (IsForegroundEffectRadiusValid()) {
+        auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
+        foregroundFilter_ = foregroundEffectFilter;
+    } else if (IsSpherizeValid()) {
+        auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+        foregroundFilter_ = spherizeEffectFilter;
+    } else if (GetShadowMask()) {
+        float elevation = GetShadowElevation();
+        Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
+        Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
+        auto colorfulShadowFilter =
+            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        foregroundFilter_ = colorfulShadowFilter;
+    } else {
+        foregroundFilter_.reset();
+    }
+    if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
+        auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
+        foregroundFilter_ = motionBlurFilter;
+    }
+    needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
+                  IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
+                  IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+                  foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
+                  IsBgBrightnessValid();
 }
 
 void RSProperties::CalculatePixelStretch()
@@ -3712,7 +3798,7 @@ int RSProperties::GetColorBlendApplyType() const
     return colorBlendApplyType_;
 }
 
-const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
+std::shared_ptr<RSColorPickerCacheTask> RSProperties::GetColorPickerCacheTaskShadow() const
 {
     return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
 }

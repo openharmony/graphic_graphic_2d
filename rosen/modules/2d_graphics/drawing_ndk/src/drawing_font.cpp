@@ -16,6 +16,8 @@
 #include "drawing_font.h"
 
 #include "drawing_canvas_utils.h"
+
+#include "drawing_canvas_utils.h"
 #include "text/font.h"
 
 using namespace OHOS;
@@ -128,6 +130,7 @@ void OH_Drawing_FontSetEdging(OH_Drawing_Font* cFont, OH_Drawing_FontEdging cEdg
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetEdging(CEdgingCastToEdging(cEdging));
@@ -137,6 +140,7 @@ OH_Drawing_FontEdging OH_Drawing_FontGetEdging(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return FONT_EDGING_ALIAS;
     }
     return EdgingCastToCEdging(font->GetEdging());
@@ -146,6 +150,7 @@ void OH_Drawing_FontSetHinting(OH_Drawing_Font* cFont, OH_Drawing_FontHinting cH
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetHinting(CHintingCastToHinting(cHinting));
@@ -155,6 +160,7 @@ OH_Drawing_FontHinting OH_Drawing_FontGetHinting(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return FONT_HINTING_NONE;
     }
     return HintingCastToCHinting(font->GetHinting());
@@ -164,6 +170,7 @@ void OH_Drawing_FontSetForceAutoHinting(OH_Drawing_Font* cFont, bool isForceAuto
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetForceAutoHinting(isForceAutoHinting);
@@ -173,6 +180,7 @@ bool OH_Drawing_FontIsForceAutoHinting(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsForceAutoHinting();
@@ -182,6 +190,7 @@ void OH_Drawing_FontSetBaselineSnap(OH_Drawing_Font* cFont, bool baselineSnap)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetBaselineSnap(baselineSnap);
@@ -191,6 +200,7 @@ bool OH_Drawing_FontIsBaselineSnap(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsBaselineSnap();
@@ -200,6 +210,7 @@ void OH_Drawing_FontSetSubpixel(OH_Drawing_Font* cFont, bool isSubpixel)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetSubpixel(isSubpixel);
@@ -209,6 +220,7 @@ bool OH_Drawing_FontIsSubpixel(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsSubpixel();
@@ -225,6 +237,7 @@ void OH_Drawing_FontSetTypeface(OH_Drawing_Font* cFont, OH_Drawing_Typeface* cTy
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetTypeface(std::shared_ptr<Typeface>{CastToTypeface(cTypeface), [](auto p) {}});
@@ -234,6 +247,7 @@ OH_Drawing_Typeface* OH_Drawing_FontGetTypeface(OH_Drawing_Font* cFont)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_Typeface*)(font->GetTypeface().get());
@@ -243,6 +257,7 @@ void OH_Drawing_FontSetTextSize(OH_Drawing_Font* cFont, float textSize)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetSize(textSize);
@@ -252,6 +267,7 @@ float OH_Drawing_FontGetTextSize(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1.0f;
     }
     return font->GetSize();
@@ -261,6 +277,7 @@ int OH_Drawing_FontCountText(OH_Drawing_Font* cFont, const void* text, size_t by
     OH_Drawing_TextEncoding encoding)
 {
     if (cFont == nullptr || text == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     Font* font = CastToFont(cFont);
@@ -271,6 +288,7 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* t
     OH_Drawing_TextEncoding encoding, uint16_t* glyphs, int maxGlyphCount)
 {
     if (cFont == nullptr || text == nullptr || glyphs == nullptr || byteLength <= 0 || maxGlyphCount <= 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return CastToFont(*cFont).TextToGlyphs(text, byteLength,
@@ -280,6 +298,7 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* t
 void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyphs, int count, float* widths)
 {
     if (cFont == nullptr || glyphs == nullptr || widths == nullptr || count <= 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     CastToFont(*cFont).GetWidths(glyphs, count, widths);
@@ -289,6 +308,7 @@ void OH_Drawing_FontSetLinearText(OH_Drawing_Font* cFont, bool isLinearText)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetLinearMetrics(isLinearText);
@@ -298,6 +318,7 @@ bool OH_Drawing_FontIsLinearText(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsLinearMetrics();
@@ -307,6 +328,7 @@ void OH_Drawing_FontSetTextSkewX(OH_Drawing_Font* cFont, float skewX)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetSkewX(skewX);
@@ -316,6 +338,7 @@ float OH_Drawing_FontGetTextSkewX(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1.0f;
     }
     return font->GetSkewX();
@@ -325,6 +348,7 @@ void OH_Drawing_FontSetFakeBoldText(OH_Drawing_Font* cFont, bool isFakeBoldText)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetEmbolden(isFakeBoldText);
@@ -334,6 +358,7 @@ bool OH_Drawing_FontIsFakeBoldText(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsEmbolden();
@@ -343,6 +368,7 @@ void OH_Drawing_FontSetScaleX(OH_Drawing_Font* cFont, float scaleX)
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetScaleX(scaleX);
@@ -352,6 +378,7 @@ float OH_Drawing_FontGetScaleX(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (cFont == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1.0f;
     }
     return font->GetScaleX();
@@ -361,6 +388,7 @@ void OH_Drawing_FontSetEmbeddedBitmaps(OH_Drawing_Font* cFont, bool isEmbeddedBi
 {
     Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     font->SetEmbeddedBitmaps(isEmbeddedBitmaps);
@@ -370,6 +398,7 @@ bool OH_Drawing_FontIsEmbeddedBitmaps(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
     if (font == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return font->IsEmbeddedBitmaps();
@@ -385,6 +414,7 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
     float ret = -1;
     Font* font = CastToFont(cFont);
     if (cFont == nullptr || cFontMetrics == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return ret;
     }
     FontMetrics metrics;

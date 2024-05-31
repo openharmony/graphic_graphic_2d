@@ -33,6 +33,8 @@ public:
     virtual int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) = 0;
     virtual bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) = 0;
+    virtual int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) = 0;
+    virtual int32_t SetScreenConstraint(uint32_t screenId, uint64_t frameId, uint64_t timestamp, uint32_t type) = 0;
     virtual int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) = 0;
     virtual int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) = 0;
     virtual int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) = 0;

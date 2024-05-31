@@ -188,16 +188,12 @@ napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isSubpixel = false;
-    if (!ConvertFromJsValue(env, argv[0], isSubpixel)) {
-        ROSEN_LOGE("JsFont::OnEnableSubpixel Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isSubpixel);
 
     m_font->SetSubpixel(isSubpixel);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
@@ -209,16 +205,12 @@ napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isEmbolden = false;
-    if (!ConvertFromJsValue(env, argv[0], isEmbolden)) {
-        ROSEN_LOGE("JsFont::OnEnableEmbolden Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isEmbolden);
 
     m_font->SetEmbolden(isEmbolden);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
@@ -230,16 +222,12 @@ napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_boolean);
 
     bool isLinearMetrics = false;
-    if (!ConvertFromJsValue(env, argv[0], isLinearMetrics)) {
-        ROSEN_LOGE("JsFont::OnEnableLinearMetrics Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, isLinearMetrics);
 
     m_font->SetLinearMetrics(isLinearMetrics);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
@@ -251,16 +239,12 @@ napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_number);
 
     double textSize = 0.0;
-    if (!ConvertFromJsValue(env, argv[0], textSize)) {
-        ROSEN_LOGE("JsFont::OnSetSize Argv[0] is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_DOUBLE_PARAM(ARGC_ZERO, textSize);
 
     m_font->SetSize((float)textSize);
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFont::OnGetSize(napi_env env, napi_callback_info info)
@@ -294,17 +278,12 @@ napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_object);
 
     JsTypeface *jsTypeface = nullptr;
-    napi_unwrap(env, argv[0], (void **)&jsTypeface);
-    if (jsTypeface == nullptr) {
-        ROSEN_LOGE("JsFont::OnSetTypeface jsTypeface is nullptr");
-        return NapiGetUndefined(env);
-    }
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsTypeface);
 
     m_font->SetTypeface(jsTypeface->GetTypeface());
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
@@ -327,19 +306,17 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    CHECK_EACH_PARAM(ARGC_ZERO, napi_string);
-    CHECK_EACH_PARAM(ARGC_ONE, napi_number);
 
     std::string text = "";
-    if (!ConvertFromJsValue(env, argv[0], text)) {
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnMeasureText Argv[0] is invalid");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     TextEncoding TextEncoding = TextEncoding::UTF8;
     if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[1])) {
         ROSEN_LOGE("JsFont::OnMeasureText ConvertFromJsTextEncoding failed");
-        return NapiGetUndefined(env);
+        return nullptr;
     }
 
     double textSize = m_font->MeasureText(text.c_str(), text.length(), TextEncoding);

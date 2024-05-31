@@ -159,6 +159,16 @@ public:
         return mergedDirtyRegions_;
     }
 
+    void MergeDirtyHistoryInVirtual(unsigned int age)
+    {
+        mergedDirtyInVirtualScreen_ = MergeHistory(age, currentFrameDirtyRegion_);
+    }
+
+    RectI GetDirtyRegionInVirtual() const
+    {
+        return mergedDirtyInVirtualScreen_;
+    }
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
@@ -170,6 +180,7 @@ private:
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
     RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
+    RectI mergedDirtyInVirtualScreen_;
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
     std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
     std::vector<RectI> mergedDirtyRegions_ = {};
@@ -182,9 +193,9 @@ private:
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;
-    const unsigned HISTORY_QUEUE_MAX_SIZE = 6;
+    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
     // may add new set function for bufferAge
-    unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
+    unsigned int bufferAge_ = 0;
     bool isDirtyRegionAlignedEnable_ = false;
     bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;

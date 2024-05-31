@@ -65,6 +65,10 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
 
+#ifdef RS_ENABLE_VK
+    bool Set2DRenderCtrl(bool enable);
+#endif
+
     void RemoveVirtualScreen(ScreenId id);
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
@@ -102,6 +106,8 @@ public:
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
+
+    void MarkPowerOffNeedProcessOneFrame();
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 

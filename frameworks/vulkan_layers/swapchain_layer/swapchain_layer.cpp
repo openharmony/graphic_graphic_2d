@@ -34,10 +34,14 @@
 #include <graphic_common.h>
 #include <native_window.h>
 #include <vulkan/vulkan.h>
+#include <scoped_bytrace.h>
 #include "vk_dispatch_table_helper.h"
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
+#if USE_APS_IGAMESERVICE_FUNC
+#include "vulkan_slice_report.h"
+#endif
 
 #define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
 using namespace OHOS;
@@ -416,6 +420,7 @@ static bool IsFencePending(int fd)
 void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image &image,
                            bool deferIfPending)
 {
+    ScopedBytrace trace(__func__);
     if (releaseFence != -1 && !image.requested) {
         SWLOGE("%{public}s, can't provide a release fence for non-requested images", __func__);
         DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -467,6 +472,7 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
 
 void ReleaseSwapchain(VkDevice device, Swapchain* swapchain)
 {
+    ScopedBytrace trace(__func__);
     if (swapchain->surface.swapchainHandle != HandleFromSwapchain(swapchain)) {
         return;
     }
@@ -501,7 +507,7 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
     On OpenHarmony, the direction of rotation is counterclockwise
 */
 
-VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransform(OH_NativeBuffer_TransformType nativeTransformType)
+VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransformHint(OH_NativeBuffer_TransformType nativeTransformType)
 {
     switch (nativeTransformType) {
         case NATIVEBUFFER_ROTATE_NONE:
@@ -529,7 +535,7 @@ VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransform(OH_NativeBuffer_T
     }
 }
 
-OH_NativeBuffer_TransformType TranslateVulkanToNativeTransform(VkSurfaceTransformFlagBitsKHR transform)
+OH_NativeBuffer_TransformType TranslateVulkanToNativeTransformHint(VkSurfaceTransformFlagBitsKHR transform)
 {
     switch (transform) {
         case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR:
@@ -592,12 +598,12 @@ VKAPI_ATTR VkResult SetWindowBufferGeometry(NativeWindow* window, int width, int
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
+VKAPI_ATTR VkResult SetWindowTransformHint(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
 {
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    int err = NativeWindowHandleOpt(window, SET_TRANSFORM, transformType);
+    int err = NativeWindowSetTransformHint(window, transformType);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Transform failed: %{public}d", err);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -606,19 +612,50 @@ VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_Tra
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowBufferUsage(NativeWindow* window, const VkSwapchainCreateInfoKHR* createInfo)
+VKAPI_ATTR VkResult SetWindowBufferUsage(VkDevice device, NativeWindow* window,
+    const VkSwapchainCreateInfoKHR* createInfo)
 {
     uint64_t grallocUsage = 0;
-    int err = NativeWindowHandleOpt(window, GET_USAGE, &grallocUsage);
-    if (err != OHOS::GSERROR_OK) {
-        SWLOGE("NativeWindow Get Usage %{public}" PRIu64" failed: %{public}d", grallocUsage, err);
-        return VK_ERROR_SURFACE_LOST_KHR;
+    VkLayerDispatchTable* pDisp =
+        GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
+    if (pDisp->GetSwapchainGrallocUsageOHOS != nullptr) {
+        VkResult res =
+            pDisp->GetSwapchainGrallocUsageOHOS(device, createInfo->imageFormat, createInfo->imageUsage, &grallocUsage);
+        if (res != VK_SUCCESS) {
+            SWLOGE("GetSwapchainGrallocUsageOHOS failed: %{public}d", res);
+            return VK_ERROR_SURFACE_LOST_KHR;
+        }
+        SWLOGD("GetSwapchainGrallocUsageOHOS Get grallocUsage %{public}" PRIu64"", grallocUsage);
     }
+
+    bool userSetVkTransform = createInfo->preTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    SWLOGD("User %{public}d Set VkTransform, preTransform is %{public}d",
+        userSetVkTransform, static_cast<int32_t>(createInfo->preTransform));
+    bool needSetFlgForDSS = false;
+    if (!userSetVkTransform) {
+        OH_NativeBuffer_TransformType curWindowTransformType = NATIVEBUFFER_ROTATE_NONE;
+        int err = NativeWindowGetTransformHint(window, &curWindowTransformType);
+        if (err != OHOS::GSERROR_OK) {
+            SWLOGE("NativeWindow Get TransformHint failed: %{public}d", err);
+            return VK_ERROR_SURFACE_LOST_KHR;
+        }
+        SWLOGD("NativeWindow Get NativeTransformHint %{public}d", static_cast<int>(curWindowTransformType));
+        if (curWindowTransformType == NATIVEBUFFER_ROTATE_270 || curWindowTransformType == NATIVEBUFFER_ROTATE_90) {
+            needSetFlgForDSS = true;
+        }
+    }
+
+    if (needSetFlgForDSS) {
+        grallocUsage |= BUFFER_USAGE_VENDOR_PRI19;
+    } else {
+        grallocUsage &= ~BUFFER_USAGE_VENDOR_PRI19;
+    }
+    SWLOGD("[%{public}d] Set Rotated Flag in Usage: %{public}" PRIu64"", needSetFlgForDSS, grallocUsage);
 
     if (createInfo->flags & VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR) {
         grallocUsage |= BUFFER_USAGE_PROTECTED;
     }
-    err = NativeWindowHandleOpt(window, SET_USAGE, grallocUsage);
+    int err = NativeWindowHandleOpt(window, SET_USAGE, grallocUsage);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Usage %{public}" PRIu64" failed: %{public}d", grallocUsage, err);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -666,10 +703,14 @@ VKAPI_ATTR VkResult SetWindowQueueSize(NativeWindow* window, const VkSwapchainCr
 VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo)
 {
     GraphicColorDataSpace colorDataSpace = GetColorDataspace(createInfo->imageColorSpace);
+    SWLOGD("Swapchain translate VkColorSpaceKHR:%{public}d to GraphicColorDataSpace:%{public}d",
+        static_cast<int>(createInfo->imageColorSpace), static_cast<int>(colorDataSpace));
     if (colorDataSpace == GRAPHIC_COLOR_DATA_SPACE_UNKNOWN) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
     GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
+    SWLOGD("Swapchain translate VkFormat:%{public}d to GraphicPixelFormat:%{public}d",
+        static_cast<int>(createInfo->imageFormat), static_cast<int>(pixelFormat));
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
 
     NativeWindow* window = surface.window;
@@ -686,9 +727,17 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
         static_cast<int>(createInfo->imageExtent.height)) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
+
+    // Set Buffer Usage
+    if (SetWindowBufferUsage(device, window, createInfo) != VK_SUCCESS) {
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
+
     // Set Transform
-    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
-    if (SetWindowTransform(window, transformType) != VK_SUCCESS) {
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
+    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
+        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
+    if (SetWindowTransformHint(window, transformType) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -699,11 +748,6 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
 
     // Set Bufferqueue Size
     if (SetWindowQueueSize(window, createInfo) != VK_SUCCESS) {
-        return VK_ERROR_SURFACE_LOST_KHR;
-    }
-
-    // Set Buffer Usage
-    if (SetWindowBufferUsage(window, createInfo) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -740,6 +784,7 @@ void InitImageCreateInfo(const VkSwapchainCreateInfoKHR* createInfo, VkImageCrea
 VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
     VkImageCreateInfo &imageCreate, VkDevice device)
 {
+    ScopedBytrace trace(__func__);
     VkLayerDispatchTable* pDisp =
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
@@ -789,6 +834,7 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
 static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHandle,
                                      const VkAllocationCallbacks* allocator)
 {
+    ScopedBytrace trace(__func__);
     Swapchain* swapchain = SwapchainFromHandle(swapchainHandle);
     if (swapchain == nullptr) {
         return;
@@ -815,6 +861,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
 VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
     const VkAllocationCallbacks* allocator, VkSwapchainKHR* swapchainHandle)
 {
+    ScopedBytrace trace(__func__);
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
     if (surface.swapchainHandle != createInfo->oldSwapchain) {
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
@@ -835,8 +882,10 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode,
-        TranslateVulkanToNativeTransform(createInfo->preTransform));
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
+    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
+        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
+    Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode, transformType);
 
     VkSwapchainImageCreateInfoOHOS swapchainImageCreate = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_OHOS,
@@ -866,6 +915,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
 VKAPI_ATTR void VKAPI_CALL DestroySwapchainKHR(
     VkDevice device, VkSwapchainKHR vkSwapchain, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DestroySwapchainInternal(device, vkSwapchain, pAllocator);
 }
 
@@ -894,6 +944,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetSwapchainImagesKHR(
 VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchainHandle,
     uint64_t timeout, VkSemaphore semaphore, VkFence vkFence, uint32_t* imageIndex)
 {
+    ScopedBytrace trace(__func__);
     Swapchain &swapchain = *SwapchainFromHandle(swapchainHandle);
     NativeWindow* nativeWindow = swapchain.surface.window;
     VkResult result = VK_SUCCESS;
@@ -1009,6 +1060,7 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
 VkResult ReleaseImage(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     Swapchain::Image &img, int32_t &fence)
 {
+    ScopedBytrace trace(__func__);
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
     VkResult result = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
         queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
@@ -1044,6 +1096,7 @@ void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect, int3
 VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rects,
     Swapchain &swapchain, Swapchain::Image &img, int32_t fence)
 {
+    ScopedBytrace trace(__func__);
     const VkAllocationCallbacks* defaultAllocator = &GetDefaultAllocator();
     Region localRegion = {};
     if (memset_s(&localRegion, sizeof(localRegion), 0, sizeof(Region)) != EOK) {
@@ -1109,6 +1162,7 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
 VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     VkQueue queue, const VkPresentInfoKHR* presentInfo)
 {
+    ScopedBytrace trace(__func__);
     VkResult ret = VK_SUCCESS;
 
     const VkPresentRegionKHR* regions = GetPresentRegions(presentInfo);
@@ -1142,6 +1196,9 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     if (rects != nullptr) {
         defaultAllocator->pfnFree(defaultAllocator->pUserData, rects);
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
+#endif
     return ret;
 }
 
@@ -1178,6 +1235,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
     const VkSurfaceCreateInfoOHOS* pCreateInfo,
     const VkAllocationCallbacks* allocator, VkSurfaceKHR* outSurface)
 {
+    ScopedBytrace trace(__func__);
     if (allocator == nullptr) {
         allocator = &GetDefaultAllocator();
     }
@@ -1207,6 +1265,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
 VKAPI_ATTR void VKAPI_CALL DestroySurfaceKHR(
     VkInstance instance, VkSurfaceKHR vkSurface, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     Surface* surface = SurfaceFromHandle(vkSurface);
     if (surface == nullptr) {
         return;
@@ -1249,7 +1308,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
     capabilities->maxImageExtent = VkExtent2D {4096, 4096};
     capabilities->maxImageArrayLayers = 1;
     capabilities->supportedTransforms = g_supportedTransforms;
-    capabilities->currentTransform = TranslateNativeToVulkanTransform(transformHint);
+    capabilities->currentTransform = TranslateNativeToVulkanTransformHint(transformHint);
     capabilities->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     capabilities->supportedUsageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT |
@@ -1274,6 +1333,7 @@ VKAPI_ATTR void VKAPI_CALL SetHdrMetadataEXT(
 VKAPI_ATTR VkResult VKAPI_CALL ReleaseSwapchainImagesEXT(
     VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo)
 {
+    ScopedBytrace trace(__func__);
     Swapchain& swapchain = *SwapchainFromHandle(pReleaseInfo->swapchain);
     if (swapchain.shared) {
         return VK_SUCCESS;
@@ -1477,6 +1537,7 @@ Extension GetExtensionBitFromName(const char* name)
 VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
 {
+    ScopedBytrace trace(__func__);
     VkLayerInstanceCreateInfo* chainInfo = GetChainInfo(pCreateInfo, VK_LAYER_LINK_INFO);
 
     if (chainInfo == nullptr || chainInfo->u.pLayerInfo == nullptr) {
@@ -1496,6 +1557,9 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     if (result != VK_SUCCESS) {
         return result;
     }
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
+#endif
 
     LayerData* instanceLayerData = GetLayerDataPtr(GetDispatchKey(*pInstance));
     instanceLayerData->instance = *pInstance;
@@ -1514,6 +1578,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
 VKAPI_ATTR void VKAPI_CALL DestroyInstance(
     VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey instanceKey = GetDispatchKey(instance);
     LayerData* curLayerData = GetLayerDataPtr(instanceKey);
     curLayerData->instanceDispatchTable->DestroyInstance(instance, pAllocator);
@@ -1561,6 +1626,7 @@ VkResult AddDeviceExtensions(VkPhysicalDevice gpu, const LayerData* gpuLayerData
 VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
     const VkDeviceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDevice* pDevice)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey gpuKey = GetDispatchKey(gpu);
     LayerData* gpuLayerData = GetLayerDataPtr(gpuKey);
 
@@ -1622,6 +1688,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
 
 VKAPI_ATTR void VKAPI_CALL DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
 {
+    ScopedBytrace trace(__func__);
     DispatchKey deviceKey = GetDispatchKey(device);
     LayerData* deviceData = GetLayerDataPtr(deviceKey);
     deviceData->deviceDispatchTable->DestroyDevice(device, pAllocator);

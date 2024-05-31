@@ -391,9 +391,12 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
         return;
     }
 
-    auto minDoingCacheProcessNum = threadList_[0]->GetDoingCacheProcessNum();
-    minLoadThreadIndex_ = 0;
-    for (unsigned int j = 1; j < SUB_THREAD_NUM; j++) {
+    auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
+    minLoadThreadIndex_ = defaultThreadIndex_;
+    for (unsigned int j = 0; j < SUB_THREAD_NUM; j++) {
+        if (j == defaultThreadIndex_) {
+            continue;
+        }
         if (minDoingCacheProcessNum > threadList_[j]->GetDoingCacheProcessNum()) {
             minDoingCacheProcessNum = threadList_[j]->GetDoingCacheProcessNum();
             minLoadThreadIndex_ = j;
@@ -402,14 +405,22 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     auto nowIdx = minLoadThreadIndex_;
     if (threadIndexMap_.count(nodeDrawable->GetLastFrameUsedThreadIndex()) != 0) {
         nowIdx = threadIndexMap_[nodeDrawable->GetLastFrameUsedThreadIndex()];
+    } else {
+        defaultThreadIndex_++;
+        if (defaultThreadIndex_ >= SUB_THREAD_NUM) {
+            defaultThreadIndex_ = 0;
+        }
     }
 
     auto subThread = threadList_[nowIdx];
     auto tid = reThreadIndexMap_[nowIdx];
     nodeTaskState_[param->GetId()] = 1;
+    auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
-    subThread->PostTask([subThread, nodeDrawable, tid]() {
+    nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount]() {
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
+        nodeDrawable->SetTaskFrameCount(submittedFrameCount);
         subThread->DrawableCache(nodeDrawable);
     });
     needResetContext_ = true;

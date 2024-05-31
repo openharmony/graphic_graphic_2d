@@ -40,6 +40,8 @@ public:
     static void Export(napi_env env, napi_value exports);
     static napi_value NapiFunction(napi_env env, napi_callback_info info);
     static napi_value NapiPerformance(napi_env env, napi_callback_info info);
+    static napi_value NapiGetPixelMapWidth(napi_env env, napi_callback_info info);
+    static napi_value NapiGetPixelMapHeight(napi_env env, napi_callback_info info);
     static void TestFunction(OH_Drawing_Canvas* canvas, std::string caseName);
     static uint32_t TestPerformance(OH_Drawing_Canvas* canvas, std::string caseName, uint32_t testCount);
 };
