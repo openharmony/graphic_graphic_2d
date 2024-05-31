@@ -2375,8 +2375,8 @@ void RSProperties::GenerateBackgroundBlurFilter()
  
 void RSProperties::GenerateBackgroundMaterialBlurFilter()
 {
-    if (backgroundColorMode_ == BLUR_COLOR_MODE::AVERAGE) {
-        backgroundColorMode_ = BLUR_COLOR_MODE::FASTAVERAGE;
+    if (backgroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
+        backgroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
     uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
@@ -2460,8 +2460,8 @@ void RSProperties::GenerateForegroundBlurFilter()
  
 void RSProperties::GenerateForegroundMaterialBlurFilter()
 {
-    if (backgroundColorMode_ == BLUR_COLOR_MODE::AVERAGE) {
-        backgroundColorMode_ = BLUR_COLOR_MODE::FASTAVERAGE;
+    if (foregroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
+        foregroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
