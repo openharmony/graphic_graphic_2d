@@ -175,6 +175,10 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    if (blender == nullptr) {
+        UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
+        return nullptr;
+    }
     napi_value object = nullptr;
     napi_create_object(env, &object);
     napi_wrap(
