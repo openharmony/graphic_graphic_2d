@@ -33,87 +33,13 @@ do \
     } \
 } while (0)
 
-#define UIEFFECT_NAPI_CHECK_RET(x, res) \
-do \
-{ \
-    if (!(x)) \
-    { \
-        return (res); \
-    } \
-} while (0)
-
 #define UIEFFECT_JS_ARGS(env, info, status, argc, argv, thisVar) \
 do \
 { \
-    status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr); \
-} while (0)
-
-#define UIEFFECT_JS_NO_ARGS(env, info, status, thisVar) \
-do \
-{ \
-    status = napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr); \
-} while (0)
-
-#define UIEFFECT_NAPI_CHECK_BUILD_ERROR(x, build, res, result) \
-do \
-{ \
-    if (!(x)) \
-    { \
-        build; \
-        { \
-            res; \
-        } \
-        return (result); \
-    } \
-} while (0)
-
-#define UIEFFECT_CREATE_CREATE_ASYNC_WORK(env, status, workName, exec, complete, aContext, work) \
-do \
-{ \
-    napi_value _resource = nullptr; \
-    napi_create_string_utf8((env), (workName), NAPI_AUTO_LENGTH, &_resource); \
-    (status) = napi_create_async_work(env, nullptr, _resource, (exec), \
-            (complete), static_cast<void*>((aContext).get()), &(work)); \
-    if ((status) == napi_ok) { \
-        (status) = napi_queue_async_work((env), (work)); \
-        if ((status) == napi_ok) { \
-            (aContext).release(); \
-        } \
-    } \
-} while (0)
-
-#define UIEFFECT_CREATE_CREATE_ASYNC_WORK_WITH_QOS(env, status, workName, exec, complete, aContext, work, qos) \
-do \
-{ \
-    napi_value _resource = nullptr; \
-    napi_create_string_utf8((env), (workName), NAPI_AUTO_LENGTH, &_resource); \
-    (status) = napi_create_async_work(env, nullptr, _resource, (exec), \
-            (complete), static_cast<void*>((aContext).get()), &(work)); \
-    if ((status) == napi_ok) { \
-        (status) = napi_queue_async_work_with_qos((env), (work), (qos)); \
-        if ((status) == napi_ok) { \
-            (aContext).release(); \
-        } \
-    } \
+    status = napi_get_cb_info(env, info, &argc, argv, &(thisVar), nullptr); \
 } while (0)
 
 #define UIEFFECT_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
-
-#define GET_BUFFER_BY_NAME(root, name, res, len) UIEffectNapiUtils::GetBufferByName(env, (root), (name), &(res), &(len))
-#define GET_UINT32_BY_NAME(root, name, res) UIEffectNapiUtils::GetUint32ByName(env, (root), (name), &(res))
-#define GET_INT32_BY_NAME(root, name, res) UIEffectNapiUtils::GetInt32ByName(env, (root), (name), &(res))
-#define GET_BOOL_BY_NAME(root, name, res) UIEffectNapiUtils::GetBoolByName(env, (root), (name), &(res))
-#define GET_NODE_BY_NAME(root, name, res) UIEffectNapiUtils::GetNodeByName(env, (root), (name), &(res))
-
-#define STATIC_EXEC_FUNC(name) static void name ## Exec(napi_env env, void *data)
-#define STATIC_COMPLETE_FUNC(name) static void name ## Complete(napi_env env, napi_status status, void *data)
-#define STATIC_NAPI_VALUE_FUNC(name) static napi_value name ## NapiValue(napi_env env, void *data, void *ptr)
-
-#define DECORATOR_HILOG(op, fmt, args...) \
-do { \
-    op(LOG_CORE, fmt, ##args); \
-} while (0)
-
 
 namespace OHOS {
 namespace Rosen {
