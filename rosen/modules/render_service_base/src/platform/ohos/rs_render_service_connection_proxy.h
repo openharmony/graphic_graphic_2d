@@ -219,6 +219,8 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
+    void ChangeSyncCount(int32_t hostPid) override;
+
     void RunOnRemoteDiedCallback() override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;

@@ -265,6 +265,14 @@ void RSTransactionProxy::SetHostPid(const int32_t hostPid)
     }
 }
 
+bool RSTransactionProxy::IsRemoteCommandEmpty()
+{
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        return implicitRemoteTransactionDataStack_.top()->IsEmpty();
+    }
+    return true;
+}
+
 void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
 {
     if (!implicitCommonTransactionDataStack_.empty()) {

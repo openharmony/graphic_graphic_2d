@@ -253,6 +253,8 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void ChangeSyncCount(int32_t hostPid) override;
+
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;

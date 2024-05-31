@@ -1359,6 +1359,14 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
+void RSRenderServiceConnection::ChangeSyncCount(int32_t hostPid)
+{
+    auto task = [this, hostPid]() -> void {
+        mainThread_->ProcessSubSyncTransactionCount(hostPid);
+    };
+    mainThread_->PostTask(task);
+}
+
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
     const auto& activeDirtyRegionInfos = GpuDirtyRegionCollection::GetInstance().GetActiveDirtyRegionInfo();

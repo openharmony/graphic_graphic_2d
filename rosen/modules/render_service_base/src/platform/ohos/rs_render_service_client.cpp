@@ -1237,6 +1237,14 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceClient::ChangeSyncCount(int32_t hostPid)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ChangeSyncCount(hostPid);
+    }
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

@@ -2189,6 +2189,25 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceConnectionProxy::ChangeSyncCount(int32_t hostPid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteInt32(hostPid)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CHANGE_SYNCHRONIZE_COUNT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ChangeSyncCount: Send Request err.");
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     OnRemoteDiedCallback_ = callback;
