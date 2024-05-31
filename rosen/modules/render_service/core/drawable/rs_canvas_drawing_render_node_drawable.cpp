@@ -17,6 +17,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
@@ -239,10 +240,12 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush backendTexture_ is nullptr");
                 return;
             }
+            std::lock_guard<std::mutex> lock(imageMutex_);
             Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
             Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
             SharedTextureContext* sharedContext = new SharedTextureContext(image_); // last image
             image_ = std::make_shared<Drawing::Image>();
+            ReleaseCaptureImage(captureImage_);
             bool ret = image_->BuildFromTexture(*rscanvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin,
                 info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
             if (!ret) {
@@ -251,8 +254,10 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
             }
 #endif
         } else {
+            std::lock_guard<std::mutex> lock(imageMutex_);
             image_ = surface_->GetImageSnapshot(); // planning: return image_
             backendTexture_ = surface_->GetBackendTexture();
+            ReleaseCaptureImage(captureImage_);
             if (!backendTexture_.IsValid()) {
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush !backendTexture_.IsValid() %d", __LINE__);
             }
@@ -421,6 +426,35 @@ bool RSCanvasDrawingRenderNodeDrawable::IsNeedResetSurface() const
     return !surface_ || !surface_->GetCanvas();
 }
 
+void RSCanvasDrawingRenderNodeDrawable::ReleaseCaptureImage(std::shared_ptr<Drawing::Image> image)
+{
+    RSOffscreenRenderThread::Instance().PostTask([image]() mutable { image = nullptr; });
+}
+
+void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& canvas)
+{
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!image_ || !backendTexture_.IsValid()) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(imageMutex_);
+    if (captureImage_ && captureImage_->IsValid(canvas.GetGPUContext().get())) {
+        canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
+        return;
+    }
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
+    captureImage_ = std::make_shared<Drawing::Image>();
+    bool ret = captureImage_->BuildFromTexture(
+        *canvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin, info, nullptr);
+    if (!ret) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage BuildFromTexture failed");
+        return;
+    }
+    canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
+#endif
+}
+
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
     Drawing::ImageInfo info =
@@ -504,11 +538,13 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
     preThreadInfo_ = curThreadInfo_;
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
+    std::lock_guard<std::mutex> lock(imageMutex_);
     backendTexture_ = surface_->GetBackendTexture();
     if (!backendTexture_.IsValid()) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture backendTexture_ generate invalid");
     }
     image_ = preImageInNewContext;
+    ReleaseCaptureImage(captureImage_);
     ClearPreSurface(preSurface);
     return true;
 }

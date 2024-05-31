@@ -673,53 +673,11 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
-    for (const auto& particle : particles) {
-        if (particle != nullptr && particle->IsAlive()) {
-            // Get particle properties
-            auto position = particle->GetPosition();
-            float opacity = particle->GetOpacity();
-            float scale = particle->GetScale();
-            if (!(bounds->Intersect(position.x_, position.y_)) || opacity <= 0.f || scale <= 0.f) {
-                continue;
-            }
-            auto particleType = particle->GetParticleType();
-            Drawing::Brush brush;
-            brush.SetAntiAlias(true);
-            brush.SetAlphaF(opacity);
-            auto clipBounds = Drawing::Rect(
-                bounds->left_, bounds->top_, bounds->left_ + bounds->width_, bounds->top_ + bounds->height_);
-            canvas.ClipRect(clipBounds, Drawing::ClipOp::INTERSECT, true);
-
-            if (particleType == ParticleType::POINTS) {
-                auto radius = particle->GetRadius();
-                Color color = particle->GetColor();
-                auto alpha = color.GetAlpha();
-                color.SetAlpha(alpha * opacity);
-                brush.SetColor(color.AsArgbInt());
-                canvas.AttachBrush(brush);
-                canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius * scale);
-                canvas.DetachBrush();
-            } else {
-                auto imageSize = particle->GetImageSize();
-                auto image = particle->GetImage();
-                float left = position.x_;
-                float top = position.y_;
-                float right = position.x_ + imageSize.x_ * scale;
-                float bottom = position.y_ + imageSize.y_ * scale;
-                canvas.Save();
-                canvas.Translate(position.x_, position.y_);
-                canvas.Rotate(particle->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
-                RectF destRect(left, top, right, bottom);
-                image->SetDstRect(destRect);
-                image->SetScale(scale);
-                image->SetImageRepeat(0);
-                Drawing::Rect rect { left, top, right, bottom };
-                canvas.AttachBrush(brush);
-                image->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
-                canvas.DetachBrush();
-                canvas.Restore();
-            }
-        }
+    auto imageCount = particleVector.GetParticleImageCount();
+    auto imageVector = particleVector.GetParticleImageVector();
+    auto particleDrawable = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
+    if (particleDrawable != nullptr) {
+        particleDrawable->Draw(canvas, bounds);
     }
     return true;
 }

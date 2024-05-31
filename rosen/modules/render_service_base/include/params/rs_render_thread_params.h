@@ -288,6 +288,16 @@ public:
         return isImplicitAnimationEnd_;
     }
 
+    void SetDiscardJankFrames(bool discardJankFrames)
+    {
+        discardJankFrames_ = discardJankFrames;
+    }
+
+    bool GetDiscardJankFrames() const
+    {
+        return discardJankFrames_;
+    }
+
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
@@ -330,6 +340,7 @@ private:
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
+    bool discardJankFrames_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

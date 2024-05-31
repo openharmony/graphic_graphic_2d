@@ -275,10 +275,8 @@ void RSUifirstManager::SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawab
     if (!displayParams) {
         return;
     }
-    bool hdrPresent = displayParams->GetHDRPresent();
+    bool isHdrOn = displayParams->GetHDRPresent();
     ScreenId id = displayParams->GetScreenId();
-    RSLuminanceControl::Get().SetHdrStatus(id, hdrPresent);
-    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(id);
     drawable->SetHDRPresent(isHdrOn);
     if (isHdrOn) {
         // 0 means defalut brightnessRatio

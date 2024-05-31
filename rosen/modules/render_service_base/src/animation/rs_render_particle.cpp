@@ -293,6 +293,11 @@ float ParticleRenderParams::GetSpinRandomEnd() const
     return spin_.random_.end_;
 }
 
+size_t ParticleRenderParams::GetImageIndex() const
+{
+    return imageIndex_;
+}
+
 void ParticleRenderParams::SetEmitConfig(const EmitterConfig& emiterConfig)
 {
     emitterConfig_ = emiterConfig;
@@ -326,6 +331,11 @@ void ParticleRenderParams::SetParticleScale(const RenderParticleParaType<float>&
 void ParticleRenderParams::SetParticleSpin(const RenderParticleParaType<float>& spin)
 {
     spin_ = spin;
+}
+
+void ParticleRenderParams::SetImageIndex(size_t imageIndex)
+{
+    imageIndex_ = imageIndex;
 }
 
 RSRenderParticle::RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams)
@@ -626,6 +636,11 @@ const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& RSRenderParticle::G
     return particleParams_->color_.valChangeOverLife_;
 }
 
+size_t RSRenderParticle::GetImageIndex() const
+{
+    return imageIndex_;
+}
+
 void RSRenderParticle::InitProperty()
 {
     position_ = CalculateParticlePosition(
@@ -663,6 +678,7 @@ void RSRenderParticle::InitProperty()
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams_->GetParticleImage();
         imageSize_ = particleParams_->GetImageSize();
+        imageIndex_ = particleParams_->GetImageIndex();
         if (image_ != nullptr) {
             auto pixelMap = image_->GetPixelMap();
             if (pixelMap != nullptr) {

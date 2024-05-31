@@ -284,7 +284,9 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         }
     }
     Drawing::Brush brush;
-    brush.SetForceBrightnessDisable(true);
+    if (GetHDRPresent()) {
+        brush.SetForceBrightnessDisable(true);
+    }
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);

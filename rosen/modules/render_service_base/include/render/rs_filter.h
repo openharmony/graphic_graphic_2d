@@ -62,6 +62,7 @@ public:
         FOREGROUND_EFFECT,
         MOTION_BLUR,
         SPHERIZE_EFFECT,
+        COLORFUL_SHADOW,
     };
     FilterType GetFilterType() const
     {
