@@ -498,6 +498,11 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
     }
 
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::SHADOW_MASK)) || dirtySlots.count(RSDrawableSlot::SHADOW)) {
+        dirtySlots.emplace(RSDrawableSlot::SHADOW);
+        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+    }
+
     // if frame changed, mark affected drawables as dirty
     if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
         MarkAffectedSlots(frameDirtyTypes, drawableVec, dirtySlots);

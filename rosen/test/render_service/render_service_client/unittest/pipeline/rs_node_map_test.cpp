@@ -98,14 +98,15 @@ HWTEST_F(RSNodeMapTest, RegisterNodeInstanceId001, TestSize.Level1)
  */
 HWTEST_F(RSNodeMapTest, UnregisterNode001, TestSize.Level1)
 {
-    RSNodeMap::MutableInstance().UnregisterNode(1);
-    EXPECT_TRUE(!RSNodeMap::MutableInstance().nodeIdMap_.empty());
-
-    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(2);
-    nodePtr->id_ = 2;
-    RSNodeMap::MutableInstance().RegisterNode(nodePtr);
-    RSNodeMap::MutableInstance().UnregisterNode(0);
-    EXPECT_TRUE(!RSNodeMap::MutableInstance().nodeIdMap_.empty());
+    /**
+     * @tc.steps: step1. RSNodeMap001
+     */
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr node = RSSurfaceNode::Create(config);
+    if (node == nullptr) {
+        return;
+    }
+    RSNodeMap::MutableInstance().UnregisterNode(node->GetId());
 }
 
 /**

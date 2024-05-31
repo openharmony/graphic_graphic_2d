@@ -1944,6 +1944,7 @@ void RSMainThread::OnUniRenderDraw()
 
     if (!doDirectComposition_) {
         renderThreadParams_->SetContext(context_);
+        renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         drawFrame_.PostAndWait();
         return;

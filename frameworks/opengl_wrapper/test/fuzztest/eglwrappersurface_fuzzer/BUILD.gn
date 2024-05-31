@@ -36,7 +36,6 @@ ohos_fuzztest("EGLWrapperSurfaceFuzzTest") {
     "//commonlibrary/c_utils/base:utils",
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
   ]
-  external_deps = [ "graphic_surface:surface" ]
 }
 
 ###############################################################################

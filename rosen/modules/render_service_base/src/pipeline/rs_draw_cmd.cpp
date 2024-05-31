@@ -147,6 +147,7 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
     auto object = new RSExtendImageObject();
     bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
     if (!ret) {
+        delete object;
         return nullptr;
     }
     return object;
@@ -404,6 +405,7 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
     auto object = new RSExtendImageBaseObj();
     bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
     if (!ret) {
+        delete object;
         return nullptr;
     }
     return object;
