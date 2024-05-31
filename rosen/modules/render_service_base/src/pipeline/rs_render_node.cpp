@@ -1293,7 +1293,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             }
             UpdateClipAbsDrawRectChangeState(clipRect);
         }
-        UpdateClipAbsDrawRectChangeState(clipRect);
     }
     // 3. update dirtyRegion if needed
     if (properties.GetBackgroundFilter()) {
