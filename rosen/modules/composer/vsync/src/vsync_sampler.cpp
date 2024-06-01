@@ -31,7 +31,7 @@ sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::instance_ = nullptr;
 namespace {
 constexpr double PI = 3.1415926;
 constexpr int64_t ERROR_THRESHOLD = 160000000000; // 400 usec squared
-constexpr int32_t INVAILD_TIMESTAMP = -1;
+constexpr int32_t INVALID_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
@@ -72,7 +72,7 @@ void VSyncSampler::ResetErrorLocked()
     presentFenceTimeOffset_ = 0;
     error_ = 0;
     for (uint32_t i = 0; i < NUM_PRESENT; i++) {
-        presentFenceTime_[i] = INVAILD_TIMESTAMP;
+        presentFenceTime_[i] = INVALID_TIMESTAMP;
     }
 }
 
@@ -265,7 +265,7 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
 
     if (presentFenceTimeOffset_ + NUM_PRESENT >= 1) {
         int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
-        if ((prevFenceTimeStamp != INVAILD_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
+        if ((prevFenceTimeStamp != INVALID_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
             ScopedBytrace trace("StartRefreshAfterIdle");
             CreateVSyncGenerator()->StartRefresh();
             numSamples_ = 0;

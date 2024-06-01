@@ -181,16 +181,16 @@ HWTEST_F(RSEglImageManagerTest, ShrinkCachesIfNeeded001, TestSize.Level1)
 
 /**
  * @tc.name: ShrinkCachesIfNeeded001
- * @tc.desc: UnMap eglImage with invaild seqNum
+ * @tc.desc: UnMap eglImage with invalid seqNum
  * @tc.type: FUNC
  * @tc.require: issueI7A39J
  */
 HWTEST_F(RSEglImageManagerTest, UnMapEglImage001, TestSize.Level1)
 {
     ASSERT_NE(eglImageManager_, nullptr);
-    const int invaildSeqNum = -1;
-    eglImageManager_->UnMapEglImageFromSurfaceBuffer(invaildSeqNum);
-    eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(invaildSeqNum);
+    const int invalidSeqNum = -1;
+    eglImageManager_->UnMapEglImageFromSurfaceBuffer(invalidSeqNum);
+    eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(invalidSeqNum);
 }
 
 /**
