@@ -190,7 +190,7 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
         GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
-    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) || (preStaticStatus_ != IsStaticCached());
+    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_);
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
