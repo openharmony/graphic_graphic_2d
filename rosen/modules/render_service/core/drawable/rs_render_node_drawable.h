@@ -153,7 +153,8 @@ protected:
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
-    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize);
+    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
+    const std::shared_ptr<RSFilter>& rsFilter = nullptr);
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
