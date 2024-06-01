@@ -615,7 +615,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         if (RSSystemParameters::GetRsSurfaceCaptureType() ==
@@ -645,8 +645,8 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 mainThread_->PostTask(captureTask);
             }
         } else {
-            std::function<void()> captureTask = [id, callback, scaleX, scaleY]() -> void {
-                RSSurfaceCaptureTaskParallel::CheckModifiers(id, callback, scaleX, scaleY);
+            std::function<void()> captureTask = [id, callback, scaleX, scaleY, useDma]() -> void {
+                RSSurfaceCaptureTaskParallel::CheckModifiers(id, callback, scaleX, scaleY, useDma);
             };
             mainThread_->PostTask(captureTask);
         }

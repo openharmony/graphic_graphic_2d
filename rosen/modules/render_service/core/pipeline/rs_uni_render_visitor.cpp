@@ -85,9 +85,6 @@ namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr int32_t CACHE_MAX_UPDATE_TIME = 2;
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
-constexpr int ROTATION_90 = 90;
-constexpr int ROTATION_180 = 180;
-constexpr int ROTATION_270 = 270;
 constexpr int MAX_ALPHA = 255;
 constexpr float EPSILON_SCALE = 0.00001f;
 constexpr float CACHE_FILL_ALPHA = 0.2f;
@@ -1174,7 +1171,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node
         return;
     }
     if (RSUniRenderUtil::GetRotationDegreeFromMatrix(
-        node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) % ROTATION_90 != 0) {
+        node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) % RS_ROTATION_90 != 0) {
         node.SetIsRotating(true);
     }
 }
@@ -1892,7 +1889,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     }
     // [planning] degree only multiples of 90 now
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(totalMatrix);
-    bool hasRotate = degree % ROTATION_90 != 0;
+    bool hasRotate = degree % RS_ROTATION_90 != 0;
     if (hasRotate) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by rotation:%d",
             hwcNode->GetName().c_str(), hwcNode->GetId(), degree);
@@ -2869,7 +2866,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
-    if (RSUniRenderUtil::GetRotationDegreeFromMatrix(parentSurfaceNodeMatrix_) % ROTATION_90 != 0) {
+    if (RSUniRenderUtil::GetRotationDegreeFromMatrix(parentSurfaceNodeMatrix_) % RS_ROTATION_90 != 0) {
         isSurfaceRotationChanged_ = true;
         doAnimate_ = true;
         node.SetAnimateState();
@@ -3420,13 +3417,13 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(
         auto screenManager = CreateOrGetScreenManager();
         auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         if (rotation == ScreenRotation::ROTATION_90) {
-            canvas_->Rotate(-ROTATION_90, 0, 0);
+            canvas_->Rotate(-RS_ROTATION_90, 0, 0);
             canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
         } else if (rotation == ScreenRotation::ROTATION_180) {
-            canvas_->Rotate(-ROTATION_180, static_cast<float>(mainScreenInfo.width) / 2,  // half of screen width
+            canvas_->Rotate(-RS_ROTATION_180, static_cast<float>(mainScreenInfo.width) / 2,  // half of screen width
                 static_cast<float>(mainScreenInfo.height) / 2);                           // half of screen height
         } else if (rotation == ScreenRotation::ROTATION_270) {
-            canvas_->Rotate(-ROTATION_270, 0, 0);
+            canvas_->Rotate(-RS_ROTATION_270, 0, 0);
             canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
         } else {
             return;
@@ -5429,7 +5426,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || backgroundTransparent ||
-                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
+                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % RS_ROTATION_90 != 0 ||
                     canvas_->HasOffscreenLayer()) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
@@ -6206,14 +6203,14 @@ void RSUniRenderVisitor::RotateMirrorCanvasIfNeedForWiredScreen(RSDisplayRenderN
         auto screenManager = CreateOrGetScreenManager();
         auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
         if (rotation == ScreenRotation::ROTATION_90) {
-            canvas_->Rotate(ROTATION_90, 0, 0);
+            canvas_->Rotate(RS_ROTATION_90, 0, 0);
             canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.height)));
         } else if (rotation == ScreenRotation::ROTATION_180) {
             float ratio = 0.5f;
-            canvas_->Rotate(ROTATION_180, static_cast<float>(mainScreenInfo.width) * ratio,
+            canvas_->Rotate(RS_ROTATION_180, static_cast<float>(mainScreenInfo.width) * ratio,
                 static_cast<float>(mainScreenInfo.height) * ratio);
         } else if (rotation == ScreenRotation::ROTATION_270) {
-            canvas_->Rotate(ROTATION_270, 0, 0);
+            canvas_->Rotate(RS_ROTATION_270, 0, 0);
             canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
         }
     }
@@ -6342,7 +6339,7 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate()
         matrix.PreConcat(displayNodeMatrix_.value());
     }
     int angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
-    return angle != 0 && angle % ROTATION_90 == 0;
+    return angle != 0 && angle % RS_ROTATION_90 == 0;
 }
 
 bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
