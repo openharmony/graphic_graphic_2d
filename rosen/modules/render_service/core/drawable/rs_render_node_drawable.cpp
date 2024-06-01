@@ -37,6 +37,8 @@ thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
 
 namespace {
 constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
+constexpr float CACHE_FILL_ALPHA = 0.2f;
+constexpr float CACHE_UPDATE_FILL_ALPHA = 0.8f;
 }
 RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawableAdapter(std::move(node))
@@ -218,7 +220,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
                 DrawCachedImage(*curCanvas, params.GetCacheSize());
                 DrawAfterCacheWithProperty(canvas, params.GetBounds());
             }
-            DrawDfxForCache(canvas, params.GetBounds());
+            UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
             break;
         }
         default:
@@ -226,7 +228,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 }
 
-void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect)
+void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
 {
     if (!isDrawingCacheDfxEnabled_) {
         return;
@@ -244,7 +246,7 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        drawingCacheInfos_.emplace_back(dfxRect, updateTimes);
+        drawingCacheInfos_[id] = std::make_pair(dfxRect, updateTimes);
     }
 }
 
@@ -252,10 +254,12 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
-            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
-            RSUniRenderUtil::DrawRectForDfx(
-                canvas, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo); // alpha 0.2 by default
+        for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
+            std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
+            bool cacheUpdated = cacheUpdatedNodeMap_.count(id) > 0;
+            auto color = cacheUpdated ? Drawing::Color::COLOR_RED : Drawing::Color::COLOR_BLUE;
+            float alpha = cacheUpdated ? CACHE_UPDATE_FILL_ALPHA : CACHE_FILL_ALPHA;
+            RSUniRenderUtil::DrawRectForDfx(canvas, cacheInfo.first, color, alpha, extraInfo);
         }
     }
 
@@ -553,6 +557,10 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
         drawingCacheUpdateTimeMap_[nodeId_]++;
+    }
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
 }
 

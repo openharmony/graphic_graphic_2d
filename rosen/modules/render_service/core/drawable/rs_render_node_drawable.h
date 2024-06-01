@@ -132,7 +132,8 @@ protected:
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::mutex drawingCacheInfoMutex_;
-    static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
+    static inline std::unordered_map<NodeId, std::pair<RectI, int32_t>> drawingCacheInfos_; // (id, <rect, updateTimes>)
+    static inline std::unordered_map<NodeId, bool> cacheUpdatedNodeMap_;
 
     // opinc global state
     static inline bool autoCacheEnable_ = false;
@@ -146,7 +147,7 @@ protected:
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;
-    void DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
