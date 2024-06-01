@@ -351,7 +351,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     } else {
         while (true) {
             if (isLtpo_) {
-                ScopedBytrace func("ltpoVsyncWait");
+                ScopedBytrace func("ltpoVsyncWait:" + std::to_string(dsync_->GetPeriod()));
                 isLtpo_ = false;
                 // wait period reduce the number of empty frames caused by Ltpo,
                 con_.wait_for(locker, std::chrono::nanoseconds(dsync_->GetPeriod()));
