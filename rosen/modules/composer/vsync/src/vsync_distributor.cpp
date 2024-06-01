@@ -349,7 +349,21 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     if (!isRs_ && IsDVsyncOn()) {
         con_.wait(locker, [this] {return dvsync_->WaitCond();});
     } else {
-        con_.wait(locker);
+        while(true) {
+            if (isLtpo_) {
+                ScopedBytrace func("ltpoVsyncWait");
+                isLtpo_ = false;
+                // wait period reduce the number of empty frames caused by Ltpo,
+                con_.wait_for(locker, std::chrono::nanoseconds(dsync_->GetPeriod()));
+            } else {
+                con_.wait(locker);
+            }
+            if (!isLtpo_) {
+                break;
+            } else {
+                dvsync_->RNVNotify();
+            }
+        }
     }
     if (pendingRNVInVsync_) {
         return;
@@ -546,7 +560,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 
     ChangeConnsRateLocked();
     ScopedBytrace func("pendingRNVInVsync: " + std::to_string(pendingRNVInVsync_) + " DVSyncOn: " +
-        std::to_string(IsDVsyncOn()));
+        std::to_string(IsDVsyncOn()) + " isRS:" + std::to_string(isRs_));
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -776,14 +790,9 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         return VSYNC_ERROR_NULLPTR;
     }
 
-#if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn() && fromWhom == "ltpoForceUpdate") {
-        return VSYNC_ERROR_OK;
-    }
-#endif
-
     ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
     std::unique_lock<std::mutex> locker(mutex_);
+    isLtpo_ = false;
 
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn() && isRs_) {
@@ -814,6 +823,10 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     connection->triggerThisTime_ = true;
 #if defined(RS_ENABLE_DVSYNC)
     if (dvsync_->IsFeatureEnabled()) {
+        if (IsDVsyncOn() && fromWhom == "ltpoForceUpdate") {
+            ScopedBytrace temp("ltpoVsync");
+            isLtpo_ = true;
+        }
         con_.notify_all();
     } else
 #endif

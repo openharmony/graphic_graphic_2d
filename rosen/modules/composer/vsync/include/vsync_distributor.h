@@ -189,6 +189,7 @@ private:
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
 #endif
     bool isRs_ = false;
+    bool isLtpo_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
