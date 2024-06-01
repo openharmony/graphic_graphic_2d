@@ -349,7 +349,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     if (!isRs_ && IsDVsyncOn()) {
         con_.wait(locker, [this] {return dvsync_->WaitCond();});
     } else {
-        while(true) {
+        while (true) {
             if (isLtpo_) {
                 ScopedBytrace func("ltpoVsyncWait");
                 isLtpo_ = false;
