@@ -134,6 +134,7 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
 {
     auto typeface = Drawing::Typeface::MakeDefault();
     RSTypefaceCache::Instance().HandleDelayDestroyQueue();
+    RSTypefaceCache::Instance().Dump();
     EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 } // namespace Rosen
