@@ -40,6 +40,11 @@ public:
     RSRenderParams(NodeId id) : id_(id) {}
     virtual ~RSRenderParams() = default;
 
+    struct SurfaceParam {
+        int width = 0;
+        int height = 0;
+    }
+
     void SetAlpha(float alpha);
     float GetAlpha() const;
 
@@ -136,6 +141,8 @@ public:
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
+    SurfaceParam GetCanvasDrawingSurfaceParams();
+    void SetCanvasDrawingSurfaceParams(int width, int height);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -183,6 +190,7 @@ private:
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
+    SurfaceParam surfaceParams_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
