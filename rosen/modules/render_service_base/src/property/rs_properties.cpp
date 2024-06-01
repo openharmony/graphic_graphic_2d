@@ -99,6 +99,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetBorderColor(RSColor()); },         // BORDER_COLOR
     [](RSProperties* prop) { prop->SetBorderWidth(0.f); },               // BORDER_WIDTH
     [](RSProperties* prop) { prop->SetBorderStyle(BORDER_TYPE_NONE); },  // BORDER_STYLE
+    [](RSProperties* prop) { prop->SetBorderDashWidth({0.f}); },         // BORDER_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetBorderDashGap({0.f}); },           // BORDER_DASH_GAP
     [](RSProperties* prop) { prop->SetFilter({}); },                     // FILTER
     [](RSProperties* prop) { prop->SetBackgroundFilter({}); },           // BACKGROUND_FILTER
     [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA
@@ -148,6 +150,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR
     [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH
     [](RSProperties* prop) { prop->SetOutlineStyle(BORDER_TYPE_NONE); }, // OUTLINE_STYLE
+    [](RSProperties* prop) { prop->SetOutlineDashWidth({0.f}); },        // OUTLINE_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetOutlineDashGap({0.f}); },          // OUTLINE_DASH_GAP
     [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF
@@ -1047,6 +1051,26 @@ void RSProperties::SetBorderStyle(Vector4<uint32_t> style)
     contentDirty_ = true;
 }
 
+void RSProperties::SetBorderDashWidth(const Vector4f& dashWidth)
+{
+    if (!border_) {
+        border_ = std::make_shared<RSBorder>();
+    }
+    border_->SetDashWidthFour(dashWidth);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetBorderDashGap(const Vector4f& dashGap)
+{
+    if (!border_) {
+        border_ = std::make_shared<RSBorder>();
+    }
+    border_->SetDashGapFour(dashGap);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 Vector4<Color> RSProperties::GetBorderColor() const
 {
     return border_ ? border_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
@@ -1060,6 +1084,16 @@ Vector4f RSProperties::GetBorderWidth() const
 Vector4<uint32_t> RSProperties::GetBorderStyle() const
 {
     return border_ ? border_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE));
+}
+
+Vector4f RSProperties::GetBorderDashWidth() const
+{
+    return border_ ? border_->GetDashWidthFour() : Vector4f(0.f);
+}
+
+Vector4f RSProperties::GetBorderDashGap() const
+{
+    return border_ ? border_->GetDashGapFour() : Vector4f(0.f);
 }
 
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
@@ -1116,6 +1150,26 @@ void RSProperties::SetOutlineStyle(Vector4<uint32_t> style)
     contentDirty_ = true;
 }
 
+void RSProperties::SetOutlineDashWidth(const Vector4f& dashWidth)
+{
+    if (!outline_) {
+        outline_ = std::make_shared<RSBorder>();
+    }
+    outline_->SetDashWidthFour(dashWidth);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetOutlineDashGap(const Vector4f& dashGap)
+{
+    if (!outline_) {
+        outline_ = std::make_shared<RSBorder>();
+    }
+    outline_->SetDashGapFour(dashGap);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetOutlineRadius(Vector4f radius)
 {
     if (!outline_) {
@@ -1140,6 +1194,16 @@ Vector4f RSProperties::GetOutlineWidth() const
 Vector4<uint32_t> RSProperties::GetOutlineStyle() const
 {
     return outline_ ? outline_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE));
+}
+
+Vector4f RSProperties::GetOutlineDashWidth() const
+{
+    return outline_ ? outline_->GetDashWidthFour() : Vector4f(0.f);
+}
+
+Vector4f RSProperties::GetOutlineDashGap() const
+{
+    return outline_ ? outline_->GetDashGapFour() : Vector4f(0.f);
 }
 
 Vector4f RSProperties::GetOutlineRadius() const

@@ -57,23 +57,32 @@ public:
     void SetColor(Color color);
     void SetWidth(float width);
     void SetStyle(BorderStyle style);
+    void SetDashWidth(float dashWidth);
+    void SetDashGap(float dashGap);
     Color GetColor(int idx = RSBorder::LEFT) const;
     float GetWidth(int idx = RSBorder::LEFT) const;
     BorderStyle GetStyle(int idx = RSBorder::LEFT) const;
+    float GetDashWidth(int idx = RSBorder::LEFT) const;
+    float GetDashGap(int idx = RSBorder::LEFT) const;
 
     void SetColorFour(const Vector4<Color>& color);
     void SetWidthFour(const Vector4f& width);
     void SetStyleFour(const Vector4<uint32_t>& style);
     void SetRadiusFour(const Vector4f& radius);
+    void SetDashWidthFour(const Vector4f& dashWidth);
+    void SetDashGapFour(const Vector4f& dashGap);
     Vector4<Color> GetColorFour() const;
     Vector4f GetWidthFour() const;
     Vector4<uint32_t> GetStyleFour() const;
+    Vector4f GetDashWidthFour() const;
+    Vector4f GetDashGapFour() const;
     Vector4f GetRadiusFour() const;
 
     bool HasBorder() const;
 
     std::string ToString() const;
 
+    void SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot, float borderLength) const;
     bool ApplyFillStyle(Drawing::Brush& brush) const;
     bool ApplyPathStyle(Drawing::Pen& pen) const;
     bool ApplyFourLine(Drawing::Pen& pen) const;
@@ -108,6 +117,9 @@ private:
     std::vector<Color> colors_;
     std::vector<float> widths_;
     std::vector<BorderStyle> styles_;
+    // Dash params dashWidth and dashGap
+    std::vector<float> dashWidth_;
+    std::vector<float> dashGap_;
 
     // only be used by outline, innerBorder(border_) uses corner radius.
     Vector4f radius_;
