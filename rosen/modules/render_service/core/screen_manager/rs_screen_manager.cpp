@@ -89,8 +89,7 @@ bool RSScreenManager::Init() noexcept
     }
 
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenManager::OnScreenVBlankIdle, this) != 0) {
-        RS_LOGE("RSScreenManager %{public}s: Failed to register OnScreenVBlankIdle Func to composer.", __func__);
-        return false;
+        RS_LOGW("RSScreenManager %{public}s: Not support register OnScreenVBlankIdle Func to composer.", __func__);
     }
 
     // call ProcessScreenHotPlugEvents() for primary screen immediately in main thread.
