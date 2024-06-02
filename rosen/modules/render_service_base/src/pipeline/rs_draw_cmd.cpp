@@ -116,6 +116,12 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap && pixelmap->IsAstc()) {
         if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+            Drawing::AutoCanvasRestore acr(*recordingCanvas, true);
+            Drawing::Matrix mat;
+            Drawing::Rect tmpRect(rsImage_->GetDstRect().GetLeft(), rsImage_->GetDstRect().GetTop(),
+                rsImage_->GetDstRect().GetRight(), rsImage_->GetDstRect().GetBottom());
+            mat.SetRectToRect(rect, tmpRect, Drawing::ScaleToFit::FILL_SCALETOFIT);
+            recordingCanvas->ConcatMatrix(mat);
             recordingCanvas->DrawPixelMapWithParm(pixelmap, imageInfo_, sampling);
             return;
         }
