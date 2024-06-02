@@ -93,7 +93,7 @@ void RSPropertyAnimation::SetOriginValue(const std::shared_ptr<RSPropertyBase>& 
 
 void RSPropertyAnimation::InitInterpolationValue()
 {
-    if (isDelta_) {
+    if (isDelta_ && originValue_) {
         startValue_ = originValue_->Clone();
         endValue_ = originValue_ + byValue_;
     } else {
