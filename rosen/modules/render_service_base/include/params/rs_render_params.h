@@ -43,7 +43,7 @@ public:
     struct SurfaceParam {
         int width = 0;
         int height = 0;
-    }
+    };
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
