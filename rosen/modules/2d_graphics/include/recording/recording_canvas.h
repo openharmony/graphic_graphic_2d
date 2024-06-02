@@ -155,6 +155,7 @@ private:
     std::optional<Pen> customTextPen_ = std::nullopt;
     std::stack<SaveOpState> saveOpStateStack_;
     std::shared_ptr<GPUContext> gpuContext_ = nullptr;
+    uint32_t opCount = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
