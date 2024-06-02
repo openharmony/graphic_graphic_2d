@@ -1218,6 +1218,20 @@ void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
     SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
 }
 
+// set dash width for border
+void RSNode::SetBorderDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSBorderDashWidthModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_WIDTH, dashWidth);
+}
+
+// set dash gap for border
+void RSNode::SetBorderDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSBorderDashGapModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
     SetOutlineColor(color);
@@ -1258,6 +1272,18 @@ void RSNode::SetOutlineStyle(const Vector4<BorderStyle>& style)
         RSModifierType::OUTLINE_STYLE, styles);
 }
 
+void RSNode::SetOutlineDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSOutlineDashWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_WIDTH, dashWidth);
+}
+
+void RSNode::SetOutlineDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSOutlineDashGapModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOutlineRadius(const Vector4f& radius)
 {
     SetProperty<RSOutlineRadiusModifier, RSAnimatableProperty<Vector4f>>(
@@ -1266,12 +1292,30 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 {
-    // To do: generate composed filter here.
+    // To do: generate composed filter here. Now we just set background blur in v1.0.
+    auto filterParas = backgroundFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetBackgroundBlurRadiusX(blurRadius);
+            SetBackgroundBlurRadiusY(blurRadius);
+        }
+    }
 }
 
 void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
 {
-    // To do: generate composed filter here.
+    // To do: generate composed filter here. Now we just set compositing blur in v1.0.
+    auto filterParas = compositingFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundBlurRadiusX(blurRadius);
+            SetForegroundBlurRadiusY(blurRadius);
+        }
+    }
 }
 
 void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)

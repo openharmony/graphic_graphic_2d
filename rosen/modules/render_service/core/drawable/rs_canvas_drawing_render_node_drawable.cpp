@@ -71,7 +71,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
+    if ((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
     }
 
@@ -168,6 +168,14 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
+    {
+        // check params, if params is invalid, do not post the task
+        std::lock_guard<std::mutex> lockTask(taskMutex_);
+        if (!surface_ || !canvas_) {
+            return;
+        }
+    }
+
     auto nodeId = nodeId_;
     auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
     auto rect = GetRenderParams()->GetBounds();
@@ -191,14 +199,6 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         canvasDrawingParams->SetNeedProcess(false);
         canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
-
-    {
-        // check params, if params is invalid, do not post the task
-        std::lock_guard<std::mutex> lockTask(taskMutex_);
-        if (!surface_ || !canvas_) {
-            return;
-        }
-    }
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
 

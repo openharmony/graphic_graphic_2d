@@ -180,6 +180,20 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceInThread()
     ClearCacheSurface();
 }
 
+void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
+{
+    RS_TRACE_NAME("ClearCacheSurfaceOnly");
+    if (cacheSurface_ == nullptr) {
+        return;
+    }
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(
+            std::move(cacheSurface_), nullptr, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+    }
+    ClearCacheSurface(false);
+    cacheSurface_.reset();
+}
+
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {

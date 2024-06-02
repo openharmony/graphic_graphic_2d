@@ -611,6 +611,11 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         return;
     }
     target->AddAnimation(animation, !isAddInteractiveAnimator_);
+    if (isAddInteractiveAnimator_) {
+        animation->SetOriginValue(animation->GetPropertyValue());
+        animation->InitInterpolationValue();
+        animation->UpdateStagingValue(true);
+    }
     implicitAnimations_.top().emplace_back(animation, target->GetId());
     return;
 }

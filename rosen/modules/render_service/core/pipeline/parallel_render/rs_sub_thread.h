@@ -41,6 +41,7 @@ public:
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
     void ReleaseSurface();
+    void ReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();

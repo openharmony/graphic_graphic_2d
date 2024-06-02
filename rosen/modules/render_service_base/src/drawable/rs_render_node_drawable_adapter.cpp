@@ -383,6 +383,26 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     }
 }
 
+void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas,
+    const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.foregroundFilterBeginIndex_));
+}
+
+void RSRenderNodeDrawableAdapter::DrawCacheWithForegroundFilter(Drawing::Canvas& canvas,
+    const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundFilterBeginIndex_,
+        drawCmdIndex_.foregroundFilterEndIndex_);
+}
+
+void RSRenderNodeDrawableAdapter::DrawAfterCacheWithForegroundFilter(Drawing::Canvas& canvas,
+    const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundFilterEndIndex_,
+        drawCmdIndex_.endIndex_);
+}
+
 void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, drawCmdIndex_.renderGroupBeginIndex_,

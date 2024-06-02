@@ -109,14 +109,14 @@ public:
     }
 
 private:
-    float cubicRate_;
-    float quadRate_;
-    float linearRate_;
-    float degree_;
+    float cubicRate_ = 0.0f;
+    float quadRate_ = 0.0f;
+    float linearRate_ = 1.0f;
+    float degree_ = 0.0f;
     float saturation_ = 1.0f;
     Vector3f positiveCoeff_;
     Vector3f negativeCoeff_;
-    float fraction_;
+    float fraction_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

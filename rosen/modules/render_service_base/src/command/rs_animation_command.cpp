@@ -48,12 +48,12 @@ void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProc
 void AnimationCommandHelper::CreateAnimation(
     RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    if (node == nullptr) {
-        return;
-    }
     if (animation == nullptr) {
         RS_LOGE("AnimationCommandHelper::CreateAnimation, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
         return;
     }
     node->GetAnimationManager().AddAnimation(animation);
@@ -71,12 +71,12 @@ void AnimationCommandHelper::CreateAnimation(
 void AnimationCommandHelper::CreateParticleAnimation(
     RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation)
 {
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    if (node == nullptr) {
-        return;
-    }
     if (animation == nullptr) {
         RS_LOGE("AnimationCommandHelper::CreateParticleAnimation, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
         return;
     }
     auto propertyId = animation->GetPropertyId();

@@ -48,7 +48,8 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, effectParams->GetLocalDrawRect())) {
+    if ((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() &&
+        QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         return;
     }
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);

@@ -42,12 +42,12 @@ RSTimeOutDetector::RSTimeOutDetector(int timeOutThresholdMs,
 void RSTimeOutDetector::SetParam(const std::string& key, const std::string& value)
 {
     if (paramList_.count(key) == 0) {
-        RS_LOGD("RSTimeOutDetector :: SetParam Invaild Key ");
+        RS_LOGD("RSTimeOutDetector :: SetParam Invalid Key ");
         return;
     }
     int valueInt = atoi(value.c_str());
     if (valueInt <= 0 || valueInt > 1000000) { // 1000000Ms->1000s
-        RS_LOGD("RSTimeOutDetector :: SetParam Invaild Value ");
+        RS_LOGD("RSTimeOutDetector :: SetParam Invalid Value ");
         return;
     }
     timeOutThresholdMs_ = valueInt;

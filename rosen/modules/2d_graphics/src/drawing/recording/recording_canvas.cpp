@@ -331,6 +331,7 @@ void RecordingCanvas::DrawImage(const Image& image, const scalar px, const scala
         AddDrawOpDeferred<DrawImageOpItem>(image, px, py, sampling);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageOpItem::ConstructorHandle>(imageHandle, px, py, sampling);
 }
@@ -342,6 +343,7 @@ void RecordingCanvas::DrawImageRect(
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, constraint);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling, constraint);
 }
@@ -353,6 +355,7 @@ void RecordingCanvas::DrawImageRect(const Image& image, const Rect& dst, const S
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     Rect src(0, 0, image.GetWidth(), image.GetHeight());
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(
@@ -695,6 +698,9 @@ void RecordingCanvas::CheckForLazySave()
 template<typename T, typename... Args>
 void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
 {
+    if (opCount > 40000) { //image opitems upper limit
+        return;
+    }
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {

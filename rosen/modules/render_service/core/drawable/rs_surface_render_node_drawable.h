@@ -166,6 +166,7 @@ public:
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void ClearCacheSurfaceOnly();
 
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

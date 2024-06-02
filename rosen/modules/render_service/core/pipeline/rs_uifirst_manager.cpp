@@ -387,6 +387,33 @@ void RSUifirstManager::PostSubTask(NodeId id)
     }
 }
 
+void RSUifirstManager::PostReleaseCacheSurfaceSubTasks()
+{
+    for (auto cardNode : collectedCardNodes_) {
+        PostReleaseCacheSurfaceSubTask(cardNode);
+    }
+}
+
+void RSUifirstManager::PostReleaseCacheSurfaceSubTask(NodeId id)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("post ReleaseCacheSurface %d", id);
+
+    if (subthreadProcessingNode_.find(id) != subthreadProcessingNode_.end()) { // drawable is doing, do not send
+        RS_TRACE_NAME_FMT("node %lx is doning", id);
+        RS_LOGE("RSUifirstManager ERROR: try to clean running node");
+        return;
+    }
+
+    // 1.find in cache list(done to dele) 2.find in global list
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
+    if (drawable) {
+        // post task
+        RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
+        RSSubThreadManager::Instance()->ScheduleReleaseCacheSurfaceOnly(
+            static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable.get()));
+    }
+}
+
 void RSUifirstManager::UpdateSkipSyncNode()
 {
     processingNodeSkipSync_.clear();
@@ -507,7 +534,10 @@ void RSUifirstManager::ClearSubthreadRes()
             ++noUifirstNodeFrameCount_;
             if (noUifirstNodeFrameCount_ == CLEAR_RES_THRESHOLD) {
                 RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+                PostReleaseCacheSurfaceSubTasks();
             }
+        } else {
+            noUifirstNodeFrameCount_ = 1;
         }
     } else {
         noUifirstNodeFrameCount_ = 0;
@@ -974,6 +1004,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             node.RegisterTreeStateChangeCallback(func);
             node.SetUifirstStartTime(GetCurSysTime());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType); // clear pending reset status
+            AddCardNodes(node.GetId(), currentFrameCacheType);
         } else { // keep disable
             RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
         }
@@ -987,6 +1018,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lx", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
+            RemoveCardNodes(node.GetId());
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameCacheType);
@@ -1022,6 +1054,7 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
     }
     RSUifirstManager::Instance().DisableUifirstNode(node);
     RSUifirstManager::Instance().ForceClearSubthreadRes();
+    RSUifirstManager::Instance().RemoveCardNodes(node.GetId());
 }
 
 void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)

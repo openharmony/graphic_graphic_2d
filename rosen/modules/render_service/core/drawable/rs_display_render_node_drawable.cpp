@@ -412,6 +412,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (isDrawingCacheDfxEnabled_) {
             std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
             drawingCacheInfos_.clear();
+            cacheUpdatedNodeMap_.clear();
         }
     }
 

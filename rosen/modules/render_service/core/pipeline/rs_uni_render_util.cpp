@@ -407,13 +407,6 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
-
-    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
-    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
-        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        std::swap(boundsWidth, boundsHeight);
-    }
     if (boundsWidth == 0 || boundsHeight == 0) {
         return;
     }

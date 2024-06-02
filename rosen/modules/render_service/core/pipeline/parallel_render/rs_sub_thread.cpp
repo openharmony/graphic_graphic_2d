@@ -388,6 +388,18 @@ MemoryGraphic RSSubThread::CountSubMem(int pid)
     return memoryGraphic;
 }
 
+void RSSubThread::ReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+{
+    if (!nodeDrawable) {
+        return;
+    }
+    const auto& param = nodeDrawable->GetRenderParams();
+    if (!param) {
+        return;
+    }
+    nodeDrawable->ClearCacheSurfaceOnly();
+}
+
 void RSSubThread::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas)
 {
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
