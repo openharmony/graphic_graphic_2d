@@ -27,6 +27,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_material_filter.h"
@@ -654,7 +655,21 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter surface null");
-        Drawing::Brush brush = filter->GetBrush();
+        Drawing::Brush brush;
+        brush.SetAntiAlias(true);
+        Drawing::Filter filterForBrush;
+        auto imageFilter = filter->GetImageFilter();
+        std::shared_ptr<RSShaderFilter> kawaseShaderFilter =
+            filter->GetShaderFilterWithType(RSShaderFilter::KAWASE);
+        if (kawaseShaderFilter != nullptr) {
+            auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
+            auto radius = tmpFilter->GetRadius();
+            std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
+                radius, radius, Drawing::TileMode::CLAMP, nullptr);
+            imageFilter = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter, blurFilter);
+        }
+        filterForBrush.SetImageFilter(imageFilter);
+        brush.SetFilter(filterForBrush);
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas.SaveLayer(slr);
         filter->PostProcess(canvas);
