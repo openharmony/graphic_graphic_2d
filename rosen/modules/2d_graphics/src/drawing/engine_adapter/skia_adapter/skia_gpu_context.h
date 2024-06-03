@@ -20,15 +20,11 @@
 
 #include "include/core/SkExecutor.h"
 #include "include/gpu/GrContextOptions.h"
+#include "include/gpu/GrDirectContext.h"
 
 #include "image/gpu_context.h"
 #include "impl_interface/gpu_context_impl.h"
 
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -107,18 +103,9 @@ public:
     void StoreVkPipelineCacheData() override;
 #endif
 
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrDirectContext>& grContext);
-#else
-    sk_sp<GrContext> GetGrContext() const;
-    void SetGrContext(const sk_sp<GrContext>& grContext);
-#endif
-#ifdef NEW_SKIA
     const sk_sp<GrDirectContext> ExportSkiaContext() const
-#else
-    const sk_sp<GrContext> ExportSkiaContext() const
-#endif
     {
         return grContext_;
     }
@@ -126,11 +113,7 @@ public:
 
     static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
 private:
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_;
-#else
-    sk_sp<GrContext> grContext_;
-#endif
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;
     static std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>> contextPostMap_;
 };

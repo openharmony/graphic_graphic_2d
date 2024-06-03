@@ -21,11 +21,7 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
 #ifdef ACE_ENABLE_GPU
-#ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
 #endif
 #include "skia_bitmap.h"
 #include "skia_color_space.h"
@@ -110,11 +106,7 @@ public:
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.
      */
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;
-#else
-    sk_sp<GrContext> GetGrContext() const;
-#endif
 #endif
 
     std::shared_ptr<Data> Serialize() const override;
@@ -123,11 +115,7 @@ public:
     void PostSkImgToTargetThread();
 private:
 #ifdef ACE_ENABLE_GPU
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
 #endif
     sk_sp<SkImage> skiaImage_;
     GrBackendTexture grBackendTexture_;
