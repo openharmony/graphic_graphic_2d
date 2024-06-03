@@ -86,6 +86,11 @@ void RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& b
     renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t EnableSkipWindow(ScreenId id, bool enable)
+{
+    return 0;
+}
+
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
