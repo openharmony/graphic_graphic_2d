@@ -450,6 +450,8 @@ HWTEST_F(RSBorderTest, ApplyPathStyleTest, TestSize.Level1)
     EXPECT_FALSE(border->ApplyPathStyle(pen));
     border->SetStyle(BorderStyle::SOLID);
     EXPECT_TRUE(border->ApplyPathStyle(pen));
+    border->SetStyle(BorderStyle::DOTTED);
+    EXPECT_TRUE(border->ApplyPathStyle(pen));
 }
 
 /**
@@ -484,6 +486,7 @@ HWTEST_F(RSBorderTest, ApplyLineStyleTest, TestSize.Level1)
     border->SetStyle(BorderStyle::DOTTED);
     EXPECT_FALSE(border->ApplyLineStyle(pen, 0, 1.f));
     border->SetStyle(BorderStyle::SOLID);
+    border->SetWidth(1.0f);
     EXPECT_TRUE(border->ApplyLineStyle(pen, 0, 1.f));
 }
 
@@ -498,7 +501,10 @@ HWTEST_F(RSBorderTest, PaintFourLineTest, TestSize.Level1)
     auto border = std::make_shared<RSBorder>();
     Drawing::Canvas canvas;
     Drawing::Pen pen;
-    RectF rect;
+    RectF rect(1, 1, 1, 1);
+    Vector4<uint32_t> style = { 1, 1, 1, 1 };
+    border->SetStyleFour(style);
+    border->SetWidth(1);
     border->PaintFourLine(canvas, pen, rect);
     EXPECT_TRUE(border->colors_.empty());
 }
@@ -601,5 +607,28 @@ HWTEST_F(RSBorderTest, ToStringTest, TestSize.Level1)
     border->SetWidth(1.f);
     border->SetStyle(BorderStyle::NONE);
     EXPECT_FALSE(border->ToString().empty());
+}
+
+/**
+ * @tc.name: GetIPTest
+ * @tc.desc: Verify function GetTRIP and GetTLIP and GetBLIP and GetBRIP
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(RSBorderTest, GetIPTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    innerRectCenter.SetX(1.f);
+    innerRectCenter.SetY(1.f);
+    rrect.rect_.SetRight(10.f);
+    rrect.rect_.SetBottom(10.f);
+    rrect.rect_.SetLeft(1.f);
+    rrect.rect_.SetTop(1.f);
+    EXPECT_EQ(border->GetTRIP(rrect, innerRectCenter).GetX(), 10);
+    EXPECT_EQ(border->GetTLIP(rrect, innerRectCenter).GetX(), 1);
+    EXPECT_EQ(border->GetBLIP(rrect, innerRectCenter).GetX(), 1);
+    EXPECT_EQ(border->GetBRIP(rrect, innerRectCenter).GetX(), 10);
 }
 } // namespace OHOS::Rosen

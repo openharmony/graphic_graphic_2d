@@ -34,6 +34,25 @@ void RSAIBarFilterTest::SetUp() {}
 void RSAIBarFilterTest::TearDown() {}
 
 /**
+ * @tc.name: DrawImageRectTest
+ * @tc.desc: Verify function DrawImageRect
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSAIBarFilterTest, DrawImageRectTest, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSAIBarFilter>();
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+    canvas.gpuContext_ = context;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    filter->DrawImageRect(canvas, image, src, dst);
+    EXPECT_EQ(image->GetWidth(), 0);
+}
+
+/**
  * @tc.name: GetDescriptionTest
  * @tc.desc: Verify function GetDescription
  * @tc.type:FUNC
