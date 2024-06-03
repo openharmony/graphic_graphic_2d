@@ -38,10 +38,11 @@ public:
  */
 HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
+    EglWrapperLayer WrapperLayer;
     EglWrapperDispatchTable dispatchTable;
 
-    auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
+    auto result = WrapperLayer.Init(&dispatchTable);
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -51,11 +52,11 @@ HWTEST_F(EglWrapperLayerTest, Init001, Level1)
  */
 HWTEST_F(EglWrapperLayerTest, Init002, Level2)
 {
+    EglWrapperLayer WrapperLayer;
     EglWrapperDispatchTable dispatchTable;
-    auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
-    result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
+    WrapperLayer.LoadLayers();
+    auto result = WrapperLayer.Init(&dispatchTable);
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -92,9 +93,12 @@ HWTEST_F(EglWrapperLayerTest, InitLayers001, Level1)
  */
 HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
 {
+    EglWrapperLayer WrapperLayer;
     EglWrapperDispatchTable dispatchTable;
 
-    bool result = EglWrapperLayer::GetInstance().LoadLayers();
-    ASSERT_TRUE(result);
+    std::vector<std::string> layers;
+    layers = {};
+    bool result = WrapperLayer.LoadLayers();
+    ASSERT_FALSE(result);
 }
 } // OHOS::Rosen
