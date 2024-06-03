@@ -2518,7 +2518,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         auto matrix = property.GetBoundsGeometry()->GetMatrix();
         auto parent = hwcNodePtr->GetParent().lock();
         bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
-        while (parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
             const auto& property = parent->GetRenderProperties();
             matrix.PostConcat(property.GetBoundsGeometry()->GetMatrix());
             parent = parent->GetParent().lock();
