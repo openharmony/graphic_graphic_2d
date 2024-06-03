@@ -3801,7 +3801,7 @@ void RSRenderNode::OnSync()
 
     // copy newest for uifirst root node, now force sync done nodes
     if (uifirstNeedSync_) {
-        RS_TRACE_NAME_FMT("uifirst_sync %lx", GetId());
+        RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
         renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
                                                     renderDrawable_->drawCmdList_.end());
         renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
@@ -3819,7 +3819,7 @@ void RSRenderNode::OnSync()
             dirtySlots_.clear();
         }
     } else {
-        RS_TRACE_NAME_FMT("partial_sync %lx", GetId());
+        RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
         std::vector<RSDrawableSlot> todele;
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
