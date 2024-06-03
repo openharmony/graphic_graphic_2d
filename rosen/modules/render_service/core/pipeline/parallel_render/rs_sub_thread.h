@@ -61,6 +61,7 @@ private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
+    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
