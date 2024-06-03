@@ -271,10 +271,11 @@ public:
 
     const std::vector<RectI>& GetRegionRectIs()
     {
+        std::vector<RectI> rectIs;
         for (const auto& rect : rects_) {
-            rectIs_.emplace_back(rect.ToRectI());
+            rectIs.emplace_back(rect.ToRectI());
         }
-        return rectIs_;
+        return rectIs;
     }
 
     int GetSize() const
@@ -387,7 +388,6 @@ private:
     
 private:
     std::vector<Rect> rects_;
-    std::vector<RectI> rectIs_;
     Rect bound_;
     static bool _s_so_loaded_;
 };
