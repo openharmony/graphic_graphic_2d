@@ -156,7 +156,7 @@ template<typename T, typename>
 }
 
 template<typename T>
-[[maybe_unused]] inline bool Packet::Read(T& value, size_t size)
+[[maybe_unused]] bool Packet::Read(T& value, size_t size)
 {
     if constexpr (HasContiguousLayout<T>::value) {
         value.resize(size);
@@ -171,21 +171,6 @@ template<typename T>
         return res;
     }
     return false;
-}
-
-[[maybe_unused]] inline bool Packet::Read(void* value, size_t size)
-{
-    if (!size) {
-        return false;
-    }
-    if (readPointer_ + size > data_.size()) {
-        return false;
-    }
-    if (!Utils::Move(value, size, data_.data() + readPointer_, size) != 0) {
-        return false;
-    }
-    readPointer_ += size;
-    return true;
 }
 
 template<typename T, typename>
@@ -219,24 +204,6 @@ template<typename T>
         return res;
     }
     return false;
-}
-
-[[maybe_unused]] inline bool Packet::Write(const void* value, size_t size)
-{
-    if (!size) {
-        return false;
-    }
-    const size_t growSize = size - (data_.size() - writePointer_);
-    if (writePointer_ + size > data_.size()) {
-        data_.resize(data_.size() + growSize);
-    }
-    if (!Utils::Move(data_.data() + writePointer_, data_.size() - writePointer_, &value, sizeof(value))) {
-        data_.resize(data_.size() - growSize);
-        return false;
-    }
-    writePointer_ += size;
-    SetLength(data_.size());
-    return true;
 }
 
 } // namespace OHOS::Rosen

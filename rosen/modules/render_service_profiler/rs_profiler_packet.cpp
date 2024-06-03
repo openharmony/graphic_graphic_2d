@@ -86,4 +86,37 @@ void Packet::InitData(PacketType type)
     writePointer_ = HEADER_SIZE;
 }
 
+[[maybe_unused]] bool Packet::Read(void* value, size_t size)
+{
+    if (!size) {
+        return false;
+    }
+    if (readPointer_ + size > data_.size()) {
+        return false;
+    }
+    if (!Utils::Move(value, size, data_.data() + readPointer_, size) != 0) {
+        return false;
+    }
+    readPointer_ += size;
+    return true;
+}
+
+[[maybe_unused]] bool Packet::Write(const void* value, size_t size)
+{
+    if (!size) {
+        return false;
+    }
+    const size_t growSize = size - (data_.size() - writePointer_);
+    if (writePointer_ + size > data_.size()) {
+        data_.resize(data_.size() + growSize);
+    }
+    if (!Utils::Move(data_.data() + writePointer_, data_.size() - writePointer_, value, size)) {
+        data_.resize(data_.size() - growSize);
+        return false;
+    }
+    writePointer_ += size;
+    SetLength(data_.size());
+    return true;
+}
+
 } // namespace OHOS::Rosen
