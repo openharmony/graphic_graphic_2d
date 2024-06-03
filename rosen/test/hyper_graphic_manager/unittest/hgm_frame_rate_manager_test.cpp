@@ -92,6 +92,8 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtps, Function | SmallTest | Leve
     bool flag = false;
     std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
     frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
+    frameRateMgr->SetSchedulerPreferredFps(OLED_60_HZ);
+    frameRateMgr->SetIsNeedUpdateAppOffset(true);
     PART("CaseDescription") {
         STEP("1. check the result of UniProcessDataForLtps") {
             frameRateMgr->UniProcessDataForLtps(flag);

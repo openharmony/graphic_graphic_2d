@@ -397,7 +397,7 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
 void HgmMultiAppStrategy::OnStrategyChange()
 {
     HGM_LOGI("multi app strategy change: [%{public}d, %{public}d]", voteRes_.second.min, voteRes_.second.max);
-    for (auto &callback : strategyChangeCallbacks_) {
+    for (const auto &callback : strategyChangeCallbacks_) {
         if (callback != nullptr) {
             HgmTaskHandleThread::Instance().PostTask([callback, strategy = voteRes_.second] () {
                 callback(strategy);
