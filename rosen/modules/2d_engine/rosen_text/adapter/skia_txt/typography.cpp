@@ -336,7 +336,7 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
                 lineMetricsStyles_.emplace_back(Convert(spTextStyle));
 
                 line.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
-                std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
+                    std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
             }
         }
     }

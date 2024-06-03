@@ -238,6 +238,11 @@ std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
     return metrics;
 }
 
+bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
+{
+    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
+}
+
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     TextStyle txt;
