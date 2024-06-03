@@ -1811,6 +1811,30 @@ std::shared_ptr<DrawableV2::RSFilterDrawable> RSRenderNode::GetFilterDrawable(bo
     return nullptr;
 }
 
+void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+        return;
+    }
+ 
+    auto hasBackground = drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_COLOR)] ||
+                         drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_SHADER)] ||
+                         drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_IMAGE)];
+    auto alphaDirty = dirtyTypes_.test(static_cast<size_t>(RSModifierType::ALPHA));
+ 
+    if (alphaDirty && hasBackground) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderNode[%llu] background color or shader or image is dirty due to changes in alpha", GetId());
+        filterDrawable->MarkFilterForceClearCache();
+    }
+#endif
+}
+
 void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -2246,6 +2270,8 @@ void RSRenderNode::ApplyModifiers()
     // Temporary code, copy matrix into render params
     UpdateDrawableVec();
     UpdateDrawableVecV2();
+
+    UpdateFilterCacheWithBackgroundDirty();
 
     //Clear node some resource
     ClearResource();
