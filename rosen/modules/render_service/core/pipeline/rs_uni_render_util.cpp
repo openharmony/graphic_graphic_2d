@@ -532,7 +532,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     const RSProperties& property = node.GetRenderProperties();
 
     params.threadIndex = threadIndex;
-    params.useBilinearInterpolation = nodeParams->NeedBilinearInterpolation(); // TO-DO
+    if (isRenderThread) {
+        params.useBilinearInterpolation = nodeParams->NeedBilinearInterpolation(); // TO-DO
+    }
     params.useCPU = forceCPU;
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
