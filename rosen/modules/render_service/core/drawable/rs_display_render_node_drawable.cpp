@@ -84,11 +84,6 @@ private:
         Drawing::ImageInfo info =
             Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
         if (!aceDebugBoundaryEnabled_) {
-            auto gpuContext = curCanvas_->GetGPUContext();
-            if (gpuContext == nullptr) {
-                RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: need gpu canvas");
-                return;
-            }
             overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
         } else {
             overdrawSurface_ = Drawing::Surface::MakeRaster(info);
