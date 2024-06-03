@@ -163,7 +163,7 @@ GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& dam
         RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec ConvertMetadataToVec failed.");
         return ret;
     }
-    return buffer->SetMetadata(BufferHandleAttrKey::ATTRKEY_HDR_DYNAMIC_METADATA, roiRegionsVec);
+    return buffer->SetMetadata(GrallocBufferAttr::GRALLOC_BUFFER_ATTR_BUFFER_ROI_INFO, roiRegionsVec);
 }
 
 void RSUniRenderVirtualProcessor::OriginScreenRotation(ScreenRotation screenRotation, float width, float height)

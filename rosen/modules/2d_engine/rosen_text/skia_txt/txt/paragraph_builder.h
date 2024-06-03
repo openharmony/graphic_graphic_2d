@@ -38,7 +38,6 @@ public:
 
     virtual void PushStyle(const TextStyle& style) = 0;
     virtual void Pop() = 0;
-    virtual const TextStyle& PeekStyle() = 0;
     virtual void AddText(const std::u16string& text) = 0;
     virtual void AddPlaceholder(PlaceholderRun& span) = 0;
 

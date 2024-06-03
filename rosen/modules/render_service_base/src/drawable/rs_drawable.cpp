@@ -65,6 +65,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::BORDER,                        // BORDER_COLOR
     RSDrawableSlot::BORDER,                        // BORDER_WIDTH
     RSDrawableSlot::BORDER,                        // BORDER_STYLE
+    RSDrawableSlot::BORDER,                        // BORDER_DASH_WIDTH
+    RSDrawableSlot::BORDER,                        // BORDER_DASH_GAP
     RSDrawableSlot::COMPOSITING_FILTER,            // FILTER
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_FILTER
     RSDrawableSlot::COMPOSITING_FILTER,            // LINEAR_GRADIENT_BLUR_PARA
@@ -114,6 +116,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
+    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_WIDTH
+    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_GAP
     RSDrawableSlot::OUTLINE,                       // OUTLINE_RADIUS
     RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING
     RSDrawableSlot::INVALID,                       // GREY_COEF
@@ -496,6 +500,11 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
         dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::SHADOW_MASK)) || dirtySlots.count(RSDrawableSlot::SHADOW)) {
+        dirtySlots.emplace(RSDrawableSlot::SHADOW);
+        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
     }
 
     // if frame changed, mark affected drawables as dirty

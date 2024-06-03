@@ -120,6 +120,10 @@ HWTEST_F(RSBorderTest, LifeCycle003, TestSize.Level1)
     properties.SetCornerRadius(cornerRadius);
     Vector4f width(1.f, 1.f, 1.f, 1.f);
     properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
     ASSERT_TRUE(properties.GetCornerRadius().IsZero());
     Drawing::Canvas canvas;
     RSPropertiesPainter::DrawBorder(properties, canvas);

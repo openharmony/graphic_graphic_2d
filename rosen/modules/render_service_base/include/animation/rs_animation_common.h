@@ -24,11 +24,18 @@ static constexpr float FRACTION_MIN = 0.0f;
 static constexpr float FRACTION_MAX = 1.0f;
 static constexpr float EPSILON = 1e-6;
 static constexpr int64_t MS_TO_NS = 1000000;
+static constexpr float FRAME_PER_TIME_FRACTION = 1.0f / 120.0f;
 
 enum class RotationMode {
     ROTATE_NONE,
     ROTATE_AUTO,
     ROTATE_AUTO_REVERSE
+};
+
+enum class RSInteractiveAnimationPosition : uint8_t {
+    START,
+    CURRENT,
+    END,
 };
 
 } // namespace Rosen

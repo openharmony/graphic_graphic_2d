@@ -170,5 +170,13 @@ bool RSSystemParameters::GetControlBufferConsumeEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.controlBufferConsume.Enabled", "1")).c_str()) != 0;
     return controlBufferConsume;
 }
+
+bool RSSystemParameters::GetHideNotchStatus()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
+}
 } // namespace Rosen
 } // namespace OHOS

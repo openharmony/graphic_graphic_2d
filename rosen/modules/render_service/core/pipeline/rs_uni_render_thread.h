@@ -66,8 +66,10 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
 
-    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void PurgeCacheBetweenFrames();
+    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
+    void DefaultClearMemoryCache();
+    void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);

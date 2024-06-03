@@ -98,6 +98,8 @@ private:
         int32_t flags = 0,
         std::vector<NodeId> filteredAppVector = {}) override;
 
+    void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
 #ifdef RS_ENABLE_VK

@@ -70,6 +70,8 @@ public:
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
+    void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable) override;
 #endif

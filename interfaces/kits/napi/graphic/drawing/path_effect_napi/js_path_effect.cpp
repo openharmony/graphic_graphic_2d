@@ -25,6 +25,7 @@ napi_value JsPathEffect::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createDashPathEffect", JsPathEffect::CreateDashPathEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createCornerPathEffect", JsPathEffect::CreateCornerPathEffect),
     };
 
     napi_value constructor = nullptr;
@@ -133,6 +134,18 @@ napi_value JsPathEffect::CreateDashPathEffect(napi_env env, napi_callback_info i
     GET_DOUBLE_PARAM(ARGC_ONE, phase);
 
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateDashPathEffect(intervals, arrayLength, phase);
+    return JsPathEffect::Create(env, pathEffect);
+}
+
+napi_value JsPathEffect::CreateCornerPathEffect(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    double radius = 0.0;
+    GET_DOUBLE_CHECK_GT_ZERO_PARAM(ARGC_ZERO, radius);
+
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(radius);
     return JsPathEffect::Create(env, pathEffect);
 }
 

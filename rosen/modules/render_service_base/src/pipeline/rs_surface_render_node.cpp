@@ -2568,6 +2568,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->dstRect_ = dstRect_;
     surfaceParams->overDrawBufferNodeCornerRadius_ = GetOverDrawBufferNodeCornerRadius();
     surfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
+    surfaceParams->SetSkipDraw(isSkipDraw_);
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
@@ -2611,5 +2612,15 @@ void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
     }
 }
 
+void RSSurfaceRenderNode::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+    SetDirty();
+}
+
+bool RSSurfaceRenderNode::GetSkipDraw() const
+{
+    return isSkipDraw_;
+}
 } // namespace Rosen
 } // namespace OHOS

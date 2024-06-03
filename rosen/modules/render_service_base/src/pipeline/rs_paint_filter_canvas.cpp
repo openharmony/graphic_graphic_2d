@@ -417,7 +417,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
                 OnFilterWithBrush(b);
                 (*iter)->DrawImageNine(image, center, dst, filter, &b);
             } else {
-                (*iter)->DrawImageNine(image, center, dst, filter, brush);
+                (*iter)->DrawImageNine(image, center, dst, filter, GetFilteredBrush());
             }
         }
     }
@@ -428,7 +428,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
             OnFilterWithBrush(b);
             canvas_->DrawImageNine(image, center, dst, filter, &b);
         } else {
-            canvas_->DrawImageNine(image, center, dst, filter, brush);
+            canvas_->DrawImageNine(image, center, dst, filter, GetFilteredBrush());
         }
     }
 #endif

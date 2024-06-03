@@ -165,6 +165,7 @@ constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
+const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -1944,6 +1945,7 @@ void RSMainThread::OnUniRenderDraw()
 
     if (!doDirectComposition_) {
         renderThreadParams_->SetContext(context_);
+        renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         drawFrame_.PostAndWait();
         return;
@@ -3179,7 +3181,7 @@ void RSMainThread::ForceRefreshForUni()
 
 void RSMainThread::PerfForBlurIfNeeded()
 {
-    handler_->RemoveTask("PerfForBlurIfNeeded");
+    handler_->RemoveTask(PERF_FOR_BLUR_IF_NEEDED_TASK_NAME);
     static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
     static int cnt = 0;
@@ -3204,7 +3206,7 @@ void RSMainThread::PerfForBlurIfNeeded()
         }
     };
     // delay 100ms
-    handler_->PostTask(task, "PerfForBlurIfNeeded", 100);
+    handler_->PostTask(task, PERF_FOR_BLUR_IF_NEEDED_TASK_NAME, 100);
     int blurCnt = isUniRender_ ? RSPropertyDrawableUtils::GetAndResetBlurCnt() :
         RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.

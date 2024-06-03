@@ -100,6 +100,25 @@ public:
 
     void AddCapturedNodes(NodeId id);
 
+    void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
+    {
+        if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
+            return;
+        }
+        collectedCardNodes_.insert(id);
+    }
+
+    void RemoveCardNodes(NodeId id)
+    {
+        if (!collectedCardNodes_.count(id)) {
+            return;
+        }
+        collectedCardNodes_.erase(id);
+    }
+
+    void PostReleaseCacheSurfaceSubTasks();
+    void PostReleaseCacheSurfaceSubTask(NodeId id);
+
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -165,6 +184,7 @@ private:
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
+    std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     int noUifirstNodeFrameCount_ = 0;
     bool hasDoneNode_ = false;

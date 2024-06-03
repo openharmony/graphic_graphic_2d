@@ -351,12 +351,12 @@ public:
     {
         surfaceSrcRects_.clear();
     }
-    
+
     void ClearSurfaceDstRect()
     {
         surfaceDstRects_.clear();
     }
-    
+
     void ClearSurfaceTotalMatrix()
     {
         surfaceTotalMatrix_.clear();
@@ -500,7 +500,7 @@ private:
     bool isParallelDisplayNode_ = false;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    
+
 	// support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;

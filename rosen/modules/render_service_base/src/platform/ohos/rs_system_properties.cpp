@@ -214,7 +214,7 @@ bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 
 bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualdirty.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualdirty.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;

@@ -44,6 +44,8 @@ public:
     Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
+    void DrawCaptureImage(RSPaintFilterCanvas& canvas);
+    void ReleaseCaptureImage(std::shared_ptr<Drawing::Image> image);
 
     uint32_t GetTid() const
     {
@@ -67,6 +69,7 @@ private:
     std::mutex imageMutex_;
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
+    std::shared_ptr<Drawing::Image> captureImage_;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;

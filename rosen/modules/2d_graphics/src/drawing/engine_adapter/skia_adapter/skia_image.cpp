@@ -167,7 +167,7 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
 bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext)
 {
     if (image == nullptr) {
-        LOGD("SkiaImage::BuildSubset failed, origin Image is invaild");
+        LOGD("SkiaImage::BuildSubset failed, origin Image is invalid");
         return false;
     }
     auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();

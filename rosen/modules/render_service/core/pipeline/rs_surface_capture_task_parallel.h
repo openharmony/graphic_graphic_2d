@@ -31,6 +31,9 @@ public:
         rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
+    static void CheckModifiers(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+    static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
 
 private:

@@ -33,6 +33,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSCubicBezierInterpolator* Unmarshalling(Parcel& parcel);
 
+    InterpolatorType GetType() override { return InterpolatorType::CUBIC_BEZIER; }
 private:
     RSCubicBezierInterpolator(uint64_t id, float ctlX1, float ctlY1, float ctlX2, float ctlY2);
 

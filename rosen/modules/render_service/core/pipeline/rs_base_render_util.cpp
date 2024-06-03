@@ -1175,9 +1175,14 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
 
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
 {
+    GraphicTransformType type = GetFlipTransform(transform);
+    if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
+        return;
+    }
+     
     const int angle = 180;
     Drawing::Camera3D camera3D;
-    switch (GetFlipTransform(transform)) {
+    switch (type) {
         case GraphicTransformType::GRAPHIC_FLIP_H: {
             camera3D.RotateYDegrees(angle);
             break;

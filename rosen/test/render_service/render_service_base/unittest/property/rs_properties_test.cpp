@@ -1033,6 +1033,37 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
 
 /**
  * @tc.name: SetGet002
+ * @tc.desc: see SetGet002
+ * @tc.type:FUNC
+ * @tc.require: SetGet002 aux function
+ */
+void CheckDashParams(RSProperties& properties)
+{
+    Vector4f zeroData(0.f, 0.f, 0.f, 0.f);
+    Vector4f posData(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderDashWidth(zeroData);
+    properties.SetBorderDashGap(zeroData);
+    properties.SetOutlineDashWidth(zeroData);
+    properties.SetOutlineDashGap(zeroData);
+
+    properties.SetBorderDashWidth(posData);
+    properties.SetBorderDashGap(posData);
+    properties.SetOutlineDashWidth(posData);
+    properties.SetOutlineDashGap(posData);
+
+    auto borderDashWidth = properties.GetBorderDashWidth();
+    auto borderDashGap = properties.GetBorderDashGap();
+    auto outlineDashWidth = properties.GetOutlineDashWidth();
+    auto outlineDashGap = properties.GetOutlineDashGap();
+
+    EXPECT_TRUE(borderDashWidth.IsNearEqual(posData));
+    EXPECT_TRUE(borderDashGap.IsNearEqual(posData));
+    EXPECT_TRUE(outlineDashWidth.IsNearEqual(posData));
+    EXPECT_TRUE(outlineDashGap.IsNearEqual(posData));
+}
+
+/**
+ * @tc.name: SetGet002
  * @tc.desc: test results of SetGet002
  * @tc.type:FUNC
  * @tc.require:
@@ -1074,18 +1105,24 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
     properties.SetBackgroundColor(color);
     EXPECT_NE(0, properties.GetBackgroundColor().GetBlue());
 
-    Vector4<Color> borderColor = { color, color, color, color };
+    Vector4<Color> borderColor = {color, color, color, color};
     properties.SetBorderColor(borderColor);
     properties.GetBorderColor();
-    Vector4f zeroWidth = { 0, 0, 0, 0 };
-    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
-    properties.SetBorderWidth(zeroWidth);
-    properties.SetBorderWidth(width);
+
+    float zeroData1f{0.f};
+    Vector2f zeroData2f{zeroData1f, zeroData1f};
+    float posData1f{1.f};
+    properties.SetBorderWidth(Vector4(zeroData1f, zeroData1f, zeroData1f, zeroData1f));
+
+    properties.SetBorderWidth(Vector4(posData1f, posData1f, posData1f, posData1f));
+
     EXPECT_NE(0, properties.GetBorderWidth().GetLength());
 
     Vector4<uint32_t> style = { 1, 1, 1, 1 };
     properties.SetBorderStyle(style);
     EXPECT_NE(0, properties.GetBorderStyle().GetLength());
+
+    CheckDashParams(properties);
 
     EXPECT_NE(nullptr, properties.GetBorder());
 }

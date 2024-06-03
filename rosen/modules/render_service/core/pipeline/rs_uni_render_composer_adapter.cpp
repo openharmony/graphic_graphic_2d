@@ -142,7 +142,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
-    const RectI dstRect = node.GetDstRect();
+    const RectI& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};

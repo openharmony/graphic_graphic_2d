@@ -41,7 +41,9 @@ public:
     bool IsIntersects(const Region& other) const override;
     bool IsEmpty() const override;
     bool IsRect() const override;
+    bool IsRegionContained(const Region& other) const override;
     bool Op(const Region& region, RegionOp op) override;
+    bool QuickReject(const RectI& rectI) const override;
     void Clone(const Region& other) override;
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;

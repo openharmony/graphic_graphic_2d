@@ -286,7 +286,7 @@ ohos_shared_library("librender_service") {
   external_deps = [
     "battery_manager:batterysrv_client",
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "graphic_surface:frame_report",
@@ -400,7 +400,7 @@ ohos_executable("render_service") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
