@@ -15,11 +15,7 @@
 
 #include "skia_canvas.h"
 
-#if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
-#else
-#include "experimental/svg/model/SkSVGDOM.h"
-#endif
 
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"

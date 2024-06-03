@@ -37,9 +37,7 @@ namespace Drawing {
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
 static constexpr int STENCIL_BITS = 8;
-#ifdef NEW_SKIA
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
-#endif
 #endif
 
 namespace {
@@ -89,11 +87,7 @@ bool SkiaSurface::Bind(const Image& image)
 
     GrSurfaceOrigin grSurfaceOrigin;
     GrBackendTexture grBackendTexture;
-#ifdef NEW_SKIA
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
     grBackendTexture = skImage->getBackendTexture(false, &grSurfaceOrigin);
     if (!grBackendTexture.isValid()) {
         LOGD("SkiaSurface bind Image failed: BackendTexture is invalid");
@@ -131,11 +125,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         skColorSpace = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
     }
 
-#ifdef NEW_SKIA
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(skiaContext->GetGrContext().get(),
         backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
