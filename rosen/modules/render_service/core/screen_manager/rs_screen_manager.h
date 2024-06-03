@@ -70,6 +70,10 @@ public:
         int flags = 0,
         std::vector<uint64_t> filteredAppVector = {}) = 0;
 
+    virtual void SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t> blackListVector = {}) = 0;
+
+    virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
@@ -247,6 +251,10 @@ public:
         ScreenId mirrorId,
         int32_t flags,
         std::vector<uint64_t> filteredAppVector) override;
+
+    void SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t> blackListVector) override;
+
+    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 

@@ -49,6 +49,7 @@ public:
     void Export(napi_env env, napi_value exports);
     static napi_value NapiSetTestCount(napi_env env, napi_callback_info info);
     static napi_value NapiGetTime(napi_env env, napi_callback_info info);
+    static napi_value NapiGetTestNames(napi_env env, napi_callback_info info);
     static napi_value NapiFunctionCpu(napi_env env, napi_callback_info info);
     static napi_value NapiFunctionGpu(napi_env env, napi_callback_info info);
     static napi_value NapiPerformanceCpu(napi_env env, napi_callback_info info);
@@ -63,6 +64,7 @@ public:
     // for test
     void SetTestCount(uint32_t testCount);
     uint32_t GetTime();
+    std::string GetTestNames();
     void TestFunctionCpu(napi_env env, std::string caseName);
     void TestFunctionGpu(napi_env env, std::string caseName);
     void TestPerformanceCpu(napi_env env, std::string caseName);

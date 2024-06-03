@@ -422,15 +422,16 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     sptr<RSISurfaceCaptureCallback> callback;
     float scaleX = 1.0f;
     float scaleY = 1.0f;
+    bool useDma = false;
     SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::UICAPTURE;
     bool isSync = true;
-    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, surfaceCaptureType, isSync);
+    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, surfaceCaptureType, isSync);
+    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 

@@ -425,4 +425,25 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     });
     needResetContext_ = true;
 }
+
+void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+{
+    if (!nodeDrawable) {
+        return;
+    }
+    auto& param = nodeDrawable->GetRenderParams();
+    if (!param) {
+        return;
+    }
+    auto bindThreadIdx = nodeDrawable->GetLastFrameUsedThreadIndex();
+    if (!threadIndexMap_.count(bindThreadIdx)) {
+        RS_LOGE("RSSubThreadManager::ScheduleReleaseCacheSurface invalid thread idx");
+        return;
+    }
+    auto nowIdx = threadIndexMap_[bindThreadIdx];
+
+    auto subThread = threadList_[nowIdx];
+    auto tid = reThreadIndexMap_[nowIdx];
+    subThread->PostTask([subThread, nodeDrawable]() { subThread->ReleaseCacheSurfaceOnly(nodeDrawable); });
+}
 } // namespace OHOS::Rosen

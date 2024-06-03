@@ -93,11 +93,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = threadPool.get();
-#ifdef NEW_SKIA
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
-#else
-    grContext_ = GrContext::MakeGL(std::move(glInterface), grOptions);
-#endif
     return grContext_ != nullptr ? true : false;
 }
 
@@ -344,19 +340,12 @@ void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     grContext_->setCurrentGrResourceTag(grTag);
 }
 
-#ifdef NEW_SKIA
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
-#else
-sk_sp<GrContext> SkiaGPUContext::GetGrContext() const
-#endif
 {
     return grContext_;
 }
-#ifdef NEW_SKIA
+
 void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
-#else
-void SkiaGPUContext::SetGrContext(const sk_sp<GrContext>& grContext)
-#endif
 {
     grContext_ = grContext;
 }

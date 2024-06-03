@@ -89,8 +89,7 @@ bool RSScreenManager::Init() noexcept
     }
 
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenManager::OnScreenVBlankIdle, this) != 0) {
-        RS_LOGE("RSScreenManager %{public}s: Failed to register OnScreenVBlankIdle Func to composer.", __func__);
-        return false;
+        RS_LOGW("RSScreenManager %{public}s: Not support register OnScreenVBlankIdle Func to composer.", __func__);
     }
 
     // call ProcessScreenHotPlugEvents() for primary screen immediately in main thread.
@@ -864,6 +863,27 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     screens_[newId] = std::make_unique<RSScreen>(configs);
     RS_LOGD("RSScreenManager %{public}s: create virtual screen(id %{public}" PRIu64 ").", __func__, newId);
     return newId;
+}
+
+void RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId> blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.find(id) == screens_.end() || screens_[id] == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return;
+    }
+    std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
+    screens_.at(id)->SetBlackList(screenBlackList);
+}
+
+std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.find(id) == screens_.end() || screens_[id] == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+    return screens_.at(id)->GetBlackList();
 }
 
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)

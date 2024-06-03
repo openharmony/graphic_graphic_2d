@@ -253,6 +253,9 @@ public:
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
 
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
     sptr<SurfaceBuffer> GetBuffer() const;
@@ -317,6 +320,7 @@ private:
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
+    bool isSkipDraw_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

@@ -810,5 +810,23 @@ void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
         transactionProxy->AddCommand(command, true);
     }
 }
+
+void RSSurfaceNode::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSkipDraw>(GetId(), skip);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetSkipDraw, surfaceNodeId:[%" PRIu64 "] skipdraw:%s", GetId(),
+        skip ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetSkipDraw() const
+{
+    return isSkipDraw_;
+}
 } // namespace Rosen
 } // namespace OHOS

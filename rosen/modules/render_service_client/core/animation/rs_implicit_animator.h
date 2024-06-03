@@ -56,6 +56,13 @@ public:
     // close implicit animation and return all animations
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
 
+    // open implicit animation with given animation options and finish callback
+    int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback);
+    // interactive animator close implicit animation and return all animations
+    std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> CloseInterActiveImplicitAnimation(
+        bool isAddImplictAnimation);
+
     void BeginImplicitKeyFrameAnimation(float fraction, const RSAnimationTimingCurve& timingCurve);
     void BeginImplicitKeyFrameAnimation(float fraction);
     void EndImplicitKeyFrameAnimation();
@@ -108,6 +115,9 @@ private:
     std::stack<std::tuple<bool, int, int>> durationKeyframeParams_;
 
     bool implicitAnimationDisabled_ { false };
+
+    std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
+    bool isAddInteractiveAnimator_ { false };
     friend class RSNode;
 };
 } // namespace Rosen

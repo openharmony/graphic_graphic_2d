@@ -47,6 +47,7 @@ public:
 
     void SetDurationKeyframe(bool isDuration);
 
+    bool IsSupportInteractiveAnimator() override { return false; }
 protected:
     void OnStart() override;
 

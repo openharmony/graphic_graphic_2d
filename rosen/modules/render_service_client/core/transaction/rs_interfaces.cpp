@@ -81,6 +81,11 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
 }
 
+void RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
@@ -105,29 +110,29 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
-    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -195,7 +200,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
             node->SetTakeSurfaceForUIFlag();
         }
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            SurfaceCaptureType::UICAPTURE, isSync);
+            false, SurfaceCaptureType::UICAPTURE, isSync);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

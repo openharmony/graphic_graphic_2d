@@ -162,16 +162,69 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
             keyframeAnimation->SetDuration(totalDuration);
         }
         // this will actually create the RSRenderKeyframeAnimation
-        target->AddAnimation(keyframeAnimation);
         keyframeAnimation->SetFinishCallback(finishCallback);
+        if (isAddInteractiveAnimator_) {
+            interactiveImplicitAnimations_.top().emplace_back(keyframeAnimation, target->GetId());
+        }
+        target->AddAnimation(keyframeAnimation, !isAddInteractiveAnimator_);
         resultAnimations.emplace_back(keyframeAnimation);
     }
 
     for (const auto& [animation, nodeId] : currentAnimations) {
         animation->SetFinishCallback(finishCallback);
         resultAnimations.emplace_back(animation);
+        if (isAddInteractiveAnimator_) {
+            interactiveImplicitAnimations_.top().emplace_back(animation, nodeId);
+        }
     }
+
     CloseImplicitAnimationInner();
+    return resultAnimations;
+}
+
+int RSImplicitAnimator::OpenInterActiveImplicitAnimation(bool isAddImplictAnimation,
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    std::shared_ptr<AnimationFinishCallback>&& finishCallback)
+{
+    isAddInteractiveAnimator_ = true;
+    interactiveImplicitAnimations_.push({});
+    return isAddImplictAnimation ?
+        OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback), nullptr) : 0;
+}
+
+std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> RSImplicitAnimator::CloseInterActiveImplicitAnimation(
+    bool isAddImplictAnimation)
+{
+    if (interactiveImplicitAnimations_.empty()) {
+        ROSEN_LOGD("Failed to close interactive implicit animation, need to open implicit animation firstly!");
+        return {};
+    }
+    if (isAddImplictAnimation) {
+        if (globalImplicitParams_.empty()) {
+            ROSEN_LOGD("Failed to close interactive implicit animation, globalImplicitParams is empty!");
+            return {};
+        }
+
+        auto& currentAnimations = implicitAnimations_.top();
+        const auto& finishCallback =
+            std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+        for (const auto& [animation, nodeId] : currentAnimations) {
+            animation->SetFinishCallback(finishCallback);
+            interactiveImplicitAnimations_.top().emplace_back(animation, nodeId);
+        }
+    }
+    
+    auto& interactiveAnimations = interactiveImplicitAnimations_.top();
+    std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> resultAnimations;
+    for (const auto& [animation, nodeId] : interactiveAnimations) {
+        resultAnimations.emplace_back(animation, nodeId);
+    }
+
+    if (isAddImplictAnimation) {
+        CloseImplicitAnimationInner();
+    }
+    interactiveImplicitAnimations_.pop();
+    isAddInteractiveAnimator_ = false;
     return resultAnimations;
 }
 
@@ -557,9 +610,13 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         // RSImplicitAnimator::CloseImplicitAnimation.
         return;
     }
-    target->AddAnimation(animation);
+    target->AddAnimation(animation, !isAddInteractiveAnimator_);
+    if (isAddInteractiveAnimator_) {
+        animation->SetOriginValue(animation->GetPropertyValue());
+        animation->InitInterpolationValue();
+        animation->UpdateStagingValue(true);
+    }
     implicitAnimations_.top().emplace_back(animation, target->GetId());
-
     return;
 }
 

@@ -63,6 +63,10 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
 
 bool GEGreyShaderFilter::InitGreyAdjustmentEffect()
 {
+    if (g_greyAdjustEffect != nullptr) {
+        return true;
+    }
+    
     static std::string GreyGradationString(R"(
         uniform shader imageShader;
         uniform float coefficient1;
@@ -89,7 +93,8 @@ bool GEGreyShaderFilter::InitGreyAdjustmentEffect()
 
         float calculateGreyAdjustY(float rgb) {
             float t_r = calculateT_y(rgb);
-            return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) : (rgb - coefficient2 * pow((1 - t_r), 3));
+            return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) :
+                (rgb - coefficient2 * pow((1 - t_r), 3));
         }
 
         half4 main(float2 coord) {
@@ -105,13 +110,10 @@ bool GEGreyShaderFilter::InitGreyAdjustmentEffect()
             return vec4(color, 1.0);
         }
     )");
-
+    g_greyAdjustEffect = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
     if (g_greyAdjustEffect == nullptr) {
-        g_greyAdjustEffect = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
-        if (g_greyAdjustEffect == nullptr) {
-            LOGE("GEGreyShaderFilter::InitGreyAdjustmentEffect blurEffect create failed");
-            return false;
-        }
+        LOGE("GEGreyShaderFilter::InitGreyAdjustmentEffect blurEffect create failed");
+        return false;
     }
 
     return true;
