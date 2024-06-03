@@ -125,7 +125,7 @@ public:
     scalar GetGreenF() const;
     scalar GetBlueF() const;
     scalar GetAlphaF() const;
-    Color4f GetColor4f();
+    const Color4f& GetColor4f();
     void SetRedF(scalar r);
     void SetGreenF(scalar g);
     void SetBlueF(scalar b);
