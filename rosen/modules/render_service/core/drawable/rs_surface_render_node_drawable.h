@@ -31,7 +31,7 @@ struct UIFirstParams {
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
+class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable, public RSSurfaceHandler {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
 
