@@ -175,6 +175,9 @@ template<typename T>
 
 [[maybe_unused]] inline bool Packet::Read(void* value, size_t size)
 {
+    if (!size) {
+        return false;
+    }
     if (readPointer_ + size > data_.size()) {
         return false;
     }
@@ -220,7 +223,10 @@ template<typename T>
 
 [[maybe_unused]] inline bool Packet::Write(const void* value, size_t size)
 {
-    size_t growSize = size - (data_.size() - writePointer_);
+    if (!size) {
+        return false;
+    }
+    const size_t growSize = size - (data_.size() - writePointer_);
     if (writePointer_ + size > data_.size()) {
         data_.resize(data_.size() + growSize);
     }
@@ -232,7 +238,6 @@ template<typename T>
     SetLength(data_.size());
     return true;
 }
-
 
 } // namespace OHOS::Rosen
 
