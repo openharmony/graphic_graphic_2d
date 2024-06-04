@@ -85,8 +85,9 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
 
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
+    SharedTextureContext* sharedContext = new SharedTextureContext(image);
     if (!sharedTexture->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
-        origin, bitmapFormat, nullptr)) {
+        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
     }
@@ -503,7 +504,7 @@ void RSCanvasDrawingRenderNode::ClearOp()
     drawCmdLists_.clear();
 }
 
-void RSCanvasDrawingRenderNode::ResetSurface()
+void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
 {
     std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (preThreadInfo_.second && surface_) {
@@ -512,6 +513,7 @@ void RSCanvasDrawingRenderNode::ResetSurface()
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
     stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
+    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height);
 }
 
 const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDrawingRenderNode::GetDrawCmdLists() const

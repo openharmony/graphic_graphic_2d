@@ -23,6 +23,7 @@
 
 #include "egl_core.h"
 
+namespace OHOS {
 class PluginRender {
 public:
     explicit PluginRender(std::string &id);
@@ -46,4 +47,5 @@ public:
     EGLCore *m_eglCore;
     std::string m_id;
 };
-#endif
+} // namespace OHOS
+#endif // PLUGIN_RENDER_H

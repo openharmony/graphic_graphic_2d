@@ -54,6 +54,12 @@ public:
 protected:
     std::function<void()> callback_;
 };
+
+class RSC_EXPORT InteractiveAnimatorFinishCallback : public AnimationCallback {
+public:
+    InteractiveAnimatorFinishCallback(std::function<void()> callback);
+    ~InteractiveAnimatorFinishCallback() override = default;
+};
 } // namespace Rosen
 } // namespace OHOS
 

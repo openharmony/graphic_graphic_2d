@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
+}
 HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
     : rsController_(rsController),
@@ -46,10 +49,40 @@ int32_t HgmVSyncGeneratorController::GetAppOffset(const uint32_t controllerRate)
     return static_cast<int32_t>(supportedMaxTE / controllerRate - supportedMaxTE / alignRate);
 }
 
-void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
-    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData)
+uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSyncTime, uint32_t lastRate)
 {
-    int32_t pulseNum = GetAppOffset(controllerRate);
+    if (lastRate == 0) {
+        HGM_LOGE("HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime illegal param");
+        return 0;
+    }
+    if (vsyncGenerator_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::vsyncGenerator is nullptr");
+        return 0;
+    }
+    uint32_t maxPluseNum = HgmCore::Instance().GetSupportedMaxTE() / lastRate;
+
+    auto pulse = vsyncGenerator_->GetVSyncPulse();
+    uint64_t targetTime = lastVSyncTime + pulse * TARGET_TIME_TRIGGER_PULSE_NUM;
+    uint64_t currTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count()) + pulse;
+    targetTime = targetTime > currTime ? targetTime : currTime;
+    uint64_t threshodTime = lastVSyncTime + pulse * (maxPluseNum - 1); // threshod value
+    if (targetTime > threshodTime) {
+        return 0;
+    }
+    return targetTime;
+}
+
+void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
+    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime, bool isNeedUpdateAppOffset)
+{
+    int pulseNum;
+    if (isNeedUpdateAppOffset) {
+        pulseNum = 0;
+    } else {
+        pulseNum = GetAppOffset(controllerRate);
+    }
 
     VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;
@@ -58,13 +91,17 @@ void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerR
         HGM_LOGI("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}d, appOffset = %{public}d",
             controllerRate, pulseNum);
         RS_TRACE_NAME("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate: " +
-            std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum));
+            std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum) +
+            ", nextVSyncTargetTime =" + std::to_string(targetTime));
         listenerPhase.cb = appController_;
         listenerPhase.phaseByPulseNum = pulseNum;
-        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate);
+        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, targetTime);
         currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum;
         currentRate_ = controllerRate;
     } else {
+        if (isNeedUpdateAppOffset) {
+            listenerPhase.phaseByPulseNum = pulseNum;
+        }
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate);
     }
 }

@@ -23,6 +23,10 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_shadow.h"
 #include "render/rs_skia_filter.h"
+#include "skia_adapter/skia_surface.h"
+#include "skia_image.h"
+#include "skia_image_info.h"
+#include "skia_runtime_effect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -118,8 +122,8 @@ HWTEST_F(RSPropertiesPainterTest, Clip001, TestSize.Level1)
 /**
  * @tc.name: GetShadowDirtyRect001
  * @tc.desc: test results of GetShadowDirtyRect
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
  */
 HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect001, TestSize.Level1)
 {
@@ -127,6 +131,28 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect001, TestSize.Level1)
     RSProperties properties;
     RRect rrect;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(!properties.IsShadowValid());
+
+    properties.shadow_ = std::make_optional<RSShadow>();
+    properties.shadow_->elevation_ = 1.f;
+    properties.shadow_->color_.alpha_ = 255;
+    properties.shadow_->radius_ = 1.f;
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
+
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, nullptr);
+    EXPECT_TRUE(properties.IsShadowValid());
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.GetClipBounds());
+
+    properties.shadow_->path_ = std::make_shared<RSPath>();
+    properties.shadow_->path_->drPath_ = new Drawing::Path();
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.GetShadowPath());
+    delete properties.shadow_->path_->drPath_;
+    properties.shadow_->path_->drPath_ = nullptr;
 }
 
 /**
@@ -349,6 +375,44 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadow008
+ * @tc.desc: test results of DrawShadow
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(!properties.IsShadowValid());
+
+    properties.shadow_ = std::make_optional<RSShadow>();
+    properties.shadow_->elevation_ = 1.f;
+    properties.shadow_->color_.alpha_ = 255;
+    properties.shadow_->radius_ = 1.f;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
+
+    RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
+    EXPECT_TRUE(properties.IsShadowValid());
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetClipBounds());
+
+    properties.shadow_->path_ = std::make_shared<RSPath>();
+    properties.shadow_->path_->drPath_ = new Drawing::Path();
+    properties.shadow_->imageMask_ = true;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowMask());
+    delete properties.shadow_->path_->drPath_;
+    properties.shadow_->path_->drPath_ = nullptr;
+}
+
+/**
  * @tc.name: DrawColorfulShadowInner001
  * @tc.desc: test results of DrawColorfulShadowInner
  * @tc.type:FUNC
@@ -390,9 +454,9 @@ HWTEST_F(RSPropertiesPainterTest, PickColor001, TestSize.Level1)
     Drawing::Path drPath;
     Drawing::Matrix matrix;
     Drawing::RectI deviceClipBounds;
-    RSColor color;
-    RSPropertiesPainter::PickColor(properties, drCanvas, drPath, matrix, deviceClipBounds, color);
-    EXPECT_TRUE(true);
+    RSColor colorPicked;
+    RSPropertiesPainter::PickColor(properties, drCanvas, drPath, matrix, deviceClipBounds, colorPicked);
+    EXPECT_TRUE(drCanvas.surface_ == nullptr);
 }
 
 /**
@@ -404,23 +468,23 @@ HWTEST_F(RSPropertiesPainterTest, PickColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawShadowInner001, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSProperties properties;
-    Drawing::Path drPath;
-    RSPropertiesPainter::DrawShadowInner(properties, drCanvas, drPath);
-    EXPECT_TRUE(true);
+    Drawing::Path path;
+    RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowElevation(1.0f);
-    RSPropertiesPainter::DrawShadowInner(properties, drCanvas, drPath);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowElevation(0.f);
-    RSPropertiesPainter::DrawShadowInner(properties, drCanvas, drPath);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowColorStrategy(2);
-    RSPropertiesPainter::DrawShadowInner(properties, drCanvas, drPath);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ != nullptr);
 }
 
 /**
@@ -452,6 +516,23 @@ HWTEST_F(RSPropertiesPainterTest, DrawGreyAdjustment001, TestSize.Level1)
     image = std::make_shared<Drawing::Image>();
     RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoeff);
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawContentLight001
+ * @tc.desc: test results of DrawContentLight
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawContentLight001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSProperties properties;
+    auto lightBuilder = RSPropertiesPainter::GetPhongShaderBuilder();
+    Drawing::Brush brush;
+    float lightIntensityArray[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f}; // for test
+    RSPropertiesPainter::DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityArray);
+    EXPECT_NE(lightBuilder, nullptr);
 }
 
 /**
@@ -500,10 +581,10 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawBackgroundImageAsEffect001, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSProperties properties;
-    RSPropertiesPainter::DrawBackgroundImageAsEffect(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawBackgroundImageAsEffect(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
 }
 
 /**
@@ -515,15 +596,21 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackgroundImageAsEffect001, TestSize.Level
 HWTEST_F(RSPropertiesPainterTest, DrawBackgroundEffect001, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSProperties properties;
-    RSPropertiesPainter::DrawBackgroundEffect(properties, drCanvas);
+    RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
     properties.SetBackgroundFilter(backgroundFilter);
-    RSPropertiesPainter::DrawBackgroundEffect(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
+    EXPECT_TRUE(backgroundFilter != nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
+    EXPECT_TRUE(surfacePtr != nullptr);
 }
 
 /**
@@ -581,12 +668,34 @@ HWTEST_F(RSPropertiesPainterTest, ApplyBackgroundEffect001, TestSize.Level1)
     RSPaintFilterCanvas drCanvas(&drawingCanvas);
     RSProperties properties;
     RSPropertiesPainter::ApplyBackgroundEffect(properties, drCanvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(drCanvas.GetEffectData() == nullptr);
 
     auto effectData = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     drCanvas.SetEffectData(effectData);
     RSPropertiesPainter::ApplyBackgroundEffect(properties, drCanvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(effectData != nullptr);
+
+    effectData->cachedImage_ = std::make_shared<Drawing::Image>();
+    RSPropertiesPainter::ApplyBackgroundEffect(properties, drCanvas);
+    EXPECT_TRUE(effectData->cachedImage_ != nullptr);
+}
+
+/**
+ * @tc.name: GetPixelStretchDirtyRect001
+ * @tc.desc: test results of GetPixelStretchDirtyRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect001, TestSize.Level1)
+{
+    RectI dirtyPixelStretch;
+    RSProperties properties;
+    RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
+    EXPECT_TRUE(!properties.needFilter_);
+
+    properties.pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
+    RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
+    EXPECT_TRUE(!properties.needFilter_);
 }
 
 /**
@@ -598,15 +707,20 @@ HWTEST_F(RSPropertiesPainterTest, ApplyBackgroundEffect001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawPixelStretch001, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSProperties properties;
-    RSPropertiesPainter::DrawPixelStretch(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawPixelStretch(properties, canvas);
+    EXPECT_TRUE(!properties.needFilter_);
 
-    Vector4f newSize = {1.f, 1.f, 1.f, 1.f};
-    std::optional<Vector4f> stretchSize = newSize;
-    RSPropertiesPainter::DrawPixelStretch(properties, drCanvas);
-    EXPECT_TRUE(true);
+    properties.pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
+    RSPropertiesPainter::DrawPixelStretch(properties, canvas);
+    EXPECT_TRUE(!properties.needFilter_);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawPixelStretch(properties, canvas);
+    EXPECT_TRUE(surfacePtr != nullptr);
 }
 
 /**
@@ -631,7 +745,7 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, GetAndResetBlurCnt001, TestSize.Level1)
 {
     int res = RSPropertiesPainter::GetAndResetBlurCnt();
-    EXPECT_NE(res, 1);
+    EXPECT_EQ(res, 1);
 }
 
 /**
@@ -724,17 +838,26 @@ HWTEST_F(RSPropertiesPainterTest, DrawLight001, TestSize.Level1)
     Drawing::Canvas canvas;
     properties.SetIlluminatedType(-1);
     RSPropertiesPainter::DrawLight(properties, canvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(properties.illuminatedPtr_ != nullptr);
 
+    auto lightSource = std::make_shared<RSLightSource>();
+    Vector4f color(1.0f, 1.0f, 1.0f, 1.0f);
+    properties.illuminatedPtr_->lightSourcesAndPosMap_.insert(std::make_pair(lightSource, color));
     auto lightSourcePtr = std::make_shared<RSLightSource>();
-    RSIlluminated rsIlluminated;
-    Vector4f lightPos;
-    rsIlluminated.AddLightSourcesAndPos(lightSourcePtr, lightPos);
     RSPropertiesPainter::DrawLight(properties, canvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!properties.illuminatedPtr_->lightSourcesAndPosMap_.empty());
 
+    properties.boundsGeo_->width_ = 1;
+    properties.boundsGeo_->height_ = 1;
     RSPropertiesPainter::DrawLight(properties, canvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(properties.illuminatedPtr_ != nullptr);
+
+    for (size_t i = 0; i < 12; ++i) {
+        properties.illuminatedPtr_->lightSourcesAndPosMap_.insert(
+            std::make_pair(std::make_shared<RSLightSource>(), color));
+    }
+    RSPropertiesPainter::DrawLight(properties, canvas);
+    EXPECT_TRUE(properties.illuminatedPtr_->lightSourcesAndPosMap_.size() >= 12);
 }
 
 /**
@@ -749,7 +872,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightInner001, TestSize.Level1)
     RSProperties properties;
     properties.SetIlluminatedType(-1);
     auto lightBuilder = RSPropertiesPainter::GetPhongShaderBuilder();
-    std::shared_ptr<RSLightSource> newLightSource = std::make_shared<RSLightSource>();
+    auto newLightSource = std::make_shared<RSLightSource>();
     std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> lightSourcesAndPosVec;
     std::shared_ptr<RSObjAbsGeometry> geoPtr;
     Vector4f lightPos = {1.f, 1.f, 1.f, 1.f}; // for test
@@ -757,20 +880,16 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightInner001, TestSize.Level1)
     RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
     EXPECT_EQ(geoPtr, nullptr);
 
-    properties.SetIlluminatedBorderWidth(0.f);
-    IlluminatedType illuminatedType = IlluminatedType::CONTENT;
-    RSIlluminated rsIlluminated;
-    rsIlluminated.SetIlluminatedType(illuminatedType);
+    properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::CONTENT;
     RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
-    EXPECT_NE(newLightSource, nullptr);
+    EXPECT_NE(properties.illuminatedPtr_, nullptr);
 
-    illuminatedType = IlluminatedType::BORDER;
-    rsIlluminated.SetIlluminatedType(illuminatedType);
+    properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
     RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
     EXPECT_EQ(lightSourcesAndPosVec.empty(), false);
 
-    illuminatedType = IlluminatedType::BORDER_CONTENT;
-    rsIlluminated.SetIlluminatedType(illuminatedType);
+    properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
     EXPECT_NE(lightSourcesAndPosVec.empty(), true);
 }
@@ -785,10 +904,32 @@ HWTEST_F(RSPropertiesPainterTest, DrawBorderBase001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas canvas;
-    auto border = std::make_shared<RSBorder>();
-    bool isOutline = false;
+    std::shared_ptr<RSBorder> border = nullptr;
+    bool isOutline = true;
     RSPropertiesPainter::DrawBorderBase(properties, canvas, border, isOutline);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(isOutline);
+
+    border = std::make_shared<RSBorder>();
+    Color color(1, 1, 1, 1);
+    border->colors_.push_back(color);
+    border->widths_.push_back(0.001f);
+    BorderStyle style = BorderStyle::DASHED;
+    border->styles_.push_back(style);
+    RSPropertiesPainter::DrawBorderBase(properties, canvas, border, isOutline);
+    EXPECT_TRUE(border != nullptr);
+
+    border->radius_.SetValues(1.f, 1.f, 1.f, 1.f);
+    RSPropertiesPainter::DrawBorderBase(properties, canvas, border, isOutline);
+    EXPECT_TRUE(border != nullptr);
+
+    border->styles_[0] = BorderStyle::SOLID;
+    RSPropertiesPainter::DrawBorderBase(properties, canvas, border, isOutline);
+    EXPECT_TRUE(border->styles_.size() == 1);
+
+    border->styles_[0] = BorderStyle::DASHED;
+    border->colors_.clear();
+    RSPropertiesPainter::DrawBorderBase(properties, canvas, border, isOutline);
+    EXPECT_TRUE(border->colors_.size() == 0);
 }
 
 /**
@@ -803,12 +944,16 @@ HWTEST_F(RSPropertiesPainterTest, GetOutlineDirtyRect001, TestSize.Level1)
     RectI dirtyOutline;
     bool isAbsCoordinate = true;
     RSPropertiesPainter::GetOutlineDirtyRect(dirtyOutline, properties, isAbsCoordinate);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(properties.outline_ == nullptr);
 
-    Vector4f radius = {0, 0, 0, 0};
-    properties.SetOutlineRadius(radius);
+    properties.outline_ = std::make_shared<RSBorder>();
+    Color color(1, 1, 1, 1);
+    properties.outline_->colors_.push_back(color);
+    properties.outline_->widths_.push_back(0.001f);
+    BorderStyle style = BorderStyle::DASHED;
+    properties.outline_->styles_.push_back(style);
     RSPropertiesPainter::GetOutlineDirtyRect(dirtyOutline, properties, isAbsCoordinate);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(properties.outline_ != nullptr);
 }
 
 /**
@@ -821,10 +966,17 @@ HWTEST_F(RSPropertiesPainterTest, DrawOutline001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas canvas;
-    Vector4f radius = {0, 0, 0, 0};
-    properties.SetOutlineRadius(radius);
     RSPropertiesPainter::DrawOutline(properties, canvas);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(properties.outline_ == nullptr);
+
+    properties.outline_ = std::make_shared<RSBorder>();
+    Color color(1, 1, 1, 1);
+    properties.outline_->colors_.push_back(color);
+    properties.outline_->widths_.push_back(0.001f);
+    BorderStyle style = BorderStyle::DASHED;
+    properties.outline_->styles_.push_back(style);
+    RSPropertiesPainter::DrawOutline(properties, canvas);
+    EXPECT_TRUE(properties.outline_ != nullptr);
 }
 
 /**
@@ -837,17 +989,14 @@ HWTEST_F(RSPropertiesPainterTest, DrawSpherize001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<Drawing::Surface> spherizeSurface;
-    RSPropertiesPainter::DrawSpherize(properties, drCanvas, spherizeSurface);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawSpherize(properties, canvas, spherizeSurface);
+    EXPECT_TRUE(spherizeSurface == nullptr);
 
     spherizeSurface = std::make_shared<Drawing::Surface>();
-    RSPropertiesPainter::DrawSpherize(properties, drCanvas, spherizeSurface);
-    EXPECT_TRUE(true);
-
-    RSPropertiesPainter::DrawSpherize(properties, drCanvas, spherizeSurface);
-    EXPECT_TRUE(true);
+    RSPropertiesPainter::DrawSpherize(properties, canvas, spherizeSurface);
+    EXPECT_TRUE(spherizeSurface != nullptr);
 }
 
 /**
@@ -860,9 +1009,19 @@ HWTEST_F(RSPropertiesPainterTest, DrawColorFilter001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSPropertiesPainter::DrawColorFilter(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSPropertiesPainter::DrawColorFilter(properties, canvas);
+    EXPECT_TRUE(properties.colorFilter_ == nullptr);
+
+    properties.colorFilter_ = std::make_shared<Drawing::ColorFilter>();
+    RSPropertiesPainter::DrawColorFilter(properties, canvas);
+    EXPECT_TRUE(properties.colorFilter_ != nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawColorFilter(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() != nullptr);
 }
 
 /**
@@ -875,9 +1034,15 @@ HWTEST_F(RSPropertiesPainterTest, DrawBinarizationShader001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSPropertiesPainter::DrawBinarizationShader(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSPropertiesPainter::DrawBinarizationShader(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawBinarizationShader(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() != nullptr);
 }
 
 /**
@@ -906,9 +1071,44 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightUpEffect001, TestSize.Level1)
 {
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSPropertiesPainter::DrawLightUpEffect(properties, drCanvas);
-    EXPECT_TRUE(true);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSPropertiesPainter::DrawLightUpEffect(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawLightUpEffect(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() != nullptr);
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    RSPropertiesPainter::DrawLightUpEffect(properties, canvas);
+    EXPECT_TRUE(properties.clipPath_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawDynamicDim001
+ * @tc.desc: test results of DrawDynamicDim
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicDim001, TestSize.Level1)
+{
+    RSProperties properties;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSPropertiesPainter::DrawDynamicDim(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawDynamicDim(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() != nullptr);
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    RSPropertiesPainter::DrawDynamicDim(properties, canvas);
+    EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
 /**
@@ -1004,7 +1204,39 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackground001, TestSize.Level1)
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSPropertiesPainter::DrawBackground(properties, canvas);
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->backgroundColor_ = Color(1, 1, 1, 1);
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    properties.decoration_->bgShader_ = std::make_shared<RSShader>();
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    properties.decoration_->bgImage_ = std::make_shared<RSImage>();
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    RRect rect;
+    properties.clipRRect_ = rect;
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    properties.clipToBounds_ = true;
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    Vector4f vectorVal(1.f, 1.f, 1.f, 1.f);
+    properties.cornerRadius_ = vectorVal;
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    properties.clipPath_->drPath_ = new Drawing::Path();
+    RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
+    EXPECT_TRUE(!properties.contentDirty_);
+    delete properties.clipPath_->drPath_;
+    properties.clipPath_->drPath_ = nullptr;
 }
 
 /**
@@ -1018,10 +1250,15 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame001, TestSize.Level1)
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    int32_t w;
-    int32_t h;
-    auto cmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    std::shared_ptr<Drawing::DrawCmdList> cmds = nullptr;
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
+    EXPECT_TRUE(!properties.contentDirty_);
+
+    int32_t w = 0;
+    int32_t h = 0;
+    cmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
+    EXPECT_TRUE(cmds != nullptr);
 }
 
 /**
@@ -1053,8 +1290,18 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawBorder001, TestSize.Level1)
 {
     RSProperties properties;
-    Drawing::Canvas drawingCanvas;
-    RSPropertiesPainter::DrawBorder(properties, drawingCanvas);
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    EXPECT_TRUE(properties.border_ == nullptr);
+
+    properties.border_ = std::make_shared<RSBorder>();
+    Color color(1, 1, 1, 1);
+    properties.border_->colors_.push_back(color);
+    properties.border_->widths_.push_back(0.001f);
+    BorderStyle style = BorderStyle::DASHED;
+    properties.border_->styles_.push_back(style);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    EXPECT_TRUE(properties.border_ != nullptr);
 }
 
 /**
@@ -1068,6 +1315,22 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor001, TestSize.Level1)
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(!properties.clipToBounds_);
+
+    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_->foregroundColor_ = Color(1, 1, 1, 1);
+    RRect rect;
+    properties.clipRRect_ = rect;
+    RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(!properties.clipToBounds_);
+
+    properties.clipToBounds_ = true;
+    RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(properties.clipToBounds_);
+
+    properties.clipPath_ = std::make_shared<RSPath>();
+    RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
 /**
@@ -1114,9 +1377,32 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask001, TestSize.Level1)
     RSProperties properties;
     int32_t w = 1;
     int32_t h = 1;
-    Drawing::Canvas drawingCanvas;
+    Drawing::Canvas canvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
-    RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ == nullptr);
+
+    properties.mask_ = std::make_shared<RSMask>();
+    properties.mask_->type_ = MaskType::PIXEL_MAP;
+    properties.mask_->image_ = std::make_shared<Drawing::Image>();
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
+
+    properties.mask_->type_ = MaskType::PATH;
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
+
+    properties.mask_->type_ = MaskType::GRADIENT;
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
+
+    properties.mask_->type_ = MaskType::SVG;
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
+
+    properties.mask_->svgPicture_ = std::make_shared<Drawing::Picture>();
+    RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
+    EXPECT_TRUE(properties.mask_->svgPicture_ != nullptr);
 }
 
 /**
@@ -1191,6 +1477,38 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp001, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() != nullptr);
+}
+
+/**
+ * @tc.name: DrawForegroundFilter003
+ * @tc.desc: test results of DrawForegroundFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter003, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+    EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
+
+    properties.foregroundFilter_ = std::make_shared<RSFilter>();
+    RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+    EXPECT_TRUE(properties.foregroundFilter_ != nullptr);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+    canvas.surface_ = surfacePtr.get();
+    RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+    EXPECT_TRUE(surfacePtr != nullptr);
 }
 
 /**

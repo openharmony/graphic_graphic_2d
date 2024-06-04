@@ -51,6 +51,8 @@ if (enable_text_gine) {
       deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
 
+    external_deps = [ "hilog:libhilog" ]
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -78,6 +80,7 @@ if (enable_text_gine) {
     include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/texgine/convert.cpp",
@@ -116,6 +119,7 @@ if (enable_text_gine) {
     }
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/txt/convert.cpp",
@@ -144,7 +148,10 @@ if (enable_text_gine) {
 
   ohos_source_set("rosen_text_skia") {
     public_configs = [ ":rosen_text_public_config" ]
-    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+
+    if (!is_arkui_x) {
+      public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+    }
 
     include_dirs = [
       "$rosen_root/modules/render_service_base/include",
@@ -159,6 +166,7 @@ if (enable_text_gine) {
     cflags = [ "-std=c++17" ]
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/skia_txt/convert.cpp",

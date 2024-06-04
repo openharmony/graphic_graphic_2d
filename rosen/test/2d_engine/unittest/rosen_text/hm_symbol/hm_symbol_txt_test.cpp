@@ -94,6 +94,21 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest004, TestSize.Level1)
     symbol.SetRenderColor(colors);
     auto colors1 = symbol.GetRenderColor();
     EXPECT_EQ(colors1.size(), 3); // this 3 is the size of RenderColor
+
+    symbol.SetRenderColor(color1);
+    auto colors2 = symbol.GetRenderColor();
+    EXPECT_EQ(colors2.size(), 1); // this 1 is the size of RenderColor
+
+    RSSColor color4 = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color5 = {1.0, 0, 0, 0}; // the 1.0 is alpha, 0, 0, 0 is RGB
+    std::vector<RSSColor> rsscolors = {color4, color5};
+    symbol.SetRenderColor(rsscolors);
+    auto colors3 = symbol.GetRenderColor();
+    EXPECT_EQ(colors3.size(), 2); // this 2 is the size of RenderColor
+
+    symbol.SetRenderColor(color4);
+    auto colors4 = symbol.GetRenderColor();
+    EXPECT_EQ(colors4.size(), 1); // this 1 is the size of RenderColor
 }
 
 /*
@@ -106,6 +121,10 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest005, TestSize.Level1)
     TextStyle style;
     style.isSymbolGlyph = true;
     SPText::TextStyle textStyle;
+    style.symbol.SetSymbolEffect(100); // this 100 is wrong value
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::NONE);
+
     style.symbol.SetSymbolEffect(0); // this 0 is NONE animation
     textStyle = AdapterTxt::Convert(style);
     EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::NONE);
@@ -278,9 +297,9 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest011, TestSize.Level1)
     EXPECT_EQ(symbolTxt == symbolTxt1, false);
 
     symbolTxt.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
-    symbolTxt1.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);
+    symbolTxt1.SetSymbolEffect(Drawing::DrawingEffectStrategy::APPEAR);
     symbolTxt.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
-    symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
+    symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
     EXPECT_EQ(symbolTxt == symbolTxt1, false);
 
     symbolTxt.SetSymbolEffect(Drawing::DrawingEffectStrategy::SCALE);

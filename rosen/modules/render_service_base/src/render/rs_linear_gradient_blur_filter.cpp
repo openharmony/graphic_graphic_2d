@@ -468,6 +468,9 @@ std::string RSLinearGradientBlurFilter::GetDescription()
 
 std::string RSLinearGradientBlurFilter::GetDetailedDescription()
 {
+    if (linearGradientBlurPara_ == nullptr) {
+        return "linearGradientBlurPara is nullptr";
+    }
     return "RSLinearGradientBlurFilterBlur, radius: " + std::to_string(linearGradientBlurPara_->blurRadius_);
 }
 } // namespace Rosen

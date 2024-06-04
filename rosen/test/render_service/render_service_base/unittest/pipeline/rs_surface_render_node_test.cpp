@@ -822,7 +822,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo001, TestSize.Level2)
     node->SetChildHasVisibleFilter(true);
     node->RSRenderNode::StoreMustRenewedInfo();
     node->StoreMustRenewedInfo();
-    ASSERT_FALSE(node->HasMustRenewedInfo());
+    ASSERT_TRUE(node->HasMustRenewedInfo());
 }
 
 /**
@@ -836,7 +836,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo002, TestSize.Level2)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->InitRenderParams();
     node->SetChildHasVisibleEffect(true);
     node->RSRenderNode::StoreMustRenewedInfo();
     node->StoreMustRenewedInfo();
@@ -1015,7 +1015,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
     auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(node, nullptr);
     ASSERT_NE(childNode, nullptr);
-
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     if (RSUniRenderJudgement::IsUniRender()) {
         node->InitRenderParams();
         childNode->InitRenderParams();
@@ -1039,6 +1039,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
     ASSERT_NE(node, nullptr);
     ASSERT_NE(childNode, nullptr);
 
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     if (RSUniRenderJudgement::IsUniRender()) {
         node->InitRenderParams();
         childNode->InitRenderParams();
@@ -1061,6 +1062,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation001, TestSize.Le
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
+    node->InitRenderParams();
     node->SetForceHardwareAndFixRotation(true);
     ASSERT_EQ(node->isForceHardwareByUser_, true);
 }
@@ -1076,6 +1078,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation002, TestSize.Le
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
+    node->InitRenderParams();
     node->SetForceHardwareAndFixRotation(false);
     ASSERT_EQ(node->isForceHardwareByUser_, false);
 }
@@ -1477,7 +1480,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceDefaultSize, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, NeedClearBufferCache, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    testNode->InitRenderParams();
     testNode->addedToPendingSyncList_ = true;
     testNode->NeedClearBufferCache();
     EXPECT_FALSE(testNode->isSkipLayer_);
@@ -1843,7 +1846,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
 HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStaticFlag, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->InitRenderParams();
     node->addedToPendingSyncList_ = true;
     node->UpdateSurfaceCacheContentStaticFlag();
 
@@ -2013,8 +2016,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceContainerRegion, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, OnSync, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->InitRenderParams();
     surfaceNode->OnSync();
-    ASSERT_EQ(surfaceNode->stagingRenderParams_, nullptr);
+    ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
 }
 
 /**
@@ -2300,7 +2304,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetOcclusionVisible, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool visible = true;
     node->SetOcclusionVisible(visible);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->InitRenderParams();
     node->addedToPendingSyncList_ = true;
     node->SetOcclusionVisible(visible);
     ASSERT_TRUE(node->isOcclusionVisible_);
@@ -2457,7 +2461,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
     bool hasContainer = true;
     float density = 1.0f;
     node->containerConfig_.Update(hasContainer, density);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->InitRenderParams();
     node->addedToPendingSyncList_ = true;
     node->isHardwareForcedDisabled_ = true;
     node->UpdateHardwareDisabledState(true);
@@ -2720,6 +2724,42 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetDoDirectComposition001, TestSize.Level2)
 
     node->SetDoDirectComposition(true);
     ASSERT_EQ(node->GetDoDirectComposition(), true);
+}
+
+/**
+ * @tc.name: SetSkipDraw001
+ * @tc.desc: Test function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSkipDraw001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSkipDraw(true);
+    ASSERT_TRUE(node->GetSkipDraw());
+
+    node->SetSkipDraw(false);
+    ASSERT_FALSE(node->GetSkipDraw());
+}
+
+/**
+ * @tc.name: SetSkipDraw001
+ * @tc.desc: Test function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetSkipDraw001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->GetSkipDraw());
 }
 } // namespace Rosen
 } // namespace OHOS

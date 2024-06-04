@@ -18,13 +18,13 @@
 #include <hilog/log.h>
 #include <iostream>
 
-#include "background_color_effect_para.h"
-#include "blender.h"
-#include "brightness_blender.h"
+#include "effect/include/background_color_effect_para.h"
+#include "effect/include/blender.h"
+#include "effect/include/brightness_blender.h"
+#include "effect/include/visual_effect.h"
+#include "effect/include/visual_effect_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "visual_effect.h"
-#include "visual_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,7 +52,7 @@ private:
     static napi_value CreateEffect(napi_env env, napi_callback_info info);
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value SetbackgroundColorBlender(napi_env env, napi_callback_info info);
-    static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender& primaries);
+    static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, std::shared_ptr<BrightnessBlender> blender);
 
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };

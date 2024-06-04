@@ -2716,13 +2716,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest101, TestSize.Level
     OH_Drawing_FontStyleStruct normalStyle;
     normalStyle.weight = FONT_WEIGHT_900;
     normalStyle.width = FONT_WIDTH_ULTRA_EXPANDED;
-    normalStyle.slant = FONT_STYLE_OBLIQUE;
+    normalStyle.slant = FONT_STYLE_ITALIC;
     OH_Drawing_SetTypographyStyleFontStyleStruct(typoStyle, normalStyle);
 
     OH_Drawing_FontStyleStruct style = OH_Drawing_TypographyStyleGetFontStyleStruct(typoStyle);
     EXPECT_EQ(style.weight, FONT_WEIGHT_900);
     EXPECT_EQ(style.width, FONT_WIDTH_ULTRA_EXPANDED);
-    EXPECT_EQ(style.slant, FONT_STYLE_OBLIQUE);
+    EXPECT_EQ(style.slant, FONT_STYLE_ITALIC);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 

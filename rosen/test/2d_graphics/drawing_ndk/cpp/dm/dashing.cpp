@@ -267,6 +267,7 @@ void Dashing4::DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen)
         }
 
         {
+            Dashings dashings;
             OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
             dashings.finalX = 584.0;                   // 584.0 坐标
             dashings.phase = 5.0;                      // 5.0 坐标

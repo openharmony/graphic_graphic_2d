@@ -257,7 +257,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     consumerListener_ = listener;
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(5); // 5 Buffer rotation
+    surface->SetQueueSize(4); // 4 Buffer rotation
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
@@ -273,7 +273,7 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
     if (skipFrameInterval == 0) {
         return false;
     }
-    if ((frameCount_ - 1) % skipFrameInterval == 0) {
+    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
         return false;
     }
     return true;

@@ -36,6 +36,7 @@ public:
         int64_t uniqueId = 0;
         int32_t appPid = -1;
         std::string sceneId;
+        std::set<NodeId> disableNodes;
     };
 
     void AddProcessDoneNode(NodeId id);
@@ -69,8 +70,6 @@ public:
     bool CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node);
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
-
-    static bool IsUifirstNode(RSSurfaceRenderNode& node, bool animation);
     
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
@@ -101,6 +100,25 @@ public:
 
     void AddCapturedNodes(NodeId id);
 
+    void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
+    {
+        if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
+            return;
+        }
+        collectedCardNodes_.insert(id);
+    }
+
+    void RemoveCardNodes(NodeId id)
+    {
+        if (!collectedCardNodes_.count(id)) {
+            return;
+        }
+        collectedCardNodes_.erase(id);
+    }
+
+    void PostReleaseCacheSurfaceSubTasks();
+    void PostReleaseCacheSurfaceSubTask(NodeId id);
+
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -124,6 +142,7 @@ private:
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
+    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -131,11 +150,14 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
+    void SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+    static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
+    void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
@@ -162,6 +184,7 @@ private:
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
+    std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     int noUifirstNodeFrameCount_ = 0;
     bool hasDoneNode_ = false;

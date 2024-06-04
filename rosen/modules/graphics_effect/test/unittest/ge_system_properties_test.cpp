@@ -57,7 +57,7 @@ HWTEST_F(GESystemPropertiesTest, GetEventProperty001, TestSize.Level1)
  */
 HWTEST_F(GESystemPropertiesTest, GetEventProperty002, TestSize.Level1)
 {
-    EXPECT_EQ(GESystemProperties::GetEventProperty("const.gpu.vender"), "higpu.v200");
+    EXPECT_EQ(GESystemProperties::GetEventProperty("const.telephony.satellite.supported"), "1");
 }
 
 /**

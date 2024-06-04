@@ -220,6 +220,12 @@ int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &k
     return device_->GetSupportedMetaDataKey(screenId_, keys);
 }
 
+int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uint32_t type)
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->SetScreenConstraint(screenId_, frameId, timestamp, type);
+}
+
 void HdiScreen::Destroy()
 {
 }

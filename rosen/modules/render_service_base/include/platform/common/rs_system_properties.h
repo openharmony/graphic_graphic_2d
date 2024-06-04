@@ -192,6 +192,7 @@ public:
 
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
+    static bool GetPurgeBetweenFramesEnabled();
 
     static bool GetAnimationCacheEnabled();
 
@@ -233,6 +234,7 @@ public:
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
+    static bool GetSkipDisplayIfScreenOffEnabled();
 
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();

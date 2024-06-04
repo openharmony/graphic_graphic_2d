@@ -76,7 +76,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     file.AddLayer();
 
     std::string dataFirstFrame;
-    uint32_t sizeDataFirstFrame = 0;
+    size_t sizeDataFirstFrame = 0;
     stream.read(reinterpret_cast<char*>(&sizeDataFirstFrame), sizeof(sizeDataFirstFrame));
     dataFirstFrame.resize(sizeDataFirstFrame);
     stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);

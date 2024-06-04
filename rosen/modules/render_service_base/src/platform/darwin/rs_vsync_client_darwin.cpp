@@ -69,7 +69,7 @@ void RSVsyncClientDarwin::VsyncThreadMain()
                 vsyncCallbackTmp = vsyncCallback_;
             }
             if (vsyncCallbackTmp) {
-                vsyncCallbackTmp(now);
+                vsyncCallbackTmp(now, 0);
             }
         }
     }

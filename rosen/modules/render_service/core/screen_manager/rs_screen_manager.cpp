@@ -88,6 +88,10 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
+    if (composer_->RegScreenVBlankIdleCallback(&RSScreenManager::OnScreenVBlankIdle, this) != 0) {
+        RS_LOGW("RSScreenManager %{public}s: Not support register OnScreenVBlankIdle Func to composer.", __func__);
+    }
+
     // call ProcessScreenHotPlugEvents() for primary screen immediately in main thread.
     ProcessScreenHotPlugEvents();
 
@@ -355,6 +359,29 @@ void RSScreenManager::OnHwcDeadEvent()
     defaultScreenId_ = INVALID_SCREEN_ID;
 }
 
+void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
+{
+    RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %{public}s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+    screenManager->OnScreenVBlankIdleEvent(devId, ns);
+}
+
+void RSScreenManager::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    ScreenId screenId = ToScreenId(devId);
+    if (screens_.count(screenId) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, screenId);
+        return;
+    }
+    RSHardwareThread::Instance().PostTask([screenId, ns]() {
+        RSHardwareThread::Instance().OnScreenVBlankIdleCallback(screenId, ns);
+    });
+}
+
 void RSScreenManager::CleanAndReinit()
 {
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
@@ -396,8 +423,7 @@ void RSScreenManager::CleanAndReinit()
 bool RSScreenManager::TrySimpleProcessHotPlugEvents()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (pendingHotPlugEvents_.empty() && connectedIds_.empty()) {
-        isHwcDead_ = false;
+    if (!isHwcDead_ && pendingHotPlugEvents_.empty() && connectedIds_.empty()) {
         mipiCheckInFirstHotPlugEvent_ = true;
         return true;
     }
@@ -424,6 +450,10 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
             }
             if (screens_.count(id) != 0 && screenBacklight_.count(id) != 0 &&
                 (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON)) {
+                if (screens_[id] == nullptr) {
+                    RS_LOGW("ProcessScreenHotPlugEvents:screen %{public}" PRIu64 " not found", id);
+                    continue;
+                }
                 screens_[id]->SetScreenBacklight(screenBacklight_[id]);
                 auto mainThread = RSMainThread::Instance();
                 mainThread->PostTask([mainThread]() {
@@ -454,6 +484,10 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
     }
 
     int32_t initModeId = 0;
+    if (screens_[thisId] == nullptr) {
+        RS_LOGW("AddScreenToHgm:screen %{public}" PRIu64 " not found", thisId);
+        return;
+    }
     auto initMode = screens_[thisId]->GetActiveMode();
     if (!initMode) {
         RS_LOGE("RSScreenManager failed to get initial mode");
@@ -604,6 +638,10 @@ void RSScreenManager::HandleDefaultScreenDisConnectedLocked()
 {
     defaultScreenId_ = INVALID_SCREEN_ID;
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("HandleDefaultScreenDisConnectedLocked:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (!screen->IsVirtual()) {
             defaultScreenId_ = id;
             break;
@@ -826,6 +864,27 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     return newId;
 }
 
+void RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId> blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.find(id) == screens_.end() || screens_[id] == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return;
+    }
+    std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
+    screens_.at(id)->SetBlackList(screenBlackList);
+}
+
+std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.find(id) == screens_.end() || screens_[id] == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+    return screens_.at(id)->GetBlackList();
+}
+
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -834,6 +893,10 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     }
     uint64_t surfaceId = surface->GetUniqueId();
     for (auto &[screenId, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("SetVirtualScreenSurface:screen %{public}" PRIu64 " not found", screenId);
+            continue;
+        }
         if (!screen->IsVirtual() || screenId == id) {
             continue;
         }
@@ -872,6 +935,10 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
 
     // Update other screens' mirrorId.
     for (auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("RemoveVirtualScreenLocked:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (screen->MirrorId() == id) {
             screen->SetMirror(INVALID_SCREEN_ID);
         }
@@ -1172,11 +1239,15 @@ std::shared_ptr<HdiOutput> RSScreenManager::GetOutput(ScreenId id) const
     std::lock_guard<std::mutex> lock(mutex_);
 
     // assert screens_.count(id) == 1
-    if (screens_.count(id) == 0) {
+    if (screens_.count(id) == 0 || !screens_.at(id)) {
         RS_LOGW("RSScreenManager::GetOutput: There is no screen for id %{public}" PRIu64 ".", id);
         return nullptr;
     }
-    return screens_.at(id)->GetOutput();
+    auto iter = screens_.find(id);
+    if (iter != screens_.end() && iter->second != nullptr) {
+        return iter->second->GetOutput();
+    }
+    return nullptr;
 }
 
 int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback)
@@ -1190,6 +1261,10 @@ int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallb
     // when the callback first registered, maybe there were some physical screens already connected,
     // so notify to remote immediately.
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("AddScreenChangeCallback:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         if (!screen->IsVirtual()) {
             callback->OnScreenChanged(id, ScreenEvent::CONNECTED);
         }
@@ -1254,6 +1329,10 @@ void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
     int32_t index = 0;
     dumpString += "\n-- Clear fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("ClearFpsDump:screen %{public}" PRIu64 " not found", id);
+            continue;
+        }
         screen->ClearFpsDump(index, dumpString, arg);
         index++;
     }
@@ -1272,6 +1351,21 @@ void RSScreenManager::ClearFrameBufferIfNeed()
             }
         }
     });
+}
+
+int32_t RSScreenManager::SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type)
+{
+    frameId_++;
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    if (!screens_.at(id)) {
+        RS_LOGW("RSScreenManager %{public}s: screen is nullptr for id %{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RS_TRACE_NAME_FMT("SetScreenConstraint frameId:%lu timestamp:%lu type:%d", frameId_, timestamp, type);
+    return screens_.at(id)->SetScreenConstraint(frameId_, timestamp, type);
 }
 
 void RSScreenManager::HitchsDump(std::string& dumpString, std::string& arg)
@@ -1603,6 +1697,30 @@ int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceTy
     return SetScreenColorSpaceLocked(id, colorSpace);
 }
 
+void RSScreenManager::MarkPowerOffNeedProcessOneFrame()
+{
+    powerOffNeedProcessOneFrame_ = true;
+}
+
+void RSScreenManager::ResetPowerOffNeedProcessOneFrame()
+{
+    powerOffNeedProcessOneFrame_ = false;
+}
+
+bool RSScreenManager::GetPowerOffNeedProcessOneFrame() const
+{
+    return powerOffNeedProcessOneFrame_;
+}
+
+bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenPowerStatus_.count(id) == 0) {
+        return false;
+    }
+    return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

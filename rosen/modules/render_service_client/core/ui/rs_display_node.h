@@ -36,6 +36,8 @@ public:
     void ClearChildren() override;
 
     static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
+    void AddDisplayNodeToTree();
+    void RemoveDisplayNodeFromTree();
 
     bool Marshalling(Parcel& parcel) const;
     static SharedPtr Unmarshalling(Parcel& parcel);

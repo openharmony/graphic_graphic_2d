@@ -74,6 +74,8 @@ public:
         RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
+    bool CreateUIFirstLayerInfo(
+        RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
     bool IsLoadSuccess() const;
 private:
     RSUniHwcPrevalidateUtil();

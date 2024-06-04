@@ -389,6 +389,18 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     drawCmdListVector_.clear();
     curDirtyManager_ = node.GetDirtyManager();
+    const auto& property = node.GetRenderProperties();
+    const float bufferWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
+    const float bufferHeight = node.GetSuggestedBufferHeight() * property.GetScaleY();
+    // node's surface size already check, so here we do not need to check return
+    // attention: currently surfaceW/H are float values transformed into int implicitly
+    (void)curDirtyManager_->SetSurfaceSize(bufferWidth, bufferHeight);
+    // keep non-negative rect region within surface
+    curDirtyManager_->ClipDirtyRectWithinSurface();
+    if (isOpDropped_ && !isRenderForced_ && curDirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+        RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessRootRenderNode quick skip");
+        return;
+    }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
 #ifdef NEW_RENDER_CONTEXT
@@ -436,9 +448,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseStart);
 #endif
 
-    const auto& property = node.GetRenderProperties();
-    const float bufferWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
-    const float bufferHeight = node.GetSuggestedBufferHeight() * property.GetScaleY();
 #ifdef ROSEN_OHOS
     auto surfaceFrame = rsSurface->RequestFrame(bufferWidth, bufferHeight, uiTimestamp_);
 #else
@@ -494,12 +503,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     canvas_->Save();
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
-
-    // node's surface size already check, so here we do not need to check return
-    // attention: currently surfaceW/H are float values transformed into int implicitly
-    (void)curDirtyManager_->SetSurfaceSize(bufferWidth, bufferHeight);
-    // keep non-negative rect region within surface
-    curDirtyManager_->ClipDirtyRectWithinSurface();
     // reset matrix
     const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
     const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
@@ -507,9 +510,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     (void)RSPropertiesPainter::GetGravityMatrix(
         Gravity::RESIZE, RectF { 0.0f, 0.0f, bufferWidth, bufferHeight }, rootWidth, rootHeight, gravityMatrix);
 
-    if (isRenderForced_ ||
-        curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth() == 0 ||
-        curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight() == 0 ||
+    auto width = curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth();
+    auto height = curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight();
+    if (isRenderForced_ || (width != height && (width == 0 || height == 0)) ||
         !(gravityMatrix == Drawing::Matrix())) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }

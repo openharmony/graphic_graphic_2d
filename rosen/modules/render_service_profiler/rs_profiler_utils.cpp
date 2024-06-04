@@ -452,7 +452,7 @@ size_t Utils::FileSize(FILE* file)
         return 0;
     }
     FileSeek(file, 0, SEEK_END);
-    const size_t size = ftell(file);
+    const ssize_t size = ftell(file);
     FileSeek(file, position, SEEK_SET);
     return static_cast<size_t>(size);
 }

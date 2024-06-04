@@ -103,6 +103,34 @@ HWTEST_F(SkiaRuntimeEffectTest, MakeShader001, TestSize.Level1)
     Matrix matrix;
     skiaRuntimeShaderBuilder.MakeShader(&matrix, false);
 }
+
+/**
+ * @tc.name: SetRuntimeEffect001
+ * @tc.desc: Test SetRuntimeEffect
+ * @tc.type: FUNC
+ * @tc.require: I91EQ7
+ */
+HWTEST_F(SkiaRuntimeEffectTest, SetRuntimeEffect001, TestSize.Level1)
+{
+    SkiaRuntimeEffect skiaRuntimeEffect;
+    sk_sp<SkRuntimeEffect> effect;
+    skiaRuntimeEffect.SetRuntimeEffect(effect);
+    auto effect2 = skiaRuntimeEffect.GetRuntimeEffect();
+    ASSERT_TRUE(effect == effect2);
+}
+
+/**
+ * @tc.name: InitForES3Shader001
+ * @tc.desc: Test InitForES3Shader
+ * @tc.type: FUNC
+ * @tc.require: I91EQ7
+ */
+HWTEST_F(SkiaRuntimeEffectTest, InitForES3Shader001, TestSize.Level1)
+{
+    std::string s1 = "safd";
+    SkiaRuntimeEffect skiaRuntimeEffect;
+    skiaRuntimeEffect.InitForES3Shader(s1);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

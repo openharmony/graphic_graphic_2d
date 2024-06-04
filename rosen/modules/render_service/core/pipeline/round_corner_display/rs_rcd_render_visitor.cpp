@@ -23,8 +23,7 @@ namespace OHOS {
 namespace Rosen {
 RSRcdRenderVisitor::RSRcdRenderVisitor()
 {
-    auto mainThread = RSMainThread::Instance();
-    renderEngine_ = mainThread->GetRenderEngine();
+    renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 }
 
 bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)

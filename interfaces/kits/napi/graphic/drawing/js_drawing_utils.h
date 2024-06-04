@@ -94,6 +94,19 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_DOUBLE_CHECK_GT_ZERO_PARAM(argc, value)                                                                    \
+    do {                                                                                                               \
+        if (napi_get_value_double(env, argv[argc], &value) != napi_ok) {                                               \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+        if (value <= 0.0) {                                                                                            \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) +                       \
+                " range. It should be greater than 0.");                                                               \
+        }                                                                                                              \
+    } while (0)
+
 #define GET_INT32_PARAM(argc, value)                                                                                   \
     do {                                                                                                               \
         if (napi_get_value_int32(env, argv[argc], &value) != napi_ok) {                                                \
@@ -319,19 +332,7 @@ inline napi_value GetStringAndConvertToJsValue(napi_env env, std::string str)
     return objValue;
 }
 
-inline napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (metrics != nullptr && objValue != nullptr) {
-        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, metrics->fTop));
-        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, metrics->fAscent));
-        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, metrics->fDescent));
-        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, metrics->fBottom));
-        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, metrics->fLeading));
-    }
-    return objValue;
-}
+napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics);
 
 inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect> rect)
 {

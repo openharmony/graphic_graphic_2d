@@ -126,7 +126,7 @@ void RSRenderServiceConnection::MoveRenderNodeMap(
 void RSRenderServiceConnection::RemoveRenderNodeMap(
     std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
 {
-    // temp solution for DongHu to resolve with dma leak
+    // temp solution to address the dma leak
     for (auto& [_, node] : *subRenderNodeMap) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
         if (surfaceNode && surfaceNode->GetName().find("ShellAssistantAnco") != std::string::npos) {
@@ -442,6 +442,15 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     return newVirtualScreenId;
 }
 
+void RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+    if (blackListVector.empty()) {
+        RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
+    }
+}
+
 int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -587,6 +596,18 @@ int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint3
     }
 }
 
+void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask(
+            [=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); }).wait();
+    } else {
+        mainThread_->ScheduleTask(
+            [=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); }).wait();
+    }
+}
+
 void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -603,7 +624,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         if (RSSystemParameters::GetRsSurfaceCaptureType() ==
@@ -633,17 +654,10 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 mainThread_->PostTask(captureTask);
             }
         } else {
-            std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
-                RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]",
-                    id);
-                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                RSSurfaceCaptureTaskParallel task(id, scaleX, scaleY);
-                if (!task.Run(callback)) {
-                    callback->OnSurfaceCapture(id, nullptr);
-                }
-                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            std::function<void()> captureTask = [id, callback, scaleX, scaleY, useDma]() -> void {
+                RSSurfaceCaptureTaskParallel::CheckModifiers(id, callback, scaleX, scaleY, useDma);
             };
-            renderThread_.PostTask(captureTask);
+            mainThread_->PostTask(captureTask);
         }
     } else {
         TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
@@ -1271,16 +1285,24 @@ void RSRenderServiceConnection::ReportJankStats()
 
 void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
 {
-    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(isSafe);
+    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(remotePid_, isSafe);
 }
 
 void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    mainThread_->GetFrameRateMgr()->HandlePackageEvent(listSize, packageList);
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyPackageEvent: frameRateMgr is nullptr.");
+        return;
+    }
+    mainThread_->GetFrameRateMgr()->HandlePackageEvent(remotePid_, listSize, packageList);
 }
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyRefreshRateEvent: frameRateMgr is nullptr.");
+        return;
+    }
     mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
 }
 
@@ -1290,7 +1312,7 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t to
         RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
         return;
     }
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(touchStatus, touchCnt);
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
 }
 
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)

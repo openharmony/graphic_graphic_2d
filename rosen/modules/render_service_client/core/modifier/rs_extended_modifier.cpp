@@ -110,7 +110,7 @@ static std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Med
     }
     std::shared_ptr<Drawing::Surface> drawingSurface = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(),
         backendTextureTmp.GetTextureInfo(), Drawing::TextureOrigin::TOP_LEFT, 1,
-        Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr, RSExtendedModifierHelper::DeleteVkImage, cleanUpHelper);
+        Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr, NativeBufferUtils::DeleteVkImage, cleanUpHelper);
     if (!drawingSurface) {
         delete cleanUpHelper;
         cleanUpHelper = nullptr;
@@ -161,15 +161,6 @@ static std::shared_ptr<Drawing::DrawCmdList> MakePiexlMapDrawCmdList(std::shared
             paintHandle);
     }
     return pixelMapDrawCmdList;
-}
-
-void RSExtendedModifierHelper::DeleteVkImage(void* context)
-{
-    NativeBufferUtils::VulkanCleanupHelper *cleanUpHelper =
-        static_cast<NativeBufferUtils::VulkanCleanupHelper*>(context);
-    if (cleanUpHelper != nullptr) {
-        cleanUpHelper->UnRef();
-    }
 }
 #endif
 

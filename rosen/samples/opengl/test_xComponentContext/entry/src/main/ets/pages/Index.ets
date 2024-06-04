@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import XComponentContext from "../interface/XComponentContext";
+import XComponentContext from '../interface/XComponentContext';
 
 const TAG = '[XComponent]';
 

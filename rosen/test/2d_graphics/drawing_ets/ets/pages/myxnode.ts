@@ -75,7 +75,7 @@ export class MyNodeController extends NodeController {
   private rootNode: FrameNode | null = null;
   myRenderNode = new MyRenderNode();
 
-  makeNode(uiContext: UIContext): FrameNode {
+  makeNode(uiContext): FrameNode {
     console.info(TAG, 'MyNodeController makeNode');
     this.rootNode = new FrameNode(uiContext);
     if (this.rootNode === null) {

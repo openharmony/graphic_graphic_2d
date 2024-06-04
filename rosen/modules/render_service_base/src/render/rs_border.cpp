@@ -23,15 +23,15 @@ namespace Rosen {
 namespace {
 constexpr int PARAM_DOUBLE = 2;
 constexpr int32_t DASHED_LINE_LENGTH = 3;
-constexpr float TOP_START = 225.0f;
+constexpr float SWEEP_ANGLE = 60.0f;
 constexpr float TOP_END = 270.0f;
-constexpr float RIGHT_START = 315.0f;
+constexpr float TOP_START = TOP_END - SWEEP_ANGLE;
 constexpr float RIGHT_END = 0.0f;
-constexpr float BOTTOM_START = 45.0f;
+constexpr float RIGHT_START = 360.0f - SWEEP_ANGLE;
 constexpr float BOTTOM_END = 90.0f;
-constexpr float LEFT_START = 135.0f;
+constexpr float BOTTOM_START = BOTTOM_END - SWEEP_ANGLE;
 constexpr float LEFT_END = 180.0f;
-constexpr float SWEEP_ANGLE = 45.0f;
+constexpr float LEFT_START = LEFT_END - SWEEP_ANGLE;
 } // namespace
 
 // defines short names for widths/half widths of each borders
@@ -70,6 +70,18 @@ void RSBorder::SetStyle(BorderStyle style)
     styles_.push_back(style);
 }
 
+void RSBorder::SetDashWidth(float dashWidth)
+{
+    dashWidth_.clear();
+    dashWidth_.push_back(dashWidth);
+}
+
+void RSBorder::SetDashGap(float dashGap)
+{
+    dashGap_.clear();
+    dashGap_.push_back(dashGap);
+}
+
 Color RSBorder::GetColor(int idx) const
 {
     if (colors_.empty()) {
@@ -103,6 +115,28 @@ BorderStyle RSBorder::GetStyle(int idx) const
     }
 }
 
+float RSBorder::GetDashWidth(int idx) const
+{
+    if (dashWidth_.empty()) {
+        return 0.f;
+    } else if (dashWidth_.size() == 1) {
+        return dashWidth_.front();
+    } else {
+        return dashWidth_.at(idx);
+    }
+}
+
+float RSBorder::GetDashGap(int idx) const
+{
+    if (dashGap_.empty()) {
+        return 0.f;
+    } else if (dashGap_.size() == 1) {
+        return dashGap_.front();
+    } else {
+        return dashGap_.at(idx);
+    }
+}
+
 void RSBorder::SetColorFour(const Vector4<Color>& color)
 {
     if (color.x_ == color.y_ && color.x_ == color.z_ && color.x_ == color.w_) {
@@ -131,6 +165,22 @@ void RSBorder::SetStyleFour(const Vector4<uint32_t>& style)
 void RSBorder::SetRadiusFour(const Vector4f& radius)
 {
     radius_ = { radius.x_, radius.y_, radius.z_, radius.w_ };
+}
+
+void RSBorder::SetDashWidthFour(const Vector4f& dashWidth)
+{
+    if (dashWidth.x_ == dashWidth.y_ && dashWidth.x_ == dashWidth.z_ && dashWidth.x_ == dashWidth.w_) {
+        return SetDashWidth(dashWidth.x_);
+    }
+    dashWidth_ = { dashWidth.x_, dashWidth.y_, dashWidth.z_, dashWidth.w_ };
+}
+
+void RSBorder::SetDashGapFour(const Vector4f& dashGap)
+{
+    if (dashGap.x_ == dashGap.y_ && dashGap.x_ == dashGap.z_ && dashGap.x_ == dashGap.w_) {
+        return SetDashGap(dashGap.x_);
+    }
+    dashGap_ = { dashGap.x_, dashGap.y_, dashGap.z_, dashGap.w_ };
 }
 
 Vector4<Color> RSBorder::GetColorFour() const
@@ -166,11 +216,33 @@ Vector4f RSBorder::GetRadiusFour() const
     return radius_;
 }
 
-void SetBorderEffect(Drawing::Pen& pen, BorderStyle style, float width, float spaceBetweenDot, float borderLength)
+Vector4f RSBorder::GetDashWidthFour() const
 {
+    if (dashWidth_.size() <= 1) {
+        return Vector4f(GetDashWidth());
+    } else {
+        return Vector4f(GetDashWidth(BorderType::LEFT), GetDashWidth(BorderType::TOP),
+                        GetDashWidth(BorderType::RIGHT), GetDashWidth(BorderType::BOTTOM));
+    }
+}
+
+Vector4f RSBorder::GetDashGapFour() const
+{
+    if (dashGap_.size() <= 1) {
+        return Vector4f(GetDashGap());
+    } else {
+        return Vector4f(GetDashGap(BorderType::LEFT), GetDashGap(BorderType::TOP),
+                        GetDashGap(BorderType::RIGHT), GetDashGap(BorderType::BOTTOM));
+    }
+}
+
+void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot, float borderLength) const
+{
+    float width = GetWidth(idx);
     if (ROSEN_EQ(width, 0.f)) {
         return;
     }
+    BorderStyle style = GetStyle(idx);
     if (style == BorderStyle::DOTTED) {
         Drawing::Path dotPath;
         if (ROSEN_EQ(spaceBetweenDot, 0.f)) {
@@ -179,24 +251,36 @@ void SetBorderEffect(Drawing::Pen& pen, BorderStyle style, float width, float sp
         dotPath.AddCircle(0.0f, 0.0f, width / PARAM_DOUBLE);
         pen.SetPathEffect(Drawing::PathEffect::CreatePathDashEffect(dotPath, spaceBetweenDot, 0.0,
             Drawing::PathDashStyle::ROTATE));
-    } else if (style == BorderStyle::DASHED) {
+        return;
+    }
+    if (style == BorderStyle::DASHED) {
+        float dashWidth = GetDashWidth(idx);
+        float dashGap = GetDashGap(idx);
+        if (dashWidth > 0.f && dashGap > 0.f) {
+            float intervals[] = { dashWidth, dashGap };
+            pen.SetPathEffect(
+                Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
+            return;
+        }
         double addLen = 0.0; // When left < 2 * gap, splits left to gaps.
         double delLen = 0.0; // When left > 2 * gap, add one dash and shortening them.
-        if (!ROSEN_EQ(borderLength, 0.f)) {
+        if (!ROSEN_EQ(borderLength, 0.f) && width > 0) {
             float count = borderLength / width;
             float leftLen = fmod((count - DASHED_LINE_LENGTH), (DASHED_LINE_LENGTH + 1));
             if (leftLen > DASHED_LINE_LENGTH - 1) {
                 delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width /
-                         static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + 2);
+                         static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + PARAM_DOUBLE);
             } else {
                 addLen = leftLen * width / static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
             }
         }
-        const float intervals[] = { width * DASHED_LINE_LENGTH - delLen, width + addLen };
+        float intervals[] = {
+            (dashWidth > 0.f ? dashWidth : width * DASHED_LINE_LENGTH - delLen),
+            (dashGap > 0.f ? dashGap : width + addLen) };
         pen.SetPathEffect(Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
-    } else {
-        pen.SetPathEffect(nullptr);
+        return;
     }
+    pen.SetPathEffect(nullptr);
 }
 
 bool RSBorder::ApplyFillStyle(Drawing::Brush& brush) const
@@ -218,12 +302,13 @@ bool RSBorder::ApplyFillStyle(Drawing::Brush& brush) const
 
 bool RSBorder::ApplyPathStyle(Drawing::Pen& pen) const
 {
-    if (colors_.size() != 1 || widths_.size() != 1 || styles_.size() != 1) {
+    if (colors_.size() != 1 || widths_.size() != 1 || styles_.size() != 1 ||
+        dashWidth_.size() != 1 || dashGap_.size() != 1) {
         return false;
     }
     pen.SetWidth(widths_.front());
     pen.SetColor(colors_.front().AsArgbInt());
-    SetBorderEffect(pen, GetStyle(), widths_.front(), 0.f, 0.f);
+    SetBorderEffect(pen, BorderType::LEFT, 0.f, 0.f);
     return true;
 }
 
@@ -252,8 +337,26 @@ bool RSBorder::ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) co
     pen.SetWidth(GetWidth(borderIdx));
     Color color = GetColor(borderIdx);
     pen.SetColor(color.AsArgbInt());
-    SetBorderEffect(pen, GetStyle(borderIdx), borderWidth, borderLength / rawNumber, borderLength);
+    SetBorderEffect(pen, borderIdx, borderLength / rawNumber, borderLength);
     return true;
+}
+
+bool RSBorder::ApplySimpleBorder(const RRect& rrect) const
+{
+    if (!(colors_.size() == 1 && widths_.size() == 1 && styles_.size() == 1)) {
+        return false;
+    }
+    constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
+    for (uint32_t i = 1; i < NUM_OF_CORNERS_IN_RECT; i++) {
+        if (rrect.radius_[0].x_ != rrect.radius_[i].x_) {
+            return false;
+        }
+    }
+    if (styles_.front() == BorderStyle::SOLID) {
+        return true;
+    }
+    // To avoid artefacts at corner - corner radius should be more than half the stroke width
+    return rrect.radius_[0].x_ > widths_.front() / PARAM_DOUBLE;
 }
 
 void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const
@@ -345,10 +448,10 @@ void RSBorder::DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
         offsetX + width - RIGHTW / 2.f - endArcWidth, y, offsetX + width - RIGHTW / 2.f, y + endArcHeight);
     // create drawing path from left top corner to right top corner
     Drawing::Path topBorder;
-    topBorder.MoveTo(std::min(x, offsetX + tlRad.GetX() / 2.f), y + tlRad.GetY() / 2.f);
+    topBorder.MoveTo(std::min(x, offsetX + tlRad.GetX() / 2.f), y + tlRad.GetY());
     topBorder.ArcTo(rs.GetLeft(), rs.GetTop(), rs.GetRight(), rs.GetBottom(), TOP_START, SWEEP_ANGLE);
     topBorder.ArcTo(re.GetLeft(), re.GetTop(), re.GetRight(), re.GetBottom(), TOP_END, SWEEP_ANGLE);
-    topBorder.LineTo(std::max(offsetX + width - RIGHTW2, offsetX + width - trRad.GetX() / 2.f), y + trRad.GetY() / 2.f);
+    topBorder.LineTo(std::max(offsetX + width - RIGHTW2, offsetX + width - trRad.GetX() / 2.f), y + trRad.GetY());
     canvas.AttachPen(pen);
     if (GetStyle(RSBorder::TOP) == BorderStyle::SOLID) {
         Drawing::Brush brush;
@@ -410,11 +513,11 @@ void RSBorder::DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const
     auto re = Drawing::Rect(x - endArcWidth, height - BOTTOMW2 - endArcHeight, x, height - BOTTOMW2);
     // create drawing path from right top corner to right bottom corner
     Drawing::Path rightBorder;
-    rightBorder.MoveTo(x - trRad.GetX() / 2.f, std::min(y, offsetY + trRad.GetY() / 2.f));
+    rightBorder.MoveTo(x - trRad.GetX(), std::min(y, offsetY + trRad.GetY() / 2.f));
     rightBorder.ArcTo(rs.GetLeft(), rs.GetTop(), rs.GetRight(), rs.GetBottom(), RIGHT_START, SWEEP_ANGLE);
     rightBorder.ArcTo(re.GetLeft(), re.GetTop(), re.GetRight(), re.GetBottom(), RIGHT_END, SWEEP_ANGLE);
     rightBorder.LineTo(
-        x - brRad.GetX() / 2.f, std::max(offsetY + height - BOTTOMW2, offsetY + height - brRad.GetY() / 2.f));
+        x - brRad.GetX(), std::max(offsetY + height - BOTTOMW2, offsetY + height - brRad.GetY() / 2.f));
     canvas.AttachPen(pen);
     if (GetStyle(RSBorder::RIGHT) == BorderStyle::SOLID) {
         Drawing::Brush brush;
@@ -475,11 +578,10 @@ void RSBorder::DrawBottomBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, cons
     auto re = Drawing::Rect(x, y - endArcHeight, x + endArcWidth, y);
     // create drawing path from right bottom corner to left bottom corner
     Drawing::Path bottomBorder;
-    bottomBorder.MoveTo(std::max(offsetX + width - RIGHTW2, offsetY + width - brRad.GetX() / 2.f),
-                        y - brRad.GetY() / 2.f);
+    bottomBorder.MoveTo(std::max(offsetX + width - RIGHTW2, offsetY + width - brRad.GetX() / 2.f), y - brRad.GetY());
     bottomBorder.ArcTo(rs.GetLeft(), rs.GetTop(), rs.GetRight(), rs.GetBottom(), BOTTOM_START, SWEEP_ANGLE);
     bottomBorder.ArcTo(re.GetLeft(), re.GetTop(), re.GetRight(), re.GetBottom(), BOTTOM_END, SWEEP_ANGLE);
-    bottomBorder.LineTo(std::min(x, offsetX + blRad.GetX() / 2.f), y - blRad.GetY() / 2.f);
+    bottomBorder.LineTo(std::min(x, offsetX + blRad.GetX() / 2.f), y - blRad.GetY());
     canvas.AttachPen(pen);
     if (GetStyle(RSBorder::BOTTOM) == BorderStyle::SOLID) {
         Drawing::Brush brush;
@@ -540,11 +642,10 @@ void RSBorder::DrawLeftBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
     auto re = Drawing::Rect(x, y, x + endArcWidth, y + endArcHeight);
     // create drawing path from left bottom corner to left top corner
     Drawing::Path leftBorder;
-    leftBorder.MoveTo(
-        x + blRad.GetX() / 2.f, std::max(offsetY + height - BOTTOMW2, offsetY + height - blRad.GetY() / 2.f));
+    leftBorder.MoveTo(x + blRad.GetX(), std::max(offsetY + height - BOTTOMW2, offsetY + height - blRad.GetY() / 2.f));
     leftBorder.ArcTo(rs.GetLeft(), rs.GetTop(), rs.GetRight(), rs.GetBottom(), LEFT_START, SWEEP_ANGLE);
     leftBorder.ArcTo(re.GetLeft(), re.GetTop(), re.GetRight(), re.GetBottom(), LEFT_END, SWEEP_ANGLE);
-    leftBorder.LineTo(x + tlRad.GetX() / 2.f, std::min(y, offsetY + tlRad.GetY() / 2.f));
+    leftBorder.LineTo(x + tlRad.GetX(), std::min(y, offsetY + tlRad.GetY() / 2.f));
     canvas.AttachPen(pen);
     if (GetStyle(RSBorder::LEFT) == BorderStyle::SOLID) {
         Drawing::Brush brush;
@@ -596,7 +697,9 @@ Drawing::Point RSBorder::GetTLIP(const Drawing::RoundRect& rrect, const Drawing:
             }
         } else {
             x = rrect.GetRect().GetLeft();
-            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
+            y = std::max(y - height / 2.f,
+                         std::min(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW));
         }
     } else {
         y = rrect.GetRect().GetTop() + TOPW;
@@ -641,7 +744,9 @@ Drawing::Point RSBorder::GetTRIP(const Drawing::RoundRect& rrect, const Drawing:
             }
         } else {
             x = rrect.GetRect().GetLeft() + rrect.GetRect().GetWidth();
-            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
+            y = std::max(y - height / 2.f,
+                         std::min(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW));
         }
     } else {
         y = rrect.GetRect().GetTop() + TOPW;

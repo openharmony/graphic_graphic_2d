@@ -34,15 +34,13 @@ constexpr int TRACE_LEVEL_TWO = 2;
 
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
-    // skip shadow if not valid
-    if (!node.GetRenderProperties().IsShadowValid()) {
+    // skip shadow if not valid. ShadowMask is processed by foregound
+    if (!node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return nullptr;
     }
     RSDrawable::Ptr ret = nullptr;
-    if (node.GetRenderProperties().GetShadowMask()) {
-        ret = std::make_shared<RSColorfulShadowDrawable>();
-    } else if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
-               node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+    if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
+        node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         ret = std::make_shared<RSShadowDrawable>();
     } else {
         ret = std::make_shared<RSMaskShadowDrawable>();
@@ -56,8 +54,8 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    // skip shadow if not valid
-    if (!properties.IsShadowValid()) {
+    // skip shadow if not valid. ShadowMask is processed by foregound
+    if (!properties.IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return false;
     }
 
@@ -135,6 +133,13 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
     }
 
     const RSProperties& properties = node.GetRenderProperties();
+    if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+        auto shadowRadius = properties.GetShadowRadius();
+        auto shadowOffsetX = properties.GetShadowOffsetX();
+        auto shadowOffsetY = properties.GetShadowOffsetY();
+        RSPropertyDrawable::stagingPropertyDescription_ = "DrawShadow, Radius: " + std::to_string(shadowRadius) +
+            " ShadowOffsetX: " + std::to_string(shadowOffsetX) +" ShadowOffsetY: " + std::to_string(shadowOffsetY);
+    }
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
         properties.GetClipBounds(), properties.GetRRect());
@@ -174,6 +179,8 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSMaskShadowDrawable:: %s, bounds: %s",
+            ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         Drawing::AutoCanvasRestore rst(*canvas, true);
         RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
         ptr->drawCmdList_->Playback(*canvas);
@@ -275,6 +282,9 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask() && mask->GetImage()) {
+        Drawing::AutoCanvasRestore maskSave(canvas, true);
+        canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
     }
 
     // back to mask layer
@@ -312,6 +322,9 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
     if (properties.IsBgBrightnessValid()) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            RSPropertyDrawable::stagingPropertyDescription_ = properties.GetBgBrightnessDescription();
+        }
         auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
             properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
         brush.SetBlender(blender);
@@ -400,7 +413,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
-    if (!bgImage) {
+    if (!bgImage || !bgImage->GetPixelMap()) {
         return false;
     }
 
@@ -470,11 +483,6 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 void RSBackgroundEffectDrawable::OnSync()
 {
     RSFilterDrawable::OnSync();
-    // clear both cache image when it has no effect children and will not draw in this frame
-    if (!stagingHasEffectChildren_) {
-        lastCacheType_ = FilterCacheType::NONE;
-    }
-    stagingHasEffectChildren_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

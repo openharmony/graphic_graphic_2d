@@ -30,19 +30,28 @@ namespace OHOS::Rosen {
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 namespace DrawableV2 {
+constexpr int TRACE_LEVEL_TWO = 2;
 void RSPropertyDrawable::OnSync()
 {
     if (!needSync_) {
         return;
     }
     std::swap(drawCmdList_, stagingDrawCmdList_);
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
     needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) { ptr->drawCmdList_->Playback(*canvas); };
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        ptr->drawCmdList_->Playback(*canvas);
+        if (!ptr->propertyDescription_.empty()) {
+            RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
+                ptr->propertyDescription_.c_str(), rect->ToString().c_str());
+        }
+    };
 }
 
 // ============================================================================
@@ -162,7 +171,6 @@ void RSFilterDrawable::OnSync()
 
     ClearFilterCache();
 
-    forceUseCache_ = stagingForceUseCache_;
     clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
 
     filterHashChanged_ = false;
@@ -170,7 +178,7 @@ void RSFilterDrawable::OnSync()
     filterInteractWithDirty_ = false;
     rotationChanged_ = false;
     forceClearCache_ = false;
-    stagingForceUseCache_ = false;
+    forceUseCache_ = false;
     stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
     forceClearCacheWithLastFrame_ = false;
@@ -222,9 +230,9 @@ void RSFilterDrawable::MarkFilterRegionIsLargeArea()
     isLargeArea_ = true;
 }
 
-void RSFilterDrawable::MarkFilterForceUseCache()
+void RSFilterDrawable::MarkFilterForceUseCache(bool forceUseCache)
 {
-    stagingForceUseCache_ = true;
+    forceUseCache_ = forceUseCache;
 }
 
 void RSFilterDrawable::MarkFilterForceClearCache()
@@ -235,11 +243,6 @@ void RSFilterDrawable::MarkFilterForceClearCache()
 void RSFilterDrawable::MarkRotationChanged()
 {
     rotationChanged_ = true;
-}
-
-void RSFilterDrawable::MarkHasEffectChildren()
-{
-    stagingHasEffectChildren_ = true;
 }
 
 void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
@@ -259,12 +262,12 @@ void RSFilterDrawable::ClearCacheIfNeeded()
     }
 
     stagingClearFilteredCacheAfterDrawing_ = filterType_ != RSFilter::AIBAR ? filterHashChanged_ : false;
-    RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d, "
-        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,  currentClearAfterDrawing:%d, "
-        "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, hasEffectChildren_:%d,"
-        "filterType_:%d, pendingPurge_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
-        filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
-        cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_, pendingPurge_);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d,"
+        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d, currentClearAfterDrawing:%d,"
+        "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d",
+        nodeId_, forceUseCache_, forceClearCache_, filterHashChanged_, filterRegionChanged_,
+        filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
+        cacheUpdateInterval_, canSkipFrame_, isLargeArea_, filterType_, pendingPurge_);
 
     if (forceClearCacheWithLastFrame_) {
         cacheUpdateInterval_ = 0;
@@ -279,7 +282,7 @@ void RSFilterDrawable::ClearCacheIfNeeded()
         return;
     }
     // No need to invalidate cache if background image is not null or freezed
-    if (stagingForceUseCache_) {
+    if (forceUseCache_) {
         UpdateFlags(FilterCacheType::NONE, true);
         return;
     }
@@ -384,7 +387,8 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
 
 bool RSFilterDrawable::IsAIBarCacheValid() const
 {
-    return (filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0;
+    return (filterType_ == RSFilter::AIBAR) && !filterRegionChanged_ &&
+        (forceUseCache_ || ((filterInteractWithDirty_ || rotationChanged_))) && cacheUpdateInterval_ > 0;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

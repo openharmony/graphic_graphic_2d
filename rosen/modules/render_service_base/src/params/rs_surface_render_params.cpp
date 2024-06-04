@@ -280,6 +280,16 @@ bool RSSurfaceRenderParams::IsNodeToBeCaptured() const
     return isNodeToBeCaptured_;
 }
 
+void RSSurfaceRenderParams::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+}
+
+bool RSSurfaceRenderParams::GetSkipDraw() const
+{
+    return isSkipDraw_;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -292,9 +302,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->layerInfo_ = layerInfo_;
         dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
-
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
+    targetSurfaceParams->isAppWindow_ = isAppWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
@@ -332,6 +342,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
+    targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     RSRenderParams::OnSync(target);
 }
 

@@ -80,6 +80,10 @@ public:
     {
         mSkContext = skContext;
     }
+    void ClearSurfaceMap()
+    {
+        mSurfaceMap.clear();
+    }
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;

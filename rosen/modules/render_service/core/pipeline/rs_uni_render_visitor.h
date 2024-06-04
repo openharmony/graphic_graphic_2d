@@ -172,12 +172,7 @@ public:
         screenInfo_ = screenInfo;
     }
 
-    void SurfaceOcclusionCallbackToWMS()
-    {
-        if (visibleChanged_) {
-            RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        }
-    }
+    void SurfaceOcclusionCallbackToWMS();
 
     static void ClearRenderGroupCache();
 
@@ -231,9 +226,9 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
-    void ResetDisplayDirtyRegionForScreenPowerChange();
-    void ResetDisplayDirtyRegionForColorFilterSwitch();
-    void ResetDisplayDirtyRegionForCurtainScreenUsingStatusChange();
+    bool CheckScreenPowerChange() const;
+    bool CheckColorFilterChange() const;
+    bool CheckCurtainScreenUsingStatusChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
@@ -388,7 +383,6 @@ private:
     bool DrawBlurInCache(RSRenderNode& node);
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
-    bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     // return if srcRect is allowed by dss restriction
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false);
@@ -411,10 +405,17 @@ private:
     {
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
+    bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
+    {
+        return !node.GetSkipLayer() && (screenInfo_.filteredAppSet.empty() ||
+            screenInfo_.filteredAppSet.find(node.GetId()) != screenInfo_.filteredAppSet.end());
+    }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
+    void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
+    void CollectEffectInfo(RSRenderNode& node);
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
      * 1. is leash window

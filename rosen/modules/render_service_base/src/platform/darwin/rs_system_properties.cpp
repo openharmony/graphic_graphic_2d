@@ -242,6 +242,11 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return false;
 }
 
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    return 0;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     return false;
@@ -439,6 +444,11 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
 }
 
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
     return false;
 }
