@@ -15,7 +15,9 @@
 
 #include "rs_base_render_util.h"
 
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include <unordered_set>
 #include <parameters.h>
 
@@ -24,10 +26,13 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "include/utils/SkCamera.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 
 #include "draw/clip.h"
@@ -37,6 +42,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
+const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
+}
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
 using PixelTransformFunc = std::function<float(float)>;
@@ -967,13 +976,16 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-        "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRIu64 " .",
-        surfaceHandler.GetNodeId(), vsyncTimestamp, static_cast<uint64_t>(surfaceBuffer->timestamp));
     
-    if (isDisplaySurface) {
+    if (isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
+        !RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control disable), "
+            "buffer timestamp = %{public}" PRId64 " .", surfaceHandler.GetNodeId(), surfaceBuffer->timestamp);
         surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
     } else {
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
@@ -1138,10 +1150,17 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params)
+    RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
+    int extraRotation = 0;
+    if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
+        extraRotation = degree - FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN;
+    }
+    rotationTransform = static_cast<GraphicTransformType>(
+        (rotationTransform + extraRotation / RS_ROTATION_90) % SCREEN_ROTATION_NUM);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
@@ -1159,9 +1178,14 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
 
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
 {
+    GraphicTransformType type = GetFlipTransform(transform);
+    if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
+        return;
+    }
+     
     const int angle = 180;
     Drawing::Camera3D camera3D;
-    switch (GetFlipTransform(transform)) {
+    switch (type) {
         case GraphicTransformType::GRAPHIC_FLIP_H: {
             camera3D.RotateYDegrees(angle);
             break;
@@ -1376,12 +1400,21 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec) ;
-    std::string filename = "/data/cachesurface/CacheRenderNode_Draw_" +
-        std::to_string(nowVal) + "_" +debugInfo +".png";
+    // create dir if not exists
+    if (access(DUMP_CACHESURFACE_DIR.c_str(), F_OK) == -1) {
+        if (mkdir(DUMP_CACHESURFACE_DIR.c_str(), (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) != 0) {
+            RS_LOGE("WriteCacheImageRenderNodeToPng create %s directory failed, errno: %d",
+                DUMP_CACHESURFACE_DIR.c_str(), errno);
+            return false;
+        }
+    }
+    const uint32_t maxLen = 80;
+    time_t now = time(nullptr);
+    tm* curr_tm = localtime(&now);
+    char timechar[maxLen] = {0};
+    (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
+    std::string filename = DUMP_CACHESURFACE_DIR + "/" + "CacheRenderNode_Draw_"
+        + std::string(timechar) + "_" + debugInfo + ".png";
     WriteToPngParam param;
 
     auto image = surface->GetImageSnapshot();
@@ -1407,12 +1440,22 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::I
     if (!RSSystemProperties::GetDumpImgEnabled()) {
         return false;
     }
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec) ;
-    std::string filename = "/data/cachesurface/CacheRenderNode_Draw_" +
-        std::to_string(nowVal) + "_" +debugInfo +".png";
+
+    // create dir if not exists
+    if (access(DUMP_CACHESURFACE_DIR.c_str(), F_OK) == -1) {
+        if (mkdir(DUMP_CACHESURFACE_DIR.c_str(), (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) != 0) {
+            RS_LOGE("WriteCacheImageRenderNodeToPng create %s directory failed, errno: %d",
+                DUMP_CACHESURFACE_DIR.c_str(), errno);
+            return false;
+        }
+    }
+    const uint32_t maxLen = 80;
+    time_t now = time(nullptr);
+    tm* curr_tm = localtime(&now);
+    char timechar[maxLen] = {0};
+    (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
+    std::string filename = DUMP_CACHESURFACE_DIR + "/" + "CacheRenderNode_Draw_"
+        + std::string(timechar) + "_" + debugInfo + ".png";
     WriteToPngParam param;
 
     if (!image) {
@@ -1505,6 +1548,7 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
     FILE *fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
         png_destroy_write_struct(&pngStruct, &pngInfo);
+        RS_LOGE("WriteToPng file: %s open file failed, errno: %d", filename.c_str(), errno);
         return false;
     }
     png_init_io(pngStruct, fp);
@@ -1534,6 +1578,10 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
 GraphicTransformType RSBaseRenderUtil::GetRotateTransform(GraphicTransformType transform)
 {
     switch (transform) {
+        case GraphicTransformType::GRAPHIC_FLIP_H:
+        case GraphicTransformType::GRAPHIC_FLIP_V: {
+            return GraphicTransformType::GRAPHIC_ROTATE_NONE;
+        }
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
             return GraphicTransformType::GRAPHIC_ROTATE_90;

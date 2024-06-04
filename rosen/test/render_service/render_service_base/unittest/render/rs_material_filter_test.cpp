@@ -172,16 +172,18 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleTest001, TestSize.Level1)
  */
 HWTEST_F(RSMaterialFilterTest, PreProcessTest001, TestSize.Level1)
 {
-    MaterialParam materialParamf;
+    MaterialParam materialParam;
     auto imageSnapshot = std::make_shared<Drawing::Image>();
-    auto rsMaterialFilterf = std::make_shared<RSMaterialFilter>(materialParamf, BLUR_COLOR_MODE::AVERAGE);
-    rsMaterialFilterf->PreProcess(imageSnapshot);
-    EXPECT_EQ(rsMaterialFilterf->colorMode_, BLUR_COLOR_MODE::AVERAGE);
-    MaterialParam materialParams;
-    auto imageSnapshots = std::make_shared<Drawing::Image>();
-    auto rsMaterialFilters = std::make_shared<RSMaterialFilter>(materialParams, BLUR_COLOR_MODE::FASTAVERAGE);
-    rsMaterialFilters->PreProcess(imageSnapshots);
-    EXPECT_EQ(rsMaterialFilters->colorMode_, BLUR_COLOR_MODE::FASTAVERAGE);
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::FASTAVERAGE);
+    rsMaterialFilter->colorPickerTask_->waitRelease_->store(true);
+    rsMaterialFilter->colorPickerTask_->firstGetColorFinished_ = true;
+    rsMaterialFilter->colorPickerTask_->valid_ = true;
+    rsMaterialFilter->PreProcess(imageSnapshot);
+    EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::FASTAVERAGE);
+    rsMaterialFilter->colorMode_ = BLUR_COLOR_MODE::AVERAGE;
+    rsMaterialFilter->PreProcess(imageSnapshot);
+    EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::AVERAGE);
 }
 
 /**
@@ -447,9 +449,10 @@ HWTEST_F(RSMaterialFilterTest, ReleaseColorPickerFilterTest001, TestSize.Level1)
 {
     MaterialParam materialParam;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::FASTAVERAGE);
+    EXPECT_NE(rsMaterialFilter->colorPickerTask_, nullptr);
     rsMaterialFilter->ReleaseColorPickerFilter();
-    auto rsMaterialFilterT = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    rsMaterialFilterT->ReleaseColorPickerFilter();
-    EXPECT_EQ(rsMaterialFilterT->colorPickerTask_, nullptr);
+    rsMaterialFilter->colorPickerTask_ = nullptr;
+    rsMaterialFilter->ReleaseColorPickerFilter();
+    EXPECT_EQ(rsMaterialFilter->colorPickerTask_, nullptr);
 }
 } // namespace OHOS::Rosen

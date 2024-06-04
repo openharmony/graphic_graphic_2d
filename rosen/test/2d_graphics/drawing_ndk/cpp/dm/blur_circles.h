@@ -14,7 +14,7 @@
  */
 #ifndef BLUR_CIRCLES_H
 #define BLUR_CIRCLES_H
-#include "../test_base.h"
+#include "test_base.h"
 
 class BlurCircles : public TestBase {
 public:

@@ -45,6 +45,8 @@ protected:
     bool needSync_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+    std::string propertyDescription_;
+    std::string stagingPropertyDescription_;
 
     friend class RSPropertyDrawCmdListUpdater;
 };
@@ -120,16 +122,19 @@ public:
     void MarkFilterRegionChanged();
     void MarkFilterRegionInteractWithDirty();
     void MarkFilterRegionIsLargeArea();
-    void MarkFilterForceUseCache();
+    void MarkFilterForceUseCache(bool forceUseCache = true);
     void MarkFilterForceClearCache();
+    void ForceClearCacheWithLastFrame();
     void MarkRotationChanged();
-    void MarkHasEffectChildren();
     void MarkNodeIsOccluded(bool isOccluded);
-    void CheckClearFilterCache();
+    void ClearCacheIfNeeded();
 
     bool IsFilterCacheValid() const;
-    bool GetFilterForceClearCache() const;
+    bool IsForceClearFilterCache() const;
+    bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
+    bool IsSkippingFrame() const;
+    bool IsAIBarCacheValid() const;
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -154,12 +159,10 @@ protected:
     bool filterRegionChanged_ = false;
     bool filterInteractWithDirty_ = false;
     bool rotationChanged_ = false;
-    bool hasEffectChildren_ = false;
     bool clearFilteredCacheAfterDrawing_ = false;
+    bool forceClearCacheWithLastFrame_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
-    bool stagingForceUseCache_ = false;
-    bool stagingHasEffectChildren_ = false;
     bool stagingClearFilteredCacheAfterDrawing_ = false;
  
     // the type cache needed clear before drawing

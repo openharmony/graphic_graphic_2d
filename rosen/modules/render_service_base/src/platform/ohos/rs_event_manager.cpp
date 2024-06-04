@@ -109,12 +109,12 @@ void RSEventManager::UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> 
     RS_LOGD("RSEventManager::UpdateEventIntervalMs paraName: %{public}s", paraName.c_str());
     int valueInt = atoi(RSSystemProperties::GetRSEventProperty(paraName).c_str());
     if (valueInt <= 0 || valueInt > 1000000) { // 1000000 ms ->1000s
-        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s Invaild Value:%{public}d",
+        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s Invalid Value:%{public}d",
             detectorPtr->GetStringId().c_str(), valueInt);
         return;
     }
     eventStateList_[detectorPtr->GetStringId()].eventIntervalMs = valueInt;
-    RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s eventIntervalMs:%{public}d suceess",
+    RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s eventIntervalMs:%{public}d success",
         detectorPtr->GetStringId().c_str(), valueInt);
 }
 

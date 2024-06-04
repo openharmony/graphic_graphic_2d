@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "wm/window.h"
+#include "window.h"
 
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"

@@ -78,9 +78,7 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
         // MULTIPLE_COLOR: Supports mutiple color setting
         case RSSymbolRenderingStrategy::MULTIPLE_COLOR:
             for (size_t i = 0, j = 0; i < symbolInfo.renderGroups.size() && j < colors.size(); ++i, ++j) {
-                symbolInfo.renderGroups[i].color.r = colors[j].r;
-                symbolInfo.renderGroups[i].color.g = colors[j].g;
-                symbolInfo.renderGroups[i].color.b = colors[j].b;
+                symbolInfo.renderGroups[i].color = colors[j];
             }
             break;
         default:

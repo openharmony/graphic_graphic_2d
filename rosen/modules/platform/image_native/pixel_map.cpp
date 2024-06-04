@@ -57,6 +57,11 @@ const uint8_t *PixelMap::GetPixels()
     return nullptr;
 }
 
+AllocatorType PixelMap::GetAllocatorType()
+{
+    return allocatorType_;
+}
+
 PixelMap *PixelMap::Unmarshalling(Parcel &data)
 {
     return nullptr;

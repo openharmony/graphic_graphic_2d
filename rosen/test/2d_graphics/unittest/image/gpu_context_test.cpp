@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameter.h>
+#include <parameters.h>
 #include "gtest/gtest.h"
 
 #include "EGL/egl.h"
@@ -183,6 +185,48 @@ HWTEST_F(GpuContextTest, BuildFromGLTest002, TestSize.Level1)
     EXPECT_TRUE(gpuContext->BuildFromGL(options));
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: GPUContextCreateTest003
+ * @tc.desc: Test for creating a VK GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromVKTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GrVkBackendContext grVkBackendContext;
+    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
+    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
+    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+}
+
+/**
+ * @tc.name: GPUContextCreateTest004
+ * @tc.desc: Test for creating a VK GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromVKTest002, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GrVkBackendContext grVkBackendContext;
+    GPUContextOptions options;
+    options.SetAllowPathMaskCaching(true);
+    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
+    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
+    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
+    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+}
+#endif
+
 /**
  * @tc.name: FlushTest001
  * @tc.desc: Test for flushing to underlying 3D API specific objects.
@@ -269,6 +313,48 @@ HWTEST_F(GpuContextTest, SetResourceCacheLimitsTest002, TestSize.Level1)
     size_t maxResourceBytes = 1000;
     gpuContext->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
+
+/**
+ * @tc.name: ReleaseResourcesAndAbandonContextTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, ReleaseResourcesAndAbandonContextTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->ReleaseResourcesAndAbandonContext();
+}
+
+/**
+ * @tc.name: PurgeUnlockedResourcesByTagTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeUnlockedResourcesByTagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag tag(0, 0, 0, 0);
+    gpuContext->PurgeUnlockedResourcesByTag(true, tag);
+}
+
+/**
+ * @tc.name: ReleaseByTagTest001
+ * @tc.desc: Test for Purging GPU resources that haven't been used in the past 'msNotUsed' milliseconds.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag tag(0, 0, 0, 0);
+    gpuContext->ReleaseByTag(tag);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

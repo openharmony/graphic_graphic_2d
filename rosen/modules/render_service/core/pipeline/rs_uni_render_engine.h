@@ -16,6 +16,7 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 
+#include "hdi_layer_info.h"
 #include "pipeline/rs_base_render_engine.h"
 
 namespace OHOS {
@@ -28,9 +29,14 @@ public:
     void operator=(const RSUniRenderEngine&) = delete;
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU) override;
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+        const ScreenInfo& screenInfo = {}) override;
     void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
         BufferDrawParam& params);
+private:
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

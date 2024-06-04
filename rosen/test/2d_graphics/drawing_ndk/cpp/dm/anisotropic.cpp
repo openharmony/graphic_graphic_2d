@@ -50,6 +50,8 @@ void Anisotropic::DrawImage(OH_Drawing_Canvas *canvas, OH_Drawing_Image *image, 
    
     for (int i = 0; i < size; ++i) {
         int height = (int)(OH_Drawing_BitmapGetHeight(bitmap) * g_scales[i]);
+
+        int yOff;
         if (i <= size / 2) { // 2cout
             yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
         } else {
@@ -64,6 +66,9 @@ void Anisotropic::DrawImage(OH_Drawing_Canvas *canvas, OH_Drawing_Image *image, 
 
     for (int i = 0; i < size; ++i) {
         int width = (int)(OH_Drawing_BitmapGetWidth(bitmap) * g_scales[i]);
+
+        int xOff;
+        int yOff;
         if (i <= size / 2) { // 2被除数
             xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer;              // 2 cout
             yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);

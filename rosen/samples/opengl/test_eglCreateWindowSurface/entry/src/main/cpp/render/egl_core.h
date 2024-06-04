@@ -19,6 +19,7 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 
+namespace OHOS {
 class EGLCore {
 public:
     explicit EGLCore(){};
@@ -47,4 +48,5 @@ private:
     int m_height;
     GLfloat m_widthPercent;
 };
-#endif
+} // namespace OHOS
+#endif // EGL_CORE_H

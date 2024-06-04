@@ -30,6 +30,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024; // cannot > 500K in TF_ASYNC mode
+static constexpr int MAX_RETRY_COUNT = 10;
+static constexpr int RETRY_WAIT_TIME_US = 500; // wait 0.5ms before retry SendRequest
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -66,11 +68,19 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
     for (const auto& parcel : parcelVector) {
         MessageParcel reply;
         uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
-        int32_t err = Remote()->SendRequest(code, *parcel, reply, option);
-        if (err != NO_ERROR) {
-            ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %{public}d", err);
-            return;
-        }
+        int retryCount = 0;
+        int32_t err = NO_ERROR;
+        do {
+            err = Remote()->SendRequest(code, *parcel, reply, option);
+            if (err != NO_ERROR && retryCount < MAX_RETRY_COUNT) {
+                retryCount++;
+                usleep(RETRY_WAIT_TIME_US);
+            } else if (err != NO_ERROR) {
+                ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, "
+                    "err = %{public}d, retryCount = %{public}d", err, retryCount);
+                return;
+            }
+        } while (err != NO_ERROR && retryCount < MAX_RETRY_COUNT);
     }
 }
 
@@ -83,15 +93,12 @@ void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_pt
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!data.WriteInterfaceToken(RSRenderServiceConnectionProxy::GetDescriptor())) {
         return;
     }
-
     if (!task->Marshalling(data)) {
         return;
     }
-
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -237,10 +244,10 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     }
 
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
-    sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
-    if (conn == nullptr) {
+    if (rObj == nullptr) {
         return nullptr;
     }
+    sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
     return conn;
 }
 
@@ -426,6 +433,26 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     return id;
 }
 
+void RSRenderServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    data.WriteUInt64Vector(blackListVector);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenBlackList: Send Request err.");
+    }
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     if (surface == nullptr) {
@@ -454,6 +481,30 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
     int32_t status = reply.ReadInt32();
     return status;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceConnectionProxy::Set2DRenderCtrl(bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteBool(enable);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::Set2DRenderCtrl: Send Request err.");
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
+}
+#endif
 
 void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 {
@@ -723,6 +774,24 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, 
     return status;
 }
 
+void RSRenderServiceConnectionProxy::MarkPowerOffNeedProcessOneFrame()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::MarkPowerOffNeedProcessOneFrame: Send Request err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     MessageParcel data;
@@ -764,7 +833,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -779,6 +848,7 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     data.WriteRemoteObject(callback->AsObject());
     data.WriteFloat(scaleX);
     data.WriteFloat(scaleY);
+    data.WriteBool(useDma);
     data.WriteUint8(static_cast<uint8_t>(surfaceCaptureType));
     data.WriteBool(isSync);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);

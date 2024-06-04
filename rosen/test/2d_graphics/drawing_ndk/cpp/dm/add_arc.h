@@ -14,7 +14,7 @@
  */
 #ifndef ADD_ARC_H
 #define ADD_ARC_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>

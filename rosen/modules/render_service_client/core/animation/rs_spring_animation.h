@@ -43,6 +43,8 @@ public:
 
     void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) override;
 
+    bool IsSupportInteractiveAnimator() override { return false; }
+
 protected:
     void OnStart() override;
 

@@ -47,6 +47,8 @@ public:
     static napi_value GetLineWidth(napi_env env, napi_callback_info info);
     static napi_value GetTextLines(napi_env env, napi_callback_info info);
     static napi_value DidExceedMaxLines(napi_env env, napi_callback_info info);
+    static napi_value GetActualTextRange(napi_env env, napi_callback_info info);
+    static napi_value GetLineMetrics(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -72,6 +74,9 @@ private:
     napi_value OnGetLineWidth(napi_env env, napi_callback_info info);
     napi_value OnDidExceedMaxLines(napi_env env, napi_callback_info info);
     napi_value OnGetTextLines(napi_env env, napi_callback_info info);
+    napi_value OnGetActualTextRange(napi_env env, napi_callback_info info);
+    napi_value OnGetLineMetrics(napi_env env, napi_callback_info info);
+    napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen

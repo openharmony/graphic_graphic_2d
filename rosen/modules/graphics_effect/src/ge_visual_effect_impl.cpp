@@ -47,6 +47,12 @@ std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEf
             impl->SetFilterType(GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
             impl->MakeLinearGradientBlurParams();
         }
+    },
+    { GE_FILTER_HPS_BLUR,
+        [](GEVisualEffectImpl* impl) {
+            impl->SetFilterType(GEVisualEffectImpl::FilterType::HPS_BLUR);
+            impl->MakeHpsBlurParams();
+        }
     }
 };
 
@@ -122,6 +128,10 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, float param)
 
         case FilterType::LINEAR_GRADIENT_BLUR: {
             SetLinearGradientBlurParams(tag, param);
+            break;
+        }
+        case FilterType::HPS_BLUR: {
+            SetHpsBlurParams(tag, param);
             break;
         }
         default:
@@ -231,6 +241,25 @@ void GEVisualEffectImpl::SetLinearGradientBlurParams(const std::string& tag, flo
             [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->tranX      = p; } },
         { GE_FILTER_LINEAR_GRADIENT_BLUR_TRAN_Y,
             [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->tranY      = p; } }
+    };
+
+    auto it = actions.find(tag);
+    if (it != actions.end()) {
+        it->second(this, param);
+    }
+}
+
+void GEVisualEffectImpl::SetHpsBlurParams(const std::string& tag, float param)
+{
+    if (hpsBlurParams_ == nullptr) {
+        return;
+    }
+
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        { GE_FILTER_HPS_BLUR_RADIUS, [](GEVisualEffectImpl* obj, float p) { obj->hpsBlurParams_->radius = p; } },
+        { GE_FILTER_HPS_BLUR_SATURATION,
+            [](GEVisualEffectImpl* obj, float p) { obj->hpsBlurParams_->saturation = p; } },
+        { GE_FILTER_HPS_BLUR_BRIGHTNESS, [](GEVisualEffectImpl* obj, float p) { obj->hpsBlurParams_->brightness = p; } }
     };
 
     auto it = actions.find(tag);

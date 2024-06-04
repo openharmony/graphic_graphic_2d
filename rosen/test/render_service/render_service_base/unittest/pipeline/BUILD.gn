@@ -42,6 +42,8 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_display_sync_test.cpp",
     "rs_render_frame_rate_linker_map_test.cpp",
     "rs_render_frame_rate_linker_test.cpp",
+    "rs_render_node_autocache_test.cpp",
+    "rs_render_node_gc_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
     "rs_root_render_node_test.cpp",

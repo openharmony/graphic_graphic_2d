@@ -167,7 +167,7 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
 bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext)
 {
     if (image == nullptr) {
-        LOGD("SkiaImage::BuildSubset failed, origin Image is invaild");
+        LOGD("SkiaImage::BuildSubset failed, origin Image is invalid");
         return false;
     }
     auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
@@ -188,14 +188,18 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
     PostSkImgToTargetThread();
-#ifdef NEW_SKIA
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type));
-#else
-    skiaImage_ = SkImage::MakeFromCompressed(grContext_.get(),
-        skData, width, height, static_cast<SkImage::CompressionType>(type));
-#endif
     return (skiaImage_ != nullptr) ? true : false;
+}
+
+void SkiaImage::DeleteCleanupHelper(void (*deleteFunc)(void*), void* cleanupHelper)
+{
+    if (deleteFunc == nullptr || cleanupHelper == nullptr) {
+        return;
+    }
+
+    (*deleteFunc)(cleanupHelper);
 }
 
 bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
@@ -205,6 +209,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {
         LOGD("SkiaImage BuildFromTexture grContext_ is null");
+        DeleteCleanupHelper(deleteFunc, cleanupHelper);
         return false;
     }
 
@@ -220,6 +225,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
         const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         if (!backendTexture.isValid()) {
             LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
+            DeleteCleanupHelper(deleteFunc, cleanupHelper);
             return false;
         }
         PostSkImgToTargetThread();
@@ -472,12 +478,10 @@ bool SkiaImage::GetROPixels(Bitmap& bitmap) const
         return false;
     }
     auto context = as_IB(skiaImage_.get())->directContext();
-    SkBitmap skiaBitmap;
-    if (!as_IB(skiaImage_.get())->getROPixels(context, &skiaBitmap)) {
+    if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap.GetImpl<SkiaBitmap>()->GetSkBitmap())) {
         LOGD("skiaImge getROPixels failed");
         return false;
     }
-    bitmap.GetImpl<SkiaBitmap>()->SetSkBitmap(skiaBitmap);
     return true;
 }
 
@@ -526,11 +530,7 @@ void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
 }
 
 #ifdef ACE_ENABLE_GPU
-#ifdef NEW_SKIA
 sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
-#else
-sk_sp<GrContext> SkiaImage::GetGrContext() const
-#endif
 {
     return grContext_;
 }
@@ -570,7 +570,7 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         int32_t width = pixmap.width();
         int32_t height = pixmap.height();
         const void* addr = pixmap.addr();
-        size_t size = rb * static_cast<size_t>(height);
+        size_t size = pixmap.computeByteSize();
 
         writer.writeUInt(size);
         writer.writeByteArray(addr, size);

@@ -14,6 +14,9 @@
  */
 
 #include "drawing_image.h"
+
+#include "drawing_canvas_utils.h"
+
 #include "image/image.h"
 #include "utils/data.h"
 
@@ -44,6 +47,7 @@ void OH_Drawing_ImageDestroy(OH_Drawing_Image* cImage)
 bool OH_Drawing_ImageBuildFromBitmap(OH_Drawing_Image* cImage, OH_Drawing_Bitmap* cBitmap)
 {
     if (cImage == nullptr || cBitmap == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return CastToImage(cImage)->BuildFromBitmap(CastToBitmap(*cBitmap));
@@ -52,6 +56,7 @@ bool OH_Drawing_ImageBuildFromBitmap(OH_Drawing_Image* cImage, OH_Drawing_Bitmap
 int32_t OH_Drawing_ImageGetWidth(OH_Drawing_Image* cImage)
 {
     if (cImage == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1;
     }
     return CastToImage(cImage)->GetWidth();
@@ -60,6 +65,7 @@ int32_t OH_Drawing_ImageGetWidth(OH_Drawing_Image* cImage)
 int32_t OH_Drawing_ImageGetHeight(OH_Drawing_Image* cImage)
 {
     if (cImage == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1;
     }
     return CastToImage(cImage)->GetHeight();
@@ -68,6 +74,7 @@ int32_t OH_Drawing_ImageGetHeight(OH_Drawing_Image* cImage)
 void OH_Drawing_ImageGetImageInfo(OH_Drawing_Image* cImage, OH_Drawing_Image_Info* cImageInfo)
 {
     if (cImage == nullptr || cImageInfo == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     ImageInfo imageInfo = CastToImage(cImage)->GetImageInfo();

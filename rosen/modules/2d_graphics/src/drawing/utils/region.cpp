@@ -68,9 +68,19 @@ bool Region::IsRect() const
     return impl_->IsRect();
 }
 
+bool Region::IsRegionContained(const Region& other) const
+{
+    return impl_->IsRegionContained(other);
+}
+
 bool Region::Op(const Region& region, RegionOp op)
 {
     return impl_->Op(region, op);
+}
+
+bool Region::QuickReject(const RectI& rectI) const
+{
+    return impl_->QuickReject(rectI);
 }
 
 std::shared_ptr<Data> Region::Serialize() const

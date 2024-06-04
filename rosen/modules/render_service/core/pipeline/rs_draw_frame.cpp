@@ -51,6 +51,7 @@ void RSDrawFrame::RenderFrame()
         RsFrameReport::GetInstance().RSRenderStart();
     }
     JankStatsRenderFrameStart();
+    unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     const bool doJankStats = IsUniRenderAndOnVsync();
@@ -65,6 +66,9 @@ void RSDrawFrame::RenderFrame()
     }
     JankStatsRenderFrameEnd(doJankStats);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+    if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
+        unirenderInstance_.PurgeCacheBetweenFrames();
+    }
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -196,14 +200,16 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
     if (!doJankStats) {
         return;
     }
+    const auto& renderThreadParams = unirenderInstance_.GetRSRenderThreadParams();
     RSJankStats::GetInstance().SetOnVsyncStartTime(
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTime(),
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady(),
-        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteadyFloat());
-    RSJankStats::GetInstance().SetImplicitAnimationEnd(
-        unirenderInstance_.GetRSRenderThreadParams()->GetImplicitAnimationEnd());
-    RSJankStats::GetInstance().SetEndTime(unirenderInstance_.GetSkipJankAnimatorFrame(),
-        unirenderInstance_.GetDiscardJankFrames(), unirenderInstance_.GetDynamicRefreshRate());
+        renderThreadParams->GetOnVsyncStartTime(),
+        renderThreadParams->GetOnVsyncStartTimeSteady(),
+        renderThreadParams->GetOnVsyncStartTimeSteadyFloat());
+    RSJankStats::GetInstance().SetImplicitAnimationEnd(renderThreadParams->GetImplicitAnimationEnd());
+    RSJankStats::GetInstance().SetEndTime(
+        unirenderInstance_.GetSkipJankAnimatorFrame(),
+        unirenderInstance_.GetDiscardJankFrames() || renderThreadParams->GetDiscardJankFrames(),
+        unirenderInstance_.GetDynamicRefreshRate());
 }
 } // namespace Rosen
 } // namespace OHOS

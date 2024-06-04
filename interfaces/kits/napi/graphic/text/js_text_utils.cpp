@@ -63,7 +63,7 @@ bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::stri
     return true;
 }
 
-bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc)
+bool SetColorFromJS(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc)
 {
     napi_value tempValue = nullptr;
     napi_value tempValueChild = nullptr;
@@ -109,14 +109,14 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
         textStyle.decoration = TextDecoration(textDecoration);
     }
 
-    SetTextStyleColor(env, tempValue, "color", textStyle.decorationColor);
+    SetColorFromJS(env, tempValue, "color", textStyle.decorationColor);
 
     napi_get_named_property(env, tempValue, "decorationStyle", &tempValueChild);
     uint32_t decorationStyle = 0;
     if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &decorationStyle) == napi_ok) {
         textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
     }
-    SetTextStyleDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
+    SetDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
     return true;
 }
 
@@ -138,7 +138,7 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         textStyle.baseline = TextBaseline(baseline);
     }
-    SetTextStyleDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
+    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
     std::vector<std::string> fontFamilies;
     napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
@@ -146,11 +146,8 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
         textStyle.fontFamilies = fontFamilies;
     }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
-    SetTextStyleDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
-    SetTextStyleDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
-    SetTextStyleDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
-    SetTextStyleBooleValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
-    SetTextStyleBooleValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+    SetTextStyleBaseType(env, argValue, textStyle);
+    ReceiveFontFeature(env, argValue, textStyle);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
     std::string text = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
@@ -168,30 +165,90 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     }
 }
 
+bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string& str, napi_value& propertyValue)
+{
+    bool result = false;
+    if (napi_has_named_property(env, argValue, str.c_str(), &result) != napi_ok || (!result)) {
+        return false;
+    }
+
+    if (napi_get_named_property(env, argValue, str.c_str(), &propertyValue) != napi_ok) {
+        return false;
+    }
+
+    return true;
+}
+
+void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value allFeatureValue = nullptr;
+    napi_get_named_property(env, argValue, "fontFeatures", &allFeatureValue);
+    uint32_t arrayLength = 0;
+    if (napi_get_array_length(env, allFeatureValue, &arrayLength) != napi_ok ||
+        !arrayLength) {
+        ROSEN_LOGE("The parameter of font features is unvaild");
+        return;
+    }
+
+    for (uint32_t further = 0; further < arrayLength; further++) {
+        napi_value singleElementValue;
+        if (napi_get_element(env, allFeatureValue, further, &singleElementValue) != napi_ok) {
+            ROSEN_LOGE("This parameter of the font features is unvaild");
+            break;
+        }
+        napi_value featureElement;
+        std::string name;
+        if (napi_get_named_property(env, singleElementValue, "name", &featureElement) != napi_ok ||
+            !ConvertFromJsValue(env, featureElement, name)) {
+            ROSEN_LOGE("This time that the name of parameter in font features is unvaild");
+            break;
+        }
+
+        int value = 0;
+        if (napi_get_named_property(env, singleElementValue, "value", &featureElement) != napi_ok ||
+            !ConvertFromJsValue(env, featureElement, value)) {
+            ROSEN_LOGE("This time that the value of parameter in font features is unvaild");
+            break;
+        }
+        textStyle.fontFeatures.SetFeature(name, value);
+    }
+    return;
+}
+
+void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    SetDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
+    SetDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
+    SetDoubleValueFromJS(env, argValue, "baselineShift", textStyle.baseLineShift);
+    SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
+    SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
+    SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+}
+
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
 {
     textStyle.shadows.clear();
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value element;
-        Drawing::Color colorSrc;
-        Drawing::Point offset;
+        Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
+        Drawing::Point offset(Drawing::ARGC_ZERO, Drawing::ARGC_ZERO);
         double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
             ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
             return;
         }
-        SetTextStyleColor(env, element, "color", colorSrc);
+        SetColorFromJS(env, element, "color", colorSrc);
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            ROSEN_LOGE("The parameter of as private point is unvaild");
-            return;
+            ROSEN_LOGD("The parameter of as private point is unvaild");
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
+            ROSEN_LOGD("The parameter of as private blur radius is unvaild");
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
@@ -201,7 +258,7 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
     napi_value allShadowValue = nullptr;
-    if (napi_get_named_property(env, argValue, "textShadow", &allShadowValue) != napi_ok) {
+    if (!GetNamePropertyFromJS(env, argValue, "textShadows", allShadowValue)) {
         return;
     }
 
@@ -219,9 +276,10 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (argValue == nullptr) {
         return false;
     }
-    SetTextStyleColor(env, argValue, "color", textStyle.color);
+    SetColorFromJS(env, argValue, "color", textStyle.color);
     ParsePartTextStyle(env, argValue, textStyle);
     SetTextShadowProperty(env, argValue, textStyle);
+    SetRectStyleFromJS(env, argValue, textStyle.backgroundRect);
     return true;
 }
 
@@ -266,6 +324,10 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &breakStrategy) == napi_ok) {
         pographyStyle.breakStrategy = BreakStrategy(breakStrategy);
     }
+
+    SetStrutStyleFromJS(env, argValue, pographyStyle);
+    SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
+
     return true;
 }
 
@@ -315,5 +377,255 @@ size_t GetParamLen(napi_env env, napi_value param)
         return 0;
     }
     return buffSize;
+}
+
+bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetrics& fontMetrics)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, "flags", &tempValue);
+    uint32_t flags = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &flags) == napi_ok) {
+        fontMetrics.fFlags = Drawing::FontMetrics::FontMetricsFlags(flags);
+    }
+    SetFontMetricsFloatValueFromJS(env, argValue, "top", fontMetrics.fTop);
+    SetFontMetricsFloatValueFromJS(env, argValue, "ascent", fontMetrics.fAscent);
+    SetFontMetricsFloatValueFromJS(env, argValue, "descent", fontMetrics.fDescent);
+    SetFontMetricsFloatValueFromJS(env, argValue, "bottom", fontMetrics.fBottom);
+    SetFontMetricsFloatValueFromJS(env, argValue, "leading", fontMetrics.fLeading);
+    SetFontMetricsFloatValueFromJS(env, argValue, "avgCharWidth", fontMetrics.fAvgCharWidth);
+    SetFontMetricsFloatValueFromJS(env, argValue, "maxCharWidth", fontMetrics.fMaxCharWidth);
+    SetFontMetricsFloatValueFromJS(env, argValue, "xMin", fontMetrics.fXMin);
+    SetFontMetricsFloatValueFromJS(env, argValue, "xMax", fontMetrics.fXMax);
+    SetFontMetricsFloatValueFromJS(env, argValue, "xHeight", fontMetrics.fXHeight);
+    SetFontMetricsFloatValueFromJS(env, argValue, "capHeight", fontMetrics.fCapHeight);
+    SetFontMetricsFloatValueFromJS(env, argValue, "underlineThickness", fontMetrics.fUnderlineThickness);
+    SetFontMetricsFloatValueFromJS(env, argValue, "underlinePosition", fontMetrics.fUnderlinePosition);
+    SetFontMetricsFloatValueFromJS(env, argValue, "strikethroughThickness", fontMetrics.fStrikeoutThickness);
+    SetFontMetricsFloatValueFromJS(env, argValue, "strikethroughPosition", fontMetrics.fStrikeoutPosition);
+    return true;
+}
+
+bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, "textStyle", &tempValue);
+    OHOS::Rosen::TextStyle tempTextStyle;
+    if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, tempTextStyle)) {
+        runMetrics.textStyle = &tempTextStyle;
+    }
+
+    napi_get_named_property(env, argValue, "fontMetrics", &tempValue);
+    Drawing::FontMetrics tempFontMetrics;
+    if (tempValue != nullptr && GetFontMetricsFromJS(env, tempValue, tempFontMetrics)) {
+        runMetrics.fontMetrics = tempFontMetrics;
+    }
+    return true;
+}
+
+void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    if (!argValue) {
+        return;
+    }
+
+    napi_value strutStyleValue = nullptr;
+    if (!GetNamePropertyFromJS(env, argValue, "strutStyle", strutStyleValue)) {
+        return;
+    }
+
+    napi_value tempValue = nullptr;
+    if (GetNamePropertyFromJS(env, strutStyleValue, "fontFamilies", tempValue)) {
+        std::vector<std::string> fontFamilies;
+        if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
+            pographyStyle.lineStyleFontFamilies = fontFamilies;
+        }
+    }
+
+    SetEnumValueFromJS(env, strutStyleValue, "fontStyle", pographyStyle.lineStyleFontStyle);
+    SetEnumValueFromJS(env, strutStyleValue, "fontWidth", pographyStyle.lineStyleFontWidth);
+    SetEnumValueFromJS(env, strutStyleValue, "fontWeight", pographyStyle.lineStyleFontWeight);
+
+    SetDoubleValueFromJS(env, strutStyleValue, "fontSize", pographyStyle.lineStyleFontSize);
+    SetDoubleValueFromJS(env, strutStyleValue, "height", pographyStyle.lineStyleHeightScale);
+    SetDoubleValueFromJS(env, strutStyleValue, "leading", pographyStyle.lineStyleSpacingScale);
+
+    SetBoolValueFromJS(env, strutStyleValue, "forceHeight", pographyStyle.lineStyleOnly);
+    SetBoolValueFromJS(env, strutStyleValue, "enabled", pographyStyle.useLineStyle);
+    SetBoolValueFromJS(env, strutStyleValue, "heightOverride", pographyStyle.lineStyleHeightOnly);
+    SetBoolValueFromJS(env, strutStyleValue, "halfLeading", pographyStyle.lineStyleHalfLeading);
+}
+
+void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
+{
+    if (!argValue) {
+        return;
+    }
+
+    napi_value tempValue = nullptr;
+    if (!GetNamePropertyFromJS(env, argValue, "backgroundRect", tempValue)) {
+        return;
+    }
+
+    Drawing::Color color;
+    SetColorFromJS(env, tempValue, "color", color);
+    rectStyle.color = color.CastToColorQuad();
+    SetDoubleValueFromJS(env, tempValue, "leftTopRadius", rectStyle.leftTopRadius);
+    SetDoubleValueFromJS(env, tempValue, "rightTopRadius", rectStyle.rightTopRadius);
+    SetDoubleValueFromJS(env, tempValue, "rightBottomRadius", rectStyle.rightBottomRadius);
+    SetDoubleValueFromJS(env, tempValue, "leftBottomRadius", rectStyle.leftBottomRadius);
+}
+
+napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "startIndex", CreateJsNumber(env, (uint32_t)lineMetrics.startIndex));
+        napi_set_named_property(env, objValue, "endIndex", CreateJsNumber(env, (uint32_t)lineMetrics.endIndex));
+        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, lineMetrics.ascender));
+        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, lineMetrics.descender));
+        napi_set_named_property(env, objValue, "height", CreateJsNumber(env, lineMetrics.height));
+        napi_set_named_property(env, objValue, "width", CreateJsNumber(env, lineMetrics.width));
+        napi_set_named_property(env, objValue, "left", CreateJsNumber(env, lineMetrics.x));
+        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(env, lineMetrics.baseline));
+        napi_set_named_property(env, objValue, "lineNumber", CreateJsNumber(env, lineMetrics.lineNumber));
+        napi_set_named_property(env, objValue, "topHeight", CreateJsNumber(env, lineMetrics.y));
+        napi_set_named_property(env, objValue, "runMetrics", ConvertMapToNapiMap(env, lineMetrics.runMetrics));
+    }
+    return objValue;
+}
+
+napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "decoration", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(env, objValue, "color", CreateJsNumber(env,
+            (uint32_t)textStyle.color.CastToColorQuad()));
+        napi_set_named_property(env, objValue, "fontWeight", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.fontWeight)));
+        napi_set_named_property(env, objValue, "fontStyle", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.fontStyle)));
+        napi_set_named_property(env, objValue, "baseline", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.baseline)));
+        napi_set_named_property(env, objValue, "fontFamilies", CreateArrayStringJsValue(env, textStyle.fontFamilies));
+        napi_set_named_property(env, objValue, "fontSize", CreateJsNumber(env, textStyle.fontSize));
+        napi_set_named_property(env, objValue, "letterSpacing", CreateJsNumber(env, textStyle.letterSpacing));
+        napi_set_named_property(env, objValue, "wordSpacing", CreateJsNumber(env, textStyle.wordSpacing));
+        napi_set_named_property(env, objValue, "heightScale", CreateJsNumber(env, textStyle.heightScale));
+        napi_set_named_property(env, objValue, "halfLeading", CreateJsValue(env, textStyle.halfLeading));
+        napi_set_named_property(env, objValue, "heightOnly", CreateJsValue(env, textStyle.heightOnly));
+        napi_set_named_property(env, objValue, "ellipsis", CreateStringJsValue(env, textStyle.ellipsis));
+        napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.ellipsisModal)));
+        napi_set_named_property(env, objValue, "locale", CreateJsValue(env, textStyle.locale));
+    }
+    return objValue;
+}
+
+struct NapiMap {
+    napi_value instance;
+    napi_value set_function;
+};
+
+static NapiMap CreateNapiMap(napi_env env)
+{
+    NapiMap res = {nullptr, nullptr};
+    napi_valuetype value_type;
+
+    napi_value global = nullptr;
+    if (napi_get_global(env, &global) != napi_ok || !global) {
+        return res;
+    }
+
+    napi_value constructor = nullptr;
+    if (napi_get_named_property(env, global, "Map", &constructor) != napi_ok || !constructor) {
+        return res;
+    }
+
+    if (napi_typeof(env, constructor, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
+        return res;
+    }
+
+    napi_value map_instance = nullptr;
+    if (napi_new_instance(env, constructor, 0, nullptr, &map_instance) != napi_ok || !map_instance) {
+        return res;
+    }
+
+    napi_value map_set = nullptr;
+    if (napi_get_named_property(env, map_instance, "set", &map_set) != napi_ok || !map_set) {
+        return res;
+    }
+    if (napi_typeof(env, map_set, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
+        return res;
+    }
+
+    res.instance = map_instance;
+    res.set_function = map_set;
+
+    return res;
+}
+
+static bool NapiMapSet(napi_env env, NapiMap& map, uint32_t key, const RunMetrics& runMetrics)
+{
+    napi_value keyValue = nullptr;
+    keyValue = CreateJsNumber(env, key);
+    napi_value runMetricsValue = nullptr;
+    runMetricsValue = CreateRunMetricsJsValue(env, runMetrics);
+    if (!keyValue || !runMetricsValue) {
+        return false;
+    }
+    napi_value args[2] = {keyValue, runMetricsValue};
+    napi_status status = napi_call_function(env, map.instance, map.set_function, 2, args, nullptr);
+    if (status != napi_ok) {
+        return false;
+    }
+    return true;
+}
+
+napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map)
+{
+    auto mapReturn = CreateNapiMap(env);
+    for (const auto &[key, val] : map) {
+        NapiMapSet(env, mapReturn, static_cast<uint32_t>(key), val);
+    }
+    return mapReturn.instance;
+}
+
+napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "flags", CreateJsNumber(env, fontMetrics.fFlags));
+        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, fontMetrics.fTop)); // float type
+        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, fontMetrics.fAscent));
+        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, fontMetrics.fDescent));
+        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, fontMetrics.fBottom));
+        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, fontMetrics.fLeading));
+        napi_set_named_property(env, objValue, "avgCharWidth", CreateJsNumber(env, fontMetrics.fAvgCharWidth));
+        napi_set_named_property(env, objValue, "maxCharWidth", CreateJsNumber(env, fontMetrics.fMaxCharWidth));
+        napi_set_named_property(env, objValue, "xMin", CreateJsNumber(env, fontMetrics.fXMin));
+        napi_set_named_property(env, objValue, "xMax", CreateJsNumber(env, fontMetrics.fXMax));
+        napi_set_named_property(env, objValue, "xHeight", CreateJsNumber(env, fontMetrics.fXHeight));
+        napi_set_named_property(env, objValue, "capHeight", CreateJsNumber(env, fontMetrics.fCapHeight));
+        napi_set_named_property(env, objValue, "underlineThickness", CreateJsNumber(env,
+            fontMetrics.fUnderlineThickness));
+        napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
+            fontMetrics.fUnderlinePosition));
+        napi_set_named_property(env, objValue, "strikethroughThickness", CreateJsNumber(env,
+            fontMetrics.fStrikeoutThickness));
+        napi_set_named_property(env, objValue, "strikethroughPosition", CreateJsNumber(env,
+            fontMetrics.fStrikeoutPosition));
+    }
+    return objValue;
 }
 } // namespace OHOS::Rosen

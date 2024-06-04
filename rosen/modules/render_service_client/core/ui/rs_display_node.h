@@ -36,6 +36,8 @@ public:
     void ClearChildren() override;
 
     static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
+    void AddDisplayNodeToTree();
+    void RemoveDisplayNodeFromTree();
 
     bool Marshalling(Parcel& parcel) const;
     static SharedPtr Unmarshalling(Parcel& parcel);
@@ -56,6 +58,8 @@ public:
 
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
+
+    void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid);
 
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);

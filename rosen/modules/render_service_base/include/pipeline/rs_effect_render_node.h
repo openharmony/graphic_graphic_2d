@@ -32,11 +32,6 @@ public:
         return Type;
     }
 
-    bool GetUifirstSupportFlag() override
-    {
-        return false;
-    }
-
     bool OpincGetNodeSupportFlag() override
     {
         return false;
@@ -51,6 +46,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
     // record if there is filter cache for occlusion before this effect node
@@ -79,14 +75,22 @@ public:
     {
         return isStaticCached_;
     }
+    void InitRenderParams() override;
+    void MarkFilterHasEffectChildren() override;
+    virtual bool EffectNodeShouldPaint() const override;
+    void OnFilterCacheStateChanged() override;
+    bool FirstFrameHasEffectChildren() const override;
+    void MarkClearFilterCacheIfEffectChildrenChanged() override;
 
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheWithSelfDirty() override;
-    void MarkFilterCacheFlagsAfterPrepare(
-        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false) override;
-
+    void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync) override;
+    
 private:
+    bool FirstFrameHasNoEffectChildren() const;
+
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;

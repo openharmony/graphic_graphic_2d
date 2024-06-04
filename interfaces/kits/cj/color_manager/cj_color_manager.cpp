@@ -17,10 +17,7 @@
 
 namespace OHOS {
 namespace ColorManager {
-CjColorManager::CjColorManager(std::shared_ptr<ColorSpace> ptr)
-{
-    colorSpaceToken_ = ptr;
-}
+CjColorManager::CjColorManager(std::shared_ptr<ColorSpace> ptr): colorSpaceToken_(ptr) {}
 
 std::tuple<int32_t, std::string, std::shared_ptr<ColorSpace>> CjColorManager::create(ApiColorSpaceType csType)
 {

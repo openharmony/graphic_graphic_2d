@@ -176,7 +176,7 @@ public:
 
     virtual Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
 
-    virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
+    virtual std::vector<skia::textlayout::LineMetrics> GetLineMetrics() = 0;
 
     virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
 
@@ -191,6 +191,7 @@ public:
         size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
     virtual std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const = 0;
     virtual std::unique_ptr<Paragraph> CloneSelf() = 0;
+    virtual TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

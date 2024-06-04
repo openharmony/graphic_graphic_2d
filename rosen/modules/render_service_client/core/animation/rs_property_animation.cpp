@@ -93,7 +93,7 @@ void RSPropertyAnimation::SetOriginValue(const std::shared_ptr<RSPropertyBase>& 
 
 void RSPropertyAnimation::InitInterpolationValue()
 {
-    if (isDelta_) {
+    if (isDelta_ && originValue_) {
         startValue_ = originValue_->Clone();
         endValue_ = originValue_ + byValue_;
     } else {
@@ -125,6 +125,22 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
         }
     }
 
+    SetPropertyValue(targetValue);
+}
+
+void RSPropertyAnimation::UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos)
+{
+    auto targetValue = endValue_;
+    if (pos ==RSInteractiveAnimationPosition::START) {
+        targetValue = startValue_;
+    } else if (pos ==RSInteractiveAnimationPosition::END) {
+        targetValue = endValue_;
+    } else if (pos ==RSInteractiveAnimationPosition::CURRENT) {
+        if (IsUiAnimation() && property_ != nullptr) {
+            property_->SetValueFromRender(property_->GetRenderProperty());
+            return;
+        }
+    }
     SetPropertyValue(targetValue);
 }
 

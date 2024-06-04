@@ -110,5 +110,21 @@ bool RSLightUpEffectFilter::IsNearZero(float threshold) const
 {
     return ROSEN_EQ(lightUpDegree_, 0.0f, threshold);
 }
+
+bool RSLightUpEffectFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
+{
+    auto otherLightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(other);
+    if (otherLightUpFilter == nullptr) {
+        ROSEN_LOGE("RSLightUpEffectFilter::IsEqual: the types of filters are different.");
+        return true;
+    }
+    float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
+    return ROSEN_EQ(lightUpDegree_, otherLightUpDegree);
+}
+
+bool RSLightUpEffectFilter::IsEqualZero() const
+{
+    return ROSEN_EQ(lightUpDegree_, 0.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

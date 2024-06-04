@@ -15,12 +15,7 @@ import("//build/ohos.gni")
 import("../../../../../../graphic_config.gni")
 
 ohos_shared_library("windowanimationmanager_napi") {
-  include_dirs = [
-    "//foundation/window/window_manager/wm/include",
-    "//foundation/window/window_manager/wmserver/include",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
-    "//foundation/window/window_manager/interfaces/innerkits/dm",
-  ]
+  include_dirs = []
 
   sources = [
     "rs_window_animation_callback.cpp",
@@ -35,6 +30,7 @@ ohos_shared_library("windowanimationmanager_napi") {
   deps = [
     "$graphic_2d_root/rosen/modules/animation/window_animation:window_animation",
     "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
@@ -49,10 +45,12 @@ ohos_shared_library("windowanimationmanager_napi") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
     "window_manager:libwmutil",
     "window_manager:libwmutil_base",
+    "window_manager:sms",
   ]
+
+  public_external_deps = [ "window_manager:libwm" ]
 
   defines = []
 

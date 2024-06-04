@@ -87,7 +87,7 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    std::vector<LineMetrics>& GetLineMetrics() override;
+    std::vector<skia::textlayout::LineMetrics> GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 
@@ -113,9 +113,9 @@ public:
         std::vector<Drawing::FontMetrics>& fontMetrics) override;
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
+    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) override;
 
 private:
-    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
