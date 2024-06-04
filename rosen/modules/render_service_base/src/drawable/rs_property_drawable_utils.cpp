@@ -934,7 +934,9 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
         "%f, ShadowOffsetY: %f, bounds: %s",
         elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
-    CeilMatrixTrans(canvas);
+    if (RSSystemProperties::IsPhoneType()) {
+        CeilMatrixTrans(canvas);
+    }
     if (!isFilled) {
         canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
     }
