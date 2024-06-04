@@ -182,6 +182,9 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSMaskShadowDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         Drawing::AutoCanvasRestore rst(*canvas, true);
+        if (RSSystemProperties::IsPhoneType()) {
+            RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
+        }
         ptr->drawCmdList_->Playback(*canvas);
     };
 }
