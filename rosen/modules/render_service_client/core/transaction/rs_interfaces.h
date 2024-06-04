@@ -111,6 +111,8 @@ public:
 
     void MarkPowerOffNeedProcessOneFrame();
 
+    void DisablePowerOffRenderControl(ScreenId id);
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);

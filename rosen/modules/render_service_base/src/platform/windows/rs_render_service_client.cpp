@@ -214,6 +214,10 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 {
 }
 
+void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
+{
+}
+
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
 }

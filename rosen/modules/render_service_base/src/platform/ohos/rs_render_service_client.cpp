@@ -528,6 +528,16 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
     renderService->MarkPowerOffNeedProcessOneFrame();
 }
 
+void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+
+    renderService->DisablePowerOffRenderControl(id);
+}
+
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

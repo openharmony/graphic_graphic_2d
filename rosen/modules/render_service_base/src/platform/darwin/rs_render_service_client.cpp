@@ -218,6 +218,10 @@ void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus 
 {
 }
 
+void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
+{
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     return {};

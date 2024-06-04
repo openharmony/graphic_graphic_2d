@@ -600,11 +600,15 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RSHardwareThread::Instance().ScheduleTask(
-            [=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); }).wait();
-    } else {
-        mainThread_->ScheduleTask(
-            [=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); }).wait();
+        renderThread_.PostTask([=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); });
+    }
+}
+
+void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        renderThread_.PostTask([=]() { screenManager_->DisablePowerOffRenderControl(id); });
     }
 }
 

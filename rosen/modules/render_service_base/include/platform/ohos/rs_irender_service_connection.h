@@ -122,6 +122,8 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
+    virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
+
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,

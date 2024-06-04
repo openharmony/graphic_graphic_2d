@@ -1485,6 +1485,10 @@ bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
         RS_LOGE("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff, failed to get screen manager/renderNode!");
         return false;
     }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    if (screenManager->GetDisableRenderControlScreensCount() != 0) {
+        return false;
+    }
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
     auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(nodeSp);
     if (!displayNodeSp) {

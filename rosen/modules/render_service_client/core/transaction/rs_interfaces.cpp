@@ -260,6 +260,12 @@ void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
     renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
 }
 
+void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
+{
+    RS_LOGD("RSInterfaces::DisablePowerOffRenderControl.");
+    renderServiceClient_->DisablePowerOffRenderControl(id);
+}
+
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     RS_LOGI("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
