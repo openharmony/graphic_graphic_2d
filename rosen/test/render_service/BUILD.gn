@@ -52,6 +52,7 @@ group("test") {
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspath_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rspropertydrawableboundsgeometry_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspropertydrawableframegeometry_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspropertydrawableutilities_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproxyrendernode_fuzzer:fuzztest",
@@ -103,6 +104,13 @@ group("test") {
     "render_service_client/unittest/ui:unittest",
   ]
 
+  if (graphic_2d_feature_enable_vulkan) {
+    deps += [
+      "render_service_base/fuzztest/nativebufferutils_fuzzer:fuzztest",
+      "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
+      "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
+    ]
+  }
   if (tp_feature_enable) {
     deps += [ "render_service/unittest/touch_screen:unittest" ]
   }
