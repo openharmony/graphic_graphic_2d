@@ -222,4 +222,21 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
     DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 }
+
+/**
+ * @tc.name: SetScbNodePid
+ * @tc.desc: SetScbNodePid test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    std::vector<int32_t> oldScbPids = {};
+    int32_t currentScbPid = -1;
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+    oldScbPids.push_back(1);
+    oldScbPids.push_back(2);
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+}
 } // namespace OHOS::Rosen

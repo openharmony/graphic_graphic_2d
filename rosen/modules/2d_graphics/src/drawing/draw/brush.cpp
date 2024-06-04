@@ -165,6 +165,11 @@ bool Brush::AsBlendMode()
     return StaticFactory::AsBlendMode(*this);
 }
 
+/**
+ * In these cases, disable HDR paintfilter by setting forceBrightnessDisable_ as true:
+ * 1. Filter(effect): HDR paintfilter is already applied when take snapshot.
+ * 2. UIFirst: Disable main thread since sub thread is already applied.
+*/
 void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
 {
     forceBrightnessDisable_ = forceBrightnessDisable;

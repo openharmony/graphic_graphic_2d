@@ -305,7 +305,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
 
     RSSubThreadManager::Instance()->NodeTaskNotify(param->GetId());
 
-    RSMainThread::Instance()->RequestNextVSync();
+    RSMainThread::Instance()->RequestNextVSync("subthread");
 
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(param->GetId());
