@@ -71,6 +71,7 @@ ohos_shared_library("drawing_napi_impl") {
     "path_effect_napi/js_path_effect.cpp",
     "path_napi/js_path.cpp",
     "pen_napi/js_pen.cpp",
+    "region_napi/js_region.cpp",
     "sampling_options_napi/js_sampling_options.cpp",
     "shadow_layer_napi/js_shadow_layer.cpp",
     "text_blob_napi/js_text_blob.cpp",
@@ -88,6 +89,11 @@ ohos_shared_library("drawing_napi_impl") {
   external_deps = [ "napi:ace_napi" ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
+    sanitize = {
+      boundary_sanitize = true
+      integer_overflow = true
+      ubsan = true
+    }
     external_deps += [
       "hilog:libhilog",
       "image_framework:image_native",

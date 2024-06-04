@@ -25,12 +25,10 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
+namespace {
+bool RegisterTypefaceCallback()
 {
     static std::once_flag flag;
-    std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode, isTextureExportNode));
-    RSNodeMap::MutableInstance().RegisterNode(node);
-
     std::call_once(flag, []() {
         std::function<bool (std::shared_ptr<Drawing::Typeface>)> registerTypefaceFunc =
             [] (std::shared_ptr<Drawing::Typeface> typeface) -> bool {
@@ -46,6 +44,18 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isText
             };
         Drawing::Typeface::UnRegisterCallBackFunc(unregisterTypefaceFunc);
     });
+    return true;
+}
+
+bool g_typefaceAutoRegister = RegisterTypefaceCallback();
+}
+
+std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
+{
+    RegisterTypefaceCallback();
+
+    std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode, isTextureExportNode));
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {

@@ -45,6 +45,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
     { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
+    { DrawOpItem::ATLAS_OPITEM,             "ATLAS_OPITEM" },
     { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
     { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
     { DrawOpItem::IMAGE_RECT_OPITEM,        "IMAGE_RECT_OPITEM" },

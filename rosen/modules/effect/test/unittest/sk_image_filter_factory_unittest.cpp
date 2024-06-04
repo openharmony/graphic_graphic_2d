@@ -14,7 +14,6 @@
  */
 
 #include "sk_image_filter_factory_unittest.h"
-
 #include "sk_image_filter_factory.h"
 
 using namespace testing;
@@ -50,6 +49,51 @@ HWTEST_F(SKImageFilterFactoryUnittest, BlurTest002, TestSize.Level1)
     // 0 blur radius for test
     auto filter = Rosen::SKImageFilterFactory::Blur(0);
     EXPECT_TRUE(filter == nullptr);
+}
+
+/**
+ * @tc.name: BlurTest003
+ * @tc.desc: create a blur filter with TileMode CLAMP
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageFilterFactoryUnittest, BlurTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest003 start";
+    // 0.5 blur radius for test
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::CLAMP);
+    EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: BlurTest004
+ * @tc.desc: create a blur filter with TileMode REPEAT
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageFilterFactoryUnittest, BlurTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest004 start";
+    // 0.5 blur radius for test
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::REPEAT);
+    EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: BlurTest005
+ * @tc.desc: create a blur filter with TileMode MIRROR
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageFilterFactoryUnittest, BlurTest005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest005 start";
+    // 0.5 blur radius for test
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::MIRROR);
+    EXPECT_TRUE(filter != nullptr);
 }
 
 /**

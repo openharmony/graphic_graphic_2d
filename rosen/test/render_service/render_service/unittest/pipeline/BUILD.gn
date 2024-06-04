@@ -46,6 +46,7 @@ group("unittest") {
     ":RSUniRenderVisitorTest",
     ":RSUniUiCaptureTest",
     ":RSUnmarshalThreadTest",
+    ":RSVBlankIdleCorrectorTest",
     ":RSVirtualScreenProcessorTest",
   ]
   if (rs_enable_eglimage) {
@@ -91,7 +92,7 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -117,7 +118,7 @@ ohos_unittest("RSRenderServiceUnitTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -140,7 +141,7 @@ ohos_unittest("RSUniRenderJudgementTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -166,7 +167,7 @@ ohos_unittest("RSUniRenderProcessorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -195,7 +196,7 @@ ohos_unittest("RSRenderServiceVisitorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -224,7 +225,7 @@ ohos_unittest("RSComposerAdapterTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -250,7 +251,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -276,7 +277,7 @@ ohos_unittest("RSProcessorFactoryTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -302,7 +303,7 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -328,7 +329,7 @@ ohos_unittest("RSDropFrameProcessorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -354,7 +355,7 @@ ohos_unittest("RSBaseRenderUtilTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -384,7 +385,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -395,7 +396,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -411,7 +412,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -437,7 +438,7 @@ ohos_unittest("RSUniRenderUtilTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -468,7 +469,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -503,7 +504,7 @@ ohos_unittest("RSUniUiCaptureTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -532,7 +533,7 @@ ohos_unittest("RSHardwareThreadTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -565,7 +566,7 @@ ohos_unittest("RSMainThreadTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -591,7 +592,7 @@ ohos_unittest("RSEglImageManagerTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -617,7 +618,7 @@ ohos_unittest("RSRenderTaskTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -643,7 +644,7 @@ ohos_unittest("RSSubThreadManagerTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -669,7 +670,7 @@ ohos_unittest("RSSubThreadTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -695,7 +696,7 @@ ohos_unittest("RSFilterSubThreadTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -721,7 +722,7 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -746,7 +747,7 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -778,7 +779,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -807,7 +808,7 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -833,7 +834,7 @@ ohos_unittest("RSRenderEngineTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -859,7 +860,7 @@ ohos_unittest("RSDividedRenderUtilTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -885,7 +886,7 @@ ohos_unittest("RSUniRenderEngineTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -909,7 +910,31 @@ ohos_unittest("RSUnmarshalThreadTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+  }
+}
+
+## Build RSVBlankIdleCorrectorTest
+ohos_unittest("RSVBlankIdleCorrectorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_vblank_idle_corrector_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -935,7 +960,7 @@ ohos_unittest("RSUniHWcPrevalidateUtilTest") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 

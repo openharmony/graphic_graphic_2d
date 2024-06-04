@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEXT_BLOB_TEST_H
-#define TEXT_BLOB_TEST_H
+#ifndef INTERFACE_TEXT_BLOB_TEST_H
+#define INTERFACE_TEXT_BLOB_TEST_H
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_canvas.h>
 #include <native_drawing/drawing_rect.h>
@@ -80,4 +80,16 @@ public:
 protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override; // 365 ms 100次
 };
-#endif // TEXT_BLOB_TEST_H
+
+class TextBlobBuilderAllocRunPos : public TestBase {
+public:
+    explicit TextBlobBuilderAllocRunPos(int type) : TestBase(type) {}
+    ~TextBlobBuilderAllocRunPos() override {};
+
+protected:
+    int rectWidth_ = 0;
+    int rectHeight_ = 0;
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+#endif // INTERFACE_TEXT_BLOB_TEST_H

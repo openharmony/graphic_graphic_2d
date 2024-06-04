@@ -35,10 +35,12 @@ using NodeId = uint64_t;
 using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
+using InteractiveImplictAnimatorId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
+constexpr uint32_t RGBA_MAX = 255;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -96,8 +98,9 @@ enum class DrawableCacheType : uint8_t {
 
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
-    FORCED_CACHE,    // must-to-do case
-    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+    FORCED_CACHE,           // must-to-do case
+    TARGETED_CACHE,         // suggested case which could be disabled by optimized strategy
+    FOREGROUND_FILTER_CACHE // using cache to draw foreground filter
 };
 
 enum class FilterCacheType : uint8_t {
@@ -181,9 +184,9 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
-enum BufferHandleAttrKey : uint32_t {
-    // used in set roi region to codec, must be the same as HDI
-    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+enum GrallocBufferAttr : uint32_t {
+    // used in set roi region to codec, must be the same as private key in codec
+    GRALLOC_BUFFER_ATTR_BUFFER_ROI_INFO = 2054,
 };
 
 // types for PC SystemAnimatedScenes
@@ -226,11 +229,17 @@ enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
     ARKTS_CARD,
+    NONFOCUS_WINDOW,
 };
 
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+};
+
+enum class SurfaceWindowType : uint8_t {
+    DEFAULT_WINDOW = 0,
+    SYSTEM_SCB_WINDOW = 1,
 };
 
 struct RSSurfaceRenderNodeConfig {
@@ -241,6 +250,7 @@ struct RSSurfaceRenderNodeConfig {
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
     bool isSync = false;
+    enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
 // types for RSSurfaceExt

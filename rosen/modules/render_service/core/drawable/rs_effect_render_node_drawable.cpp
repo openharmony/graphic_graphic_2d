@@ -48,13 +48,14 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, effectParams->GetLocalDrawRect())) {
+    if ((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() &&
+        QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         return;
     }
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
-        !effectParams->ChildHasVisibleEffect()) {
+        !effectParams->GetHasEffectChildren()) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content
@@ -73,10 +74,9 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // create offscreen surface
         auto offscreenSurface = surface->MakeSurface(currentRect.GetWidth(), currentRect.GetHeight());
         auto offscreenCanvas = std::make_unique<RSPaintFilterCanvas>(offscreenSurface.get());
-        // copy current matrix to offscreen canvas, while setting TRANS_X and TRANS_Y to 0
+        // copy current matrix to offscreen canvas, while aligned with current rect
         auto currentMatrix = canvas.GetTotalMatrix();
-        currentMatrix.Set(Drawing::Matrix::TRANS_X, 0);
-        currentMatrix.Set(Drawing::Matrix::TRANS_Y, 0);
+        currentMatrix.PostTranslate(-currentRect.GetLeft(), -currentRect.GetTop());
         offscreenCanvas->SetMatrix(currentMatrix);
         // draw background image and blur
         RSRenderNodeDrawableAdapter::DrawImpl(*offscreenCanvas, bounds, drawCmdIndex_.backgroundImageIndex_);

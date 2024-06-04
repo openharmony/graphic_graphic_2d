@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "animation/rs_render_interactive_implict_animator_map.h"
+#include "animation/rs_render_interactive_implict_animator.h"
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
 #include "modifier/rs_render_modifier.h"
@@ -46,12 +48,12 @@ void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProc
 void AnimationCommandHelper::CreateAnimation(
     RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    if (node == nullptr) {
-        return;
-    }
     if (animation == nullptr) {
         RS_LOGE("AnimationCommandHelper::CreateAnimation, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
         return;
     }
     node->GetAnimationManager().AddAnimation(animation);
@@ -69,12 +71,12 @@ void AnimationCommandHelper::CreateAnimation(
 void AnimationCommandHelper::CreateParticleAnimation(
     RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation)
 {
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    if (node == nullptr) {
-        return;
-    }
     if (animation == nullptr) {
         RS_LOGE("AnimationCommandHelper::CreateParticleAnimation, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
         return;
     }
     auto propertyId = animation->GetPropertyId();
@@ -100,6 +102,83 @@ void AnimationCommandHelper::CancelAnimation(RSContext& context, NodeId targetId
 
     auto& animationManager = node->GetAnimationManager();
     animationManager.CancelAnimationByPropertyId(propertyId);
+}
+
+void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,
+    InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        animator = std::make_shared<RSRenderInteractiveImplictAnimator>(targetId, context.weak_from_this());
+        context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    }
+    animator->AddAnimations(animations);
+}
+
+void AnimationCommandHelper::DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    context.GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(targetId);
+}
+
+void AnimationCommandHelper::InteractiveAnimatorAddAnimations(RSContext& context,
+    InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->AddAnimations(animations);
+}
+
+void AnimationCommandHelper::PauseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->PauseAnimator();
+}
+
+void AnimationCommandHelper::ContinueInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->ContinueAnimator();
+}
+
+void AnimationCommandHelper::FinishInteractiveAnimator(RSContext& context,
+    InteractiveImplictAnimatorId targetId, RSInteractiveAnimationPosition finishPos)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->FinishAnimator(finishPos);
+}
+
+void AnimationCommandHelper::ReverseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->ReverseAnimator();
+}
+
+void AnimationCommandHelper::SetFractionInteractiveAnimator(RSContext& context,
+    InteractiveImplictAnimatorId targetId, float fraction)
+{
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    if (animator == nullptr) {
+        return;
+    }
+    animator->SetFractionAnimator(fraction);
 }
 } // namespace Rosen
 } // namespace OHOS

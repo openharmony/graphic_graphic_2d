@@ -91,6 +91,13 @@ void RSHardwareThreadTest::SetUp()
     screenManager_->MockHdiScreenConnected(rsScreen);
     CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,
         ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
+    }
 }
 
 void RSHardwareThreadTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,

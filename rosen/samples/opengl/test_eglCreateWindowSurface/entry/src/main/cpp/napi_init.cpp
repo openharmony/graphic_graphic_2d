@@ -17,6 +17,7 @@
 #include "manager/plugin_manager.h"
 #include "common/common.h"
 
+namespace OHOS {
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -45,3 +46,4 @@ extern "C" __attribute__((constructor)) void RegisterModule(void)
 {
     napi_module_register(&nativerenderModule);
 }
+} // namespace OHOS

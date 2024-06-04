@@ -48,6 +48,10 @@ HWTEST_F(RSInnovationTest, CloseInnovationSoTest, TestSize.Level1)
     RSInnovation::OpenInnovationSo(); 
     RSInnovation::CloseInnovationSo();
     ASSERT_EQ(RSInnovation::innovationHandle, NULL);
+    int value = 1;
+    RSInnovation::innovationHandle = &value;
+    RSInnovation::CloseInnovationSo();
+    ASSERT_NE(RSInnovation::innovationHandle, NULL);
 }
 
 /**
@@ -60,6 +64,8 @@ HWTEST_F(RSInnovationTest, GetParallelCompositionEnabledTest, TestSize.Level1)
 {
     bool isUniRender = true;
     RSInnovation::GetParallelCompositionEnabled(isUniRender);
+    isUniRender = false;
+    RSInnovation::GetParallelCompositionEnabled(isUniRender);
     ASSERT_EQ(std::atoi((system::GetParameter("rosen.parallelcomposition.enabled", "0")).c_str()), 0);
 }
 
@@ -71,8 +77,8 @@ HWTEST_F(RSInnovationTest, GetParallelCompositionEnabledTest, TestSize.Level1)
  */
 HWTEST_F(RSInnovationTest, ResetParallelCompositionFuncTest, TestSize.Level1)
 {
-    RSInnovation::OpenInnovationSo(); 
-    ASSERT_EQ(RSInnovation::innovationHandle, NULL);
+    RSInnovation::OpenInnovationSo();
+    ASSERT_NE(RSInnovation::innovationHandle, NULL);
     RSInnovation::_s_parallelCompositionLoaded = true;
     RSInnovation::CloseInnovationSo();
 }

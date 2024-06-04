@@ -127,7 +127,6 @@ int32_t XMLParser::ParseParams(xmlNode &node)
 {
     std::string paraName = ExtractPropertyValue("name", node);
     if (paraName.empty()) {
-        HGM_LOGD("XMLParser No name provided for %{public}s", node.name);
         return XML_PARSE_INTERNAL_FAIL;
     }
     if (!mParsedData_) {
@@ -160,6 +159,9 @@ int32_t XMLParser::ParseParams(xmlNode &node)
             mParsedData_->virtualDisplayConfigs_.clear();
             mParsedData_->virtualDisplaySwitch_ = false;
         }
+    } else if (paraName == "safe_vote") {
+        // "1": enable
+        mParsedData_->safeVoteEnabled = ExtractPropertyValue("switch", node) == "1";
     } else if (paraName == "screen_strategy_config") {
         setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
     } else if (paraName == "screen_config") {
@@ -197,6 +199,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
         auto down = ExtractPropertyValue("down", *currNode);
@@ -208,6 +211,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.isFactor = isFactor;
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
@@ -270,11 +274,11 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
     } else if (name == "app_list") {
         ParseMultiAppStrategy(*thresholdNode, screenSetting);
     } else if (name == "app_types") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.appTypes, "strategy");
+        setResult = ParseAppTypes(*thresholdNode, screenSetting.appTypes);
     } else if (name == "additional_touch_rate_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
     } else {
-        setResult = 0;
+        setResult = EXEC_SUCCESS;
     }
 
     if (setResult != EXEC_SUCCESS) {
@@ -385,7 +389,7 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting)
 {
     auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
     if (multiAppStrategy == "focus") {
@@ -398,6 +402,35 @@ int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::Screen
         screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
     }
     return ParseSimplex(node, screenSetting.appList, "strategy");
+}
+
+
+int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes)
+{
+    HGM_LOGD("XMLParser parsing appTypes");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing appTypes, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    appTypes.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto name = ExtractPropertyValue("name", *currNode);
+        if (!IsNumber(name)) {
+            continue;
+        }
+        auto strategy = ExtractPropertyValue("strategy", *currNode);
+        appTypes[std::stoi(name)] = strategy;
+        HGM_LOGI("HgmXMLParser ParseAppTypes name=%{public}s strategy=%{public}s", name.c_str(), strategy.c_str());
+    }
+
+    return EXEC_SUCCESS;
 }
 
 std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)

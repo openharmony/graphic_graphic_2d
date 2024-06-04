@@ -123,11 +123,13 @@ void RSDirtyRectsDfx::DrawDirtyRegionInVirtual() const
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             tmpRect = subRect;
         } else {
-            tmpRect = RectI(subRect.GetLeft(), screenInfo_.GetRotatedHeight() - subRect.GetTop() - subRect.GetHeight(),
+            tmpRect = RectI(subRect.GetLeft(),
+                static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - subRect.GetTop() - subRect.GetHeight(),
                 subRect.GetWidth(), subRect.GetHeight());
         }
 #else
-        tmpRect = RectI(subRect.GetLeft(), screenInfo_.GetRotatedHeight() - subRect.GetTop() - subRect.GetHeight(),
+        tmpRect = RectI(subRect.GetLeft(),
+            static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - subRect.GetTop() - subRect.GetHeight(),
             subRect.GetWidth(), subRect.GetHeight());
 #endif
         DrawDirtyRectForDFX(tmpRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, DFXFillAlpha);

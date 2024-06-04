@@ -113,6 +113,7 @@ public:
                                         int64_t lastVSyncTS);
     virtual bool IsRequestedNextVSync();
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;

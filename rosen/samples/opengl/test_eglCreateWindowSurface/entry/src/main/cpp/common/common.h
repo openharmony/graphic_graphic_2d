@@ -21,6 +21,7 @@
 #include <GLES3/gl3.h>
 #include <EGL/eglplatform.h>
 
+namespace OHOS {
 /**
  * Vertex shader.
  */
@@ -148,4 +149,5 @@ const EGLint ATTRIB_LIST[] = {
  * Context attributes.
  */
 const EGLint CONTEXT_ATTRIBS[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+} // namespace OHOS
 #endif // XCOMPONENT_COMMON_H

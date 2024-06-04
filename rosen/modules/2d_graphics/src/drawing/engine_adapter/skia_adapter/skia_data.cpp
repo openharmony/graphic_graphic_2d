@@ -35,6 +35,12 @@ bool SkiaData::BuildFromMalloc(const void* data, size_t length)
     return skData_ != nullptr;
 }
 
+bool SkiaData::BuildFromOHNativeBuffer(OH_NativeBuffer* nativeBuffer, size_t length)
+{
+    skData_ = SkData::MakeFromOHNativeBuffer(nativeBuffer, length);
+    return skData_ != nullptr;
+}
+
 bool SkiaData::BuildWithCopy(const void* data, size_t length)
 {
     skData_ = SkData::MakeWithCopy(data, length);

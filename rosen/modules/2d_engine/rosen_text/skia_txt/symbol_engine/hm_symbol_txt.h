@@ -30,90 +30,47 @@ public:
     HMSymbolTxt() {}
     ~HMSymbolTxt() {}
 
-    void SetRenderColor(const std::vector<RSSColor>& colorList)
-    {
-        colorList_ = colorList;
-    }
+    void SetRenderColor(const std::vector<RSSColor>& colorList);
 
-    void SetRenderColor(const RSSColor& colorList)
-    {
-        colorList_ = {colorList};
-    }
+    void SetRenderColor(const RSSColor& colorList);
 
-    void SetRenderMode(RSSymbolRenderingStrategy renderMode)
-    {
-        renderMode_ = renderMode;
-    }
+    void SetRenderMode(RSSymbolRenderingStrategy renderMode);
 
-    void SetSymbolEffect(const RSEffectStrategy& effectStrategy)
-    {
-        effectStrategy_ = effectStrategy;
-    }
+    void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
 
-    std::vector<RSSColor> GetRenderColor() const
-    {
-        return colorList_;
-    }
+    // set animation mode: the 1 is whole or iteratuve, 0 is hierarchical or cumulative
+    void SetAnimationMode(const uint16_t animationMode);
 
-    RSSymbolRenderingStrategy GetRenderMode() const
-    {
-        return renderMode_;
-    }
+    void SetRepeatCount(const int repeatCount);
 
-    RSEffectStrategy GetEffectStrategy() const
-    {
-        return effectStrategy_;
-    }
+    void SetAnimationStart(const bool animationStart);
+
+    // set common subtype of symbol animation attribute
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);
 
     bool operator ==(HMSymbolTxt const &sym) const;
 
-    void SetAnimationMode(const uint16_t animationMode)
-    {
-        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
-    }
+    std::vector<RSSColor> GetRenderColor() const;
 
-    void SetRepeatCount(const int repeatCount)
-    {
-        repeatCount_ = repeatCount;
-    }
+    RSSymbolRenderingStrategy GetRenderMode() const;
 
-    void SetAnimationStart(const bool animationStart)
-    {
-        animationStart_ = animationStart;
-    }
+    RSEffectStrategy GetEffectStrategy() const;
 
-    uint16_t GetAnimationMode() const
-    {
-        return animationMode_;
-    }
+    uint16_t GetAnimationMode() const;
 
-    int GetRepeatCount() const
-    {
-        return repeatCount_;
-    }
+    int GetRepeatCount() const;
 
-    bool GetAnimationStart() const
-    {
-        return animationStart_;
-    }
+    bool GetAnimationStart() const;
 
-    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
-    {
-        commonSubType_ = commonSubType;
-    }
+    Drawing::DrawingCommonSubType GetCommonSubType() const;
 
-    Drawing::DrawingCommonSubType GetCommonSubType() const
-    {
-        return commonSubType_;
-    }
-     
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool animationStart_ = true;
+    bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 };
 }

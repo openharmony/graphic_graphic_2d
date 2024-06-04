@@ -54,6 +54,11 @@ public:
         return 0.0f;
     }
 
+    virtual float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, float targetFraction)
+    {
+        return 0.0f;
+    }
+
     virtual void InitCurveAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
         const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& endValue,
@@ -119,6 +124,19 @@ public:
         return 0.0f;
     }
 
+    float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, float targetFraction) override
+    {
+        float end = FRACTION_MAX;
+        float lastFraction = FRACTION_MIN;
+        for (float time = FRAME_PER_TIME_FRACTION; time <= end; time += FRAME_PER_TIME_FRACTION) {
+            float fraction = interpolator->Interpolate(time);
+            if (lastFraction <= targetFraction && fraction >= targetFraction) {
+                return time;
+            }
+            lastFraction = fraction;
+        }
+        return FRACTION_MIN;
+    }
 private:
     T startValue_ {};
     T endValue_ {};

@@ -24,6 +24,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 
 namespace OHOS {
@@ -62,26 +63,66 @@ void RSUniRenderProcessor::PostProcess()
 
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d]",
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f]",
         node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight());
+        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    LayerInfoPtr layer = GetLayerInfo(
+        params, layerInfo.buffer, layerInfo.preBuffer, node.GetConsumer(), layerInfo.acquireFence);
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
+    layers_.emplace_back(layer);
+}
 
-    layer->SetSurface(node.GetConsumer());
-    layer->SetBuffer(layerInfo.buffer, layerInfo.acquireFence);
-    layer->SetPreBuffer(layerInfo.preBuffer);
+void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
+    RSSurfaceRenderParams& params)
+{
+    auto buffer = drawable.GetBuffer();
+    if (buffer == nullptr && drawable.GetAvailableBufferCount() <= 0) {
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());
+        RSSubThreadManager::Instance()->WaitNodeTask(params.GetId());
+    }
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(drawable);
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true) || !drawable.GetBuffer()) {
+        RS_LOGE("CreateUIFirstLayer ConsumeAndUpdateBuffer or GetBuffer return  false");
+        return;
+    }
+    buffer = drawable.GetBuffer();
+    auto preBuffer = drawable.GetPreBuffer();
+    LayerInfoPtr layer = GetLayerInfo(
+        params, buffer, preBuffer.buffer, drawable.GetConsumer(), drawable.GetAcquireFence());
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), drawable.GetConsumer());
+    layers_.emplace_back(layer);
+    auto& layerInfo = params.layerInfo_;
+    RS_LOGD("RSUniRenderProcessor::CreateUIFirstLayer: [%{public}s-%{public}" PRIu64 "] "
+        "src: %{public}d %{public}d %{public}d %{public}d, "
+        "dst: %{public}d %{public}d %{public}d %{public}d, zOrder: %{public}d",
+        drawable.GetName().c_str(), drawable.GetNodeId(),
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h, layerInfo.zOrder);
+}
+
+LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
+    sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence)
+{
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    auto& layerInfo = params.layerInfo_;
+    layer->SetSurface(consumer);
+    layer->SetBuffer(buffer, acquireFence);
+    layer->SetPreBuffer(preBuffer);
     layerInfo.preBuffer = nullptr;
     layer->SetZorder(layerInfo.zOrder);
 
     GraphicLayerAlpha alpha;
     alpha.enGlobalAlpha = true;
-    alpha.gAlpha = 255; // Alpha of 255 indicates opacity
+    // Alpha of 255 indicates opacity
+    alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    layer->SetCompositionType(RSSystemProperties::IsForceClient() ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+    layer->SetCompositionType(RSSystemProperties::IsForceClient() ?
+        GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
     std::vector<GraphicIRect> visibleRegions;
@@ -101,9 +142,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-
-    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
-    layers_.emplace_back(layer);
+    return layer;
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)

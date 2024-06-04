@@ -34,15 +34,13 @@ constexpr int TRACE_LEVEL_TWO = 2;
 
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
-    // skip shadow if not valid
-    if (!node.GetRenderProperties().IsShadowValid()) {
+    // skip shadow if not valid. ShadowMask is processed by foregound
+    if (!node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return nullptr;
     }
     RSDrawable::Ptr ret = nullptr;
-    if (node.GetRenderProperties().GetShadowMask()) {
-        ret = std::make_shared<RSColorfulShadowDrawable>();
-    } else if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
-               node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+    if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
+        node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         ret = std::make_shared<RSShadowDrawable>();
     } else {
         ret = std::make_shared<RSMaskShadowDrawable>();
@@ -56,8 +54,8 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    // skip shadow if not valid
-    if (!properties.IsShadowValid()) {
+    // skip shadow if not valid. ShadowMask is processed by foregound
+    if (!properties.IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return false;
     }
 
@@ -284,6 +282,9 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask() && mask->GetImage()) {
+        Drawing::AutoCanvasRestore maskSave(canvas, true);
+        canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
     }
 
     // back to mask layer
@@ -482,11 +483,6 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 void RSBackgroundEffectDrawable::OnSync()
 {
     RSFilterDrawable::OnSync();
-    // clear both cache image when it has no effect children and will not draw in this frame
-    if (!stagingHasEffectChildren_) {
-        lastCacheType_ = FilterCacheType::NONE;
-    }
-    stagingHasEffectChildren_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

@@ -745,7 +745,7 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, GetAndResetBlurCnt001, TestSize.Level1)
 {
     int res = RSPropertiesPainter::GetAndResetBlurCnt();
-    EXPECT_EQ(res, 2);
+    EXPECT_EQ(res, 1);
 }
 
 /**

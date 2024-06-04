@@ -103,8 +103,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.dstRect = GraphicIRect {
         0,
         0,
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyWidth())),
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyHeight()))
+        static_cast<int32_t>(screenInfo_.GetRotatedPhyWidth()),
+        static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight())
     };
     const auto& property = node.GetRenderProperties();
     info.boundRect = { 0, 0,
@@ -128,7 +128,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = RSSystemProperties::IsForceClient();
-    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
         matrix.Get(Drawing::Matrix::Index::SKEW_X), matrix.Get(Drawing::Matrix::Index::TRANS_X),
@@ -142,7 +142,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
-    const RectI dstRect = node.GetDstRect();
+    const RectI& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
@@ -496,8 +496,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.needClient = GetComposerInfoNeedClient(info, node);
     DealWithNodeGravity(node, info);
 
-    info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_));
-    info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_));
+    info.dstRect.x -= offsetX_;
+    info.dstRect.y -= offsetY_;
     info.visibleRect = info.dstRect;
     std::vector<GraphicIRect> dirtyRects;
     const Rect& dirtyRect = node.GetDamageRegion();
@@ -553,9 +553,8 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
     GraphicIRect originSrcRect = srcRect;
 
     RectI dstRectI(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
-    int32_t screenWidth = static_cast<int32_t>(screenInfo_.phyWidth);
-    int32_t screenHeight = static_cast<int32_t>(screenInfo_.phyHeight);
-    RectI screenRectI(0, 0, screenWidth, screenHeight);
+    RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo_.phyWidth),
+        static_cast<int32_t>(screenInfo_.phyHeight));
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {
         return;

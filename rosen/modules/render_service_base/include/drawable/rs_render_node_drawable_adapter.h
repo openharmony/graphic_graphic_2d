@@ -37,18 +37,20 @@ class Canvas;
 }
 
 struct DrawCmdIndex {
-    int8_t shadowIndex_           = -1;
-    int8_t renderGroupBeginIndex_ = -1;
-    int8_t backgroundColorIndex_  = -1;
-    int8_t backgroundImageIndex_  = -1;
-    int8_t backgroundFilterIndex_ = -1;
-    int8_t useEffectIndex_        = -1;
-    int8_t backgroundEndIndex_    = -1;
-    int8_t childrenIndex_         = -1;
-    int8_t contentIndex_          = -1;
-    int8_t foregroundBeginIndex_  = -1;
-    int8_t renderGroupEndIndex_   = -1;
-    int8_t endIndex_              = -1;
+    int8_t shadowIndex_                = -1;
+    int8_t renderGroupBeginIndex_      = -1;
+    int8_t foregroundFilterBeginIndex_ = -1;
+    int8_t backgroundColorIndex_       = -1;
+    int8_t backgroundImageIndex_       = -1;
+    int8_t backgroundFilterIndex_      = -1;
+    int8_t useEffectIndex_             = -1;
+    int8_t backgroundEndIndex_         = -1;
+    int8_t childrenIndex_              = -1;
+    int8_t contentIndex_               = -1;
+    int8_t foregroundBeginIndex_       = -1;
+    int8_t renderGroupEndIndex_        = -1;
+    int8_t foregroundFilterEndIndex_   = -1;
+    int8_t endIndex_                   = -1;
 };
 namespace DrawableV2 {
 enum class SkipType : uint8_t {
@@ -104,8 +106,13 @@ protected:
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
+    // used for foreground filter
+    void DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawAfterCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+
     // used for render group
-    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params) const;
+    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params);
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -137,6 +144,12 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
+    std::vector<Drawing::RectI> filterRects_;
+#ifdef ROSEN_OHOS
+    static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+#else
+    static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+#endif
 
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,

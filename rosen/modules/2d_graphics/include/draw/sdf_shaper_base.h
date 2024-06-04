@@ -35,6 +35,7 @@ public:
     virtual void SetSize(float size) = 0;
 
     virtual int GetParaNum() const = 0;
+    virtual int GetFillType() const = 0;
     virtual std::vector<float> GetPara() const = 0;
     virtual std::vector<float> GetTransPara() const = 0;
 

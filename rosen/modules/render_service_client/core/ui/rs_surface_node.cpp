@@ -38,6 +38,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_hdr_manager.h"
 #include "ui/rs_proxy_node.h"
+#include "rs_trace.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_utils.h"
@@ -76,6 +77,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = surfaceNodeConfig.isSync,
+        .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
 
@@ -85,7 +87,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.bundleName);
+            config.id, config.name, static_cast<uint8_t>(config.nodeType),
+            config.bundleName, config.surfaceWindowType);
         transactionProxy->AddCommand(command, isWindow);
     } else {
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
@@ -645,6 +648,10 @@ void RSSurfaceNode::AttachToDisplay(uint64_t screenId)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+        RS_LOGI("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+            "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
+        RS_TRACE_NAME_FMT("RSSurfaceNode:attach to display, node:[name: %s, id: %" PRIu64 "], "
+            "screen id: %" PRIu64, GetName().c_str(), GetId(), screenId);
     }
 }
 
@@ -654,6 +661,10 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+        RS_LOGI("RSSurfaceNode:detach from display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+            "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
+        RS_TRACE_NAME_FMT("RSSurfaceNode:detach from display, node:[name: %s, id: %" PRIu64 "], "
+            "screen id: %" PRIu64, GetName().c_str(), GetId(), screenId);
     }
 }
 
@@ -798,6 +809,24 @@ void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
         ROSEN_LOGD("SetHDRPresent  RSSurfaceNode");
         transactionProxy->AddCommand(command, true);
     }
+}
+
+void RSSurfaceNode::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSkipDraw>(GetId(), skip);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetSkipDraw, surfaceNodeId:[%" PRIu64 "] skipdraw:%s", GetId(),
+        skip ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetSkipDraw() const
+{
+    return isSkipDraw_;
 }
 } // namespace Rosen
 } // namespace OHOS

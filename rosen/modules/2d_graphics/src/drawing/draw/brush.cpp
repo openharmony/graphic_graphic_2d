@@ -78,14 +78,9 @@ void Brush::SetARGB(int a, int r, int g, int b)
     color_.SetRgb(r, g, b, a);
 }
 
-Color4f Brush::GetColor4f()
+const Color4f& Brush::GetColor4f()
 {
     return color_.GetColor4f();
-}
-
-std::shared_ptr<ColorSpace> Brush::GetColorSpace() const
-{
-    return colorSpace_;
 }
 
 void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
@@ -123,11 +118,6 @@ const Filter& Brush::GetFilter() const
 void Brush::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
     shaderEffect_ = e;
-}
-
-std::shared_ptr<ShaderEffect> Brush::GetShaderEffect() const
-{
-    return shaderEffect_;
 }
 
 void Brush::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
@@ -173,6 +163,11 @@ void Brush::Reset()
 bool Brush::AsBlendMode()
 {
     return StaticFactory::AsBlendMode(*this);
+}
+
+void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
+{
+    forceBrightnessDisable_ = forceBrightnessDisable;
 }
 
 bool Brush::IsHdr() const

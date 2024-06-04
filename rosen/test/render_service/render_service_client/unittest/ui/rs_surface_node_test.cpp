@@ -1553,4 +1553,34 @@ HWTEST_F(RSSurfaceNodeTest, SetColorSpace, TestSize.Level1)
     surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     ASSERT_EQ(surfaceNode->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
+
+/**
+ * @tc.name: SetSKipDraw
+ * @tc.desc: Test function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSkipDraw, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSkipDraw(true);
+    EXPECT_TRUE(surfaceNode->GetSkipDraw());
+
+    surfaceNode->SetSkipDraw(false);
+    EXPECT_FALSE(surfaceNode->GetSkipDraw());
+}
+
+/**
+ * @tc.name: GetSkipLayer001
+ * @tc.desc: Test function GetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceNodeTest, GetSkipDraw, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    EXPECT_FALSE(surfaceNode->GetSkipDraw());
+}
 } // namespace OHOS::Rosen

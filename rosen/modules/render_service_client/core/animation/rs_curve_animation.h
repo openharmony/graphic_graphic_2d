@@ -37,6 +37,7 @@ public:
 
     const RSAnimationTimingCurve& GetTimingCurve() const;
 
+    bool IsSupportInteractiveAnimator() override;
 protected:
     void OnStart() override;
 
