@@ -165,7 +165,9 @@ bool DoResetSurface(const uint8_t* data, size_t size)
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    canvasDrawingNode.ResetSurface();
+    int w = GetData<int>();
+    int h = GetData<int>();
+    canvasDrawingNode.ResetSurface(w, h);
     return true;
 }
 
