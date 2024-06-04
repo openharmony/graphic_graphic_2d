@@ -28,6 +28,108 @@
 
 namespace OHOS::Media {
 
+SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
+{
+    if (auto object = buffer.GetRefPtr()) {
+        object->IncStrongRef(object);
+        return object;
+    }
+    return nullptr;
+}
+
+static bool IsDataValid(const void* data, size_t size)
+{
+    return data && (size > 0);
+}
+
+static std::vector<uint8_t> GenerateRawCopy(const uint8_t* data, size_t size)
+{
+    std::vector<uint8_t> out;
+    if (IsDataValid(data, size)) {
+        out.insert(out.end(), data, data + size);
+    }
+    return out;
+}
+
+static std::vector<uint8_t> GenerateMiniatureAstc(const uint8_t* data, size_t size)
+{
+    constexpr uint32_t astcBytesPerPixel = 16u;
+    return GenerateRawCopy(data, astcBytesPerPixel);
+}
+
+static std::vector<uint8_t> GenerateMiniature(const uint8_t* data, size_t size, uint32_t pixelBytes)
+{
+    if (!IsDataValid(data, size)) {
+        return {};
+    }
+
+    constexpr uint32_t rgbaBytesPerPixel = 4u;
+    constexpr uint32_t pixelBytesThreshold = 256u; // in case the pixelBytes field in the map has invalid value
+    const uint32_t bytesPerPixel =
+        ((pixelBytes > 0) && (pixelBytes < pixelBytesThreshold)) ? pixelBytes : rgbaBytesPerPixel;
+
+    const auto pixelCount = size / bytesPerPixel;
+
+    std::vector<uint64_t> averageValue(bytesPerPixel, 0);
+    constexpr uint32_t sampleCount = 100u;
+    for (uint32_t sample = 0; sample < sampleCount; sample++) {
+        for (uint32_t channel = 0; channel < bytesPerPixel; channel++) {
+            averageValue[channel] += data[(sample * pixelCount / sampleCount) * bytesPerPixel + channel];
+        }
+    }
+
+    std::vector<uint8_t> out(bytesPerPixel, 0);
+    for (uint32_t i = 0; i < bytesPerPixel; i++) {
+        out[i] = static_cast<uint8_t>(averageValue[i] / sampleCount);
+    }
+    return out;
+}
+
+static std::vector<uint8_t> GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes)
+{
+    if (!Rosen::RSProfiler::IsBetaRecordEnabled()) {
+        return GenerateRawCopy(data, size);
+    }
+
+    return isAstc ? GenerateMiniatureAstc(data, size) : GenerateMiniature(data, size, pixelBytes);
+}
+
+static std::vector<uint8_t> GenerateImageData(const uint8_t* data, size_t size, PixelMap& map)
+{
+    return GenerateImageData(data, size, map.IsAstc(), map.GetPixelBytes());
+}
+
+static bool CopyImageData(const uint8_t* srcImage, size_t srcSize, uint8_t* dstImage, size_t dstSize)
+{
+    if (!srcImage || !dstImage || (srcSize == 0) || (dstSize == 0) || (srcSize > dstSize)) {
+        return false;
+    }
+
+    if (dstSize == srcSize) {
+        return Rosen::Utils::Move(dstImage, dstSize, srcImage, srcSize);
+    }
+
+    for (size_t offset = 0; offset < dstSize;) {
+        const size_t size = std::min(dstSize - offset, srcSize);
+        if (!Rosen::Utils::Move(dstImage + offset, size, srcImage, size)) {
+            return false;
+        }
+        offset += size;
+    }
+
+    return true;
+}
+
+static bool CopyImageData(const std::vector<uint8_t>& data, uint8_t* dstImage, size_t dstSize)
+{
+    return CopyImageData(data.data(), data.size(), dstImage, dstSize);
+}
+
+static bool CopyImageData(const Rosen::Image* image, uint8_t* dstImage, size_t dstSize)
+{
+    return image ? CopyImageData(image->data, dstImage, dstSize) : false;
+}
+
 struct UnmarshallingContext {
 public:
     static constexpr int headerLength = 24; // NOLINT
@@ -46,7 +148,7 @@ public:
             return false;
         }
 
-        if (!Rosen::Utils::Move(base, size, image->data.data(), size)) {
+        if (!CopyImageData(image, base, size)) {
             delete base;
             base = nullptr;
             return false;
@@ -62,31 +164,24 @@ public:
             return false;
         }
 
-        auto* buffer = reinterpret_cast<const BufferHandle*>(image->data.data());
-        if (!buffer || (buffer->width == 0) || (buffer->height == 0)) {
-            base = nullptr;
-            context = nullptr;
+        sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+        if (!surfaceBuffer) {
             return false;
         }
 
-        BufferRequestConfig config = {};
-        config.width = buffer->width;
-        config.strideAlignment = buffer->stride;
-        config.height = buffer->height;
-        config.format = buffer->format;
-        config.usage = buffer->usage;
-
-        sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+        const BufferRequestConfig config = { .width = image->dmaWidth,
+            .height = image->dmaHeight,
+            .strideAlignment = image->dmaStride,
+            .format = image->dmaFormat,
+            .usage = image->dmaUsage };
         surfaceBuffer->Alloc(config);
 
         base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-        Rosen::Utils::Move(base, buffer->size, image->data.data() + sizeof(BufferHandle), buffer->size);
-
-        void* nativeBuffer = surfaceBuffer.GetRefPtr();
-        auto* ref = reinterpret_cast<OHOS::RefBase*>(nativeBuffer);
-        ref->IncStrongRef(ref);
-        context = nativeBuffer;
-        return true;
+        if (base && CopyImageData(image, base, image->dmaSize)) {
+            context = IncrementSurfaceBufferReference(surfaceBuffer);
+            return true;
+        }
+        return false;
     }
 
 public:
@@ -104,23 +199,18 @@ public:
 // It works ONLY thanks to the 'friend class ImageSource' in PixelMap.
 class ImageSource {
 public:
-    // See PixelMap::Unmarshalling
-    // foundation/multimedia/image_framework/frameworks/innerkitsimpl/common/src/pixel_map.cpp
     static PixelMap* Unmarshal(Parcel& parcel);
     static bool Marshal(Parcel& parcel, PixelMap& map);
 
 private:
-    static uint64_t NewImageId();
-    static bool CacheImage(uint64_t id, const void* data, size_t size, size_t skipBytes);
-    static bool CacheImage(uint64_t id, std::vector<uint8_t> && data, size_t skipBytes);
+    static void CacheImage(
+        uint64_t id, const std::vector<uint8_t>& data, size_t skipBytes, BufferHandle* bufferHandle = nullptr);
     static Rosen::Image* GetCachedImage(uint64_t id);
 
     static uint8_t* MapImage(int32_t file, size_t size, int32_t flags);
     static void UnmapImage(void* image, size_t size);
 
-    // See foundation/multimedia/image_framework/frameworks/innerkitsimpl/utils/include/image_utils.h
     static bool IsValidFormat(const PixelFormat& format);
-    static void SurfaceBufferReference(void* buffer);
 
     static void OnClientMarshalling(PixelMap& map, uint64_t id);
 
@@ -131,21 +221,31 @@ private:
     static PixelMap* FinalizeUnmarshalling(UnmarshallingContext& context);
 };
 
-uint64_t ImageSource::NewImageId()
+void ImageSource::CacheImage(
+    uint64_t id, const std::vector<uint8_t>& data, size_t skipBytes, BufferHandle* bufferHandle)
 {
-    return Rosen::ImageCache::New();
-}
+    if (data.empty()) {
+        return;
+    }
 
-bool ImageSource::CacheImage(uint64_t id, const void* data, size_t size, size_t skipBytes)
-{
-    Rosen::Image image(reinterpret_cast<const uint8_t*>(data), size, skipBytes);
-    return Rosen::ImageCache::Add(id, std::move(image));
-}
+    if (bufferHandle && ((bufferHandle->width == 0) || (bufferHandle->height == 0))) {
+        return;
+    }
 
-bool ImageSource::CacheImage(uint64_t id, std::vector<uint8_t>&& data, size_t skipBytes)
-{
-    Rosen::Image image(std::move(data), skipBytes);
-    return Rosen::ImageCache::Add(id, std::move(image));
+    Rosen::Image image;
+    image.data = data;
+
+    if (bufferHandle) {
+        image.dmaSize = bufferHandle->size;
+        image.dmaWidth = bufferHandle->width;
+        image.dmaHeight = bufferHandle->height;
+        image.dmaStride = bufferHandle->stride;
+        image.dmaFormat = bufferHandle->format;
+        image.dmaUsage = bufferHandle->usage;
+    }
+
+    image.parcelSkipBytes = skipBytes;
+    Rosen::ImageCache::Add(id, std::move(image));
 }
 
 Rosen::Image* ImageSource::GetCachedImage(uint64_t id)
@@ -161,7 +261,7 @@ uint8_t* ImageSource::MapImage(int32_t file, size_t size, int32_t flags)
 
 void ImageSource::UnmapImage(void* image, size_t size)
 {
-    if (image && size > 0) {
+    if (IsDataValid(image, size)) {
         ::munmap(image, size);
     }
 }
@@ -173,14 +273,6 @@ bool ImageSource::IsValidFormat(const PixelFormat& format)
            (format == PixelFormat::RGB_888) || (format == PixelFormat::RGB_565) || (format == PixelFormat::RGBA_F16) ||
            (format == PixelFormat::NV21) || (format == PixelFormat::NV12) || (format == PixelFormat::ASTC_4x4) ||
            (format == PixelFormat::ASTC_6x6) || (format == PixelFormat::ASTC_8x8);
-}
-
-void ImageSource::SurfaceBufferReference(void* buffer)
-{
-    if (buffer) {
-        auto object = reinterpret_cast<OHOS::RefBase*>(buffer);
-        object->IncStrongRef(object);
-    }
 }
 
 bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
@@ -200,8 +292,8 @@ bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
 
     context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
     context.parcel.ReadInt32(); // unused csm
-    context.rowPitch = context.parcel.ReadInt32();
-    context.size = context.parcel.ReadInt32();
+    context.rowPitch = static_cast<size_t>(context.parcel.ReadInt32());
+    context.size = static_cast<size_t>(context.parcel.ReadInt32());
 
     const size_t rawSize = context.rowPitch * context.info.size.height;
     return IsValidFormat(context.info.pixelFormat) && (isAstc || (context.size == rawSize));
@@ -213,8 +305,7 @@ bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint6
     const int32_t file =
         Rosen::RSProfiler::IsParcelMock(context.parcel) ? invalidFile : context.map->ReadFileDescriptor(context.parcel);
     if (file < 0) {
-        auto image = GetCachedImage(id);
-        if (image && (static_cast<uint32_t>(context.size) == image->data.size())) {
+        if (auto image = GetCachedImage(id)) {
             if (context.GatherImageFromFile(image)) {
                 context.parcel.SkipBytes(UnmarshallingContext::headerLength);
                 return true;
@@ -232,7 +323,8 @@ bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint6
         }
     }
 
-    CacheImage(id, image, context.size, UnmarshallingContext::headerLength);
+    const auto imageData = GenerateImageData(image, context.size, *context.map);
+    CacheImage(id, imageData, UnmarshallingContext::headerLength);
 
     context.context = new int32_t();
     if (!context.context) {
@@ -249,7 +341,7 @@ bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
 {
     auto image = Rosen::RSProfiler::IsParcelMock(context.parcel) ? GetCachedImage(id) : nullptr;
     if (image) {
-        context.parcel.SkipBytes(image->skipBytes);
+        context.parcel.SkipBytes(image->parcelSkipBytes);
         return context.GatherDmaImageFromFile(image);
     }
 
@@ -257,18 +349,12 @@ bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
 
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
     surfaceBuffer->ReadFromMessageParcel(static_cast<MessageParcel&>(context.parcel));
-    auto* virAddr = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-    void* nativeBuffer = surfaceBuffer.GetRefPtr();
-    SurfaceBufferReference(nativeBuffer);
-    context.base = virAddr;
-    context.context = nativeBuffer;
+    context.base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
+    context.context = IncrementSurfaceBufferReference(surfaceBuffer);
 
-    if (auto buffer = surfaceBuffer->GetBufferHandle()) {
-        std::vector<uint8_t> data;
-        data.resize(sizeof(BufferHandle) + buffer->size);
-        Rosen::Utils::Move(data.data(), sizeof(BufferHandle), buffer, sizeof(BufferHandle));
-        Rosen::Utils::Move(data.data() + sizeof(BufferHandle), buffer->size, virAddr, buffer->size);
-        CacheImage(id, std::move(data), context.parcel.GetReadPosition() - readPosition);
+    if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
+        const auto imageData = GenerateImageData(context.base, bufferHandle->size, *context.map);
+        CacheImage(id, imageData, context.parcel.GetReadPosition() - readPosition, bufferHandle);
     }
 
     return true;
@@ -338,14 +424,28 @@ PixelMap* ImageSource::Unmarshal(Parcel& parcel)
 
 void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
 {
-    if (Rosen::RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id())) {
+    if (Rosen::RSProfiler::IsSharedMemoryEnabled()) {
         return;
     }
 
-    if (auto file = static_cast<const int32_t*>(map.GetFd())) {
-        const size_t size = map.isAstc_ ? map.pixelsSize_ : map.rowDataSize_ * map.imageInfo_.size.height;
-        if (auto image = MapImage(*file, size, PROT_READ)) {
-            CacheImage(id, image, size, UnmarshallingContext::headerLength);
+    const auto descriptor = map.GetFd();
+    if (!descriptor) {
+        return;
+    }
+
+    if (map.GetAllocatorType() == AllocatorType::DMA_ALLOC) {
+        auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(descriptor);
+        if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
+            const auto imageData = GenerateImageData(
+                reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), bufferHandle->size, map);
+            CacheImage(id, imageData, UnmarshallingContext::headerLength, bufferHandle);
+        }
+    } else {
+        const size_t size = map.isAstc_ ? map.pixelsSize_ :
+            static_cast<size_t>(map.rowDataSize_ * map.imageInfo_.size.height);
+        if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
+            const auto imageData = GenerateImageData(image, size, map);
+            CacheImage(id, imageData, UnmarshallingContext::headerLength);
             UnmapImage(image, size);
         }
     }
@@ -353,11 +453,10 @@ void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
 
 bool ImageSource::Marshal(Parcel& parcel, Media::PixelMap& map)
 {
-    const uint64_t id = NewImageId();
+    const uint64_t id = Rosen::ImageCache::New();
     if (!parcel.WriteUint64(id) || !map.Marshalling(parcel)) {
         return false;
     }
-
     OnClientMarshalling(map, id);
     return true;
 }

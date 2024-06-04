@@ -20,15 +20,19 @@
 #include <mutex>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/rs_common_def.h"
 #include "hgm_command.h"
+#include "hgm_lru_cache.h"
 #include "hgm_touch_manager.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t DEFAULT_APP_TYPE = -1;
+
 class HgmMultiAppStrategy final {
 public:
     using StrategyChangeCallback = std::function<void(const PolicyConfigData::StrategyConfig&)>;
@@ -39,32 +43,45 @@ public:
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const std::string& pkgName, TouchState touchState);
+    void HandleLightFactorStatus(bool isSafe);
 
     void CalcVote();
-    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes);
+    HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
 
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
+    bool CheckPidValid(pid_t pid);
 
     std::string GetAppStrategyConfigName(const std::string& pkgName) const;
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes);
+    const std::unordered_map<std::string, std::pair<pid_t, int32_t>>& GetPidAppType() const
+    {
+        return pidAppTypeMap_;
+    }
+    const std::unordered_map<pid_t, int32_t>& GetForegroundPidAppType() const { return foregroundPidAppType_; }
+    const HgmLRUCache<pid_t>& GetBackgroundPid() const { return backgroundPid_; }
+    HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const;
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
+    void CleanApp(pid_t pid);
     void UpdateXmlConfigCache();
     PolicyConfigData::ScreenSetting& GetScreenSetting() const { return screenSettingCache_; }
     PolicyConfigData::StrategyConfigMap& GetStrategyConfigs() const { return strategyConfigMapCache_; }
 
+    static std::tuple<std::string, pid_t, int32_t> AnalyzePkgParam(const std::string& param);
 private:
     void UseStrategyNum();
     void FollowFocus();
     void UseMax();
 
-    static std::tuple<std::string, pid_t, std::string> AnalyzePkgParam(const std::string& param);
+    void OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes);
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
 
     std::vector<std::string> pkgs_;
-    std::unordered_map<std::string, std::pair<pid_t, std::string>> pidAppTypeMap_;
+    std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;
+    std::unordered_map<pid_t, int32_t> foregroundPidAppType_;
+    HgmLRUCache<pid_t> backgroundPid_{ 100 }; // max nums of pkgs that can be stored is 100
+    std::mutex pidAppTypeMutex_;
     std::pair<HgmErrCode, PolicyConfigData::StrategyConfig> voteRes_ = { HGM_ERROR, {
         .min = OledRefreshRate::OLED_NULL_HZ,
         .max = OledRefreshRate::OLED_120_HZ,
@@ -75,6 +92,7 @@ private:
     }};
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
+    bool lightFactorStatus_ = false;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;

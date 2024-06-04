@@ -49,7 +49,6 @@ HWTEST_F(RSHDRManagerTest, IncreaseHDRNum001, TestSize.Level1)
     int ret = RSHDRManager::Instance().IncreaseHDRNum();
     ASSERT_TRUE(ret == 1);
     RSHDRManager::Instance().ResetHDRNum();
-    ASSERT_TRUE(ret == 0);
 }
 
 /**
@@ -65,7 +64,6 @@ HWTEST_F(RSHDRManagerTest, IncreaseHDRNum002, TestSize.Level1)
     ret = RSHDRManager::Instance().IncreaseHDRNum();
     ASSERT_TRUE(ret == 2);
     RSHDRManager::Instance().ResetHDRNum();
-    ASSERT_TRUE(ret == 0);
 }
 
 /**

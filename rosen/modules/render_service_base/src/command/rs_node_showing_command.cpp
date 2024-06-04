@@ -165,5 +165,69 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
     }
 }
+
+bool RSNodeGetAnimationsValueFraction::Marshalling(Parcel& parcel) const
+{
+    bool result = RSMarshallingHelper::Marshalling(parcel, commandType) &&
+           RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+           RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+           RSMarshallingHelper::Marshalling(parcel, success_) &&
+           RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
+           RSMarshallingHelper::Marshalling(parcel, animationId_);
+    return result;
+}
+
+RSCommand* RSNodeGetAnimationsValueFraction::Unmarshalling(Parcel& parcel)
+{
+    uint64_t timeoutNS;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, timeoutNS)) {
+        return nullptr;
+    }
+    auto command = new RSNodeGetAnimationsValueFraction(timeoutNS);
+    if (!command->ReadFromParcel(parcel)) {
+        delete command;
+        return nullptr;
+    }
+    return command;
+}
+
+bool RSNodeGetAnimationsValueFraction::CheckHeader(Parcel& parcel) const
+{
+    uint16_t type;
+    uint16_t subType;
+    uint64_t timeoutNS;
+    return RSMarshallingHelper::Unmarshalling(parcel, type) && type == commandType &&
+           RSMarshallingHelper::Unmarshalling(parcel, subType) && subType == commandSubType &&
+           RSMarshallingHelper::Unmarshalling(parcel, timeoutNS) && timeoutNS == timeoutNS_;
+}
+
+bool RSNodeGetAnimationsValueFraction::ReadFromParcel(Parcel& parcel)
+{
+    if (!RSMarshallingHelper::Unmarshalling(parcel, success_)) {
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId_)) {
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, animationId_)) {
+        return false;
+    }
+    return true;
+}
+
+void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId_);
+    if (node == nullptr) {
+        return;
+    }
+    auto animation = node->GetAnimationManager().GetAnimation(animationId_);
+    if (animation == nullptr) {
+        return;
+    }
+    success_ = true;
+    fraction_ = animation->GetValueFraction();
+}
 } // namespace Rosen
 } // namespace OHOS

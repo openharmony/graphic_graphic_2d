@@ -28,6 +28,7 @@ class RSRenderPropertyBase;
 enum RSNodeShowingCommandType : uint16_t {
     GET_RENDER_PROPERTY,
     GET_RENDER_PROPERTIES,
+    GET_VALUE_FRACTION,
 };
 
 class RSB_EXPORT RSNodeGetShowingPropertyAndCancelAnimation : public RSSyncTask {
@@ -97,6 +98,36 @@ private:
     static Registrar instance_;
 };
 
+class RSB_EXPORT RSNodeGetAnimationsValueFraction: public RSSyncTask {
+    constexpr static uint16_t commandType = RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION;
+    constexpr static uint16_t commandSubType = GET_VALUE_FRACTION;
+
+public:
+    explicit RSNodeGetAnimationsValueFraction(uint64_t timeoutNS, NodeId nodeId, AnimationId animationId)
+        : RSSyncTask(timeoutNS), nodeId_(nodeId), animationId_(animationId)
+    {}
+    ~RSNodeGetAnimationsValueFraction() override = default;
+
+    bool Marshalling(Parcel& parcel) const override;
+    static RSCommand* Unmarshalling(Parcel& parcel);
+
+    bool CheckHeader(Parcel& parcel) const override;
+    bool ReadFromParcel(Parcel& parcel) override;
+
+    void Process(RSContext& context) override;
+
+    float GetFraction() const
+    {
+        return fraction_;
+    }
+
+private:
+    RSNodeGetAnimationsValueFraction(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
+    NodeId nodeId_;
+    AnimationId animationId_;
+    float fraction_ { 0.0f };
+    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+};
 } // namespace Rosen
 } // namespace OHOS
 

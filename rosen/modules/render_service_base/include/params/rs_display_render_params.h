@@ -28,12 +28,15 @@ namespace OHOS::Rosen {
 class RSB_EXPORT RSDisplayRenderParams : public RSRenderParams {
 public:
     explicit RSDisplayRenderParams(NodeId id);
-    virtual ~RSDisplayRenderParams() = default;
+    ~RSDisplayRenderParams() override = default;
 
     void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces();
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetAllMainAndLeashSurfaceDrawables();
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
+    void SetAllMainAndLeashSurfaceDrawables(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
     int32_t GetDisplayOffsetX() const
     {
         return offsetX_;
@@ -123,6 +126,7 @@ private:
     std::map<ScreenId, bool> displayHasProtectedSurface_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
     int32_t offsetX_ = -1;
     int32_t offsetY_ = -1;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;

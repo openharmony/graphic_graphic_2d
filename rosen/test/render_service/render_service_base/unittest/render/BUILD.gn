@@ -23,11 +23,14 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
 
   sources = [
     "rs_aibar_filter_test.cpp",
+    "rs_aibar_shader_filter_test.cpp",
     "rs_blur_filter_test.cpp",
     "rs_border_test.cpp",
     "rs_color_extract_test.cpp",
     "rs_color_picker_test.cpp",
+    "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
+    "rs_foreground_effect_filter_test.cpp",
     "rs_image_base_test.cpp",
     "rs_image_cache_test.cpp",
     "rs_image_test.cpp",
@@ -35,6 +38,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_light_up_effect_filter_test.cpp",
     "rs_linear_gradient_blur_filter_test.cpp",
     "rs_mask_test.cpp",
+    "rs_maskcolor_shader_filter_test.cpp",
     "rs_material_filter_test.cpp",
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
@@ -60,6 +64,8 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
   ]

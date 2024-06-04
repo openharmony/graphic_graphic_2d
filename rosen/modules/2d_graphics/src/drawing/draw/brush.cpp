@@ -78,14 +78,9 @@ void Brush::SetARGB(int a, int r, int g, int b)
     color_.SetRgb(r, g, b, a);
 }
 
-Color4f Brush::GetColor4f()
+const Color4f& Brush::GetColor4f()
 {
     return color_.GetColor4f();
-}
-
-std::shared_ptr<ColorSpace> Brush::GetColorSpace() const
-{
-    return colorSpace_;
 }
 
 void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
@@ -123,11 +118,6 @@ const Filter& Brush::GetFilter() const
 void Brush::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
     shaderEffect_ = e;
-}
-
-std::shared_ptr<ShaderEffect> Brush::GetShaderEffect() const
-{
-    return shaderEffect_;
 }
 
 void Brush::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
@@ -175,11 +165,26 @@ bool Brush::AsBlendMode()
     return StaticFactory::AsBlendMode(*this);
 }
 
+void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
+{
+    forceBrightnessDisable_ = forceBrightnessDisable;
+}
+
+bool Brush::IsHdr() const
+{
+    return isHdr_;
+}
+
+void Brush::SetHdr(bool isHdr)
+{
+    isHdr_ = isHdr;
+}
+
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
-        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_;
+        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ && b1.isHdr_ == b2.isHdr_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)

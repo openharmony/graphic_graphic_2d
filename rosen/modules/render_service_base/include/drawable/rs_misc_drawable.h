@@ -194,10 +194,12 @@ private:
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
     int blendApplyType_ = 0;
     bool isDangerous_ = false;
+    std::string propertyDescription_;
 
     std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
     int stagingBlendApplyType_ = 0;
     bool stagingIsDangerous_ = false;
+    std::string stagingPropertyDescription_;
 };
 
 class RSEndBlenderDrawable : public RSDrawable {

@@ -169,10 +169,52 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
     }
 }
 
+/**
+ * @brief Set Disappear config of replace animation
+ * @param symbolAnimationConfig is the symbol animation config of new symbol
+ * @param disappearConfig set the symbol animation config of old symbol
+ */
+bool RSSymbolAnimation::SetDisappearConfig(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+    std::shared_ptr<TextEngine::SymbolAnimationConfig>& disappearConfig)
+{
+    if (symbolAnimationConfig == nullptr || disappearConfig == nullptr) {
+        ROSEN_LOGD("[%{public}s]: symbolAnimationConfig or disappearConfig is nullptr \n", __func__);
+        return false;
+    }
+
+    auto disappearNodes = rsNode_->replaceNodesSwapMap[APPEAR_STATUS];
+    disappearConfig->repeatCount = symbolAnimationConfig->repeatCount;
+    disappearConfig->animationMode = symbolAnimationConfig->animationMode;
+    disappearConfig->animationStart = symbolAnimationConfig->animationStart;
+    disappearConfig->symbolSpanId = symbolAnimationConfig->symbolSpanId;
+    disappearConfig->commonSubType = symbolAnimationConfig->commonSubType;
+    disappearConfig->effectStrategy = symbolAnimationConfig->effectStrategy;
+
+    // count node levels and animation levels
+    uint32_t numNodes = 0;
+    int animationLevelNum = -1; // -1 is initial value, that is no animation levels
+    for (const auto& [id, config] : disappearNodes) {
+        TextEngine::SymbolNode symbolNode;
+        symbolNode.animationIndex = config.symbolNode.animationIndex;
+        disappearConfig->SymbolNodes.push_back(symbolNode);
+        animationLevelNum =
+            animationLevelNum < symbolNode.animationIndex ? symbolNode.animationIndex : animationLevelNum;
+        numNodes++;
+    }
+    disappearConfig->numNodes = numNodes;
+    // 0 is the byLayer effect and 1 is the wholeSymbol effect
+    disappearConfig->animationMode = animationLevelNum > 0 ? 0 : 1;
+    return true;
+}
+
 bool RSSymbolAnimation::SetReplaceAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    SetReplaceDisappear(symbolAnimationConfig);
+    auto disappearConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    if (SetDisappearConfig(symbolAnimationConfig, disappearConfig)) {
+        SetReplaceDisappear(disappearConfig);
+    }
     SetReplaceAppear(symbolAnimationConfig,
         rsNode_->replaceNodesSwapMap[INVALID_STATUS].size() > 0);
     return true;
@@ -694,9 +736,9 @@ bool RSSymbolAnimation::GetKeyframeAlphaAnimationParas(
         return false;
     }
     totalDuration = 0;
-    int interval = 0;
     // traverse all time stages
     for (unsigned int i = 0; i < oneGroupParas.size(); i++) {
+        int interval = 0;
         if (i + 1 < oneGroupParas.size()) {
             interval = oneGroupParas[i + 1].delay -
                        (static_cast<int>(oneGroupParas[i].duration) + oneGroupParas[i].delay);
@@ -732,9 +774,9 @@ bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const
         return false;
     }
     uint32_t duration = 0;
-    int interval = 0;
     timePercents.push_back(0); // the first property of timePercent
     for (int i = 0; i < static_cast<int>(oneGroupParas.size()) - 1; i++) {
+        int interval = 0;
         duration = duration + oneGroupParas[i].duration;
         SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
         interval = oneGroupParas[i + 1].delay -

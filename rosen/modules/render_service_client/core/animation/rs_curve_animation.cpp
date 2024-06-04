@@ -91,5 +91,14 @@ void RSCurveAnimation::OnStart()
         StartRenderAnimation(animation);
     }
 }
+
+bool RSCurveAnimation::IsSupportInteractiveAnimator()
+{
+    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+    if (interpolator->GetType() == InterpolatorType::CUSTOM || interpolator->GetType() == InterpolatorType::STEPS) {
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

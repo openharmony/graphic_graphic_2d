@@ -23,7 +23,7 @@
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#include "wm/window.h"
+#include "window.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -129,7 +129,7 @@ public:
                 std::cout << "Failed to create canvas!" << std::endl;
                 return;
             }
-            canvas->clear(Drawing::Color::COLOR_WHITE);
+            canvas->Clear(Drawing::Color::COLOR_WHITE);
             std::cout << "Drawing does not support TextBlob" << std::endl;
             frame->SetDamageRegion(0, 0, BUFFER_WIDTH, BUFFER_HEIGHT);
             rsSurface->FlushFrame(frame);

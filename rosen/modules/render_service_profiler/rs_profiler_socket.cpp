@@ -178,13 +178,14 @@ void Socket::SendWhenReady(const void* data, size_t size)
     const char* bytes = reinterpret_cast<const char*>(data);
     size_t sent = 0;
     while (sent < size) {
-        const size_t sentBytes = send(client_, bytes, size - sent, 0);
+        const ssize_t sentBytes = send(client_, bytes, size - sent, 0);
         if ((sentBytes <= 0) && (errno != EINTR)) {
             Shutdown();
             return;
         }
-        sent += sentBytes;
-        bytes += sentBytes;
+        auto actualSentBytes = static_cast<size_t>(sentBytes);
+        sent += actualSentBytes;
+        bytes += actualSentBytes;
     }
 
     SetTimeout(client_, previousTimeout);
@@ -199,9 +200,9 @@ bool Socket::Receive(void* data, size_t& size)
 
     SetBlocking(client_, false);
 
-    const size_t receivedBytes = recv(client_, static_cast<char*>(data), size, 0);
+    const ssize_t receivedBytes = recv(client_, static_cast<char*>(data), size, 0);
     if (receivedBytes > 0) {
-        size = receivedBytes;
+        size = static_cast<size_t>(receivedBytes);
     } else {
         size = 0;
         if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR)) {
@@ -239,8 +240,9 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
 
         // so receivedBytes here always [0, size - received]
         // then received can't be > `size` and it can't be overflowed
-        received += receivedBytes;
-        bytes += receivedBytes;
+        auto actualReceivedBytes = static_cast<size_t>(receivedBytes);
+        received += actualReceivedBytes;
+        bytes += actualReceivedBytes;
     }
 
     SetTimeout(client_, previousTimeout);

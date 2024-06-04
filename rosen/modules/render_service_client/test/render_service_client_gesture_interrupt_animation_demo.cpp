@@ -19,7 +19,7 @@
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColor.h"
-#include "wm/window.h"
+#include "window.h"
 
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
@@ -130,7 +130,8 @@ int main()
     rsUiDirector->Init();
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    rsUiDirector->SetUITaskRunner([handler](const std::function<void()>& task) { handler->PostTask(task); });
+    rsUiDirector->SetUITaskRunner(
+        [handler](const std::function<void()>& task, uint32_t delay) { handler->PostTask(task); });
     runner->Run();
     RSTransaction::FlushImplicitTransaction();
     rsUiDirector->SetRSSurfaceNode(surfaceNode);

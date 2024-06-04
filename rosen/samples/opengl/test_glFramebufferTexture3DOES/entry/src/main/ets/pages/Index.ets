@@ -31,9 +31,9 @@ struct Index {
             hilog.info(0x0000, 'testTag', 'Test glFramebufferTexture3DOES = %{public}d',
               testNapi.testglFramebufferTexture3DOES());
             if (testNapi.testglFramebufferTexture3DOES() == 0) {
-              this.message = "glFramebufferTexture3DOES succeeded.";
+              this.message = 'glFramebufferTexture3DOES succeeded.';
             } else {
-              this.message = "glFramebufferTexture3DOES failed.";
+              this.message = 'glFramebufferTexture3DOES failed.';
             }
           })
       }

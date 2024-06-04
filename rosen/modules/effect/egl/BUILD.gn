@@ -49,7 +49,10 @@ ohos_shared_library("libegl_effect") {
   if (effect_enable_gpu) {
     sources += [ "src/egl_manager.cpp" ]
 
-    deps += [ "$graphic_2d_root:libgl" ]
+    deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
   }
 
   if (effect_enable_gpu) {

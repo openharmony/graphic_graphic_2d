@@ -64,6 +64,7 @@ private:
     bool CheckTimerExpired(std::chrono::steady_clock::time_point expireTime) const;
 
     std::thread thread_;
+    std::mutex threadMutex_;
     std::unique_ptr<ChronoSteadyClock> clock_;
 
     sem_t semaphone_;

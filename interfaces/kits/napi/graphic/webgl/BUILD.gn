@@ -76,7 +76,10 @@ ohos_source_set("webgl_src") {
       "src/webgl_vertex_array_object.cpp",
     ]
 
-    deps = [ "$graphic_2d_root:libgl" ]
+    deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
     external_deps += [ "bounds_checking_function:libsec_shared" ]
   }
 

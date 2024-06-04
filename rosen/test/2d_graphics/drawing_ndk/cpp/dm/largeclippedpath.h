@@ -17,7 +17,7 @@
 #define LARGE_CLIPPED_PATH_H
 #include <native_drawing/drawing_path.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 
 class LargeClippedPath : public TestBase {
     uint32_t defaultBitmapWidth = 1000;  // 1000是位图宽度

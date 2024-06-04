@@ -82,6 +82,163 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
     EXPECT_TRUE(skiaPath2.Contains(0, 0));
     EXPECT_TRUE(!skiaPath2.Deserialize(nullptr));
 }
+
+/**
+ * @tc.name: RArcTo001
+ * @tc.desc: Test RArcTo
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, RArcTo001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.RArcTo(0, 0, 90, PathDirection::CW_DIRECTION, 90, 90); // 90: angle, 90: endX and endY
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: InitWithInterpolate001
+ * @tc.desc: Test InitWithInterpolate
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, InitWithInterpolate001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    Path path2;
+    skiaPath.InitWithInterpolate(path, path2, 2); // 2: weight
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: TransformWithPerspectiveClip001
+ * @tc.desc: Test TransformWithPerspectiveClip
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, TransformWithPerspectiveClip001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    Matrix matrix;
+    skiaPath.TransformWithPerspectiveClip(matrix, &path, true);
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: OpWith001
+ * @tc.desc: Test OpWith
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, OpWith001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    Path path2;
+    skiaPath.OpWith(path, path2, PathOp::DIFFERENCE);
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: Offset001
+ * @tc.desc: Test Offset
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, Offset001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.Offset(100, 100);
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: Offset002
+ * @tc.desc: Test Offset
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, Offset002, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    skiaPath.Offset(&path, 100, 100);
+    ASSERT_TRUE(skiaPath.IsValid());
+}
+
+/**
+ * @tc.name: SkiaPathGetPositionAndTangent002
+ * @tc.desc: Test GetPositionAndTangent
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathGetPositionAndTangent002, TestSize.Level1)
+{
+    Point position;
+    Point tangent;
+    bool ret = false;
+    SkiaPath skiaPathTmp; // test no path
+    ret = skiaPathTmp.GetPositionAndTangent(10, position, tangent, true); // 10: distance
+    EXPECT_FALSE(ret);
+
+    SkiaPath skiaPath; // test path add oval
+    skiaPath.AddOval(0, 0, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom
+    ret = skiaPath.GetPositionAndTangent(0, position, tangent, true);
+    EXPECT_TRUE(ret);
+    ret = skiaPath.GetPositionAndTangent(std::nanf(""), position, tangent, true);
+    EXPECT_FALSE(ret);
+    ret = skiaPath.GetPositionAndTangent(10, position, tangent, true); // 10: distance
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: SkiaPathIsClosed003
+ * @tc.desc: Test IsClosed
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathIsClosed003, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    bool ret = false;
+    skiaPath.MoveTo(0, 0);
+    skiaPath.LineTo(100, 100); // 100: x, y
+    ret = skiaPath.IsClosed(false);
+    EXPECT_FALSE(ret);
+    ret = skiaPath.IsClosed(true);
+    EXPECT_TRUE(ret);
+
+    SkiaPath skiaPathOval;
+    skiaPathOval.AddOval(0, 0, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom
+    ret = skiaPathOval.IsClosed(false);
+    EXPECT_TRUE(ret);
+    ret = skiaPathOval.IsClosed(true);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: SkiaPathGetMatrix004
+ * @tc.desc: Test GetMatrix
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathGetMatrix004, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Matrix matrix;
+    bool ret = false;
+    ret = skiaPath.GetMatrix(false, 0, &matrix, PathMeasureMatrixFlags::GET_POSITION_MATRIX);
+    EXPECT_FALSE(ret);
+    ret = skiaPath.GetMatrix(false, -10, &matrix, PathMeasureMatrixFlags::GET_POSITION_MATRIX); // -10: distance
+    EXPECT_FALSE(ret);
+    ret = skiaPath.GetMatrix(false, 10, nullptr, PathMeasureMatrixFlags::GET_POSITION_MATRIX); // 10: distance
+    EXPECT_FALSE(ret);
+    skiaPath.AddOval(0, 0, 100, 100, PathDirection::CW_DIRECTION); // 100: right, bottom
+    ret = skiaPath.GetMatrix(true, 10, &matrix, PathMeasureMatrixFlags::GET_POSITION_MATRIX); // 10: distance
+    EXPECT_TRUE(ret);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

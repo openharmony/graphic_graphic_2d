@@ -14,7 +14,7 @@
  */
 #ifndef DEMO_DM_H
 #define DEMO_DM_H
-#include "../test_base.h"
+#include "test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>

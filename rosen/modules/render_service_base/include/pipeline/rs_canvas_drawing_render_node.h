@@ -70,7 +70,7 @@ public:
 
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
-    void ResetSurface();
+    void ResetSurface(int width, int height);
     bool IsNeedProcess() const;
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();

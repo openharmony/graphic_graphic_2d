@@ -17,43 +17,80 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_LUMINANCE_CONTROL_H
 
 #include <cinttypes>
-#include <mutex>
-#include <unordered_map>
 
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
+
+enum HDR_TYPE : int32_t {
+    PHOTO,
+    VIDEO,
+    MAX = 255,
+};
+
 class RSB_EXPORT RSLuminanceControl {
 public:
-    RSB_EXPORT static RSLuminanceControl& Get()
-    {
-        static RSLuminanceControl instance;
-        return instance;
-    }
     RSLuminanceControl(const RSLuminanceControl&) = delete;
     RSLuminanceControl& operator=(const RSLuminanceControl&) = delete;
     RSLuminanceControl(RSLuminanceControl&&) = delete;
     RSLuminanceControl& operator=(RSLuminanceControl&&) = delete;
 
-    RSB_EXPORT void SetHdrStatus([[maybe_unused]] ScreenId screenId, [[maybe_unused]] bool isHdrOn);
-    RSB_EXPORT bool IsHdrOn([[maybe_unused]] ScreenId screenId) const;
-    RSB_EXPORT bool IsDimmingOn([[maybe_unused]] ScreenId screenId) const;
-    RSB_EXPORT void DimmingIncrease([[maybe_unused]] ScreenId screenId);
+    RSB_EXPORT static RSLuminanceControl& Get();
+    RSB_EXPORT void Init();
 
-    RSB_EXPORT void SetSdrLuminance([[maybe_unused]] ScreenId screenId, [[maybe_unused]] uint32_t level);
-    RSB_EXPORT uint32_t GetNewHdrLuminance([[maybe_unused]] ScreenId screenId);
-    RSB_EXPORT void SetNowHdrLuminance([[maybe_unused]] ScreenId screenId, [[maybe_unused]] uint32_t level);
-    RSB_EXPORT bool IsNeedUpdateLuminance([[maybe_unused]] ScreenId screenId);
+    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type = HDR_TYPE::PHOTO);
+    RSB_EXPORT bool IsHdrOn(ScreenId screenId);
+    RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
+    RSB_EXPORT void DimmingIncrease(ScreenId screenId);
 
-    RSB_EXPORT float GetHdrTmoNits([[maybe_unused]] ScreenId screenId, int Mode) const;
-    RSB_EXPORT float GetHdrDisplayNits([[maybe_unused]] ScreenId screenId) const;
-    RSB_EXPORT double GetHdrBrightnessRatio([[maybe_unused]] ScreenId screenId, int Mode) const;
+    RSB_EXPORT void SetSdrLuminance(ScreenId screenId, uint32_t level);
+    RSB_EXPORT uint32_t GetNewHdrLuminance(ScreenId screenId);
+    RSB_EXPORT void SetNowHdrLuminance(ScreenId screenId, uint32_t level);
+    RSB_EXPORT bool IsNeedUpdateLuminance(ScreenId screenId);
+
+    RSB_EXPORT float GetHdrTmoNits(ScreenId screenId, int32_t mode);
+    RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
+    RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
 
 private:
     RSLuminanceControl() = default;
-    ~RSLuminanceControl() = default;
+    ~RSLuminanceControl();
+#ifdef ROSEN_OHOS
+    bool LoadLibrary();
+    bool LoadStatusControl();
+    bool LoadLumControl();
+    bool LoadTmoControl();
+    void CloseLibrary();
+
+    bool initStatus_{false};
+    void *extLibHandle_{nullptr};
+
+    using SetHdrStatusFunc = bool(*)(ScreenId, bool, int32_t);
+    using IsHdrOnFunc = bool(*)(ScreenId);
+    using IsDimmingOnFunc = bool(*)(ScreenId);
+    using DimmingIncreaseFunc = void(*)(ScreenId);
+    using SetSdrLuminanceFunc = void(*)(ScreenId, uint32_t);
+    using GetNewHdrLuminanceFunc = uint32_t(*)(ScreenId);
+    using SetNowHdrLuminanceFunc = void(*)(ScreenId, uint32_t);
+    using IsNeedUpdateLuminanceFunc = bool(*)(ScreenId);
+    using GetHdrTmoNitsFunc = float(*)(ScreenId, int32_t);
+    using GetHdrDisplayNitsFunc = float(*)(ScreenId);
+    using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
+
+    SetHdrStatusFunc setHdrStatus_{nullptr};
+    IsHdrOnFunc isHdrOn_{nullptr};
+    IsDimmingOnFunc isDimmingOn_{nullptr};
+    DimmingIncreaseFunc dimmingIncrease_{nullptr};
+    SetSdrLuminanceFunc setSdrLuminance_{nullptr};
+    GetNewHdrLuminanceFunc getNewHdrLuminance_{nullptr};
+    SetNowHdrLuminanceFunc setNowHdrLuminance_{nullptr};
+    IsNeedUpdateLuminanceFunc isNeedUpdateLuminance_{nullptr};
+    GetHdrTmoNitsFunc getHdrTmoNits_{nullptr};
+    GetHdrDisplayNitsFunc getHdrDisplayNits_{nullptr};
+    GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
+#endif
 };
 
 } // namespace Rosen

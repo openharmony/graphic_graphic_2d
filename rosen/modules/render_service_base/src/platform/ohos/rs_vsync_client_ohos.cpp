@@ -49,7 +49,7 @@ void RSVsyncClientOhos::RequestNextVsync()
         handler_->PostTask([this]() {
             VSyncReceiver::FrameCallback fcb = {
                 .userData_ = this,
-                .callback_ = OnVsync,
+                .callbackWithId_ = OnVsync,
             };
             receiver_->RequestNextVSync(fcb);
         });
@@ -61,19 +61,19 @@ void RSVsyncClientOhos::SetVsyncCallback(RSVsyncClient::VsyncCallback callback)
     vsyncCallback_ = callback;
 }
 
-void RSVsyncClientOhos::VsyncCallback(int64_t nanoTimestamp)
+void RSVsyncClientOhos::VsyncCallback(int64_t nanoTimestamp, int64_t frameCount)
 {
     requestFlag_.store(false);
     if (vsyncCallback_ != nullptr) {
-        vsyncCallback_(nanoTimestamp);
+        vsyncCallback_(nanoTimestamp, frameCount);
     }
 }
 
-void RSVsyncClientOhos::OnVsync(int64_t nanoTimestamp, void* client)
+void RSVsyncClientOhos::OnVsync(int64_t nanoTimestamp, int64_t frameCount, void* client)
 {
     auto vsyncClient = static_cast<RSVsyncClientOhos*>(client);
     if (vsyncClient) {
-        vsyncClient->VsyncCallback(nanoTimestamp);
+        vsyncClient->VsyncCallback(nanoTimestamp, frameCount);
     } else {
         ROSEN_LOGE("RSVsyncClientOhos::OnVsync vsyncClient is null");
     }

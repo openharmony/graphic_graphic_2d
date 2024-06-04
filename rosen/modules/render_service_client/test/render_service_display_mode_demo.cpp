@@ -168,7 +168,7 @@ namespace pipelineTestUtils {
             .SetBufferSizeAuto()
             .SetDraw([&](Drawing::Canvas &canvas, Drawing::Brush &brush) -> void {
                 canvas.AttachBrush(brush);
-                canvas.drawRect(Drawing::Rect(0, 0, surfaceNodeWidth, surfaceNodeHeight));
+                canvas.DrawRect(Drawing::Rect(0, 0, surfaceNodeWidth, surfaceNodeHeight));
                 canvas.DetachBrush();
             })
             .Run();

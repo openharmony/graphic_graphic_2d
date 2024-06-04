@@ -69,7 +69,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    return {};
+    return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -83,6 +83,16 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
     return {};
 }
@@ -230,6 +240,11 @@ bool RSSystemProperties::GetMotionBlurEnabled()
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
+}
+
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    return 0;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -413,6 +428,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+bool RSSystemProperties::GetTextBlobAsPixelMap()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
     return false;
@@ -424,6 +444,11 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
 }
 
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
     return false;
 }

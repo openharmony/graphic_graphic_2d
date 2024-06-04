@@ -30,7 +30,7 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
 }
 
 std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
-    const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type)
+    const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
 {
     std::string str;
     auto propertyType = value->GetPropertyType() == RSRenderPropertyType::INVALID ? type : value->GetPropertyType();
@@ -107,7 +107,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
     return str;
 }
 
-void RSAnimationTraceUtils::addAnimationNameTrace(const std::string name, const uint64_t nodeId)
+void RSAnimationTraceUtils::addAnimationNameTrace(const std::string name, const uint64_t nodeId) const
 {
     if (isDebugOpen_) {
         auto str = name + "node " + std::to_string(nodeId);
@@ -115,7 +115,7 @@ void RSAnimationTraceUtils::addAnimationNameTrace(const std::string name, const 
     }
 }
 
-void RSAnimationTraceUtils::addAnimationFinishTrace(const uint64_t nodeId, const uint64_t animationId)
+void RSAnimationTraceUtils::addAnimationFinishTrace(const uint64_t nodeId, const uint64_t animationId) const
 {
     if (isDebugOpen_) {
         RS_TRACE_NAME_FMT("AnimationFinish node[%llu] animate[%llu]", nodeId, animationId);
@@ -125,7 +125,7 @@ void RSAnimationTraceUtils::addAnimationFinishTrace(const uint64_t nodeId, const
 void RSAnimationTraceUtils::addAnimationCreateTrace(const uint64_t nodeId, const uint64_t propertyId,
     const uint64_t animationId, const int animationType, const int propertyType,
     const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
-    const int animationDelay, const int animationDur)
+    const int animationDelay, const int animationDur) const
 {
     if (isDebugOpen_) {
         auto startStr = ParseRenderPropertyVaule(startValue);
@@ -140,7 +140,7 @@ void RSAnimationTraceUtils::addAnimationCreateTrace(const uint64_t nodeId, const
 
 void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const uint64_t animationId,
     const uint64_t propertyId, const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
-    const int64_t time)
+    const int64_t time) const
 {
     if (isDebugOpen_) {
         auto propertyValue = ParseRenderPropertyVaule(value);
@@ -150,7 +150,8 @@ void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const 
 }
 
 void RSAnimationTraceUtils::addSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
-    const std::shared_ptr<RSRenderPropertyBase>& initialVelocity, const std::shared_ptr<RSRenderPropertyBase>& value)
+    const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
+    const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     if (isDebugOpen_) {
         auto propertyValue = ParseRenderPropertyVaule(initialVelocity, value->GetPropertyType());
@@ -159,7 +160,7 @@ void RSAnimationTraceUtils::addSpringInitialVelocityTrace(const uint64_t propert
     }
 }
 
-void RSAnimationTraceUtils::addRenderNodeTrace(const RSRenderNode& node, const std::string name)
+void RSAnimationTraceUtils::addRenderNodeTrace(const RSRenderNode& node, const std::string name) const
 {
     if (!isDebugOpen_) {
         return;

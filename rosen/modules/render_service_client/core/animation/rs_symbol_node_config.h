@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 
-using AnimationNodeConfig = struct AnimationNodeConfig {
+struct AnimationNodeConfig {
     TextEngine::SymbolNode symbolNode;
     int animationIndex = -1;
 };
