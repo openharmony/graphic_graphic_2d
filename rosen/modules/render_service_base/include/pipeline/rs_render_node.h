@@ -798,6 +798,7 @@ private:
 
     void GenerateFullChildrenList();
     void ResortChildren();
+    bool ShouldClearSurface();
 
     std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
