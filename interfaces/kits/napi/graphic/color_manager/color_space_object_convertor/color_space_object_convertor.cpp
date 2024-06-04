@@ -81,7 +81,7 @@ napi_value CreateJsSendableColorSpaceObject(napi_env env, std::shared_ptr<ColorS
     }
 
     std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
-    napi_wrap_sendable(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr, nullptr);
+    napi_wrap_sendable(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr);
 
     return object;
 }
