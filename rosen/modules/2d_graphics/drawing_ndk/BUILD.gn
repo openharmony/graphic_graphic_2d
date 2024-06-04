@@ -61,6 +61,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_color.cpp",
       "$drawing_ndk_src_dir/drawing_color_filter.cpp",
       "$drawing_ndk_src_dir/drawing_color_space.cpp",
+      "$drawing_ndk_src_dir/drawing_error_code.cpp",
       "$drawing_ndk_src_dir/drawing_filter.cpp",
       "$drawing_ndk_src_dir/drawing_font.cpp",
       "$drawing_ndk_src_dir/drawing_font_collection.cpp",
@@ -105,7 +106,6 @@ template("drawing_ndk_source_set") {
       "$drawing_utils_root",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$rosen_root/modules/texgine/src",
-      "//foundation/multimedia/image_framework/interfaces/innerkits/include/mdkKits/",
     ]
 
     if (enable_text_gine) {
@@ -114,7 +114,6 @@ template("drawing_ndk_source_set") {
         defines += [ "USE_TEXGINE" ]
       }
       include_dirs += [
-        "$flutter_root/engine",
         "$rosen_root/modules/2d_engine/rosen_text",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
         "$rosen_root/modules/2d_engine/rosen_text/export",
@@ -137,17 +136,8 @@ template("drawing_ndk_source_set") {
       ]
 
       deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
-      include_dirs += [ "$flutter_root/engine" ]
-
-      if (enable_text_gine && use_texgine) {
-        include_dirs -= [ "$flutter_root/engine" ]
-      }
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]
-      include_dirs += [
-        "$flutter_root/txt/src",
-        "//third_party/skia/third_party/externals/harfbuzz/src",
-      ]
     } else {
       deps = []
       cflags = [ "-std=c++17" ]

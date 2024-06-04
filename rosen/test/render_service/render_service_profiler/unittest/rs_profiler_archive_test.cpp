@@ -29,6 +29,24 @@ public:
 };
 
 /*
+ * @tc.name: SerializeCharTest
+ * @tc.desc: Test Archive Char serialization
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerArchiveTest, SerializeCharTest, testing::ext::TestSize.Level1)
+{
+    std::vector<char> buf;
+    DataWriter writer(buf);
+    DataReader reader(buf);
+    char initial = 'A';
+    char result = 'a';
+    writer.Serialize(initial);
+    reader.Serialize(result);
+    EXPECT_EQ(initial, result);
+}
+ 
+/*
  * @tc.name: SerializeFloatTest
  * @tc.desc: Test Archive float serialization
  * @tc.type: FUNC
@@ -65,6 +83,24 @@ HWTEST_F(RSProfilerArchiveTest, SerializeDoubleTest, testing::ext::TestSize.Leve
 }
 
 /*
+ * @tc.name: SerializeInt8Test
+ * @tc.desc: Test Archive int8_t serialization
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerArchiveTest, SerializeInt8Test, testing::ext::TestSize.Level1)
+{
+    std::vector<char> buf;
+    DataWriter writer(buf);
+    DataReader reader(buf);
+    int8_t initial = -87;
+    int8_t result = 0;
+    writer.Serialize(initial);
+    reader.Serialize(result);
+    EXPECT_EQ(initial, result);
+}
+
+/*
  * @tc.name: SerializeInt32Test
  * @tc.desc: Test Archive int32_t serialization
  * @tc.type: FUNC
@@ -81,6 +117,25 @@ HWTEST_F(RSProfilerArchiveTest, SerializeInt32Test, testing::ext::TestSize.Level
     reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
+
+/*
+ * @tc.name: SerializeUInt8Test
+ * @tc.desc: Test Archive uint8_t serialization
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerArchiveTest, SerializeUInt8Test, testing::ext::TestSize.Level1)
+{
+    std::vector<char> buf;
+    DataWriter writer(buf);
+    DataReader reader(buf);
+    uint8_t initial = 87;
+    uint8_t result = 0;
+    writer.Serialize(initial);
+    reader.Serialize(result);
+    EXPECT_EQ(initial, result);
+}
+
 
 /*
  * @tc.name: SerializeUint32Test

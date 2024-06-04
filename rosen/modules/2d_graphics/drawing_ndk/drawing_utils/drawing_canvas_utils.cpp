@@ -28,6 +28,7 @@ void DrawingCanvasUtils::DrawPixelMapRect(Drawing::Canvas* canvas, std::shared_p
 {
 #ifdef OHOS_PLATFORM
     if (!canvas || !pixelMap || !dst) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {

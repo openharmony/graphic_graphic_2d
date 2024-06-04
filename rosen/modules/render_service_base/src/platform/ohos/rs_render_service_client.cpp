@@ -239,7 +239,7 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -265,7 +265,8 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY, surfaceCaptureType, isSync);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY,
+        useDma, surfaceCaptureType, isSync);
     return true;
 }
 
@@ -327,6 +328,16 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
 }
 
+void RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+
+    renderService->SetVirtualScreenBlackList(id, blackListVector);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -336,6 +347,18 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
 
     return renderService->SetVirtualScreenSurface(id, surface);
 }
+
+#ifdef RS_ENABLE_VK
+bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+
+    return renderService->Set2DRenderCtrl(enable);
+}
+#endif
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
@@ -493,6 +516,16 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
     }
 
     return renderService->GetVirtualScreenResolution(id);
+}
+
+void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+
+    renderService->MarkPowerOffNeedProcessOneFrame();
 }
 
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)

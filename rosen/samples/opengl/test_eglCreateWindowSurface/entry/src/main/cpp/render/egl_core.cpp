@@ -21,8 +21,9 @@
 #include <algorithm>
 #include "egl_core.h"
 #include "plugin_render.h"
-#include "../common/common.h"
+#include "common.h"
 
+namespace OHOS {
 bool EGLCore::EglContextInit(void *window, int width, int height)
 {
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "EGLCore", "EglContextInit execute");
@@ -70,7 +71,7 @@ bool EGLCore::CreateEnvironment()
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "m_eglWindow is null");
         return false;
     }
-    m_eglSurface = eglCreateWindowSurface(m_eglDisplay, m_eglConfig, m_eglWindow, NULL);
+    m_eglSurface = eglCreateWindowSurface(m_eglDisplay, m_eglConfig, m_eglWindow, nullptr);
     if (m_eglSurface == nullptr) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore",
             "eglCreateWindowSurface: unable to create WindowSurface");
@@ -245,7 +246,7 @@ GLint EGLCore::PrepareDraw()
 }
 
 bool EGLCore::ExecuteDraw(GLint position, const GLfloat *color, const GLfloat rectangleVertices[],
-                        unsigned long vertSize)
+    unsigned long vertSize)
 {
     if ((position < 0) || (color == nullptr) || (vertSize / sizeof(rectangleVertices[0]) != RECTANGLE_VERTICES_SIZE)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "ExecuteDraw: param error");
@@ -284,3 +285,4 @@ void EGLCore::Release()
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "Release eglTerminate failed");
     }
 }
+} // namespace OHOS

@@ -46,7 +46,7 @@ public:
     }
     RectI MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const;
     RectI MapAbsRect(const RectF& rect) const;
-    RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix) const;
+    static RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix);
 
     // return transform matrix (context + self)
     const Drawing::Matrix& GetMatrix() const;
@@ -62,7 +62,7 @@ private:
     void UpdateAbsMatrix3D();
     void SetAbsRect();
 
-    Vector2f GetDataRange(float d0, float d1, float d2, float d3) const;
+    static Vector2f GetDataRange(float d0, float d1, float d2, float d3);
 
     RectI absRect_;
     Drawing::Matrix matrix_;

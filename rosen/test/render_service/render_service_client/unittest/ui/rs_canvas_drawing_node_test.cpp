@@ -25,6 +25,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -62,14 +63,17 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
 {
     bool isRenderServiceNode = true;
+    int width = 1;
+    int height = 1;
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
-    bool res = canvasNode->ResetSurface();
+    bool res = canvasNode->ResetSurface(width, height);
     EXPECT_EQ(res, true);
 
+    delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    res = canvasNode->ResetSurface();
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    res = canvasNode->ResetSurface(width, height);
     EXPECT_EQ(res, false);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -84,6 +88,12 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTextureExportRenderNodeInRTTest, TestSiz
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     canvasNode->CreateTextureExportRenderNodeInRT();
     EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->CreateTextureExportRenderNodeInRT();
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
 /**
@@ -101,9 +111,12 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
     Drawing::Rect rect;
     bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
+    ASSERT_TRUE(!RSSystemProperties::isUniRenderEnabled_);
 
+    RSSystemProperties::GetUniRenderEnabled();
+    RSSystemProperties::isUniRenderEnabled_ = true;
     drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
-    EXPECT_EQ(res, false);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
 
     drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
@@ -130,7 +143,16 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
 
-    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    pixelmap = nullptr;
+    res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    RSSystemProperties::GetUniRenderEnabled();
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+
+    pixelmap = std::make_shared<Media::PixelMap>();
     res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
 }

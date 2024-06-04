@@ -116,6 +116,18 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, st
 #endif
 }
 
+void MemoryManager::PurgeCacheBetweenFrames(Drawing::GPUContext* gpuContext, bool scratchResourceOnly,
+    std::set<pid_t>& exitedPidSet, std::set<pid_t>& protectedPidSet)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("PurgeCacheBetweenFrames fail, gpuContext is nullptr");
+        return;
+    }
+    gpuContext->PurgeCacheBetweenFrames(scratchResourceOnly, exitedPidSet, protectedPidSet);
+#endif
+}
+
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

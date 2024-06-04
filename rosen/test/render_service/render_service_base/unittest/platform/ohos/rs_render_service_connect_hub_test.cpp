@@ -14,9 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 #include "platform/ohos/rs_render_service_connect_hub.h"
-#include <iostream>
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,5 +50,31 @@ HWTEST_F(RSRenderServiceConnectHubTest, GetRenderService, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
 }
 
+/**
+ * @tc.name: GetRenderServiceConnectionTest
+ * @tc.desc: Verify function GetRenderServiceConnection
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, GetRenderServiceConnectionTest, TestSize.Level1)
+{
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection(), nullptr);
+    RSRenderServiceConnectHub::GetInstance()->conn_ = nullptr;
+    RSRenderServiceConnectHub::GetInstance()->renderService_ = nullptr;
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection(), nullptr);
 }
+
+/**
+ * @tc.name: ConnectDiedTest
+ * @tc.desc: Verify function ConnectDied
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, ConnectDiedTest, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::GetInstance()->ConnectDied();
+    RSRenderServiceConnectHub::GetInstance()->conn_ = nullptr;
+    RSRenderServiceConnectHub::GetInstance()->ConnectDied();
 }
+} // namespace Rosen
+} // namespace OHOS

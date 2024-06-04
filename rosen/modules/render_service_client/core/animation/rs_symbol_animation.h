@@ -126,6 +126,9 @@ private:
     // Set appear stage of replace animation
     bool SetReplaceAppear(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         bool isStartAnimation=true);
+    // Set Disappear config of replace animation
+    bool SetDisappearConfig(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        std::shared_ptr<TextEngine::SymbolAnimationConfig>& disappearConfig);
 
     // process node before animation include clean invalid node and config info
     void NodeProcessBeforeAnimation(

@@ -39,6 +39,7 @@ public:
         AIBAR,
         LINEAR_GRADIENT_BLUR,
         MASK_COLOR,
+        HPS,
     };
 
     ShaderFilterType GetShaderFilterType() const

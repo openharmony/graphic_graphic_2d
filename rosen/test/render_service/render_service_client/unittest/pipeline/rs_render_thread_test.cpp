@@ -18,6 +18,8 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread.h"
 #include "transaction/rs_transaction_data.h"
+#include "rs_frame_report.h"
+#include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -119,13 +121,12 @@ HWTEST_F(RSRenderThreadTest, UpdateWindowStatus001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, RequestNextVSync001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    renderThread->RequestNextVSync();
-    EXPECT_EQ(renderThread->handler_, nullptr);
+    RSRenderThread::Instance().RequestNextVSync();
+    EXPECT_TRUE(RSRenderThread::Instance().hasSkipVsync_);
 
-    renderThread->handler_ = std::make_shared<AppExecFwk::EventHandler>();
-    renderThread->RequestNextVSync();
-    EXPECT_NE(renderThread->handler_, nullptr);
+    RSRenderThread::Instance().handler_ = std::make_shared<AppExecFwk::EventHandler>();
+    RSRenderThread::Instance().RequestNextVSync();
+    EXPECT_TRUE(RSRenderThread::Instance().hasSkipVsync_);
 }
 
 /**
@@ -136,8 +137,7 @@ HWTEST_F(RSRenderThreadTest, RequestNextVSync001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, GetTid001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    int32_t tId = renderThread->GetTid();
+    int32_t tId = RSRenderThread::Instance().GetTid();
     EXPECT_EQ(tId, -1);
 }
 
@@ -149,11 +149,15 @@ HWTEST_F(RSRenderThreadTest, GetTid001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    uint64_t timestamp = 123456; //for test
-    renderThread->activeWindowCnt_ = 1;
-    renderThread->OnVsync(timestamp);
-    EXPECT_EQ(timestamp, 123456);
+    uint64_t timestamp = 123456; // for test
+    uint64_t frameCount = 1; // for test
+    RSRenderThread::Instance().activeWindowCnt_ = 1;
+    RSRenderThread::Instance().OnVsync(timestamp, frameCount);
+    EXPECT_TRUE(RSRenderThread::Instance().activeWindowCnt_);
+
+    RSRenderThread::Instance().activeWindowCnt_ = 0;
+    RSRenderThread::Instance().OnVsync(timestamp, frameCount);
+    EXPECT_TRUE(!RSRenderThread::Instance().activeWindowCnt_);
 }
 
 /**
@@ -164,21 +168,25 @@ HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, ProcessCommands001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    renderThread->cmds_.clear();
-    renderThread->prevTimestamp_ = 1; //for test
-    renderThread->ProcessCommands();
-    EXPECT_EQ(renderThread->cmds_.empty(), true);
+    RSRenderThread::Instance().cmds_.clear();
+    RSRenderThread::Instance().prevTimestamp_ = 1; // for test
+    RSRenderThread::Instance().ProcessCommands();
+    EXPECT_EQ(RSRenderThread::Instance().cmds_.empty(), true);
 
     auto unique = std::make_unique<RSTransactionData>();
-    renderThread->cmds_.push_back(std::move(unique));
-    renderThread->ProcessCommands();
-    EXPECT_NE(renderThread->cmds_.empty(), false);
+    RSRenderThread::Instance().cmds_.push_back(std::move(unique));
+    RSRenderThread::Instance().ProcessCommands();
+    EXPECT_NE(RSRenderThread::Instance().cmds_.empty(), false);
 
-    renderThread->commandTimestamp_ = 1; //for test
-    renderThread->timestamp_ = 16666668 * 2; //for test
-    renderThread->ProcessCommands();
-    EXPECT_NE(renderThread->cmds_.empty(), false);
+    RsFrameReport::GetInstance().frameSchedSoLoaded_ = true;
+    RsFrameReport::GetInstance().frameGetEnableFunc_ = []() { return 1; };
+    RSRenderThread::Instance().ProcessCommands();
+    EXPECT_NE(RSRenderThread::Instance().cmds_.empty(), false);
+
+    RSRenderThread::Instance().commandTimestamp_ = 1; // for test
+    RSRenderThread::Instance().timestamp_ = 17666669 * 2; // for test
+    RSRenderThread::Instance().ProcessCommands();
+    EXPECT_NE(RSRenderThread::Instance().cmds_.empty(), false);
 }
 
 /**
@@ -189,20 +197,27 @@ HWTEST_F(RSRenderThreadTest, ProcessCommands001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    uint64_t timestamp = 1234; //for test
-    renderThread->context_ = std::make_shared<RSContext>();
-    renderThread->context_->animatingNodeList_.clear();
-    renderThread->Animate(timestamp);
-    EXPECT_EQ(timestamp, 1234);
+    uint64_t timestamp = 1; // for test
+    RSRenderThread::Instance().context_ = std::make_shared<RSContext>();
+    RSRenderThread::Instance().context_->animatingNodeList_.clear();
+    RSRenderThread::Instance().Animate(timestamp);
+    EXPECT_TRUE(RSRenderThread::Instance().context_ != nullptr);
 
-    NodeId id = 1; //for test
-    NodeId tid = 1; //for test
+    NodeId id = 1; // for test
+    NodeId tid = 1; // for test
     auto render = std::make_shared<RSRenderNode>(id);
-    renderThread->context_->animatingNodeList_[id] = render;
-    renderThread->context_->animatingNodeList_[tid] = render;
-    renderThread->Animate(timestamp);
-    EXPECT_EQ(timestamp, 1234);
+    RSRenderThread::Instance().context_->animatingNodeList_[id] = render;
+    RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
+    RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
+    RSRenderThread::Instance().Animate(timestamp);
+    EXPECT_TRUE(render != nullptr);
+
+    RSRenderThread::Instance().context_->animatingNodeList_.clear();
+    render = nullptr;
+    RSRenderThread::Instance().context_->animatingNodeList_[id] = render;
+    RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
+    RSRenderThread::Instance().Animate(timestamp);
+    EXPECT_TRUE(render == nullptr);
 }
 
 /**
@@ -213,13 +228,17 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, Render001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    renderThread->Render();
-    EXPECT_NE(renderThread, nullptr);
+    RSRenderThread::Instance().visitor_ = nullptr;
+    RSRenderThread::Instance().Render();
+    EXPECT_NE(RSRenderThread::Instance().visitor_, nullptr);
 
-    renderThread->context_->globalRootRenderNode_ = nullptr;
-    renderThread->Render();
-    EXPECT_NE(renderThread, nullptr);
+    RsFrameReport::GetInstance().frameSchedSoLoaded_ = true;
+    RSRenderThread::Instance().Render();
+    EXPECT_NE(RSRenderThread::Instance().context_->globalRootRenderNode_, nullptr);
+
+    RSRenderThread::Instance().context_->globalRootRenderNode_ = nullptr;
+    RSRenderThread::Instance().Render();
+    EXPECT_EQ(RSRenderThread::Instance().context_->globalRootRenderNode_, nullptr);
 }
 
 /**
@@ -230,9 +249,12 @@ HWTEST_F(RSRenderThreadTest, Render001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, SendCommands001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
-    renderThread->SendCommands();
-    EXPECT_EQ(renderThread->mValue, 0);
+    RSRenderThread::Instance().SendCommands();
+    EXPECT_EQ(RSRenderThread::Instance().mValue, 0);
+
+    RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
+    RSRenderThread::Instance().SendCommands();
+    EXPECT_EQ(RSRenderThread::Instance().mValue, 0);
 }
 
 /**
@@ -243,10 +265,13 @@ HWTEST_F(RSRenderThreadTest, SendCommands001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, PostTask001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
     RSTaskMessage::RSTask task;
-    renderThread->PostTask(task);
-    EXPECT_EQ(renderThread->mValue, 0);
+    RSRenderThread::Instance().PostTask(task);
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ != nullptr);
+
+    RSRenderThread::Instance().handler_ = nullptr;
+    RSRenderThread::Instance().PostTask(task);
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ == nullptr);
 }
 
 /**
@@ -257,9 +282,50 @@ HWTEST_F(RSRenderThreadTest, PostTask001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, PostSyncTask001, TestSize.Level1)
 {
-    auto renderThread = std::make_shared<RSRenderThread>();
     RSTaskMessage::RSTask task;
-    renderThread->PostSyncTask(task);
-    EXPECT_EQ(renderThread->mValue, 0);
+    RSRenderThread::Instance().PostSyncTask(task);
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ == nullptr);
+
+    RSRenderThread::Instance().handler_ = std::make_shared<AppExecFwk::EventHandler>();
+    RSRenderThread::Instance().PostSyncTask(task);
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ != nullptr);
+}
+
+/**
+ * @tc.name: Detach
+ * @tc.desc: test results of Detach
+ * @tc.type: FUNC
+ * @tc.require: issueI9TXX3
+ */
+HWTEST_F(RSRenderThreadTest, Detach, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto renderNode = std::make_shared<RSRootRenderNode>(0);
+    RSRenderThread::Instance().Detach(id);
+    EXPECT_EQ(RSRenderThread::Instance().mValue, 0);
+}
+
+/**
+ * @tc.name: PostPreTask
+ * @tc.desc: test results of PostPreTask
+ * @tc.type:FUNC
+ * @tc.require: issueI9TXX3
+ */
+HWTEST_F(RSRenderThreadTest, PostPreTask, TestSize.Level1)
+{
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ != nullptr);
+
+    RSRenderThread::Instance().handler_ = nullptr;
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ == nullptr);
+
+    RSRenderThread::Instance().preTask_ = []() {};
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ == nullptr);
+
+    RSRenderThread::Instance().handler_ = std::make_shared<AppExecFwk::EventHandler>();
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_TRUE(RSRenderThread::Instance().handler_ != nullptr);
 }
 } // namespace OHOS::Rosen

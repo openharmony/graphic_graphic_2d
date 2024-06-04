@@ -160,7 +160,7 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
     if (imageCacheSeqs_.count(currentSurfaceImage_) > 0) {
         const auto &image = imageCacheSeqs_.at(currentSurfaceImage_).eglImage_;
         glBindTexture(textureTarget_, textureId);
-        int32_t error = glGetError();
+        GLenum error = glGetError();
         if (error != GL_NO_ERROR) {
             BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
                 textureTarget_, textureId_, error);
@@ -191,7 +191,7 @@ SurfaceError SurfaceImage::DetachContext()
 
     textureId_ = 0;
     glBindTexture(textureTarget_, 0);
-    int32_t error = glGetError();
+    GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d",
             textureTarget_, textureId_, error);
@@ -284,7 +284,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
 
     const auto &image = imageCacheSeqs_.at(seqNum).eglImage_;
     glBindTexture(textureTarget_, textureId_);
-    int32_t error = glGetError();
+    GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
             textureTarget_, textureId_, error);

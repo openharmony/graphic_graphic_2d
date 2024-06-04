@@ -52,7 +52,6 @@ template("skia_libtxt") {
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
-      "//third_party/skia",
     ]
 
     sources = [
@@ -107,7 +106,10 @@ template("skia_libtxt") {
       "//third_party/skia:skia_$platform",
     ]
 
-    external_deps += [ "hilog:libhilog" ]
+    external_deps += [
+      "bounds_checking_function:libsec_shared",
+      "hilog:libhilog",
+    ]
 
     if (!is_cross_platform) {
       external_deps += [ "hitrace:hitrace_meter" ]
@@ -148,8 +150,6 @@ ohos_source_set("skia_paragraph") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-    "//third_party/skia",
-    "//third_party/skia/modules",
     "//third_party/skia/modules/skparagraph",
   ]
   defines = []
@@ -194,7 +194,19 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia:skia_$platform",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "hilog:libhilog",
+  ]
+
+  is_cross_platform =
+      current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+      current_os == "android" || current_os == "ios"
+
+  if (!is_cross_platform) {
+    defines += [ "TXT_AUTO_SPACING" ]
+    external_deps += [ "init:libbegetutil" ]
+  }
 }
 
 ohos_source_set("skia_unicode") {
@@ -202,11 +214,7 @@ ohos_source_set("skia_unicode") {
   subsystem_name = "graphic"
 
   public_configs = [ ":skia_libtxt_config" ]
-  include_dirs = [
-    "//third_party/skia",
-    "//third_party/skia/modules",
-    "//third_party/skia/modules/skunicode",
-  ]
+  include_dirs = []
   defines = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]
@@ -241,9 +249,6 @@ ohos_source_set("skia_shaper") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-    "//third_party/skia",
-    "//third_party/skia/modules",
-    "//third_party/skia/modules/skshaper",
   ]
   defines = []
 
@@ -272,4 +277,6 @@ ohos_source_set("skia_shaper") {
     ":skia_unicode",
     "//third_party/skia:skia_$platform",
   ]
+
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }

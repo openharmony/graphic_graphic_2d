@@ -201,6 +201,101 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareLight003
+ * @tc.desc: test results of PrepareLight
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLight003, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    instance->illuminatedNodeMap_.clear();
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
+
+    std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(0);
+    instance->lightSourceNodeMap_[0] = sharedRenderNode;
+    instance->PrepareLight();
+    EXPECT_TRUE(!instance->lightSourceNodeMap_.empty());
+
+    instance->illuminatedNodeMap_.clear();
+    instance->lightSourceNodeMap_.clear();
+    instance->lightSourceNodeMap_[0] = sharedRenderNode;
+    instance->PrepareLight();
+    EXPECT_TRUE(!instance->lightSourceNodeMap_.empty());
+
+    instance->illuminatedNodeMap_.clear();
+    instance->lightSourceNodeMap_.clear();
+    instance->lightSourceNodeMap_[0] = sharedRenderNode;
+    instance->illuminatedNodeMap_[0] = sharedRenderNode;
+    instance->PrepareLight();
+    EXPECT_TRUE(!instance->illuminatedNodeMap_.empty());
+
+    instance->dirtyLightSourceList_.push_back(sharedRenderNode);
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->dirtyLightSourceList_.empty());
+
+    instance->dirtyIlluminatedList_.push_back(sharedRenderNode);
+    sharedRenderNode->GetMutableRenderProperties().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->dirtyIlluminatedList_.empty());
+
+    sharedRenderNode = nullptr;
+    instance->dirtyIlluminatedList_.clear();
+    instance->dirtyIlluminatedList_.push_back(sharedRenderNode);
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->dirtyIlluminatedList_.empty());
+}
+
+/**
+ * @tc.name: PrepareLight004
+ * @tc.desc: test results of PrepareLight
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLight004, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> map;
+    std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
+    instance->PrepareLight(map, dirtyList, true);
+    EXPECT_TRUE(map.empty());
+	
+    std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(0);
+    map[0] = sharedRenderNode;
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(1);
+    dirtyList.push_back(renderNode);
+    instance->PrepareLight(map, dirtyList, true);
+    EXPECT_TRUE(!map.empty());
+
+    map.clear();
+    dirtyList.clear();
+    sharedRenderNode->isOnTheTree_ = true;
+    map[0] = sharedRenderNode;
+    renderNode->isOnTheTree_ = true;
+    dirtyList.push_back(renderNode);
+    instance->PrepareLight(map, dirtyList, true);
+    EXPECT_TRUE(!map.empty());
+
+    sharedRenderNode = nullptr;
+    map.clear();
+    dirtyList.clear();
+    map[0] = sharedRenderNode;
+    dirtyList.push_back(renderNode);
+    instance->PrepareLight(map, dirtyList, true);
+    EXPECT_TRUE(map.empty());
+
+    sharedRenderNode = std::make_shared<RSRenderNode>(0);
+    renderNode = nullptr;
+    map.clear();
+    dirtyList.clear();
+    map[0] = sharedRenderNode;
+    dirtyList.push_back(renderNode);
+    instance->PrepareLight(map, dirtyList, true);
+    EXPECT_TRUE(!map.empty());
+}
+
+/**
  * @tc.name: CheckIlluminated001
  * @tc.desc: test results of CheckIlluminated
  * @tc.type:FUNC
@@ -227,6 +322,49 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckIlluminated002
+ * @tc.desc: test results of CheckIlluminated
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(0);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    illuminatedNode->GetMutableRenderProperties().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    instance->screenRotation_ = ScreenRotation::ROTATION_0;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    instance->screenRotation_ = ScreenRotation::ROTATION_180;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    instance->screenRotation_ = ScreenRotation::ROTATION_90;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+
+    instance->screenRotation_ = ScreenRotation::ROTATION_270;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(lightSourceNode != nullptr);
+}
+
+/**
  * @tc.name: CalculateLightPosForIlluminated001
  * @tc.desc: test results of CalculateLightPosForIlluminated
  * @tc.type:FUNC
@@ -250,6 +388,9 @@ HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.L
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_270);
+    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+
+    instance->SetScreenRotation(ScreenRotation::INVALID_SCREEN_ROTATION);
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 }
 } // namespace Rosen

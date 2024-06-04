@@ -28,23 +28,24 @@ public:
     {
         return instance_;
     };
-    void addAnimationNameTrace(const std::string name, const uint64_t nodeId = 0);
-    void addAnimationFinishTrace(const uint64_t nodeId, const uint64_t animationId);
+    void addAnimationNameTrace(const std::string name, const uint64_t nodeId = 0) const;
+    void addAnimationFinishTrace(const uint64_t nodeId, const uint64_t animationId) const;
     void addAnimationCreateTrace(const uint64_t nodeId, const uint64_t propertyId, const uint64_t animationId,
         const int animationType, const int propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
-        const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur);
+        const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur) const;
     void addAnimationFrameTrace(const uint64_t nodeId, const uint64_t animationId, const uint64_t propertyId,
-        const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time);
-    void addRenderNodeTrace(const RSRenderNode& node, const std::string name = "");
+        const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time) const;
+    void addRenderNodeTrace(const RSRenderNode& node, const std::string name = "") const;
     void addSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
-        const std::shared_ptr<RSRenderPropertyBase>& value);
+        const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
 private:
     RSAnimationTraceUtils();
+    ~RSAnimationTraceUtils() = default;
 
     std::string ParseRenderPropertyVaule(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSRenderPropertyType type = RSRenderPropertyType::INVALID);
+        const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;
 
     static RSAnimationTraceUtils instance_;
     bool isDebugOpen_ = false;

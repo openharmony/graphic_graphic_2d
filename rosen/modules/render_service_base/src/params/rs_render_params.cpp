@@ -200,11 +200,6 @@ void RSRenderParams::SetCacheSize(Vector2f size)
     needSync_ = true;
 }
 
-Vector2f RSRenderParams::GetCacheSize() const
-{
-    return cacheSize_;
-}
-
 void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced)
 {
     if (lastFrameSynced) {
@@ -345,6 +340,8 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
         return;
     }
     target->canvasDrawingNodeSurfaceChanged_ = true;
+    target->surfaceParams_.width = surfaceParams_.width;
+    target->surfaceParams_.height = surfaceParams_.height;
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 
@@ -359,6 +356,31 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
         needSync_ = true;
     }
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
+}
+
+const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
+{
+    return foregroundFilterCache_;
+}
+
+void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
+{
+    if (foregroundFilterCache_ == foregroundFilterCache) {
+        return;
+    }
+    foregroundFilterCache_ = foregroundFilterCache;
+    needSync_ = true;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -386,6 +408,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
+    target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
@@ -405,6 +428,9 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_RECT_PARAM_TO_STRING(localDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
+    if (foregroundFilterCache_ != nullptr) {
+        ret += foregroundFilterCache_->GetDescription();
+    }
     return ret;
 }
 

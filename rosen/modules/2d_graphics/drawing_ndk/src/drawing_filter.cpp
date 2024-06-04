@@ -15,6 +15,8 @@
 
 #include "drawing_filter.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "effect/filter.h"
 
 using namespace OHOS;
@@ -50,6 +52,11 @@ void OH_Drawing_FilterSetImageFilter(OH_Drawing_Filter* cFliter, OH_Drawing_Imag
 {
     Filter* filter = CastToFilter(cFliter);
     if (filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cImageFilter == nullptr) {
+        filter->SetImageFilter(nullptr);
         return;
     }
     filter->SetImageFilter(std::shared_ptr<ImageFilter>{CastToImageFilter(cImageFilter), [](auto p) {}});
@@ -59,6 +66,11 @@ void OH_Drawing_FilterSetMaskFilter(OH_Drawing_Filter* cFliter, OH_Drawing_MaskF
 {
     Filter* filter = CastToFilter(cFliter);
     if (filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cMaskFilter == nullptr) {
+        filter->SetMaskFilter(nullptr);
         return;
     }
     filter->SetMaskFilter(std::shared_ptr<MaskFilter>{CastToMaskFilter(cMaskFilter), [](auto p) {}});
@@ -68,6 +80,11 @@ void OH_Drawing_FilterSetColorFilter(OH_Drawing_Filter* cFliter, OH_Drawing_Colo
 {
     Filter* filter = CastToFilter(cFliter);
     if (filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cColorFilter == nullptr) {
+        filter->SetColorFilter(nullptr);
         return;
     }
     filter->SetColorFilter(std::shared_ptr<ColorFilter>{CastToColorFilter(cColorFilter), [](auto p) {}});
@@ -77,10 +94,12 @@ void OH_Drawing_FilterGetColorFilter(OH_Drawing_Filter* cFliter, OH_Drawing_Colo
 {
     Filter* filter = CastToFilter(cFliter);
     if (filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     ColorFilter* colorFilter = CastToColorFilter(cColorFilter);
     if (colorFilter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     std::shared_ptr<ColorFilter> colorFilterPtr = filter->GetColorFilter();

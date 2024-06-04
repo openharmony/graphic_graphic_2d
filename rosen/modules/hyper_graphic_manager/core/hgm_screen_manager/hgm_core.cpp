@@ -95,6 +95,10 @@ bool HgmCore::Init()
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
+        if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO &&
+            mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+            customFrameRateMode_ = mPolicyConfigData_->SettingModeId2XmlModeId(customFrameRateMode_);
+        }
         CheckCustomFrameRateModeValid();
     }
 
@@ -195,8 +199,32 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
 
+    SetScreenConstraintConfig();
     HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
-        "pipelineOffsetPulseNum: %{public}d", ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_);
+        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, lowRateToHighQuickSwitch: %{public}d",
+        ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_, lowRateToHighQuickSwitch_);
+}
+
+void HgmCore::SetScreenConstraintConfig()
+{
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto curScreenSetting =
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
+    if (curScreenSetting.ltpoConfig.find("vBlankIdleCorrectSwitch") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"])) {
+        vBlankIdleCorrectSwitch_ =  std::stoi(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"]);
+    } else {
+        vBlankIdleCorrectSwitch_ = 0;
+        HGM_LOGW("HgmCore failed to find vBlankIdleCorrectSwitch strategy for LTPO");
+    }
+
+    if (curScreenSetting.ltpoConfig.find("lowRateToHighQuickSwitch") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"])) {
+        lowRateToHighQuickSwitch_ =  std::stoi(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"]);
+    } else {
+        lowRateToHighQuickSwitch_ = 0;
+        HGM_LOGW("HgmCore failed to find lowRateToHighQuickSwitch strategy for LTPO");
+    }
 }
 
 void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback)

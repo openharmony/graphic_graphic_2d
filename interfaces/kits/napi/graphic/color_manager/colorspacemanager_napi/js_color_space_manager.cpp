@@ -71,7 +71,7 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
     ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
     napi_value object = nullptr;
     napi_get_undefined(env, &object);
-    
+
     if (ConvertFromJsValue(env, argvArr[0], csType)) {
         if (!CheckColorSpaceTypeRange(env, csType)) {
             return object;

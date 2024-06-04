@@ -36,15 +36,19 @@ public:
 
 public:
     explicit Image() = default;
-    explicit Image(const uint8_t* data, size_t size, size_t skipBytes);
-    explicit Image(std::vector<uint8_t> && data, size_t skipBytes);
 
     void Serialize(Archive& archive);
     bool IsValid() const;
 
 public:
     std::vector<uint8_t> data;
-    size_t skipBytes = 0u;
+    uint64_t parcelSkipBytes = 0u;
+    int32_t dmaWidth = 0;
+    int32_t dmaHeight = 0;
+    int32_t dmaStride = 0;
+    int32_t dmaFormat = 0;
+    uint64_t dmaUsage = 0u;
+    size_t dmaSize = 0u;
 };
 
 class RSB_EXPORT ImageCache final {

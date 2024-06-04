@@ -61,7 +61,7 @@ ohos_shared_library("libcomposer") {
 
   public_configs = [ ":composer_public_config" ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/utils:scoped_bytrace",
     "vsync:libvsync",
   ]
@@ -73,15 +73,17 @@ ohos_shared_library("libcomposer") {
   ]
 
   external_deps = [
-    "drivers_interface_display:display_buffer_idl_headers",
-    "drivers_interface_display:display_commontype_idl_headers",
-    "drivers_interface_display:display_composer_idl_headers_1.1",
-    "drivers_interface_display:display_composer_idl_headers_1.2",
+    "drivers_interface_display:libdisplay_buffer_proxy_1.0",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "drivers_interface_display:libdisplay_composer_hdi_impl_1.1",
     "drivers_interface_display:libdisplay_composer_hdi_impl_1.2",
+    "drivers_interface_display:libdisplay_composer_proxy_1.1",
+    "drivers_interface_display:libdisplay_composer_proxy_1.2",
     "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 

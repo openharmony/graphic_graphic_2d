@@ -52,7 +52,8 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
-        particleSystem_->Emit(deltaTime, renderParticleVector_.renderParticleVector_);
+        particleSystem_->Emit(
+            deltaTime, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
         particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
     auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);

@@ -123,6 +123,25 @@ static const std::vector<struct JsEnumInt> g_affinity = {
     { "DOWNSTREAM", static_cast<size_t>(Affinity::NEXT) },
 };
 
+static const std::vector<struct JsEnumInt> g_fontWidth = {
+    { "ULTRA_CONDENSED", static_cast<size_t>(FontWidth::ULTRA_CONDENSED) },
+    { "EXTRA_CONDENSED", static_cast<size_t>(FontWidth::EXTRA_CONDENSED) },
+    { "CONDENSED", static_cast<size_t>(FontWidth::CONDENSED) },
+    { "SEMI_CONDENSED", static_cast<size_t>(FontWidth::SEMI_CONDENSED) },
+    { "NORMAL", static_cast<size_t>(FontWidth::NORMAL) },
+    { "SEMI_EXPANDED", static_cast<size_t>(FontWidth::SEMI_EXPANDED) },
+    { "EXPANDED", static_cast<size_t>(FontWidth::EXPANDED) },
+    { "EXTRA_EXPANDED", static_cast<size_t>(FontWidth::EXTRA_EXPANDED) },
+    { "ULTRA_EXPANDED", static_cast<size_t>(FontWidth::ULTRA_EXPANDED) },
+};
+
+static const std::vector<struct JsEnumInt> g_textHeightBehavior = {
+    { "ALL", static_cast<size_t>(TextHeightBehavior::ALL) },
+    { "DISABLE_FIRST_ASCENT", static_cast<size_t>(TextHeightBehavior::DISABLE_FIRST_ASCENT) },
+    { "DISABLE_LAST_ASCENT", static_cast<size_t>(TextHeightBehavior::DISABLE_LAST_ASCENT) },
+    { "DISABLE_ALL", static_cast<size_t>(TextHeightBehavior::DISABLE_ALL) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "TextAlign", g_textAlign },
     { "TextDecorationStyle", g_textDecorationStyle },
@@ -135,9 +154,11 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "EllipsisMode", g_ellipsisModal },
     { "TextDecorationType", g_textDecoration },
     { "PlaceholderAlignment", g_placeholderVerticalAlignment },
-    { "RectWidthStyle", g_rectWidthStyle},
-    { "RectHeightStyle", g_rectHeightStyle},
-    { "Affinity", g_affinity},
+    { "RectWidthStyle", g_rectWidthStyle },
+    { "RectHeightStyle", g_rectHeightStyle },
+    { "Affinity", g_affinity },
+    { "FontWidth", g_fontWidth },
+    { "TextHeightBehavior", g_textHeightBehavior },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
