@@ -44,14 +44,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-namespace {
-const double ARC_FONT_SIZE = 30;
-const double MAX_WIDTH = 800.0;
-const double SWEEP_DEGREE = 180.0;
-const double LEFT_POS = 50.0;
-const double RIGHT_POS = 150.0;
-} // namespace
-
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
