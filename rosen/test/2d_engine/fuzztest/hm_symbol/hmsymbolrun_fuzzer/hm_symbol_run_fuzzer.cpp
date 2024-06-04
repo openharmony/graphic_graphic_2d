@@ -18,7 +18,6 @@
 #include "get_object.h"
 #include "symbol_engine/hm_symbol_run.h"
 
-
 namespace OHOS {
 namespace Rosen {
 namespace SPText {

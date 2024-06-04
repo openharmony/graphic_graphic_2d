@@ -19,7 +19,6 @@
 #include "rosen_text/hm_symbol_txt.h"
 #include "symbol_engine/hm_symbol_txt.h"
 
-
 namespace OHOS {
 namespace Rosen {
 void HmSymbolTxtFuzzTestInner01(HMSymbolTxt& symbol)
