@@ -25,6 +25,8 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
     "rs_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
     "rs_property_drawable_background_test.cpp",
+    "rs_property_drawable_foreground_test.cpp",
+    "rs_property_drawable_utils_test.cpp",
   ]
 
   cflags = [
