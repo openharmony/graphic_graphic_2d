@@ -14,6 +14,9 @@
  */
 
 #include "drawing_image_filter.h"
+
+#include "drawing_canvas_utils.h"
+
 #include "effect/image_filter.h"
 
 using namespace OHOS;
@@ -41,6 +44,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromColorFilter(
     OH_Drawing_ColorFilter* cf, OH_Drawing_ImageFilter* input)
 {
     if (cf == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_ImageFilter*)new ImageFilter(

@@ -15,6 +15,8 @@
 
 #include "drawing_pen.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "draw/pen.h"
 
 using namespace OHOS;
@@ -161,6 +163,7 @@ OH_Drawing_Pen* OH_Drawing_PenCopy(OH_Drawing_Pen* cPen)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_Pen*)new Pen(*pen);
@@ -174,6 +177,7 @@ void OH_Drawing_PenDestroy(OH_Drawing_Pen* cPen)
 bool OH_Drawing_PenIsAntiAlias(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return CastToPen(*cPen).IsAntiAlias();
@@ -183,6 +187,7 @@ void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen* cPen, bool aa)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetAntiAlias(aa);
@@ -191,6 +196,7 @@ void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen* cPen, bool aa)
 uint32_t OH_Drawing_PenGetColor(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return CastToPen(*cPen).GetColor().CastToColorQuad();
@@ -200,6 +206,7 @@ void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, uint32_t color)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetColor(color);
@@ -208,6 +215,7 @@ void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, uint32_t color)
 uint8_t OH_Drawing_PenGetAlpha(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return CastToPen(*cPen).GetAlpha();
@@ -217,6 +225,7 @@ void OH_Drawing_PenSetAlpha(OH_Drawing_Pen* cPen, uint8_t alpha)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetAlpha(alpha);
@@ -225,6 +234,7 @@ void OH_Drawing_PenSetAlpha(OH_Drawing_Pen* cPen, uint8_t alpha)
 float OH_Drawing_PenGetWidth(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0.f;
     }
     return CastToPen(*cPen).GetWidth();
@@ -234,6 +244,7 @@ void OH_Drawing_PenSetWidth(OH_Drawing_Pen* cPen, float width)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetWidth(width);
@@ -242,6 +253,7 @@ void OH_Drawing_PenSetWidth(OH_Drawing_Pen* cPen, float width)
 float OH_Drawing_PenGetMiterLimit(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0.f;
     }
     return CastToPen(*cPen).GetMiterLimit();
@@ -251,6 +263,7 @@ void OH_Drawing_PenSetMiterLimit(OH_Drawing_Pen* cPen, float miter)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetMiterLimit(miter);
@@ -259,6 +272,7 @@ void OH_Drawing_PenSetMiterLimit(OH_Drawing_Pen* cPen, float miter)
 OH_Drawing_PenLineCapStyle OH_Drawing_PenGetCap(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return LINE_FLAT_CAP;
     }
     Pen::CapStyle cap = CastToPen(*cPen).GetCapStyle();
@@ -270,6 +284,7 @@ void OH_Drawing_PenSetCap(OH_Drawing_Pen* cPen, OH_Drawing_PenLineCapStyle cCap)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Pen::CapStyle cap = CCapCastToCap(cCap);
@@ -279,6 +294,7 @@ void OH_Drawing_PenSetCap(OH_Drawing_Pen* cPen, OH_Drawing_PenLineCapStyle cCap)
 OH_Drawing_PenLineJoinStyle OH_Drawing_PenGetJoin(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return LINE_MITER_JOIN;
     }
     Pen::JoinStyle join = CastToPen(*cPen).GetJoinStyle();
@@ -290,6 +306,7 @@ void OH_Drawing_PenSetJoin(OH_Drawing_Pen* cPen, OH_Drawing_PenLineJoinStyle cJo
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Pen::JoinStyle join = CJoinCastToJoin(cJoin);
@@ -300,6 +317,11 @@ void OH_Drawing_PenSetShaderEffect(OH_Drawing_Pen* cPen, OH_Drawing_ShaderEffect
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cShaderEffect == nullptr) {
+        pen->SetShaderEffect(nullptr);
         return;
     }
     pen->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
@@ -309,6 +331,7 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cP
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetPathEffect(std::shared_ptr<PathEffect>{CastToPathEffect(cPathEffect), [](auto p) {}});
@@ -318,6 +341,11 @@ void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* 
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    if (cShadowlayer == nullptr) {
+        pen->SetLooper(nullptr);
         return;
     }
     pen->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowlayer), [](auto p) {}});
@@ -327,6 +355,7 @@ void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     if (cFilter == nullptr) {
@@ -341,6 +370,7 @@ void OH_Drawing_PenGetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Filter* filter = const_cast<Filter*>(CastToFilter(cFilter));
@@ -352,11 +382,9 @@ void OH_Drawing_PenGetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 
 void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen* cPen, OH_Drawing_BlendMode cBlendMode)
 {
-    if (cPen == nullptr) {
-        return;
-    }
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->SetBlendMode(static_cast<BlendMode>(cBlendMode));
@@ -369,6 +397,7 @@ bool OH_Drawing_PenGetFillPath(OH_Drawing_Pen* cPen, const OH_Drawing_Path* src,
     const Path* srcPath = CastToPath(src);
     Path* dstPath = CastToPath(dst);
     if (!pen || !srcPath || !dstPath) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return pen->GetFillPath(*srcPath, *dstPath, cRect ? CastToRect(cRect): nullptr,
@@ -379,6 +408,7 @@ void OH_Drawing_PenReset(OH_Drawing_Pen* cPen)
 {
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     pen->Reset();

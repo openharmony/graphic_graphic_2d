@@ -61,6 +61,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_color.cpp",
       "$drawing_ndk_src_dir/drawing_color_filter.cpp",
       "$drawing_ndk_src_dir/drawing_color_space.cpp",
+      "$drawing_ndk_src_dir/drawing_error_code.cpp",
       "$drawing_ndk_src_dir/drawing_filter.cpp",
       "$drawing_ndk_src_dir/drawing_font.cpp",
       "$drawing_ndk_src_dir/drawing_font_collection.cpp",

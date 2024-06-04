@@ -14,10 +14,13 @@
  */
 
 #include "drawing_surface.h"
-#include "drawing_canvas.h"
-#include "draw/surface.h"
+
 #include <mutex>
 #include <unordered_map>
+
+#include "drawing_canvas_utils.h"
+
+#include "draw/surface.h"
 #include "image/gpu_context.h"
 #include "image/image_info.h"
 
@@ -42,6 +45,7 @@ OH_Drawing_Surface* OH_Drawing_SurfaceCreateFromGpuContext(OH_Drawing_GpuContext
     bool budgeted, OH_Drawing_Image_Info cImageInfo)
 {
     if (cGpuContext == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     ImageInfo imageInfo(cImageInfo.width, cImageInfo.height,
@@ -60,6 +64,7 @@ OH_Drawing_Canvas* OH_Drawing_SurfaceGetCanvas(OH_Drawing_Surface* cSurface)
 {
     Surface* surface = CastToSurface(cSurface);
     if (surface == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_Canvas*)(surface->GetCanvas().get());
