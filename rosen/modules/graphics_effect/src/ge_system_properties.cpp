@@ -22,8 +22,9 @@ std::string GESystemProperties::GetEventProperty(const std::string& paraName)
 {
 #ifdef GE_OHOS
     return system::GetParameter(paraName, "0");
-#endif
+#else
     return "";
+#endif
 }
 
 bool GESystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
@@ -33,8 +34,9 @@ bool GESystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
     int changed = 0;
     const char* enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
-#endif
+#else
     return false;
+#endif
 }
 
 int GESystemProperties::ConvertToInt(const char* originValue, int defaultValue)

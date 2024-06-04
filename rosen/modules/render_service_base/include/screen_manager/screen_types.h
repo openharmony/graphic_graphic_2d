@@ -37,6 +37,11 @@ constexpr uint32_t DEFAULT_SKIP_FRAME_INTERVAL = 1;
 
 constexpr int32_t SCREEN_ROTATION_NUM = 4;
 
+constexpr int32_t RS_ROTATION_0 = 0;
+constexpr int32_t RS_ROTATION_90 = 90;
+constexpr int32_t RS_ROTATION_180 = 180;
+constexpr int32_t RS_ROTATION_270 = 270;
+
 inline constexpr ScreenId ToScreenId(ScreenPhysicalId physicalId)
 {
     return static_cast<ScreenId>(physicalId);
@@ -254,6 +259,12 @@ template<typename EnumType>
 inline constexpr typename std::underlying_type<EnumType>::type ECast(EnumType t)
 {
     return static_cast<typename std::underlying_type<EnumType>::type>(t);
+}
+
+inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
+{
+    return screenCorrection == ScreenRotation::INVALID_SCREEN_ROTATION ?
+        RS_ROTATION_0 : static_cast<int32_t>(screenCorrection) * RS_ROTATION_90;
 }
 } // namespace Rosen
 } // namespace OHOS

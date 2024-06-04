@@ -43,10 +43,10 @@ public:
     inline RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept;
 
     inline void SetCornerRadius(CornerPos pos, scalar radiusX, scalar radiusY);
-    inline Point GetCornerRadius(CornerPos pos) const;
+    inline const Point& GetCornerRadius(CornerPos pos) const;
 
     inline void SetRect(const Rect& rect);
-    inline Rect GetRect() const;
+    inline const Rect& GetRect() const;
 
     /**
      * @brief Translates RoundRect by (dx, dy).
@@ -54,6 +54,9 @@ public:
      * @param dy  offset added to rect top and rect bottom
      */
     inline void Offset(scalar dx, scalar dy);
+    inline bool IsSimpleRoundRect() const;
+    inline scalar GetSimpleX() const;
+    inline scalar GetSimpleY() const;
 
     void AdjustRadiiX(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
     void AdjustRadiiY(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
@@ -68,9 +71,10 @@ private:
     Rect rect_;
     // Four radii are stored: top-left/top-right/bottom-left/bottom-right corner radii.
     Point radiusXY_[CORNER_NUMBER] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+    bool isSimple_ = false;
 };
 
-inline RoundRect::RoundRect() noexcept : rect_() {}
+inline RoundRect::RoundRect() noexcept : rect_(), isSimple_(true) {}
 
 inline RoundRect::RoundRect(const RoundRect& roundRect) noexcept : RoundRect()
 {
@@ -78,6 +82,7 @@ inline RoundRect::RoundRect(const RoundRect& roundRect) noexcept : RoundRect()
     for (int i = 0; i < CORNER_NUMBER; ++i) {
         radiusXY_[i] = roundRect.radiusXY_[i];
     }
+    isSimple_ = roundRect.isSimple_;
 }
 
 inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : RoundRect()
@@ -87,6 +92,7 @@ inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : 
         radiusXY_[i].SetX(xRad);
         radiusXY_[i].SetY(yRad);
     }
+    isSimple_ = true;
 }
 
 inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept : RoundRect()
@@ -95,6 +101,7 @@ inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) n
     for (int i = 0; i < CORNER_NUMBER && i < static_cast<int>(radiusXY.size()); ++i) {
         radiusXY_[i] = radiusXY[i];
     }
+    isSimple_ = false;
     ScaleRadii();
 }
 
@@ -102,9 +109,10 @@ inline void RoundRect::SetCornerRadius(CornerPos pos, scalar radiusX, scalar rad
 {
     radiusXY_[pos].SetX(radiusX);
     radiusXY_[pos].SetY(radiusY);
+    isSimple_ = false;
 }
 
-inline Point RoundRect::GetCornerRadius(CornerPos pos) const
+inline const Point& RoundRect::GetCornerRadius(CornerPos pos) const
 {
     return radiusXY_[pos];
 }
@@ -114,7 +122,7 @@ inline void RoundRect::SetRect(const Rect& rect)
     rect_ = rect;
 }
 
-inline Rect RoundRect::GetRect() const
+inline const Rect& RoundRect::GetRect() const
 {
     return rect_;
 }
@@ -122,6 +130,21 @@ inline Rect RoundRect::GetRect() const
 inline void RoundRect::Offset(scalar dx, scalar dy)
 {
     rect_.Offset(dx, dy);
+}
+
+inline bool RoundRect::IsSimpleRoundRect() const
+{
+    return isSimple_;
+}
+
+inline scalar RoundRect::GetSimpleX() const
+{
+    return radiusXY_[RoundRect::TOP_LEFT_POS].GetX();
+}
+
+inline scalar RoundRect::GetSimpleY() const
+{
+    return radiusXY_[RoundRect::TOP_LEFT_POS].GetY();
 }
 } // namespace Drawing
 } // namespace Rosen

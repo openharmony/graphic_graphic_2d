@@ -145,8 +145,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     lastRect_ = rect;
 }
 
-struct ImageParameter
-{
+struct ImageParameter {
     float ratio;
     float srcW;
     float srcH;
@@ -238,6 +237,21 @@ void RSImage::ApplyImageFit()
     imageParameter.dstH = dstH;
     RectF tempRectF = dstRect_;
     dstRect_ = ApplyImageFitSwitch(imageParameter, imageFit_, tempRectF);
+}
+
+ImageFit RSImage::GetImageFit()
+{
+    return imageFit_;
+}
+
+RectF RSImage::GetDstRect()
+{
+    return dstRect_;
+}
+
+void RSImage::SetFrameRect(RectF frameRect)
+{
+    frameRect_ = frameRect;
 }
 
 bool RSImage::HasRadius() const

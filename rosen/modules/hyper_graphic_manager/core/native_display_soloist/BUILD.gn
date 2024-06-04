@@ -48,6 +48,8 @@ ohos_shared_library("libnative_display_soloist") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
+  innerapi_tags = [ "ndk" ]
+
   external_deps = [ "hilog:libhilog" ]
   public_external_deps = [ "c_utils:utils" ]
 

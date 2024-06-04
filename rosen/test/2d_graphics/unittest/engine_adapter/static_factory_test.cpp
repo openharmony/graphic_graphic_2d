@@ -14,6 +14,8 @@
  */
 
 #include <cstddef>
+#include <parameter.h>
+#include <parameters.h>
 
 #include "engine_adapter/static_factory.h"
 #include "gtest/gtest.h"
@@ -81,6 +83,35 @@ HWTEST_F(StaticFactoryTest, MakeFromName001, TestSize.Level1)
     auto factory = StaticFactory::MakeFromName(familyName, Drawing::FontStyle());
     ASSERT_TRUE(factory != nullptr);
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: MakeFromBackendRenderTarget001
+ * @tc.desc: Test StaticFactory
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(GpuContextTest, MakeFromBackendRenderTarget001, TestSize.Level1)
+{
+    auto gpuContext = new GPUContext();
+    ASSERT_TRUE(gpuContext != nullptr);
+    TextureInfo info;
+    info.SetWidth(10);
+    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
+    ASSERT_TRUE(colorSpace != nullptr);
+    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
+    auto surface = StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, TextureOrigin::TOP_LEFT,
+        ColorType::COLORTYPE_RGBA_8888, colorSpace, nullptr, nullptr);
+    ASSERT_TRUE(surface == nullptr);
+    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
+    surface = StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, TextureOrigin::TOP_LEFT,
+        ColorType::COLORTYPE_RGBA_8888, colorSpace, nullptr, nullptr);
+    ASSERT_TRUE(surface == nullptr);
+    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+    delete gpuContext;
+}
+#endif
 
 /**
  * @tc.name: DeserializeTypeface001

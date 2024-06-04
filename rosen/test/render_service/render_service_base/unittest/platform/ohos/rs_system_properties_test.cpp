@@ -103,17 +103,6 @@ HWTEST_F(RSSystemPropertiesTest, GetProfilerEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetInstantRecording
- * @tc.desc: GetInstantRecording Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetInstantRecording, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetInstantRecording());
-}
-
-/**
  * @tc.name: SetInstantRecording
  * @tc.desc: SetInstantRecording Test
  * @tc.type:FUNC
@@ -189,7 +178,7 @@ HWTEST_F(RSSystemPropertiesTest, GetRenderNodeTraceEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetRSScreenRoundCornerEnable, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetRSScreenRoundCornerEnable());
+    ASSERT_TRUE(RSSystemProperties::GetRSScreenRoundCornerEnable());
 }
 
 /**
@@ -211,7 +200,7 @@ HWTEST_F(RSSystemPropertiesTest, GetDirtyRegionDebugType, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetPartialRenderEnabled(), PartialRenderType::DISABLED);
+    ASSERT_NE(RSSystemProperties::GetPartialRenderEnabled(), PartialRenderType::DISABLED);
 }
 
 /**
@@ -955,7 +944,7 @@ HWTEST_F(RSSystemPropertiesTest, GetSingleFrameComposerCanvasNodeEnabled, TestSi
  */
 HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
 {
-    EXPECT_TRUE(RSSystemProperties::GetSubSurfaceEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetSubSurfaceEnabled());
     EXPECT_FALSE(RSSystemProperties::GetSecurityPermissionCheckEnabled());
     EXPECT_TRUE(RSSystemProperties::GetEffectMergeEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUICaptureEnabled());

@@ -77,6 +77,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = surfaceNodeConfig.isSync,
+        .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
 
@@ -86,7 +87,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.bundleName);
+            config.id, config.name, static_cast<uint8_t>(config.nodeType),
+            config.bundleName, config.surfaceWindowType);
         transactionProxy->AddCommand(command, isWindow);
     } else {
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
@@ -807,6 +809,24 @@ void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
         ROSEN_LOGD("SetHDRPresent  RSSurfaceNode");
         transactionProxy->AddCommand(command, true);
     }
+}
+
+void RSSurfaceNode::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSkipDraw>(GetId(), skip);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetSkipDraw, surfaceNodeId:[%" PRIu64 "] skipdraw:%s", GetId(),
+        skip ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetSkipDraw() const
+{
+    return isSkipDraw_;
 }
 } // namespace Rosen
 } // namespace OHOS

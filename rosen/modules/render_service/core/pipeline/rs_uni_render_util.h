@@ -62,7 +62,8 @@ public:
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
     static void MergeDirtyHistoryInVirtual(RSDisplayRenderNode& node, int32_t bufferAge, bool renderParallel = false);
-    static Occlusion::Region MergeVisibleDirtyRegionInVirtual(std::vector<RSRenderNode::SharedPtr>& allSurfaceNodes,
+    static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         bool renderParallel = false);
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
@@ -113,11 +114,11 @@ public:
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerScaleDown(RSSurfaceRenderNode& Node);
-    static void LayerScaleFit(RSSurfaceRenderNode& Node);
+    static void LayerScaleDown(RSSurfaceRenderNode& node);
+    static void LayerScaleFit(RSSurfaceRenderNode& node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-        Drawing::GPUContext* grContext, bool optFenceWait = true);
+        Drawing::GPUContext* const grContext, bool optFenceWait = true);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

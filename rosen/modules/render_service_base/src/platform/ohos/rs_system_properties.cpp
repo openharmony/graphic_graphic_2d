@@ -214,7 +214,7 @@ bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 
 bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualdirty.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualdirty.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -956,7 +956,7 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
 
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "1") != "0";
+    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
     return flag;
 }
 
@@ -979,6 +979,14 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     static bool flag = system::GetParameter("rosen.gpu.overdraw.optimize.enabled", "0") != "0";
     return flag;
+}
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 1) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS

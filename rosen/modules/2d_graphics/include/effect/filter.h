@@ -40,12 +40,15 @@ public:
 
     void SetColorFilter(std::shared_ptr<ColorFilter> colorFilter);
     std::shared_ptr<ColorFilter> GetColorFilter() const;
+    const ColorFilter* GetColorFilterPtr() const;
 
     void SetImageFilter(std::shared_ptr<ImageFilter> imageFilter);
     std::shared_ptr<ImageFilter> GetImageFilter() const;
+    const ImageFilter* GetImageFilterPtr() const;
 
     void SetMaskFilter(std::shared_ptr<MaskFilter> maskFilter);
     std::shared_ptr<MaskFilter> GetMaskFilter() const;
+    const MaskFilter* GetMaskFilterPtr() const;
 
     FilterQuality GetFilterQuality() const;
     void SetFilterQuality(FilterQuality fq);

@@ -57,6 +57,15 @@ enum RSAnimationCommandType : uint16_t {
 
     // UI operation
     ANIMATION_CALLBACK,
+
+    // interactive animator operation
+    INTERACTIVE_ANIMATOR_CREATE,
+    INTERACTIVE_ANIMATOR_DESTORY,
+    INTERACTIVE_ANIMATOR_PAUSE,
+    INTERACTIVE_ANIMATOR_CONTINUE,
+    INTERACTIVE_ANIMATOR_FINISH,
+    INTERACTIVE_ANIMATOR_REVERSE,
+    INTERACTIVE_ANIMATOR_SET_FRACTION,
 };
 
 enum AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED, LOGICALLY_FINISHED };
@@ -114,6 +123,19 @@ public:
                                   NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
+
+    static void CreateInteractiveAnimator(RSContext& context,
+        InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations);
+    static void DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
+    static void InteractiveAnimatorAddAnimations(RSContext& context,
+        InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations);
+    static void PauseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
+    static void ContinueInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
+    static void FinishInteractiveAnimator(RSContext& context,
+        InteractiveImplictAnimatorId targetId, RSInteractiveAnimationPosition finishPos);
+    static void ReverseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
+    static void SetFractionInteractiveAnimator(RSContext& context,
+        InteractiveImplictAnimatorId targetId, float fraction);
 };
 
 // animation operation
@@ -167,6 +189,23 @@ ADD_COMMAND(RSAnimationCreateSpring, ARG(ANIMATION, ANIMATION_CREATE_SPRING,
 ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
     ARG(ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
+
+// interactive implict animator operation
+ADD_COMMAND(RSInteractiveAnimatorCreate, ARG(ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
+    AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
+    std::vector<std::pair<NodeId, AnimationId>>))
+ADD_COMMAND(RSInteractiveAnimatorDestory, ARG(ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
+    AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorPause, ARG(ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,
+    AnimationCommandHelper::PauseInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorContinue, ARG(ANIMATION, INTERACTIVE_ANIMATOR_CONTINUE,
+    AnimationCommandHelper::ContinueInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorFinish, ARG(ANIMATION, INTERACTIVE_ANIMATOR_FINISH,
+    AnimationCommandHelper::FinishInteractiveAnimator, InteractiveImplictAnimatorId, RSInteractiveAnimationPosition))
+ADD_COMMAND(RSInteractiveAnimatorReverse, ARG(ANIMATION, INTERACTIVE_ANIMATOR_REVERSE,
+    AnimationCommandHelper::ReverseInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorSetFraction, ARG(ANIMATION, INTERACTIVE_ANIMATOR_SET_FRACTION,
+    AnimationCommandHelper::SetFractionInteractiveAnimator, InteractiveImplictAnimatorId, float))
 } // namespace Rosen
 } // namespace OHOS
 

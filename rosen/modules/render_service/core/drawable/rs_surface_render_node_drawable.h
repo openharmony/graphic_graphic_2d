@@ -31,7 +31,7 @@ struct UIFirstParams {
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
+class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable, public RSSurfaceHandler {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
 
@@ -163,9 +163,10 @@ public:
     void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void ClearCacheSurfaceOnly();
 
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

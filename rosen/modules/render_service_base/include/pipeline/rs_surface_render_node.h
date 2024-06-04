@@ -353,6 +353,11 @@ public:
         offsetX_ = offset;
     }
 
+    enum SurfaceWindowType GetSurfaceWindowType() const
+    {
+        return surfaceWindowType_;
+    }
+
     int32_t GetOffSetX() const
     {
         return offsetX_;
@@ -467,7 +472,7 @@ public:
     bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -1134,6 +1139,9 @@ public:
     {
         return doDirectComposition_;
     }
+
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1189,6 +1197,7 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
@@ -1387,6 +1396,7 @@ private:
     bool isNodeToBeCaptured_ = false;
 
     bool doDirectComposition_ = true;
+    bool isSkipDraw_ = false;
 
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

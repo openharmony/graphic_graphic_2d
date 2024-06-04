@@ -33,6 +33,7 @@ public:
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
 
     static napi_value CreateDashPathEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateCornerPathEffect(napi_env env, napi_callback_info info);
     std::shared_ptr<PathEffect> GetPathEffect();
 
 private:

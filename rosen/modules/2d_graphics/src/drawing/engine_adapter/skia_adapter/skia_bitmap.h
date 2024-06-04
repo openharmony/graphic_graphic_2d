@@ -65,6 +65,7 @@ public:
     void SetInfo(const ImageInfo& info) override;
     bool TryAllocPixels(const ImageInfo& info) override;
     void SetSkBitmap(const SkBitmap& skBitmap);
+    SkBitmap& GetSkBitmap();
 
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;

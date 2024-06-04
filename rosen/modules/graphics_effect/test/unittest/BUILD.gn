@@ -39,6 +39,11 @@ ohos_unittest("GraphicsEffectTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",

@@ -37,11 +37,6 @@ void GECacheTest::TearDownTestCase(void) {}
 void GECacheTest::SetUp() {}
 void GECacheTest::TearDown() {}
 
-/**
- * @tc.name: SetAndGet
- * @tc.desc: Verify the Set and Get
- * @tc.type: FUNC
- */
 HWTEST_F(GECacheTest, SetAndGet, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "GECacheTest SetAndGet start";
@@ -57,9 +52,56 @@ HWTEST_F(GECacheTest, SetAndGet, TestSize.Level1)
 
     // Assert
     EXPECT_TRUE(retrievedValue != nullptr);
+    EXPECT_EQ(retrievedValue, value);
+    cache.Clear();
 
     GTEST_LOG_(INFO) << "GECacheTest SetAndGet end";
 }
 
-} // namespace Drawing
+HWTEST_F(GECacheTest, OverwriteValue, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GECacheTest OverwriteValue start";
+
+    // Arrange
+    GECache& cache = GECache::GetInstance();
+    size_t key = 123; // Set a random key
+    std::shared_ptr<Drawing::Image> value1 = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> value2 = std::make_shared<Drawing::Image>();
+
+    // Act
+    cache.Set(key, value1);
+    cache.Set(key, value2);
+    std::shared_ptr<Drawing::Image> retrievedValue = cache.Get(key);
+    cache.Clear();
+
+    // Assert
+    EXPECT_TRUE(retrievedValue != nullptr);
+    EXPECT_EQ(retrievedValue, value2);
+
+    GTEST_LOG_(INFO) << "GECacheTest OverwriteValue end";
+}
+
+HWTEST_F(GECacheTest, EvictLeastUsed, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GECacheTest EvictLeastUsed start";
+
+    // Arrange
+    GECache& cache = GECache::GetInstance();
+    cache.Clear();
+    cache.SetMaxCapacity(2); // Assuming a method to set max capacity
+    std::shared_ptr<Drawing::Image> value1 = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> value2 = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> value3 = std::make_shared<Drawing::Image>();
+    // Act
+    cache.Set(1, value1); // Use 1 as the key here
+    cache.Set(2, value2); // Use 2 as the key here
+    cache.Set(3, value3); // This should evict the least used value1, use 3 as the key here
+    // Assert
+    EXPECT_EQ(cache.Get(1), nullptr);
+    EXPECT_TRUE(cache.Get(2) == value2);
+    EXPECT_TRUE(cache.Get(3) == value3);
+
+    GTEST_LOG_(INFO) << "GECacheTest EvictLeastUsed end";
+}
+} // namespace GraphicsEffectEngine
 } // namespace OHOS

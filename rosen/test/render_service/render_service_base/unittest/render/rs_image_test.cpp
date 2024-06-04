@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "message_parcel.h"
 #include "pixel_map.h"
+#include "skia_canvas.h"
 
 #include "draw/surface.h"
 #include "render/rs_image.h"
@@ -130,6 +131,31 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasDrawImageTest
+ * @tc.desc: test results of CanvasDrawImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
+{
+    RSImage rsImage;
+    Drawing::Canvas canvas;
+    canvas.recordingState_ = true;
+    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Brush brush;
+    // for test
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    Drawing::SamplingOptions samplingOptions;
+    rsImage.pixelMap_ = pixelmap;
+    rsImage.pixelMap_->SetAstc(true);
+    rsImage.image_ = std::make_shared<Drawing::Image>();
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    // for test
+    rsImage.innerRect_ = Drawing::RectI { 0, 0, 10, 10 };
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+}
+
+/**
  * @tc.name: ApplyImageFitTest001
  * @tc.desc: Verify function ApplyImageFit
  * @tc.type:FUNC
@@ -139,13 +165,21 @@ HWTEST_F(RSImageTest, ApplyImageFitTest001, TestSize.Level1)
     auto image = std::make_shared<RSImage>();
     RectF srcRf(0.f, 0.f, 0.f, 0.f);
     image->srcRect_ = srcRf;
+    image->imageFit_ = ImageFit::TOP_LEFT;
     image->ApplyImageFit();
     EXPECT_EQ(image->srcRect_.width_, 0);
     RectF srcRs(1.f, 1.f, 1.f, 1.f);
     image->srcRect_ = srcRs;
     image->ApplyImageFit();
     EXPECT_EQ(image->srcRect_.width_, 1);
-    image->scale_=0;
+    image->scale_ = 0;
+    image->imageFit_ = ImageFit::NONE;
+    image->ApplyImageFit();
+    image->imageFit_ = ImageFit::FIT_WIDTH;
+    image->ApplyImageFit();
+    image->imageFit_ = ImageFit::FIT_HEIGHT;
+    image->ApplyImageFit();
+    image->imageFit_ = ImageFit::SCALE_DOWN;
     image->ApplyImageFit();
     EXPECT_EQ(image->srcRect_.width_, 1);
 }
@@ -174,10 +208,15 @@ HWTEST_F(RSImageTest, ApplyCanvasClipTest001, TestSize.Level1)
 HWTEST_F(RSImageTest, UploadGpuTest001, TestSize.Level1)
 {
     auto image = std::make_shared<RSImage>();
-    Drawing::Canvas canvas;
-    image->compressData_ = std::make_shared<Drawing::Data>();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
     image->UploadGpu(canvas);
-    EXPECT_NE(image->compressData_, nullptr);
+    image->isYUVImage_ = true;
+    image->UploadGpu(canvas);
+    image->compressData_ = std::make_shared<Drawing::Data>();
+    image->pixelMap_ = CreatePixelMap(200, 300);
+    image->UploadGpu(canvas);
+    EXPECT_EQ(image->compressData_, nullptr);
 }
 
 /**
@@ -190,8 +229,14 @@ HWTEST_F(RSImageTest, DrawImageRepeatRectTest001, TestSize.Level1)
     auto image = std::make_shared<RSImage>();
     Drawing::SamplingOptions samplingOptions;
     Drawing::Canvas canvas;
+    canvas.impl_ = std::make_shared<Drawing::SkiaCanvas>();
+    image->DrawImageRepeatRect(samplingOptions, canvas);
     image->pixelMap_ = std::make_shared<Media::PixelMap>();
     image->pixelMap_->SetAstc(true);
+    image->imageRepeat_ = ImageRepeat::REPEAT_X;
+    image->image_ = std::make_shared<Drawing::Image>();
+    image->DrawImageRepeatRect(samplingOptions, canvas);
+    image->innerRect_ = Drawing::RectI { 0, 0, 10, 10 };
     image->DrawImageRepeatRect(samplingOptions, canvas);
     EXPECT_EQ(image->frameRect_.left_, 0);
 }

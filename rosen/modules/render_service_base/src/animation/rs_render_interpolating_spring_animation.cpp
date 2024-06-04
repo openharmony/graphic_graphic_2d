@@ -128,8 +128,36 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
 
 void RSRenderInterpolatingSpringAnimation::OnSetFraction(float fraction)
 {
-    // interpolating spring animation should not support set fraction
-    OnAnimate(fraction);
+    if (valueEstimator_ == nullptr) {
+        return;
+    }
+    valueEstimator_->UpdateAnimationValue(fraction, GetAdditive());
+    SetValueFraction(fraction);
+    fractionChangeInfo_ = { true, fraction };
+}
+
+void RSRenderInterpolatingSpringAnimation::UpdateFractionAfterContinue()
+{
+    auto& [bChangeFraction, valueFraction] = fractionChangeInfo_;
+    if (bChangeFraction) {
+        SetFractionInner(CalculateTimeFraction(valueFraction));
+        bChangeFraction = false;
+        valueFraction = 0.0f;
+    }
+}
+
+float RSRenderInterpolatingSpringAnimation::CalculateTimeFraction(float targetFraction)
+{
+    float lastFraction = FRACTION_MIN;
+    for (float time = FRAME_PER_TIME_FRACTION; time <= FRACTION_MAX; time += FRAME_PER_TIME_FRACTION) {
+        auto mappedTime = time * GetDuration() * MILLISECOND_TO_SECOND;
+        float displacement = 1.0f + CalculateDisplacement(mappedTime);
+        if (lastFraction <= displacement && displacement >= targetFraction) {
+            return time;
+        }
+        lastFraction = displacement;
+    }
+    return FRACTION_MIN;
 }
 
 void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
@@ -148,6 +176,7 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
     float displacement = 1.0f + CalculateDisplacement(mappedTime);
+    SetValueFraction(displacement);
     valueEstimator_->UpdateAnimationValue(displacement, GetAdditive());
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto interpolationValue = valueEstimator_->Estimate(displacement, startValue_, endValue_);

@@ -29,6 +29,7 @@ ohos_unittest("2d_graphics_engine_adapter_test") {
     "c_utils:utils",
     "graphic_2d:2d_graphics",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   part_name = "graphic_2d"

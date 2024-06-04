@@ -49,6 +49,10 @@ public:
     void ResetFraction();
     int GetRemainingRepeatCount() const;
     bool GetCurrentIsReverseCycle() const;
+    float GetCurrentTimeFraction() const
+    {
+        return currentTimeFraction_;
+    }
 
     void SetRepeatCallbackEnable(bool isEnable)
     {

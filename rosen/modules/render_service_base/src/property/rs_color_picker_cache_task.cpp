@@ -172,7 +172,6 @@ bool RSColorPickerCacheTask::Render()
         if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr,
             SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
-            delete sharedContext;
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");
             return false;

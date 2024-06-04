@@ -147,6 +147,19 @@ public:
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
 
     static bool MergeRangeByPriority(VoteRange& rangeRes, VoteRange range);
+
+    void SetSchedulerPreferredFps(int32_t schedulePreferredFps)
+    {
+        if (schedulePreferredFps_ != schedulePreferredFps) {
+            schedulePreferredFps_ = schedulePreferredFps;
+            schedulePreferredFpsChange_ = true;
+        }
+    }
+
+    void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset)
+    {
+        isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
+    }
 private:
     void Reset();
     void UpdateAppSupportStatus();
@@ -156,7 +169,7 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp);
-    void FrameRateReport() const;
+    void FrameRateReport();
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     int32_t GetPreferredFps(const std::string& type, float velocity) const;
@@ -171,7 +184,8 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    bool MergeLtpo2IdleVote(VoteRange& mergedVoteRange);
+    // merge [VOTER_LTPO, VOTER_IDLE)
+    bool MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange);
     VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, const DvsyncInfo& dvsyncInfo);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
@@ -197,6 +211,7 @@ private:
     std::unordered_map<std::string, std::vector<std::pair<pid_t, VoteRange>>> voteRecord_;
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
+    FrameRateVoteInfo frameRateVoteInfo_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
@@ -216,6 +231,9 @@ private:
     HgmIdleDetector idleDetector_;
     uint32_t lastVoteMin_ = 0;
     uint32_t lastVoteMax_ = 144;
+    bool isNeedUpdateAppOffset_ = false;
+    int32_t schedulePreferredFps_ = 60;
+    int32_t schedulePreferredFpsChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

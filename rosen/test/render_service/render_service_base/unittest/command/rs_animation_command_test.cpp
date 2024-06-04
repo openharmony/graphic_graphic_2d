@@ -83,13 +83,16 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
  */
 HWTEST_F(RSAnimationCommandTest, AnimationCallback001, TestSize.Level1)
 {
-    AnimationCommandHelper::AnimationCallbackProcessor processor = [](NodeId nodeId, AnimationId animId,
-                                                                       AnimationCallbackEvent event) {};
-    AnimationCommandHelper::SetAnimationCallbackProcessor(processor);
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     AnimationId animId = static_cast<AnimationId>(1);
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
+    AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    EXPECT_TRUE(targetId == -1);
+
+    AnimationCommandHelper::AnimationCallbackProcessor processor = [](NodeId nodeId, AnimationId animId,
+                                                                       AnimationCallbackEvent event) {};
+    AnimationCommandHelper::SetAnimationCallbackProcessor(processor);
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
     EXPECT_TRUE(targetId == -1);
 }
@@ -117,6 +120,12 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
     PropertyId id = 0;
     auto property = std::shared_ptr<RSRenderProperty<Drawing::Matrix>>();
     auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
+    node->modifiers_[id] = modifier;
+    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
+    EXPECT_TRUE(modifier != nullptr);
+
+    node->modifiers_.clear();
+    id = 1;
     node->modifiers_[id] = modifier;
     AnimationCommandHelper::CreateAnimation(context, targetId, animation);
     EXPECT_TRUE(modifier != nullptr);

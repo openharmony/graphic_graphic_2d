@@ -13,21 +13,14 @@
  * limitations under the License.
  */
 #include "effect_napi.h"
-#include "image_napi_utils.h"
- 
+#include "ui_effect_napi_utils.h"
+
 namespace {
-    constexpr uint32_t NUM_0 = 0;
     constexpr uint32_t NUM_1 = 1;
-    constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
-    constexpr uint32_t NUM_4 = 4;
-    constexpr uint32_t NUM_5 = 5;
-    constexpr uint32_t NUM_6 = 6;
-    constexpr uint32_t NUM_7 = 7;
     constexpr uint32_t NUM_8 = 8;
-    constexpr uint32_t NUM_9 = 9;
 }
- 
+
 namespace OHOS {
 namespace Rosen {
 static const std::string CLASS_NAME = "VisualEffect";
@@ -56,28 +49,27 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
                                            nullptr,
                                            sizeof(static_prop) / sizeof(static_prop[0]), static_prop,
                                            &constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("define class fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("define class fail"));
  
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
-    if (!IMG_IS_OK(status)) {
+    if (!UIEFFECT_IS_OK(status)) {
         UIEFFECT_LOG_I("EffectNapi Init napi_create_reference falid");
         return nullptr;
     }
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:get global fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:get global fail"));
  
     status = napi_set_named_property(env, global, CLASS_NAME.c_str(), constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:set global named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:set global named property fail"));
  
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("set named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("set named property fail"));
  
-    status = napi_define_properties(env, exports, IMG_ARRAY_SIZE(static_prop), static_prop);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, UIEFFECT_LOG_E("define properties fail"));
+    status = napi_define_properties(env, exports, UIEFFECT_ARRAY_SIZE(static_prop), static_prop);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("define properties fail"));
     return exports;
 }
- 
  
 napi_value EffectNapi::Constructor(napi_env env, napi_callback_info info)
 {
@@ -107,7 +99,7 @@ void EffectNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
     EffectNapi *effectNapi = reinterpret_cast<EffectNapi*>(nativeObject);
  
-    if (IMG_NOT_NULL(effectNapi)) {
+    if (UIEFFECT_NOT_NULL(effectNapi)) {
         effectNapi->~EffectNapi();
     }
 }
@@ -134,10 +126,59 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
 }
- 
+
+napi_value ParseJsValue(napi_env env, napi_value jsObject, const std::string& name)
+{
+    napi_value value = nullptr;
+    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    return value;
+}
+
+bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
+{
+    bool result = true;
+    napi_status status = napi_has_named_property(env, jsObject, "cubicRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "quadraticRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "linearRate", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "degree", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "saturation", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "fraction", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "positiveCoefficient", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "negativeCoefficient", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    return true;
+}
+
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    if (blender == nullptr) {
+        UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
+        return nullptr;
+    }
     napi_value object = nullptr;
     napi_create_object(env, &object);
     napi_wrap(
@@ -147,26 +188,36 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
             delete blenderObj;
         },
         nullptr, nullptr);
- 
-    napi_value argValue[NUM_9] = {0};
-    size_t argCount = NUM_9;
-    napi_status status;
-    IMG_JS_ARGS(env, info, status, argCount, argValue, object);
- 
-    if (argCount < NUM_8) {
-        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
+
+    size_t argc = 1;
+    napi_value argv[1];
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (argc != 1) {
+        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, argc number is not 1.");
         return nullptr;
     }
-    
-    napi_set_named_property(env, object, "cubicRate", argValue[NUM_0]);
-    napi_set_named_property(env, object, "quadRate", argValue[NUM_1]);
-    napi_set_named_property(env, object, "linearRate", argValue[NUM_2]);
-    napi_set_named_property(env, object, "degree", argValue[NUM_3]);
-    napi_set_named_property(env, object, "saturation", argValue[NUM_4]);
-    napi_set_named_property(env, object, "positiveCoeff", argValue[NUM_5]);
-    napi_set_named_property(env, object, "negativeCoeff", argValue[NUM_6]);
-    napi_set_named_property(env, object, "fraction", argValue[NUM_7]);
- 
+
+    napi_value nativeObj = argv[0];
+    if (nativeObj == nullptr) {
+        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, nativeObj is nullptr.");
+        return nullptr;
+    }
+
+    if (!CheckCreateBrightnessBlender (env, nativeObj)) {
+        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, object, "cubicRate", ParseJsValue(env, nativeObj, "cubicRate"));
+    napi_set_named_property(env, object, "quadraticRate", ParseJsValue(env, nativeObj, "quadraticRate"));
+    napi_set_named_property(env, object, "linearRate", ParseJsValue(env, nativeObj, "linearRate"));
+    napi_set_named_property(env, object, "degree", ParseJsValue(env, nativeObj, "degree"));
+    napi_set_named_property(env, object, "saturation", ParseJsValue(env, nativeObj, "saturation"));
+    napi_set_named_property(env, object, "positiveCoefficient", ParseJsValue(env, nativeObj, "positiveCoefficient"));
+    napi_set_named_property(env, object, "negativeCoefficient", ParseJsValue(env, nativeObj, "negativeCoefficient"));
+    napi_set_named_property(env, object, "fraction", ParseJsValue(env, nativeObj, "fraction"));
+
     if (object == nullptr) {
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
     }
@@ -210,7 +261,7 @@ bool ParseJsVec3Value(napi_value jsObject, napi_env env, const std::string& name
     napi_get_named_property(env, jsObject, name.c_str(), &param);
  
     napi_valuetype valueType = napi_undefined;
-    valueType = Media::ImageNapiUtils::getType(env, param);
+    valueType = UIEffectNapiUtils::getType(env, param);
     if (valueType == napi_undefined) {
         return true;
     }
@@ -250,7 +301,7 @@ bool EffectNapi::ParseBrightnessBlender(
         blender->SetCubicRate(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "quadRate", val)) {
+    if (ParseJsDoubleValue(jsObject, env, "quadraticRate", val)) {
         blender->SetQuadRate(static_cast<float>(val));
         parseTimes++;
     }
@@ -270,11 +321,11 @@ bool EffectNapi::ParseBrightnessBlender(
         blender->SetFraction(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "positiveCoeff", tmpVector3)) {
+    if (ParseJsVec3Value(jsObject, env, "positiveCoefficient", tmpVector3)) {
         blender->SetPositiveCoeff(tmpVector3);
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "negativeCoeff", tmpVector3)) {
+    if (ParseJsVec3Value(jsObject, env, "negativeCoefficient", tmpVector3)) {
         blender->SetNegativeCoeff(tmpVector3);
         parseTimes++;
     }
@@ -287,7 +338,7 @@ napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = NUM_1;
-    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
  
     if (status != napi_ok) {
         UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender parsr input Faild");

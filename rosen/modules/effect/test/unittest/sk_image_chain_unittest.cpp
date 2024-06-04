@@ -67,6 +67,49 @@ HWTEST_F(SKImageChainUnittest, DrawTest002, TestSize.Level1)
     ASSERT_NE(skImageChain, nullptr);
 
     skImageChain->Draw();
+    skImageChain->ForceCPU(false);
+    skImageChain->Draw();
+    skImageChain->ForceCPU(true);
+}
+
+/**
+ * @tc.name: DrawTest003
+ * @tc.desc: create a SKImageChain with non-nullptr canvas and draw
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, DrawTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest DrawTest003 start";
+
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    SkImageInfo imageInfo = SkImageInfo::Make(srcPixelMap->GetWidth(), srcPixelMap->GetHeight(),
+        SkColorType::kRGBA_8888_SkColorType,
+        static_cast<SkAlphaType>(srcPixelMap->GetAlphaType()));
+    std::shared_ptr<SkPixmap> dstPixmap = std::make_shared<SkPixmap>(imageInfo, srcPixelMap->GetPixels(),
+        srcPixelMap->GetRowStride());
+    sk_sp<SkSurface> cpuSurface = SkSurface::MakeRasterDirect(imageInfo, const_cast<void*>(dstPixmap->addr()),
+        srcPixelMap->GetRowStride());
+    ASSERT_NE(cpuSurface, nullptr);
+
+    auto canvas = cpuSurface->getCanvas();
+    ASSERT_NE(canvas, nullptr);
+    auto skImageChain = std::make_shared<SKImageChain>(canvas, nullptr);
+    ASSERT_NE(skImageChain, nullptr);
+
+    skImageChain->Draw();
+    skImageChain->ForceCPU(false);
+    skImageChain->Draw();
+    skImageChain->ForceCPU(true);
 }
 
 /**
@@ -83,7 +126,7 @@ HWTEST_F(SKImageChainUnittest, GetPixelMapTest001, TestSize.Level1)
     auto skImageChain = std::make_shared<SKImageChain>(nullptr, nullptr);
     ASSERT_NE(skImageChain, nullptr);
 
-    ASSERT_EQ(skImageChain-> GetPixelMap(), nullptr);
+    ASSERT_EQ(skImageChain->GetPixelMap(), nullptr);
 }
 
 /**
@@ -116,15 +159,32 @@ HWTEST_F(SKImageChainUnittest, SetTest001, TestSize.Level1)
  */
 HWTEST_F(SKImageChainUnittest, SetClipTest001, TestSize.Level1)
 {
-    auto skImageChain = std::make_shared<SKImageChain>(nullptr, nullptr);
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
     ASSERT_NE(skImageChain, nullptr);
 
     SkRect rect = SkRect::MakeEmpty();
     SkPath *path = new SkPath();
     SkRRect *rRect = new SkRRect();
     skImageChain->SetClipRect(&rect);
+    skImageChain->Draw();
+    skImageChain->SetClipRect(nullptr);
+
     skImageChain->SetClipPath(path);
+    skImageChain->Draw();
+    skImageChain->SetClipPath(nullptr);
+
     skImageChain->SetClipRRect(rRect);
+    skImageChain->Draw();
+
     delete path;
     delete rRect;
 }
