@@ -59,14 +59,19 @@ void Pen::SetARGB(int a, int r, int g, int b)
     return brush_.SetARGB(a, r, g, b);
 }
 
-Color4f Pen::GetColor4f()
+const Color4f& Pen::GetColor4f()
 {
     return brush_.GetColor4f();
 }
 
-std::shared_ptr<ColorSpace> Pen::GetColorSpace() const
+const std::shared_ptr<ColorSpace> Pen::GetColorSpace() const
 {
     return brush_.GetColorSpace();
+}
+
+const ColorSpace* Pen::GetColorSpacePtr() const
+{
+    return brush_.GetColorSpacePtr();
 }
 
 void Pen::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
@@ -154,6 +159,11 @@ std::shared_ptr<Blender> Pen::GetBlender() const
     return brush_.GetBlender();
 }
 
+const Blender* Pen::GetBlenderPtr() const
+{
+    return brush_.GetBlenderPtr();
+}
+
 bool Pen::IsAntiAlias() const
 {
     return brush_.IsAntiAlias();
@@ -174,12 +184,17 @@ std::shared_ptr<PathEffect> Pen::GetPathEffect() const
     return pathEffect_;
 }
 
+const PathEffect* Pen::GetPathEffectPtr() const
+{
+    return pathEffect_.get();
+}
+
 void Pen::SetFilter(const Filter& filter)
 {
     brush_.SetFilter(filter);
 }
 
-Filter Pen::GetFilter() const
+const Filter& Pen::GetFilter() const
 {
     return brush_.GetFilter();
 }
@@ -197,6 +212,11 @@ void Pen::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 std::shared_ptr<ShaderEffect> Pen::GetShaderEffect() const
 {
     return brush_.GetShaderEffect();
+}
+
+const ShaderEffect* Pen::GetShaderEffectPtr() const
+{
+    return brush_.GetShaderEffectPtr();
 }
 
 void Pen::Reset()

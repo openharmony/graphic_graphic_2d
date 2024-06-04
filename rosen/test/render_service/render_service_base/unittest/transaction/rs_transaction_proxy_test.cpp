@@ -799,5 +799,38 @@ HWTEST_F(RSTransactionProxyTest, AddCommonCommandTest, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->AddCommand(command, isRenderServiceCommand, FollowType::FOLLOW_TO_PARENT, 1);
 }
+
+/**
+ * @tc.name: FlushImplicitTransactionFromRT004
+ * @tc.desc: Test FlushImplicitTransactionFromRT and Begin and SetSyncTransactionNum
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT004, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    RSTransactionProxy* instance = RSTransactionProxy::GetInstance();
+    instance->renderServiceClient_ = renderServiceClient;
+    instance->FlushImplicitTransactionFromRT(timestamp);
+    instance->SetSyncTransactionNum(0);
+    instance->StartSyncTransaction();
+    instance->Begin();
+    instance->SetSyncTransactionNum(0);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    instance->AddCommonCommand(command);
+    instance->AddRemoteCommand(command, 1, FollowType::NONE);
+    while (!instance->implicitCommonTransactionDataStack_.empty() ||
+           !instance->implicitRemoteTransactionDataStack_.empty()) {
+        instance->implicitCommonTransactionDataStack_.pop();
+        instance->implicitRemoteTransactionDataStack_.pop();
+    }
+    instance->AddCommonCommand(command);
+    instance->AddRemoteCommand(command, 1, FollowType::NONE);
+    ASSERT_TRUE(instance->implicitCommonTransactionDataStack_.empty());
+    ASSERT_TRUE(instance->implicitRemoteTransactionDataStack_.empty());
+}
 } // namespace Rosen
 } // namespace OHOS

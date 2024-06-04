@@ -217,6 +217,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand013, TestSize.Level1)
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(*context2, id2, static_cast<uint8_t>(type));
+    type = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(*context2, id2, static_cast<uint8_t>(type));
 }
 
 /**
@@ -249,6 +251,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContextMatrix001, TestSize.Level1)
     SurfaceNodeCommandHelper::SetContextMatrix(context, id, matrix);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
+    SurfaceNodeCommandHelper::Create(*context2, id2);
+    SurfaceNodeCommandHelper::SetContextMatrix(*context2, id2, matrix);
     SurfaceNodeCommandHelper::Create(*context2, id2);
 }
 
@@ -330,11 +334,13 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 {
     NodeId id = 10;
     RSContext context;
+    NodeId id2 = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::Create(context, id);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
     SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
     SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, id2, 0);
 }
 
 /**
@@ -346,12 +352,14 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
 {
     NodeId id = 10;
+    NodeId id2 = static_cast<NodeId>(-1);
     RSContext context;
     SurfaceNodeCommandHelper::Create(context, id);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
     SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
     SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, id2, 0);
 }
 
 /**
@@ -430,5 +438,96 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceId001, TestSize.Level1)
     NodeId id2 = 2;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetSurfaceId(context, id2, available);
+}
+
+/**
+ * @tc.name: CreateWithConfigTest
+ * @tc.desc: Verify function CreateWithConfig
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
+{
+    RSContext context;
+    std::string name = "name";             // for test
+    std::string bundleName = "bundleName"; // for test
+    enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
+    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, bundleName, windowType);
+}
+
+/**
+ * @tc.name: SetForceHardwareAndFixRotationTest
+ * @tc.desc: Verify function SetForceHardwareAndFixRotation
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetForceHardwareAndFixRotationTest, TestSize.Level1)
+{
+    RSContext context;
+
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetForceUIFirstTest
+ * @tc.desc: Verify function SetForceUIFirst
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetForceUIFirstTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetForceUIFirst(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetForceUIFirst(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetAncoForceDoDirectTest
+ * @tc.desc: Verify function SetAncoForceDoDirect
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAncoForceDoDirectTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetHDRPresentTest
+ * @tc.desc: Verify function SetHDRPresent
+ * @tc.type:FUNC
+ * @tc.require: issueI9SBEZ
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetHDRPresentTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetHDRPresent(context, 0, false);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetHDRPresent(context, 1, false);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetSkipDraw
+ * @tc.desc: Verify function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSkipDrawTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetSkipDraw(context, 0, true);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetSkipDraw(context, 1, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 } // namespace OHOS::Rosen

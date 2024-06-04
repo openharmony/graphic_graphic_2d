@@ -40,10 +40,10 @@ void VSyncDistributorTest::SetUpTestCase()
 
 void VSyncDistributorTest::TearDownTestCase()
 {
-    vsyncDistributor = nullptr;
-    vsyncController = nullptr;
     vsyncGenerator = nullptr;
     DestroyVSyncGenerator();
+    vsyncController = nullptr;
+    vsyncDistributor = nullptr;
 }
 
 namespace {

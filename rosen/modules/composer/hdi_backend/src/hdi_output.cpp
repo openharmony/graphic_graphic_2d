@@ -21,6 +21,8 @@
 #include "metadata_helper.h"
 #include "vsync_generator.h"
 #include "vsync_sampler.h"
+// DISPLAYENGINE
+#include "syspara/parameters.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
@@ -43,6 +45,8 @@ std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 
 HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 {
+    // DISPLAYENGINE ARSR_PRE FLAG
+    arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
 }
 
 HdiOutput::~HdiOutput()
@@ -188,7 +192,10 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     surfaceIdMap_[surfaceId] = layer;
 
     // DISPLAY ENGINE
-    uint32_t ret = 0;
+    if (!arsrPreEnabled_) {
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+    int32_t ret = 0;
     std::vector<std::string> validKeys{};
     ret = device_->GetSupportedLayerPerFrameParameterKey(validKeys);
     if (ret != 0) {
@@ -467,6 +474,10 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         "xcomponentIdSurface",
         "componentIdSurface",
     };
+
+    if (layerInfo->GetBuffer() == nullptr) {
+        return false;
+    }
 
     if ((yuvFormats.count(static_cast<GraphicPixelFormat>(layerInfo->GetBuffer()->GetFormat())) > 0) ||
         (videoLayers.count(layerInfo->GetSurface()->GetName()) > 0)) {

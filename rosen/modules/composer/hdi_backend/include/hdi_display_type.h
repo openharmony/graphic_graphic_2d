@@ -172,6 +172,17 @@ typedef void (*VBlankCallback)(unsigned int sequence, uint64_t ns, void *data);
  */
 typedef void (*OnHwcDeadCallback)(void *data);
 
+/*
+ * @brief Called when a VBlank idle event occurs.
+ *
+ * This callback must be registered by calling <b>RegDisplayVBlankIdleCallback</b>.
+ *
+ * @param devId Indicates the ID of the display device.
+ * @param ns Indicates the timestamp when a VBlank idle event occurs.
+ * @param data Indicates the pointer to the private data carried by the graphics service.
+ */
+typedef void (*OnVBlankIdleCallback)(uint32_t devId, uint64_t ns, void *data);
+
 #ifdef __cplusplus
 }
 #endif

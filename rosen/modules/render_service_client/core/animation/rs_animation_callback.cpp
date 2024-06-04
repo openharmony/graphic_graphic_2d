@@ -46,5 +46,9 @@ void AnimationRepeatCallback::Execute()
         callback_();
     }
 }
+
+InteractiveAnimatorFinishCallback::InteractiveAnimatorFinishCallback(
+    std::function<void()> callback) : AnimationCallback(std::move(callback))
+{}
 } // namespace Rosen
 } // namespace OHOS

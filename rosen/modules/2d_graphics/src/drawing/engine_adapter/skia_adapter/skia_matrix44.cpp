@@ -23,11 +23,7 @@ namespace Rosen {
 namespace Drawing {
 SkiaMatrix44::SkiaMatrix44() : skMatrix44_() {}
 
-#ifdef NEW_SKIA
 const SkM44& SkiaMatrix44::GetSkMatrix44() const
-#else
-const SkMatrix44& SkiaMatrix44::GetSkMatrix44() const
-#endif
 {
     return skMatrix44_;
 }
@@ -95,11 +91,7 @@ void SkiaMatrix44::SetMatrix44RowMajor(const std::array<scalar, Matrix44Impl::MA
 Matrix SkiaMatrix44::ConvertToMatrix()
 {
     Matrix matrix;
-#ifdef NEW_SKIA
     SkMatrix skMatrix = skMatrix44_.asM33();
-#else
-    SkMatrix skMatrix = SkMatrix(skMatrix44_);
-#endif
     matrix.SetMatrix(skMatrix[0], skMatrix[1], skMatrix[2],
                      skMatrix[3], skMatrix[4], skMatrix[5],
                      skMatrix[6], skMatrix[7], skMatrix[8]);

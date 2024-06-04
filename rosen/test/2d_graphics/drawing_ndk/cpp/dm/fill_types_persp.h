@@ -19,7 +19,7 @@
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 
 class FillTypePersp : public TestBase {
     typedef struct {

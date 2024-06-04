@@ -31,6 +31,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
 #include "rs_frame_report.h"
 #include "transaction/rs_render_service_client.h"
@@ -96,6 +97,11 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
+    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
+    [] (uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
+        return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    };
+    Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
@@ -117,6 +123,7 @@ RSRenderThread::RSRenderThread()
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
 #endif
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
+        RSTypefaceCache::Instance().HandleDelayDestroyQueue();
         RS_TRACE_END();
     };
     context_ = std::make_shared<RSContext>();
@@ -199,7 +206,7 @@ void RSRenderThread::RequestNextVSync()
         SendFrameEvent(true);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
-            .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
+            .callbackWithId_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1, std::placeholders::_2),
         };
         if (receiver_ != nullptr) {
             receiver_->RequestNextVSync(fcb);
@@ -308,7 +315,7 @@ void RSRenderThread::RenderLoop()
     }
 }
 
-void RSRenderThread::OnVsync(uint64_t timestamp)
+void RSRenderThread::OnVsync(uint64_t timestamp, int64_t frameCount)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
 #ifdef ROSEN_PREVIEW

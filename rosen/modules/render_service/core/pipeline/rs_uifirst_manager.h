@@ -36,6 +36,7 @@ public:
         int64_t uniqueId = 0;
         int32_t appPid = -1;
         std::string sceneId;
+        std::set<NodeId> disableNodes;
     };
 
     void AddProcessDoneNode(NodeId id);
@@ -58,6 +59,9 @@ public:
     void OnProcessEventComplete(DataBaseRs& info);
     void PrepareCurrentFrameEvent();
 
+    // animate procss
+    void OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene);
+
     bool NodeIsInCardWhiteList(RSRenderNode& node);
     bool GetCurrentFrameSkipFirstWait() const
     {
@@ -66,8 +70,6 @@ public:
     bool CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node);
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
-
-    static bool IsUifirstNode(RSSurfaceRenderNode& node, bool animation);
     
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
@@ -85,6 +87,37 @@ public:
     }
 
     void MergeOldDirty(RSSurfaceRenderNode& node);
+
+    void SetRotationChanged(bool rotationChanged)
+    {
+        rotationChanged_ = rotationChanged;
+    }
+
+    bool IsRecentTaskScene() const
+    {
+        return isRecentTaskScene_.load();
+    }
+
+    void AddCapturedNodes(NodeId id);
+
+    void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
+    {
+        if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
+            return;
+        }
+        collectedCardNodes_.insert(id);
+    }
+
+    void RemoveCardNodes(NodeId id)
+    {
+        if (!collectedCardNodes_.count(id)) {
+            return;
+        }
+        collectedCardNodes_.erase(id);
+    }
+
+    void PostReleaseCacheSurfaceSubTasks();
+    void PostReleaseCacheSurfaceSubTask(NodeId id);
 
 private:
     RSUifirstManager() = default;
@@ -104,9 +137,12 @@ private:
 
     void ProcessResetNode();
     void ProcessDoneNode();
+    void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
+    void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
+    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -114,15 +150,19 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
+    void SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+    static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
+    void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
+    bool rotationChanged_ = false;
 
     // only use in RT
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;
@@ -144,6 +184,7 @@ private:
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
+    std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     int noUifirstNodeFrameCount_ = 0;
     bool hasDoneNode_ = false;
@@ -164,6 +205,9 @@ private:
         { "LAUNCHER_SCROLL" }, // desktop swipe
         { "SCROLL_2_AA" }, // desktop to negativeScreen
     };
+    // for recents scene
+    std::atomic<bool> isRecentTaskScene_ = false;
+    std::vector<NodeId> capturedNodes_;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

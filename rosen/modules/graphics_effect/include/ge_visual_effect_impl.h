@@ -30,7 +30,7 @@ namespace Drawing {
 
 class GEVisualEffectImpl {
 public:
-    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, LINEAR_GRADIENT_BLUR, MAX };
+    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, LINEAR_GRADIENT_BLUR, HPS_BLUR, MAX };
 
     GEVisualEffectImpl(const std::string& name);
 
@@ -98,12 +98,23 @@ public:
         return linearGradientBlurParams_;
     }
 
+    void MakeHpsBlurParams()
+    {
+        hpsBlurParams_ = std::make_shared<HpsBlurFilterParams>();
+    }
+
+    const std::shared_ptr<HpsBlurFilterParams>& GetHpsBlurParams() const
+    {
+        return hpsBlurParams_;
+    }
+
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
     void SetAIBarParams(const std::string& tag, float param);
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
+    void SetHpsBlurParams(const std::string& tag, float param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
@@ -111,6 +122,7 @@ private:
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
+    std::shared_ptr<HpsBlurFilterParams> hpsBlurParams_ = nullptr;
 };
 
 } // namespace Drawing

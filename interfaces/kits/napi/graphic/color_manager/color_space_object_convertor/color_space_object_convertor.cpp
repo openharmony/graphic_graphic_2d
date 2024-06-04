@@ -19,6 +19,8 @@
 #include "js_color_space.h"
 #include "js_color_space_utils.h"
 
+#define SENDABLE_PROPERTIES_NUM 3
+
 namespace OHOS {
 namespace ColorManager {
 napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace)
@@ -49,6 +51,38 @@ napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& c
     napi_ref jsColorSpaceRef = nullptr;
     napi_create_reference(env, object, 1, &jsColorSpaceRef);
     jsColorSpaceNativeRef.reset(reinterpret_cast<NativeReference*>(jsColorSpaceRef));
+    return object;
+}
+
+
+napi_value CreateJsSendableColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace)
+{
+    if (colorSpace == nullptr) {
+        CMLOGE("[NAPI]colorSpace is nullptr");
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            "BusinessError 401: Parameter error, the value of colorSpace must not be nullptr"));
+        return nullptr;
+    }
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("getColorSpaceName", JsColorSpace::GetSendableColorSpaceName),
+        DECLARE_NAPI_FUNCTION("getWhitePoint", JsColorSpace::GetSendableWhitePoint),
+        DECLARE_NAPI_FUNCTION("getGamma", JsColorSpace::GetSendableGamma),
+    };
+    napi_value object = nullptr;
+    napi_create_sendable_object_with_properties(env, SENDABLE_PROPERTIES_NUM, properties, &object);
+    if (object == nullptr) {
+        CMLOGE("[NAPI]Fail to convert to js object");
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            "BusinessError 401: Parameter error, the value of env error. Can not create object."));
+        napi_get_undefined(env, &object);
+        return object;
+    }
+
+    std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
+    napi_wrap_sendable(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr, nullptr);
+
     return object;
 }
 

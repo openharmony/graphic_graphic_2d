@@ -113,7 +113,7 @@ bool OH_Drawing_RegionContains(OH_Drawing_Region* region, int32_t x, int32_t y);
 bool OH_Drawing_RegionOp(OH_Drawing_Region* region, const OH_Drawing_Region* dst, OH_Drawing_RegionOpMode op);
 
 /**
- * @brief Destroys an <b>OH_Drawing_Region</b> object and reclaims the memory occupied by the object.
+ * @brief Set the region to the specified rect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Region Indicates the pointer to an <b>OH_Drawing_Region</b> object.

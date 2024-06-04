@@ -23,26 +23,21 @@ namespace OHOS::Rosen {
 std::mutex ImageCache::mutex_;
 std::map<uint64_t, Image> ImageCache::cache_;
 
-// Image
-Image::Image(const uint8_t* data, size_t size, size_t skipBytes) : skipBytes(skipBytes)
-{
-    if (data && (size > 0)) {
-        this->data.insert(this->data.end(), data, data + size);
-    }
-}
-
-Image::Image(std::vector<uint8_t>&& data, size_t skipBytes) : data(std::move(data)), skipBytes(skipBytes) {}
-
 bool Image::IsValid() const
 {
-    return !data.empty() && (data.size() < maxSize);
+    return (!data.empty()) && (data.size() < maxSize);
 }
 
 void Image::Serialize(Archive& archive)
 {
-    // cast due to backward compatibility
-    archive.Serialize(reinterpret_cast<uint32_t&>(skipBytes));
     archive.Serialize(data);
+    archive.Serialize(parcelSkipBytes);
+    archive.Serialize(dmaSize);
+    archive.Serialize(dmaWidth);
+    archive.Serialize(dmaHeight);
+    archive.Serialize(dmaStride);
+    archive.Serialize(dmaFormat);
+    archive.Serialize(dmaUsage);
 }
 
 // ImageCache

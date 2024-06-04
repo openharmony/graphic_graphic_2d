@@ -28,10 +28,10 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-void RSCanvasDrawingNodeCommandHelper::ResetSurface(RSContext& context, NodeId id)
+void RSCanvasDrawingNodeCommandHelper::ResetSurface(RSContext& context, NodeId id, int width, int height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id)) {
-        node->ResetSurface();
+        node->ResetSurface(width, height);
     }
 }
 

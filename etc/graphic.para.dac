@@ -13,6 +13,7 @@
 
 persist.sys.graphic.animationscale = accessibility:accessibility:0777
 debug.graphic. = accessibility:accessibility:0777
+persist.graphic.profiler. = accessibility:accessibility:0777
 bootevent.bootanimation. = graphics:graphics:0775
 persist.rosen.sethgmrefreshratemode.enabled = graphics:graphics:0775
 persist.graphic.bootsound.enabled = graphics:servicectrl:0775

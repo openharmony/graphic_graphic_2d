@@ -68,7 +68,10 @@ ohos_shared_library("libeffectchain") {
       "src/vertical_blur_filter.cpp",
     ]
 
-    deps = [ "$graphic_2d_root:libgl" ]
+    deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
   }
 
   configs = [ ":effect_config" ]

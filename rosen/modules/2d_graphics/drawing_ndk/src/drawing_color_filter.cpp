@@ -15,6 +15,8 @@
 
 #include "drawing_color_filter.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "utils/log.h"
 #include "effect/color_filter.h"
 
@@ -42,6 +44,7 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateCompose(OH_Drawing_ColorFilt
     OH_Drawing_ColorFilter* colorFilter2)
 {
     if (colorFilter1 == nullptr || colorFilter2 == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::COMPOSE, CastToColorFilter(*colorFilter1),
@@ -51,7 +54,7 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateCompose(OH_Drawing_ColorFilt
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateMatrix(const float matrix[20])
 {
     if (matrix == nullptr) {
-        LOGE("matrix is nullptr");
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::MATRIX, matrix);

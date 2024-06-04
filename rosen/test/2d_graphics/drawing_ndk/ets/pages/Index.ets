@@ -168,39 +168,31 @@ struct Index {
         .width('80%')
         .height('7%')
       } else if (this.testType == 'function'){
-        if (this.drawingType == 'cpu-xcomponent') {
+        if (this.drawingType == 'gpu-xnode') {
           Row(){
-            Button("TestAll")
-              .id('testAll')
+            Button("drawNext")
+              .id('drawNext')
               .fontSize('16fp')
-              .id('testAll')
               .fontWeight(500)
               .onClick(() => {
-                  console.log(TAG, "TestAll click");
-                  this.caseNameStr = 'All';
-                  this.Draw();
+                this.TestNextFunctionalGpuXnode();
               })
               .width('80%')
               .shadow(ShadowStyle.OUTER_DEFAULT_LG)
           }
           .height('7%')
-        } else if (this.drawingType == 'gpu-xnode' || this.drawingType == 'gpu-xcomponent'){
-          Row() {
-            Button("SnapShort")
+        } else {
+          Row(){
+            Button("TestAll")
+              .id('testAll')
               .fontSize('16fp')
-              .id('SnapShort')
               .fontWeight(500)
               .onClick(() => {
-                console.log(TAG, "SnapShort click");
-                const context: Context = getContext(this);
-                componentSnapshot.get(this.drawingType == 'gpu-xnode' ? "myNodeController" : "myXcomponent",
-                  (error:Error, pixmap: image.PixelMap) => {
-                  if (error) {
-                    console.log("error:", JSON.stringify(error))
-                    return;
-                  }
-                  Global.savePixmap(context.cacheDir, this.caseNameStr, pixmap);
-                })
+                if (this.drawingType == 'cpu-xcomponent') {
+                  this.TestFunctionalCpuAll();
+                } else if (this.drawingType == 'gpu-xcomponent'){
+                  this.TestFunctionalGpuAll();
+                }
               })
               .width('80%')
               .shadow(ShadowStyle.OUTER_DEFAULT_LG)
@@ -240,11 +232,11 @@ struct Index {
     console.log(TAG, 'Drawing test start!');
     if (this.testType == 'function') {
       if (this.drawingType == 'cpu-xcomponent') {
-        return this.TestFunctionalCpu();
+        return this.TestFunctionalCpu(this.caseNameStr);
+      } else if (this.drawingType == 'gpu-xcomponent') {
+        return this.TestFunctionalGpu(this.caseNameStr);
       } else if (this.drawingType == 'gpu-xnode') {
-        return this.myNodeController.TestFunctional(this.caseNameStr);
-      }  else {
-        return this.TestFunctionalGpu();
+        return this.TestFunctionalXnode(this.caseNameStr);
       }
     }
     if (this.testType == 'performance') {
@@ -262,18 +254,81 @@ struct Index {
     }
   }
 
-  async TestFunctionalCpu() {
+  sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async TestFunctionalCpuAll() {
+    console.log(TAG, 'TestFunctionalCpuAll start');
+    if (this.xComponentContext) {
+      let str = this.xComponentContext.getTestNames();
+      let names = str.split(",");
+      for (let name of names) {
+        this.LogMsg('name:' + name);
+        this.TestFunctionalCpu(name);
+      }
+    }
+    this.LogMsg('TestFunctionalCpuAll end');
+  }
+
+  async TestFunctionalGpuAll() {
+    console.log(TAG, 'TestFunctionalGpuAll start');
+    if (this.xComponentContext) {
+      let str = this.xComponentContext.getTestNames();
+      let names = str.split(",");
+      for (let name of names) {
+        this.TestFunctionalGpu(name);
+      }
+    }
+    this.LogMsg('TestFunctionalGpuAll end');
+  }
+
+  async TestNextFunctionalGpuXnode() {
+    console.log(TAG, 'TestNextFunctionalGpuXnode start');
+    if (this.xComponentContext) {
+      let str = this.myNodeController.GetAllFunctionalNames();
+      let names = str.split(",");
+      let index = names.indexOf(this.caseNameStr);
+      if (index == names.length - 1) {
+        this.TestFunctionalXnode(names[0]);
+      } else {
+        this.TestFunctionalXnode(names[index + 1]);
+      }
+    }
+    this.LogMsg('TestNextFunctionalGpuXnode end');
+  }
+
+  async TestFunctionalXnode(str: string) {
+    console.log(TAG, 'TestFunctionalXnode start');
+    this.myNodeController.Clear();
+    await this.sleep(100);
+    this.myNodeController.TestFunctional(str);
+    this.caseNameStr = str;
+    await this.sleep(500);
+    const context: Context = getContext(this);
+    componentSnapshot.get("myNodeController",
+      (error:Error, pixmap: image.PixelMap) => {
+        if (error) {
+          console.log("error:", JSON.stringify(error))
+          return;
+        }
+        Global.savePixmap(context.cacheDir, str, pixmap);
+      })
+    this.LogMsg('TestFunctionalXnode end');
+  }
+
+  async TestFunctionalCpu(str: string) {
     console.log(TAG, 'TestFunctionalCpu start');
     if (this.xComponentContext) {
-      this.xComponentContext.testFunctionCpu(this.caseNameStr);
+      this.xComponentContext.testFunctionCpu(str);
     }
     this.LogMsg('TestFunctionalCpu end');
   }
 
-  async TestFunctionalGpu() {
+  async TestFunctionalGpu(str: string) {
     console.log(TAG, 'TestFunctionalGpu start');
     if (this.xComponentContext) {
-      this.xComponentContext.testFunctionGpu(this.caseNameStr);
+      this.xComponentContext.testFunctionGpu(str);
     }
     this.LogMsg('TestFunctionalGpu end');
   }

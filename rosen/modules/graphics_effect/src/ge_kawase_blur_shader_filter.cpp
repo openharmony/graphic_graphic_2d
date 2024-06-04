@@ -81,7 +81,7 @@ static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const
         LOGE("%s: Invalid width or height.", __func__);
         return;
     }
-    SkV2 normalizedOffsets[BLUR_SAMPLE_COUNT] = { SkV2 { 0.0f, 0.0f },
+    const SkV2 normalizedOffsets[BLUR_SAMPLE_COUNT] = { SkV2 { 0.0f, 0.0f },
         SkV2 { offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height },
         SkV2 { -offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height },
         SkV2 { offsetInfo.offsetX / offsetInfo.width, -offsetInfo.offsetY / offsetInfo.height },
@@ -196,8 +196,8 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
         blurBuilder.SetChild("imageInput", blurShader);
 
         // Advanced Filter
-        auto offsetXY = radiusByPasses * stepScale;
-        SetBlurBuilderParam(blurBuilder, offsetXY, scaledInfo, width, height);
+        auto offsetXYFilter = radiusByPasses * stepScale;
+        SetBlurBuilderParam(blurBuilder, offsetXYFilter, scaledInfo, width, height);
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
     }
 
@@ -255,6 +255,10 @@ const OHOS::Rosen::Drawing::Matrix GEKawaseBlurShaderFilter::BuildMatrix(
 
 bool GEKawaseBlurShaderFilter::InitBlurEffect()
 {
+    if (g_blurEffect != nullptr) {
+        return true;
+    }
+
     static std::string blurString(R"(
         uniform shader imageInput;
         uniform float2 in_blurOffset;
@@ -273,18 +277,21 @@ bool GEKawaseBlurShaderFilter::InitBlurEffect()
             return half4(c.rgb * 0.2, 1.0);
         }
     )");
+    g_blurEffect = Drawing::RuntimeEffect::CreateForShader(blurString);
     if (g_blurEffect == nullptr) {
-        g_blurEffect = Drawing::RuntimeEffect::CreateForShader(blurString);
-        if (g_blurEffect == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
-            return false;
-        }
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
+        return false;
     }
+
     return true;
 }
 
 bool GEKawaseBlurShaderFilter::InitMixEffect()
 {
+    if (g_mixEffect != nullptr) {
+        return true;
+    }
+
     static std::string mixString(R"(
         uniform shader blurredInput;
         uniform shader originalInput;
@@ -303,37 +310,45 @@ bool GEKawaseBlurShaderFilter::InitMixEffect()
             return finalColor;
         }
     )");
+    g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
     if (g_mixEffect == nullptr) {
-        g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
-        if (g_mixEffect == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader mixEffect create failed");
-            return false;
-        }
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader mixEffect create failed");
+        return false;
     }
+
     return true;
 }
 
 bool GEKawaseBlurShaderFilter::InitSimpleFilter()
 {
+    if (g_simpleFilter != nullptr) {
+        return true;
+    }
+
     static std::string simpleShader(R"(
         uniform shader imageInput;
         half4 main(float2 xy) {
             return imageInput.eval(xy);
         }
     )");
+    g_simpleFilter = Drawing::RuntimeEffect::CreateForShader(simpleShader);
     if (g_simpleFilter == nullptr) {
-        g_simpleFilter = Drawing::RuntimeEffect::CreateForShader(simpleShader);
-        if (g_simpleFilter == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
-            return false;
-        }
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
+        return false;
     }
+
     return true;
 }
 
 // Advanced Filter
 bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
 {
+    if (g_blurEffectAf != nullptr) {
+        return true;
+    }
+
+    Drawing::RuntimeEffectOptions ops;
+    ops.useAF = true;
     static std::string blurStringAF(R"(
         uniform shader imageInput;
         uniform float2 in_blurOffset[5];
@@ -346,16 +361,12 @@ bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
             return half4(c.rgb * 0.2, 1.0);
         }
     )");
-
-    Drawing::RuntimeEffectOptions ops;
-    ops.useAF = true;
+    g_blurEffectAf = Drawing::RuntimeEffect::CreateForShader(blurStringAF, ops);
     if (g_blurEffectAf == nullptr) {
-        g_blurEffectAf = Drawing::RuntimeEffect::CreateForShader(blurStringAF, ops);
-        if (g_blurEffectAf == nullptr) {
-            LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
-            return false;
-        }
+        LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
+        return false;
     }
+    
     return true;
 }
 

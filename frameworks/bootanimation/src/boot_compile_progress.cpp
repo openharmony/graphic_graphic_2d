@@ -25,6 +25,9 @@
 #include "render_context_factory.h"
 #include "rs_surface_factory.h"
 #endif
+#include "animation/rs_animation_common.h"
+#include "animation/rs_cubic_bezier_interpolator.h"
+#include "animation/rs_interpolator.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction.h"
@@ -36,8 +39,6 @@ namespace {
     constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
     constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
     const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
-    const std::string FONTS_PATH = "/system/fonts/HarmonyOS_Sans_SC_Black.ttf";
-    constexpr const int32_t WAITING_SECONDS = 30;
     constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
     constexpr const int32_t SEC_MS = 1000;
     constexpr const int32_t CIRCLE_NUM = 3;
@@ -45,9 +46,23 @@ namespace {
     constexpr const float OFFSET_Y_PERCENT = 0.85f;
     constexpr const float HEIGHT_PERCENT = 0.05f;
     constexpr const int TEXT_BLOB_OFFSET = 5;
-    constexpr const int FONT_SIZE = 50;
+    constexpr const int FONT_SIZE = 48;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
+    constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
+    constexpr const int32_t LOADING_FPS = 30;
+    constexpr const int32_t PERIOD_FPS = 10;
+    constexpr const int32_t CHANGE_FREQ = 4;
+    constexpr const float TEN_FRAME_TIMES = 10.0f;
+    constexpr const float SHARP_CURVE_CTLX1 = 0.33f;
+    constexpr const float SHARP_CURVE_CTLY1 = 0.0f;
+    constexpr const float SHARP_CURVE_CTLX2 = 0.67f;
+    constexpr const float SHARP_CURVE_CTLY2 = 1.0f;
+    constexpr const float OPACITY_ARR[3][3][2] = {
+        { { 0.2f, 1.0f }, { 1.0f, 0.5f }, { 0.5f, 0.2f } },
+        { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
+        { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
+    };
 }
 
 void BootCompileProgress::Init(const BootAnimationConfig& config)
@@ -61,13 +76,11 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     windowHeight_ = modeInfo.GetScreenHeight();
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
-    tf_ = Rosen::Drawing::Typeface::MakeFromFile(FONTS_PATH.c_str());
-    if (!tf_.get()) {
-        LOGE("can not read font: %{public}s", FONTS_PATH.c_str());
-        return;
-    }
+    tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
 
     displayInfo_ = system::GetParameter(OTA_COMPILE_DISPLAY_INFO, OTA_COMPILE_DISPLAY_INFO_DEFAULT);
+    sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
+        SHARP_CURVE_CTLX1, SHARP_CURVE_CTLY1, SHARP_CURVE_CTLX2, SHARP_CURVE_CTLY2);
     compileRunner_ = AppExecFwk::EventRunner::Create(false);
     compileHandler_ = std::make_shared<AppExecFwk::EventHandler>(compileRunner_);
     compileHandler_->PostTask(std::bind(&BootCompileProgress::CreateCanvasNode, this));
@@ -111,13 +124,14 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    if (!WaitBmsStartIfNeeded()) {
+    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
+        LOGI("bms compile is already done.");
         compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
         return false;
     }
 
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
-        LOGI("bms compile is already done.");
+    if (!WaitBmsStartIfNeeded()) {
+        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
         return false;
     }
 
@@ -145,8 +159,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
         .userData_ = this,
         .callback_ = std::bind(&BootCompileProgress::OnVsync, this),
     };
-    int32_t changeFreq = static_cast<int32_t> ((1000.0 / freq_) / 16);
-    ret = receiver_->SetVSyncRate(fcb, changeFreq);
+    ret = receiver_->SetVSyncRate(fcb, CHANGE_FREQ);
     if (ret) {
         compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
         LOGE("set vsync rate failed");
@@ -154,7 +167,6 @@ bool BootCompileProgress::RegisterVsyncCallback()
 
     startTimeMs_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
-
     endTimePredictMs_ = startTimeMs_ + timeLimitSec_ * SEC_MS;
 
     LOGI("RegisterVsyncCallback success");
@@ -163,19 +175,8 @@ bool BootCompileProgress::RegisterVsyncCallback()
 
 bool BootCompileProgress::WaitBmsStartIfNeeded()
 {
-    int waitSeconds = 0;
-    while (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN
-        && system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_END) {
-        if (++waitSeconds > WAITING_SECONDS) {
-            break;
-        }
-        LOGE("waiting Bms start ota compile...");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN
-        && system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_END) {
-        LOGE("Bms did not start ota compile");
+    if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT)) {
+        LOGE("waiting bms start oat compile failed.");
         return false;
     }
     return true;
@@ -194,9 +195,6 @@ void BootCompileProgress::OnVsync()
 void BootCompileProgress::DrawCompileProgress()
 {
     UpdateCompileProgress();
-    if (progress_ >= ONE_HUNDRED_PERCENT) {
-        isUpdateOptEnd_ = true;
-    }
 
     auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(
         rsCanvasNode_->BeginRecording(windowWidth_, windowHeight_ * HEIGHT_PERCENT));
@@ -217,7 +215,7 @@ void BootCompileProgress::DrawCompileProgress()
     whiteBrush.SetAntiAlias(true);
     canvas->AttachBrush(whiteBrush);
 
-    double scale = windowWidth_ >= windowHeight_ ? 0.55 : 0.6;
+    double scale = 0.5;
     float scalarX = windowWidth_ * scale - textBlob->Bounds()->GetWidth() / NUMBER_TWO;
     float scalarY = TEXT_BLOB_OFFSET + textBlob->Bounds()->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
@@ -227,14 +225,10 @@ void BootCompileProgress::DrawCompileProgress()
     grayBrush.SetColor(0x40FFFFFF);
     grayBrush.SetAntiAlias(true);
 
-    int whitePos = isBmsCompileDone_ ? ++times_ % CIRCLE_NUM : ++times_/freq_ % CIRCLE_NUM;
+    int32_t freqNum = times_++;
     for (int i = 0; i < CIRCLE_NUM; i++) {
-        if (i == whitePos) {
-            canvas->AttachBrush(whiteBrush);
-        } else {
-            canvas->AttachBrush(grayBrush);
-        }
-        int pointX = windowWidth_/ 2.0f + 4 * RADIUS * (i - 1);
+        canvas->AttachBrush(DrawProgressPoint(i, freqNum));
+        int pointX = windowWidth_/2.0f + 4 * RADIUS * (i - 1); // align point in center and 2RADUIS between two points
         int pointY = rsCanvasNode_->GetPaintHeight() - 2 * RADIUS;
         canvas->DrawCircle({pointX, pointY}, RADIUS);
         canvas->DetachBrush();
@@ -242,6 +236,10 @@ void BootCompileProgress::DrawCompileProgress()
 
     rsCanvasNode_->FinishRecording();
     Rosen::RSTransaction::FlushImplicitTransaction();
+
+    if (progress_ >= ONE_HUNDRED_PERCENT) {
+        isUpdateOptEnd_ = true;
+    }
 }
 
 void BootCompileProgress::UpdateCompileProgress()
@@ -262,5 +260,24 @@ void BootCompileProgress::UpdateCompileProgress()
     }
 
     LOGD("update progress: %{public}d", progress_);
+}
+
+Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
+{
+    int32_t fpsNo = frameNum % LOADING_FPS;
+    int32_t fpsStage = fpsNo / PERIOD_FPS;
+    float input  = fpsNo % PERIOD_FPS / TEN_FRAME_TIMES;
+
+    float startOpaCity = OPACITY_ARR[idx][fpsStage][0];
+    float endOpaCity = OPACITY_ARR[idx][fpsStage][1];
+
+    float fraction = sharpCurve_->Interpolate(input);
+    float opacity = startOpaCity + (endOpaCity - startOpaCity) * fraction;
+
+    Rosen::Drawing::Brush brush;
+    brush.SetColor(0xFFFFFFFF);
+    brush.SetAntiAlias(true);
+    brush.SetAlphaF(opacity);
+    return brush;
 }
 } // namespace OHOS

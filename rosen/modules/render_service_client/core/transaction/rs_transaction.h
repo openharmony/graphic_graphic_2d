@@ -49,6 +49,11 @@ public:
     void SetDuration(int32_t duration) { duration_ = duration; }
     int32_t GetDuration() const { return duration_; }
 
+    void SetHostPid(int32_t hostPid)
+    {
+        hostPid_ = hostPid;
+    }
+
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
@@ -58,6 +63,7 @@ private:
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };
     int32_t duration_ = 0;
+    int32_t hostPid_ { -1 };
 
     friend class RSSyncTransactionController;
 };

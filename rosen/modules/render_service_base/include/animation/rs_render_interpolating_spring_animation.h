@@ -42,6 +42,7 @@ public:
 #endif
 protected:
     void OnSetFraction(float fraction) override;
+    void UpdateFractionAfterContinue() override;
     void OnAnimate(float fraction) override;
     void InitValueEstimator() override;
     void OnInitialize(int64_t time) override;
@@ -54,6 +55,7 @@ private:
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;
     void CallLogicallyFinishCallback() const;
+    float CalculateTimeFraction(float targetFraction);
 
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;

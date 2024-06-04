@@ -64,6 +64,10 @@ napi_value JsTypeface::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsTypeface *jsTypeface = new(std::nothrow) JsTypeface(JsTypeface::LoadZhCnTypeface());
+    if (!jsTypeface) {
+        ROSEN_LOGE("Failed to create JsTypeface");
+        return nullptr;
+    }
 
     status = napi_wrap(env, jsThis, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

@@ -15,6 +15,7 @@
 
 #include "drawable/rs_misc_drawable.h"
 
+#include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -22,6 +23,7 @@
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
+constexpr int TRACE_LEVEL_TWO = 2;
 // ==================== RSChildrenDrawable =====================
 RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -267,10 +269,17 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
     stagingBlendApplyType_ = properties.GetColorBlendApplyType();
     // NOTE: stagingIsDangerous_ should be set true when adding a blender that may generate transparent pixels
     if (properties.IsFgBrightnessValid()) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            stagingPropertyDescription_ = properties.GetFgBrightnessDescription();
+        }
         stagingBlender_ = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
             properties.GetFgBrightnessParams().value(), properties.GetFgBrightnessFract());
         stagingIsDangerous_ = false;
     } else if (blendMode && blendMode != static_cast<int>(RSColorBlendMode::NONE)) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            stagingPropertyDescription_ = "BlendMode, blendMode: " + std::to_string(blendMode) +
+                " blendApplyType: " + std::to_string(stagingBlendApplyType_);
+        }
         // map blendMode to Drawing::BlendMode and convert to Blender
         stagingBlender_ = Drawing::Blender::CreateWithBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1));
         stagingIsDangerous_ = RSPropertyDrawableUtils::IsDangerousBlendMode(blendMode - 1, stagingBlendApplyType_);
@@ -290,6 +299,8 @@ void RSBeginBlenderDrawable::OnSync()
     }
     blender_ = stagingBlender_;
     blendApplyType_ = stagingBlendApplyType_;
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
     needSync_ = false;
 }
 
@@ -298,6 +309,8 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
+            ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,
             ptr->isDangerous_);
     };

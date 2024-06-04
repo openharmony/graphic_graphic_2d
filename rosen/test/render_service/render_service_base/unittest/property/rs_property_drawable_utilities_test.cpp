@@ -68,11 +68,11 @@ HWTEST_F(RSModifierDrawableTest, Draw001, TestSize.Level1)
     drawable.Draw(content, fileCanvas);
     EXPECT_EQ(type, RSModifierType::BOUNDS);
 
-    RSProperties properties;
     auto sharedPtr = std::make_shared<RSRenderNode>(1);
+    RSProperties& properties = content.GetMutableRenderProperties();
     properties.backref_ = sharedPtr;
     drawable.Draw(content, fileCanvas);
-    EXPECT_EQ(type, RSModifierType::BOUNDS);
+    EXPECT_TRUE(sharedPtr != nullptr);
 
     std::list<std::shared_ptr<RSRenderModifier>> modifierList;
     auto property = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
@@ -93,7 +93,7 @@ HWTEST_F(RSModifierDrawableTest, Draw001, TestSize.Level1)
 HWTEST_F(RSAlphaDrawableTest, Generate001, TestSize.Level1)
 {
     RSRenderContent content;
-    RSProperties properties;
+    RSProperties& properties = content.GetMutableRenderProperties();
     RSAlphaDrawable::Generate(content);
     EXPECT_EQ(properties.GetAlpha(), 1.f);
 

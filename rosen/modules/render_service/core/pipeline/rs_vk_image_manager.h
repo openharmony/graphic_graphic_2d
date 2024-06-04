@@ -81,8 +81,7 @@ public:
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex);
     void UnMapVkImageFromSurfaceBuffer(int32_t seqNum);
-    void UnMapVkImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
-    void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
+    void ShrinkCachesIfNeeded();
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence);
 

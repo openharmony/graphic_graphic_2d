@@ -42,7 +42,6 @@ public:
     [[nodiscard]] static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel);
 #endif
 protected:
-    void OnSetFraction(float fraction) override;
     void OnAnimate(float fraction) override;
 
     void OnAttach() override;

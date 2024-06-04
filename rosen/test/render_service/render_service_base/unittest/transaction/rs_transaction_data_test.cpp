@@ -67,5 +67,18 @@ HWTEST_F(RSTransactionDataTest, ClearTest, TestSize.Level1)
     rsTransactionData.Clear();
     ASSERT_TRUE(rsTransactionData.IsEmpty());
 }
+
+/**
+ * @tc.name: Unmarshalling
+ * @tc.desc: Test Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, Unmarshalling, TestSize.Level1)
+{
+    RSTransactionData rsTransactionData;
+    Parcel parcel;
+    ASSERT_EQ(rsTransactionData.Unmarshalling(parcel), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

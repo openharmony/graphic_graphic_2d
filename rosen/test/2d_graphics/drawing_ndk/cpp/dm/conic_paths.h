@@ -20,7 +20,7 @@
 #include <native_drawing/drawing_mask_filter.h>
 #include <native_drawing/drawing_rect.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 
 #include "common/log_common.h"
@@ -38,7 +38,6 @@ public:
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
-    std::vector<DrawRect> pathsBounds;
     std::vector<OH_Drawing_Path *> fPaths;
     //    const float w = sqrt(2.0f) / 2; // 2被除数
     void Makepath1();
