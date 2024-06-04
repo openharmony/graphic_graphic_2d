@@ -98,6 +98,7 @@ group("test") {
     "render_service_client/fuzztest/rsextendedmodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsshowingpropertiesfreezer_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsproxynode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
