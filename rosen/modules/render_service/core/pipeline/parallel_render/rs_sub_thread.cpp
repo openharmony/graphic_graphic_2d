@@ -255,6 +255,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         return;
     }
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
+    RSTagTracker tagTracker(grContext_.get(), param->GetId(), RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
 
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
