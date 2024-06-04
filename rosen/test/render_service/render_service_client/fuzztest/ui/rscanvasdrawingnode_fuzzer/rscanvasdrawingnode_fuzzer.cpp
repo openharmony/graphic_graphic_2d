@@ -90,7 +90,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
-    RSCanvasDrawingNode::SharedPtr node = RSCanvasDrawingNode::Create(isRenderServiceNode,isTextureExportNode);
+    RSCanvasDrawingNode::SharedPtr node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
     return true;
 }
 
