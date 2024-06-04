@@ -260,7 +260,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
 
     auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
-    FrameRateVoteInfo frameRateVoteInfo;
+    FrameRateVoteInfo &frameRateVoteInfo = frameRateVoteInfo_;
     frameRateVoteInfo.SetTimestamp(std::time(nullptr));
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         finalRange = rsFrameRateLinker->GetExpectedRange();
@@ -348,7 +348,7 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     }
 
     FrameRateRange finalRange;
-    FrameRateVoteInfo frameRateVoteInfo;
+    FrameRateVoteInfo &frameRateVoteInfo = frameRateVoteInfo_;
     DvsyncInfo dvsyncInfo;
     VoteRange voteResult = ProcessRefreshRateVote(frameRateVoteInfo, dvsyncInfo);
     auto& hgmCore = HgmCore::Instance();
@@ -769,9 +769,13 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     if (status != ScreenPowerStatus::POWER_STATUS_ON) {
         return;
     }
-    if (curScreenId_ == id) {
+    static std::mutex lastScreenIdMutex;
+    std::unique_lock<std::mutex> lock(lastScreenIdMutex);
+    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
+    if (lastScreenId == id) {
         return;
     }
+    lastScreenId = id;
 
     auto& hgmCore = HgmCore::Instance();
     auto screenList = hgmCore.GetScreenIds();
@@ -1012,9 +1016,9 @@ VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRa
     for (auto voterIter = voters_.begin(); voterIter != voters_.end(); voterIter++) {
         if (*voterIter == "VOTER_LTPO") {
             VoteRange info;
-            if (MergeLtpo2IdleVote(voterIter, info)) {
-                MergeRangeByPriority(voteRange, info);
-                frameRateVoteInfo.SetVoteInfo(*voterIter, max);
+            if (MergeLtpo2IdleVote(voterIter, info) && MergeRangeByPriority(voteRange, info)) {
+                frameRateVoteInfo.SetVoteInfo("VOTER_LTPO", max);
+                break;
             }
         }
 
@@ -1058,11 +1062,13 @@ VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRa
 VoteRange HgmFrameRateManager::ProcessRefreshRateVoteNoRefreshNeeded(const DvsyncInfo& dvsyncInfo)
 {
     if (dvsyncInfo.isUiDvsyncOn) {
-        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d,%d]", lastVoteMin_, lastVoteMax_);
+        RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d,%d]; voteInfo:%s",
+            lastVoteMin_, lastVoteMax_, frameRateVoteInfo_.ToString().c_str());
         return std::make_pair(lastVoteMin_, lastVoteMax_);
     }
     uint32_t lastPendingRate = HgmCore::Instance().GetPendingScreenRefreshRate();
-    RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]", lastPendingRate);
+    RS_TRACE_NAME_FMT("Process nothing, lastRate:[%d]; voteInfo:%s",
+        lastPendingRate, frameRateVoteInfo_.ToString().c_str());
     return std::make_pair(lastPendingRate, lastPendingRate);
 }
 

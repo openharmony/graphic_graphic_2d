@@ -129,5 +129,30 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
         }
     }
 }
+
+/**
+ * @tc.name: HgmOneShotTimerTest001
+ * @tc.desc: Verify the result of HgmOneShotTimerTest001
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Level2)
+{
+    int32_t interval = 200; // 200ms means waiting time
+    int32_t testThreadNum = 100;
+
+    auto timer = HgmOneShotTimer("timer", std::chrono::milliseconds(interval), nullptr, nullptr);
+    std::vector<std::thread> testThreads;
+    for (int i = 0; i < testThreadNum; i++) {
+        testThreads.push_back(std::thread([&timer] () { return timer.Start(); }));
+        testThreads.push_back(std::thread([&timer] () { return timer.Reset(); }));
+        testThreads.push_back(std::thread([&timer] () { return timer.Stop(); }));
+    }
+    for (auto &testThread : testThreads) {
+        if (testThread.joinable()) {
+            testThread.join();
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

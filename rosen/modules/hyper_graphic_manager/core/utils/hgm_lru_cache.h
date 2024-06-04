@@ -70,6 +70,8 @@ public:
         searchHelper_.clear();
     }
 
+    size_t Size() { return valueCache_.size(); }
+
 private:
     uint32_t capacity_;
     typename std::list<Value> valueCache_;

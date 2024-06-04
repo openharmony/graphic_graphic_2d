@@ -211,6 +211,7 @@ private:
     std::unordered_map<std::string, std::vector<std::pair<pid_t, VoteRange>>> voteRecord_;
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
+    FrameRateVoteInfo frameRateVoteInfo_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
