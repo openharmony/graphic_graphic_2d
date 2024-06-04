@@ -278,6 +278,7 @@ public:
     const ParticleUpdator& GetSpinUpdator();
     float GetSpinRandomStart() const;
     float GetSpinRandomEnd() const;
+    size_t GetImageIndex() const;
 
     void SetEmitConfig(const EmitterConfig& emitConfig);
     void SetParticleVelocity(const ParticleVelocity& velocity);
@@ -286,6 +287,10 @@ public:
     void SetParticleOpacity(const RenderParticleParaType<float>& opacity);
     void SetParticleScale(const RenderParticleParaType<float>& scale);
     void SetParticleSpin(const RenderParticleParaType<float>& spin);
+    void SetImageIndex(size_t imageIndex);
+
+private:
+    size_t imageIndex_;
 };
 
 class RSB_EXPORT RSRenderParticle {
@@ -356,6 +361,8 @@ public:
     const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetSpinChangeOverLife();
     const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& GetColorChangeOverLife();
 
+    size_t GetImageIndex() const;
+
     // Other methods
     void InitProperty();
     bool IsAlive() const;
@@ -371,7 +378,7 @@ public:
         return (position_ == rhs.position_) && (velocity_ == rhs.velocity_) && (acceleration_ == rhs.acceleration_) &&
                (scale_ == rhs.scale_) && (spin_ == rhs.spin_) && (opacity_ == rhs.opacity_) && (color_ == rhs.color_) &&
                (radius_ == rhs.radius_) && (particleType_ == rhs.particleType_) && (activeTime_ == rhs.activeTime_) &&
-               (lifeTime_ == rhs.lifeTime_) && (imageSize_ == rhs.imageSize_);
+               (lifeTime_ == rhs.lifeTime_) && (imageSize_ == rhs.imageSize_) && (imageIndex_ == rhs.imageIndex_);
     }
 
     static Color Lerp(const Color& start, const Color& end, float t)
@@ -414,21 +421,26 @@ private:
     float greenF_ = 0.f;
     float blueF_ = 0.f;
     float alphaF_ = 0.f;
+    size_t imageIndex_ = 0;
 };
 
 class RSB_EXPORT RSRenderParticleVector {
 public:
-    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>>&& renderParticleVector)
-        : renderParticleVector_(std::move(renderParticleVector))
+    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>>&& renderParticleVector,
+        std::vector<std::shared_ptr<RSImage>> imageVector)
+        : renderParticleVector_(std::move(renderParticleVector)), imageVector_(std::move(imageVector))
     {}
     RSRenderParticleVector() = default;
     ~RSRenderParticleVector() = default;
-    RSRenderParticleVector(const RSRenderParticleVector& other) : renderParticleVector_(other.renderParticleVector_) {}
+    RSRenderParticleVector(const RSRenderParticleVector& other)
+        : renderParticleVector_(other.renderParticleVector_), imageVector_(other.imageVector_)
+    {}
 
     RSRenderParticleVector& operator=(const RSRenderParticleVector& other)
     {
         if (this != &other) {
             renderParticleVector_ = other.renderParticleVector_;
+            imageVector_ = other.imageVector_;
         }
         return *this;
     }
@@ -443,18 +455,33 @@ public:
         return renderParticleVector_;
     }
 
+    const std::vector<std::shared_ptr<RSImage>>& GetParticleImageVector() const
+    {
+        return imageVector_;
+    }
+
+    size_t GetParticleImageCount() const
+    {
+        return imageVector_.size();
+    }
+
     bool operator==(const RSRenderParticleVector& rhs) const
     {
         bool equal = false;
-        if (this->renderParticleVector_.size() != rhs.renderParticleVector_.size()) {
+        if (this->renderParticleVector_.size() != rhs.renderParticleVector_.size() ||
+            this->imageVector_.size() != rhs.imageVector_.size()) {
             return false;
         }
-        if (this->renderParticleVector_.size() == 0) {
+        if (this->renderParticleVector_.size() == 0 && this->imageVector_.size() == 0) {
             return true;
         }
         for (size_t i = 0; i < this->renderParticleVector_.size(); i++) {
             equal = equal && (this->renderParticleVector_[i] == rhs.renderParticleVector_[i]) &&
                     (*(this->renderParticleVector_[i]) == *(rhs.renderParticleVector_[i]));
+        }
+        for (size_t i = 0; i < this->imageVector_.size(); i++) {
+            equal = equal && (this->imageVector_[i] == rhs.imageVector_[i]) &&
+                    ((*(this->imageVector_[i])).IsEqual(*(rhs.imageVector_[i])));
         }
         return equal;
     }
@@ -463,6 +490,7 @@ public:
 
 private:
     std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
+    std::vector<std::shared_ptr<RSImage>> imageVector_;
 };
 } // namespace Rosen
 } // namespace OHOS

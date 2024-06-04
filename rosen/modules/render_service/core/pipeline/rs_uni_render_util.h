@@ -62,7 +62,8 @@ public:
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
     static void MergeDirtyHistoryInVirtual(RSDisplayRenderNode& node, int32_t bufferAge, bool renderParallel = false);
-    static Occlusion::Region MergeVisibleDirtyRegionInVirtual(std::vector<RSRenderNode::SharedPtr>& allSurfaceNodes,
+    static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         bool renderParallel = false);
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);

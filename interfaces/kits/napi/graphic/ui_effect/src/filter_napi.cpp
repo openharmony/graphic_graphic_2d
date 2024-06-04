@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "filter_napi.h"
-#include "image_napi_utils.h"
+#include "ui_effect_napi_utils.h"
 
 namespace {
     constexpr uint32_t NUM_0 = 0;
@@ -79,25 +79,25 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
                                            nullptr,
                                            sizeof(static_prop) / sizeof(static_prop[0]), static_prop,
                                            &constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("define class fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("define class fail"));
 
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
-    if (!IMG_IS_OK(status)) {
+    if (!UIEFFECT_IS_OK(status)) {
         FILTER_LOG_I("FilterNapi Init napi_create_reference falid");
         return nullptr;
     }
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("Init:get global fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("Init:get global fail"));
 
     status = napi_set_named_property(env, global, CLASS_NAME.c_str(), constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("Init:set global named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("Init:set global named property fail"));
 
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("set named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("set named property fail"));
 
-    status = napi_define_properties(env, exports, IMG_ARRAY_SIZE(static_prop), static_prop);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("define properties fail"));
+    status = napi_define_properties(env, exports, UIEFFECT_ARRAY_SIZE(static_prop), static_prop);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("define properties fail"));
 
     auto tileModeFormat = TileModeInit(env);
     napi_set_named_property(env, exports, "TileMode", tileModeFormat);
@@ -132,7 +132,7 @@ void FilterNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
     FilterNapi *filterNapi = reinterpret_cast<FilterNapi*>(nativeObject);
 
-    if (IMG_NOT_NULL(filterNapi)) {
+    if (UIEFFECT_NOT_NULL(filterNapi)) {
         filterNapi->~FilterNapi();
     }
 }
@@ -168,8 +168,8 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     napi_value argv[1];
     napi_value _this;
     napi_status status;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status)) {
+    UIEFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!UIEFFECT_IS_OK(status)) {
         FILTER_LOG_I("FilterNapi parse input falid");
         return _this;
     }
@@ -177,9 +177,9 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     if (argc != 1) {
         return _this;
     }
-    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_number) {
+    if (UIEffectNapiUtils::getType(env, argv[0]) == napi_number) {
         double tmp = 0.0f;
-        if (IMG_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
+        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
             if (tmp >= 0) {
                 radius = static_cast<float>(tmp);
             }
@@ -218,7 +218,7 @@ static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arrayS
 static bool GetStretchPercent(napi_env env, napi_value param, std::shared_ptr<PixelStretchPara>& para)
 {
     napi_valuetype valueType = napi_undefined;
-    valueType = Media::ImageNapiUtils::getType(env, param);
+    valueType = UIEffectNapiUtils::getType(env, param);
     if (valueType == napi_undefined) {
         return true;
     }
@@ -258,14 +258,14 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_3] = {0};
     size_t argCount = NUM_3;
-    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_cb_info"));
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_cb_info"));
 
     Drawing::TileMode tileMode = Drawing::TileMode::CLAMP;
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
 
     if (argCount >= NUM_1) {
-        IMG_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
+        UIEFFECT_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
             nullptr, FILTER_LOG_E("fail to parse coordinates"));
     }
     if (argCount >= NUM_2) {
@@ -286,9 +286,9 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
     int32_t mode = 0;
-    if (Media::ImageNapiUtils::getType(env, argv) == napi_number) {
+    if (UIEffectNapiUtils::getType(env, argv) == napi_number) {
         double tmp = 0.0f;
-        if (IMG_IS_OK(napi_get_value_double(env, argv, &tmp))) {
+        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv, &tmp))) {
             mode = tmp;
         }
     }

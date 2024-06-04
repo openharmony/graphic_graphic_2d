@@ -43,6 +43,8 @@ HWTEST_F(RSAIBarFilterTest, DrawImageRectTest, TestSize.Level1)
 {
     auto filter = std::make_shared<RSAIBarFilter>();
     Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+    canvas.gpuContext_ = context;
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;

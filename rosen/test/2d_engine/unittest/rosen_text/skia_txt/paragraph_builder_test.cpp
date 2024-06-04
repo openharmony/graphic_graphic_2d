@@ -73,17 +73,6 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level1)
 }
 
 /*
- * @tc.name: ParagraphBuilderTest003
- * @tc.desc: test for PeekStyle
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest003, TestSize.Level1)
-{
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
-    paragraphBuilder_->PeekStyle();
-}
-
-/*
  * @tc.name: ParagraphBuilderTest004
  * @tc.desc: test for AddText
  * @tc.type: FUNC

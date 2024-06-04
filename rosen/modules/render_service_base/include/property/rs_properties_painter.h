@@ -39,6 +39,8 @@ public:
         bool isAntiAlias = true, bool isSurfaceView = false);
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
+    static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
+        const RSProperties& properties, const bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -148,8 +150,6 @@ private:
         std::vector<Drawing::Point>& ctrlPoints, const std::vector<Drawing::Point>& texCoords);
     static std::vector<Drawing::Point> InitCtrlPoints(float width, float height, float degree);
     static float CalcOffsetSquare(float& width, float& height, const float degree, const bool isWidthGreater);
-    static void DrawParticle(const std::shared_ptr<RSRenderParticle>& particle, const std::shared_ptr<RectF>& bounds,
-        RSPaintFilterCanvas& canvas);
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

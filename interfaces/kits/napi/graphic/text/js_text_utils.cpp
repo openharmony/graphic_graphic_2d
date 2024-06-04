@@ -230,8 +230,8 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
     textStyle.shadows.clear();
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value element;
-        Drawing::Color colorSrc;
-        Drawing::Point offset;
+        Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
+        Drawing::Point offset(Drawing::ARGC_ZERO, Drawing::ARGC_ZERO);
         double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
             ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
@@ -241,14 +241,14 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            ROSEN_LOGE("The parameter of as private point is unvaild");
-            return;
+            ROSEN_LOGD("The parameter of as private point is unvaild");
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
+            ROSEN_LOGD("The parameter of as private blur radius is unvaild");
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
@@ -531,24 +531,73 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
     return objValue;
 }
 
+struct NapiMap {
+    napi_value instance;
+    napi_value set_function;
+};
+
+static NapiMap CreateNapiMap(napi_env env)
+{
+    NapiMap res = {nullptr, nullptr};
+    napi_valuetype value_type;
+
+    napi_value global = nullptr;
+    if (napi_get_global(env, &global) != napi_ok || !global) {
+        return res;
+    }
+
+    napi_value constructor = nullptr;
+    if (napi_get_named_property(env, global, "Map", &constructor) != napi_ok || !constructor) {
+        return res;
+    }
+
+    if (napi_typeof(env, constructor, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
+        return res;
+    }
+
+    napi_value map_instance = nullptr;
+    if (napi_new_instance(env, constructor, 0, nullptr, &map_instance) != napi_ok || !map_instance) {
+        return res;
+    }
+
+    napi_value map_set = nullptr;
+    if (napi_get_named_property(env, map_instance, "set", &map_set) != napi_ok || !map_set) {
+        return res;
+    }
+    if (napi_typeof(env, map_set, &value_type) != napi_ok || value_type != napi_valuetype::napi_function) {
+        return res;
+    }
+
+    res.instance = map_instance;
+    res.set_function = map_set;
+
+    return res;
+}
+
+static bool NapiMapSet(napi_env env, NapiMap& map, uint32_t key, const RunMetrics& runMetrics)
+{
+    napi_value keyValue = nullptr;
+    keyValue = CreateJsNumber(env, key);
+    napi_value runMetricsValue = nullptr;
+    runMetricsValue = CreateRunMetricsJsValue(env, runMetrics);
+    if (!keyValue || !runMetricsValue) {
+        return false;
+    }
+    napi_value args[2] = {keyValue, runMetricsValue};
+    napi_status status = napi_call_function(env, map.instance, map.set_function, 2, args, nullptr);
+    if (status != napi_ok) {
+        return false;
+    }
+    return true;
+}
+
 napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>& map)
 {
-    napi_value result = nullptr;
-    napi_status status = napi_create_object(env, &result);
-    if (status != napi_ok) {
-        ROSEN_LOGE("ConvertMapToNapiMap create napi object failed");
-        return nullptr;
-    }
-    napi_value jsSize = nullptr;
-    napi_create_uint32(env, map.size(), &jsSize);
-    napi_set_named_property(env, result, "size", jsSize);
+    auto mapReturn = CreateNapiMap(env);
     for (const auto &[key, val] : map) {
-        status = napi_set_property(env, result, CreateJsNumber(env, key), CreateRunMetricsJsValue(env, val));
-        if (status != napi_ok) {
-            return nullptr;
-        }
+        NapiMapSet(env, mapReturn, static_cast<uint32_t>(key), val);
     }
-    return result;
+    return mapReturn.instance;
 }
 
 napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics)

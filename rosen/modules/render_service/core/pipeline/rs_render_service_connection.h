@@ -98,6 +98,8 @@ private:
         int32_t flags = 0,
         std::vector<NodeId> filteredAppVector = {}) override;
 
+    void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
 #ifdef RS_ENABLE_VK
@@ -133,7 +135,7 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType, bool isSync) override;
+        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync) override;
 
     void TakeSurfaceCaptureForUIWithUni(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);

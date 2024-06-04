@@ -143,6 +143,8 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoForceDoDirect(bool ancoForceDoDirect);
     static void SetHDRPresent(bool hdrPresent, NodeId id);
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
 
 protected:
     bool NeedForcedSendToRemote() const override;
@@ -182,6 +184,7 @@ private:
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
+    bool isSkipDraw_ = false;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

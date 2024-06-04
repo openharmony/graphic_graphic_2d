@@ -104,11 +104,11 @@ public:
     bool hasInitVsyncReceiver_ = false;
 
     int32_t sourceVsyncRate_ = 0;
-    int32_t drawFPS_;
-    int32_t currRate_;
-    int32_t currCnt_;
-    TimestampType timestamp_;
-    TimestampType targetTimestamp_;
+    int32_t drawFPS_ = 0;
+    int32_t currRate_ = 0;
+    int32_t currCnt_ = 0;
+    TimestampType timestamp_ = 0;
+    TimestampType targetTimestamp_ = 0;
 
     SoloistIdType instanceId_ = 0;
     bool useExclusiveThread_ = false;

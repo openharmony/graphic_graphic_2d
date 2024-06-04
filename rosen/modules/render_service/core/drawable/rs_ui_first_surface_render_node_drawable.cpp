@@ -180,6 +180,20 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceInThread()
     ClearCacheSurface();
 }
 
+void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
+{
+    RS_TRACE_NAME("ClearCacheSurfaceOnly");
+    if (cacheSurface_ == nullptr) {
+        return;
+    }
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(
+            std::move(cacheSurface_), nullptr, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+    }
+    ClearCacheSurface(false);
+    cacheSurface_.reset();
+}
+
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
@@ -284,7 +298,9 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         }
     }
     Drawing::Brush brush;
-    brush.SetForceBrightnessDisable(true);
+    if (GetHDRPresent()) {
+        brush.SetForceBrightnessDisable(true);
+    }
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);

@@ -70,6 +70,8 @@ public:
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
+    void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable) override;
 #endif
@@ -104,7 +106,7 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType, bool isSync) override;
+        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync) override;
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 

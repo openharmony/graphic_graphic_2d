@@ -38,6 +38,7 @@ public:
     ~MyXNode(){};
    
     static void Export(napi_env env, napi_value exports);
+    static napi_value NapiGetTestNames(napi_env env, napi_callback_info info);
     static napi_value NapiFunction(napi_env env, napi_callback_info info);
     static napi_value NapiPerformance(napi_env env, napi_callback_info info);
     static napi_value NapiGetPixelMapWidth(napi_env env, napi_callback_info info);

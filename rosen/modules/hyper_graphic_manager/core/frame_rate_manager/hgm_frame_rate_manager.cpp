@@ -49,12 +49,11 @@ namespace {
         "VOTER_THERMAL",
         "VOTER_VIRTUALDISPLAY",
         "VOTER_POWER_MODE",
+        "VOTER_DISPLAY_ENGIN",
         "VOTER_GAMES",
-        "VOTER_MULTI_APP",
         "VOTER_ANCO",
 
-        "VOTER_XML",
-        "VOTER_TOUCH",
+        "VOTER_PACKAGES",
         "VOTER_LTPO",
         "VOTER_SCENE",
         "VOTER_VIDEO",
@@ -110,7 +109,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
-        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_XML", ADD_VOTE, strategy.min, strategy.max);
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_PACKAGES", ADD_VOTE, strategy.min, strategy.max);
 
         idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
         HandleIdleEvent(true);
@@ -948,12 +947,12 @@ bool HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, VoteRange ra
     return false;
 }
 
-bool HgmFrameRateManager::MergeLtpo2IdleVote(VoteRange& mergedVoteRange)
+bool HgmFrameRateManager::MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange)
 {
     bool mergeSuccess = false;
-    
-    for (auto voterIter = std::find(voters_.begin(), voters_.end(), "VOTER_LTPO");
-        voterIter != voters_.end(); voterIter++) {
+
+    // [VOTER_LTPO, VOTER_IDLE)
+    for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
             continue;
         }
@@ -997,18 +996,18 @@ VoteRange HgmFrameRateManager::ProcessRefreshRateVote(FrameRateVoteInfo& frameRa
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
     auto &[min, max] = voteRange;
 
-    for (const auto& voter : voters_) {
+    for (auto voterIter = voters_.begin(); voterIter != voters_.end(); voterIter++) {
+        if (*voterIter == "VOTER_LTPO") {
+            VoteRange info;
+            if (MergeLtpo2IdleVote(voterIter, info)) {
+                MergeRangeByPriority(voteRange, info);
+                frameRateVoteInfo.SetVoteInfo(*voterIter, max);
+            }
+        }
+
+        auto &voter = *voterIter;
         if (voteRecord_.find(voter) == voteRecord_.end()) {
             continue;
-        }
-        if (voter == "VOTER_LTPO") {
-            VoteRange info;
-            if (MergeLtpo2IdleVote(info)) {
-                MergeRangeByPriority(voteRange, info);
-                frameRateVoteInfo.SetVoteInfo(voter, max);
-                break;
-            }
-            break;
         }
 
         auto vec = voteRecord_[voter];
@@ -1097,9 +1096,9 @@ void HgmFrameRateManager::UpdateVoteRule()
     std::lock_guard<std::mutex> lock(voteNameMutex_);
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     std::string srcScene = "VOTER_SCENE";
-    std::string dstScene = (scenePriority == SCENE_BEFORE_XML) ? "VOTER_XML" : "VOTER_TOUCH";
+    std::string dstScene = (scenePriority == SCENE_BEFORE_XML) ? "VOTER_PACKAGES" : "VOTER_TOUCH";
 
-    // priority 1: VOTER_SCENE > VOTER_XML
+    // priority 1: VOTER_SCENE > VOTER_PACKAGES
     // priority 2: VOTER_SCENE > VOTER_TOUCH
     // priority 3: VOTER_SCENE < VOTER_TOUCH
     auto srcPos = find(voters_.begin(), voters_.end(), srcScene);

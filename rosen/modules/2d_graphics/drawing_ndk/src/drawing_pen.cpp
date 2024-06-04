@@ -370,12 +370,9 @@ void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 void OH_Drawing_PenGetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     Pen* pen = CastToPen(cPen);
-    if (pen == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
-        return;
-    }
     Filter* filter = const_cast<Filter*>(CastToFilter(cFilter));
-    if (filter == nullptr) {
+    if (pen == nullptr || filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     *filter = pen->GetFilter();

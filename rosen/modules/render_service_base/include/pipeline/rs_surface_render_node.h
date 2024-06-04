@@ -1139,6 +1139,9 @@ public:
     {
         return doDirectComposition_;
     }
+
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1393,6 +1396,7 @@ private:
     bool isNodeToBeCaptured_ = false;
 
     bool doDirectComposition_ = true;
+    bool isSkipDraw_ = false;
 
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

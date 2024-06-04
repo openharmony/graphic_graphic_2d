@@ -25,6 +25,7 @@
 #include "path_effect_napi/js_path_effect.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
+#include "region_napi/js_region.h"
 #include "sampling_options_napi/js_sampling_options.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
@@ -45,6 +46,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsSamplingOptions::Init(env, exportObj);
     JsMaskFilter::Init(env, exportObj);
     JsPathEffect::Init(env, exportObj);
+    JsRegion::Init(env, exportObj);
     JsShadowLayer::Init(env, exportObj);
     return exportObj;
 }

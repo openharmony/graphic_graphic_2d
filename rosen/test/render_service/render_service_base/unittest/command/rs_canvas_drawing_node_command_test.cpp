@@ -41,11 +41,13 @@ void RSCanvasDrawingNodeCommandTest::TearDown() {}
 HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
 {
     RSContext context;
+    int width = 1;
+    int height = 1;
     NodeId targetId = static_cast<NodeId>(1);
     RSCanvasDrawingNodeCommandHelper::Create(context, targetId, false);
 
-    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId);
-    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0);
+    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId, width, height);
+    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0, width, height);
 }
 
 } // namespace OHOS::Rosen

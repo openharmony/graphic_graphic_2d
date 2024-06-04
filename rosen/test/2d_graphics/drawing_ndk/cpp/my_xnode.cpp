@@ -200,6 +200,26 @@ uint32_t MyXNode::TestPerformance(OH_Drawing_Canvas* canvas, std::string caseNam
     return testCase->GetTime();
 }
 
+napi_value MyXNode::NapiGetTestNames(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiGetTestNames: env or info is null");
+        return nullptr;
+    }
+
+    napi_value value = nullptr;
+    std::string str = "";
+    for (auto map: TestCaseFactory::GetFunctionCpuCaseAll()) {
+        if (str == "") {
+            str += map.first;
+        } else {
+            str += "," + map.first;
+        }
+    }
+    (void)napi_create_string_utf8(env, str.c_str(), str.length(), &value);
+    return value;
+}
+
 void MyXNode::Export(napi_env env, napi_value exports)
 {
     DRAWING_LOGI("MyXNode napi init");
@@ -211,6 +231,7 @@ void MyXNode::Export(napi_env env, napi_value exports)
     napi_property_descriptor desc[] = {
         {"TestFunctional", nullptr, MyXNode::NapiFunction, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"TestPerformance", nullptr, MyXNode::NapiPerformance, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetXnodeTestNames", nullptr, MyXNode::NapiGetTestNames, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetPixelMapWidth", nullptr, MyXNode::NapiGetPixelMapWidth, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetPixelMapHeight", nullptr, MyXNode::NapiGetPixelMapHeight,
             nullptr, nullptr, nullptr, napi_default, nullptr},

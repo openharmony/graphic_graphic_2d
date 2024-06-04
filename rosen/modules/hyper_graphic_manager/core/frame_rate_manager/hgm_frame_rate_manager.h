@@ -171,7 +171,8 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    bool MergeLtpo2IdleVote(VoteRange& mergedVoteRange);
+    // merge [VOTER_LTPO, VOTER_IDLE)
+    bool MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange);
     VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo, const DvsyncInfo& dvsyncInfo);
     void UpdateVoteRule();
     void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);

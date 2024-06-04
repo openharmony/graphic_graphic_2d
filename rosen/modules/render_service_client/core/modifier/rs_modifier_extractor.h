@@ -64,9 +64,13 @@ public:
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
+    Vector4f GetBorderDashWidth() const;
+    Vector4f GetBorderDashGap() const;
     Vector4<Color> GetOutlineColor() const;
     Vector4f GetOutlineWidth() const;
     Vector4<uint32_t> GetOutlineStyle() const;
+    Vector4f GetOutlineDashWidth() const;
+    Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
 
     float GetForegroundEffectRadius() const;

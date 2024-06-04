@@ -51,9 +51,11 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
+constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 };
@@ -330,7 +332,12 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             task();
         }
     };
-    RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    auto delayTime = RSHardwareThread::Instance().delayTime_;
+    if (delayTime > 0) {
+        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
+    } else {
+        RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    }
 }
 
 void RSUniRenderThread::ReleaseSurface()
@@ -525,44 +532,62 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
     }
     {
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
-        this->clearMemDeeply_ = clearMemDeeply_ || deeply;
-        this->SetClearMoment(moment);
-        this->clearMemoryFinished_ = false;
-        this->exitedPidSet_.emplace(pid);
+        clearMemDeeply_ = clearMemDeeply_ || deeply;
+        SetClearMoment(moment);
+        clearMemoryFinished_ = false;
+        exitedPidSet_.emplace(pid);
     }
-    auto task =
-        [this, moment, deeply]() {
-            auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-            if (UNLIKELY(!grContext)) {
-                return;
-            }
-            RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-            RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
-            std::lock_guard<std::mutex> lock(clearMemoryMutex_);
-            SKResourceManager::Instance().ReleaseResource();
-            grContext->Flush();
-            SkGraphics::PurgeAllCaches(); // clear cpu cache
-            auto pid = *(this->exitedPidSet_.begin());
-            if (this->exitedPidSet_.size() == 1 && pid == -1) {         // no exited app, just clear scratch resource
-                if (deeply || this->deviceType_ != DeviceType::PHONE) {
-                    MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
-                } else {
-                    MemoryManager::ReleaseUnlockGpuResource(grContext);
-                }
+    PostClearMemoryTask(moment, deeply, false);
+}
+
+void RSUniRenderThread::DefaultClearMemoryCache()
+{
+    // To clean memory when no render in 5s
+    if (!RSSystemProperties::GetReleaseResourceEnabled()) {
+        return;
+    }
+    PostClearMemoryTask(ClearMemoryMoment::DEFAULT_CLEAN, false, true);
+}
+
+void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
+{
+    auto task = [this, moment, deeply, isDefaultClean]() {
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (UNLIKELY(!grContext)) {
+            return;
+        }
+        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+        std::lock_guard<std::mutex> lock(clearMemoryMutex_);
+        SKResourceManager::Instance().ReleaseResource();
+        grContext->Flush();
+        SkGraphics::PurgeAllCaches(); // clear cpu cache
+        auto pid = *(this->exitedPidSet_.begin());
+        if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
+            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
-                MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
             }
-            auto screenManager_ = CreateOrGetScreenManager();
-            screenManager_->ClearFrameBufferIfNeed();
-            grContext->FlushAndSubmit(true);
+        } else {
+            MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
+        }
+        auto screenManager_ = CreateOrGetScreenManager();
+        screenManager_->ClearFrameBufferIfNeed();
+        grContext->FlushAndSubmit(true);
+        if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
-            this->exitedPidSet_.clear();
-            this->clearMemDeeply_ = false;
-            this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
-        };
-    PostTask(task, CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
-                / GetRefreshRate());
+        }
+        this->exitedPidSet_.clear();
+        this->clearMemDeeply_ = false;
+        this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
+    };
+    if (!isDefaultClean) {
+        PostTask(task, CLEAR_GPU_CACHE,
+            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate());
+    } else {
+        PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
+    }
 }
 
 void RSUniRenderThread::PurgeCacheBetweenFrames()

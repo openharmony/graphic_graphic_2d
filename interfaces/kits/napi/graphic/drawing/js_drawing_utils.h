@@ -94,6 +94,19 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_DOUBLE_CHECK_GT_ZERO_PARAM(argc, value)                                                                    \
+    do {                                                                                                               \
+        if (napi_get_value_double(env, argv[argc], &value) != napi_ok) {                                               \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+        if (value <= 0.0) {                                                                                            \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) +                       \
+                " range. It should be greater than 0.");                                                               \
+        }                                                                                                              \
+    } while (0)
+
 #define GET_INT32_PARAM(argc, value)                                                                                   \
     do {                                                                                                               \
         if (napi_get_value_int32(env, argv[argc], &value) != napi_ok) {                                                \
