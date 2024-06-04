@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "texgine/any_span.h"
+#include "texgine/font_providers.h"
+#include "texgine/text_style.h"
+#include "texgine/typography_style.h"
 #include "texgine/typography_types.h"
 
 using namespace testing;
@@ -26,6 +29,40 @@ namespace TextEngine {
 class OHSkiaAnySpanTest : public testing::Test {};
 
 void AnySpan::ReportMemoryUsage(const std::string& member, const bool needThis) const {}
+
+void FontFeatures::SetFeature(const std::string &ftag, int fvalue)
+{
+    features_[ftag] = fvalue;
+}
+
+const std::map<std::string, int> &FontFeatures::GetFeatures() const
+{
+    return features_;
+}
+
+std::shared_ptr<FontProviders> FontProviders::Create() noexcept(true)
+{
+    return std::make_shared<FontProviders>();
+}
+
+TextAlign TypographyStyle::GetEquivalentAlign() const
+{
+    return align;
+}
+
+TextStyle TypographyStyle::ConvertToTextStyle() const
+{
+    TextStyle style;
+    style.fontSize = fontSize;
+    style.fontFamilies = fontFamilies;
+    style.heightScale = heightScale;
+    style.halfLeading = halfLeading;
+    style.heightOnly = heightOnly;
+    style.fontWeight = fontWeight;
+    style.fontStyle = fontStyle;
+
+    return style;
+}
 
 class MySpanForTest : public AnySpan {
 public:
@@ -114,6 +151,26 @@ HWTEST_F(OHSkiaAnySpanTest, OHSkiaAnySpanTest001, TestSize.Level1)
     textDecoration2 |= textDecoration1;
     textDecoration2 ^= textDecoration1;
     textDecoration2 += textDecoration1;
+}
+
+/*
+ * @tc.name: OHSkiaAnySpanTest002
+ * @tc.desc: test for anyspan
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHSkiaAnySpanTest, OHSkiaAnySpanTest002, TestSize.Level1)
+{
+    FontFeatures fontFeatures;
+    // 1 is used for test
+    fontFeatures.SetFeature("123", 1);
+    std::map<std::string, int> features = fontFeatures.GetFeatures();
+    FontProviders fontProviders;
+    std::shared_ptr<FontProviders> fontProviders_ptr = fontProviders.Create();
+    TypographyStyle typographyStyle;
+    TextAlign textAlign = typographyStyle.GetEquivalentAlign();
+    EXPECT_EQ(textAlign, typographyStyle.align);
+    TextStyle textStyle = typographyStyle.ConvertToTextStyle();
+    EXPECT_EQ(textStyle.fontSize, typographyStyle.fontSize);
 }
 } // namespace TextEngine
 } // namespace Rosen

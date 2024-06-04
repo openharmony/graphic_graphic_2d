@@ -128,6 +128,22 @@ bool RSBlurFilter::IsNearZero(float threshold) const
     return ROSEN_EQ(blurRadiusX_, 0.0f, threshold) && ROSEN_EQ(blurRadiusY_, 0.0f, threshold);
 }
 
+bool RSBlurFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
+{
+    auto otherBlurFilter = std::static_pointer_cast<RSBlurFilter>(other);
+    if (otherBlurFilter == nullptr) {
+        ROSEN_LOGE("RSBlurFilter::IsEqual: the types of filters are different.");
+        return true;
+    }
+    return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX()) &&
+           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY());
+}
+
+bool RSBlurFilter::IsEqualZero() const
+{
+    return ROSEN_EQ(blurRadiusX_, 0.0f) && ROSEN_EQ(blurRadiusY_, 0.0f);
+}
+
 void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {

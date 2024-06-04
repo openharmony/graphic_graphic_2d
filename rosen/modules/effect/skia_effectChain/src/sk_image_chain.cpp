@@ -40,7 +40,7 @@ void SKImageChain::InitWithoutCanvas()
     }
     imageInfo_ = SkImageInfo::Make(srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight(),
     PixelFormatConvert(srcPixelMap_->GetPixelFormat()), static_cast<SkAlphaType>(srcPixelMap_->GetAlphaType()));
-    SkPixmap srcPixmap(imageInfo_, srcPixelMap_->GetPixels(), srcPixelMap_->GetRowBytes());
+    SkPixmap srcPixmap(imageInfo_, srcPixelMap_->GetPixels(), srcPixelMap_->GetRowStride());
     SkBitmap srcBitmap;
     srcBitmap.installPixels(srcPixmap);
     image_ = SkImage::MakeFromBitmap(srcBitmap);
@@ -50,7 +50,7 @@ void SKImageChain::InitWithoutCanvas()
     opts.editable = true;
     auto dstPixelMap = Media::PixelMap::Create(opts);
     if (dstPixelMap != nullptr) {
-        dstPixmap_ = std::make_shared<SkPixmap>(imageInfo_, dstPixelMap->GetPixels(), dstPixelMap->GetRowBytes());
+        dstPixmap_ = std::make_shared<SkPixmap>(imageInfo_, dstPixelMap->GetPixels(), dstPixelMap->GetRowStride());
         dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
     }
 }
@@ -62,7 +62,7 @@ bool SKImageChain::CreateCPUCanvas()
         return false;
     }
     cpuSurface_ = SkSurface::MakeRasterDirect(imageInfo_, const_cast<void*>(dstPixmap_->addr()),
-    dstPixelMap_->GetRowBytes());
+    dstPixelMap_->GetRowStride());
     if (!cpuSurface_) {
         LOGE("Failed to create surface for CPU.");
         return false;

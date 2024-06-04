@@ -63,6 +63,11 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
     type = RSUINodeType::UNKNOW;
     res = instance.TakeSurfaceCaptureForUI(nullptr, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
+
+    RSDisplayNodeConfig config;
+    auto rsDisplayNode = RSDisplayNode::Create(config);
+    res = instance.TakeSurfaceCaptureForUI(rsDisplayNode, callback, 1.f, 1.f, true);
+    EXPECT_TRUE(res == false);
 }
 
 /**

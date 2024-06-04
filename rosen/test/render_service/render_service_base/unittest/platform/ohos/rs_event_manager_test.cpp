@@ -164,9 +164,11 @@ HWTEST_F(RSEventMgrTest, DumpAllEventParamTest, TestSize.Level1)
 {
     std::string dumpString = "0";
     auto detectorPtr = RSBaseEventDetector::CreateRSTimeOutDetector(1, "0");
+    std::shared_ptr<RSBaseEventDetector> sharedPtrNULL = nullptr;
+    std::weak_ptr<RSBaseEventDetector> detectorPtrNULL = sharedPtrNULL;
     std::string key1 = "0";
     std::string key2 = "1";
-    eventManager->eventDetectorList_[key1];
+    eventManager->eventDetectorList_[key1] = detectorPtrNULL;
     eventManager->eventDetectorList_[key2] = detectorPtr;
     eventManager->DumpAllEventParam(dumpString);
     EXPECT_FALSE(eventManager->eventDetectorList_.empty());

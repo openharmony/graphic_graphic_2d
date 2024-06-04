@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <algorithm>
 #include "rs_frame_rate_vote.h"
 #include "hgm_core.h"
 #include "platform/common/rs_log.h"
@@ -85,7 +85,7 @@ void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
 void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (rate <= 0) {
+    if (rate == 0) {
         auto it = surfaceVideoRate_.find(surfaceNodeId);
         if (it != surfaceVideoRate_.end()) {
             surfaceVideoRate_.erase(it);
@@ -93,17 +93,13 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
     } else {
         surfaceVideoRate_[surfaceNodeId] = rate;
     }
-    if (surfaceVideoRate_.size() <= 0) {
+    if (surfaceVideoRate_.size() == 0) {
         CancelVoteRate(VIDEO_VOTE_FLAG);
         lastVotedRate_ = 0;
         return;
     }
-    uint32_t maxRate = 0;
-    for (const auto& item : surfaceVideoRate_) {
-        if (item.second > maxRate) {
-            maxRate = item.second;
-        }
-    }
+    uint32_t maxRate = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),
+        [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; })->second;
     if (maxRate == lastVotedRate_) {
         return;
     }

@@ -89,6 +89,27 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
     return ROSEN_ERROR_OK;
 }
 
+RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnScreenVBlankIdleFunc is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    int32_t ret = device_->RegScreenVBlankIdleCallback(func, data);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegScreenVBlankIdleCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
 void HdiBackend::SetPendingMode(const OutputPtr &output, int64_t period, int64_t timestamp)
 {
     if (output == nullptr) {

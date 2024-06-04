@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../../graphic_config.gni")
 
 config("window_animation_config") {
   include_dirs = [ "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include" ]
@@ -31,7 +32,7 @@ ohos_shared_library("window_animation") {
 
   cflags_cc = [ "-std=c++17" ]
 
-  public_deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client" ]
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
   external_deps = [
     "c_utils:utils",

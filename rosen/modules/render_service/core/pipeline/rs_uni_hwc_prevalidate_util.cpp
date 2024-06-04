@@ -107,6 +107,24 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     return true;
 }
 
+bool RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo(
+    RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
+{
+    if (!node) {
+        return false;
+    }
+    info.id = node->GetId();
+    auto src = node->GetSrcRect();
+    info.srcRect = {src.left_, src.top_, src.width_, src.height_};
+    auto dst = node->GetDstRect();
+    info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
+    info.zOrder = node->GetGlobalZOrder();
+    info.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    info.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA;
+    info.fps = fps;
+    info.transform = static_cast<int>(transform);
+    return true;
+}
 
 bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)

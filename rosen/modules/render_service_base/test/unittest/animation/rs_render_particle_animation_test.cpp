@@ -82,7 +82,8 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     EXPECT_TRUE(particleSystem_ != nullptr);
     particleSystem_->CreateEmitter();
     auto activeParticles = renderParticleAnimation->GetRenderParticle().GetParticleVector();
-    particleSystem_->Emit(NS_TO_S, activeParticles);
+    auto imageVector = renderParticleAnimation->GetRenderParticle().GetParticleImageVector();
+    particleSystem_->Emit(NS_TO_S, activeParticles, imageVector);
     particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
     particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
     EXPECT_TRUE(particleAnimate);

@@ -31,7 +31,6 @@ public:
 
     void PushStyle(const TextStyle& style) override;
     void Pop() override;
-    const TextStyle& PeekStyle() override;
     void AddText(const std::u16string& text) override;
     void AddPlaceholder(PlaceholderRun& span) override;
     std::unique_ptr<Paragraph> Build() override;
@@ -47,7 +46,6 @@ private:
     std::shared_ptr<skia::textlayout::ParagraphBuilder> builder_;
     TextStyle baseStyle_;
 
-    std::stack<TextStyle> styleStack_;
     std::vector<PaintRecord> paints_;
 };
 } // namespace SPText

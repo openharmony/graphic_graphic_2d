@@ -63,6 +63,17 @@ struct IndexAndAffinity {
     IndexAndAffinity(size_t charIndex, Affinity charAffinity);
 };
 
+class RunMetrics {
+public:
+    explicit RunMetrics(const TextStyle* style) : textStyle(style) {}
+
+    RunMetrics(const TextStyle* style, const Drawing::FontMetrics& metrics)
+        : textStyle(style), fontMetrics(metrics) {}
+
+    const TextStyle* textStyle;
+    Drawing::FontMetrics fontMetrics;
+};
+
 struct LineMetrics {
     /** Text ascender height */
     double ascender;
@@ -92,6 +103,12 @@ struct LineMetrics {
     size_t endIndex;
 
     Drawing::FontMetrics firstCharMetrics;
+    /** The y position of the baseline for this line from the top of the paragraph */
+    double baseline;
+    /** Zero indexed line number */
+    size_t lineNumber;
+
+    std::map<size_t, RunMetrics> runMetrics;
 };
 
 class Typography {

@@ -242,6 +242,7 @@ std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
         for (const skt::LineMetrics& skm : metrics) {
             LineMetrics& txtm = lineMetrics_->emplace_back();
             txtm.startIndex = skm.fStartIndex;
+            txtm.endIndex = skm.fEndIndex;
             txtm.endExcludingWhitespace = skm.fEndExcludingWhitespaces;
             txtm.endIncludingNewline = skm.fEndIncludingNewline;
             txtm.hardBreak = skm.fHardBreak;

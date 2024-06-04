@@ -157,42 +157,20 @@ struct Index {
         .width('80%')
         .height('7%')
       } else if (this.testType == 'function'){
-        if (this.drawingType == 'cpu') {
-          Row(){
-            Button("TestAll")
-              .fontSize('16fp')
-              .id('testAll')
-              .fontWeight(500)
-              .onClick(() => {
-                console.log(TAG, "TestAll click");
-                this.caseNameStr = 'All';
-                this.Draw();
-              })
-              .width('80%')
-              .shadow(ShadowStyle.OUTER_DEFAULT_LG)
-          }
-          .height('7%')
-        } else if (this.drawingType == 'gpu'){
-          Row(){
-            Button("SnapShort")
-              .fontSize('16fp')
-              .id('SnapShort')
-              .fontWeight(500)
-              .onClick(() => {
-                const context : Context = getContext(this);
-                componentSnapshot.get("myNodeController", (error:Error, pixmap: image.PixelMap) => {
-                  if (error) {
-                    console.log("error:", JSON.stringify(error))
-                    return;
-                  }
-                  Global.savePixmap(context.cacheDir + '/gpu', this.caseNameStr, pixmap);
-                })
-              })
-              .width('80%')
-              .shadow(ShadowStyle.OUTER_DEFAULT_LG)
-          }
-          .height('7%')
+        Row(){
+          Button("TestAll")
+            .fontSize('16fp')
+            .id('testAll')
+            .fontWeight(500)
+            .onClick(() => {
+              console.log(TAG, "TestAll click");
+              this.caseNameStr = 'All';
+              this.Draw();
+            })
+            .width('80%')
+            .shadow(ShadowStyle.OUTER_DEFAULT_LG)
         }
+        .height('7%')
       }
 
       Row() {
@@ -262,8 +240,7 @@ struct Index {
       if (this.drawingType == 'cpu') {
         return this.TestFunctionalCpu();
       } else {
-        this.myNodeController.TestFunctionalGpuUpScreen(this.caseNameStr);
-        return;
+        return this.TestFunctionalGpu(this.caseNameStr);
       }
     }
     if (this.testType == 'performance') {
@@ -275,6 +252,36 @@ struct Index {
         return;
       }
     }
+  }
+
+  sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async TestFunctionalGpu(str: string) {
+    if (str == 'All') {
+      for (let key of CaseFactory.getFunctonCpuAllCase().keys()) {
+        this.TestSingleFunctionGpu(key);
+        await this.sleep(500);
+      }
+      this.LogMsg('TestFunctionalGpu All end');
+    } else {
+      this.TestSingleFunctionGpu(str);
+    }
+  }
+
+  async TestSingleFunctionGpu(str: string) {
+    this.myNodeController.TestFunctionalGpuUpScreen(str);
+    await this.sleep(50);
+    const context : Context = getContext(this);
+    componentSnapshot.get("myNodeController", (error:Error, pixmap: image.PixelMap) => {
+      if (error) {
+        console.log("error:", JSON.stringify(error))
+        return;
+      }
+      Global.savePixmap(context.cacheDir + '/gpu', str, pixmap);
+    })
+    this.LogMsg('TestSingleFunctionGpu end');
   }
 
   async TestFunctionalCpu() {

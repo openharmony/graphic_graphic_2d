@@ -23,8 +23,6 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
-
-    "//drivers/peripheral/base",
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
@@ -82,6 +80,7 @@ template("render_service_client_source_set") {
       "core/animation/rs_implicit_animation_param.cpp",
       "core/animation/rs_implicit_animator.cpp",
       "core/animation/rs_implicit_animator_map.cpp",
+      "core/animation/rs_interactive_implict_animator.cpp",
       "core/animation/rs_interpolating_spring_animation.cpp",
       "core/animation/rs_keyframe_animation.cpp",
       "core/animation/rs_path_animation.cpp",
@@ -133,6 +132,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_surface_node.cpp",
       "core/ui/rs_texture_export.cpp",
       "core/ui/rs_ui_director.cpp",
+      "core/ui/rs_ui_display_soloist.cpp",
       "core/ui/rs_ui_share_context.cpp",
     ]
 
@@ -219,7 +219,8 @@ template("render_service_client_source_set") {
       }
     } else if (rosen_preview) {
       deps += [
-        "$graphic_2d_root:libgl",
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
       ]
 

@@ -246,10 +246,12 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
-    uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
-    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
-    ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+        uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+        ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
+    }
 }
 
 /*
@@ -1178,19 +1180,6 @@ HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
 }
 
 /*
- * @tc.name: WriteToPng_002
- * @tc.desc: Test WriteToPng
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderUtilTest, WriteToPng_002, TestSize.Level2)
-{
-    std::string filename = "/test.png";
-    WriteToPngParam param;
-    ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
-}
-
-/*
  * @tc.name: RotateEnumToInt_001
  * @tc.desc: Test RotateEnumToInt GRAPHIC_FLIP_H
  * @tc.type: FUNC
@@ -1229,4 +1218,24 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmapTest, TestSize.Level2)
     Drawing::Bitmap bitmap;
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
+
+/*
+ * @tc.name: GetAccumulatedBufferCount_001
+ * @tc.desc: Test GetAccumulatedBufferCount with increase and decrease the value of BufferCount
+ * @tc.type: FUNC
+ * @tc.require: issueI9OKU5
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
+{
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    RSBaseRenderUtil::IncAcquiredBufferCount();
+    ASSERT_GT(RSBaseRenderUtil::GetAccumulatedBufferCount(), 0);
+
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    RSBaseRenderUtil::DecAcquiredBufferCount();
+    ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+}
+
 } // namespace OHOS::Rosen

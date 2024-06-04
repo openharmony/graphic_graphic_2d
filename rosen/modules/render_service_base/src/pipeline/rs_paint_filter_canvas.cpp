@@ -374,6 +374,23 @@ std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter
     return nullptr;
 }
 
+void RSPaintFilterCanvasBase::DrawAtlas(const Drawing::Image* atlas, const Drawing::RSXform xform[],
+    const Drawing::Rect tex[], const Drawing::ColorQuad colors[], int count, Drawing::BlendMode mode,
+    const Drawing::SamplingOptions& sampling, const Drawing::Rect* cullRect)
+{
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawAtlas(atlas, xform, tex, colors, count, mode, sampling, cullRect);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawAtlas(atlas, xform, tex, colors, count, mode, sampling, cullRect);
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
 #ifdef ENABLE_RECORDING_DCL
@@ -400,7 +417,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
                 OnFilterWithBrush(b);
                 (*iter)->DrawImageNine(image, center, dst, filter, &b);
             } else {
-                (*iter)->DrawImageNine(image, center, dst, filter, brush);
+                (*iter)->DrawImageNine(image, center, dst, filter, GetFilteredBrush());
             }
         }
     }
@@ -411,7 +428,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
             OnFilterWithBrush(b);
             canvas_->DrawImageNine(image, center, dst, filter, &b);
         } else {
-            canvas_->DrawImageNine(image, center, dst, filter, brush);
+            canvas_->DrawImageNine(image, center, dst, filter, GetFilteredBrush());
         }
     }
 #endif
@@ -998,7 +1015,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     Brush b(brush);
-    if (hasHdrPresent_ && !isCapture_) {
+    if (hasHdrPresent_ && !isCapture_ && !brush.IsForceBrightnessDisable() && !b.IsHdr()) {
         RS_LOGD("hdr PaintFilter %{public}d AttachBrush", targetColorGamut_);
         PaintFilter(b);
     }

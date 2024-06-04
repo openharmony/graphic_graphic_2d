@@ -117,6 +117,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
+
+void FontCollection::ClearCaches()
+{
+    fontCollection_->ClearFontFamilyCache();
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

@@ -197,4 +197,97 @@ HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorStrategyRenderModifier001, Te
     RSEFCS->Update(prop, isDelta);
     ASSERT_NE(nullptr, RSEFCS->property_);
 }
+
+/**
+ * @tc.name: Apply
+ * @tc.desc: Test Apply and Update and Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderModifierTest, Apply, TestSize.Level1)
+{
+    ExtendRecordingCanvas canvas(100, 100);
+    canvas.Translate(15.f, 15.f);
+    auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
+    RSProperties properties;
+    RSModifierContext context(properties);
+    modifier->Apply(context);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    context.canvas_ = &paintFilterCanvas;
+    modifier->Apply(context);
+    ASSERT_NE(nullptr, context.canvas_);
+
+    modifier->Update(prop, true);
+    ASSERT_NE(modifier->GetProperty(), nullptr);
+
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSEnvForegroundColorRenderModifier001
+ * @tc.desc: Test Apply and Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorRenderModifier001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<Color>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Color>>();
+    auto modifier = std::make_shared<RSEnvForegroundColorRenderModifier>(property);
+    RSProperties properties;
+    ExtendRecordingCanvas canvas(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSModifierContext context(properties, &paintFilterCanvas);
+    modifier->Apply(context);
+    ASSERT_NE(nullptr, context.canvas_);
+
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSEnvForegroundColorStrategyRenderModifier001
+ * @tc.desc: test Apply and Marshalling and CalculateInvertColor and GetInvertBackgroundColor and Update
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorStrategyRenderModifier002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<Color>>();
+    auto modifier = std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(property);
+    RSProperties properties;
+    RSModifierContext context(properties);
+    modifier->Apply(context);
+    ASSERT_EQ(nullptr, context.canvas_);
+
+    ForegroundColorStrategyType type = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+    auto modifierTwo = std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(property);
+
+    auto renderProperty =
+        std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifierTwo->property_);
+    renderProperty->stagingValue_ = type;
+    ExtendRecordingCanvas canvas(100, 100);
+    Drawing::Surface surface;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.surface_ = &surface;
+    RSModifierContext contextArgs(properties, &paintFilterCanvas);
+    ASSERT_NE(nullptr, contextArgs.canvas_);
+    modifierTwo->Apply(contextArgs);
+    ASSERT_NE(nullptr, contextArgs.canvas_);
+
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+
+    ASSERT_EQ(modifier->CalculateInvertColor(Color()).alpha_, 0.f);
+
+    modifier->GetInvertBackgroundColor(contextArgs);
+    properties.SetClipToBounds(true);
+    ASSERT_EQ(modifier->GetInvertBackgroundColor(contextArgs).alpha_, 0.f);
+
+    std::shared_ptr<RSRenderPropertyBase> propTwo;
+    modifier->Update(propTwo, true);
+    ASSERT_EQ(propTwo, nullptr);
+}
 }

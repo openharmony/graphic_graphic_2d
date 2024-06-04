@@ -88,8 +88,22 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
 
 void RSRenderCurveAnimation::OnSetFraction(float fraction)
 {
-    OnAnimateInner(fraction, linearInterpolator_);
-    SetFractionInner(valueEstimator_->EstimateFraction(interpolator_));
+    if (valueEstimator_ == nullptr) {
+        return;
+    }
+    valueEstimator_->UpdateAnimationValue(fraction, GetAdditive());
+    SetValueFraction(fraction);
+    fractionChangeInfo_ = { true, fraction };
+}
+
+void RSRenderCurveAnimation::UpdateFractionAfterContinue()
+{
+    auto& [bChangeFraction, valueFraction] = fractionChangeInfo_;
+    if (bChangeFraction) {
+        SetFractionInner(valueEstimator_->EstimateFraction(interpolator_, valueFraction));
+        bChangeFraction = false;
+        valueFraction = 0.0f;
+    }
 }
 
 void RSRenderCurveAnimation::OnAnimate(float fraction)
@@ -108,7 +122,9 @@ void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_pt
     if (valueEstimator_ == nullptr) {
         return;
     }
-    valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
+    auto interpolatorValue = interpolator->Interpolate(fraction);
+    SetValueFraction(interpolatorValue);
+    valueEstimator_->UpdateAnimationValue(interpolatorValue, GetAdditive());
 }
 
 void RSRenderCurveAnimation::InitValueEstimator()

@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_accessibility_test.cpp",
     "rs_ashmem_helper_test.cpp",
     "rs_event_detector_test.cpp",
     "rs_event_manager_test.cpp",
@@ -81,7 +82,10 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
 
-    public_deps += [ "$graphic_2d_root:libgl" ]
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
 
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }

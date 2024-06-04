@@ -59,6 +59,8 @@ public:
 
     bool GetPathNeedAddOrigin() const;
 
+    bool IsSupportInteractiveAnimator() override { return false; }
+
 protected:
     void OnStart() override;
 

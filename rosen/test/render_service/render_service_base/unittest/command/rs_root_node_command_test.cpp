@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_root_node_command.h"
+#include "include/command/rs_surface_node_command.h"
+#include "include/pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,6 +46,8 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     NodeId surfaceNodeId = static_cast<NodeId>(-2);
     RootNodeCommandHelper::AttachRSSurfaceNode(context, id, surfaceNodeId);
+    RootNodeCommandHelper::Create(context, id);
+    RootNodeCommandHelper::AttachRSSurfaceNode(context, id, surfaceNodeId);
 }
 
 /**
@@ -57,6 +61,8 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand002, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     bool flag = false;
     RootNodeCommandHelper::SetEnableRender(context, id, flag);
+    RootNodeCommandHelper::Create(context, id);
+    RootNodeCommandHelper::SetEnableRender(context, id, flag);
 }
 
 /**
@@ -69,6 +75,9 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand003, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     NodeId surfaceNodeId = static_cast<NodeId>(-2);
+    RootNodeCommandHelper::AttachToUniSurfaceNode(context, id, surfaceNodeId);
+    RootNodeCommandHelper::Create(context, id);
+    SurfaceNodeCommandHelper::Create(context, surfaceNodeId);
     RootNodeCommandHelper::AttachToUniSurfaceNode(context, id, surfaceNodeId);
 }
 
@@ -84,5 +93,19 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand004, TestSize.Level1)
     int32_t width = static_cast<int32_t>(0);
     int32_t height = static_cast<int32_t>(0);
     RootNodeCommandHelper::UpdateSuggestedBufferSize(context, id, width, height);
+    RootNodeCommandHelper::Create(context, id);
+    RootNodeCommandHelper::UpdateSuggestedBufferSize(context, id, width, height);
+}
+
+/**
+ * @tc.name: CreateTest
+ * @tc.desc: Verify function Create
+ * @tc.type:FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSRootNodeCommandTest, CreateTest, TestSize.Level1)
+{
+    RSContext context;
+    RootNodeCommandHelper::Create(context, 1, false);
 }
 } // namespace OHOS::Rosen

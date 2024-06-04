@@ -29,6 +29,7 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/sk_resource_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -167,8 +168,10 @@ bool RSColorPickerCacheTask::Render()
             ROSEN_LOGE("RSColorPickerCacheTask cacheCanvas is null or cacheBackendTexture not valid");
             return false;
         }
+        SharedTextureContext* sharedContext = new SharedTextureContext(imageSnapshotCache_);
         if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr)) {
+            Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr,
+            SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");
             return false;
