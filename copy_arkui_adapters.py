@@ -21,7 +21,6 @@ import errno
 
 
 def main():
-    
     if (len(sys.argv) != 3):
         sys.stderr.write("MUST have 1 parameter for the source path and 1 parameter for the destination")
         sys.stderr.write(os.linesep)
@@ -40,6 +39,9 @@ def main():
         exit(errno.EINVAL)
 
     for item in os.listdir(source_dir):
+        if item in ["ohos", "preview"]:
+            continue
+
         if not os.path.isdir(os.path.join(source_dir, item)):
             continue
 
@@ -49,7 +51,7 @@ def main():
 
         dest_dir_build_folder = os.path.join(dest_dir, item, "build")
         if not os.path.exists(dest_dir_build_folder):
-            shutil.copytree(os.path.join(source_dir, item, "build"), dest_dir_build_folder)
+            shutil.copytree(os.path.join(source_dir, item, "build"), dest_dir_build_folder, dirs_exist_ok=True)
 
 if __name__ == "__main__":
     main()
