@@ -2138,7 +2138,7 @@ float RSProperties::GetBackgroundBlurRadius() const
 
 bool RSProperties::IsBackgroundBlurRadiusValid() const
 {
-    return ROSEN_GNE(GetBackgroundBlurRadius(), 0.999f);
+    return ROSEN_GNE(GetBackgroundBlurRadius(), 0.9f);
 }
 
 void RSProperties::SetBackgroundBlurSaturation(float backgroundBlurSaturation)
@@ -2277,7 +2277,7 @@ float RSProperties::GetForegroundBlurRadius() const
 
 bool RSProperties::IsForegroundBlurRadiusValid() const
 {
-    return ROSEN_GNE(GetForegroundBlurRadius(), 0.999f);
+    return ROSEN_GNE(GetForegroundBlurRadius(), 0.9f);
 }
 
 void RSProperties::SetForegroundBlurSaturation(float foregroundBlurSaturation)
