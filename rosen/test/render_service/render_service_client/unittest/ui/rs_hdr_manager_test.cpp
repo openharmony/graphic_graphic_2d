@@ -100,4 +100,107 @@ HWTEST_F(RSHDRManagerTest, ReduceHDRNum002, TestSize.Level1)
     ASSERT_TRUE(ret == 0);
 }
 
+/**
+ * @tc.name: IncreaseHDRNum003
+ * @tc.desc: test results of IncreaseHDRNum
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSHDRManagerTest, IncreaseHDRNum003, TestSize.Level1)
+{
+    RSHDRManager& manager = RSHDRManager::Instance();
+    manager.hdrNum_ = 1;
+    manager.IncreaseHDRNum();
+    EXPECT_TRUE(manager.getHDRNum() == 2);
+
+    manager.hdrNum_ = 0;
+    manager.IncreaseHDRNum();
+    EXPECT_TRUE(manager.getHDRNum());
+
+    manager.hdrNum_ = 0;
+    manager.setHDRPresent_ = [](bool flag, NodeId id) {};
+    manager.IncreaseHDRNum();
+    EXPECT_TRUE(manager.getHDRNum());
+
+    manager.ResetHDRNum();
+    manager.nodeId_ = 1;
+    manager.IncreaseHDRNum();
+    EXPECT_TRUE(manager.getHDRNum());
+}
+
+/**
+ * @tc.name: ReduceHDRNum003
+ * @tc.desc: test results of ReduceHDRNum
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSHDRManagerTest, ReduceHDRNum003, TestSize.Level1)
+{
+    RSHDRManager& manager = RSHDRManager::Instance();
+    manager.hdrNum_ = 0;
+    manager.ReduceHDRNum();
+    EXPECT_FALSE(manager.getHDRNum());
+
+    manager.hdrNum_ = 2;
+    manager.ReduceHDRNum();
+    EXPECT_TRUE(manager.getHDRNum() == 1);
+
+    manager.hdrNum_ = 1;
+    manager.ReduceHDRNum();
+    EXPECT_FALSE(manager.getHDRNum());
+
+    manager.hdrNum_ = 1;
+    manager.setHDRPresent_ = [](bool flag, NodeId id) {};
+    manager.ReduceHDRNum();
+    EXPECT_FALSE(manager.getHDRNum());
+
+    manager.hdrNum_ = 1;
+    manager.nodeId_ = 1;
+    manager.ReduceHDRNum();
+    EXPECT_FALSE(manager.getHDRNum());
+}
+
+/**
+ * @tc.name: RegisterSetHDRPresent001
+ * @tc.desc: test results of RegisterSetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSHDRManagerTest, RegisterSetHDRPresent001, TestSize.Level1)
+{
+    RSHDRManager& manager = RSHDRManager::Instance();
+    HDRFunc func = [](bool flag, NodeId id) {};
+    manager.RegisterSetHDRPresent(func, 1);
+    EXPECT_TRUE(manager.nodeId_);
+    EXPECT_TRUE(manager.setHDRPresent_);
+
+    manager.RegisterSetHDRPresent(func, INVALID_NODEID);
+    EXPECT_TRUE(manager.nodeId_);
+
+    manager.setHDRPresent_ = [](bool flag, NodeId id) {};
+    manager.RegisterSetHDRPresent(func, INVALID_NODEID);
+    EXPECT_TRUE(manager.setHDRPresent_);
+
+    func = nullptr;
+    manager.RegisterSetHDRPresent(func, INVALID_NODEID);
+    EXPECT_TRUE(manager.setHDRPresent_);
+}
+
+/**
+ * @tc.name: UnRegisterSetHDRPresent001
+ * @tc.desc: test results of UnRegisterSetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSHDRManagerTest, UnRegisterSetHDRPresent001, TestSize.Level1)
+{
+    RSHDRManager& manager = RSHDRManager::Instance();
+    manager.UnRegisterSetHDRPresent(INVALID_NODEID);
+    EXPECT_TRUE(manager.nodeId_);
+
+    manager.nodeId_ = 0;
+    manager.UnRegisterSetHDRPresent(INVALID_NODEID);
+    EXPECT_FALSE(manager.nodeId_);
+    EXPECT_FALSE(manager.setHDRPresent_);
+}
 } // namespace OHOS::Rosen

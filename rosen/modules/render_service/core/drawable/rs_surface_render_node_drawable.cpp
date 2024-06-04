@@ -560,7 +560,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
     if (enableType == MultiThreadCacheType::NONE) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lx, type %d",
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",
         name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);

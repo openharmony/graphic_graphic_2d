@@ -489,6 +489,7 @@ public:
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
+    void UpdateFilterCacheWithBackgroundDirty();
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
@@ -797,6 +798,7 @@ private:
 
     void GenerateFullChildrenList();
     void ResortChildren();
+    bool ShouldClearSurface();
 
     std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;

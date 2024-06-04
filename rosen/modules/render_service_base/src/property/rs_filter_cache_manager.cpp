@@ -294,6 +294,7 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
         cachedFilteredSnapshot_->cachedRect_.ToString().c_str(), src.ToString().c_str(), dst.ToString().c_str());
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*cachedFilteredSnapshot_->cachedImage_, src, dst, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);

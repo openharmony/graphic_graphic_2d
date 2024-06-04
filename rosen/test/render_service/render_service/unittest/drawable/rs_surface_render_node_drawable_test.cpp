@@ -179,7 +179,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface002, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->windowInfo_.isMainWindowType_ = true;
+    surfaceParams->isMainWindowType_ = true;
     surfaceParams->visibleRegion_ = Occlusion::Rect{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE};
     surfaceParams->transparentRegion_ = Occlusion::Rect{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE};
     uniParams->accumulatedDirtyRegion_ = Occlusion::Rect{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE};

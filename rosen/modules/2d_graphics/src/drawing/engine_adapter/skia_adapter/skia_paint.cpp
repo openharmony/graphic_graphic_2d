@@ -149,12 +149,16 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 
 void SkiaPaint::ApplyStrokeParam(const Paint& paint, SkPaint& skPaint)
 {
-    skPaint.setStrokeMiter(paint.GetMiterLimit());
+    if (!IsScalarAlmostEqual(paint.GetMiterLimit(), Paint::DEFAULT_MITER_VAL)) {
+        skPaint.setStrokeMiter(paint.GetMiterLimit());
+    }
     skPaint.setStrokeWidth(paint.GetWidth());
-
-    skPaint.setStrokeCap(static_cast<SkPaint::Cap>(paint.GetCapStyle()));
-    skPaint.setStrokeJoin(static_cast<SkPaint::Join>(paint.GetJoinStyle()));
-
+    if (paint.GetCapStyle() != Pen::CapStyle::DEFAULT_CAP) {
+        skPaint.setStrokeCap(static_cast<SkPaint::Cap>(paint.GetCapStyle()));
+    }
+    if (paint.GetJoinStyle() != Pen::JoinStyle::DEFAULT_JOIN) {
+        skPaint.setStrokeJoin(static_cast<SkPaint::Join>(paint.GetJoinStyle()));
+    }
     if (const PathEffect* pe = paint.GetPathEffectPtr()) {
         if (SkiaPathEffect* skPathEffectImpl = pe->GetImpl<SkiaPathEffect>()) {
             skPaint.setPathEffect(skPathEffectImpl->GetPathEffect());
