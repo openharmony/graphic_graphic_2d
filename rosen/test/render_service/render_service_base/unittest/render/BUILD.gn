@@ -33,7 +33,6 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
 
   configs = [
     ":render_test",
-    "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
   ]
 
