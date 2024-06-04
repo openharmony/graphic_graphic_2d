@@ -332,7 +332,12 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             task();
         }
     };
-    RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    auto delayTime = RSHardwareThread::Instance().delayTime_;
+    if (delayTime > 0) {
+        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
+    } else {
+        RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    }
 }
 
 void RSUniRenderThread::ReleaseSurface()

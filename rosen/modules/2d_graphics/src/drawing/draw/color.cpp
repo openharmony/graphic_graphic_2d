@@ -95,7 +95,7 @@ scalar Color::GetAlphaF() const
     return static_cast<scalar>(alpha_) / RGB_MAX;
 }
 
-Color4f Color::GetColor4f()
+const Color4f& Color::GetColor4f()
 {
     color4f_.redF_ = GetRedF();
     color4f_.greenF_ = GetGreenF();

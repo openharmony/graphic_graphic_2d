@@ -340,6 +340,8 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
         return;
     }
     target->canvasDrawingNodeSurfaceChanged_ = true;
+    target->surfaceParams_.width = surfaceParams_.width;
+    target->surfaceParams_.height = surfaceParams_.height;
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 
@@ -354,6 +356,17 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
         needSync_ = true;
     }
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
 }
 
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const

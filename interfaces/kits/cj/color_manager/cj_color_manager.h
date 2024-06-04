@@ -29,7 +29,7 @@ public:
     {
         colorSpaceToken_ = nullptr;
     }
-    static std::tuple<int32_t, std::string, std::shared_ptr<ColorSpace>> create(ApiColorSpaceType colorSpaceName);
+    static std::tuple<int32_t, std::string, std::shared_ptr<ColorSpace>> create(ApiColorSpaceType csType);
     static std::shared_ptr<ColorSpace> create(ColorSpacePrimaries primaries, float gamma, int32_t* errCode);
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {

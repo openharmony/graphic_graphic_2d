@@ -93,6 +93,7 @@ RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, vo
 {
     if (func == nullptr) {
         HLOGE("OnScreenVBlankIdleFunc is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
     }
 
     RosenError retCode = InitDevice();
@@ -101,7 +102,7 @@ RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, vo
     }
 
     int32_t ret = device_->RegScreenVBlankIdleCallback(func, data);
-    if (!ret) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("RegScreenVBlankIdleCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
     }

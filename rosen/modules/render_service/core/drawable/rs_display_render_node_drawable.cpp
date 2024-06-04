@@ -85,11 +85,6 @@ private:
         Drawing::ImageInfo info =
             Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
         if (!aceDebugBoundaryEnabled_) {
-            auto gpuContext = curCanvas_->GetGPUContext();
-            if (gpuContext == nullptr) {
-                RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: need gpu canvas");
-                return;
-            }
             overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
         } else {
             overdrawSurface_ = Drawing::Surface::MakeRaster(info);
@@ -862,12 +857,11 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
 void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
-    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
-    if (!exFoldScreen_) {
-        canvasRotation_ = true;
-    } else {
-        canvasRotation_ = false;
+    if (!displayNodeSp) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection displayNodeSp is null");
+        return;
     }
+    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
     auto renderFrame = RequestFrame(displayNodeSp, params, processor);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection failed to request frame");
@@ -883,10 +877,13 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection failed to create canvas");
         return;
     }
-    curCanvas_->Save();
-    ScaleMirrorIfNeed(*displayNodeSp, processor);
-    RotateMirrorCanvasIfNeed(*displayNodeSp);
     auto mirroredNode = params.GetMirrorSource().lock();
+    if (!mirroredNode) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection mirroredNode is null");
+        return;
+    }
+    curCanvas_->Save();
+    ScaleAndRotateMirrorForWiredScreen(*displayNodeSp, *mirroredNode);
     bool forceCPU = false;
     auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*mirroredNode, forceCPU);
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -896,6 +893,43 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
     renderFrame->Flush();
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess();
+}
+
+void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNode& node,
+    RSDisplayRenderNode& mirroredNode)
+{
+    auto mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredNode.GetRenderParams().get());
+    if (!mirroredParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen mirroredParams is null");
+    }
+    auto mainScreenInfo = mirroredParams->GetScreenInfo();
+    auto mainWidth = static_cast<float>(mainScreenInfo.width);
+    auto mainHeight = static_cast<float>(mainScreenInfo.height);
+    auto nodeParams = static_cast<RSDisplayRenderParams*>(node.GetRenderParams().get());
+    if (!nodeParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
+    }
+    auto mirrorScreenInfo = nodeParams->GetScreenInfo();
+    auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
+    auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
+    auto rotation = mirroredNode.GetScreenRotation();
+    if (exFoldScreen_) {
+        // 1 means extra 90 degrees for fold screen
+        rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + 1) % SCREEN_ROTATION_NUM);
+    }
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        std::swap(mainWidth, mainHeight);
+    }
+    curCanvas_->Clear(SK_ColorBLACK);
+    // Scale
+    if (mainWidth > 0 && mainHeight > 0) {
+        auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
+        // 2 for calc X and Y
+        curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2, (mirrorHeight - (scaleNum * mainHeight)) / 2);
+        curCanvas_->Scale(scaleNum, scaleNum);
+    }
+    // Rotate
+    RotateMirrorCanvas(rotation, static_cast<float>(mainScreenInfo.width), static_cast<float>(mainScreenInfo.height));
 }
 
 void RSDisplayRenderNodeDrawable::SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo)

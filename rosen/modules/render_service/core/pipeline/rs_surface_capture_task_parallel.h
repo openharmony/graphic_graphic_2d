@@ -19,20 +19,23 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "pipeline/rs_surface_capture_task.h"
+#include "pixel_map.h"
 #include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceCaptureTaskParallel {
 public:
-    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread),
+    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool useDma = false)
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), useDma_(useDma),
         rsSurfaceCaptureType_(RSSystemParameters::GetRsSurfaceCaptureType()),
         rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
-    static void CheckModifiers(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
-    static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+    static void CheckModifiers(NodeId id,
+        sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
+    static void Capture(NodeId id,
+        sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
 
@@ -49,8 +52,7 @@ private:
 
     bool FindSecurityOrSkipOrProtectedLayer();
 
-    // It is currently only used on folding screen.
-    int32_t ScreenCorrection(ScreenRotation screenRotation);
+    int32_t CalPixelMapRotation();
 
     NodeId nodeId_;
 
@@ -59,12 +61,26 @@ private:
     float scaleY_;
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
+    ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
+    int32_t finalRotationAngle_ = RS_ROTATION_0;
 
     // if true, do surfaceCapture on background thread
-    bool isProcOnBgThread_ = false;
+    bool useDma_ = false;
     RsSurfaceCaptureType rsSurfaceCaptureType_;
     RsParallelType rsParallelType_;
 };
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class DmaMem {
+public:
+    sptr<SurfaceBuffer> DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelMap);
+    std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
+    void ReleaseDmaMemory();
+private:
+    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+};
+#endif
+
 } // namespace Rosen
 } // namespace OHOS
 

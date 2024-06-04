@@ -55,6 +55,10 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
         HGM_LOGE("HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime illegal param");
         return 0;
     }
+    if (vsyncGenerator_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::vsyncGenerator is nullptr");
+        return 0;
+    }
     uint32_t maxPluseNum = HgmCore::Instance().GetSupportedMaxTE() / lastRate;
 
     auto pulse = vsyncGenerator_->GetVSyncPulse();

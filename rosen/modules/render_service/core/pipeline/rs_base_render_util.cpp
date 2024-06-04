@@ -42,7 +42,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
-constexpr int32_t ROTATION_90 = 90;
 }
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
@@ -1157,7 +1156,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN;
     }
-    rotationTransform = static_cast<GraphicTransformType>((rotationTransform + extraRotation / ROTATION_90) % 4);
+    rotationTransform = static_cast<GraphicTransformType>(
+        (rotationTransform + extraRotation / RS_ROTATION_90) % SCREEN_ROTATION_NUM);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
@@ -1555,6 +1555,10 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
 GraphicTransformType RSBaseRenderUtil::GetRotateTransform(GraphicTransformType transform)
 {
     switch (transform) {
+        case GraphicTransformType::GRAPHIC_FLIP_H:
+        case GraphicTransformType::GRAPHIC_FLIP_V: {
+            return GraphicTransformType::GRAPHIC_ROTATE_NONE;
+        }
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
             return GraphicTransformType::GRAPHIC_ROTATE_90;

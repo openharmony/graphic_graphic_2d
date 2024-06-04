@@ -423,8 +423,7 @@ void RSScreenManager::CleanAndReinit()
 bool RSScreenManager::TrySimpleProcessHotPlugEvents()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (pendingHotPlugEvents_.empty() && connectedIds_.empty()) {
-        isHwcDead_ = false;
+    if (!isHwcDead_ && pendingHotPlugEvents_.empty() && connectedIds_.empty()) {
         mipiCheckInFirstHotPlugEvent_ = true;
         return true;
     }
