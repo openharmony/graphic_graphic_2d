@@ -202,20 +202,20 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
             multiAppStrategy_->HandlePkgsEvent({ unConfigPkgName, });
             ASSERT_EQ(res, EXEC_SUCCESS);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_NE(res, EXEC_SUCCESS);
+            ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
             multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::DOWN_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_NE(res, EXEC_SUCCESS);
+            ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_144_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_144_HZ);
 
             multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::UP_STATE);
             multiAppStrategy_->HandleTouchInfo(unConfigPkgName, TouchState::IDLE_STATE);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_NE(res, EXEC_SUCCESS);
+            ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
         }

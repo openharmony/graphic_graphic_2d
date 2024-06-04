@@ -74,7 +74,34 @@ HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
     int width = 200;
     int height = 300;
     pixelMap = CreatePixelMap(width, height);
+    pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_565;
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_8888;
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::BGRA_8888;
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::UNKNOWN;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_888;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::NV21;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::NV12;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::CMYK;
+    EXPECT_EQ(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
 }
 
 /**
@@ -91,6 +118,16 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
     Drawing::Rect src;
     Drawing::Rect dst;
     Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = true;
+    pixelMap->transformData_.flipY = true;
+    pixelMap->transformData_.cropLeft = 0;
+    pixelMap->transformData_.cropTop = 0;
+    pixelMap->transformData_.cropWidth = 1;
+    pixelMap->transformData_.cropHeight = 1;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 1;
+    pixelMap->transformData_.scaleY = 1;
     RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
     EXPECT_NE(pixelMap, nullptr);
 }
@@ -123,6 +160,10 @@ HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage, TestSize.Level1)
     pixelmap = CreatePixelMap(width, height);
 
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::NV12;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::NV21;
     EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
 }
 

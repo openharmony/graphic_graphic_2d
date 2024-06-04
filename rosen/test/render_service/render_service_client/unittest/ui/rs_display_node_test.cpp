@@ -71,6 +71,38 @@ HWTEST_F(RSDisplayNodeTest, Create001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddDisplayNodeToTree001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, AddDisplayNodeToTree001, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. create RSDisplayNode
+    */
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->AddDisplayNodeToTree();
+}
+
+/**
+ * @tc.name: RemoveDisplayNodeFromTree001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, RemoveDisplayNodeFromTree001, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. create RSDisplayNode
+    */
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->RemoveDisplayNodeFromTree();
+}
+
+/**
  * @tc.name: GetType001
  * @tc.desc:
  * @tc.type:FUNC

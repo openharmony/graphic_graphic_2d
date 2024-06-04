@@ -17,6 +17,8 @@
 #include <map>
 #include <set>
 
+#include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "hgm_task_handle_thread.h"
 #include "hgm_touch_manager.h"
 
@@ -28,6 +30,9 @@ namespace {
 
 HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(TouchState::IDLE_STATE),
     upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        frameRateMgr->SetSchedulerPreferredFps(OLED_60_HZ);
+        frameRateMgr->SetIsNeedUpdateAppOffset(true);
         ChangeState(TouchState::IDLE_STATE);
     }),
     rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this] () {
@@ -36,6 +41,8 @@ HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(Tou
 {
     // register event callback
     RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        frameRateMgr->SetSchedulerPreferredFps(OLED_120_HZ);
         ChangeState(TouchState::DOWN_STATE);
     });
     RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {

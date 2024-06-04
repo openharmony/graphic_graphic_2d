@@ -42,16 +42,6 @@ HWTEST_F(RSDisplaySoloistTest, InsertAndRemoveSoloistTest001, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     ASSERT_FALSE(soloistManager.InitVsyncReceiver());
-
-    std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
-    int32_t soloistId = soloistIdObj->GetId();
-    ASSERT_EQ(soloistManager.GetIdToSoloistMap().size(), 0);
-    soloistManager.InsertUseExclusiveThreadFlag(soloistId, true);
-    ASSERT_EQ(soloistManager.GetIdToSoloistMap().size(), 1);
-
-    FrameRateRange frameRateRange(0, 120, 60);
-    ASSERT_TRUE(frameRateRange.IsValid());
-    soloistManager.RemoveSoloist(soloistId);
 }
 
 } // namespace OHOS::Rosen

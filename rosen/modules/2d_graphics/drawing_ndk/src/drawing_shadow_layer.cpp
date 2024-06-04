@@ -15,6 +15,8 @@
 
 #include "drawing_shadow_layer.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "effect/blur_draw_looper.h"
 
 using namespace OHOS;
@@ -29,6 +31,7 @@ static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowLayer
 OH_Drawing_ShadowLayer* OH_Drawing_ShadowLayerCreate(float blurRadius, float x, float y, uint32_t color)
 {
     if (blurRadius <= 0.f) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     return (OH_Drawing_ShadowLayer*)new BlurDrawLooper(blurRadius, x, y, color);

@@ -50,8 +50,9 @@ public:
     void SetARGB(int a, int r, int g, int b);
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> colorSpace = nullptr);
     const Color& GetColor() const { return color_; }
-    Color4f GetColor4f() { return color_.GetColor4f(); }
-    std::shared_ptr<ColorSpace> GetColorSpace() const { return colorSpace_; }
+    const Color4f& GetColor4f() { return color_.GetColor4f(); }
+    const std::shared_ptr<ColorSpace> GetColorSpace() const { return colorSpace_; }
+    const ColorSpace* GetColorSpacePtr() const { return colorSpace_.get(); }
 
     void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
@@ -74,17 +75,20 @@ public:
     BlendMode GetBlendMode() const { return blendMode_; }
 
     void SetFilter(const Filter& filter);
-    Filter GetFilter() const { return filter_; }
+    const Filter GetFilter() const { return filter_; }
     bool HasFilter() const { return hasFilter_; }
 
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
     const std::shared_ptr<ShaderEffect> GetShaderEffect() const { return shaderEffect_; }
+    const ShaderEffect* GetShaderEffectPtr() const { return shaderEffect_.get(); }
 
     void SetPathEffect(std::shared_ptr<PathEffect> e);
     const std::shared_ptr<PathEffect> GetPathEffect() const { return pathEffect_; }
+    const PathEffect* GetPathEffectPtr() const { return pathEffect_.get(); }
 
     void SetBlender(std::shared_ptr<Blender> blender);
-    std::shared_ptr<Blender> GetBlender() const { return blender_; }
+    const std::shared_ptr<Blender> GetBlender() const { return blender_; }
+    const Blender* GetBlenderPtr() const { return blender_.get(); }
 
     void SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper);
     std::shared_ptr<BlurDrawLooper> GetLooper() const;

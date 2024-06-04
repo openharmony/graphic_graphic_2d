@@ -100,6 +100,7 @@ private:
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    int64_t delayTime_ = 0;
 
     friend class RSUniRenderThread;
 };
