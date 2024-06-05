@@ -1444,17 +1444,17 @@ void RSUniRenderUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& s
 GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
     auto consumer = node.GetConsumer();
-    if (!consumer) {
-        return GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    }
     static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
-    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
-        RSBaseRenderUtil::GetFlipTransform(consumer->GetTransform()));
+    int consumerTransform = consumer ?
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform())) : 0;
+    GraphicTransformType consumerFlip = consumer ?
+        RSBaseRenderUtil::GetFlipTransform(consumer->GetTransform()) : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) +
+        surfaceNodeRotation + consumerTransform) % 360;
+    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation, consumerFlip);
     return rotateEnum;
 }
  
@@ -1646,5 +1646,31 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #endif
 }
 
+void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node,
+    Drawing::Matrix& matrix, float& alpha)
+{
+    if (node == nullptr) {
+        return;
+    }
+    const auto& property = node->GetRenderProperties();
+    alpha = property.GetAlpha();
+    matrix = property.GetBoundsGeometry()->GetMatrix();
+    auto parent = node->GetParent().lock();
+    while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        const auto& property = parent->GetRenderProperties();
+        alpha *= property.GetAlpha();
+        matrix.PostConcat(property.GetBoundsGeometry()->GetMatrix());
+        if (ROSEN_EQ(alpha, 1.f)) {
+            parent->DisableDrawingCacheByHwcNode();
+        }
+        parent = parent->GetParent().lock();
+    }
+    if (!parent) {
+        return;
+    }
+    const auto& parentProperty = parent->GetRenderProperties();
+    alpha *= parentProperty.GetAlpha();
+    matrix.PostConcat(parentProperty.GetBoundsGeometry()->GetMatrix());
+}
 } // namespace Rosen
 } // namespace OHOS

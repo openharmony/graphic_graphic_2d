@@ -325,7 +325,9 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
-    if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer()) {
+    auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
+    if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
+        pendingDrawables.size() == 0) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -350,12 +352,26 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
         RS_LOGW("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessDisplaySurface(*displayNode);
+
+    CreateUIFirstLayer(processor);
+
     // commit RCD layers
     auto rcdInfo = std::make_unique<RcdInfo>();
     auto screenInfo = params->GetScreenInfo();
     DoScreenRcdTask(processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
+}
+
+void RSDisplayRenderNodeDrawable::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
+{
+    auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
+    for (auto& drawable : pendingDrawables) {
+        auto params = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        if (params && params->GetHardwareEnabled()) {
+            processor->CreateUIFirstLayer(*drawable, *params);
+        }
+    }
 }
 
 void RSDisplayRenderNodeDrawable::RemoveClearMemoryTask() const
@@ -658,6 +674,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     displayNodeSp->SetGlobalZOrder(globalZOrder);
     displayNodeSp->SetDirtyRects(damageRegionrects);
     processor->ProcessDisplaySurface(*displayNodeSp);
+    CreateUIFirstLayer(processor);
     processor->PostProcess();
     RS_TRACE_END();
 }

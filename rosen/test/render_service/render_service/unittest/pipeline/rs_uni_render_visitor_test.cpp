@@ -3949,23 +3949,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty001, TestSize.L
 }
 
 /**
- * @tc.name: AccumulateMatrixAndAlpha001
- * @tc.desc: Test AccumulateMatrixAndAlpha with alpha 1
- * @tc.type: FUNC
- * @tc.require: issueI9RR2Y
- */
-HWTEST_F(RSUniRenderVisitorTest, AccumulateMatrixAndAlpha001, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-
-    Drawing::Matrix totalMatrix;
-    float alpha = 1.f;
-    rsUniRenderVisitor->AccumulateMatrixAndAlpha(node, totalMatrix, alpha);
-    ASSERT_EQ(node->GetRenderProperties().GetAlpha(), 1);
-}
-
-/**
  * @tc.name: UpdateHwcNodeEnableByRotateAndAlpha001
  * @tc.desc: Test UpdateHwcNodeEnableByRotateAndAlpha for empty node
  * @tc.type: FUNC

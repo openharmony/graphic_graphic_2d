@@ -87,6 +87,7 @@ private:
     bool SkipDisplayIfScreenOff() const;
     bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
+    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

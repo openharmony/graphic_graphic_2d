@@ -56,6 +56,8 @@ public:
     {
         doingCacheProcessNum++;
     }
+    void DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
+    void DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
 
 private:
     void CreateShareEglContext();

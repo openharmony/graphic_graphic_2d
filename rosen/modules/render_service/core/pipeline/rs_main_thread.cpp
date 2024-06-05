@@ -3497,6 +3497,8 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+    RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        deviceType_ == DeviceType::PHONE);
     if (RSSystemProperties::GetUIFirstForceEnabled()) {
         isUiFirstOn_ = true;
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);

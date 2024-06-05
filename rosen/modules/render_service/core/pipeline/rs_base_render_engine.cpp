@@ -790,7 +790,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.DetachBrush();
 #endif // USE_VIDEO_PROCESSING_ENGINE
     }
-    RS_OPTIONAL_TRACE_END();
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

@@ -26,6 +26,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
@@ -36,12 +37,12 @@
 namespace OHOS::Rosen::DrawableV2 {
 bool RSSurfaceRenderNodeDrawable::UseDmaBuffer()
 {
-    bool enabled = RSSystemParameters::GetUIFirstDmaBufferEnabled();
+    bool useDmaBuffer = RSUifirstManager::Instance().GetUseDmaBuffer();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
-        return enabled;
+        return useDmaBuffer;
     }
-    return enabled && surfaceParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW;
+    return useDmaBuffer && surfaceParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
