@@ -134,6 +134,8 @@ public:
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
 
+    void SetRSFreezeFlag(bool freezeFlag);
+    bool GetRSFreezeFlag() const;
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
 
@@ -195,6 +197,7 @@ private:
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
     SurfaceParam surfaceParams_;
+    bool freezeFlag_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

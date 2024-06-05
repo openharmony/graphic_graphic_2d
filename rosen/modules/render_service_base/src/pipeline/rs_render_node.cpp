@@ -3418,6 +3418,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 {
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
+    stagingRenderParams_->SetRSFreezeFlag(isStaticCached);
     if (!isStaticCached_) {
         SetContentDirty();
     }
@@ -3860,8 +3861,7 @@ void RSRenderNode::OnSync()
         }
         uifirstSkipPartialSync_ = false;
     }
-    if ((GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_)
-        && clearSurfaceTask_ && needClearSurface_) {
+    if (ShouldClearSurface()) {
         clearSurfaceTask_();
         needClearSurface_ = false;
     }
@@ -3872,6 +3872,13 @@ void RSRenderNode::OnSync()
     foregroundFilterInteractWithDirty_ = false;
 
     lastFrameSynced_ = true;
+}
+
+bool RSRenderNode::ShouldClearSurface()
+{
+    bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
+    bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
+    return (renderGroupFlag || freezeFlag) && clearSurfaceTask_ && needClearSurface_;
 }
 
 void RSRenderNode::ValidateLightResources()

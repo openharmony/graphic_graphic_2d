@@ -1250,6 +1250,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
     prepareClipRect_ = screenRect_;
     curAlpha_ = 1.0f;
+    globalZOrder_ = 0.0f;
     hasSkipLayer_ = false;
     node.UpdateRotation();
     if (!(RSMainThread::Instance()->IsRequestedNextVSync() || RSMainThread::Instance()->GetNextDVsyncAnimateFlag())) {
@@ -1945,8 +1946,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             }
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
-            hwcNodePtr->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() && !hwcNodePtr->GetProtectedLayer()
-                ? -1.f : globalZOrder_++);
         }
     });
     PrevalidateHwcNode();
@@ -1961,8 +1960,9 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     std::vector<RequestLayerInfo> prevalidLayers;
     uint32_t curFps = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(curDisplayNode_->GetScreenId());
     // add surfaceNode layer
+    uint32_t zOrder = static_cast<uint32_t>(globalZOrder_);
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this, &prevalidLayers, &curFps](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &prevalidLayers, &curFps, &zOrder](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
             return;
@@ -1980,7 +1980,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
             RequestLayerInfo surfaceLayer;
             if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
-                hwcNodePtr, transform, curFps, surfaceLayer)) {
+                zOrder++, hwcNodePtr, transform, curFps, surfaceLayer)) {
                 prevalidLayers.emplace_back(surfaceLayer);
             }
         }
@@ -1992,7 +1992,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     // add display layer
     RequestLayerInfo displayLayer;
     if (RSUniHwcPrevalidateUtil::GetInstance().CreateDisplayNodeLayerInfo(
-        globalZOrder_ + 1, curDisplayNode_, screenInfo_, curFps, displayLayer)) {
+        zOrder++, curDisplayNode_, screenInfo_, curFps, displayLayer)) {
         prevalidLayers.emplace_back(displayLayer);
     }
     // add rcd layer
@@ -2017,6 +2017,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             if (node == nullptr || node->GetForceHardware() || node->GetProtectedLayer()) {
                 continue;
             }
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by prevalidate",
+                node->GetName().c_str(), node->GetId());
             node->SetHardwareForcedDisabledState(true);
             node->SetGlobalZOrder(-1.f);
         }
@@ -2041,6 +2043,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetCalcRectInPrepare(false);
+        hwcNodePtr->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() && !hwcNodePtr->GetProtectedLayer()
+            ? -1.f : globalZOrder_++);
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }

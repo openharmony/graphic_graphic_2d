@@ -51,6 +51,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_shader_test.cpp",
     "rs_shadow_test.cpp",
     "rs_skia_filter_test.cpp",
+    "rs_spherize_effect_filter_test.cpp",
     "rs_typeface_cache_test.cpp",
   ]
 

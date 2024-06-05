@@ -30,6 +30,7 @@ public:
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
     static inline Mock::HdiDeviceMock* mockDevice_;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
 };
 
 void HdiScreenTest::SetUpTestCase()
@@ -59,7 +60,10 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, SetScreenConstraint(_, _, _, _)).WillRepeatedly(testing::Return(0));
 }
 
-void HdiScreenTest::TearDownTestCase() {}
+void HdiScreenTest::TearDownTestCase()
+{
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
 
 namespace {
 /*
