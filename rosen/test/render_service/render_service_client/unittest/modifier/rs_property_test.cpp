@@ -372,4 +372,67 @@ HWTEST_F(RSPropertyTest, operator016, TestSize.Level1)
     ASSERT_TRUE(prop1 != nullptr);
     ASSERT_TRUE(prop1 != prop2);
 }
+
+/**
+ * @tc.name: GetThresholdByThresholdType001
+ * @tc.desc: test results of GetThresholdByThresholdType
+ * @tc.type: FUNC
+ * @tc.require: issueI9V4DP
+ */
+HWTEST_F(RSPropertyTest, GetThresholdByThresholdType001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSPropertyBase>();
+    float res = prop->GetThresholdByThresholdType(ThresholdType::LAYOUT);
+    EXPECT_TRUE(res == LAYOUT_NEAR_ZERO_THRESHOLD);
+    
+    res = prop->GetThresholdByThresholdType(ThresholdType::COARSE);
+    EXPECT_TRUE(res == FLOAT_NEAR_ZERO_COARSE_THRESHOLD);
+
+    res = prop->GetThresholdByThresholdType(ThresholdType::MEDIUM);
+    EXPECT_TRUE(res == FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD);
+
+    res = prop->GetThresholdByThresholdType(ThresholdType::FINE);
+    EXPECT_TRUE(res == FLOAT_NEAR_ZERO_FINE_THRESHOLD);
+
+    res = prop->GetThresholdByThresholdType(ThresholdType::COLOR);
+    EXPECT_TRUE(res == COLOR_NEAR_ZERO_THRESHOLD);
+
+    res = prop->GetThresholdByThresholdType(ThresholdType::ZERO);
+    EXPECT_TRUE(res == ZERO);
+
+    res = prop->GetThresholdByThresholdType(ThresholdType::DEFAULT);
+    EXPECT_TRUE(res == DEFAULT_NEAR_ZERO_THRESHOLD);
+}
+
+/**
+ * @tc.name: Equality001
+ * @tc.desc: test results of operator==
+ * @tc.type: FUNC
+ * @tc.require: issueI9V4DP
+ */
+HWTEST_F(RSPropertyTest, Equality001, TestSize.Level1)
+{
+    std::shared_ptr<const RSPropertyBase> propOne = nullptr;
+    auto propTwo = std::make_shared<RSPropertyBase>();
+    EXPECT_FALSE(propOne == propTwo);
+
+    propOne = std::make_shared<RSPropertyBase>();
+    EXPECT_FALSE(propOne == propTwo);
+}
+
+/**
+ * @tc.name: Unlikeness001
+ * @tc.desc: test results of operator!=
+ * @tc.type: FUNC
+ * @tc.require: issueI9V4DP
+ */
+HWTEST_F(RSPropertyTest, Unlikeness001, TestSize.Level1)
+{
+    std::shared_ptr<const RSPropertyBase> propOne = nullptr;
+    auto propTwo = std::make_shared<RSPropertyBase>();
+    EXPECT_FALSE(propOne == propTwo);
+
+    propOne = std::make_shared<RSPropertyBase>();
+    EXPECT_TRUE(propOne != propTwo);
+}
 } // namespace OHOS::Rosen
