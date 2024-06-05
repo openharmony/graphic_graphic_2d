@@ -34,7 +34,15 @@ public:
     bool RegisterNode(const std::shared_ptr<RSBaseNode>& nodePtr);
     bool RegisterNodeInstanceId(NodeId id, int32_t instanceId);
     void UnregisterNode(NodeId id);
-
+    /**
+     * Storing a mapping relationship of an animation with the node it originally belongs to and the instance it
+     * should be played on.
+     * This relationship need to be stored as the ownership of an animation is transferred from an RSNode to the
+     * RootNode in the destructor of RSNode, else this information would have been lost.
+     */
+    bool RegisterAnimationInstanceId(AnimationId animId, NodeId id, int32_t instanceId);
+    // Removing the stored relationship of an animation. Should be used when an RSAnimation object is freed
+    void UnregisterAnimation(AnimationId animId);
     // Get RSNode with type T, return nullptr if not found or type mismatch
     template<typename T = RSBaseNode>
     const std::shared_ptr<T> GetNode(NodeId id) const
@@ -44,6 +52,8 @@ public:
     template<>
     const std::shared_ptr<RSBaseNode> GetNode(NodeId id) const;
     int32_t GetNodeInstanceId(NodeId id) const;
+    // Used to get instanceId for node which is already freed.
+    int32_t GetInstanceIdForReleasedNode(NodeId id) const;
 
     const std::shared_ptr<RSNode> GetAnimationFallbackNode() const;
 
@@ -59,6 +69,7 @@ private:
     mutable std::mutex mutex_;
     std::unordered_map<NodeId, std::weak_ptr<RSBaseNode>> nodeMap_;
     std::unordered_map<NodeId, int32_t> nodeIdMap_;
+    std::unordered_map<AnimationId, std::pair<NodeId, int32_t>> animationNodeIdInstanceIdMap_;
     std::shared_ptr<RSNode> animationFallbackNode_;
 };
 } // namespace Rosen

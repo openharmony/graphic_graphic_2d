@@ -14,13 +14,16 @@
  */
 
 #include <gtest/gtest.h>
+#include <iostream>
 #include <memory>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include "ashmem.h"
+#include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "securec.h"
+#include "sys_binder.h"
 
 #include "transaction/rs_ashmem_helper.h"
 
@@ -49,6 +52,37 @@ void RSAshmemHelperTest::SetUp()
 void RSAshmemHelperTest::TearDown()
 {
     rsAshmemAllocator.reset();
+}
+
+std::shared_ptr<MessageParcel> CreateMessageParcel()
+{
+    Allocator* allocator = nullptr;
+    size_t offsetsSize = 2;
+    auto dataParcel = std::make_shared<MessageParcel>(allocator);
+    dataParcel->objectOffsets_ = new binder_size_t[offsetsSize];
+    dataParcel->objectOffsets_[0] = 0;
+    dataParcel->objectOffsets_[1] = sizeof(flat_binder_object);
+    dataParcel->objectsCapacity_ = offsetsSize;
+    dataParcel->objectCursor_ = offsetsSize;
+
+    size_t dataSize = offsetsSize * sizeof(flat_binder_object);
+    if (dataParcel->data_ != nullptr) {
+        delete[] dataParcel->data_;
+    }
+    dataParcel->data_ = new uint8_t[dataSize];
+    dataParcel->dataSize_ = dataSize;
+    binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
+    uintptr_t data = dataParcel->GetData();
+    for (size_t i = 0; i < dataParcel->objectCursor_; i++) {
+        flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
+        if (dataParcel->objectOffsets_[0] == dataParcel->objectOffsets_[i]) {
+            flat->hdr.type = BINDER_TYPE_FD;
+        } else {
+            flat->hdr.type = BINDER_TYPE_FDR;
+        }
+        flat->handle = static_cast<int>(i);
+    }
+    return dataParcel;
 }
 
 /**
@@ -137,6 +171,10 @@ HWTEST_F(RSAshmemHelperTest, CopyFromAshmemTest, TestSize.Level1)
     size_t size2 = 0;
     ashmemAllocator.CopyFromAshmem(size2);
     ASSERT_EQ(ashmemAllocator.CopyFromAshmem(size2), nullptr);
+    // for test
+    size_t size3 = 200000001;
+    ashmemAllocator.size_ = 200000002;
+    ASSERT_EQ(ashmemAllocator.CopyFromAshmem(size3), nullptr);
 }
 
 /**
@@ -183,8 +221,14 @@ HWTEST_F(RSAshmemHelperTest, DeallocTest, TestSize.Level1)
     rsAshmemAllocator->data_ =
         ::mmap(nullptr, rsAshmemAllocator->size_, PROT_READ, MAP_SHARED, rsAshmemAllocator->fd_, 0);
     void* wrongData = ::mmap(nullptr, rsAshmemAllocator->size_, PROT_READ, MAP_SHARED, rsAshmemAllocator->fd_, 0);
+    rsAshmemAllocator->Dealloc(nullptr);
     rsAshmemAllocator->Dealloc(wrongData);
     rsAshmemAllocator->Dealloc(rsAshmemAllocator->data_);
+    EXPECT_EQ(rsAshmemAllocator->GetData(), nullptr);
+    rsAshmemAllocator->fd_ = -2;
+    rsAshmemAllocator->data_ = nullptr;
+    rsAshmemAllocator->Dealloc(rsAshmemAllocator->data_);
+    EXPECT_NE(rsAshmemAllocator->GetFd(), -1);
     EXPECT_EQ(rsAshmemAllocator->GetData(), nullptr);
 }
 
@@ -223,9 +267,9 @@ HWTEST_F(RSAshmemHelperTest, CopyFileDescriptorTest, TestSize.Level1)
 {
     RSAshmemHelper rsAshmemHelper;
     MessageParcel ashmemParcel;
-    auto dataParcel = std::make_shared<MessageParcel>();
+    auto dataParcel = CreateMessageParcel();
     rsAshmemHelper.CopyFileDescriptor(&ashmemParcel, dataParcel);
-    EXPECT_EQ(dataParcel->GetOffsetsSize(), 0);
+    EXPECT_NE(dataParcel->GetOffsetsSize(), 0);
 }
 
 /**
@@ -238,9 +282,9 @@ HWTEST_F(RSAshmemHelperTest, InjectFileDescriptorTest, TestSize.Level1)
 {
     RSAshmemHelper rsAshmemHelper;
     MessageParcel ashmemParcel;
-    auto dataParcel = std::make_shared<MessageParcel>();
+    auto dataParcel = CreateMessageParcel();
     rsAshmemHelper.InjectFileDescriptor(dataParcel, &ashmemParcel);
-    EXPECT_EQ(dataParcel->GetData(), 0);
+    EXPECT_NE(dataParcel->GetOffsetsSize(), 0);
 }
 
 /**
@@ -254,6 +298,8 @@ HWTEST_F(RSAshmemHelperTest, CreateAshmemParcelTest, TestSize.Level1)
     RSAshmemHelper rsAshmemHelper;
     auto dataParcel = std::make_shared<MessageParcel>();
     EXPECT_EQ(rsAshmemHelper.CreateAshmemParcel(dataParcel), nullptr);
+    auto dataParcelf = CreateMessageParcel();
+    EXPECT_NE(rsAshmemHelper.CreateAshmemParcel(dataParcelf), nullptr);
 }
 
 /**

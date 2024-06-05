@@ -27,6 +27,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t SET_REFRESHRATE_SLEEP_US = 50000;  // wait for refreshrate change
+static constexpr uint64_t TEST_ID = 123;
 class RSClientTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -81,9 +82,9 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    bool ret = rsClient->TakeSurfaceCapture(123, cb, 1.0f, 1.0f); // test a notfound number: 123
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, false); // test a notfound number: 123
     ASSERT_EQ(ret, true);
-    ret = rsClient->TakeSurfaceCapture(123, cb, 1.0f, 1.0f); // test number: 123 twice
+    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, true); // test number: 123 twice
     ASSERT_EQ(ret, true);
 }
 
@@ -96,7 +97,7 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(123, nullptr, 1.0f, 1.0f); // NodeId: 123
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false); // NodeId: 123
     ASSERT_NE(ret, true);
 }
 
@@ -109,7 +110,8 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(123, nullptr, 1.0f, 1.0f, SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false,
+        SurfaceCaptureType::DEFAULT_CAPTURE, true);
     ASSERT_NE(ret, true);
 }
 
@@ -123,7 +125,7 @@ HWTEST_F(RSClientTest, RegisterBufferAvailableListener_True, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     BufferAvailableCallback cb = [](){};
-    rsClient->RegisterBufferAvailableListener(123, cb, true); // test a notfound number: 123
+    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, true); // test a notfound number: 123
 }
 
 /**
@@ -136,7 +138,7 @@ HWTEST_F(RSClientTest, RegisterBufferAvailableListener_False, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     BufferAvailableCallback cb = [](){};
-    rsClient->RegisterBufferAvailableListener(123, cb, false); // test a notfound number: 123
+    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, false); // test a notfound number: 123
 }
 
 /**
@@ -148,7 +150,7 @@ HWTEST_F(RSClientTest, RegisterBufferAvailableListener_False, TestSize.Level1)
 HWTEST_F(RSClientTest, RegisterBufferAvailableListener_Nullptr, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    rsClient->RegisterBufferAvailableListener(123, nullptr, false); // NodeId: 123
+    rsClient->RegisterBufferAvailableListener(TEST_ID, nullptr, false); // NodeId: 123
 }
 
 /**
@@ -161,7 +163,7 @@ HWTEST_F(RSClientTest, UnregisterBufferAvailableListener_False, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     BufferAvailableCallback cb = [](){};
-    bool ret = rsClient->UnregisterBufferAvailableListener(123); // test a notfound number: 123
+    bool ret = rsClient->UnregisterBufferAvailableListener(TEST_ID); // test a notfound number: 123
     ASSERT_EQ(ret, true);
 }
 
@@ -175,7 +177,7 @@ HWTEST_F(RSClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     ASSERT_NE(renderService, nullptr);
-    renderService->RegisterApplicationAgent(123, nullptr); // pid: 123
+    renderService->RegisterApplicationAgent(TEST_ID, nullptr); // pid: 123
 }
 
 /**
@@ -393,10 +395,27 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
-    int32_t ret = rsClient->SetVirtualScreenSurface(123, psurface); // 123 for test
+    int32_t ret = rsClient->SetVirtualScreenSurface(TEST_ID, psurface); // 123 for test
     ASSERT_EQ(ret, 0);
-    rsClient->RemoveVirtualScreen(123);
+    rsClient->RemoveVirtualScreen(TEST_ID);
 }
+
+/**
+ * @tc.name: Set2DRenderCtrl Test
+ * @tc.desc: Set2DRenderCtrl Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NA1T
+ */
+#ifdef RS_ENABLE_VK
+HWTEST_F(RSClientTest, Set2DRenderCtrl, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->Set2DRenderCtrl(false);
+    ASSERT_EQ(ret, true);
+    ret = rsClient->Set2DRenderCtrl(true);
+    ASSERT_EQ(ret, true);
+}
+#endif
 
 /**
  * @tc.name: SetScreenChangeCallback Test
@@ -609,7 +628,7 @@ HWTEST_F(RSClientTest, RegisterBufferClearListener001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     BufferClearCallback cb = [](){};
-    bool ret = rsClient->RegisterBufferClearListener(123, cb);
+    bool ret = rsClient->RegisterBufferClearListener(TEST_ID, cb);
     ASSERT_TRUE(ret);
 }
 

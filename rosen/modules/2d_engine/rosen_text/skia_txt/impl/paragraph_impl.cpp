@@ -229,42 +229,13 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
+std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
+    std::vector<skt::LineMetrics> metrics;
     if (!lineMetrics_) {
-        std::vector<skt::LineMetrics> metrics;
         paragraph_->getLineMetrics(metrics);
-
-        lineMetrics_.emplace();
-        lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
-            [](const int a, const skt::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
-
-        for (const skt::LineMetrics& skm : metrics) {
-            LineMetrics& txtm = lineMetrics_->emplace_back();
-            txtm.startIndex = skm.fStartIndex;
-            txtm.endExcludingWhitespace = skm.fEndExcludingWhitespaces;
-            txtm.endIncludingNewline = skm.fEndIncludingNewline;
-            txtm.hardBreak = skm.fHardBreak;
-            txtm.ascent = skm.fAscent;
-            txtm.descent = skm.fDescent;
-            txtm.unscaledAscent = skm.fUnscaledAscent;
-            txtm.height = skm.fHeight;
-            txtm.width = skm.fWidth;
-            txtm.left = skm.fLeft;
-            txtm.baseline = skm.fBaseline;
-            txtm.lineNumber = skm.fLineNumber;
-            txtm.widthWithSpaces = skm.fWidthWithSpaces;
-            txtm.topHeight = skm.fTopHeight;
-
-            for (const auto& [index, styleMtrics] : skm.fLineMetrics) {
-                lineMetricsStyles_.push_back(SkStyleToTextStyle(*styleMtrics.text_style));
-                txtm.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
-                    std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
-            }
-        }
     }
-
-    return lineMetrics_.value();
+    return metrics;
 }
 
 bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const

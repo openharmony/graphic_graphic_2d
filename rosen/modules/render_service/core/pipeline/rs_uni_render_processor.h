@@ -30,11 +30,15 @@ public:
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
     void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
+        RSSurfaceRenderParams& params) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
 private:
+    LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
+        sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
     size_t layerNum = 0;

@@ -57,6 +57,7 @@
           "resource_management",
           "napi",
           "samgr",
+          "hdf_core",
           "hilog",
           "hisysevent",
           "hitrace",
@@ -99,7 +100,8 @@
           "icu",
           "libpng",
           "ffrt",
-          "libxml2"
+          "libxml2",
+          "skia"
         ],
         "third_party": [
           "flutter",
@@ -110,6 +112,7 @@
           "zlib",
           "skia",
           "cJSON",
+          "jsoncpp",
           "egl",
           "opengles",
           "vulkan-headers",
@@ -138,7 +141,8 @@
             "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
-            "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect"
+            "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect",
+            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -194,13 +198,21 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d:libgl",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "header": {
               "header_files": [
               ],
               "header_base": [
-                  "//third_party/openGLES:libGLES",
-                  "//third_party/EGL:libEGL"
+              ]
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
               ]
             }
           },

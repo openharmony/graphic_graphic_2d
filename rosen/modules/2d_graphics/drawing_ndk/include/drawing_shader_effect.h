@@ -191,6 +191,31 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     OH_Drawing_TileMode tileX, OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions*, const OH_Drawing_Matrix*);
 
 /**
+ * @brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates a conical gradient given two circles.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param startPt Indicates the center of the start circle for the gradient.
+ * @param startRadius Indicates the radius of the start circle for this gradient.
+ * @param endPt Indicates the center of the start circle for the gradient.
+ * @param endRadius Indicates the radius of the start circle for this gradient.
+ * @param colors Indicates the colors to be distributed between the two points.
+ * @param pos Indicates the relative position of each corresponding color in the colors array.
+ * @param size Indicates the number of colors and pos.
+ * @param OH_Drawing_TileMode Indicates the tile mode.
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object,
+                            which represents the local matrix of the created <b>OH_Drawing_ShaderEffect</b> object.
+                            If matrix is nullptr, defaults to the identity matrix.
+ * @return Returns the pointer to the <b>OH_Drawing_ShaderEffect</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is any of startPt, endPt, colors and pos is nullptr.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
+    float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
+    uint32_t size, OH_Drawing_TileMode, const OH_Drawing_Matrix*);
+
+/**
  * @brief Destroys an <b>OH_Drawing_ShaderEffect</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

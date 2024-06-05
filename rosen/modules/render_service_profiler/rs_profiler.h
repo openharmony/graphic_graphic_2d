@@ -16,13 +16,15 @@
 #ifndef RENDER_SERVICE_PROFILER_H
 #define RENDER_SERVICE_PROFILER_H
 
+#ifdef RS_PROFILER_ENABLED
+
 #include <map>
 #include <string>
 
 #include "common/rs_vector4.h"
+
 #include "params/rs_display_render_params.h"
 
-#ifdef RS_PROFILER_ENABLED
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN() RSProfiler::OnFrameBegin()
 #define RS_PROFILER_ON_FRAME_END() RSProfiler::OnFrameEnd()
@@ -42,7 +44,10 @@
 #define RS_PROFILER_EXECUTE_COMMAND(command) RSProfiler::ExecuteCommand(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
+#define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image) RSProfiler::MarshalDrawingImage(image)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
+#define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
+#define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -62,8 +67,10 @@
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
-#define RS_PROFILER_PATCH_COMMAND(parcel, command)
+#define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
+#define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
+#define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -97,6 +104,7 @@ class RSRenderAnimation;
 class RSCommand;
 class ArgList;
 class JsonWriter;
+class RSFile;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
 
@@ -141,13 +149,38 @@ public:
     RSB_EXPORT static void ExecuteCommand(const RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
+    RSB_EXPORT static void MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image);
     RSB_EXPORT static void SetDirtyRegion(const Occlusion::Region& dirtyRegion);
+
+    RSB_EXPORT static void WriteParcelData(Parcel& parcel);
+    RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
+    RSB_EXPORT static bool IsSharedMemoryEnabled();
+    RSB_EXPORT static bool IsBetaRecordEnabled();
+    RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
 
 private:
     static const char* GetProcessNameByPid(int pid);
+
+    RSB_EXPORT static void EnableSharedMemory();
+    RSB_EXPORT static void DisableSharedMemory();
+
+    // Beta record
+    RSB_EXPORT static void EnableBetaRecord();
+    RSB_EXPORT static bool IsBetaRecordSavingTriggered();
+    static void StartBetaRecord();
+    static bool IsBetaRecordStarted();
+    static void UpdateBetaRecord();
+    static bool SaveBetaRecord();
+    static bool IsBetaRecordInactive();
+    static void RequestVSyncOnBetaRecordInactivity();
+    static void SendBetaRecordPath();
+    static void LaunchBetaRecordNotificationThread();
+    static void LaunchBetaRecordMetricsUpdateThread();
+    static bool OpenBetaRecordFile(RSFile& file);
+    static void WriteBetaRecordMetrics(RSFile& file, double time);
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static Mode GetMode();
@@ -234,6 +267,8 @@ private:
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
 
+    static void ScheduleTask(std::function<void()> && task);
+    static void RequestNextVSync();
     static void AwakeRenderServiceThread();
     static void ResetAnimationStamp();
 
@@ -287,6 +322,7 @@ private:
     static void PlaybackUpdate();
 
     static void PlaybackPrepare(const ArgList& args);
+    static void PlaybackPrepareFirstFrame(const ArgList& args);
     static void PlaybackPause(const ArgList& args);
     static void PlaybackPauseAt(const ArgList& args);
     static void PlaybackPauseClear(const ArgList& args);
@@ -295,6 +331,8 @@ private:
     static void TestSaveFrame(const ArgList& args);
     static void TestLoadFrame(const ArgList& args);
     static void TestSwitch(const ArgList& args);
+    // set to true in DT only
+    RSB_EXPORT static bool testing_;
 };
 
 } // namespace OHOS::Rosen

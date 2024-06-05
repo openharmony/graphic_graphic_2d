@@ -21,6 +21,7 @@
 #include <string>
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xeg.h"
 
 #define VK_NO_PROTOTYPES 1
 
@@ -142,6 +143,10 @@ public:
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
 #undef DEFINE_FUNC
 
+#define DEFINE_XEG_FUNC(name) Func<PFN_##name> (name)
+    DEFINE_XEG_FUNC(HMS_XEG_SetFreqAdjustEnable);
+#undef DEFINE_XEG_FUNC
+
     VkPhysicalDevice GetPhysicalDevice() const
     {
         return physicalDevice_;
@@ -185,8 +190,8 @@ friend class RsVulkanContext;
 private:
     std::mutex vkMutex_;
     std::mutex graphicsQueueMutex_;
-    void* handle_;
-    bool acquiredMandatoryProcAddresses_;
+    void* handle_ = nullptr;
+    bool acquiredMandatoryProcAddresses_ = false;
     VkInstance instance_ = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
@@ -194,7 +199,7 @@ private:
     VkQueue hardwareQueue_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
-    VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_;
+    VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;

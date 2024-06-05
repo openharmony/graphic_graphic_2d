@@ -172,10 +172,26 @@ public:
     {
         return surface_;
     }
+    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface)
+    {
+        virtualSurface_ = virtualSurface;
+    }
+    std::shared_ptr<RSRenderSurface> GetVirtualSurface()
+    {
+        return virtualSurface_;
+    }
 #else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
+    }
+    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface)
+    {
+        virtualSurface_ = virtualSurface;
+    }
+    std::shared_ptr<RSSurface> GetVirtualSurface()
+    {
+        return virtualSurface_;
     }
 #endif
     // Use in vulkan parallel rendering
@@ -225,7 +241,7 @@ public:
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
-            return RectI();
+            return {};
         }
         return lastFrameSurfacePos_[id];
     }
@@ -233,7 +249,7 @@ public:
     RectI GetCurrentFrameSurfacePos(NodeId id)
     {
         if (currentFrameSurfacePos_.count(id) == 0) {
-            return RectI();
+            return {};
         }
         return currentFrameSurfacePos_[id];
     }
@@ -241,14 +257,14 @@ public:
     const std::vector<RectI> GetSurfaceChangedRects() const
     {
         std::vector<RectI> rects;
-        for (auto iter = lastFrameSurfacePos_.begin(); iter != lastFrameSurfacePos_.end(); iter++) {
-            if (currentFrameSurfacePos_.find(iter->first) == currentFrameSurfacePos_.end()) {
-                rects.emplace_back(iter->second);
+        for (const auto& lastFrameSurfacePo : lastFrameSurfacePos_) {
+            if (currentFrameSurfacePos_.find(lastFrameSurfacePo.first) == currentFrameSurfacePos_.end()) {
+                rects.emplace_back(lastFrameSurfacePo.second);
             }
         }
-        for (auto iter = currentFrameSurfacePos_.begin(); iter != currentFrameSurfacePos_.end(); iter++) {
-            if (lastFrameSurfacePos_.find(iter->first) == lastFrameSurfacePos_.end()) {
-                rects.emplace_back(iter->second);
+        for (const auto& currentFrameSurfacePo : currentFrameSurfacePos_) {
+            if (lastFrameSurfacePos_.find(currentFrameSurfacePo.first) == lastFrameSurfacePos_.end()) {
+                rects.emplace_back(currentFrameSurfacePo.second);
             }
         }
         return rects;
@@ -268,6 +284,7 @@ public:
     void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
         std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
         std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -335,12 +352,12 @@ public:
     {
         surfaceSrcRects_.clear();
     }
-    
+
     void ClearSurfaceDstRect()
     {
         surfaceDstRects_.clear();
     }
-    
+
     void ClearSurfaceTotalMatrix()
     {
         surfaceTotalMatrix_.clear();
@@ -375,7 +392,7 @@ public:
     {
         auto iter = surfaceDstRects_.find(id);
         if (iter == surfaceDstRects_.cend()) {
-            return RectI();
+            return {};
         }
 
         return iter->second;
@@ -385,7 +402,7 @@ public:
     {
         auto iter = surfaceTotalMatrix_.find(id);
         if (iter == surfaceTotalMatrix_.cend()) {
-            return Drawing::Matrix();
+            return {};
         }
 
         return iter->second;
@@ -399,15 +416,34 @@ public:
         lastSurfaceIds_ = std::move(lastSurfaceIds);
     }
 
-    const std::vector<RectI>& GetDamageRegion() const
+    const std::vector<RectI>& GetDirtyRects() const
     {
-        return damageRegion_;
+        return dirtyRects_;
     }
 
-    void SetDamageRegion(const std::vector<RectI>& rects)
+    void SetDirtyRects(const std::vector<RectI>& rects)
     {
-        damageRegion_ = rects;
+        dirtyRects_ = rects;
     }
+
+    void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+    {
+        oldScbPids_ = oldScbPids;
+        currentScbPid_ = currentScbPid;
+        isNeedWaitNewScbPid_ = true;
+    }
+
+    std::vector<int32_t> GetOldScbPids() const
+    {
+        return oldScbPids_;
+    }
+
+    int32_t GetCurrentScbPid() const
+    {
+        return currentScbPid_;
+    }
+
+    ChildrenListSharedPtr GetSortedChildren() const override;
 
 protected:
     void OnSync() override;
@@ -433,8 +469,10 @@ private:
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
+    std::shared_ptr<RSRenderSurface> virtualSurface_;
 #else
     std::shared_ptr<RSSurface> surface_;
+    std::shared_ptr<RSSurface> virtualSurface_;
 #endif
     bool surfaceCreated_ { false };
     bool hasFingerprint_ = false;
@@ -463,14 +501,20 @@ private:
     bool isParallelDisplayNode_ = false;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    
+
 	// support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     std::vector<NodeId> lastSurfaceIds_;
-    std::vector<RectI> damageRegion_;
+    std::vector<RectI> dirtyRects_;
+
+    std::vector<int32_t> oldScbPids_ {};
+    int32_t currentScbPid_ = -1;
+    mutable bool isNeedWaitNewScbPid_ = false;
+    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
 };
 } // namespace Rosen
 } // namespace OHOS

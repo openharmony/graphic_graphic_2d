@@ -823,6 +823,30 @@ HWTEST_F(PenTest, SetLoop001, TestSize.Level1)
     pen.SetLooper(looper);
     EXPECT_TRUE(looper == pen.GetLooper());
 }
+
+/**
+ * @tc.name: GetFillPath001
+ * @tc.desc: Test for GetFillPath
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetFillPath001, TestSize.Level1)
+{
+    Pen pen;
+    pen.SetWidth(10);
+    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    Path srcPath;
+    Path dstPath;
+    srcPath.LineTo(100, 100); // 100: x, y
+    Rect rect(0, 0, 100, 100); // 100: right, bottom
+    Matrix matrix;
+    bool ret = false;
+    ret = pen.GetFillPath(srcPath, dstPath, &rect, matrix);
+    EXPECT_TRUE(ret);
+    ret = pen.GetFillPath(srcPath, dstPath, nullptr, matrix);
+    EXPECT_TRUE(ret);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

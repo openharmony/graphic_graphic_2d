@@ -35,9 +35,9 @@ constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
-EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
-EGLContext eglContext_ = EGL_NO_CONTEXT;
-EGLConfig config_;
+EGLDisplay g_eglDisplay = EGL_NO_DISPLAY;
+EGLContext g_eglContext = EGL_NO_CONTEXT;
+EGLConfig g_config;
 
 static bool CheckEglExtension(const char* extensions, const char* extension)
 {
@@ -62,7 +62,7 @@ static bool CheckEglExtension(const char* extensions, const char* extension)
     return false;
 }
 
-static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, const EGLint* attrib_list)
+static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* nativeDisplay, const EGLint* attribList)
 {
     static GetPlatformDisplayExt eglGetPlatformDisplayExt = NULL;
 
@@ -76,10 +76,10 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
     }
 
     if (eglGetPlatformDisplayExt) {
-        return eglGetPlatformDisplayExt(platform, native_display, attrib_list);
+        return eglGetPlatformDisplayExt(platform, nativeDisplay, attribList);
     }
 
-    return eglGetDisplay((EGLNativeDisplayType)native_display);
+    return eglGetDisplay((EGLNativeDisplayType)nativeDisplay);
 }
 
 void AddBuffer(OHNativeWindow* nativeWindow)
@@ -157,19 +157,19 @@ int32_t GetData(OH_NativeImage* image, OHNativeWindow* nativeWindow)
 
 void InitEglContext()
 {
-    if (eglContext_ != EGL_NO_DISPLAY) {
+    if (g_eglContext != EGL_NO_DISPLAY) {
         return;
     }
 
     std::cout << "Creating EGLContext!!!" << std::endl;
-    eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
-    if (eglDisplay_ == EGL_NO_DISPLAY) {
+    g_eglDisplay = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
+    if (g_eglDisplay == EGL_NO_DISPLAY) {
         std::cout << "Failed to create EGLDisplay gl errno : " << eglGetError() << std::endl;
         return;
     }
 
     EGLint major, minor;
-    if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
+    if (eglInitialize(g_eglDisplay, &major, &minor) == EGL_FALSE) {
         std::cout << "Failed to initialize EGLDisplay" << std::endl;
         return;
     }
@@ -181,40 +181,40 @@ void InitEglContext()
 
     unsigned int ret;
     EGLint count;
-    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+    EGLint configAttribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
 
-    ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
+    ret = eglChooseConfig(g_eglDisplay, configAttribs, &g_config, 1, &count);
     if (!(ret && static_cast<unsigned int>(count) >= 1)) {
         std::cout << "Failed to eglChooseConfig" << std::endl;
         return;
     }
 
-    static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
+    static const EGLint CONTEXT_ATTRIBS[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
 
-    eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
-    if (eglContext_ == EGL_NO_CONTEXT) {
+    g_eglContext = eglCreateContext(g_eglDisplay, g_config, EGL_NO_CONTEXT, CONTEXT_ATTRIBS);
+    if (g_eglContext == EGL_NO_CONTEXT) {
         std::cout << "Failed to create egl context %{public}x, error:" << eglGetError() << std::endl;
         return;
     }
 
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
+    eglMakeCurrent(g_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, g_eglContext);
 
     std::cout << "Create EGL context successfully, version" << major << "." << minor << std::endl;
 }
 
 void Deinit()
 {
-    if (eglDisplay_ == EGL_NO_DISPLAY) {
+    if (g_eglDisplay == EGL_NO_DISPLAY) {
         return;
     }
-    eglDestroyContext(eglDisplay_, eglContext_);
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglTerminate(eglDisplay_);
+    eglDestroyContext(g_eglDisplay, g_eglContext);
+    eglMakeCurrent(g_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglTerminate(g_eglDisplay);
     eglReleaseThread();
 
-    eglDisplay_ = EGL_NO_DISPLAY;
-    eglContext_ = EGL_NO_CONTEXT;
+    g_eglDisplay = EGL_NO_DISPLAY;
+    g_eglContext = EGL_NO_CONTEXT;
 }
 
 }

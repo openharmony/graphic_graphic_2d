@@ -149,11 +149,34 @@ bool RSSystemParameters::GetRenderStop()
     return ConvertToInt(enable, 0) != 0;
 }
 
+bool RSSystemParameters::GetOcclusionCallBackToWMSDebugType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.occlusion.callbacktowms.debug.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
 {
     static bool prevalidateHwcNodeEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.prevalidateHwcNode.Enabled", "1")).c_str()) != 0;
     return prevalidateHwcNodeEnabled;
+}
+
+bool RSSystemParameters::GetControlBufferConsumeEnabled()
+{
+    static bool controlBufferConsume =
+        std::atoi((system::GetParameter("persist.sys.graphic.controlBufferConsume.Enabled", "1")).c_str()) != 0;
+    return controlBufferConsume;
+}
+
+bool RSSystemParameters::GetHideNotchStatus()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
 }
 } // namespace Rosen
 } // namespace OHOS

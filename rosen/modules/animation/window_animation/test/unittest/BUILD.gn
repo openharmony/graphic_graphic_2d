@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../../../../../graphic_config.gni")
 module_output_path = "graphic_2d/rosen/modules/animation/window_animation"
 
 ohos_unittest("RSWindowAnimationTest") {
@@ -27,8 +28,9 @@ ohos_unittest("RSWindowAnimationTest") {
   configs = [ ":rs_window_animation_test_config" ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/animation/window_animation:window_animation",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
   ]

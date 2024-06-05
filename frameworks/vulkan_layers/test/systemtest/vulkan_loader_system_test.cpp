@@ -75,7 +75,6 @@ public:
     static inline PFN_vkGetPhysicalDevicePresentRectanglesKHR fpGetPhysicalDevicePresentRectanglesKHR;
     static inline PFN_vkGetPhysicalDeviceSurfaceFormats2KHR fpGetPhysicalDeviceSurfaceFormats2KHR;
     static inline PFN_vkSetHdrMetadataEXT fpSetHdrMetadataEXT;
-    static inline PFN_vkReleaseSwapchainImagesEXT fpReleaseSwapchainImagesEXT;
 
     static inline PFN_vkDestroyInstance fpDestroyInstance;
     static inline PFN_vkDestroySurfaceKHR fpDestroySurfaceKHR;
@@ -290,7 +289,6 @@ HWTEST_F(VulkanLoaderSystemTest, createDevice_Test, TestSize.Level1)
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         deviceExtensions.push_back(VK_EXT_HDR_METADATA_EXTENSION_NAME);
-        deviceExtensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -332,9 +330,6 @@ HWTEST_F(VulkanLoaderSystemTest, LoadDeviceFuncPtr, TestSize.Level1)
         fpSetHdrMetadataEXT = reinterpret_cast<PFN_vkSetHdrMetadataEXT>(
             vkGetDeviceProcAddr(device_, "vkSetHdrMetadataEXT"));
         EXPECT_NE(fpAcquireNextImageKHR, nullptr);
-        fpReleaseSwapchainImagesEXT = reinterpret_cast<PFN_vkReleaseSwapchainImagesEXT>(
-            vkGetDeviceProcAddr(device_, "vkReleaseSwapchainImagesEXT"));
-        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
     }
 }
 
@@ -440,31 +435,6 @@ HWTEST_F(VulkanLoaderSystemTest, setHdrMetadataEXT_Test, TestSize.Level1)
         hdrMetadata.maxFrameAverageLightLevel = 400;
         EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
         fpSetHdrMetadataEXT(device_, swapchainCount, &swapChain_, &hdrMetadata);
-    }
-}
-/**
- * @tc.name: test vkReleaseSwapchainImagesEXT
- * @tc.desc: test vkReleaseSwapchainImagesEXT
- * @tc.type: FUNC
- * @tc.require: issueI9IN5M
- */
-HWTEST_F(VulkanLoaderSystemTest, releaseSwapchainImagesEXT_Test, TestSize.Level1)
-{
-    if (isSupportedVulkan_) {
-        EXPECT_NE(device_, nullptr);
-        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
-        EXPECT_NE(fpGetSwapchainImagesKHR, nullptr);
-        VkReleaseSwapchainImagesInfoEXT releaseInfo = {};
-        releaseInfo.sType = VK_STRUCTURE_TYPE_RELEASE_SWAPCHAIN_IMAGES_INFO_EXT;
-        releaseInfo.swapchain = swapChain_;
-        releaseInfo.imageIndexCount = 1;
-        std::vector<uint32_t> pImageIndices(1);
-        pImageIndices[0] = 0;
-        releaseInfo.pImageIndices = pImageIndices.data();
-
-        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
-        VkResult result = fpReleaseSwapchainImagesEXT(device_, &releaseInfo);
-        EXPECT_EQ(result, VK_SUCCESS);
     }
 }
 

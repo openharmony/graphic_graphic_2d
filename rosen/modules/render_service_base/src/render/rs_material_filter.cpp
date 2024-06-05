@@ -425,6 +425,24 @@ bool RSMaterialFilter::IsNearZero(float threshold) const
     return ROSEN_EQ(radius_, 0.0f, threshold);
 }
 
+bool RSMaterialFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
+{
+    auto otherMaterialFilter = std::static_pointer_cast<RSMaterialFilter>(other);
+    if (otherMaterialFilter == nullptr) {
+        ROSEN_LOGE("RSMaterialFilter::IsEqual: the types of filters are different.");
+        return true;
+    }
+    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
+           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_) &&
+           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_) &&
+           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0);
+}
+
+bool RSMaterialFilter::IsEqualZero() const
+{
+    return ROSEN_EQ(radius_, 0.0f);
+}
+
 const std::shared_ptr<RSColorPickerCacheTask>& RSMaterialFilter::GetColorPickerCacheTask() const
 {
     return colorPickerTask_;

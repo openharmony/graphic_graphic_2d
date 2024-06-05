@@ -23,7 +23,7 @@ namespace Rosen {
 namespace Drawing {
 SkiaMatrix::SkiaMatrix() : skMatrix_() {}
 
-SkiaMatrix::SkiaMatrix(const Matrix& other) : skMatrix_(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix()) {}
+SkiaMatrix::SkiaMatrix(const Matrix& other) : skMatrix_(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix()) {}
 
 const SkMatrix& SkiaMatrix::ExportSkiaMatrix() const
 {
@@ -136,7 +136,7 @@ void SkiaMatrix::PostSkew(scalar kx, scalar ky, scalar px, scalar py)
 
 void SkiaMatrix::PreConcat(const Matrix& other)
 {
-    skMatrix_.preConcat(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix());
+    skMatrix_.preConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
 }
 
 void SkiaMatrix::PreConcat(const Matrix44& other)
@@ -146,7 +146,7 @@ void SkiaMatrix::PreConcat(const Matrix44& other)
 
 void SkiaMatrix::PostConcat(const Matrix& other)
 {
-    skMatrix_.postConcat(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix());
+    skMatrix_.postConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
 }
 
 void SkiaMatrix::PostConcat(const Matrix44& other)
@@ -253,7 +253,7 @@ bool SkiaMatrix::IsIdentity() const
 
 void SkiaMatrix::Clone(const Matrix& other)
 {
-    skMatrix_ = other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix();
+    skMatrix_ = other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
 }
 
 void SkiaMatrix::PreRotate(scalar degree, scalar px, scalar py)

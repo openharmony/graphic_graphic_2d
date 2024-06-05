@@ -51,10 +51,10 @@ public:
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
         TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
         void (*deleteVkImage)(void *), void* cleanHelper);
-        static std::shared_ptr<Surface> MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
-            TextureOrigin origin, int sampleCnt, ColorType colorType,
-            std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
+    static std::shared_ptr<Surface> MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
+        TextureOrigin origin, int sampleCnt, ColorType colorType,
+        std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
     static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
 #endif

@@ -36,7 +36,9 @@ RSForegroundEffectFilter::~RSForegroundEffectFilter() = default;
 
 std::string RSForegroundEffectFilter::GetDescription()
 {
-    return "RSForegroundEffectFilter " + std::to_string(blurRadius_);
+    return "ForegroundEffect radius: " + std::to_string(blurRadius_) +
+        ", scale: " + std::to_string(blurScale_) + ", passNum: " + std::to_string(numberOfPasses_) +
+        ", dirtyExtension: " + std::to_string(GetDirtyExtension());
 }
 
 bool RSForegroundEffectFilter::IsValid() const
@@ -198,7 +200,6 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
 void RSForegroundEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    auto brush = GetBrush();
     ForegroundEffectParam param = ForegroundEffectParam(src, dst);
     ApplyForegroundEffect(canvas, image, param);
 }

@@ -42,6 +42,8 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_display_sync_test.cpp",
     "rs_render_frame_rate_linker_map_test.cpp",
     "rs_render_frame_rate_linker_test.cpp",
+    "rs_render_node_autocache_test.cpp",
+    "rs_render_node_gc_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
     "rs_root_render_node_test.cpp",
@@ -62,7 +64,6 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
   ]
   configs = [
     ":render_test",
-    "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
   ]
 
@@ -80,11 +81,11 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",
   ]
-  deps += [ "//third_party/skia:skia_ohos" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"

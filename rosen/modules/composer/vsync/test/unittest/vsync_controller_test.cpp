@@ -25,6 +25,7 @@ public:
     static void TearDownTestCase();
     static inline sptr<VSyncController> vsyncController_ = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
 };
 
 class VSyncControllerCallback : public VSyncController::Callback {
@@ -41,9 +42,10 @@ void VSyncControllerTest::SetUpTestCase()
 
 void VSyncControllerTest::TearDownTestCase()
 {
-    vsyncController_ = nullptr;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator_ = nullptr;
     DestroyVSyncGenerator();
+    vsyncController_ = nullptr;
 }
 
 void VSyncControllerCallback::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) {}

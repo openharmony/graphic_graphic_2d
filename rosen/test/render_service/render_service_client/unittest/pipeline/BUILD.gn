@@ -30,7 +30,6 @@ ohos_unittest("RSRenderClientPipelineTest") {
 
   configs = [
     ":ui_test",
-    "$ace_root:ace_test_config",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
   ]
 
@@ -43,6 +42,7 @@ ohos_unittest("RSRenderClientPipelineTest") {
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/render_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/modules/frame_report/include",
   ]
 
   deps = [

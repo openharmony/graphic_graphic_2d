@@ -29,7 +29,6 @@ ohos_unittest("RSRenderServiceBaseScreenMangerTest") {
 
   configs = [
     ":transaction_test",
-    "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
   ]
 
@@ -43,12 +42,13 @@ ohos_unittest("RSRenderServiceBaseScreenMangerTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
-  deps += [ "//third_party/skia:skia_ohos" ]
+
   include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"

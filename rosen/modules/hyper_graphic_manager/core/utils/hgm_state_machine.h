@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "hgm_log.h"
+#include "rs_trace.h"
 
 namespace OHOS::Rosen {
 template<typename StateType, typename EventType>
@@ -52,6 +53,7 @@ public:
     void UnRegisterEventCallback(Event event);
 
 protected:
+    virtual std::string State2String(State state) const { return std::to_string(state); }
     virtual bool CheckChangeStateValid(State lastState, State newState) { return true; }
     // callback should be run in same thread
     virtual void ExecuteCallback(const std::function<void()>& callback)
@@ -95,7 +97,10 @@ void HgmStateMachine<State, Event>::ChangeState(State state)
         }
 
         // change state
-        HGM_LOGI("StateMachine state change: %{public}d -> %{public}d", lastState, state);
+        RS_TRACE_NAME_FMT("StateMachine state change: %s -> %s",
+            State2String(lastState).c_str(), State2String(state).c_str());
+        HGM_LOGI("StateMachine state change: %{public}s -> %{public}s",
+            State2String(lastState).c_str(), State2String(state).c_str());
         state_.store(state);
 
         // enter state callback

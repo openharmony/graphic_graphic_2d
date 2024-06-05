@@ -100,7 +100,7 @@ void RSLinearGradientBlurFilter::DrawImageRectByDDGRGpuApiType(Drawing::Canvas& 
     Drawing::Filter imageFilter;
     Drawing::GradientBlurType blurType;
     if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
-        blurType = Drawing::GradientBlurType::AlPHA_BLEND;
+        blurType = Drawing::GradientBlurType::ALPHA_BLEND;
         radius /= 2; // 2: half radius.
     } else {
         radius -= para->originalBase_;
@@ -468,6 +468,9 @@ std::string RSLinearGradientBlurFilter::GetDescription()
 
 std::string RSLinearGradientBlurFilter::GetDetailedDescription()
 {
+    if (linearGradientBlurPara_ == nullptr) {
+        return "linearGradientBlurPara is nullptr";
+    }
     return "RSLinearGradientBlurFilterBlur, radius: " + std::to_string(linearGradientBlurPara_->blurRadius_);
 }
 } // namespace Rosen

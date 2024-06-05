@@ -14,7 +14,7 @@
  */
 #ifndef ALPHA_GRADIENTS_H
 #define ALPHA_GRADIENTS_H
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>

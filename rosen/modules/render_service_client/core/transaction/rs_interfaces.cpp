@@ -25,6 +25,7 @@
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_typeface_cache.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -80,9 +81,26 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
 }
 
+void RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t EnableSkipWindow(ScreenId id, bool enable)
+{
+    return 0;
+}
+
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
+}
+#endif
+
+#ifdef RS_ENABLE_VK
+bool RSInterfaces::Set2DRenderCtrl(bool enable)
+{
+    return renderServiceClient_->Set2DRenderCtrl(enable);
 }
 #endif
 
@@ -97,29 +115,29 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
 {
-    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY);
+    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -187,7 +205,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
             node->SetTakeSurfaceForUIFlag();
         }
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            SurfaceCaptureType::UICAPTURE, isSync);
+            false, SurfaceCaptureType::UICAPTURE, isSync);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -198,6 +216,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->RegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
@@ -206,6 +229,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     if (RSSystemProperties::GetUniRenderEnabled()) {
         return renderServiceClient_->UnRegisterTypeface(typeface);
     }
+
+    RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",
+        typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
 
@@ -229,6 +257,12 @@ bool RSInterfaces::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode 
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 {
     return renderServiceClient_->GetVirtualScreenResolution(id);
+}
+
+void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
+{
+    RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame.");
+    renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
 }
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
@@ -290,7 +324,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -571,5 +605,13 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
+
+#ifdef RS_ENABLE_VK
+extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
+{
+    RSInterfaces::GetInstance().Set2DRenderCtrl(enable);
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

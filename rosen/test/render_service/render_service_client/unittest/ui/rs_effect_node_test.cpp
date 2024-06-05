@@ -73,6 +73,17 @@ HWTEST_F(RSEffectNodeTest, SetFreeze, TestSize.Level1)
     RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(true);
     effectNode->SetFreeze(true);
     ASSERT_TRUE(effectNode != nullptr);
+
+    RSSystemProperties::GetUniRenderEnabled();
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    effectNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    effectNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 } // namespace Rosen
 } // namespace OHOS

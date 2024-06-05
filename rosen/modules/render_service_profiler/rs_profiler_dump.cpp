@@ -192,6 +192,216 @@ void RSProfiler::DumpProperties(const RSProperties& properties, JsonWriter& out)
     out.PopObject();
 }
 
+void RSProfiler::DumpPropertiesTransform(const RSProperties& properties, JsonWriter& out)
+{
+    Transform defaultTransform;
+    Vector2f pivot = properties.GetPivot();
+    if ((!ROSEN_EQ(pivot[0], defaultTransform.pivotX_) || !ROSEN_EQ(pivot[1], defaultTransform.pivotY_))) {
+        out["Pivot"] = { pivot[0], pivot[1] };
+    }
+
+    if (!ROSEN_EQ(properties.GetRotation(), defaultTransform.rotation_)) {
+        out["Rotation"] = properties.GetRotation();
+    }
+
+    if (!ROSEN_EQ(properties.GetRotationX(), defaultTransform.rotationX_)) {
+        out["RotationX"] = properties.GetRotationX();
+    }
+
+    if (!ROSEN_EQ(properties.GetRotationY(), defaultTransform.rotationY_)) {
+        out["RotationY"] = properties.GetRotationY();
+    }
+
+    if (!ROSEN_EQ(properties.GetTranslateX(), defaultTransform.translateX_)) {
+        out["TranslateX"] = properties.GetTranslateX();
+    }
+
+    if (!ROSEN_EQ(properties.GetTranslateY(), defaultTransform.translateY_)) {
+        out["TranslateY"] = properties.GetTranslateY();
+    }
+
+    if (!ROSEN_EQ(properties.GetTranslateZ(), defaultTransform.translateZ_)) {
+        out["TranslateZ"] = properties.GetTranslateZ();
+    }
+
+    if (!ROSEN_EQ(properties.GetScaleX(), defaultTransform.scaleX_)) {
+        out["ScaleX"] = properties.GetScaleX();
+    }
+
+    if (!ROSEN_EQ(properties.GetScaleY(), defaultTransform.scaleY_)) {
+        out["ScaleY"] = properties.GetScaleY();
+    }
+
+    if (!ROSEN_EQ(properties.GetPositionZ(), 0.f)) {
+        out["PositionZ"] = properties.GetPositionZ();
+    }
+}
+
+void RSProfiler::DumpPropertiesDecoration(const RSProperties& properties, JsonWriter& out)
+{
+    if (!properties.GetCornerRadius().IsZero()) {
+        out["CornerRadius"] = { properties.GetCornerRadius().x_, properties.GetCornerRadius().y_,
+            properties.GetCornerRadius().z_, properties.GetCornerRadius().w_ };
+    }
+
+    if (properties.pixelStretch_.has_value()) {
+        auto& pixelStretch = out["PixelStretch"];
+        pixelStretch.PushObject();
+        pixelStretch["left"] = properties.pixelStretch_->z_;
+        pixelStretch["top"] = properties.pixelStretch_->y_;
+        pixelStretch["right"] = properties.pixelStretch_->z_;
+        pixelStretch["bottom"] = properties.pixelStretch_->w_;
+        pixelStretch.PopObject();
+    }
+
+    if (!ROSEN_EQ(properties.GetAlpha(), 1.f)) {
+        out["Alpha"] = properties.GetAlpha();
+    }
+
+    if (!ROSEN_EQ(properties.GetSpherize(), 0.f)) {
+        out["Spherize"] = properties.GetSpherize();
+    }
+
+    if (!ROSEN_EQ(properties.GetForegroundColor(), RgbPalette::Transparent())) {
+        out["ForegroundColor"] = "#" + Hex(properties.GetForegroundColor().AsArgbInt()) + " (ARGB)";
+    }
+
+    if (!ROSEN_EQ(properties.GetBackgroundColor(), RgbPalette::Transparent())) {
+        out["BackgroundColor"] = "#" + Hex(properties.GetBackgroundColor().AsArgbInt()) + " (ARGB)";
+    }
+
+    Decoration defaultDecoration;
+    if ((!ROSEN_EQ(properties.GetBgImagePositionX(), defaultDecoration.bgImageRect_.left_) ||
+        !ROSEN_EQ(properties.GetBgImagePositionY(), defaultDecoration.bgImageRect_.top_) ||
+        !ROSEN_EQ(properties.GetBgImageWidth(), defaultDecoration.bgImageRect_.width_) ||
+        !ROSEN_EQ(properties.GetBgImageHeight(), defaultDecoration.bgImageRect_.height_))) {
+        out["BgImage"] = { properties.GetBgImagePositionX(), properties.GetBgImagePositionY(),
+            properties.GetBgImageWidth(), properties.GetBgImageHeight() };
+    }
+}
+
+void RSProfiler::DumpPropertiesShadow(const RSProperties& properties, JsonWriter& out)
+{
+    if (!ROSEN_EQ(properties.GetShadowColor(), Color(DEFAULT_SPOT_COLOR))) {
+        out["ShadowColor"] = "#" + Hex(properties.GetShadowColor().AsArgbInt()) + " (ARGB)";
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowOffsetX(), DEFAULT_SHADOW_OFFSET_X)) {
+        out["ShadowOffsetX"] = properties.GetShadowOffsetX();
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowOffsetY(), DEFAULT_SHADOW_OFFSET_Y)) {
+        out["ShadowOffsetY"] = properties.GetShadowOffsetY();
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowAlpha(), 0.f)) {
+        out["ShadowAlpha"] = properties.GetShadowAlpha();
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowElevation(), 0.f)) {
+        out["ShadowElevation"] = properties.GetShadowElevation();
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowRadius(), 0.f)) {
+        out["ShadowRadius"] = properties.GetShadowRadius();
+    }
+
+    if (!ROSEN_EQ(properties.GetShadowIsFilled(), false)) {
+        out["ShadowIsFilled"] = properties.GetShadowIsFilled();
+    }
+}
+
+void RSProfiler::DumpPropertiesEffects(const RSProperties& properties, JsonWriter& out)
+{
+    if (properties.border_ && properties.border_->HasBorder()) {
+        out["Border"] = properties.border_->ToString();
+    }
+
+    auto filter = properties.GetFilter();
+    if (filter && filter->IsValid()) {
+        out["Filter"] = filter->GetDescription();
+    }
+
+    auto backgroundFilter = properties.GetBackgroundFilter();
+    if (backgroundFilter && backgroundFilter->IsValid()) {
+        out["BackgroundFilter"] = backgroundFilter->GetDescription();
+    }
+
+    if (properties.outline_ && properties.outline_->HasBorder()) {
+        out["Outline"] = properties.outline_->ToString();
+    }
+
+    if (!ROSEN_EQ(properties.GetFrameGravity(), Gravity::DEFAULT)) {
+        out["FrameGravity"] = static_cast<int>(properties.GetFrameGravity());
+    }
+
+    if (properties.GetUseEffect()) {
+        out["GetUseEffect"] = true;
+    }
+
+    auto grayScale = properties.GetGrayScale();
+    if (grayScale.has_value() && !ROSEN_EQ(*grayScale, 0.f)) {
+        out["GrayScale"] = *grayScale;
+    }
+
+    if (!ROSEN_EQ(properties.GetLightUpEffect(), 1.f)) {
+        out["LightUpEffect"] = properties.GetLightUpEffect();
+    }
+
+    auto dynamicLightUpRate = properties.GetDynamicLightUpRate();
+    if (dynamicLightUpRate.has_value() && !ROSEN_EQ(*dynamicLightUpRate, 0.f)) {
+        out["DynamicLightUpRate"] = *dynamicLightUpRate;
+    }
+
+    auto dynamicLightUpDegree = properties.GetDynamicLightUpDegree();
+    if (dynamicLightUpDegree.has_value() && !ROSEN_EQ(*dynamicLightUpDegree, 0.f)) {
+        out["DynamicLightUpDegree"] = *dynamicLightUpDegree;
+    }
+}
+
+void RSProfiler::DumpPropertiesColor(const RSProperties& properties, JsonWriter& out)
+{
+    auto brightness = properties.GetBrightness();
+    if (brightness.has_value() && !ROSEN_EQ(*brightness, 1.f)) {
+        out["Brightness"] = *brightness;
+    }
+
+    auto contrast = properties.GetContrast();
+    if (contrast.has_value() && !ROSEN_EQ(*contrast, 1.f)) {
+        out["Contrast"] = *contrast;
+    }
+
+    auto saturate = properties.GetSaturate();
+    if (saturate.has_value() && !ROSEN_EQ(*saturate, 1.f)) {
+        out["Saturate"] = *saturate;
+    }
+
+    auto sepia = properties.GetSepia();
+    if (sepia.has_value() && !ROSEN_EQ(*sepia, 0.f)) {
+        out["Sepia"] = *sepia;
+    }
+
+    auto invert = properties.GetInvert();
+    if (invert.has_value() && !ROSEN_EQ(*invert, 0.f)) {
+        out["Invert"] = *invert;
+    }
+
+    auto hueRotate = properties.GetHueRotate();
+    if (hueRotate.has_value() && !ROSEN_EQ(*hueRotate, 0.f)) {
+        out["HueRotate"] = *hueRotate;
+    }
+
+    auto colorBlend = properties.GetColorBlend();
+    if (colorBlend.has_value() && !ROSEN_EQ(*colorBlend, RgbPalette::Transparent())) {
+        out["ColorBlend"] = "#" + Hex(colorBlend->AsArgbInt()) + " (ARGB)";
+    }
+
+    if (!ROSEN_EQ(properties.GetColorBlendMode(), 0)) {
+        out["skblendmode"] = properties.GetColorBlendMode() - 1;
+        out["blendType"] = properties.GetColorBlendApplyType();
+    }
+}
+
 void RSProfiler::DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& out)
 {
     if (animationManager.animations_.empty()) {

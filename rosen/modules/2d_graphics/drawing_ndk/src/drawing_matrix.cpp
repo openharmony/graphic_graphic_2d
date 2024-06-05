@@ -17,6 +17,8 @@
 
 #include <vector>
 
+#include "drawing_canvas_utils.h"
+
 #include "utils/matrix.h"
 #include "utils/rect.h"
 
@@ -95,6 +97,7 @@ void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix* cMatrix, float scaleX, float 
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
@@ -105,6 +108,7 @@ bool OH_Drawing_MatrixSetRectToRect(OH_Drawing_Matrix* cMatrix, const OH_Drawing
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr || src == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return matrix->SetRectToRect(CastToRect(*src), CastToRect(*dst), static_cast<ScaleToFit>(stf));
@@ -115,6 +119,7 @@ void OH_Drawing_MatrixPreScale(OH_Drawing_Matrix* cMatrix, float sx, float sy, f
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PreScale(sx, sy, px, py);
@@ -124,6 +129,7 @@ void OH_Drawing_MatrixPreTranslate(OH_Drawing_Matrix* cMatrix, float dx, float d
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PreTranslate(dx, dy);
@@ -134,6 +140,7 @@ void OH_Drawing_MatrixPreRotate(OH_Drawing_Matrix* cMatrix, float degree, float 
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PreRotate(degree, px, py);
@@ -143,6 +150,7 @@ void OH_Drawing_MatrixPostScale(OH_Drawing_Matrix* cMatrix, float sx, float sy, 
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PostScale(sx, sy, px, py);
@@ -152,6 +160,7 @@ void OH_Drawing_MatrixPostTranslate(OH_Drawing_Matrix* cMatrix, float dx, float 
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PostTranslate(dx, dy);
@@ -161,6 +170,7 @@ void OH_Drawing_MatrixPostRotate(OH_Drawing_Matrix* cMatrix, float degree, float
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->PostRotate(degree, px, py);
@@ -170,6 +180,7 @@ void OH_Drawing_MatrixReset(OH_Drawing_Matrix* cMatrix)
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->Reset();
@@ -179,6 +190,7 @@ void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* cTotal, const OH_Drawing_Matrix*
     const OH_Drawing_Matrix* cB)
 {
     if (cTotal == nullptr || cA == nullptr || cB == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     Matrix* total = CastToMatrix(cTotal);
@@ -190,8 +202,14 @@ void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* cTotal, const OH_Drawing_Matrix*
 
 float OH_Drawing_MatrixGetValue(OH_Drawing_Matrix* cMatrix, int index)
 {
+    if (cMatrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return 0;
+    }
+
     // 3x3 matrix index is between 0-8
-    if (cMatrix == nullptr || index < 0 || index > 8) {
+    if (index < 0 || index > 8) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return 0;
     }
     Matrix* matrix = CastToMatrix(cMatrix);
@@ -202,6 +220,7 @@ void OH_Drawing_MatrixRotate(OH_Drawing_Matrix* cMatrix, float degree, float px,
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->Rotate(degree, px, py);
@@ -211,6 +230,7 @@ void OH_Drawing_MatrixTranslate(OH_Drawing_Matrix* cMatrix, float dx, float dy)
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->Translate(dx, dy);
@@ -220,6 +240,7 @@ void OH_Drawing_MatrixScale(OH_Drawing_Matrix* cMatrix, float sx, float sy, floa
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     matrix->Scale(sx, sy, px, py);
@@ -229,10 +250,12 @@ bool OH_Drawing_MatrixInvert(OH_Drawing_Matrix* cMatrix, OH_Drawing_Matrix* inve
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     Matrix* inverseMatrix = CastToMatrix(inverse);
     if (inverseMatrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return matrix->Invert(*inverseMatrix);
@@ -242,10 +265,12 @@ bool OH_Drawing_MatrixIsEqual(OH_Drawing_Matrix* cMatrix, OH_Drawing_Matrix* oth
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     Matrix* otherMatrix = CastToMatrix(other);
     if (otherMatrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return (*matrix == *otherMatrix);
@@ -256,9 +281,11 @@ bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix* cMatrix, const OH_Drawing
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     if (count > POLY_POINT_COUNT_MAX) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return false;
     }
     return matrix->SetPolyToPoly(CastToPoint(src), CastToPoint(dst), count);
@@ -267,8 +294,13 @@ bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix* cMatrix, const OH_Drawing
 void OH_Drawing_MatrixMapPoints(const OH_Drawing_Matrix* cMatrix, const OH_Drawing_Point2D* src,
     OH_Drawing_Point2D* dst, int count)
 {
+    if (src == nullptr || dst == nullptr || count <= 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
     const Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     const Point* srcTemp = CastToPoint(src);
@@ -287,8 +319,13 @@ void OH_Drawing_MatrixMapPoints(const OH_Drawing_Matrix* cMatrix, const OH_Drawi
 
 bool OH_Drawing_MatrixMapRect(const OH_Drawing_Matrix* cMatrix, const OH_Drawing_Rect* src, OH_Drawing_Rect* dst)
 {
+    if (src == nullptr || dst == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return false;
+    }
     const Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return matrix->MapRect(CastToRect(*dst), CastToRect(*src));
@@ -298,9 +335,24 @@ bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix* cMatrix)
 {
     Matrix* matrix = CastToMatrix(cMatrix);
     if (matrix == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
     return matrix->IsIdentity();
+}
+
+OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* cMatrix, float value[9])
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr || value == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::array<float, 9> buffer; // 9:size of buffer
+    matrix->GetAll(buffer);
+    for (int i = 0; i < 9; ++i) { // 9:size of value
+        value[i] = buffer[i];
+    }
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_MatrixDestroy(OH_Drawing_Matrix* cMatrix)

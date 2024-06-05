@@ -224,7 +224,16 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
     displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
-    displayParams->SetNeedOffscreen(IsRotationChanged());
+}
+
+void RSDisplayRenderNode::UpdateOffscreenRenderParams(bool needOffscreen)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateOffscreenRenderParams displayParams is null");
+        return;
+    }
+    displayParams->SetNeedOffscreen(needOffscreen);
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()
@@ -257,7 +266,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     consumerListener_ = listener;
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(5); // 5 Buffer rotation
+    surface->SetQueueSize(4); // 4 Buffer rotation
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
@@ -273,7 +282,7 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
     if (skipFrameInterval == 0) {
         return false;
     }
-    if ((frameCount_ - 1) % skipFrameInterval == 0) {
+    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
         return false;
     }
     return true;
@@ -304,7 +313,6 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 void RSDisplayRenderNode::UpdateRotation()
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    displayParams->SetRotationChanged(IsRotationChanged());
     AddToPendingSyncList();
 
     auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
@@ -313,6 +321,7 @@ void RSDisplayRenderNode::UpdateRotation()
     }
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
+    displayParams->SetRotationChanged(IsRotationChanged());
 }
 
 void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)
@@ -344,6 +353,40 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+}
+
+RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
+{
+    int32_t currentScbPid = GetCurrentScbPid();
+    ChildrenListSharedPtr fullChildrenList = RSRenderNode::GetSortedChildren();
+    if (currentScbPid < 0) {
+        return fullChildrenList;
+    }
+    if (isNeedWaitNewScbPid_) {
+        for (auto it = (*fullChildrenList).rbegin(); it != (*fullChildrenList).rend(); ++it) {
+            auto& child = *it;
+            auto childPid = ExtractPid(child->GetId());
+            if (childPid == currentScbPid) {
+                RS_LOGI("child scb pid equals current scb pid");
+                isNeedWaitNewScbPid_ = false;
+                break;
+            }
+        }
+    }
+    if (isNeedWaitNewScbPid_) {
+        return fullChildrenList;
+    }
+    std::vector<int32_t> oldScbPids = GetOldScbPids();
+    currentChildrenList_->clear();
+    for (auto& child : *fullChildrenList) {
+        auto childPid = ExtractPid(child->GetId());
+        auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
+        if (pidIter != oldScbPids.end()) {
+            continue;
+        }
+        currentChildrenList_->emplace_back(child);
+    }
+    return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
 }
 } // namespace Rosen
 } // namespace OHOS

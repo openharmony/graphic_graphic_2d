@@ -107,6 +107,72 @@ napi_value MyXNode::NapiPerformance(napi_env env, napi_callback_info info)
     return value;
 }
 
+napi_value MyXNode::NapiGetPixelMapWidth(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiFunction: env or info is null");
+        return nullptr;
+    }
+
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok) {
+        DRAWING_LOGE("NapiFunction: napi_get_cb_info fail");
+        return nullptr;
+    }
+
+    std::string caseName = "";
+    if (!ConvertStringFromJsValue(env, argv[0], caseName)) {
+        DRAWING_LOGE("NapiFunction: get caseName fail");
+        return nullptr;
+    }
+    DRAWING_LOGI("NapiFunction: caseName = %{public}s", caseName.c_str());
+
+    auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
+    if (testCase == nullptr) {
+        DRAWING_LOGE("failed to get testcase");
+        return nullptr;
+    }
+    
+    auto width = testCase->GetBitmapWidth();
+    napi_value value = nullptr;
+    (void)napi_create_uint32(env, width, &value);
+    return value;
+}
+
+napi_value MyXNode::NapiGetPixelMapHeight(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiFunction: env or info is null");
+        return nullptr;
+    }
+
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok) {
+        DRAWING_LOGE("NapiFunction: napi_get_cb_info fail");
+        return nullptr;
+    }
+
+    std::string caseName = "";
+    if (!ConvertStringFromJsValue(env, argv[0], caseName)) {
+        DRAWING_LOGE("NapiFunction: get caseName fail");
+        return nullptr;
+    }
+    DRAWING_LOGI("NapiFunction: caseName = %{public}s", caseName.c_str());
+
+    auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
+    if (testCase == nullptr) {
+        DRAWING_LOGE("failed to get testcase");
+        return nullptr;
+    }
+    
+    auto height = testCase->GetBitmapHeight();
+    napi_value value = nullptr;
+    (void)napi_create_uint32(env, height, &value);
+    return value;
+}
+
 void MyXNode::TestFunction(OH_Drawing_Canvas* canvas, std::string caseName)
 {
     DRAWING_LOGI("MyXNode TestFunction start %{public}s", caseName.c_str());
@@ -134,6 +200,26 @@ uint32_t MyXNode::TestPerformance(OH_Drawing_Canvas* canvas, std::string caseNam
     return testCase->GetTime();
 }
 
+napi_value MyXNode::NapiGetTestNames(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiGetTestNames: env or info is null");
+        return nullptr;
+    }
+
+    napi_value value = nullptr;
+    std::string str = "";
+    for (auto map: TestCaseFactory::GetFunctionCpuCaseAll()) {
+        if (str == "") {
+            str += map.first;
+        } else {
+            str += "," + map.first;
+        }
+    }
+    (void)napi_create_string_utf8(env, str.c_str(), str.length(), &value);
+    return value;
+}
+
 void MyXNode::Export(napi_env env, napi_value exports)
 {
     DRAWING_LOGI("MyXNode napi init");
@@ -145,6 +231,10 @@ void MyXNode::Export(napi_env env, napi_value exports)
     napi_property_descriptor desc[] = {
         {"TestFunctional", nullptr, MyXNode::NapiFunction, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"TestPerformance", nullptr, MyXNode::NapiPerformance, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetXnodeTestNames", nullptr, MyXNode::NapiGetTestNames, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetPixelMapWidth", nullptr, MyXNode::NapiGetPixelMapWidth, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetPixelMapHeight", nullptr, MyXNode::NapiGetPixelMapHeight,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok) {
         DRAWING_LOGE("Export: napi_define_properties failed");

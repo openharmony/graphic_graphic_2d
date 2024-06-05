@@ -35,6 +35,7 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "rs_surface_extractor_test.cpp",
     "rs_surface_node_test.cpp",
     "rs_ui_director_test.cpp",
+    "rs_ui_display_soloist_test.cpp",
     "rs_ui_share_context_test.cpp",
   ]
 
@@ -42,7 +43,6 @@ ohos_unittest("RSRenderServiceClientUITest") {
 
   configs = [
     ":ui_test",
-    "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
   ]
 

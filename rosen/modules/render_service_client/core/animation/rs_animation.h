@@ -49,7 +49,7 @@ class RSRenderAnimation;
 
 class RSC_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
 public:
-    virtual ~RSAnimation() = default;
+    virtual ~RSAnimation();
 
     AnimationId GetId() const;
 
@@ -77,6 +77,19 @@ public:
 
     bool IsFinished() const;
 
+    bool IsUiAnimation() const;
+
+    void InteractivePause();
+
+    void InteractiveContinue();
+
+    void InteractiveFinish(RSInteractiveAnimationPosition pos);
+
+    void InteractiveReverse();
+
+    void InteractiveSetFraction(float fraction);
+
+    virtual bool IsSupportInteractiveAnimator() { return true; }
 protected:
     enum class AnimationState {
         INITIALIZED,
@@ -94,6 +107,7 @@ protected:
     virtual void OnFinish();
     virtual void OnSetFraction(float fraction);
     virtual void OnUpdateStagingValue(bool isFirstStart) {};
+    virtual void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) {};
     virtual PropertyId GetPropertyId() const;
 
     void StartInner(const std::shared_ptr<RSNode>& target);
@@ -105,12 +119,21 @@ protected:
     void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     virtual void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) {};
 
+    virtual void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue) {};
+    virtual void InitInterpolationValue() {};
+
+    virtual const std::shared_ptr<RSPropertyBase> GetPropertyValue() const
+    {
+        return nullptr;
+    }
+
 private:
     static AnimationId GenerateId();
     const AnimationId id_;
 
     void SetFinishCallback(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
     void SetRepeatCallback(const std::shared_ptr<AnimationRepeatCallback>& repeatCallback);
+    void SetInteractiveFinishCallback(const std::shared_ptr<InteractiveAnimatorFinishCallback>& finishCallback);
     void UpdateStagingValue(bool isFirstStart);
     void CallFinishCallback();
     void CallRepeatCallback();
@@ -122,12 +145,14 @@ private:
     std::weak_ptr<RSNode> target_;
     std::shared_ptr<AnimationFinishCallback> finishCallback_;
     std::shared_ptr<AnimationRepeatCallback> repeatCallback_;
+    std::shared_ptr<InteractiveAnimatorFinishCallback> interactiveFinishCallback_;
     std::shared_ptr<RSRenderAnimation> uiAnimation_;
 
     friend class RSCurveImplicitAnimParam;
     friend class RSAnimationGroup;
     friend class RSNode;
     friend class RSImplicitAnimator;
+    friend class RSInteractiveImplictAnimator;
 };
 } // namespace Rosen
 } // namespace OHOS

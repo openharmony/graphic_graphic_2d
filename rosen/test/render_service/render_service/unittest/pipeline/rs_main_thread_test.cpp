@@ -37,7 +37,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
-constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
+constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
@@ -390,7 +390,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
 }
 
 /**
@@ -411,6 +411,35 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionCount
+ * @tc.desc: Test ProcessSyncTransactionCount
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetHostPid(-1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 0;
+    rsTransactionData->SetHostPid(-1);
+    rsTransactionData->MarkNeedCloseSync();
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
+
+    mainThread->syncTransactionCount_ = 1;
+    rsTransactionData->SetSyncTransactionNum(1);
+    rsTransactionData->SetHostPid(1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionCount_, 0);
 }
 
 /**
@@ -775,6 +804,12 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
     mainThread->transactionDataLastWaitTime_[0] = 0;
     mainThread->timestamp_ = REFRESH_PERIOD * SKIP_COMMAND_FREQ_LIMIT + 1;
     mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
+    }
     // default data with index 0
     auto data = std::make_unique<RSTransactionData>();
     ASSERT_NE(data, nullptr);
@@ -2441,7 +2476,7 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel002, TestSize.Level1)
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
         mainThread->lastVisMapForVsyncRate_.clear();
         mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+        ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
     }
 }
 
@@ -2536,7 +2571,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes004, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2568,7 +2603,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes005, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2600,7 +2635,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes006, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2632,7 +2667,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes007, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2664,7 +2699,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes008, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**
@@ -2696,7 +2731,7 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     mainThread->lastVisMapForVsyncRate_.clear();
     mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SECNES_RATE);
+    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
 /**

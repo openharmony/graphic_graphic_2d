@@ -29,6 +29,8 @@
 #include "animation/rs_keyframe_animation.h"
 #include "modifier/rs_modifier_manager.h"
 #include "transaction/rs_interfaces.h"
+#include "render/rs_blur_filter.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_light_up_effect_filter.h"
 #include "ui/rs_canvas_node.h"
@@ -1006,6 +1008,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     RSFilter filter1;
     filter1.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
     filter1.IsNearZero(ANIMATION_DEFAULT_VALUE);
+    filter1.IsEqual(nullptr);
+    filter1.IsEqualZero();
 
     RSImageBase imageBase;
     Parcel parcel;
@@ -1036,6 +1040,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     RSLightUpEffectFilter filter3(ANIMATION_DEFAULT_VALUE);
     filter3.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
     filter3.IsNearZero(ANIMATION_DEFAULT_VALUE);
+    filter3.IsEqual(nullptr);
+    filter3.IsEqualZero();
 
     RSModifierExtractor extractor;
     extractor.GetCameraDistance();
@@ -1072,6 +1078,19 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     option.GetRotationMode();
     option.SetPathNeedAddOrigin(true);
     option.GetPathNeedAddOrigin();
+
+    RSBlurFilter filter(0, 0);
+    filter.IsEqual(nullptr);
+    filter.IsEqualZero();
+
+    float dipScale = 1.0;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    MATERIAL_BLUR_STYLE style = static_cast<MATERIAL_BLUR_STYLE>(0);
+    float ratio = 1.0;
+    RSMaterialFilter rsMaterialFilter(style, dipScale, mode, ratio);
+    rsMaterialFilter.IsEqual(nullptr);
+    rsMaterialFilter.IsEqualZero();
+
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
 

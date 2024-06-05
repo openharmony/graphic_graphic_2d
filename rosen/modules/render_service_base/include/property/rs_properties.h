@@ -37,6 +37,7 @@
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
+#include "render/rs_particles_drawable.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
@@ -211,17 +212,25 @@ public:
     void SetBorderColor(Vector4<Color> color);
     void SetBorderWidth(Vector4f width);
     void SetBorderStyle(Vector4<uint32_t> style);
+    void SetBorderDashWidth(const Vector4f& dashWidth);
+    void SetBorderDashGap(const Vector4f& dashGap);
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
+    Vector4f GetBorderDashWidth() const;
+    Vector4f GetBorderDashGap() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
     void SetOutlineColor(Vector4<Color> color);
     void SetOutlineWidth(Vector4f width);
     void SetOutlineStyle(Vector4<uint32_t> style);
+    void SetOutlineDashWidth(const Vector4f& dashWidth);
+    void SetOutlineDashGap(const Vector4f& dashGap);
     void SetOutlineRadius(Vector4f radius);
     Vector4<Color> GetOutlineColor() const;
     Vector4f GetOutlineWidth() const;
     Vector4<uint32_t> GetOutlineStyle() const;
+    Vector4f GetOutlineDashWidth() const;
+    Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
     bool GetBorderColorIsTransparent() const;
@@ -229,6 +238,10 @@ public:
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
     bool IsForegroundEffectRadiusValid() const;
+    void SetForegroundEffectDirty(bool dirty);
+    bool GetForegroundEffectDirty() const;
+    void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
 
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
@@ -414,6 +427,8 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
+    std::string GetFgBrightnessDescription() const;
+    std::string GetBgBrightnessDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -479,7 +494,7 @@ public:
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTaskShadow() const;
+    std::shared_ptr<RSColorPickerCacheTask> GetColorPickerCacheTaskShadow() const;
     void ReleaseColorPickerTaskShadow() const;
     void ClearFilterCache();
 #endif
@@ -542,9 +557,9 @@ private:
     int colorBlendApplyType_ = 0;
 
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_ = std::nullopt;
-    float fgBrightnessFract_ = -1.0;
+    float fgBrightnessFract_ = 1.0f;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_ = std::nullopt;
-    float bgBrightnessFract_ = -1.0;
+    float bgBrightnessFract_ = 1.0f;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -578,6 +593,8 @@ private:
     bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    bool foregroundEffectDirty_ = false;
 
     // filter property
     float backgroundBlurRadius_ = 0.f;
@@ -626,6 +643,8 @@ private:
     void CalculateFrameOffset();
     void CheckGreyCoef();
 
+    void UpdateFilter();
+
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
@@ -647,6 +666,7 @@ private:
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
+    static const bool IS_UNI_RENDER;
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 

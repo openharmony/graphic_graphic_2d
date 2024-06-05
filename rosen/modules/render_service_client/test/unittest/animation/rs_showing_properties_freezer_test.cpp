@@ -17,7 +17,7 @@
 
 #include "common/rs_color.h"
 #include "modifier/rs_showing_properties_freezer.h"
-#include "render/rs_light_up_effect_filter.h"
+#include "render/rs_blur_filter.h"
 #include "ui/rs_canvas_node.h"
 
 using namespace testing;
@@ -340,6 +340,34 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBorderDashParamsTest
+ * @tc.desc: Verify the GetBorderDashParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderDashParamsTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderDashParamsTest start";
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBorderColor(SK_ColorRED);
+    auto result1 = canvasNode->GetShowingProperties().GetBorderColor();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1.value()[0].GetRed() == SHOWING_COLOR_NUM);
+
+    Vector4f dashParamZero(0.f, 0.f, 0.f, 0.f);
+    Vector4f dashParam(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f);
+    canvasNode->SetBorderDashWidth(dashParamZero);
+    canvasNode->SetBorderDashGap(dashParamZero);
+    auto dashWidth = canvasNode->GetShowingProperties().GetBorderDashWidth();
+    auto dashGap = canvasNode->GetShowingProperties().GetBorderDashGap();
+    EXPECT_TRUE(dashWidth.has_value());
+    EXPECT_TRUE(dashWidth->IsNearEqual(dashParam));
+    EXPECT_TRUE(dashGap.has_value());
+    EXPECT_TRUE(dashGap->IsNearEqual(dashParam));
+
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderDashParamsTest end";
+}
+
+/**
  * @tc.name: GetFilterTest
  * @tc.desc: Verify the GetFilter
  * @tc.type:FUNC
@@ -347,16 +375,11 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetFilterTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest start";
-    float lightUpDegree = 1.0f;
-    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
-    auto canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBackgroundFilter(filter);
-    auto result1 = canvasNode->GetShowingProperties().GetBackgroundFilter();
-    EXPECT_TRUE(result1.has_value());
-
-    canvasNode->SetFilter(filter);
-    auto result2 = canvasNode->GetShowingProperties().GetFilter();
-    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == 1.0f);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == 1.0f);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest end";
 }

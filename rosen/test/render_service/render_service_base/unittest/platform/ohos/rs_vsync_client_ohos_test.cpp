@@ -31,18 +31,22 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    std::unique_ptr<RSVsyncClient> vsyncClient = nullptr;
+    std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
+    std::unique_ptr<RSVsyncClientOhos> vsyncClientOhos_ = nullptr;
     static inline RSVsyncClient::VsyncCallback cb = nullptr;
+    int64_t nanoTimestamp_ = 1717552460;
+    int64_t frameCount_ = 1;
 };
 
 void RSVsyncClientTest::SetUpTestCase()
 {
-    cb = [](int64_t timestamp) {};
+    cb = [](int64_t timestamp, int64_t frameCount) {};
 }
 void RSVsyncClientTest::TearDownTestCase() {}
 void RSVsyncClientTest::SetUp()
 {
-    vsyncClient = RSVsyncClient::Create();
+    vsyncClient_ = RSVsyncClient::Create();
+    vsyncClientOhos_ = std::make_unique<RSVsyncClientOhos>();
 }
 void RSVsyncClientTest::TearDown() {}
 
@@ -50,12 +54,50 @@ void RSVsyncClientTest::TearDown() {}
  * @tc.name: SetVsyncCallback Test
  * @tc.desc: SetVsyncCallback Test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9V3Y2
  */
 HWTEST_F(RSVsyncClientTest, SetVsyncCallback_Test, TestSize.Level1)
 {
-    ASSERT_NE(vsyncClient, nullptr);
-    vsyncClient->SetVsyncCallback(cb);
+    ASSERT_NE(vsyncClient_, nullptr);
+    vsyncClient_->SetVsyncCallback(cb);
+}
+
+/**
+ * @tc.name: VsyncCallbackTest
+ * @tc.desc: Test VsyncCallback
+ * @tc.type:FUNC
+ * @tc.require: issueI9V3Y2
+ */
+HWTEST_F(RSVsyncClientTest, VsyncCallbackTest, TestSize.Level1)
+{
+    RSVsyncClient::VsyncCallback vsyncCallback = [](int64_t nanoTimestamp, int64_t frameCount) {
+        printf("VsyncCallbackTest vsyncCallback\n");
+    };
+    vsyncClientOhos_->SetVsyncCallback(vsyncCallback);
+    vsyncClientOhos_->requestFlag_.store(true);
+    vsyncClientOhos_->VsyncCallback(nanoTimestamp_, frameCount_);
+    ASSERT_FALSE(vsyncClientOhos_->requestFlag_);
+}
+
+/**
+ * @tc.name: OnVsyncTest
+ * @tc.desc: Test OnVsync
+ * @tc.type:FUNC
+ * @tc.require: issueI9V3Y2
+ */
+HWTEST_F(RSVsyncClientTest, OnVsyncTest, TestSize.Level1)
+{
+    vsyncClient_.reset(nullptr);
+    ASSERT_TRUE(vsyncClient_ == nullptr);
+    vsyncClientOhos_->OnVsync(nanoTimestamp_, frameCount_, vsyncClient_.get());
+
+    RSVsyncClient::VsyncCallback vsyncCallback = [](int64_t nanoTimestamp, int64_t frameCount) {
+        printf("OnVsyncTest vsyncCallback\n");
+    };
+    vsyncClient_ = RSVsyncClient::Create();
+    vsyncClient_->SetVsyncCallback(vsyncCallback);
+    ASSERT_TRUE(vsyncClient_ != nullptr);
+    vsyncClientOhos_->OnVsync(nanoTimestamp_, frameCount_, vsyncClient_.get());
 }
 } // namespace Rosen
 } // namespace OHOS

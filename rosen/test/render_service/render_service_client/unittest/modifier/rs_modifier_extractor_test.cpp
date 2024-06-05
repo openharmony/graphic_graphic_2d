@@ -59,6 +59,8 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 
     ASSERT_EQ(extractor.GetBackgroundBlurSaturation(), 0.f);
 
+    ASSERT_EQ(extractor.GetDynamicDimDegree(), 0.f);
+
     ASSERT_EQ(extractor.GetBackgroundBlurBrightness(), 0.f);
 
     ASSERT_EQ(extractor.GetBackgroundBlurMaskColor(), valTest1);
