@@ -435,29 +435,17 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
 }
 
 void RSPaintFilterCanvasBase::DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice,
-    const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
+    const Drawing::Rect& dst, Drawing::FilterMode filter)
 {
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
-            if (brush) {
-                Drawing::Brush b(*brush);
-                OnFilterWithBrush(b);
-                (*iter)->DrawImageLattice(image, lattice, dst, filter, &b);
-            } else {
-                (*iter)->DrawImageLattice(image, lattice, dst, filter, brush);
-            }
+            (*iter)->DrawImageLattice(image, lattice, dst, filter);
         }
     }
 #else
     if (canvas_ != nullptr && OnFilter()) {
-        if (brush) {
-            Drawing::Brush b(*brush);
-            OnFilterWithBrush(b);
-            canvas_->DrawImageLattice(image, lattice, dst, filter, &b);
-        } else {
-            canvas_->DrawImageLattice(image, lattice, dst, filter, brush);
-        }
+        canvas_->DrawImageLattice(image, lattice, dst, filter);
     }
 #endif
 }

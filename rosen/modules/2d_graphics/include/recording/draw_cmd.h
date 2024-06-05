@@ -626,33 +626,23 @@ private:
     std::shared_ptr<Image> image_;
 };
 
-class DrawImageLatticeOpItem : public DrawOpItem {
+class DrawImageLatticeOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
-            const BrushHandle& brushHandle, bool hasBrush) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), image(image),
-            lattice(lattice), dst(dst), filter(filterMode), brushHandle(brushHandle), hasBrush(hasBrush) {}
+            const PaintHandle& paintHandle) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), image(image),
+            lattice(lattice), dst(dst), filter(filterMode), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle image;
         Lattice lattice;
         Rect dst;
         FilterMode filter;
-        BrushHandle brushHandle;
-        bool hasBrush;
+        PaintHandle paintHandle;
     };
     DrawImageLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawImageLatticeOpItem(const Image* image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
-        const Brush* brush) : DrawOpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), lattice_(lattice), dst_(dst),
-        filter_(filterMode)
-    {
-        if (brush) {
-            hasBrush_ = true;
-            brush_ = *brush;
-        } else {
-            hasBrush_ = false;
-        }
-        image_ = std::make_shared<Image>(*image);
-    }
+        const Paint& paint) : DrawWithPaintOpItem(paint, DrawOpItem::IMAGE_LATTICE_OPITEM), lattice_(lattice),
+        dst_(dst), filter_(filterMode), image_(std::make_shared<Image>(*image)) {}
     ~DrawImageLatticeOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -662,8 +652,6 @@ private:
     Lattice lattice_;
     Rect dst_;
     FilterMode filter_;
-    bool hasBrush_;
-    Brush brush_;
     std::shared_ptr<Image> image_;
 };
 

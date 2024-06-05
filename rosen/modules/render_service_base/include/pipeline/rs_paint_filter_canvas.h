@@ -79,7 +79,7 @@ public:
     void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
     void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
-        Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
+        Drawing::FilterMode filter) override;
 
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;

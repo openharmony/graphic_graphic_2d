@@ -803,15 +803,12 @@ REGISTER_UNMARSHALLING_FUNC(DrawImageLattice, DrawOpItem::IMAGE_LATTICE_OPITEM, 
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     const DrawCmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle)
-    : DrawOpItem(IMAGE_LATTICE_OPITEM), lattice_(handle->lattice), dst_(handle->dst), filter_(handle->filter),
-    hasBrush_(handle->hasBrush)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM), lattice_(handle->lattice),
+    dst_(handle->dst), filter_(handle->filter)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
     if (DrawOpItem::holdDrawingImagefunc_) {
         DrawOpItem::holdDrawingImagefunc_(image_);
-    }
-    if (hasBrush_) {
-        BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
     }
 }
 
@@ -823,13 +820,10 @@ std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdL
 
 void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
 {
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
-    BrushHandle brushHandle;
-    if (hasBrush_) {
-        BrushToBrushHandle(brush_, cmdList, brushHandle);
-    }
-
-    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, brushHandle, hasBrush_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, paintHandle);
 }
 
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -838,8 +832,8 @@ void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("DrawImageNineOpItem image is null");
         return;
     }
-    Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
-    canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_, brushPtr);
+    canvas->AttachPaint(paint_);
+    canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_);
 }
 
 /* DrawAtlasOpItem */

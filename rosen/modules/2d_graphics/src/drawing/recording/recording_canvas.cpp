@@ -262,23 +262,15 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 }
 
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filterMode, const Brush* brush)
+    FilterMode filterMode)
 {
     if (!addDrawOpImmediate_) {
-        cmdList_->AddDrawOp(std::make_shared<DrawImageLatticeOpItem>(image, lattice, dst, filterMode, brush));
+        AddDrawOpDeferred<DrawImageLatticeOpItem>(image, lattice, dst, filterMode);
         return;
     }
 
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
-    BrushHandle brushHandle;
-    bool hasBrush = false;
-    if (brush != nullptr) {
-        hasBrush = true;
-        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
-    }
-
-    cmdList_->AddDrawOp<DrawImageLatticeOpItem::ConstructorHandle>(
-        imageHandle, lattice, dst, filterMode, brushHandle, hasBrush);
+    AddDrawOpImmediate<DrawImageLatticeOpItem::ConstructorHandle>(imageHandle, lattice, dst, filterMode);
 }
 
 void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
