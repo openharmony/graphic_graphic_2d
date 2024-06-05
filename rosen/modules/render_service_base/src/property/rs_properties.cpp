@@ -2085,7 +2085,6 @@ void RSProperties::SetSpherize(float spherizeDegree)
     }
     filterNeedUpdate_ = true;
     SetDirty();
-    contentDirty_ = true;
 }
 
 float RSProperties::GetSpherize() const
@@ -3783,7 +3782,11 @@ void RSProperties::UpdateFilter()
         }
     } else if (IsSpherizeValid()) {
         auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-        foregroundFilter_ = spherizeEffectFilter;
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = spherizeEffectFilter;
+        } else {
+            foregroundFilter_ = spherizeEffectFilter;
+        }
     } else if (GetShadowMask()) {
         float elevation = GetShadowElevation();
         Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
