@@ -24,6 +24,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+static const float MIN_VALUE = 1e-6;
 class OHHmSymbolRunTest : public testing::Test {};
 
 /*
@@ -135,7 +136,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
     RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
     hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
     bool check = false;
-    if (color.a == symbolInfo.renderGroups[0].color.a &&
+    if (abs(color.a - symbolInfo.renderGroups[0].color.a) < MIN_VALUE &&
         color.r == symbolInfo.renderGroups[0].color.r &&
         color.g == symbolInfo.renderGroups[0].color.g &&
         color.b == symbolInfo.renderGroups[0].color.b) {
