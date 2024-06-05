@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,8 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinker, TestSize.Level
     FrameRateLinkerId id = 1;
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id);
     ASSERT_NE(frameRateLinker, nullptr);
-    frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
+    EXPECT_TRUE(frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker));
+    EXPECT_FALSE(frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker));
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id), frameRateLinker);
     EXPECT_EQ(frameRateLinkerMap.Get().size(), 1);
 }
@@ -55,7 +56,7 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinker, TestSize.Level
  * @tc.name: UnregisterFrameRateLinker
  * @tc.desc: Test UnregisterFrameRateLinker
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderFrameRateLinkerMapTest, UnregisterFrameRateLinker, TestSize.Level1)
 {
