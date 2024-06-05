@@ -291,19 +291,14 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceR
     for (auto& child : *node->GetSortedChildren()) {
         if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            if (surfaceNode->GetVisibleRegion().IsEmpty()) {
+            auto visibleRegion = surfaceNode->GetVisibleRegion();
+            if (visibleRegion.IsEmpty()) {
                 surfaceNode->SetUIFirstIsPurge(false);
                 return true;
-            }
-            auto surfaceParams =
-                static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-            if (surfaceParams == nullptr) {
-                return false;
             }
             auto surfaceDirtyRect = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
             Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
                 surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-            auto visibleRegion =  surfaceParams->GetVisibleRegion();
             Occlusion::Region surfaceDirtyRegion { dirtyRect };
             Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
             if (surfaceVisibleDirtyRegion.IsEmpty()) {
