@@ -1155,12 +1155,14 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
+        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
-        extraRotation = degree - FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN;
+        extraRotation = degree - rotationDegree;
     }
     rotationTransform = static_cast<GraphicTransformType>(
-        (rotationTransform + extraRotation / RS_ROTATION_90) % SCREEN_ROTATION_NUM);
+        (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
