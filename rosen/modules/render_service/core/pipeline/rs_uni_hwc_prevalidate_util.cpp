@@ -71,7 +71,7 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
     return ret == 0;
 }
 
-bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(
+bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
 {
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
@@ -82,7 +82,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
-    info.zOrder = node->GetGlobalZOrder();
+    info.zOrder = zorder;
     info.usage = node->GetBuffer()->GetUsage();
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;

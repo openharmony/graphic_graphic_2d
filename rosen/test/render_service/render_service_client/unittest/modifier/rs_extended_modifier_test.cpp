@@ -109,42 +109,58 @@ public:
 };
 /**
  * @tc.name: CreateDrawingContextTest
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.desc: test results of CreateDrawingContext
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
  */
 HWTEST_F(RSExtendedModifierTest, CreateDrawingContextTest, TestSize.Level1)
 {
     NodeId nodeId = -1;
     RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    auto node = RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId);
-    ASSERT_EQ(node, nullptr);
+    EXPECT_EQ(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
+
+    nodeId = 0;
+    RSExtendedModifierHelper::CreateDrawingContext(nodeId);
+    EXPECT_NE(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
 }
 
 /**
  * @tc.name: CreateRenderModifierTest
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.desc: test results of CreateRenderModifier
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
  */
 HWTEST_F(RSExtendedModifierTest, CreateRenderModifierTest, TestSize.Level1)
 {
-    NodeId nodeId = 0;
-    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(nodeId);
+    RSDrawingContext ctx;
     PropertyId id = 1;
     RSModifierType type = RSModifierType::EXTENDED;
-    RSExtendedModifierHelper::CreateRenderModifier(ctx, id, type);
+    std::shared_ptr<RSRenderModifier> ptr = RSExtendedModifierHelper::CreateRenderModifier(ctx, id, type);
+    EXPECT_TRUE(ptr != nullptr);
 }
 
 /**
  * @tc.name: FinishDrawingTest
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.desc: test results of FinishDrawing
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
  */
 HWTEST_F(RSExtendedModifierTest, FinishDrawingTest, TestSize.Level1)
 {
-    NodeId nodeId = 0;
-    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    RSExtendedModifierHelper::FinishDrawing(ctx);
-    ASSERT_EQ(ctx.canvas, nullptr);
+    RSDrawingContext ctx;
+    std::shared_ptr<Drawing::DrawCmdList> ptr = RSExtendedModifierHelper::FinishDrawing(ctx);
+    EXPECT_TRUE(ptr == nullptr);
+
+    ctx.canvas = new Drawing::Canvas();
+    ptr = RSExtendedModifierHelper::FinishDrawing(ctx);
+    EXPECT_TRUE(ptr == nullptr);
+
+    auto recordingCanvas = new ExtendRecordingCanvas(10, 10);
+    ctx.canvas = recordingCanvas;
+    RSSystemProperties::SetDrawTextAsBitmap(true);
+    ptr = RSExtendedModifierHelper::FinishDrawing(ctx);
+    EXPECT_TRUE(ptr != nullptr);
+    RSSystemProperties::SetDrawTextAsBitmap(false);
 }
 
 /**
@@ -168,7 +184,7 @@ HWTEST_F(RSExtendedModifierTest, FinishDrawingTest1, TestSize.Level1)
     }
     RSDrawingContext ctx = { recordingCanvas, 1000, 3000 };
     std::shared_ptr<Drawing::DrawCmdList> cmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
-    ASSERT_EQ(cmdList, nullptr);
+    ASSERT_NE(cmdList, nullptr);
 }
 
 /**

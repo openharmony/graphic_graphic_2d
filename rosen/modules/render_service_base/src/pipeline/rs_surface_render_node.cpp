@@ -1315,8 +1315,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     auto layer = surfaceParams->GetLayerInfo();
     layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
-    // Fix line exposed of window edges, expand dst by 1 pixel, so width and height need plus 2.
-    layer.dstRect = {dstRect_.left_ - 1, dstRect_.top_ - 1, dstRect_.width_ + 2, dstRect_.height_ + 2};
+    layer.dstRect = {dstRect_.left_, dstRect_.top_, dstRect_.width_, dstRect_.height_};
     const auto& properties = GetRenderProperties();
     layer.boundRect = {0, 0,
         static_cast<uint32_t>(properties.GetBoundsWidth()),
@@ -2457,6 +2456,8 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     } else {
         hasTransparentSurface_ = IsTransparent();
     }
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d, "
+        "isRotation: %d", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(), HasFilter(), isRotation);
     return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation;
 }
 

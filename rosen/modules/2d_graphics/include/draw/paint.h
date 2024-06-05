@@ -24,6 +24,8 @@ namespace Rosen {
 namespace Drawing {
 class DRAWING_API Paint {
 public:
+    constexpr static scalar DEFAULT_MITER_VAL = 4.0f;
+
     Paint() noexcept;
     Paint(const Paint& other) noexcept;
     Paint(const Color& c, std::shared_ptr<ColorSpace> colorSpace = nullptr) noexcept;
@@ -106,7 +108,6 @@ public:
     friend bool operator!=(const Paint& p1, const Paint& p2);
 
 private:
-    const scalar DEFAULT_MITER_VAL = 4.0f;
     bool antiAlias_ = false;
     Color color_ = Color::COLOR_BLACK;
     BlendMode blendMode_ = BlendMode::SRC_OVER;

@@ -33,6 +33,7 @@ enum TouchState : int32_t {
     UP_STATE,
 };
 
+class HgmFrameRateManager;
 class HgmTouchManager final : public HgmStateMachine<TouchState, TouchEvent> {
 public:
     HgmTouchManager();

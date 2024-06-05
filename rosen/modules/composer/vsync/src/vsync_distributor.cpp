@@ -546,7 +546,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 
     ChangeConnsRateLocked();
     ScopedBytrace func("pendingRNVInVsync: " + std::to_string(pendingRNVInVsync_) + " DVSyncOn: " +
-        std::to_string(IsDVsyncOn()));
+        std::to_string(IsDVsyncOn()) + " isRS:" + std::to_string(isRs_));
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -775,12 +775,6 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         VLOGE("connection is nullptr");
         return VSYNC_ERROR_NULLPTR;
     }
-
-#if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn() && fromWhom == "ltpoForceUpdate") {
-        return VSYNC_ERROR_OK;
-    }
-#endif
 
     ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
     std::unique_lock<std::mutex> locker(mutex_);

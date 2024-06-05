@@ -68,7 +68,7 @@ public:
     static RSUniHwcPrevalidateUtil& GetInstance();
     bool PreValidate(
         ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy);
-    bool CreateSurfaceNodeLayerInfo(
+    bool CreateSurfaceNodeLayerInfo(uint32_t zorder,
         RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
     bool CreateDisplayNodeLayerInfo(uint32_t zorder,
         RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);

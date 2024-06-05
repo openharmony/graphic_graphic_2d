@@ -255,106 +255,118 @@ const OHOS::Rosen::Drawing::Matrix GEKawaseBlurShaderFilter::BuildMatrix(
 
 bool GEKawaseBlurShaderFilter::InitBlurEffect()
 {
-    if (g_blurEffect == nullptr) {
-        static std::string blurString(R"(
-            uniform shader imageInput;
-            uniform float2 in_blurOffset;
-            uniform float2 in_maxSizeXY;
-
-            half4 main(float2 xy) {
-                half4 c = imageInput.eval(xy);
-                c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
-                                            clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
-                c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
-                                            clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
-                c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
-                                            clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
-                c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
-                                            clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
-                return half4(c.rgb * 0.2, 1.0);
-            }
-        )");
-        g_blurEffect = Drawing::RuntimeEffect::CreateForShader(blurString);
-        if (g_blurEffect == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
-            return false;
-        }
+    if (g_blurEffect != nullptr) {
+        return true;
     }
+
+    static std::string blurString(R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset;
+        uniform float2 in_maxSizeXY;
+
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            return half4(c.rgb * 0.2, 1.0);
+        }
+    )");
+    g_blurEffect = Drawing::RuntimeEffect::CreateForShader(blurString);
+    if (g_blurEffect == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
+        return false;
+    }
+
     return true;
 }
 
 bool GEKawaseBlurShaderFilter::InitMixEffect()
 {
-    if (g_mixEffect == nullptr) {
-        static std::string mixString(R"(
-            uniform shader blurredInput;
-            uniform shader originalInput;
-            uniform float mixFactor;
-            uniform float inColorFactor;
-
-            highp float random(float2 xy) {
-                float t = dot(xy, float2(78.233, 12.9898));
-                return fract(sin(t) * 43758.5453);
-            }
-            half4 main(float2 xy) {
-                highp float noiseGranularity = inColorFactor / 255.0;
-                half4 finalColor = mix(originalInput.eval(xy), blurredInput.eval(xy), mixFactor);
-                float noise  = mix(-noiseGranularity, noiseGranularity, random(xy));
-                finalColor.rgb += noise;
-                return finalColor;
-            }
-        )");
-        g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
-        if (g_mixEffect == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader mixEffect create failed");
-            return false;
-        }
+    if (g_mixEffect != nullptr) {
+        return true;
     }
+
+    static std::string mixString(R"(
+        uniform shader blurredInput;
+        uniform shader originalInput;
+        uniform float mixFactor;
+        uniform float inColorFactor;
+
+        highp float random(float2 xy) {
+            float t = dot(xy, float2(78.233, 12.9898));
+            return fract(sin(t) * 43758.5453);
+        }
+        half4 main(float2 xy) {
+            highp float noiseGranularity = inColorFactor / 255.0;
+            half4 finalColor = mix(originalInput.eval(xy), blurredInput.eval(xy), mixFactor);
+            float noise  = mix(-noiseGranularity, noiseGranularity, random(xy));
+            finalColor.rgb += noise;
+            return finalColor;
+        }
+    )");
+    g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
+    if (g_mixEffect == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader mixEffect create failed");
+        return false;
+    }
+
     return true;
 }
 
 bool GEKawaseBlurShaderFilter::InitSimpleFilter()
 {
-    if (g_simpleFilter == nullptr) {
-        static std::string simpleShader(R"(
-            uniform shader imageInput;
-            half4 main(float2 xy) {
-                return imageInput.eval(xy);
-            }
-        )");
-        g_simpleFilter = Drawing::RuntimeEffect::CreateForShader(simpleShader);
-        if (g_simpleFilter == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
-            return false;
-        }
+    if (g_simpleFilter != nullptr) {
+        return true;
     }
+
+    static std::string simpleShader(R"(
+        uniform shader imageInput;
+        half4 main(float2 xy) {
+            return imageInput.eval(xy);
+        }
+    )");
+    g_simpleFilter = Drawing::RuntimeEffect::CreateForShader(simpleShader);
+    if (g_simpleFilter == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
+        return false;
+    }
+
     return true;
 }
 
 // Advanced Filter
 bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
 {
-    if (g_blurEffectAf == nullptr) {
-        Drawing::RuntimeEffectOptions ops;
-        ops.useAF = true;
-        static std::string blurStringAF(R"(
-            uniform shader imageInput;
-            uniform float2 in_blurOffset[5];
-
-            half4 main(float2 xy) {
-                half4 c = half4(0, 0, 0, 0);
-                for (int i = 0; i < 5; ++i) {
-                    c += imageInput.eval(float2(xy.x + in_blurOffset[i].x, xy.y + in_blurOffset[i].y));
-                }
-                return half4(c.rgb * 0.2, 1.0);
-            }
-        )");
-        g_blurEffectAf = Drawing::RuntimeEffect::CreateForShader(blurStringAF, ops);
-        if (g_blurEffectAf == nullptr) {
-            LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
-            return false;
-        }
+    if (g_blurEffectAf != nullptr) {
+        return true;
     }
+
+    Drawing::RuntimeEffectOptions ops;
+    ops.useAF = true;
+    static std::string blurStringAF(R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset[5];
+
+        half4 main(float2 xy) {
+            half4 c = half4(0, 0, 0, 0);
+            for (int i = 0; i < 5; ++i) {
+                c += imageInput.eval(float2(xy.x + in_blurOffset[i].x, xy.y + in_blurOffset[i].y));
+            }
+            return half4(c.rgb * 0.2, 1.0);
+        }
+    )");
+    g_blurEffectAf = Drawing::RuntimeEffect::CreateForShader(blurStringAF, ops);
+    if (g_blurEffectAf == nullptr) {
+        LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
+        return false;
+    }
+    
     return true;
 }
 

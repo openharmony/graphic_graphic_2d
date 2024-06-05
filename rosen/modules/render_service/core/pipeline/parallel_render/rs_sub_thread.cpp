@@ -293,20 +293,23 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
     });
+
+    // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
+    // 1. hdc shell mount -o rw,remount /
+    // 2. hdc shell setenforce 0 # close selinux temporarily
+    // 3. hdc shell chmod 0777 /data
+    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, nodeDrawable->GetName());
+
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     nodeDrawable->SetCacheSurfaceNeedUpdated(true);
 
     RSSubThreadManager::Instance()->NodeTaskNotify(param->GetId());
 
-    RSMainThread::Instance()->RequestNextVSync();
+    RSMainThread::Instance()->RequestNextVSync("subthread");
 
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(param->GetId());
     doingCacheProcessNum--;
-
-    // uifirst_debug dump img
-    std::string pidstring = nodeDrawable->GetDebugInfo();
-    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, pidstring);
 }
 
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()

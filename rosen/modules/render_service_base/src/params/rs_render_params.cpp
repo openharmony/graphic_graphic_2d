@@ -250,6 +250,20 @@ bool RSRenderParams::GetDrawingCacheIncludeProperty() const
     return drawingCacheIncludeProperty_;
 }
 
+void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
+{
+    if (freezeFlag_ == freezeFlag) {
+        return;
+    }
+    freezeFlag_ = freezeFlag;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetRSFreezeFlag() const
+{
+    return freezeFlag_;
+}
+
 void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
 {
     if (isOpincRootFlag_ == suggestFlag) {
@@ -412,6 +426,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->freezeFlag_ = freezeFlag_;
     needSync_ = false;
 }
 

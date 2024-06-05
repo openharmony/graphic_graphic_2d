@@ -530,7 +530,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
     static constexpr int REQUEST_FRAME_AWARE_LOAD = 90;
     static constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
     if (!HasCachedTexture()) {
-        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lx", canSkipWait, nodeId_);
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lld", canSkipWait, nodeId_);
         if (canSkipWait) {
             return false; // draw nothing
         }

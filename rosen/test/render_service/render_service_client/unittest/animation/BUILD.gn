@@ -34,7 +34,6 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   include_dirs = [ "/graphic_2d/rosen/test/include" ]
   configs = [
     ":ui_test",
-    "$ace_root:ace_test_config",
     "../../../../../modules/render_service_client:render_service_client_config",
   ]
   cflags = [

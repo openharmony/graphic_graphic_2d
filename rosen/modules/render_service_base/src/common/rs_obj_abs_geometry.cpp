@@ -14,8 +14,6 @@
  */
 
 #include "common/rs_obj_abs_geometry.h"
-
-#include "platform/common/rs_log.h"
 #include "utils/camera3d.h"
 
 namespace OHOS {
@@ -310,10 +308,13 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
     if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_0), 0.f, EPSILON) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_1), 0.f, EPSILON) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_2), 0.f, EPSILON)) {
-        Drawing::Rect src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-        Drawing::Rect dts;
+        Drawing::RectF src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+        Drawing::RectF dts;
         matrix.MapRect(dts, src);
-        absRect = RectI(dts.GetLeft(), dts.GetTop(), dts.GetWidth(), dts.GetHeight());
+        absRect.left_ = static_cast<int>(dts.GetLeft());
+        absRect.top_ = static_cast<int>(dts.GetTop());
+        absRect.width_ = static_cast<int>(std::ceil(dts.GetRight() - absRect.left_));
+        absRect.height_ = static_cast<int>(std::ceil(dts.GetBottom() - absRect.top_));
     } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
         // Map the rectangle's points to the absolute matrix

@@ -75,9 +75,14 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
 }
 
 void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
-    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime)
+    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime, bool isNeedUpdateAppOffset)
 {
-    int32_t pulseNum = GetAppOffset(controllerRate);
+    int pulseNum;
+    if (isNeedUpdateAppOffset) {
+        pulseNum = 0;
+    } else {
+        pulseNum = GetAppOffset(controllerRate);
+    }
 
     VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;
@@ -94,6 +99,9 @@ void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerR
         currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum;
         currentRate_ = controllerRate;
     } else {
+        if (isNeedUpdateAppOffset) {
+            listenerPhase.phaseByPulseNum = pulseNum;
+        }
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate);
     }
 }
