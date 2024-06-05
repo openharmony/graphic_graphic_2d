@@ -318,10 +318,8 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         if (!drawable) {
             return;
         }
-        auto bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawable.get())->GetBitmap();
-        if (!bitmap.IsEmpty()) {
-            canvas_->DrawBitmap(bitmap, 0, 0);
-        }
+        auto canvasDrawable = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawable.get());
+        canvasDrawable->DrawCaptureImage(*canvas_);
     } else {
         node.ProcessRenderContents(*canvas_);
     }
