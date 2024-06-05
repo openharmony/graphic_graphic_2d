@@ -42,7 +42,7 @@ enum class GradientDir : uint8_t {
 };
 
 enum class GradientBlurType : uint8_t {
-    AlPHA_BLEND = 0,
+    ALPHA_BLEND = 0,
     RADIUS_GRADIENT,
 };
 

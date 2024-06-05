@@ -284,7 +284,7 @@ bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix* cMatrix, const OH_Drawing
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
-    if (count < 0 || count > POLY_POINT_COUNT_MAX) {
+    if (count > POLY_POINT_COUNT_MAX) {
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return false;
     }
@@ -347,9 +347,9 @@ OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* cMatrix, float v
     if (matrix == nullptr || value == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    std::array<float, 9> buffer;
+    std::array<float, 9> buffer; // 9:size of buffer
     matrix->GetAll(buffer);
-    for (int i = 0; i < 9; ++i) {
+    for (int i = 0; i < 9; ++i) { // 9:size of value
         value[i] = buffer[i];
     }
     return OH_DRAWING_SUCCESS;
