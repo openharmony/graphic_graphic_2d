@@ -1206,9 +1206,9 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
-    sptr<RSIBufferAvailableCallback> callbackFromRT_;
-    sptr<RSIBufferAvailableCallback> callbackFromUI_;
-    sptr<RSIBufferClearCallback> clearBufferCallback_;
+    sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
+    sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
+    sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
     bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
