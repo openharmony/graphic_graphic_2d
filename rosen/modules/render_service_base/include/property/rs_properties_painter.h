@@ -39,6 +39,8 @@ public:
         bool isAntiAlias = true, bool isSurfaceView = false);
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
+    static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
+        const RSProperties& properties, const bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -127,6 +129,27 @@ private:
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
         const std::shared_ptr<RSBorder>& border, const bool isOutline);
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
+
+    static bool UseFilterCache(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+        const Drawing::RectI& bounds, const std::shared_ptr<RSDrawingFilter>& filter);
+    static void ProcessAndCacheImage(Drawing::Surface* surface, const Drawing::RectI& bounds,
+        const std::shared_ptr<RSDrawingFilter>& filter, RSPaintFilterCanvas& canvas);
+
+    static bool ProcessPixelStretch(RSPaintFilterCanvas& canvas, Drawing::Rect& bounds,
+        const std::optional<Vector4f>& pixelStretch, Drawing::Rect& fClipBounds, Drawing::Rect& scaledBounds);
+    static bool ProcessRotation(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Rect& bounds,
+        Drawing::Matrix& inverseMat);
+    static void DrawPixelStretchImage(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+        Drawing::Rect& bounds, const std::optional<Vector4f>& pixelStretch, Drawing::Surface* surface);
+
+    static void ApplyClipIfNeed(const RSProperties& properties, RSPaintFilterCanvas& canvas, const bool antiAlias);
+    static void DrawBorderIfNoFill(const RSProperties& properties, Drawing::Canvas& canvas,
+        const std::shared_ptr<RSBorder>& border, const bool isOutline);
+    static void ApplyMaskToCanvas(Drawing::Canvas& canvas, std::shared_ptr<RSMask>& mask, Drawing::Rect& maskBounds);
+    static void DrawCustomPath(Drawing::Canvas& canvas, const float offsetSquare, const bool isWidthGreater,
+        std::vector<Drawing::Point>& ctrlPoints, const std::vector<Drawing::Point>& texCoords);
+    static std::vector<Drawing::Point> InitCtrlPoints(float width, float height, float degree);
+    static float CalcOffsetSquare(float& width, float& height, const float degree, const bool isWidthGreater);
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

@@ -27,10 +27,7 @@ ohos_unittest("RSScreenManagerTest") {
     "rs_screen_test.cpp",
   ]
 
-  configs = [
-    ":screen_manager_test",
-    "$ace_root:ace_test_config",
-  ]
+  configs = [ ":screen_manager_test" ]
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
@@ -80,10 +77,7 @@ ohos_unittest("RSScreenTest") {
     "rs_screen_test.cpp",
   ]
 
-  configs = [
-    ":screen_test",
-    "$ace_root:ace_test_config",
-  ]
+  configs = [ ":screen_test" ]
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "convert.h"
+#include "rosen_text/text_style.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -136,6 +137,24 @@ HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest009, TestSize.Level1)
     SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
     //The default fontsize for TextStyle is 14.0
     EXPECT_EQ(sptextStyle.fontSize == 14.0, true);
+}
+
+/*
+ * @tc.name: OH_Drawing_ConvertTest010
+ * @tc.desc: test for  Convert PlaceholderSpan
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest010, TestSize.Level2)
+{
+    TextStyle textStyle;
+    int tagFeature = 10;
+    float tagAxis = 1.2;
+    double fontParam = 14.0;
+    textStyle.symbol.SetVisualMode(VisualMode::VISUAL_SMALL);
+    textStyle.fontFeatures.SetFeature("tag", tagFeature);
+    textStyle.fontVariations.SetAxisValue("tag", tagAxis);
+    SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
+    EXPECT_EQ(sptextStyle.fontSize == fontParam, true);
 }
 } // namespace Rosen
 } // namespace OHOS

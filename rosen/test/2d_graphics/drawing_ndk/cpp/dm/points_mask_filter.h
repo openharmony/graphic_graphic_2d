@@ -17,7 +17,7 @@
 #define POINTS_MASK_FILTER_H
 #include <bits/alltypes.h>
 
-#include "../test_base.h"
+#include "test_base.h"
 #include "test_common.h"
 
 #include "common/log_common.h"

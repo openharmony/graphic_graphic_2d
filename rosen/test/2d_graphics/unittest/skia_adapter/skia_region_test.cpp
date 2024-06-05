@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_region.h"
 #include "utils/region.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -102,6 +103,23 @@ HWTEST_F(SkiaRegionTest, Deserialize001, TestSize.Level1)
 {
     std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
     skiaRegion->Deserialize(nullptr);
+}
+
+/**
+ * @tc.name: Contains001
+ * @tc.desc: Test Contains
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, Contains001, TestSize.Level1)
+{
+    std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
+    RectI rect(0, 100, 100, 200);
+    skiaRegion->SetRect(rect);
+    auto ret = skiaRegion->Contains(300, 300); // 300, 300 is point
+    EXPECT_FALSE(ret);
+    ret = skiaRegion->Contains(50, 150); // 50, 100 is point
+    EXPECT_TRUE(ret);
 }
 } // namespace Drawing
 } // namespace Rosen

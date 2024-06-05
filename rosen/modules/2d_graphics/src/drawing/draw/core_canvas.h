@@ -724,6 +724,7 @@ protected:
     void Reset(int32_t width, int32_t height);
     Paint paintBrush_;
     Paint paintPen_;
+    Paint defaultPaint_;
 
 private:
     void ApplyDrawProc(const Paint& paint, const std::function<void()>& proc);

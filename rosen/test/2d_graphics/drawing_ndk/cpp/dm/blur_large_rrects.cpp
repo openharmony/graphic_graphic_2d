@@ -42,7 +42,6 @@ void BlurLargeRrects::OnTestFunction(OH_Drawing_Canvas *canvas)
     DRAWING_LOGI("BlurLargeRrects::OnTestFunction start");
     // 创建一个brush对象
     OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetAntiAlias(brush, true);
     // 创建一个滤波器对象
     OH_Drawing_Filter *filter = OH_Drawing_FilterCreate();
     // 创建一个模板滤波器

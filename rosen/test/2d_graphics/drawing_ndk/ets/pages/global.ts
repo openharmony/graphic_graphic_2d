@@ -26,6 +26,9 @@ export class Global{
     MyWindow = myWindow;
   }
 
+  static pixelmapWidth: number = 0;
+  static pixelmapHeight: number = 0;
+
   static sleep(ms) {
     return new Promise(resolve=>setTimeout(resolve, ms));
   }
@@ -50,6 +53,11 @@ export class Global{
 
   static async savePixmap(dir: string, fileName: string, pixelMap: image.PixelMap) {
       console.info(TAG, 'savePixmap Pixel bytes number: ' + pixelMap.getPixelBytesNumber());
+      if (this.pixelmapHeight && this.pixelmapWidth && this.pixelmapHeight > 0 && this.pixelmapWidth > 0) {
+        let region : image.Region =
+          { x : 0, y :0, size : { height: this.pixelmapHeight, width: this.pixelmapWidth } };
+        await pixelMap.crop(region)
+      }
       const path : string = dir + "/" + fileName + ".png";
       let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
       const imagePackerApi: image.ImagePacker = image.createImagePacker();

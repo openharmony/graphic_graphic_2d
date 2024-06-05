@@ -105,7 +105,7 @@ EffectErrorCode OH_Filter_GetEffectPixelMap(OH_Filter* filter, OH_PixelmapNative
         return EFFECT_BAD_PARAMETER;
     }
     *pixelmap = new OH_PixelmapNative(CastToFilter(filter)->GetPixelMap());
-    if (pixelmap == nullptr) {
+    if (*pixelmap == nullptr) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;

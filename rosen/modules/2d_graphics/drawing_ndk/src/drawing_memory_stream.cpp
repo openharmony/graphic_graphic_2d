@@ -14,8 +14,12 @@
  */
 
 #include "drawing_memory_stream.h"
+
 #include <cstddef>
 #include <unordered_map>
+
+#include "drawing_canvas_utils.h"
+
 #include "utils/memory_stream.h"
 
 using namespace OHOS;
@@ -30,6 +34,7 @@ static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 OH_Drawing_MemoryStream* OH_Drawing_MemoryStreamCreate(const void* data, size_t length, bool copyData)
 {
     if (data == nullptr || length == 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_MemoryStream*)new MemoryStream(data, length, copyData);

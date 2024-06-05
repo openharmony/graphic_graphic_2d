@@ -18,6 +18,7 @@
 #include <vector>
 #include <EGL/egl.h>
 #include "egl_defs.h"
+#include "egl_system_layers_manager.h"
 
 namespace OHOS {
 using GetNextLayerAddr = void *(*)(void *, const char *);
@@ -30,6 +31,9 @@ public:
     static EglWrapperLayer& GetInstance();
     ~EglWrapperLayer();
     bool Init(EglWrapperDispatchTable *table);
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    bool GetIGraphicsLogicStatus() { return iGraphicsLogic; }
+#endif
 
 private:
     EglWrapperLayer() : initialized_(false) {};
@@ -41,6 +45,11 @@ private:
     std::vector<LayerSetupFunc> layerSetup_;
     std::vector<FunctionTable> layerFuncTbl_;
     bool initialized_;
+
+    EglSystemLayersManager eglSystemLayersManager_;
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    bool iGraphicsLogic = false;
+#endif
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_LAYER_H

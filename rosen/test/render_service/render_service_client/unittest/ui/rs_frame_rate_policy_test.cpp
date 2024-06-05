@@ -94,6 +94,14 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback, TestSize.Level1)
     item.animName = "animName";
     instance->HgmConfigChangeCallback(configData);
     EXPECT_TRUE(configData->configData_.empty() != true);
+
+    item.animType.clear();
+    instance->HgmConfigChangeCallback(configData);
+    EXPECT_TRUE(configData->configData_.empty() != true);
+
+    item.animName.clear();
+    instance->HgmConfigChangeCallback(configData);
+    EXPECT_TRUE(configData->configData_.empty() != true);
 }
 
 /**
@@ -138,6 +146,15 @@ HWTEST_F(RSFrameRatePolicyTest, GetPreferredFps, TestSize.Level1)
     EXPECT_TRUE(res == 0);
 
     instance->animAttributes_.insert({ "test scene", { { "test scene", AnimDynamicAttribute() } } });
+    res = instance->GetPreferredFps(scene, speed);
+    EXPECT_TRUE(res == 0);
+
+    instance->ppi_ = 0;
+    res = instance->GetPreferredFps(scene, speed);
+    EXPECT_TRUE(res == 0);
+
+    instance->ppi_ = 25.4f;
+    speed = 127.f;
     res = instance->GetPreferredFps(scene, speed);
     EXPECT_TRUE(res == 0);
 }

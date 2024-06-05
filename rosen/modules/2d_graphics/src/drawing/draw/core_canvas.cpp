@@ -21,11 +21,23 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl()) {}
+CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl())
+{
+    defaultPaint_.SetAntiAlias(true);
+    defaultPaint_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+}
 
-CoreCanvas::CoreCanvas(void* rawCanvas) : impl_(ImplFactory::CreateCoreCanvasImpl(rawCanvas)) {}
+CoreCanvas::CoreCanvas(void* rawCanvas) : impl_(ImplFactory::CreateCoreCanvasImpl(rawCanvas))
+{
+    defaultPaint_.SetAntiAlias(true);
+    defaultPaint_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+}
 
-CoreCanvas::CoreCanvas(int32_t width, int32_t height) : impl_(ImplFactory::CreateCoreCanvasImpl(width, height)) {}
+CoreCanvas::CoreCanvas(int32_t width, int32_t height) : impl_(ImplFactory::CreateCoreCanvasImpl(width, height))
+{
+    defaultPaint_.SetAntiAlias(true);
+    defaultPaint_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+}
 
 void CoreCanvas::Bind(const Bitmap& bitmap)
 {
@@ -490,7 +502,7 @@ void CoreCanvas::ApplyDrawLooper(const std::function<void()> drawProc)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        LOGD("Drawing CoreCanvas ApplyDrawLooper with Invalid Paint");
+        ApplyDrawProc(defaultPaint_, drawProc);
         return;
     }
 
@@ -518,7 +530,7 @@ void CoreCanvas::AttachPaint()
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        LOGD("Drawing CoreCanvas AttachPaint with Invalid Paint");
+        impl_->AttachPaint(defaultPaint_);
         return;
     }
 

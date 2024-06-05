@@ -183,6 +183,10 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->SetBorderWidth(GetData<float>());
     surfaceNode->SetBorderWidth(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     surfaceNode->SetBorderWidth(width);
+    surfaceNode->SetBorderDashWidth(width);
+    surfaceNode->SetBorderDashGap(width);
+    surfaceNode->SetOutlineDashWidth(width);
+    surfaceNode->SetOutlineDashGap(width);
     surfaceNode->SetBorderStyle(GetData<uint32_t>());
     surfaceNode->SetBorderStyle(GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint32_t>());
     surfaceNode->SetBorderStyle(style);

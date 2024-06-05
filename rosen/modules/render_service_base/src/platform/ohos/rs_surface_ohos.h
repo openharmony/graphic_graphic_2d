@@ -42,6 +42,7 @@ public:
 
     virtual void SetSurfaceBufferUsage(uint64_t usage) = 0;
     virtual void SetSurfacePixelFormat(int32_t pixelFormat) = 0;
+    virtual sptr<SurfaceBuffer> GetCurrentBuffer() = 0;
     void ClearAllBuffer() override;
 protected:
     sptr<Surface> producer_;

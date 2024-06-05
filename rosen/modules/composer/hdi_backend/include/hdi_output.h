@@ -125,6 +125,8 @@ private:
     std::vector<uint32_t> layersId_;
     std::vector<sptr<SyncFence>> fences_;
 
+    // DISPLAYENGINE
+    bool arsrPreEnabled_ = false;
     int32_t skipState_ = -1;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);

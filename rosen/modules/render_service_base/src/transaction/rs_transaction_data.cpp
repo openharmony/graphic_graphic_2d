@@ -136,6 +136,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteInt32(pid_);
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteUint64(syncId_);
+    success = success && parcel.WriteInt32(hostPid_);
     return success;
 }
 
@@ -254,7 +255,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
-        parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_);
+        parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(hostPid_);
 }
 
 

@@ -61,6 +61,7 @@ public:
     static napi_value DrawPoint(napi_env env, napi_callback_info info);
     static napi_value DrawPath(napi_env env, napi_callback_info info);
     static napi_value DrawPixelMapMesh(napi_env env, napi_callback_info info);
+    static napi_value DrawRegion(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DetachBrush(napi_env env, napi_callback_info info);
     static napi_value DetachPen(napi_env env, napi_callback_info info);
@@ -90,6 +91,7 @@ private:
     napi_value OnDrawPoint(napi_env env, napi_callback_info info);
     napi_value OnDrawPath(napi_env env, napi_callback_info info);
     napi_value OnDrawPixelMapMesh(napi_env env, napi_callback_info info);
+    napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnRotate(napi_env env, napi_callback_info info);

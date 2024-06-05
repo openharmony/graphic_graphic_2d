@@ -23,9 +23,9 @@
 #include <GLES2/gl2ext.h>
 #include <hilog/log.h>
 
-static EGLDisplay g_Display = nullptr;
-static EGLContext g_Context = nullptr;
-static EGLSurface g_Surface = nullptr;
+static EGLDisplay g_display = nullptr;
+static EGLContext g_context = nullptr;
+static EGLSurface g_surface = nullptr;
 static const unsigned int LOG_PRINT_DOMAIN = 0xFF01;
 static const int SUCCESS = 0;
 static const int FAILED = -1;
@@ -51,7 +51,7 @@ static napi_value GetError(const napi_env env, const GLenum glError)
     return result;
 }
 
-std::vector<char> ReadFile(const std::string& filename)
+static std::vector<char> ReadFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -199,29 +199,29 @@ static int TestGlCompressedTexSubImage3D()
     return SUCCESS;
 }
 
-void InitGLES()
+static void InitGLES()
 {
-    g_Display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    eglInitialize(g_Display, nullptr, nullptr);
+    g_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    eglInitialize(g_display, nullptr, nullptr);
     EGLint numConfigs = INT_INIT_VAL;
     const EGLint configAttribs[] = {EGL_RED_SIZE, RGB_SIZE, EGL_GREEN_SIZE, RGB_SIZE,
                                     EGL_BLUE_SIZE, RGB_SIZE, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
                                     EGL_NONE};
     EGLConfig config = nullptr;
-    eglChooseConfig(g_Display, configAttribs, &config, CREAT_NUM_ONE, &numConfigs);
+    eglChooseConfig(g_display, configAttribs, &config, CREAT_NUM_ONE, &numConfigs);
     const EGLint surfaceAttribs[] = {EGL_WIDTH, INIT_WIDTH, EGL_HEIGHT, INIT_HEIGHT, EGL_NONE};
-    g_Surface = eglCreatePbufferSurface(g_Display, config, surfaceAttribs);
+    g_surface = eglCreatePbufferSurface(g_display, config, surfaceAttribs);
     const EGLint contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, INIT_EGL_VERSION, EGL_NONE};
-    g_Context = eglCreateContext(g_Display, config, EGL_NO_CONTEXT, contextAttribs);
-    eglMakeCurrent(g_Display, g_Surface, g_Surface, g_Context);
+    g_context = eglCreateContext(g_display, config, EGL_NO_CONTEXT, contextAttribs);
+    eglMakeCurrent(g_display, g_surface, g_surface, g_context);
 }
 
-void DestroyGLES()
+static void DestroyGLES()
 {
-    eglDestroySurface(g_Display, g_Surface);
-    eglDestroyContext(g_Display, g_Context);
-    eglTerminate(g_Display);
-    eglSwapBuffers(g_Display, g_Surface);
+    eglDestroySurface(g_display, g_surface);
+    eglDestroyContext(g_display, g_context);
+    eglTerminate(g_display);
+    eglSwapBuffers(g_display, g_surface);
 }
 
 static napi_value CreateResult(napi_env env, int status)

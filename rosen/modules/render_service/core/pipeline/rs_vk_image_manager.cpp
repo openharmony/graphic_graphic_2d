@@ -114,15 +114,11 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     return imageCache;
 }
 
-void RSVkImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
+void RSVkImageManager::ShrinkCachesIfNeeded()
 {
     while (cacheQueue_.size() > MAX_CACHE_SIZE) {
         const int32_t id = cacheQueue_.front();
-        if (isForUniRedraw) {
-            UnMapVkImageFromSurfaceBufferForUniRedraw(id);
-        } else {
-            UnMapVkImageFromSurfaceBuffer(id);
-        }
+        UnMapVkImageFromSurfaceBuffer(id);
         cacheQueue_.pop();
     }
 }
@@ -147,18 +143,6 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
         }
     };
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
-}
-
-void RSVkImageManager::UnMapVkImageFromSurfaceBufferForUniRedraw(int32_t seqNum)
-{
-    RSHardwareThread::Instance().PostTask([this, seqNum]() {
-        std::lock_guard<std::mutex> lock(opMutex_);
-        if (imageCacheSeqs_.count(seqNum) == 0) {
-            return;
-        }
-        (void)imageCacheSeqs_.erase(seqNum);
-        RS_LOGD("RSVkImageManager::UnMapVkImageFromSurfaceBufferForRedraw");
-    });
 }
 
 } // namespace Rosen

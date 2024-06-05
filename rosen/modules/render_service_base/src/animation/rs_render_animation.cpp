@@ -189,6 +189,22 @@ void RSRenderAnimation::Finish()
     ProcessFillModeOnFinish(animationFraction_.GetEndFraction());
 }
 
+void RSRenderAnimation::FinishOnPosition(RSInteractiveAnimationPosition pos)
+{
+    if (!IsPaused() && !IsRunning()) {
+        ROSEN_LOGD("Failed to finish animation, animation is not running!");
+        return;
+    }
+
+    state_ = AnimationState::FINISHED;
+
+    if (pos == RSInteractiveAnimationPosition::START) {
+        ProcessFillModeOnFinish(animationFraction_.GetStartFraction());
+    } else if (pos == RSInteractiveAnimationPosition::END) {
+        ProcessFillModeOnFinish(animationFraction_.GetEndFraction());
+    }
+}
+
 void RSRenderAnimation::FinishOnCurrentPosition()
 {
     if (!IsPaused() && !IsRunning()) {
@@ -218,6 +234,8 @@ void RSRenderAnimation::Resume()
 
     state_ = AnimationState::RUNNING;
     needUpdateStartTime_ = true;
+
+    UpdateFractionAfterContinue();
 }
 
 void RSRenderAnimation::SetFraction(float fraction)
@@ -230,6 +248,18 @@ void RSRenderAnimation::SetFraction(float fraction)
     fraction = std::min(std::max(fraction, 0.0f), 1.0f);
     OnSetFraction(fraction);
 }
+
+void RSRenderAnimation::SetReversedAndContinue()
+{
+    if (!IsPaused()) {
+        ROSEN_LOGE("Failed to reverse animation, animation is not running!");
+        return;
+    }
+    SetReversed(true);
+    animationFraction_.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    Resume();
+}
+
 
 void RSRenderAnimation::SetReversed(bool isReversed)
 {
@@ -249,11 +279,6 @@ RSRenderNode* RSRenderAnimation::GetTarget() const
 void RSRenderAnimation::SetFractionInner(float fraction)
 {
     animationFraction_.UpdateRemainTimeFraction(fraction);
-}
-
-void RSRenderAnimation::OnSetFraction(float fraction)
-{
-    SetFractionInner(fraction);
 }
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)

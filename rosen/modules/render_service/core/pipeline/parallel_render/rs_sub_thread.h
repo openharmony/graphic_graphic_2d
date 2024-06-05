@@ -41,6 +41,7 @@ public:
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
     void ReleaseSurface();
+    void ReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();
@@ -60,6 +61,7 @@ private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
+    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

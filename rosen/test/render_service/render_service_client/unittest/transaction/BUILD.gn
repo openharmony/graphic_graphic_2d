@@ -27,7 +27,6 @@ ohos_unittest("RSRenderServiceClientTransactionTest") {
 
   configs = [
     ":ui_test",
-    "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
   ]
 

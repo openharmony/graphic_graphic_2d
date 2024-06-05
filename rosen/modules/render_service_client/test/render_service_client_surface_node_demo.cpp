@@ -24,8 +24,8 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "wm/window.h"
-#include "wm/window_scene.h"
+#include "window.h"
+#include "window_scene.h"
 
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"

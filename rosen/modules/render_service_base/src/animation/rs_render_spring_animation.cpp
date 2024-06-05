@@ -134,12 +134,6 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
 }
 #endif
 
-void RSRenderSpringAnimation::OnSetFraction(float fraction)
-{
-    // spring animation should not support set fraction
-    OnAnimate(fraction);
-}
-
 void RSRenderSpringAnimation::OnAnimate(float fraction)
 {
     if (GetPropertyId() == 0) {

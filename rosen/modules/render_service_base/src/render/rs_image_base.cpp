@@ -323,7 +323,8 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
 #endif
             }
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
-            RSResourceManager::Instance().UploadTexture(paraUpload&renderServiceImage_, image_, pixelMap_, uniqueId_);
+            RSResourceManager::Instance().UploadTexture(paraUpload && renderServiceImage_, image_,
+                pixelMap_, uniqueId_);
 #endif
         }
     }

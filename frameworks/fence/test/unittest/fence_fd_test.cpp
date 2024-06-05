@@ -40,7 +40,8 @@ void FenceFdTest::OnBufferAvailable()
 }
 
 namespace {
-HWTEST_F(FenceFdTest, BufferQueueFenceItem, testing::ext::TestSize.Level0) {
+HWTEST_F(FenceFdTest, BufferQueueFenceItem, testing::ext::TestSize.Level0)
+{
     PART("EnvConditions") {
         STEP("surf create success.") {
             csurf = IConsumerSurface::Create();

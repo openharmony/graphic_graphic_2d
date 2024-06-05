@@ -30,6 +30,7 @@ public:
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
     static inline Mock::HdiDeviceMock* mockDevice_;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
 };
 
 void HdiScreenTest::SetUpTestCase()
@@ -56,9 +57,13 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenConstraint(_, _, _, _)).WillRepeatedly(testing::Return(0));
 }
 
-void HdiScreenTest::TearDownTestCase() {}
+void HdiScreenTest::TearDownTestCase()
+{
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
 
 namespace {
 /*
@@ -103,6 +108,10 @@ HWTEST_F(HdiScreenTest, CheckDeviceNull001, Function | MediumTest| Level3)
     ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), GRAPHIC_DISPLAY_NULL_PTR);
     std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), GRAPHIC_DISPLAY_NULL_PTR);
+    uint64_t frameId = 0;
+    uint64_t timestamp = 10000000;
+    uint32_t type = 0;
+    ASSERT_EQ(hdiScreen_->SetScreenConstraint(frameId, timestamp, type), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 /*
@@ -385,6 +394,22 @@ HWTEST_F(HdiScreenTest, GetSupportedMetaDataKey001, Function | MediumTest | Leve
     GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<GraphicHDRMetadataKey> keys = { key };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetSupportedMetaDataKey(keys), 0);
+}
+
+/*
+* Function: SetScreenConstraint001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenConstraint
+*                  2. check ret
+ */
+HWTEST_F(HdiScreenTest, SetScreenConstraint001, Function | MediumTest | Level3)
+{
+    uint64_t frameId = 0;
+    uint64_t timestamp = 10000000;
+    uint32_t type = 0;
+    ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenConstraint(frameId, timestamp, type), 0);
 }
 
 } // namespace

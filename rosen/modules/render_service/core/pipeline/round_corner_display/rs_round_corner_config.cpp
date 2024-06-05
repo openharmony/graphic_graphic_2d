@@ -454,7 +454,7 @@ bool RCDConfig::Load(std::string configFile)
         RS_LOGE("RoundCornerDisplay read xml failed \n");
         return false;
     }
-    RS_LOGD("RoundCornerDisplay read xml ok \n");
+    RS_LOGI("RoundCornerDisplay read xml ok \n");
     pRoot = xmlDocGetRootElement(pDoc);
     if (pRoot == nullptr) {
         RS_LOGE("RoundCornerDisplay get xml root failed \n");
@@ -475,7 +475,7 @@ bool RCDConfig::Load(std::string configFile)
         startPtr = startPtr->next;
     }
     auto interval = std::chrono::duration_cast<microseconds>(high_resolution_clock::now() - begin);
-    RS_LOGD("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
+    RS_LOGI("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
 }
 

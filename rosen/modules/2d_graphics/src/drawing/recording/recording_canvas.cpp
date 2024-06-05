@@ -290,6 +290,33 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
     cmdList_->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    std::vector<RSXform> xformVec(xform, xform + count);
+    std::vector<Rect> texVec(tex, tex + count);
+    std::vector<ColorQuad> colorVec;
+    if (colors) {
+        colorVec.assign(colors, colors + count);
+    }
+    Rect rect;
+    bool hasCullRect = false;
+    if (cullRect) {
+        rect = *cullRect;
+        hasCullRect = true;
+    }
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<DrawAtlasOpItem>(atlas, xformVec, texVec, colorVec, mode, sampling, hasCullRect, rect);
+        return;
+    }
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *atlas);
+    auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(*cmdList_, xformVec);
+    auto texData = CmdListHelper::AddVectorToCmdList<Rect>(*cmdList_, texVec);
+    auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*cmdList_, colorVec);
+    AddDrawOpImmediate<DrawAtlasOpItem::ConstructorHandle>(imageHandle, xformData, texData, colorData, mode,
+        sampling, hasCullRect, rect);
+}
+
 void RecordingCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     auto image = bitmap.MakeImage();
@@ -304,6 +331,7 @@ void RecordingCanvas::DrawImage(const Image& image, const scalar px, const scala
         AddDrawOpDeferred<DrawImageOpItem>(image, px, py, sampling);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageOpItem::ConstructorHandle>(imageHandle, px, py, sampling);
 }
@@ -315,6 +343,7 @@ void RecordingCanvas::DrawImageRect(
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, constraint);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling, constraint);
 }
@@ -326,6 +355,7 @@ void RecordingCanvas::DrawImageRect(const Image& image, const Rect& dst, const S
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     Rect src(0, 0, image.GetWidth(), image.GetHeight());
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(
@@ -561,7 +591,7 @@ uint32_t RecordingCanvas::Save()
 {
     uint32_t ret = static_cast<uint32_t>(saveOpStateStack_.size());
     saveOpStateStack_.push(LazySaveOp);
-    return ret;
+    return ret + 1; // The minimum value for non-recording types is 1
 }
 
 void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
@@ -610,7 +640,7 @@ void RecordingCanvas::Restore()
 
 uint32_t RecordingCanvas::GetSaveCount() const
 {
-    return static_cast<uint32_t>(saveOpStateStack_.size());
+    return static_cast<uint32_t>(saveOpStateStack_.size()) + 1; // The minimum value for non-recording types is 1
 }
 
 void RecordingCanvas::Discard()
@@ -668,9 +698,16 @@ void RecordingCanvas::CheckForLazySave()
 template<typename T, typename... Args>
 void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
 {
+    if (opCount > 40000) { //image opitems upper limit
+        return;
+    }
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        PaintHandle paintHandle;
+        paintHandle.isAntiAlias = true;
+        paintHandle.style = Paint::PaintStyle::PAINT_FILL;
+        cmdList_->AddDrawOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -699,6 +736,7 @@ void RecordingCanvas::AddDrawOpDeferred(Args&&... args)
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        cmdList_->AddDrawOp(std::make_shared<T>(std::forward<Args>(args)..., defaultPaint_));
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
@@ -720,6 +758,7 @@ void RecordingCanvas::GenerateCachedOpForTextblob(const TextBlob* blob, const sc
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        GenerateCachedOpForTextblob(blob, x, y, defaultPaint_);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {

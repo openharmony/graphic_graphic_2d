@@ -25,6 +25,7 @@
 namespace OHOS {
 namespace ColorManager {
 napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace);
+napi_value CreateJsSendableColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace);
 std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(napi_env env, napi_value object);
 }  // namespace ColorManager
 }  // namespace OHOS

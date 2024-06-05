@@ -32,6 +32,11 @@ std::shared_ptr<ColorFilter> Filter::GetColorFilter() const
     return colorFilter_;
 }
 
+const ColorFilter* Filter::GetColorFilterPtr() const
+{
+    return colorFilter_.get();
+}
+
 void Filter::SetImageFilter(std::shared_ptr<ImageFilter> imageFilter)
 {
     imageFilter_ = imageFilter;
@@ -42,6 +47,11 @@ std::shared_ptr<ImageFilter> Filter::GetImageFilter() const
     return imageFilter_;
 }
 
+const ImageFilter* Filter::GetImageFilterPtr() const
+{
+    return imageFilter_.get();
+}
+
 void Filter::SetMaskFilter(std::shared_ptr<MaskFilter> maskFilter)
 {
     maskFilter_ = maskFilter;
@@ -50,6 +60,11 @@ void Filter::SetMaskFilter(std::shared_ptr<MaskFilter> maskFilter)
 std::shared_ptr<MaskFilter> Filter::GetMaskFilter() const
 {
     return maskFilter_;
+}
+
+const MaskFilter* Filter::GetMaskFilterPtr() const
+{
+    return maskFilter_.get();
 }
 
 void Filter::SetFilterQuality(FilterQuality filterQuality)

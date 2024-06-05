@@ -18,6 +18,10 @@
 
 #include "base_impl.h"
 
+extern "C" {
+    typedef struct OH_NativeBuffer OH_NativeBuffer;
+}
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -29,6 +33,7 @@ public:
     ~DataImpl() override {}
 
     virtual bool BuildFromMalloc(const void* data, size_t length) = 0;
+    virtual bool BuildFromOHNativeBuffer(OH_NativeBuffer* nativeBuffer, size_t length) = 0;
     virtual bool BuildWithCopy(const void* data, size_t length) = 0;
     virtual bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx) = 0;
     virtual bool BuildWithoutCopy(const void* data, size_t length) = 0;

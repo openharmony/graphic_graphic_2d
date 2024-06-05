@@ -59,6 +59,17 @@ void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
 #endif
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+void SKResourceManager::DeleteSharedTextureContext(void* context)
+{
+    SharedTextureContext* cleanupHelper = static_cast<SharedTextureContext*>(context);
+    if (cleanupHelper != nullptr) {
+        delete cleanupHelper;
+        cleanupHelper = nullptr;
+    }
+}
+#endif
+
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS

@@ -15,6 +15,8 @@
 
 #include "drawing_shader_effect.h"
 
+#include "drawing_canvas_utils.h"
+
 #include "effect/shader_effect.h"
 
 using namespace OHOS;
@@ -61,6 +63,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradient(const OH_Dr
     OH_Drawing_TileMode cTileMode)
 {
     if (cStartPt == nullptr || cEndPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -82,6 +85,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMat
     uint32_t size, OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
 {
     if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -103,6 +107,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradient(const OH_Dr
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
     if (cCenterPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -122,6 +127,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
     OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
 {
     if (centerPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -141,6 +147,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Dra
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
     if (cCenterPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -160,6 +167,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions* cSampling, const OH_Drawing_Matrix* cMatrix)
 {
     if (cImage == nullptr || cSampling == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     if (cMatrix == nullptr) {
@@ -170,6 +178,27 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::IMAGE, CastToImage(*cImage),
         static_cast<TileMode>(tileX), static_cast<TileMode>(tileY), CastToSamplingOptions(*cSampling),
         *CastToMatrix(cMatrix));
+}
+
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
+    float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
+    uint32_t size, OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
+{
+    if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    std::vector<ColorQuad> colorsVector;
+    std::vector<scalar> posVector;
+    for (uint32_t i = 0; i < size; i++) {
+        colorsVector.emplace_back(colors[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
+    }
+    return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT,
+        *CastToPoint(startPt), startRadius, *CastToPoint(endPt), endRadius, colorsVector, posVector,
+        static_cast<TileMode>(cTileMode), cMatrix ? CastToMatrix(cMatrix) : nullptr);
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)

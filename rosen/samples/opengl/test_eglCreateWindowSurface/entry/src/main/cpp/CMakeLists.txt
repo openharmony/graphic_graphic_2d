@@ -8,6 +8,9 @@ add_definitions(-DOHOS_PLATFORM)
 include_directories(
     ${NATIVERENDER_ROOT_PATH}
     ${NATIVERENDER_ROOT_PATH}/include
+    common
+    manager
+    render
 )
 
 add_library(nativerender SHARED

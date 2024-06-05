@@ -14,7 +14,6 @@
  */
 
 #include "common/rs_obj_abs_geometry.h"
-
 #include "utils/camera3d.h"
 
 namespace OHOS {
@@ -302,11 +301,21 @@ void RSObjAbsGeometry::SetAbsRect()
  * @param matrix the specific to map
  * @return the mapped absolute rectangle
  */
-RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix) const
+RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix)
 {
     RectI absRect;
     // Check if the matrix has skew or negative scaling
-    if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
+    if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_0), 0.f, EPSILON) ||
+        !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_1), 0.f, EPSILON) ||
+        !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_2), 0.f, EPSILON)) {
+        Drawing::RectF src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+        Drawing::RectF dts;
+        matrix.MapRect(dts, src);
+        absRect.left_ = static_cast<int>(dts.GetLeft());
+        absRect.top_ = static_cast<int>(dts.GetTop());
+        absRect.width_ = static_cast<int>(std::ceil(dts.GetRight() - absRect.left_));
+        absRect.height_ = static_cast<int>(std::ceil(dts.GetBottom() - absRect.top_));
+    } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
         // Map the rectangle's points to the absolute matrix
         std::vector<Drawing::Point> p(RECT_POINT_NUM);
@@ -352,7 +361,7 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
     return MapRect(rect, GetAbsMatrix());
 }
 
-Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3) const
+Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3)
 {
     float min = d0;
     float max = d0;
@@ -376,7 +385,7 @@ Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3) 
             max = d3;
         }
     }
-    return Vector2f(min, max);
+    return {min, max};
 }
 
 void RSObjAbsGeometry::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix)

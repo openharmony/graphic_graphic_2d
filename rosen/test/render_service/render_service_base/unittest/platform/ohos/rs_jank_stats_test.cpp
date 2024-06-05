@@ -29,6 +29,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+const int64_t ASSERTION_MIN = 99;
+const int64_t ASSERTION_MAX = 2988;
 class RSJankStatsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -41,6 +43,18 @@ void RSJankStatsTest::SetUpTestCase() {}
 void RSJankStatsTest::TearDownTestCase() {}
 void RSJankStatsTest::SetUp() {}
 void RSJankStatsTest::TearDown() {}
+
+void SetRSJankStatsTest(std::shared_ptr<RSJankStats> rsJankStats, int64_t rtEndTimeSteady,
+    uint32_t dynamicRefreshRate = 0, bool skipJankStats = false)
+{
+    // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
+    rsJankStats->isNeedReportJankStats_ = false;
+    rsJankStats->rtEndTimeSteady_ = rtEndTimeSteady;
+    rsJankStats->SetRSJankStats(skipJankStats, dynamicRefreshRate);
+    if (ASSERTION_MIN < rtEndTimeSteady && rtEndTimeSteady < ASSERTION_MAX) {
+        EXPECT_TRUE(rsJankStats->isNeedReportJankStats_);
+    }
+}
 
 /**
  * @tc.name: SetEndTimeTest
@@ -219,5 +233,338 @@ HWTEST_F(RSJankStatsTest, ReportEventCompleteTest, TestSize.Level1)
     rsJankStats.SetEndTime(false, true);
 }
 
+/**
+ * @tc.name: SetRSJankStatsTest001
+ * @tc.desc: SetRSJankStats and GetEffectiveFrameTime test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, SetRSJankStatsTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->rsStartTimeSteady_ = 0;
+    // isCurrentFrameSwitchToNotDoDirectComposition_ is false
+    rsJankStats->rtEndTimeSteady_ = 1;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTime(false), 1);
+    // isCurrentFrameSwitchToNotDoDirectComposition_ is true
+    rsJankStats->isCurrentFrameSwitchToNotDoDirectComposition_ = true;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTime(false), 1);
+    // isConsiderRsStartTime is true
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTime(true), 1);
+
+    // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
+    uint32_t dynamicRefreshRate = 0;
+    // isConsiderRsStartTime is true
+    rsJankStats->SetRSJankStats(true, dynamicRefreshRate);
+    // SetRSJankStatsTest is missedVsync = 0
+    rsJankStats->rsJankStats_[0] = USHRT_MAX;
+    SetRSJankStatsTest(rsJankStats, 1);
+    // SetRSJankStatsTest is missedVsync = 1
+    SetRSJankStatsTest(rsJankStats, 17);
+    // SetRSJankStatsTest is missedVsync = 10
+    SetRSJankStatsTest(rsJankStats, 166);
+    // SetRSJankStatsTest is missedVsync = 15
+    SetRSJankStatsTest(rsJankStats, 249);
+    // SetRSJankStatsTest is missedVsync = 20
+    SetRSJankStatsTest(rsJankStats, 332);
+    // SetRSJankStatsTest is missedVsync = 36
+    SetRSJankStatsTest(rsJankStats, 598);
+    // SetRSJankStatsTest is missedVsync = 48
+    SetRSJankStatsTest(rsJankStats, 797);
+    // SetRSJankStatsTest is missedVsync = 60
+    SetRSJankStatsTest(rsJankStats, 996);
+    // SetRSJankStatsTest is missedVsync = 120
+    SetRSJankStatsTest(rsJankStats, 1992);
+    // SetRSJankStatsTest is missedVsync = 180
+    SetRSJankStatsTest(rsJankStats, 2988);
+}
+
+/**
+ * @tc.name: ReportJankStatsTest002
+ * @tc.desc: ReportJankStats and HandleImplicitAnimationEndInAdvance test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, ReportJankStatsTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    // ReportJankStats test
+    rsJankStats->ReportJankStats();
+
+    rsJankStats->lastReportTime_ = 1;
+    rsJankStats->lastReportTimeSteady_ = 1;
+    rsJankStats->lastJankFrame6FreqTimeSteady_ = 1;
+    rsJankStats->ReportJankStats();
+
+    EXPECT_EQ(rsJankStats->lastJankFrame6FreqTimeSteady_, -1);
+    rsJankStats->isNeedReportJankStats_ = true;
+    rsJankStats->ReportJankStats();
+    EXPECT_FALSE(rsJankStats->isNeedReportJankStats_);
+
+    // HandleImplicitAnimationEndInAdvance test
+    JankFrames jankFrames;
+    jankFrames.isDisplayAnimator_ = true;
+    rsJankStats->HandleImplicitAnimationEndInAdvance(jankFrames, false);
+
+    jankFrames.isDisplayAnimator_ = false;
+    jankFrames.isSetReportEventComplete_ = true;
+    jankFrames.isSetReportEventJankFrame_ = true;
+    rsJankStats->HandleImplicitAnimationEndInAdvance(jankFrames, false);
+    EXPECT_FALSE(jankFrames.isSetReportEventComplete_);
+    EXPECT_FALSE(jankFrames.isSetReportEventJankFrame_);
+
+    jankFrames.isSetReportEventJankFrame_ = true;
+    rsJankStats->HandleImplicitAnimationEndInAdvance(jankFrames, false);
+    EXPECT_FALSE(jankFrames.isSetReportEventJankFrame_);
+}
+
+/**
+ * @tc.name: SetImplicitAnimationEndTest003
+ * @tc.desc: SetImplicitAnimationEnd ReportEventJankFrame ReportEventHitchTimeRatio ReportEventFirstFrame test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, SetImplicitAnimationEnd003, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    // SetImplicitAnimationEnd test
+    rsJankStats->SetImplicitAnimationEnd(false);
+    JankFrames jankFramesTest1;
+    jankFramesTest1.isDisplayAnimator_ = true;
+    JankFrames jankFramesTest2;
+    rsJankStats->animateJankFrames_.emplace(std::make_pair(1, ""), jankFramesTest1);
+    rsJankStats->animateJankFrames_.emplace(std::make_pair(2, ""), jankFramesTest2);
+    rsJankStats->SetImplicitAnimationEnd(true);
+
+    // ReportEventJankFrame and ReportEventHitchTimeRatio test
+    JankFrames jankFramesTest3;
+    jankFramesTest3.totalFrames_ = 0;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, false);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, false);
+    jankFramesTest3.totalFrames_ = 1;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, false);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, false);
+    jankFramesTest3.totalFrames_ = 0;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, true);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, true);
+    jankFramesTest3.totalFrames_ = 1;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, true);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, true);
+
+    // ReportEventFirstFrame test
+    rsJankStats->firstFrameAppPids_.emplace(1);
+    EXPECT_EQ(rsJankStats->firstFrameAppPids_.size(), 1);
+    rsJankStats->ReportEventFirstFrame();
+    EXPECT_EQ(rsJankStats->firstFrameAppPids_.size(), 0);
+}
+
+/**
+ * @tc.name: RecordJankFrameTest004
+ * @tc.desc: RecordJankFrame and RecordJankFrameSingle test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, RecordJankFrameTest004, TestSize.Level1)
+{
+    // RecordJankFrame test
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->accumulatedBufferCount_ = 6;
+    rsJankStats->rtEndTimeSteady_ = 266;
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->rsStartTimeSteady_ = 0;
+    rsJankStats->explicitAnimationTotal_ = 1;
+    rsJankStats->isFirstSetEnd_ = true;
+    rsJankStats->implicitAnimationTotal_ = 1;
+    rsJankStats->RecordJankFrame(0);
+
+    // RecordJankFrameSingle test
+    JankFrameRecordStats recordStats = { "test", 1 };
+    recordStats.isRecorded_ = true;
+    rsJankStats->RecordJankFrameSingle(1, recordStats);
+    ASSERT_EQ(recordStats.isRecorded_, true);
+}
+
+/**
+ * @tc.name: RecordAnimationDynamicFrameRateTest005
+ * @tc.desc: RecordAnimationDynamicFrameRate test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, RecordAnimationDynamicFrameRateTest005, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    jankFrames.isFrameRateRecorded_ = true;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+
+    jankFrames.isFrameRateRecorded_ = false;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
+
+    jankFrames.totalFrames_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    jankFrames.lastTotalFrames_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
+
+    jankFrames.startTimeSteady_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
+
+    jankFrames.endTimeSteady_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    jankFrames.lastEndTimeSteady_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
+
+    jankFrames.endTimeSteady_ = 2;
+    jankFrames.isFrameRateRecorded_ = false;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
+    jankFrames.lastEndTimeSteady_ = 2;
+    jankFrames.isFrameRateRecorded_ = false;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
+    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
+}
+
+/**
+ * @tc.name: SetAnimationTraceBeginTest006
+ * @tc.desc: SetAnimationTraceBegin test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, SetAnimationTraceBeginTest006, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    std::pair<int64_t, std::string> animationId = { 0, "test" };
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 1);
+
+    jankFrames.info_.isDisplayAnimator = true;
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 1);
+}
+
+/**
+ * @tc.name: SetAnimationTraceEndTest007
+ * @tc.desc: SetAnimationTraceEnd test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, SetAnimationTraceEndTest007, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->animationAsyncTraces_.at(0).isDisplayAnimator_ = false;
+    rsJankStats->implicitAnimationTotal_ = 1;
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 0);
+
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->animationAsyncTraces_.at(0).isDisplayAnimator_ = true;
+    rsJankStats->explicitAnimationTotal_ = 1;
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 0);
+}
+
+/**
+ * @tc.name: CheckAnimationTraceTimeoutTest008
+ * @tc.desc: CheckAnimationTraceTimeout test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, CheckAnimationTraceTimeoutTest008, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->CheckAnimationTraceTimeout();
+    rsJankStats->animationTraceCheckCnt_ = 20;
+    rsJankStats->CheckAnimationTraceTimeout();
+    EXPECT_EQ(rsJankStats->animationTraceCheckCnt_, 0);
+
+    rsJankStats->rtEndTimeSteady_ = 5000;
+    rsJankStats->animationTraceCheckCnt_ = 20;
+    rsJankStats->explicitAnimationTotal_ = 1;
+    rsJankStats->implicitAnimationTotal_ = 1;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->animationAsyncTraces_.at(0).isDisplayAnimator_ = false;
+    rsJankStats->animationAsyncTraces_.emplace(1, AnimationTraceStats());
+    rsJankStats->animationAsyncTraces_.at(1).isDisplayAnimator_ = true;
+    rsJankStats->CheckAnimationTraceTimeout();
+    EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 0);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 0);
+}
+
+/**
+ * @tc.name: GetTraceIdInitTest009
+ * @tc.desc: GetTraceIdInit GetEffectiveFrameTimeFloat ConvertTimeToSystime test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TD1K
+ */
+HWTEST_F(RSJankStatsTest, GetTraceIdInitTest009, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    // GetTraceIdInit test
+    DataBaseRs info;
+    info.uniqueId = 0;
+    EXPECT_EQ(rsJankStats->GetTraceIdInit(info, 0), 0);
+    EXPECT_EQ(rsJankStats->traceIdRemainder_.size(), 1);
+
+    rsJankStats->traceIdRemainder_.at(0).remainder_ = 10;
+    EXPECT_EQ(rsJankStats->GetTraceIdInit(info, 0), 0);
+    EXPECT_EQ(rsJankStats->traceIdRemainder_.at(0).remainder_, 1);
+
+    // GetEffectiveFrameTimeFloat test
+    rsJankStats->rtLastEndTimeSteadyFloat_ = 0;
+    rsJankStats->rsStartTimeSteadyFloat_ = 0;
+    rsJankStats->rtEndTimeSteadyFloat_ = 1;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTimeFloat(false), 1);
+    rsJankStats->isCurrentFrameSwitchToNotDoDirectComposition_ = true;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTimeFloat(false), 1);
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTimeFloat(true), 1);
+
+    // ConvertTimeToSystime test
+    EXPECT_EQ(rsJankStats->ConvertTimeToSystime(0), 0);
+    EXPECT_NE(rsJankStats->ConvertTimeToSystime(1), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

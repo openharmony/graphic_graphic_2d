@@ -14,11 +14,14 @@
  */
 
 #include "drawing_text_blob.h"
-#include "utils/log.h"
+
 #include <mutex>
 #include <unordered_map>
 
+#include "drawing_canvas_utils.h"
+
 #include "text/text_blob_builder.h"
+#include "utils/log.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -65,8 +68,12 @@ OH_Drawing_TextBlobBuilder* OH_Drawing_TextBlobBuilderCreate()
 OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromText(const void* text, size_t byteLength,
     const OH_Drawing_Font* cFont, OH_Drawing_TextEncoding cTextEncoding)
 {
-    if (text == nullptr || cFont == nullptr ||
-        cTextEncoding < TEXT_ENCODING_UTF8 || cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+    if (text == nullptr || cFont == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTextEncoding < TEXT_ENCODING_UTF8 || cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     const Font& font = CastToFont(*cFont);
@@ -83,8 +90,12 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromText(const void* text, size_t 
 OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size_t byteLength,
     OH_Drawing_Point2D* cPoints, const OH_Drawing_Font* cFont, OH_Drawing_TextEncoding cTextEncoding)
 {
-    if (text == nullptr || cFont == nullptr || cPoints == nullptr || byteLength == 0 ||
-        cTextEncoding < TEXT_ENCODING_UTF8 || cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+    if (text == nullptr || cFont == nullptr || cPoints == nullptr || byteLength == 0) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTextEncoding < TEXT_ENCODING_UTF8 || cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     const Font& font = CastToFont(*cFont);
@@ -114,8 +125,12 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
 OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
     const OH_Drawing_Font* cFont, OH_Drawing_TextEncoding cTextEncoding)
 {
-    if (str == nullptr || cFont == nullptr || cTextEncoding < TEXT_ENCODING_UTF8 ||
-        cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+    if (str == nullptr || cFont == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTextEncoding < TEXT_ENCODING_UTF8 || cTextEncoding > TEXT_ENCODING_GLYPH_ID) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     const Font& font = CastToFont(*cFont);
@@ -131,22 +146,25 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
 
 void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rect* cRect)
 {
+    Rect* outRect = const_cast<Rect*>(CastToRect(cRect));
+    if (outRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
     TextBlob* textblob = CastToTextBlob(cTextBlob);
     if (textblob == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     std::shared_ptr<Rect> rect = textblob->Bounds();
-    if (cRect != nullptr) {
-        Rect* outRect = const_cast<Rect*>(CastToRect(cRect));
-        *outRect = Rect(rect->GetLeft(), rect->GetTop(),
-            rect->GetRight(), rect->GetBottom());
-    }
+    *outRect = Rect(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
 }
 
 uint32_t OH_Drawing_TextBlobUniqueID(const OH_Drawing_TextBlob* cTextBlob)
 {
     const TextBlob* textblob = CastToTextBlob(cTextBlob);
     if (cTextBlob == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
     return textblob->UniqueID();
@@ -156,11 +174,12 @@ const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_Tex
     const OH_Drawing_Font* cFont, int32_t count, const OH_Drawing_Rect* cRect)
 {
     if (cFont == nullptr || count <= 0) {
-        LOGE("cFont is nullptr or count <= 0");
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     TextBlobBuilder* textBlobBuilder = CastToTextBlobBuilder(cTextBlobBuilder);
     if (textBlobBuilder == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (const OH_Drawing_RunBuffer*)&textBlobBuilder->AllocRunPos(CastToFont(*cFont), count, CastToRect(cRect));
@@ -170,6 +189,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobBuilderMake(OH_Drawing_TextBlobBuilder* 
 {
     TextBlobBuilder* textBlobBuilder = CastToTextBlobBuilder(cTextBlobBuilder);
     if (textBlobBuilder == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     std::shared_ptr<TextBlob> textBlob = textBlobBuilder->Make();

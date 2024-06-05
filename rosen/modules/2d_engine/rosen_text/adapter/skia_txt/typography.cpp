@@ -16,6 +16,7 @@
 #include "typography.h"
 
 #include <mutex>
+#include <numeric>
 
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
@@ -26,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace skt = skia::textlayout;
 namespace {
 std::mutex g_layoutMutex;
 }
@@ -219,7 +221,7 @@ double Typography::GetLineHeight(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
     if (lineNumber < static_cast<int>(lines.size())) {
-        return lines[lineNumber].height;
+        return lines[lineNumber].fHeight;
     }
     return 0.0;
 }
@@ -228,7 +230,7 @@ double Typography::GetLineWidth(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
     if (lineNumber < static_cast<int>(lines.size())) {
-        return lines[lineNumber].width;
+        return lines[lineNumber].fWidth;
     }
     return 0.0;
 }
@@ -305,25 +307,37 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
     std::vector<LineMetrics> lineMetrics;
     if (paragraph_ != nullptr) {
         auto metrics = paragraph_->GetLineMetrics();
-        for (SPText::LineMetrics& spLineMetrics : metrics) {
+        lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
+            [](const int a, const skia::textlayout::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
+
+        for (const skt::LineMetrics& skLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
-            if (!spLineMetrics.runMetrics.empty()) {
-                const auto &spFontMetrics = spLineMetrics.runMetrics.begin()->second.fontMetrics;
-                line.firstCharMetrics = spFontMetrics;
-                line.capHeight = spFontMetrics.fCapHeight;
-                line.xHeight = spFontMetrics.fXHeight;
+            if (!skLineMetrics.fLineMetrics.empty()) {
+                const auto &skmFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
+                line.firstCharMetrics = skmFontMetrics;
+                line.capHeight = skmFontMetrics.fCapHeight;
+                line.xHeight = skmFontMetrics.fXHeight;
             } else {
                 line.capHeight = 0.0;
                 line.xHeight = 0.0;
             }
-            line.ascender = spLineMetrics.ascent;
-            line.descender = spLineMetrics.descent;
-            line.width = spLineMetrics.width;
-            line.height = spLineMetrics.height;
-            line.x = spLineMetrics.left;
-            line.y = spLineMetrics.topHeight;
-            line.startIndex = spLineMetrics.startIndex;
-            line.endIndex = spLineMetrics.endIndex;
+            line.lineNumber = skLineMetrics.fLineNumber;
+            line.baseline = skLineMetrics.fBaseline;
+            line.ascender = skLineMetrics.fAscent;
+            line.descender = skLineMetrics.fDescent;
+            line.width = skLineMetrics.fWidth;
+            line.height = skLineMetrics.fHeight;
+            line.x = skLineMetrics.fLeft;
+            line.y = skLineMetrics.fTopHeight;
+            line.startIndex = skLineMetrics.fStartIndex;
+            line.endIndex = skLineMetrics.fEndIndex;
+            for (const auto& [index, styleMtrics] : skLineMetrics.fLineMetrics) {
+                SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMtrics.text_style);
+                lineMetricsStyles_.emplace_back(Convert(spTextStyle));
+
+                line.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
+                    std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
+            }
         }
     }
     return lineMetrics;
@@ -337,31 +351,14 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
-    skia::textlayout::LineMetrics skLineMetrics;
-    if (!paragraph_->GetLineMetricsAt(lineNumber, &skLineMetrics)) {
+    std::vector<LineMetrics> vecLineMetrics = GetLineMetrics();
+	
+    if (vecLineMetrics.empty()) {
         return false;
     }
 
-    if (!skLineMetrics.fLineMetrics.empty()) {
-        const auto &skFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
-        lineMetrics->firstCharMetrics = skFontMetrics;
-        lineMetrics->capHeight = skFontMetrics.fCapHeight;
-        lineMetrics->xHeight = skFontMetrics.fXHeight;
-    } else {
-        lineMetrics->capHeight = 0.0;
-        lineMetrics->xHeight = 0.0;
-    }
-
-    lineMetrics->ascender = skLineMetrics.fAscent;
-    lineMetrics->descender = skLineMetrics.fDescent;
-
-    lineMetrics->width = skLineMetrics.fWidth;
-    lineMetrics->height = skLineMetrics.fHeight;
-    lineMetrics->x = skLineMetrics.fLeft;
-    lineMetrics->y = skLineMetrics.fTopHeight;
-    lineMetrics->startIndex = skLineMetrics.fStartIndex;
-    lineMetrics->endIndex = skLineMetrics.fEndIndex;
-
+    *lineMetrics = vecLineMetrics[lineNumber];
+	
     return true;
 }
 

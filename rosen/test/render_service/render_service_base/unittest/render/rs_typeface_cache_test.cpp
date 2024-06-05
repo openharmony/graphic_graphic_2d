@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "gtest/gtest.h"
 
 #include "render/rs_typeface_cache.h"
@@ -74,9 +73,11 @@ HWTEST_F(RSTypefaceCacheTest, GetTypefaceIdTest001, TestSize.Level1)
 HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypefaceTest001, TestSize.Level1)
 {
     auto typeface = Drawing::Typeface::MakeDefault();
-    RSTypefaceCache::Instance().CacheDrawingTypeface(1, typeface);
-    RSTypefaceCache::Instance().CacheDrawingTypeface(2, typeface);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    uint64_t uniqueIdF = 1;
+    uint64_t uniqueIdS = 2;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueIdF, typeface);
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueIdS, typeface);
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashMap_.empty());
 }
 
 /**
@@ -86,9 +87,11 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypefaceTest001, TestSize.Level1)
  */
 HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefaceByGlobalUniqueIdTest001, TestSize.Level1)
 {
-    auto typeface = Drawing::Typeface::MakeDefault();
-    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(1);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    uint64_t uniqueIdF = 1;
+    uint64_t uniqueIdS = 3;
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueIdF);
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueIdS);
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashMap_.empty());
 }
 
 /**
@@ -98,8 +101,10 @@ HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefaceByGlobalUniqueIdTest001, Test
  */
 HWTEST_F(RSTypefaceCacheTest, GetDrawingTypefaceCacheTest001, TestSize.Level1)
 {
-    auto typeface = Drawing::Typeface::MakeDefault();
-    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(1), nullptr);
+    uint64_t uniqueIdF = 1;
+    uint64_t uniqueIdS = 2;
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueIdF), nullptr);
+    EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueIdS), nullptr);
 }
 
 /**
@@ -109,9 +114,11 @@ HWTEST_F(RSTypefaceCacheTest, GetDrawingTypefaceCacheTest001, TestSize.Level1)
  */
 HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefacesByPidTest001, TestSize.Level1)
 {
-    auto typeface = Drawing::Typeface::MakeDefault();
-    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(2);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    uint64_t uniqueId = 2;
+    pid_t pid = static_cast<pid_t>(uniqueId >> 32);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(uniqueId);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+    EXPECT_TRUE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -121,8 +128,9 @@ HWTEST_F(RSTypefaceCacheTest, RemoveDrawingTypefacesByPidTest001, TestSize.Level
  */
 HWTEST_F(RSTypefaceCacheTest, AddDelayDestroyQueueTest001, TestSize.Level1)
 {
-    RSTypefaceCache::Instance().AddDelayDestroyQueue(1);
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    uint64_t uniqueId = 1;
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(uniqueId);
+    EXPECT_TRUE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 
 /**
@@ -133,8 +141,13 @@ HWTEST_F(RSTypefaceCacheTest, AddDelayDestroyQueueTest001, TestSize.Level1)
 HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
 {
     auto typeface = Drawing::Typeface::MakeDefault();
+    uint64_t uniqueIdF = 1;
+    uint64_t uniqueIdS = 2;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueIdF, typeface);
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueIdS, typeface);
     RSTypefaceCache::Instance().HandleDelayDestroyQueue();
-    EXPECT_FALSE(RSTypefaceCache::Instance().drawingTypefaceCache_.empty());
+    RSTypefaceCache::Instance().Dump();
+    EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS
