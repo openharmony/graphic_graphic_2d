@@ -2260,7 +2260,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
     OH_Drawing_DestroyTextStyle(txtStyle);
 }
 
-
 /*
  * @tc.name: OH_Drawing_TypographyTest076
  * @tc.desc: test for the two TextStyle objects have matching properties
@@ -2304,7 +2303,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
     EXPECT_TRUE(to == nullptr);
 }
 
-
 /*
  * @tc.name: OH_Drawing_TypographyTest078
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
@@ -2342,6 +2340,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest080, TestSize.Level
     OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
     bool result = OH_Drawing_TextStyleIsEqual(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
+
     OH_Drawing_SetTextStyleColor(txtStyle, 1);
     result = OH_Drawing_TextStyleIsEqual(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == false);
@@ -2412,6 +2411,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest083, TestSize.Level
     OH_Drawing_SetTextStyleLocale(txtStyleCompare, "en");
     bool result = OH_Drawing_TextStyleIsEqualByFont(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
+
     OH_Drawing_SetTextStyleLocale(txtStyle, "ch");
     result = OH_Drawing_TextStyleIsEqualByFont(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == false);
