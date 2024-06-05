@@ -20,6 +20,11 @@
 #include "utils/rect.h"
 #include "utils/sampling_options.h"
 
+namespace {
+// Default typeface does not support chinese characters, needs to load chinese character ttf file.
+static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+}
+
 namespace OHOS {
 namespace Media {
 class PixelMap;
@@ -32,9 +37,6 @@ public:
         const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
         const OHOS::Rosen::Drawing::SamplingOptions* sampling);
 };
-
-// Default typeface does not support chinese characters, needs to load chinese character ttf file.
-static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC.ttf";
 
 inline std::shared_ptr<OHOS::Rosen::Drawing::Typeface> g_LoadZhCnTypeface()
 {
