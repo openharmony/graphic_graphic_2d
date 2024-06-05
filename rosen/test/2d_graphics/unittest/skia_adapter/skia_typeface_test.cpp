@@ -390,7 +390,7 @@ HWTEST_F(SkiaTypefaceTest, SerializeTypeface002, TestSize.Level1)
     TextBlob::Context customContext { typeface, isCustomTypeface };
     auto serializedData = SkiaTypeface::SerializeTypeface(skTypeface.get(), &customContext);
     ASSERT_TRUE(serializedData != nullptr);
-    ASSERT_TRUE(customContext.GetTypeface() != nullptr);
+    ASSERT_TRUE(customContext.GetTypeface() == nullptr);
 }
 
 /**

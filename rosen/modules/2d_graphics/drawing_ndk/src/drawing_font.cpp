@@ -287,7 +287,7 @@ int OH_Drawing_FontCountText(OH_Drawing_Font* cFont, const void* text, size_t by
 uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* text, uint32_t byteLength,
     OH_Drawing_TextEncoding encoding, uint16_t* glyphs, int maxGlyphCount)
 {
-    if (cFont == nullptr || text == nullptr || glyphs == nullptr || byteLength <= 0 || maxGlyphCount <= 0) {
+    if (cFont == nullptr || text == nullptr || glyphs == nullptr || byteLength == 0 || maxGlyphCount <= 0) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }

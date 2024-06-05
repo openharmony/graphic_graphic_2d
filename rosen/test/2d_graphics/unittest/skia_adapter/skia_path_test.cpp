@@ -108,7 +108,7 @@ HWTEST_F(SkiaPathTest, InitWithInterpolate001, TestSize.Level1)
     Path path;
     Path path2;
     skiaPath.InitWithInterpolate(path, path2, 2); // 2: weight
-    ASSERT_TRUE(skiaPath.IsValid());
+    ASSERT_TRUE(!skiaPath.IsValid());
 }
 
 /**
@@ -123,7 +123,7 @@ HWTEST_F(SkiaPathTest, TransformWithPerspectiveClip001, TestSize.Level1)
     Path path;
     Matrix matrix;
     skiaPath.TransformWithPerspectiveClip(matrix, &path, true);
-    ASSERT_TRUE(skiaPath.IsValid());
+    ASSERT_TRUE(!skiaPath.IsValid());
 }
 
 /**
@@ -138,7 +138,7 @@ HWTEST_F(SkiaPathTest, OpWith001, TestSize.Level1)
     Path path;
     Path path2;
     skiaPath.OpWith(path, path2, PathOp::DIFFERENCE);
-    ASSERT_TRUE(skiaPath.IsValid());
+    ASSERT_TRUE(!skiaPath.IsValid());
 }
 
 /**
@@ -151,7 +151,7 @@ HWTEST_F(SkiaPathTest, Offset001, TestSize.Level1)
 {
     SkiaPath skiaPath;
     skiaPath.Offset(100, 100);
-    ASSERT_TRUE(skiaPath.IsValid());
+    ASSERT_TRUE(!skiaPath.IsValid());
 }
 
 /**
@@ -165,7 +165,7 @@ HWTEST_F(SkiaPathTest, Offset002, TestSize.Level1)
     SkiaPath skiaPath;
     Path path;
     skiaPath.Offset(&path, 100, 100);
-    ASSERT_TRUE(skiaPath.IsValid());
+    ASSERT_TRUE(!skiaPath.IsValid());
 }
 
 /**

@@ -289,6 +289,9 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         }
     } else {
 #ifdef ROSEN_OHOS
+        napi_value argv[ARGC_ONE] = {nullptr};
+        CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
         PixelMapNapi* pixelMapNapi = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
 

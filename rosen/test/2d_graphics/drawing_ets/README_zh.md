@@ -7,3 +7,22 @@ https://gitee.com/openharmony/applications_app_samples/tree/master/code/BasicFea
 3）因为bench工程需要用到4张图片，所以需要手动将上面拷贝的图片test.jpg重命名成test_1.jpg, test_2.jpg, test_3.jpg, test_4.jpg
 或者可以本地准备4个图片，重命名成test_1.jpg, test_2.jpg, test_3.jpg, test_4.jpg
 4）编译运行项目即可
+
+### 工程目录
+
+```
+ ├──ets                           // ets代码区
+ │  ├──entryability
+ │  │  └──EntryAbility.ts         // 程序入口类
+ |  ├──pages
+ │  │  └──casefactory.ts          // 测试用例工厂类，用于用例名与对应代码的映射
+ |  |  └──Index.ets               // 主界面代码入口
+ |  |  └──myxnode.ts              // 测试框架代码
+ |  |  └──testbase.ts             // 测试用例基类
+ │  |──testcase                   // 页面文件
+ │  |  └──interface             
+ |  |     └──xxx.ts               // 性能和功能测试用例代码
+ |  |──utils
+ |     └──xxx.ts                  // 测试辅助类
+ |
+```
