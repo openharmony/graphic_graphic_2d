@@ -864,15 +864,16 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     return newId;
 }
 
-void RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId> blackList)
+int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId> blackList)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (screens_.find(id) == screens_.end() || screens_[id] == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return;
+        return SCREEN_NOT_FOUND;
     }
     std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
     screens_.at(id)->SetBlackList(screenBlackList);
+    return SUCCESS;
 }
 
 std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(ScreenId id)

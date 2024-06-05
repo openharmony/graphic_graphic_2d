@@ -62,7 +62,7 @@ public:
         int flags = 0,
         std::vector<NodeId> filteredAppVector = {});
 
-    void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif

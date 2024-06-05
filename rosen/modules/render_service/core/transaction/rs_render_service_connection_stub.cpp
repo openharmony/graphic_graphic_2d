@@ -284,7 +284,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             std::vector<NodeId> blackListVector;
             data.ReadUInt64Vector(&blackListVector);
-            SetVirtualScreenBlackList(id, blackListVector);
+            int32_t status = SetVirtualScreenBlackList(id, blackListVector);
+            reply.WriteInt32(status);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
