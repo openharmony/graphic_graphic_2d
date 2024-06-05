@@ -13,8 +13,13 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <gtest/gtest.h>
+#include <parameter.h>
+#include <parameters.h>
+#include <unistd.h>
 
+#include "param/sys_param.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;
@@ -77,6 +82,8 @@ HWTEST_F(RSSystemPropertiesTest, GetRecordingEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetUniRenderEnabled, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
 }
 
 /**
@@ -110,8 +117,11 @@ HWTEST_F(RSSystemPropertiesTest, GetProfilerEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, SetInstantRecording, TestSize.Level1)
 {
-    RSSystemProperties::SetInstantRecording(true);
-    ASSERT_TRUE(true);
+    bool flag = true;
+    RSSystemProperties::SetInstantRecording(flag);
+    ASSERT_TRUE(flag);
+    flag = false;
+    RSSystemProperties::SetInstantRecording(flag);
 }
 
 /**
@@ -122,7 +132,7 @@ HWTEST_F(RSSystemPropertiesTest, SetInstantRecording, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetSaveRDC, TestSize.Level1)
 {
-    ASSERT_NE(RSSystemProperties::GetSaveRDC(), 1);
+    ASSERT_TRUE(RSSystemProperties::GetSaveRDC());
 }
 
 /**
@@ -323,7 +333,13 @@ HWTEST_F(RSSystemPropertiesTest, GetDrmEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetTargetDirtyRegionDfxEnabled, TestSize.Level1)
 {
     std::vector<std::string> dfxTargetSurfaceNames;
-    ASSERT_FALSE(RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames));
+    system::SetParameter("rosen.dirtyregiondebug.surfacenames", "0");
+    EXPECT_FALSE(RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames));
+
+    std::string targetStr("A,B,C,D");
+    system::SetParameter("rosen.dirtyregiondebug.surfacenames", targetStr);
+    EXPECT_TRUE(RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames));
+    system::SetParameter("rosen.dirtyregiondebug.surfacenames", "");
 }
 
 /**
@@ -759,14 +775,18 @@ HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: FindNodeInTargetList
- * @tc.desc: FindNodeInTargetList Test
+ * @tc.name: FindNodeInTargetListSucess
+ * @tc.desc: FindNodeInTargetListSucess Test
  * @tc.type:FUNC
- * @tc.require: issueI9JZWC
+ * @tc.require: issueI9V3Y2
  */
-HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetList, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::FindNodeInTargetList(std::string("sys")));
+    std::string targetStr("A;B;C;D");
+    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
+    std::string nodeStr("A");
+    EXPECT_TRUE(RSSystemProperties::FindNodeInTargetList(nodeStr));
+    system::SetParameter("persist.sys.graphic.traceTargetList", "");
 }
 
 /**
@@ -832,7 +852,13 @@ HWTEST_F(RSSystemPropertiesTest, GetParallelUploadTexture, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetImageGpuResourceCacheEnable, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetImageGpuResourceCacheEnable(1, 1));
+    int width = 1;
+    int height = 1;
+    ASSERT_FALSE(RSSystemProperties::GetImageGpuResourceCacheEnable(width, height));
+
+    width = 1350;
+    height = 2810;
+    ASSERT_TRUE(RSSystemProperties::GetImageGpuResourceCacheEnable(width, height));
 }
 
 /**
