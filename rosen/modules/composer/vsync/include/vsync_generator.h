@@ -149,6 +149,8 @@ private:
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
+    void ClearAllSamplesInternal(bool clearAllSamplesFlag);
+    void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
@@ -192,6 +194,8 @@ private:
     int64_t expectNextVsyncTime_ = 0;
     bool expectTimeFlag_ = false;
     sptr<VSyncDistributor> appVSyncDistributor_;
+    int64_t targetPeriod_ = 0;
+    bool clearAllSamplesFlag_ = false;
 };
 } // impl
 } // namespace Rosen

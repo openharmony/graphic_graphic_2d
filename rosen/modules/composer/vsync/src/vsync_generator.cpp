@@ -23,6 +23,7 @@
 #include <string>
 #include "vsync_log.h"
 #include <ctime>
+#include <vsync_sampler.h>
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -180,7 +181,10 @@ void VSyncGenerator::ThreadLoop()
                 bool modelChanged = UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp);
                 if (modelChanged) {
                     ScopedBytrace func("VSyncGenerator: LTPO mode change");
+                    bool clearAllSamplesFlag = clearAllSamplesFlag_;
+                    clearAllSamplesFlag_ = false;
                     locker.unlock();
+                    ClearAllSamplesInternal(clearAllSamplesFlag);
                     appVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
                     rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
                     continue;
@@ -320,6 +324,8 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
         refreshRateIsChanged_ = true;
         frameRateChanging_ = true;
         ScopedBytrace trace("frameRateChanging_ = true");
+        targetPeriod_ = period_;
+        clearAllSamplesFlag_ = true;
         modelChanged = true;
     }
 
@@ -342,6 +348,13 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
     }
 
     return modelChanged;
+}
+
+void VSyncGenerator::ClearAllSamplesInternal(bool clearAllSamplesFlag)
+{
+    if (clearAllSamplesFlag) {
+        CreateVSyncSampler()->ClearAllSamples();
+    }
 }
 
 void VSyncGenerator::UpdateVSyncModeLocked()
@@ -720,6 +733,22 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
     }
 }
 
+void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime)
+{
+    int64_t actualOffset = referenceTime - pendingReferenceTime_;
+    int32_t actualOffsetPulseNum = round((double)actualOffset/(double)pulse_);
+    if (startRefresh_) {
+        referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
+    } else {
+        referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);
+    }
+    ScopedBytrace func("UpdateMode, referenceTime:" + std::to_string((referenceTime)) +
+                    ", actualOffsetPulseNum:" + std::to_string((actualOffsetPulseNum)) +
+                    ", referenceTimeOffsetPulseNum_:" + std::to_string(referenceTimeOffsetPulseNum_) +
+                    ", startRefresh_:" + std::to_string(startRefresh_) +
+                    ", period:" + std::to_string(pendingPeriod_));
+}
+
 VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
@@ -728,31 +757,22 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::lock_guard<std::mutex> locker(mutex_);
-    if (pendingPeriod_ <= 0 || pulse_ == 0) {
+    if ((pendingPeriod_ <= 0 && targetPeriod_ <= 0) || pulse_ == 0) {
         frameRateChanging_ = false;
-        VLOGE("[%{public}s] Failed, pendingPeriod_:" VPUBI64 ", pulse_:" VPUBI64, __func__, pendingPeriod_, pulse_);
+        VLOGE("[%{public}s] Failed, pendingPeriod_:" VPUBI64 ", targetPeriod_:" VPUBI64 ", pulse_:" VPUBI64,
+            __func__, pendingPeriod_, targetPeriod_, pulse_);
         return VSYNC_ERROR_API_FAILED;
     }
 
     PeriodCheckLocked(hardwareVsyncInterval);
 
     if (rsVSyncDistributor_->IsDVsyncOn() ||
-        ((abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD))) {
+        ((abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD) &&
+        (abs(hardwareVsyncInterval - targetPeriod_) < PERIOD_CHECK_THRESHOLD || targetPeriod_ == 0))) {
         // framerate has changed
         frameRateChanging_ = false;
         ScopedBytrace changeEnd("frameRateChanging_ = false");
-        int64_t actualOffset = referenceTime - pendingReferenceTime_;
-        int32_t actualOffsetPulseNum = round((double)actualOffset/(double)pulse_);
-        if (startRefresh_) {
-            referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
-        } else {
-            referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);
-        }
-        ScopedBytrace func("UpdateMode, referenceTime:" + std::to_string((referenceTime)) +
-                        ", actualOffsetPulseNum:" + std::to_string((actualOffsetPulseNum)) +
-                        ", referenceTimeOffsetPulseNum_:" + std::to_string(referenceTimeOffsetPulseNum_) +
-                        ", startRefresh_:" + std::to_string(startRefresh_) +
-                        ", period:" + std::to_string(pendingPeriod_));
+        CalculateReferenceTimeOffsetPulseNumLocked(referenceTime);
         UpdateReferenceTimeLocked(referenceTime);
         bool needNotify = true;
         uint32_t periodRefreshRate = CalculateRefreshRate(period_);
@@ -771,6 +791,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
             waitForTimeoutCon_.notify_all();
         }
         pendingPeriod_ = 0;
+        targetPeriod_ = 0;
         startRefresh_ = false;
     }
     return VSYNC_ERROR_OK;

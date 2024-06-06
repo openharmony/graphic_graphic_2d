@@ -85,6 +85,13 @@ void VSyncSampler::BeginSample()
     hardwareVSyncStatus_ = true;
 }
 
+void VSyncSampler::ClearAllSamples()
+{
+    ScopedBytrace func("ClearAllSamples");
+    std::lock_guard<std::mutex> lock(mutex_);
+    numSamples_ = 0;
+}
+
 void VSyncSampler::SetHardwareVSyncStatus(bool enabled)
 {
     std::lock_guard<std::mutex> lock(mutex_);

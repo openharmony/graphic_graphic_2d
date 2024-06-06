@@ -745,6 +745,9 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
         dvsync_->RecordPostEvent(conns, timestamp);
     }
 #endif
+    countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
+    CountTrace(HITRACE_TAG_GRAPHIC_AGP, "DVSync-" + name_, countTraceValue_);
+
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t period = event_.period;
         if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
