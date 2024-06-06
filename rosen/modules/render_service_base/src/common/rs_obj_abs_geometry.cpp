@@ -75,16 +75,13 @@ void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const s
         // Otherwise, update the absolute matrix with 3D transformations
         UpdateAbsMatrix3D();
     }
-    // If the absolute matrix of the current view exists, update it with the context matrix and the current matrix
-    if (absMatrix_.has_value()) {
-        if (contextMatrix_.has_value()) {
-            absMatrix_->PreConcat(*contextMatrix_);
-        }
-        absMatrix_->PreConcat(matrix_);
-    }
     // If the context matrix of the current view exists, update the current matrix with it
     if (contextMatrix_.has_value()) {
-        matrix_.PreConcat(*contextMatrix_);
+        matrix_.PostConcat(*contextMatrix_);
+    }
+    // If the absolute matrix of the current view exists, update it with the context matrix and the current matrix
+    if (absMatrix_.has_value()) {
+        absMatrix_->PreConcat(matrix_);
     }
     // Update the absolute rectangle of the current view
     SetAbsRect();
@@ -109,7 +106,7 @@ void RSObjAbsGeometry::UpdateByMatrixFromSelf()
 
     // If the context matrix of the view exists, update the current matrix with it
     if (contextMatrix_.has_value()) {
-        matrix_.PreConcat(*contextMatrix_);
+        matrix_.PostConcat(*contextMatrix_);
     }
 
     // Update the absolute rectangle of the view
