@@ -385,7 +385,7 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, uint64_t  globalUniqueId)
+    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
