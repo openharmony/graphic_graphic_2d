@@ -192,6 +192,8 @@ const bool RSProperties::FilterCacheEnabled = false;
 #endif
 #endif
 
+const bool RSProperties::IS_UNI_RENDER = RSUniRenderJudgement::IsUniRender();
+
 RSProperties::RSProperties()
 {
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
@@ -1157,7 +1159,6 @@ void RSProperties::SetForegroundEffectRadius(const float foregroundEffectRadius)
     }
     filterNeedUpdate_ = true;
     SetDirty();
-    contentDirty_ = true;
 }
 
 float RSProperties::GetForegroundEffectRadius() const
@@ -1168,6 +1169,32 @@ float RSProperties::GetForegroundEffectRadius() const
 bool RSProperties::IsForegroundEffectRadiusValid() const
 {
     return ROSEN_GNE(foregroundEffectRadius_, 0.0);
+}
+
+void RSProperties::SetForegroundEffectDirty(bool dirty)
+{
+    foregroundEffectDirty_ = dirty;
+}
+
+bool RSProperties::GetForegroundEffectDirty() const
+{
+    return foregroundEffectDirty_;
+}
+
+const std::shared_ptr<RSFilter>& RSProperties::GetForegroundFilterCache() const
+{
+    return foregroundFilterCache_;
+}
+
+void RSProperties::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
+{
+    foregroundFilterCache_ = foregroundFilterCache;
+    if (foregroundFilterCache) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+    filterNeedUpdate_ = true;
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
@@ -3606,10 +3633,14 @@ void RSProperties::OnApplyModifiers()
         }
         if (IsForegroundEffectRadiusValid()) {
             auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
-            foregroundFilter_ = foregroundEffectFilter;
-        }
-        if (!IsForegroundEffectRadiusValid()) {
+            if (IS_UNI_RENDER) {
+                foregroundFilterCache_ = foregroundEffectFilter;
+            } else {
+                foregroundFilter_ = foregroundEffectFilter;
+            }
+        } else {
             foregroundFilter_.reset();
+            foregroundFilterCache_.reset();
         }
         if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
             auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
@@ -3619,7 +3650,7 @@ void RSProperties::OnApplyModifiers()
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                       foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                      IsBgBrightnessValid();
+                      IsBgBrightnessValid() || foregroundFilterCache_ != nullptr;
     }
     GenerateRRect();
 }

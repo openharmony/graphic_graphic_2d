@@ -229,6 +229,10 @@ public:
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
     bool IsForegroundEffectRadiusValid() const;
+    void SetForegroundEffectDirty(bool dirty);
+    bool GetForegroundEffectDirty() const;
+    void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
 
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
@@ -578,6 +582,8 @@ private:
     bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    bool foregroundEffectDirty_ = false;
 
     // filter property
     float backgroundBlurRadius_ = 0.f;
@@ -647,6 +653,7 @@ private:
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
+    static const bool IS_UNI_RENDER;
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 

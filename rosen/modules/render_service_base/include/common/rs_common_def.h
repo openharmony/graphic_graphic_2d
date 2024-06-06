@@ -96,8 +96,9 @@ enum class DrawableCacheType : uint8_t {
 
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
-    FORCED_CACHE,    // must-to-do case
-    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+    FORCED_CACHE,           // must-to-do case
+    TARGETED_CACHE,         // suggested case which could be disabled by optimized strategy
+    FOREGROUND_FILTER_CACHE // using cache to draw foreground filter
 };
 
 enum class FilterCacheType : uint8_t {

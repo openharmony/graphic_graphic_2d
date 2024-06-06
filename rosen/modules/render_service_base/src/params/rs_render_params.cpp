@@ -361,6 +361,20 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
+const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
+{
+    return foregroundFilterCache_;
+}
+
+void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
+{
+    if (foregroundFilterCache_ == foregroundFilterCache) {
+        return;
+    }
+    foregroundFilterCache_ = foregroundFilterCache;
+    needSync_ = true;
+}
+
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     if (dirtyType_.test(RSRenderParamsDirtyType::MATRIX_DIRTY)) {
@@ -386,6 +400,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
+    target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
@@ -405,6 +420,9 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_RECT_PARAM_TO_STRING(localDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
+    if (foregroundFilterCache_ != nullptr) {
+        ret += foregroundFilterCache_->GetDescription();
+    }
     return ret;
 }
 
