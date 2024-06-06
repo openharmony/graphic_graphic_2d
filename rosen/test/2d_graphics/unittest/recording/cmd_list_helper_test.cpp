@@ -563,7 +563,7 @@ HWTEST_F(CmdListHelperTest, Region, TestSize.Level1)
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     Region region;
     OpDataHandle handle = CmdListHelper::AddRegionToCmdList(*cmdList, region);
-    auto sptr = CmdListHelper::GetRegionFromCmdList(*cmdList, handle);
+    auto sptr = CmdListHelper::GetRegionFromCmdList(*cmdList, handle, 0);
     EXPECT_NE(sptr, nullptr);
 }
 
