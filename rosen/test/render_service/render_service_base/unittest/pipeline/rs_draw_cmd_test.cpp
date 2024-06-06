@@ -110,12 +110,12 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback
+ * @tc.name: Playback001
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -159,12 +159,12 @@ HWTEST_F(RSDrawCmdTest, PreProcessPixelMap, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback001
+ * @tc.name: Playback002
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
 {
     Drawing::Rect src;
     Drawing::Rect dst;
@@ -259,12 +259,12 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling004, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback002
+ * @tc.name: Playback003
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback003, TestSize.Level1)
 {
     Drawing::RecordingCanvas::DrawFunc drawFunc;
     RSExtendDrawFuncObj extendDrawFuncObj(std::move(drawFunc));
@@ -279,12 +279,12 @@ HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback003
+ * @tc.name: Playback004
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback003, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback004, TestSize.Level1)
 {
     std::shared_ptr<Drawing::Image> image;
     std::shared_ptr<Drawing::Data> data;
@@ -320,12 +320,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId003, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback004
+ * @tc.name: Playback005
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback004, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback005, TestSize.Level1)
 {
     Drawing::DrawCmdList cmdList;
     Drawing::OpDataHandle objectHandle;
@@ -360,12 +360,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId004, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback005
+ * @tc.name: Playback006
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback005, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
 {
     Drawing::DrawCmdList list;
     Drawing::OpDataHandle objectHandle;
@@ -404,12 +404,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback006
+ * @tc.name: Playback007
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
 {
     Drawing::DrawCmdList list;
     uint32_t funcObjectId = 1;
