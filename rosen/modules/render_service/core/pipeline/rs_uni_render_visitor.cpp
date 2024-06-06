@@ -1208,9 +1208,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (!curDisplayDirtyManager_) {
         return;
     }
-    bool ret = CheckScreenPowerChange() ||
-        CheckColorFilterChange() ||
-        CheckCurtainScreenUsingStatusChange();
+    bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
+        CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1232,6 +1231,15 @@ bool RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange() const
         return false;
     }
     RS_LOGD("RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange changed");
+    return true;
+}
+
+bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
+{
+    if (!RSMainThread::Instance()->IsFirstFrameOfPartialRender()) {
+        return false;
+    }
+    RS_LOGD("FirstFrameOfPartialRender");
     return true;
 }
 

@@ -145,6 +145,10 @@ public:
     {
         return isOpDropped_;
     }
+    bool GetIsRegionDebugEnabled() const
+    {
+        return isRegionDebugEnabled_;
+    }
     // Use in vulkan parallel rendering
     GraphicColorGamut GetColorGamut() const
     {
@@ -229,6 +233,7 @@ private:
     bool CheckScreenPowerChange() const;
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
+    bool IsFirstFrameOfPartialRender() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
