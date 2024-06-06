@@ -226,7 +226,7 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, GetPermissionsTest, testing::ext
 HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, GetInterfacePermissionSizeTest, testing::ext::TestSize.Level1)
 {
     auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
-    ASSERT_EQ(verifier->GetInterfacePermissionSize() , 0);
+    ASSERT_EQ(verifier->GetInterfacePermissionSize(), 0);
 }
 
 /**
@@ -238,7 +238,7 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, GetInterfacePermissionSizeTest, 
 HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsSystemAppTest, testing::ext::TestSize.Level1)
 {
     auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
-    ASSERT_EQ(verifier->IsSystemApp() , false);
+    ASSERT_EQ(verifier->IsSystemApp(), false);
 }
 
 /**
@@ -249,10 +249,10 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsSystemAppTest, testing::ext::T
  */
 HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsSystemCallingTest001, testing::ext::TestSize.Level1)
 {
-    const std::string callingCode = 
-        "RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED";
+    const std::string callingCode = "RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED";
     auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
-    ASSERT_EQ(verifier->IsSystemCalling(callingCode) , true);
+    bool res = verifier->IsSystemCalling(callingCode);
+    ASSERT_EQ(res, true);
 }
 #endif
 } // namespace OHOS::Rosen
