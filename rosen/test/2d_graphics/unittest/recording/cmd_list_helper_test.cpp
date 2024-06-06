@@ -548,7 +548,7 @@ HWTEST_F(CmdListHelperTest, TextBlob, TestSize.Level1)
 {
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     OpDataHandle handle = CmdListHelper::AddTextBlobToCmdList(*cmdList, nullptr);
-    auto sptr = CmdListHelper::GetTextBlobFromCmdList(*cmdList, handle, 0);
+    auto sptr = CmdListHelper::GetTextBlobFromCmdList(*cmdList, handle);
     EXPECT_EQ(sptr, nullptr);
 }
 

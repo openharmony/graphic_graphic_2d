@@ -15,8 +15,9 @@
 
 #include "recording/cmd_list_helper.h"
 
-#include "recording/draw_cmd_list.h"
 #include "recording/draw_cmd.h"
+#include "recording/draw_cmd_list.h"
+
 #include "skia_adapter/skia_vertices.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
@@ -384,7 +385,7 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, uint64_t  globalUniqueId, void* ctx)
+    const OpDataHandle& textBlobHandle, uint64_t  globalUniqueId)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
