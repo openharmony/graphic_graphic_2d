@@ -27,6 +27,7 @@ public:
     ~RSTextureExport();
     bool DoTextureExport();
     void StopTextureExport();
+    void UpdateBufferInfo(float x, float y, float width, float height);
 private:
     std::shared_ptr<RSUIDirector> rsUiDirector_;
     std::shared_ptr<RSNode> rootNode_;
