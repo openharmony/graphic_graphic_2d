@@ -363,12 +363,12 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
 #else
     FontStyle rosenFontStyle;
     switch (fontStyle) {
-        case FONT_STYLE_ITALIC:
-        case FONT_STYLE_OBLIQUE: {
+        case FONT_STYLE_NORMAL: {
             rosenFontStyle = FontStyle::NORMAL;
             break;
         }
-        case FONT_STYLE_ITALIC: {
+        case FONT_STYLE_ITALIC:
+        case FONT_STYLE_OBLIQUE: {
             rosenFontStyle = FontStyle::ITALIC;
             break;
         }
