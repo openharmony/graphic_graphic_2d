@@ -69,7 +69,7 @@ public:
         uint16_t glyphs[], int maxGlyphCount) const = 0;
 
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding,
-        Rect* bounds = nullptr) = 0;
+        Rect* bounds = nullptr) const = 0;
     virtual int CountText(const void* text, size_t byteLength, TextEncoding encoding) const = 0;
 
 protected:

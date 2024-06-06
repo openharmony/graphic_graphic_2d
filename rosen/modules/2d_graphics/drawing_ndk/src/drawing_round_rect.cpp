@@ -89,3 +89,13 @@ void OH_Drawing_RoundRectDestroy(OH_Drawing_RoundRect* cRoundRect)
 {
     delete CastToRoundRect(cRoundRect);
 }
+
+OH_Drawing_ErrorCode OH_Drawing_RoundRectOffset(OH_Drawing_RoundRect* cRoundRect, float dx, float dy)
+{
+    RoundRect* rounRect = CastToRoundRect(cRoundRect);
+    if (rounRect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    rounRect->Offset(dx, dy);
+    return OH_DRAWING_SUCCESS;
+}

@@ -294,6 +294,35 @@ HWTEST_F(NativeFontTest, NativeFontTest_SetFakeBoldText013, TestSize.Level1)
     OH_Drawing_FontDestroy(font);
 }
 
+/*
+ * @tc.name: NativeFontTest_FontMeasureText014
+ * @tc.desc: test for FontMeasureText.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureText014, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* str = "hello world";
+    float textWidth = 0.f;
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontMeasureText(nullptr, str, strlen(str),
+                                                  OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, nullptr, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    drawingErrorCode = OH_Drawing_FontMeasureText(font, str, 0, OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+                                                  nullptr, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    drawingErrorCode = OH_Drawing_FontMeasureText(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+                                                  nullptr, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 254.0); // 254.0 is textWidth
+
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

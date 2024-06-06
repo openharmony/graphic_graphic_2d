@@ -146,12 +146,12 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos004, TestSize.Leve
 }
 
 /*
- * @tc.name: NativeDrawingRectTest_OH_Drawing_RoundRectGetCorner001
+ * @tc.name: NativeDrawingRectTest_OH_Drawing_RoundRectGetCorner005
  * @tc.desc: test OH_Drawing_RoundRectGetCorner
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingRoundRectTest, OH_Drawing_RoundRectGetCorner001, TestSize.Level1)
+HWTEST_F(NativeDrawingRoundRectTest, OH_Drawing_RoundRectGetCorner005, TestSize.Level1)
 {
     OH_Drawing_RoundRect* nullRoundRect = nullptr;
 
@@ -160,6 +160,25 @@ HWTEST_F(NativeDrawingRoundRectTest, OH_Drawing_RoundRectGetCorner001, TestSize.
 
     ASSERT_FLOAT_EQ(radii.x, 0);
     ASSERT_FLOAT_EQ(radii.y, 0);
+}
+
+/*
+ * @tc.name: NativeDrawingRoundRectTest_RoundRectOffset006
+ * @tc.desc: test for test for Translates RoundRect by (dx, dy).
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingRoundRectTest, NativeDrawingRoundRectTest_RoundRectOffset006, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 100, 200, 300);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 25, 25); // 25: xRad, 25: yRad
+    float dx = 10.0f, dy = 10.0f; //10.0f: X-axis offset, 10.0f: Y-axis offset
+
+    EXPECT_EQ(OH_Drawing_RoundRectOffset(nullptr, dx, dy), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RoundRectOffset(roundRect, dx, dy), OH_DRAWING_SUCCESS);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(roundRect);
 }
 } // namespace Drawing
 } // namespace Rosen
