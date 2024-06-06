@@ -62,7 +62,7 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement002, TestSize.Level1)
     if (uniType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
         ASSERT_EQ(false, isUni);
     } else {
-        ASSERT_NE(true, isUni);
+        ASSERT_EQ(true, isUni);
     }
 }
 
@@ -96,5 +96,35 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement003, TestSize.Level1)
     // safely remove file
     rsCmd = "rm " + configFilePath;
     (void)system(rsCmd.c_str());
+}
+
+/**
+ * @tc.name: SafeGetLineTest002
+ * @tc.desc: SafeGetLine test.
+ * @tc.type: FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSUniRenderJudgementTest, SafeGetLineTest002, TestSize.Level1)
+{
+    std::ofstream tempFile("test_file.txt");
+    tempFile << "Line 1\r\n";
+    tempFile << "Line 2\n";
+    tempFile << "Line 3\r";
+    tempFile.close();
+    std::ifstream configFile;
+    configFile.open("test_file.txt");
+    std::string line;
+
+    (void)RSUniRenderJudgement::SafeGetLine(configFile, line);
+    EXPECT_EQ(line, "Line 1");
+
+    (void)RSUniRenderJudgement::SafeGetLine(configFile, line);
+    EXPECT_EQ(line, "Line 2");
+
+    (void)RSUniRenderJudgement::SafeGetLine(configFile, line);
+    EXPECT_EQ(line, "Line 3");
+
+    configFile.close();
+    std::remove("test_file.txt");
 }
 } // namespace OHOS::Rosen
