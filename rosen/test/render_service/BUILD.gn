@@ -89,6 +89,7 @@ group("test") {
     "render_service_base/fuzztest/rsvsyncclientohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/skresourcemanager_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
+    "render_service_base/unittest/benchmarks:unittest",
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
