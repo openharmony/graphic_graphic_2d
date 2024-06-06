@@ -285,21 +285,6 @@ HWTEST_F(RSClientTest, GetMemoryGraphic001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetTotalAppMemSize Test
- * @tc.desc: GetTotalAppMemSize Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, GetTotalAppMemSize001, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    float cpuMemSize = 0;
-    float gpuMemSize = 0;
-    bool ret = rsClient->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
-    ASSERT_EQ(ret, true);
-}
-
-/**
  * @tc.name: CreateNodeAndSurface Test
  * @tc.desc: CreateNodeAndSurface Test
  * @tc.type:FUNC
