@@ -128,10 +128,11 @@ HWTEST_F(RSSystemPropertiesTest, SetInstantRecording, TestSize.Level1)
  * @tc.name: GetSaveRDC
  * @tc.desc: GetSaveRDC Test
  * @tc.type:FUNC
- * @tc.require: issueI9JZWC
+ * @tc.require: issueI9VPIT
  */
 HWTEST_F(RSSystemPropertiesTest, GetSaveRDC, TestSize.Level1)
 {
+    RSSystemProperties::SetSaveRDC(true);
     ASSERT_TRUE(RSSystemProperties::GetSaveRDC());
 }
 
@@ -139,12 +140,12 @@ HWTEST_F(RSSystemPropertiesTest, GetSaveRDC, TestSize.Level1)
  * @tc.name: SetSaveRDC
  * @tc.desc: SetSaveRDC Test
  * @tc.type:FUNC
- * @tc.require: issueI9JZWC
+ * @tc.require: issueI9VPIT
  */
 HWTEST_F(RSSystemPropertiesTest, SetSaveRDC, TestSize.Level1)
 {
-    RSSystemProperties::SetSaveRDC(true);
-    ASSERT_TRUE(true);
+    RSSystemProperties::SetSaveRDC(false);
+    ASSERT_FALSE(RSSystemProperties::GetSaveRDC());
 }
 
 /**
