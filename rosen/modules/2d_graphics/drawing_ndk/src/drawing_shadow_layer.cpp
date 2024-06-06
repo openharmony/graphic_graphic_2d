@@ -14,6 +14,7 @@
  */
 
 #include "drawing_shadow_layer.h"
+#include "drawing_helper.h"
 
 #include "drawing_canvas_utils.h"
 
@@ -23,21 +24,25 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowLayer)
-{
-    return reinterpret_cast<BlurDrawLooper*>(cShadowLayer);
-}
-
 OH_Drawing_ShadowLayer* OH_Drawing_ShadowLayerCreate(float blurRadius, float x, float y, uint32_t color)
 {
     if (blurRadius <= 0.f) {
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
-    return (OH_Drawing_ShadowLayer*)new BlurDrawLooper(blurRadius, x, y, color);
+    NativeHandle<BlurDrawLooper>* blurDrawLooperHandle = new NativeHandle<BlurDrawLooper>;
+    if (blurDrawLooperHandle == nullptr) {
+        return nullptr;
+    }
+    blurDrawLooperHandle->value = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, x, y, color);
+    if (blurDrawLooperHandle->value == nullptr) {
+        delete blurDrawLooperHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<BlurDrawLooper>*, OH_Drawing_ShadowLayer*>(blurDrawLooperHandle);
 }
 
 void OH_Drawing_ShadowLayerDestroy(OH_Drawing_ShadowLayer* cShadowLayer)
 {
-    delete CastToBlurDrawLooper(cShadowLayer);
+    delete Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(cShadowLayer);
 }

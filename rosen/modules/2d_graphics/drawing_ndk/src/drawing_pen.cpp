@@ -59,11 +59,6 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
 }
 
-static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
-{
-    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
-}
-
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
@@ -311,7 +306,8 @@ void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* 
         pen->SetLooper(nullptr);
         return;
     }
-    pen->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowlayer), [](auto p) {}});
+    auto blurDrawLooperHandle = Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(cShadowlayer);
+    pen->SetLooper(blurDrawLooperHandle->value);
 }
 
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
