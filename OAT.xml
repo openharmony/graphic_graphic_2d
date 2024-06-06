@@ -60,8 +60,13 @@ Note: If the text contains special characters, please escape them according to t
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files that do not need to be scanned">
                 <filteritem type="filename" name="*.cfg" desc="cfg no need to add policy"/>
+                <filteritem type="filename" name="bootvideo.mp4" desc="mp4 no need to add policy"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
+                <filteritem type="filename" name="floor.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="mf.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="vr.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="box.jpg" desc="sample renderings"/>
                 <filteritem type="filename" name="test.jpg" desc="sample renderings"/>
                 <filteritem type="filename" name="test.png" desc="sample renderings"/>
                 <filteritem type="filename" name="graphic_rosen_architecture.jpg" desc="readme graphic ipg"/>
