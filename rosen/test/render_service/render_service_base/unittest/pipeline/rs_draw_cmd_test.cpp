@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -110,7 +110,7 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback007
+ * @tc.name: Playback
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
