@@ -62,6 +62,7 @@ HgmOneShotTimer::~HgmOneShotTimer()
 
 void HgmOneShotTimer::Start()
 {
+    std::lock_guard<std::mutex> lock(threadMutex_);
     if (!thread_.joinable()) {
         thread_ = std::thread(&HgmOneShotTimer::Loop, this);
     }
@@ -69,6 +70,7 @@ void HgmOneShotTimer::Start()
 
 void HgmOneShotTimer::Stop()
 {
+    std::lock_guard<std::mutex> lock(threadMutex_);
     stopFlag_ = true;
     int result = sem_post(&semaphone_);
     HGM_LOGD("HgmOneShotTimer::sem_post result: %{public}d", result);

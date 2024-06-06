@@ -78,15 +78,16 @@ bool SkiaCanvasAutoCache::OpCanCache(const SkRect& bound)
             break;
         }
         MergeDrawAreaRects(); // get unionDrawArea_
-        if ((static_cast<int>(unionDrawArea_.width()) > static_cast<int>(bound.width())) ||
-            (static_cast<int>(unionDrawArea_.height()) > static_cast<int>(bound.height()))) {
+        int unionWidth = static_cast<int>(unionDrawArea_.width());
+        int unionHeight = static_cast<int>(unionDrawArea_.height());
+        if ((unionWidth > static_cast<int>(bound.width())) || (unionHeight > static_cast<int>(bound.height()))) {
             opCanCache_ = false;
             calNotSupport_ = __LINE__;
             break;
         }
-
-        percent_ = (totalDrawAreas_ * PERCENT) /
-            (static_cast<int>(unionDrawArea_.width()) * static_cast<int>(unionDrawArea_.height()));
+        if (unionWidth != 0 && unionHeight != 0) {
+            percent_ = (totalDrawAreas_ * PERCENT) / (unionWidth * unionHeight);
+        }
         if (totalOpNums_ >= MAX_OPS_NUM ||
             (percent_ > MAX_PERCENTAGE && totalOpNums_ > MIN_OPS_NUM)) {
             opCanCache_ = true;

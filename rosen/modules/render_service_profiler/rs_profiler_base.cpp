@@ -904,10 +904,12 @@ int RSProfiler::PerfTreeFlatten(
     return drawCmdListCount;
 }
 
-void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image)
+void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
+    std::shared_ptr<Drawing::Data>& compressData)
 {
     if (IsEnabled() && !IsSharedMemoryEnabled()) {
         image = nullptr;
+        compressData = nullptr;
     }
 }
 

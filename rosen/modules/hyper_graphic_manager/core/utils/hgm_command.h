@@ -94,6 +94,7 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        bool isFactor;
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;

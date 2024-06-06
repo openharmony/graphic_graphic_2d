@@ -49,6 +49,18 @@ add_library(entry SHARED
     interface/canvas_test.cpp
     interface/text_blob_test.cpp
     interface/path_test.cpp
+    interface/bitmap_test.cpp
+    interface/color_test.cpp
+    interface/matrix_test.cpp
+    interface/mask_filter_test.cpp
+    interface/shader_effect_test.cpp
+    interface/typeface_test.cpp
+    interface/pen_test.cpp
+    interface/brush_test.cpp
+    interface/font_test.cpp
+    interface/memory_stream_test.cpp
+    interface/sample_option_test.cpp
+    interface/surface_test.cpp    
 )
 
 add_library(myxnode SHARED
@@ -91,6 +103,18 @@ add_library(myxnode SHARED
     interface/canvas_test.cpp
     interface/text_blob_test.cpp
     interface/path_test.cpp
+    interface/bitmap_test.cpp
+    interface/color_test.cpp
+    interface/matrix_test.cpp
+    interface/mask_filter_test.cpp
+    interface/shader_effect_test.cpp
+    interface/typeface_test.cpp
+    interface/pen_test.cpp
+    interface/brush_test.cpp
+    interface/font_test.cpp
+    interface/memory_stream_test.cpp
+    interface/sample_option_test.cpp
+    interface/surface_test.cpp    
 )
 
 find_library(

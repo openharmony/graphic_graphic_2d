@@ -227,6 +227,16 @@ Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
         Vector4<uint32_t>, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
+Vector4f RSModifierExtractor::GetBorderDashWidth() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, BORDER_DASH_WIDTH, Vector4f(0.f), =);
+}
+
+Vector4f RSModifierExtractor::GetBorderDashGap() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, BORDER_DASH_GAP, Vector4f(0.f), =);
+}
+
 Vector4<Color> RSModifierExtractor::GetOutlineColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4<Color>, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
@@ -241,6 +251,16 @@ Vector4<uint32_t> RSModifierExtractor::GetOutlineStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(
         Vector4<uint32_t>, OUTLINE_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
+}
+
+Vector4f RSModifierExtractor::GetOutlineDashWidth() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, OUTLINE_DASH_WIDTH, Vector4f(0.f), =);
+}
+
+Vector4f RSModifierExtractor::GetOutlineDashGap() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, OUTLINE_DASH_GAP, Vector4f(0.f), =);
 }
 
 Vector4f RSModifierExtractor::GetOutlineRadius() const

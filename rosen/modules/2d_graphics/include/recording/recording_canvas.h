@@ -88,7 +88,7 @@ public:
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filterMode, const Brush* brush = nullptr) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr) override;
+        FilterMode filterMode) override;
 
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
 
@@ -155,6 +155,7 @@ private:
     std::optional<Pen> customTextPen_ = std::nullopt;
     std::stack<SaveOpState> saveOpStateStack_;
     std::shared_ptr<GPUContext> gpuContext_ = nullptr;
+    uint32_t opCount = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

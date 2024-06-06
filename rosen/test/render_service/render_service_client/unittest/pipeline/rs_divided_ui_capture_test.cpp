@@ -47,22 +47,51 @@ HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture, TestSize.Level1)
 {
     RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
     auto pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
 
-    RSDividedUICapture rsDividedUICapture2(1, 0, 1.0);
-    pixelmap = rsDividedUICapture2.TakeLocalCapture();
-    ASSERT_EQ(nullptr, pixelmap);
+    rsDividedUICapture.scaleX_ = 0.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
 
-    RSDividedUICapture rsDividedUICapture3(1, 1.0, 0);
-    pixelmap = rsDividedUICapture3.TakeLocalCapture();
-    ASSERT_EQ(nullptr, pixelmap);
+    rsDividedUICapture.scaleY_ = 0.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
 
-    RSDividedUICapture rsDividedUICapture4(1, -1, 1);
-    pixelmap = rsDividedUICapture4.TakeLocalCapture();
-    ASSERT_EQ(nullptr, pixelmap);
+    rsDividedUICapture.scaleY_ = -1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
 
-    RSDividedUICapture rsDividedUICapture5(1, 1.0, -1);
-    pixelmap = rsDividedUICapture5.TakeLocalCapture();
-    ASSERT_EQ(nullptr, pixelmap);
+    rsDividedUICapture.scaleX_ = -1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleY_ = 0.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleX_ = 1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleY_ = -1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleX_ = -1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleY_ = 1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.scaleX_ = 1.f;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
+
+    rsDividedUICapture.nodeId_ = 0;
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_EQ(nullptr, pixelmap);
 }
 
 /**
@@ -89,7 +118,7 @@ HWTEST_F(RSDividedUICaptureTest, CreatePixelMapByNode, TestSize.Level1)
 HWTEST_F(RSDividedUICaptureTest, CreateSurface, TestSize.Level1)
 {
     RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
-    std::shared_ptr<Media::PixelMap> pixelmap;
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     auto surface = rsDividedUICapture.CreateSurface(pixelmap);
     EXPECT_EQ(surface, nullptr);
 
@@ -152,8 +181,13 @@ HWTEST_F(RSDividedUICaptureTest, PostTaskToRTRecord, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<RSRenderNode>(id);
     auto visitor = std::make_shared<RSDividedUICapture::RSDividedUICaptureVisitor>(1, 1.0, 1.0);
+    node->isOnTheTree_ = false;
     rsDividedUICapture.PostTaskToRTRecord(canvas, node, visitor);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!node->isOnTheTree_);
+
+    node->isOnTheTree_ = true;
+    rsDividedUICapture.PostTaskToRTRecord(canvas, node, visitor);
+    EXPECT_TRUE(node->isOnTheTree_);
 }
 
 /**
@@ -179,22 +213,20 @@ HWTEST_F(RSDividedUICaptureTest, ProcessChildren, TestSize.Level1)
 HWTEST_F(RSDividedUICaptureTest, ProcessRootRenderNode, TestSize.Level1)
 {
     RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(1, 1.0, 1.0);
-    RSRenderNode rsRenderNode(1);
     RSRootRenderNode node(1);
-    RSProperties rsProperties;
+    node.shouldPaint_ = true;
+    rsDividedUICaptureVisitor.canvas_ = nullptr;
+    rsDividedUICaptureVisitor.ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ == nullptr);
+
     Drawing::Canvas canvas;
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    rsDividedUICaptureVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     rsDividedUICaptureVisitor.ProcessRootRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
-    rsProperties.SetAlpha(0.0f);
-    rsRenderNode.UpdateShouldPaint();
+    node.shouldPaint_ = false;
     rsDividedUICaptureVisitor.ProcessRootRenderNode(node);
-    EXPECT_TRUE(true);
-
-    rsDividedUICaptureVisitor.SetPaintFilterCanvas(filterCanvas);
-    rsDividedUICaptureVisitor.ProcessRootRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!node.shouldPaint_);
 }
 
 /**
@@ -206,22 +238,24 @@ HWTEST_F(RSDividedUICaptureTest, ProcessRootRenderNode, TestSize.Level1)
 HWTEST_F(RSDividedUICaptureTest, ProcessCanvasRenderNode, TestSize.Level1)
 {
     RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(1, 1.0, 1.0);
-    RSRenderNode rsRenderNode(1);
     RSCanvasRenderNode node(1);
-    RSProperties rsProperties;
+    node.shouldPaint_ = true;
+    rsDividedUICaptureVisitor.canvas_ = nullptr;
+    rsDividedUICaptureVisitor.ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ == nullptr);
+
     Drawing::Canvas canvas;
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    rsDividedUICaptureVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     rsDividedUICaptureVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
-    rsProperties.SetAlpha(0.0f);
-    rsRenderNode.UpdateShouldPaint();
+    rsDividedUICaptureVisitor.nodeId_ = 0;
     rsDividedUICaptureVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!rsDividedUICaptureVisitor.nodeId_);
 
-    rsDividedUICaptureVisitor.SetPaintFilterCanvas(filterCanvas);
+    node.shouldPaint_ = false;
     rsDividedUICaptureVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!node.shouldPaint_);
 }
 
 /**
@@ -233,22 +267,20 @@ HWTEST_F(RSDividedUICaptureTest, ProcessCanvasRenderNode, TestSize.Level1)
 HWTEST_F(RSDividedUICaptureTest, ProcessEffectRenderNode, TestSize.Level1)
 {
     RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(1, 1.0, 1.0);
-    RSRenderNode rsRenderNode(1);
     RSEffectRenderNode node(1);
-    RSProperties rsProperties;
+    node.shouldPaint_ = true;
+    rsDividedUICaptureVisitor.canvas_ = nullptr;
+    rsDividedUICaptureVisitor.ProcessEffectRenderNode(node);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ == nullptr);
+
     Drawing::Canvas canvas;
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    rsDividedUICaptureVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     rsDividedUICaptureVisitor.ProcessEffectRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
-    rsProperties.SetAlpha(0.0f);
-    rsRenderNode.UpdateShouldPaint();
+    node.shouldPaint_ = false;
     rsDividedUICaptureVisitor.ProcessEffectRenderNode(node);
-    EXPECT_TRUE(true);
-
-    rsDividedUICaptureVisitor.SetPaintFilterCanvas(filterCanvas);
-    rsDividedUICaptureVisitor.ProcessEffectRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(!node.shouldPaint_);
 }
 
 /**
@@ -261,20 +293,18 @@ HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
 {
     RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(1, 1.0, 1.0);
     RSSurfaceRenderNode node(1);
-    RSProperties rsProperties;
+    rsDividedUICaptureVisitor.canvas_ = nullptr;
+    rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ == nullptr);
+
     Drawing::Canvas canvas;
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    rsDividedUICaptureVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
-    rsDividedUICaptureVisitor.SetPaintFilterCanvas(filterCanvas);
-    rsProperties.SetVisible(false);
+    node.renderContent_->GetMutableRenderProperties().visible_ = false;
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(true);
-
-    rsProperties.SetVisible(true);
-    rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 }
 
 /**

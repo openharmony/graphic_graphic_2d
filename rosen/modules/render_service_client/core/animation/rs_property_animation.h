@@ -43,17 +43,19 @@ protected:
 
     void SetPropertyValue(const std::shared_ptr<RSPropertyBase>& value);
 
-    const std::shared_ptr<RSPropertyBase> GetPropertyValue() const;
+    const std::shared_ptr<RSPropertyBase> GetPropertyValue() const override;
 
     PropertyId GetPropertyId() const override;
 
     void OnStart() override;
 
-    void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue);
+    void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue) override;
 
-    virtual void InitInterpolationValue();
+    void InitInterpolationValue() override;
 
     void OnUpdateStagingValue(bool isFirstStart) override;
+
+    void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) override;
 
     void SetPropertyOnAllAnimationFinish() override;
 

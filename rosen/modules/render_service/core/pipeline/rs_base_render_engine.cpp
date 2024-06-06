@@ -694,11 +694,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawImage(GPU)");
+    RS_TRACE_NAME("RSBaseRenderEngine::DrawImage(GPU)");
     auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
         RS_LOGE("RSBaseRenderEngine::DrawImage invalid buffer!");
-        RS_OPTIONAL_TRACE_END();
         return;
     }
 
@@ -726,7 +725,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             surfaceOrigin, bitmapFormat, nullptr,
             NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
             ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");
-            RS_OPTIONAL_TRACE_END();
             return;
         }
     }
@@ -738,7 +736,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             params.targetColorGamut);
         if (image == nullptr) {
             RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
-            RS_OPTIONAL_TRACE_END();
             return;
         }
     }

@@ -16,12 +16,8 @@
 #ifndef SKIA_MATRIX44_H
 #define SKIA_MATRIX44_H
 
-#ifdef NEW_SKIA
-#include "include/core/SkM44.h"
-#else
-#include "include/core/SkMatrix44.h"
-#endif
 #include "impl_interface/matrix44_impl.h"
+#include "include/core/SkM44.h"
 
 namespace OHOS {
 namespace Rosen {

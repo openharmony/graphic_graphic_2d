@@ -38,6 +38,7 @@ class Network {
 public:
     static void Run();
     static void Stop();
+    static void ForceShutdown();
 
     static std::vector<NetworkStats> GetStats(const std::string& interface);
 
@@ -70,6 +71,7 @@ private:
 
 private:
     static bool isRunning_;
+    static bool forceShutdown_;
 
     static std::mutex incomingMutex_;
     static std::queue<std::vector<std::string>> incoming_;

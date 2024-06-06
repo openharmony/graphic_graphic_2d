@@ -82,6 +82,11 @@ public:
     void SetDyamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
+    
+    void ApplyImageFit();
+    ImageFit GetImageFit();
+    RectF GetDstRect();
+    void SetFrameRect(RectF frameRect);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
@@ -106,7 +111,6 @@ public:
 
 private:
     bool HasRadius() const;
-    void ApplyImageFit();
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);

@@ -59,11 +59,6 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
 }
 
-static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
-{
-    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
-}
-
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
@@ -110,44 +105,6 @@ static Pen::CapStyle CCapCastToCap(OH_Drawing_PenLineCapStyle cCap)
             break;
     }
     return cap;
-}
-
-static OH_Drawing_PenLineJoinStyle JoinCastToCJoin(Pen::JoinStyle join)
-{
-    OH_Drawing_PenLineJoinStyle cJoin = LINE_MITER_JOIN;
-    switch (join) {
-        case Pen::JoinStyle::MITER_JOIN:
-            cJoin = LINE_MITER_JOIN;
-            break;
-        case Pen::JoinStyle::ROUND_JOIN:
-            cJoin = LINE_ROUND_JOIN;
-            break;
-        case Pen::JoinStyle::BEVEL_JOIN:
-            cJoin = LINE_BEVEL_JOIN;
-            break;
-        default:
-            break;
-    }
-    return cJoin;
-}
-
-static Pen::JoinStyle CJoinCastToJoin(OH_Drawing_PenLineJoinStyle cJoin)
-{
-    Pen::JoinStyle join = Pen::JoinStyle::MITER_JOIN;
-    switch (cJoin) {
-        case LINE_MITER_JOIN:
-            join = Pen::JoinStyle::MITER_JOIN;
-            break;
-        case LINE_ROUND_JOIN:
-            join = Pen::JoinStyle::ROUND_JOIN;
-            break;
-        case LINE_BEVEL_JOIN:
-            join = Pen::JoinStyle::BEVEL_JOIN;
-            break;
-        default:
-            break;
-    }
-    return join;
 }
 
 OH_Drawing_Pen* OH_Drawing_PenCreate()
@@ -294,7 +251,7 @@ OH_Drawing_PenLineJoinStyle OH_Drawing_PenGetJoin(const OH_Drawing_Pen* cPen)
         return LINE_MITER_JOIN;
     }
     Pen::JoinStyle join = CastToPen(*cPen).GetJoinStyle();
-    OH_Drawing_PenLineJoinStyle cJoin = JoinCastToCJoin(join);
+    OH_Drawing_PenLineJoinStyle cJoin = static_cast<OH_Drawing_PenLineJoinStyle>(join);
     return cJoin;
 }
 
@@ -305,7 +262,7 @@ void OH_Drawing_PenSetJoin(OH_Drawing_Pen* cPen, OH_Drawing_PenLineJoinStyle cJo
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    Pen::JoinStyle join = CJoinCastToJoin(cJoin);
+    Pen::JoinStyle join = static_cast<Pen::JoinStyle>(cJoin);
     pen->SetJoinStyle(join);
 }
 
@@ -349,7 +306,8 @@ void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* 
         pen->SetLooper(nullptr);
         return;
     }
-    pen->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowlayer), [](auto p) {}});
+    auto blurDrawLooperHandle = Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(cShadowlayer);
+    pen->SetLooper(blurDrawLooperHandle->value);
 }
 
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
@@ -370,12 +328,9 @@ void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 void OH_Drawing_PenGetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     Pen* pen = CastToPen(cPen);
-    if (pen == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
-        return;
-    }
     Filter* filter = const_cast<Filter*>(CastToFilter(cFilter));
-    if (filter == nullptr) {
+    if (pen == nullptr || filter == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
     *filter = pen->GetFilter();

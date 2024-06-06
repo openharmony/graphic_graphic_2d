@@ -106,7 +106,7 @@ public:
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) = 0;
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filter, const Brush* brush = nullptr) = 0;
+        FilterMode filter) = 0;
 
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;

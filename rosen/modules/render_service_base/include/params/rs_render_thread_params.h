@@ -248,6 +248,16 @@ public:
         return hasCaptureImg_;
     }
 
+    void SetBlackList(std::unordered_set<NodeId> blackList)
+    {
+        blackList_ = blackList;
+    }
+
+    std::unordered_set<NodeId> GetBlackList() const
+    {
+        return blackList_;
+    }
+
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
     {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
@@ -288,9 +298,20 @@ public:
         return isImplicitAnimationEnd_;
     }
 
+    void SetDiscardJankFrames(bool discardJankFrames)
+    {
+        discardJankFrames_ = discardJankFrames;
+    }
+
+    bool GetDiscardJankFrames() const
+    {
+        return discardJankFrames_;
+    }
+
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
+    std::unordered_set<NodeId> blackList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -330,6 +351,7 @@ private:
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
+    bool discardJankFrames_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

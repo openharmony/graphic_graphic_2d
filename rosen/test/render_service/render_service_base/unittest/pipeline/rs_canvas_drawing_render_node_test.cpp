@@ -311,13 +311,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
 {
     NodeId nodeId = 1;
     std::weak_ptr<RSContext> context;
+    int width = 1;
+    int height = 1;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
     rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    rsCanvasDrawingRenderNode.ResetSurface();
+    rsCanvasDrawingRenderNode.ResetSurface(width, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
     
     rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.ResetSurface();
+    rsCanvasDrawingRenderNode.ResetSurface(width, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
 }
 } // namespace OHOS::Rosen

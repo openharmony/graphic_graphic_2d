@@ -210,8 +210,6 @@ private:
     static uint8_t* MapImage(int32_t file, size_t size, int32_t flags);
     static void UnmapImage(void* image, size_t size);
 
-    static bool IsValidFormat(const PixelFormat& format);
-
     static void OnClientMarshalling(PixelMap& map, uint64_t id);
 
     static bool InitUnmarshalling(UnmarshallingContext& context);
@@ -266,15 +264,6 @@ void ImageSource::UnmapImage(void* image, size_t size)
     }
 }
 
-bool ImageSource::IsValidFormat(const PixelFormat& format)
-{
-    return (format == PixelFormat::ARGB_8888) || (format == PixelFormat::BGRA_8888) ||
-           (format == PixelFormat::RGBA_8888) || (format == PixelFormat::CMYK) || (format == PixelFormat::ALPHA_8) ||
-           (format == PixelFormat::RGB_888) || (format == PixelFormat::RGB_565) || (format == PixelFormat::RGBA_F16) ||
-           (format == PixelFormat::NV21) || (format == PixelFormat::NV12) || (format == PixelFormat::ASTC_4x4) ||
-           (format == PixelFormat::ASTC_6x6) || (format == PixelFormat::ASTC_8x8);
-}
-
 bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
 {
     if (!context.map) {
@@ -296,7 +285,7 @@ bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
     context.size = static_cast<size_t>(context.parcel.ReadInt32());
 
     const size_t rawSize = context.rowPitch * context.info.size.height;
-    return IsValidFormat(context.info.pixelFormat) && (isAstc || (context.size == rawSize));
+    return (isAstc || (context.size == rawSize));
 }
 
 bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint64_t id)
@@ -438,7 +427,10 @@ void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
         if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
             const auto imageData = GenerateImageData(
                 reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), bufferHandle->size, map);
-            CacheImage(id, imageData, UnmarshallingContext::headerLength, bufferHandle);
+            MessageParcel parcel2;
+            surfaceBuffer->WriteToMessageParcel(parcel2);
+            size_t bufferHandleSize = parcel2.GetReadableBytes();
+            CacheImage(id, imageData, bufferHandleSize, bufferHandle);
         }
     } else {
         const size_t size = map.isAstc_ ? map.pixelsSize_ :

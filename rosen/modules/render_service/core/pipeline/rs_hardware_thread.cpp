@@ -162,6 +162,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGE("RSHardwareThread::CommitAndReleaseLayers handler is nullptr");
         return;
     }
+    delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
@@ -209,14 +210,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-        int64_t delayTime = std::round((static_cast<int64_t>(expectCommitTime - currTime)) / 1000000);
+        delayTime_ = std::round((static_cast<int64_t>(expectCommitTime - currTime)) / 1000000);
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers " \
             "expectCommitTime: %lu, currTime: %lu, delayTime: %ld, pipelineOffset: %ld, period: %ld",
-            expectCommitTime, currTime, delayTime, pipelineOffset, period);
-        if (period == 0 || delayTime <= 0) {
+            expectCommitTime, currTime, delayTime_, pipelineOffset, period);
+        if (period == 0 || delayTime_ <= 0) {
             PostTask(task);
         } else {
-            PostDelayTask(task, delayTime);
+            PostDelayTask(task, delayTime_);
         }
     }
 }

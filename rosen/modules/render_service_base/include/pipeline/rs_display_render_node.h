@@ -284,6 +284,7 @@ public:
     void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
         std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
         std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -351,12 +352,12 @@ public:
     {
         surfaceSrcRects_.clear();
     }
-    
+
     void ClearSurfaceDstRect()
     {
         surfaceDstRects_.clear();
     }
-    
+
     void ClearSurfaceTotalMatrix()
     {
         surfaceTotalMatrix_.clear();
@@ -500,7 +501,7 @@ private:
     bool isParallelDisplayNode_ = false;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    
+
 	// support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;

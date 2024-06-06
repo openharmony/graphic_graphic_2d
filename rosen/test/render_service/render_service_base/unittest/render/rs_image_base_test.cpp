@@ -15,8 +15,10 @@
 
 #include "gtest/gtest.h"
 #include "pixel_map.h"
+#include "skia_bitmap.h"
 
 #include "render/rs_image_base.h"
+#include "render/rs_pixel_map_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -255,5 +257,26 @@ HWTEST_F(RSImageBaseTest, UnmarshallingTest, TestSize.Level1)
     ASSERT_NE(imageBase, nullptr);
     Parcel parcel;
     EXPECT_EQ(imageBase->Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: ProcessYUVImageTest
+ * @tc.desc: Verify function ProcessYUVImage
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::NV12;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
 }
 } // namespace OHOS::Rosen

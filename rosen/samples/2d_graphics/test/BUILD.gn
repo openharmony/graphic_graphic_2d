@@ -62,11 +62,11 @@ ohos_executable("drawing_sample") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
 
-  deps += [ "//third_party/skia:skia_ohos" ]
   external_deps = [
     "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "skia:skia_canvaskit",
   ]
 
   part_name = "graphic_2d"

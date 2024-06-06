@@ -167,7 +167,7 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
 bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext)
 {
     if (image == nullptr) {
-        LOGD("SkiaImage::BuildSubset failed, origin Image is invaild");
+        LOGD("SkiaImage::BuildSubset failed, origin Image is invalid");
         return false;
     }
     auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
@@ -188,13 +188,8 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
     PostSkImgToTargetThread();
-#ifdef NEW_SKIA
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type));
-#else
-    skiaImage_ = SkImage::MakeFromCompressed(grContext_.get(),
-        skData, width, height, static_cast<SkImage::CompressionType>(type));
-#endif
     return (skiaImage_ != nullptr) ? true : false;
 }
 
@@ -535,11 +530,7 @@ void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
 }
 
 #ifdef ACE_ENABLE_GPU
-#ifdef NEW_SKIA
 sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
-#else
-sk_sp<GrContext> SkiaImage::GetGrContext() const
-#endif
 {
     return grContext_;
 }

@@ -79,7 +79,7 @@ public:
     void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
     void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
-        Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
+        Drawing::FilterMode filter) override;
 
     bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
@@ -134,6 +134,7 @@ public:
 protected:
     virtual bool OnFilter() const = 0;
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
+    virtual Drawing::Brush* GetFilteredBrush() const = 0;
     Drawing::Canvas* canvas_ = nullptr;
 };
 
@@ -315,6 +316,16 @@ protected:
             brush.SetAlpha(brush.GetAlpha() * alpha);
         }
         return alpha > 0.f;
+    }
+    inline Drawing::Brush* GetFilteredBrush() const override
+    {
+        static Drawing::Brush brush;
+        float alpha = alphaStack_.top();
+        if (alpha >= 1) {
+            return nullptr;
+        }
+        brush.SetAlphaF(alpha);
+        return &brush;
     }
 
 private:

@@ -418,7 +418,7 @@ const RSShowingPropertiesFreezer& RSNode::GetShowingProperties() const
     return showingPropertiesFreezer_;
 }
 
-void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
+void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation)
 {
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to add animation, animation is null!");
@@ -445,7 +445,10 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
         std::unique_lock<std::mutex> lock(animationMutex_);
         AddAnimationInner(animation);
     }
-    animation->StartInner(shared_from_this());
+
+    if (isStartAnimation) {
+        animation->StartInner(shared_from_this());
+    }
 }
 
 void RSNode::RemoveAllAnimations()
@@ -1037,8 +1040,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
             auto diameMax = particleParams[i].emitterConfig_.radius_ * 2 * scaleMax; // diameter = 2 * radius
-            left[i] = std::min(bounds.x_ - diameMax, position.x_ - diameMax);
-            top[i] = std::min(bounds.y_ - diameMax, position.y_ - diameMax);
+            left[i] = std::min(bounds.x_ - diameMax, bounds.x_ + position.x_ - diameMax);
+            top[i] = std::min(bounds.y_ - diameMax, bounds.y_ + position.y_ - diameMax);
             right[i] = std::max(boundsRight + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
             bottom[i] = std::max(boundsBottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
@@ -1055,8 +1058,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             }
             float imageSizeWidthMax = imageSizeWidth * scaleMax;
             float imageSizeHeightMax = imageSizeHeight * scaleMax;
-            left[i] = std::min(bounds.x_ - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
-            top[i] = std::min(bounds.y_ - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
+            left[i] = std::min(bounds.x_ - imageSizeWidthMax, bounds.x_ + position.x_ - imageSizeWidthMax);
+            top[i] = std::min(bounds.y_ - imageSizeHeightMax, bounds.y_ + position.y_ - imageSizeHeightMax);
             right[i] = std::max(boundsRight + imageSizeWidthMax + imageSizeWidthMax,
                 position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
             bottom[i] = std::max(boundsBottom + imageSizeHeightMax + imageSizeHeightMax,
@@ -1067,7 +1070,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     float t = *std::min_element(top.begin(), top.end());
     boundsRight = *std::max_element(right.begin(), right.end());
     boundsBottom = *std::max_element(bottom.begin(), bottom.end());
-    std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(l, t, boundsRight - l, boundsBottom - t);
+    std::shared_ptr<RectF> overlayRect =
+        std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t);
     SetDrawRegion(overlayRect);
 }
 
@@ -1214,6 +1218,20 @@ void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
     SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
 }
 
+// set dash width for border
+void RSNode::SetBorderDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSBorderDashWidthModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_WIDTH, dashWidth);
+}
+
+// set dash gap for border
+void RSNode::SetBorderDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSBorderDashGapModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
     SetOutlineColor(color);
@@ -1254,6 +1272,18 @@ void RSNode::SetOutlineStyle(const Vector4<BorderStyle>& style)
         RSModifierType::OUTLINE_STYLE, styles);
 }
 
+void RSNode::SetOutlineDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSOutlineDashWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_WIDTH, dashWidth);
+}
+
+void RSNode::SetOutlineDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSOutlineDashGapModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOutlineRadius(const Vector4f& radius)
 {
     SetProperty<RSOutlineRadiusModifier, RSAnimatableProperty<Vector4f>>(
@@ -1262,12 +1292,30 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 {
-    // To do: generate composed filter here.
+    // To do: generate composed filter here. Now we just set background blur in v1.0.
+    auto filterParas = backgroundFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetBackgroundBlurRadiusX(blurRadius);
+            SetBackgroundBlurRadiusY(blurRadius);
+        }
+    }
 }
 
 void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
 {
-    // To do: generate composed filter here.
+    // To do: generate composed filter here. Now we just set compositing blur in v1.0.
+    auto filterParas = compositingFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundBlurRadiusX(blurRadius);
+            SetForegroundBlurRadiusY(blurRadius);
+        }
+    }
 }
 
 void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
@@ -1275,6 +1323,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
     auto filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundEffectRadius(blurRadius);
+        }
         if (filterPara->GetParaType() == FilterPara::PIXEL_STRETCH) {
             auto pixelStretchPara = std::static_pointer_cast<PixelStretchPara>(filterPara);
             auto stretchPercent = pixelStretchPara->GetStretchPercent();

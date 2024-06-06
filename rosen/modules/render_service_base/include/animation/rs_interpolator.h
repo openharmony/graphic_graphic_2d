@@ -47,7 +47,7 @@ public:
     [[nodiscard]] static RSB_EXPORT std::shared_ptr<RSInterpolator> Unmarshalling(Parcel& parcel);
 
     float Interpolate(float input);
-
+    virtual InterpolatorType GetType() = 0;
 protected:
     RSInterpolator();
     RSInterpolator(uint64_t id) : id_(id) {};
@@ -68,6 +68,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static LinearInterpolator* Unmarshalling(Parcel& parcel);
 
+    InterpolatorType GetType() override { return InterpolatorType::LINEAR; }
 private:
     LinearInterpolator(uint64_t id) : RSInterpolator(id) {}
     float InterpolateImpl(float input) const override
@@ -84,6 +85,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSCustomInterpolator* Unmarshalling(Parcel& parcel);
 
+    InterpolatorType GetType() override { return InterpolatorType::CUSTOM; }
 private:
     RSCustomInterpolator(uint64_t id, const std::vector<float>&& times, const std::vector<float>&& values);
     float InterpolateImpl(float input) const override;

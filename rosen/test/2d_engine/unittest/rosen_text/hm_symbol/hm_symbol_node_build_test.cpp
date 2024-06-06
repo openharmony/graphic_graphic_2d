@@ -53,14 +53,42 @@ public:
             // {0} {1}: layerIndes, 0 1: animationIndex
             {{{{0}}}, 0}, {{{{1}}}, 1}
         }
-    };;
+    };
+    Drawing::DrawingAnimationSetting animationSettingOneMask_ = {
+        // animationTypes
+        {
+            Drawing::DrawingAnimationType::SCALE_TYPE,
+            Drawing::DrawingAnimationType::VARIABLE_COLOR_TYPE,
+            Drawing::DrawingAnimationType::BOUNCE_TYPE
+        },
+        // groupSettings
+        {
+            // {0, 2}: layerIndes, {1, 3}: maskIndexes 0: animationIndex
+            {{{{0, 2}, {1, 3}}}, 0}
+        }
+    };
+    Drawing::DrawingAnimationSetting animationSettingMaskLayer_ = {
+        // animationTypes
+        {
+            Drawing::DrawingAnimationType::SCALE_TYPE,
+            Drawing::DrawingAnimationType::VARIABLE_COLOR_TYPE,
+            Drawing::DrawingAnimationType::BOUNCE_TYPE
+        },
+        // groupSettings
+        {
+            // {0} {}: layerIndes, {1, 2}: maskIndexes 0 1: animationIndex
+            {{{{0}}}, 0}, {{{{}, {1, 2}}}, 1}
+        }
+    };
 
     // the {0, 1} is layerIndexes of one group
     std::vector<Drawing::DrawingRenderGroup> renderGroupsOne_ = {{{{{0, 1}}}}};
-    // the {0} is layerIndexes, {1} is maskIndexes of one group
-    std::vector<Drawing::DrawingRenderGroup> renderGroupsOneMask_ = {{{{{0}, {1}}}}};
+    // the {0, 2} is layerIndexes, {1, 3} is maskIndexes of one group
+    std::vector<Drawing::DrawingRenderGroup> renderGroupsOneMask_ = {{{{{0, 2}, {1, 3}}}}};
     // the {0} {1} is layerIndexes of two group
     std::vector<Drawing::DrawingRenderGroup> renderGroupsTwo_ = {{{{{0}}}}, {{{{1}}}}};
+    // the {0},{} is layerIndexes  {1, 2}is maskIndexes of two group
+    std::vector<Drawing::DrawingRenderGroup> renderGroupsMaskLayer_ = {{{{{0}}}}, {{{{}, {1, 2}}}}};
 };
 
 bool OHHmSymbolNodeBuildTest::SetSymbolAnimationOne(
@@ -203,6 +231,85 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level1)
     symbolNode.SetAnimationMode(1); // 0 is iteratuve effect
     int result = symbolNode.DecomposeSymbolAndDraw();
     EXPECT_EQ(result, true);
+}
+
+/*
+ * @tc.name: DecomposeSymbolAndDraw005
+ * @tc.desc: test DecomposeSymbolAndDraw with animation BOUNCE, byLayer effect and has maskLayers
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level1)
+{
+    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    RSPath path;
+    path.AddCircle(100, 100, 50); // 100 x, 100, 50 radius
+    path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
+    RSHMSymbolData symbol;
+    symbol.path_ = path;
+    symbol.symbolInfo_.layers = layers_;
+    symbol.symbolInfo_.renderGroups = renderGroupsMaskLayer_;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::BOUNCE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingMaskLayer_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationTwo);
+    symbolNode.SetAnimationMode(0); // 0 is byLayer effect
+    int result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result, true);
+}
+
+/*
+ * @tc.name: DecomposeSymbolAndDraw006
+ * @tc.desc: test DecomposeSymbolAndDraw with animation VARIABLE_COLOR, cumulative effect and maskIndexes
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level1)
+{
+    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    RSPath path;
+    path.AddCircle(100, 100, 65); // 100 x, 100, 40 radius
+    path.AddCircle(100, 100, 45); // 100 x, 100, 30 radius
+    RSHMSymbolData symbol;
+    symbol.path_ = path;
+    symbol.symbolInfo_.layers = layers_;
+    symbol.symbolInfo_.renderGroups = renderGroupsOneMask_;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::VARIABLE_COLOR;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetAnimationMode(0); // 1 is cumulative effect
+    int result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result, true);
+
+    // test animation REPLACE_DISAPPEAR
+    effectMode = RSEffectStrategy::REPLACE_DISAPPEAR;
+    SymbolNodeBuild symbolNode1 = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode1.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode1.SetAnimationMode(1); // 1 is cumulative effect
+    int result1 = symbolNode1.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result1, true);
+
+    // test animationFunc is nullptr
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    symbolNode.SetAnimation(animationFunc);
+    int result2 = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result2, false);
+}
+
+/*
+ * @tc.name: ClearAnimation001
+ * @tc.desc: test ClearAnimation with animation VARIABLE_COLOR, cumulative effect and maskIndexes
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
+{
+    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.ClearAnimation();
 }
 } // namespace SPText
 } // namespace Rosen

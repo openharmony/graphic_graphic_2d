@@ -125,7 +125,6 @@ HWTEST_F(GELinearGradientBlurShaderFilterTest, ProcessImage002, TestSize.Level1)
     EXPECT_NE(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
 }
 
-
 /**
  * @tc.name: ProcessImage004
  * @tc.desc: Verify function ProcessImage
@@ -190,6 +189,223 @@ HWTEST_F(GELinearGradientBlurShaderFilterTest, ProcessImage005, TestSize.Level1)
     EXPECT_NE(filter7->ProcessImage(canvas_, image_, src_, dst_), image_);
 }
 
+/**
+ * @tc.name: ProcessImage006
+ * @tc.desc: Verify function ProcessImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, ProcessImage006, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    EXPECT_EQ(filter->ProcessImage(canvas_, image, src_, dst_), image);
+}
+
+/**
+ * @tc.name: CalcDirectionBias001
+ * @tc.desc: Verify function CalcDirectionBias
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, CalcDirectionBias001, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    Drawing::Matrix mat;
+    mat.Set(Drawing::Matrix::SKEW_X, 0.002f); // 0.002f skew x
+    mat.Set(Drawing::Matrix::SKEW_Y, -0.002f); // -0.002f skew y
+    EXPECT_EQ(filter->CalcDirectionBias(mat), 1); // 1 Bias
+}
+
+/**
+ * @tc.name: CalcDirectionBias002
+ * @tc.desc: Verify function CalcDirectionBias
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, CalcDirectionBias002, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    Drawing::Matrix mat;
+    mat.Set(Drawing::Matrix::SKEW_X, 0.0005f); // 0.0005f skew x
+    mat.Set(Drawing::Matrix::SCALE_X, -0.002f); // -0.002f scale x
+    mat.Set(Drawing::Matrix::SCALE_Y, -0.002f); // -0.002f scale y
+    EXPECT_EQ(filter->CalcDirectionBias(mat), 2); // 2 Bias
+}
+
+/**
+ * @tc.name: CalcDirectionBias003
+ * @tc.desc: Verify function CalcDirectionBias
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, CalcDirectionBias003, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    Drawing::Matrix mat;
+    mat.Set(Drawing::Matrix::SKEW_X, -0.002f); // 0.002f skew x
+    mat.Set(Drawing::Matrix::SKEW_Y, 0.002f); // 0.002f skew y
+    mat.Set(Drawing::Matrix::SCALE_X, 0.02f); // 0.02f scale x
+    EXPECT_EQ(filter->CalcDirectionBias(mat), 3); // 2 Bias
+}
+
+/**
+ * @tc.name: CalcDirectionBias004
+ * @tc.desc: Verify function CalcDirectionBias
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, CalcDirectionBias004, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    Drawing::Matrix mat;
+    mat.Set(Drawing::Matrix::SKEW_X, 0.0005f); // 0.0005f skew x
+    mat.Set(Drawing::Matrix::SKEW_Y, 0.0005f); // 0.0005f skew y
+    mat.Set(Drawing::Matrix::SCALE_X, 0.02f); // 0.02f scale x
+    EXPECT_EQ(filter->CalcDirectionBias(mat), 0); // 0 no Bias
+}
+
+/**
+ * @tc.name: ProcessImageDDGR001
+ * @tc.desc: Verify function ProcessImageDDGR
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, ProcessImageDDGR001, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    // 2 valid Bias
+    EXPECT_EQ(filter->ProcessImageDDGR(canvas_, image_, 2), image_);
+}
+
+/**
+ * @tc.name: ProcessImageDDGR002
+ * @tc.desc: Verify function ProcessImageDDGR
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, ProcessImageDDGR002, TestSize.Level1)
+{
+    // blur params: 1001.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{1001.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    // 2 valid Bias
+    EXPECT_EQ(filter->ProcessImageDDGR(canvas_, image_, 2), image_);
+}
+
+/**
+ * @tc.name: ComputeScale001
+ * @tc.desc: Verify function ComputeScale
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, ComputeScale001, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    // 100, 90 image size: width, height
+    filter->ComputeScale(100, 90, false);
+
+    // 2 valid Bias
+    EXPECT_EQ(filter->ProcessImageDDGR(canvas_, image_, 2), image_);
+}
+
+/**
+ * @tc.name: ComputeScale002
+ * @tc.desc: Verify function ComputeScale
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, ComputeScale002, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    // 100, 200 image size: width, height
+    filter->ComputeScale(100, 200, false);
+
+    // 2 valid Bias
+    EXPECT_EQ(filter->ProcessImageDDGR(canvas_, image_, 2), image_);
+}
+
+/**
+ * @tc.name: TransformGradientBlurDirection001
+ * @tc.desc: Verify function TransformGradientBlurDirection
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, TransformGradientBlurDirection001, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    uint8_t direction = 5; // 5 direction value
+    filter->TransformGradientBlurDirection(direction, 4); // 4 bias
+    EXPECT_EQ(direction, 5); // 5 value after ransform
+
+    direction = 5; // 5 direction value
+    filter->TransformGradientBlurDirection(direction, 2); // 2 bias
+    EXPECT_EQ(direction, 6); // 6 value after ransform
+
+    direction = 6; // 6 direction value
+    filter->TransformGradientBlurDirection(direction, 2); // 2 bias
+    EXPECT_EQ(direction, 5); // 5 value after ransform
+
+    direction = 6; // 6 direction value
+    filter->TransformGradientBlurDirection(direction, 0); // 0 bias
+    EXPECT_EQ(direction, 6); // 6 value after ransform
+}
+
+/**
+ * @tc.name: DrawMeanLinearGradientBlur001
+ * @tc.desc: Verify function DrawMeanLinearGradientBlur
+ * @tc.type:FUNC
+ */
+HWTEST_F(GELinearGradientBlurShaderFilterTest, DrawMeanLinearGradientBlur001, TestSize.Level1)
+{
+    // blur params: 1.f blurRadius, {0.1f, 0.1f} fractionStops, 1 direction, 1.f geoWidth, geoHeight, tranX, tranY
+    Drawing::GELinearGradientBlurShaderFilterParams params{1.f, {{0.1f, 0.1f}}, 1, 1.f, 1.f,
+        Drawing::Matrix(), 1.f, 1.f, true};
+    auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+
+    filter->MakeHorizontalMeanBlurEffect();
+    filter->MakeVerticalMeanBlurEffect();
+    EXPECT_NE(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
+}
 
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

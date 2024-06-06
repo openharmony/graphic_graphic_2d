@@ -57,6 +57,7 @@
           "resource_management",
           "napi",
           "samgr",
+          "hdf_core",
           "hilog",
           "hisysevent",
           "hitrace",
@@ -99,7 +100,8 @@
           "icu",
           "libpng",
           "ffrt",
-          "libxml2"
+          "libxml2",
+          "skia"
         ],
         "third_party": [
           "flutter",

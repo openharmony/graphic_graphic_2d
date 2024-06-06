@@ -27,6 +27,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_material_filter.h"
@@ -654,7 +655,21 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter surface null");
-        Drawing::Brush brush = filter->GetBrush();
+        Drawing::Brush brush;
+        brush.SetAntiAlias(true);
+        Drawing::Filter filterForBrush;
+        auto imageFilter = filter->GetImageFilter();
+        std::shared_ptr<RSShaderFilter> kawaseShaderFilter =
+            filter->GetShaderFilterWithType(RSShaderFilter::KAWASE);
+        if (kawaseShaderFilter != nullptr) {
+            auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
+            auto radius = tmpFilter->GetRadius();
+            std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
+                radius, radius, Drawing::TileMode::CLAMP, nullptr);
+            imageFilter = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter, blurFilter);
+        }
+        filterForBrush.SetImageFilter(imageFilter);
+        brush.SetFilter(filterForBrush);
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas.SaveLayer(slr);
         filter->PostProcess(canvas);
@@ -925,6 +940,27 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
     dirtyPixelStretch.top_ = std::floor(drawingRect.GetTop());
     dirtyPixelStretch.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
     dirtyPixelStretch.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+}
+
+void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
+    const RSProperties& properties, const bool isAbsCoordinate)
+{
+    auto& foregroundFilter = properties.GetForegroundFilterCache();
+    if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::FOREGROUND_EFFECT) {
+        return;
+    }
+    float dirtyExtension =
+        std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
+    auto boundsRect = properties.GetBoundsRect();
+    auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
+    auto& geoPtr = properties.GetBoundsGeometry();
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    auto drawingRect = Rect2DrawingRect(scaledBounds);
+    matrix.MapRect(drawingRect, drawingRect);
+    dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
+    dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
+    dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
+    dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
 }
 
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
@@ -1905,7 +1941,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicDimShader
         {
             vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
             float value = max(0.8, dynamicDimDeg); // 0.8 is min saturation ratio.
-            hsv.y = hsv.y * value;
+            hsv.y = hsv.y * (1.75 - value * 0.75); // saturation value [1.0 , 1.15].
             hsv.z = min(hsv.z * dynamicDimDeg, 1.0);
             return vec4(hsv2rgb(hsv), 1.0);
         }
@@ -1932,59 +1968,11 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
     }
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
-    for (const auto& particle : particles) {
-        if (particle != nullptr && particle->IsAlive()) {
-            // Get particle properties
-            DrawParticle(particle, bounds, canvas);
-        }
-    }
-}
-
-void RSPropertiesPainter::DrawParticle(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<RectF>& bounds, RSPaintFilterCanvas& canvas)
-{
-    auto position = particle->GetPosition();
-    float opacity = particle->GetOpacity();
-    float scale = particle->GetScale();
-    if (!(bounds->Intersect(position.x_, position.y_)) || opacity <= 0.f || scale <= 0.f) {
-        return;
-    }
-    auto particleType = particle->GetParticleType();
-    Drawing::Brush brush;
-    brush.SetAntiAlias(true);
-    brush.SetAlphaF(opacity);
-    auto clipBounds =
-        Drawing::Rect(bounds->left_, bounds->top_, bounds->left_ + bounds->width_, bounds->top_ + bounds->height_);
-    canvas.ClipRect(clipBounds, Drawing::ClipOp::INTERSECT, true);
-
-    if (particleType == ParticleType::POINTS) {
-        auto radius = particle->GetRadius();
-        Color color = particle->GetColor();
-        auto alpha = color.GetAlpha();
-        color.SetAlpha(alpha * opacity);
-        brush.SetColor(color.AsArgbInt());
-        canvas.AttachBrush(brush);
-        canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius * scale);
-        canvas.DetachBrush();
-    } else {
-        auto imageSize = particle->GetImageSize();
-        auto image = particle->GetImage();
-        float left = position.x_;
-        float top = position.y_;
-        float right = position.x_ + imageSize.x_ * scale;
-        float bottom = position.y_ + imageSize.y_ * scale;
-        canvas.Save();
-        canvas.Translate(position.x_, position.y_);
-        canvas.Rotate(particle->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
-        RectF destRect(left, top, right, bottom);
-        image->SetDstRect(destRect);
-        image->SetScale(scale);
-        image->SetImageRepeat(0);
-        Drawing::Rect rect { left, top, right, bottom };
-        canvas.AttachBrush(brush);
-        image->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
-        canvas.DetachBrush();
-        canvas.Restore();
+    int imageCount = particleVector.GetParticleImageCount();
+    auto imageVector = particleVector.GetParticleImageVector();
+    auto particleDrawable = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
+    if (particleDrawable != nullptr) {
+        particleDrawable->Draw(canvas, bounds);
     }
 }
 

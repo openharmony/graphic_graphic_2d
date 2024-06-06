@@ -40,6 +40,11 @@ public:
     RSRenderParams(NodeId id) : id_(id) {}
     virtual ~RSRenderParams() = default;
 
+    struct SurfaceParam {
+        int width = 0;
+        int height = 0;
+    };
+
     void SetAlpha(float alpha);
     float GetAlpha() const;
 
@@ -71,6 +76,9 @@ public:
 
     bool NeedSync() const;
     void SetNeedSync(bool needSync);
+
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
+    void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
 
     inline NodeId GetId() const
     {
@@ -126,6 +134,8 @@ public:
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
 
+    void SetRSFreezeFlag(bool freezeFlag);
+    bool GetRSFreezeFlag() const;
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
 
@@ -136,6 +146,8 @@ public:
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
+    SurfaceParam GetCanvasDrawingSurfaceParams();
+    void SetCanvasDrawingSurfaceParams(int width, int height);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -180,9 +192,12 @@ private:
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
+    SurfaceParam surfaceParams_;
+    bool freezeFlag_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

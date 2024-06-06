@@ -27,8 +27,14 @@ RSRenderParticleSystem::RSRenderParticleSystem(
 
 void RSRenderParticleSystem::CreateEmitter()
 {
+    size_t index = 0;
     for (size_t iter = 0; iter < particlesRenderParams_.size(); iter++) {
-        auto particleRenderParams = particlesRenderParams_[iter];
+        auto& particleRenderParams = particlesRenderParams_[iter];
+        if (particleRenderParams->GetParticleType() == ParticleType::IMAGES) {
+            particleRenderParams->SetImageIndex(index++);
+            auto& image = particleRenderParams->GetParticleImage();
+            imageVector_.push_back(image);
+        }
         emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
     }
 }
@@ -38,7 +44,8 @@ void RSRenderParticleSystem::ClearEmitter()
     emitters_.clear();
 }
 
-void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)
+void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
+    std::vector<std::shared_ptr<RSImage>>& imageVector)
 {
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
         if (emitters_[iter] != nullptr) {
@@ -47,6 +54,7 @@ void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr
             activeParticles.insert(activeParticles.end(), particles.begin(), particles.end());
         }
     }
+    imageVector = imageVector_;
 }
 
 void RSRenderParticleSystem::UpdateParticle(

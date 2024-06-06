@@ -49,14 +49,13 @@ ohos_shared_library("libframe_analyzer") {
 
     deps = [ "../../../utils/sandbox:sandbox_utils" ]
 
-    deps += [ "//third_party/skia:skia_ohos" ]
-
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
       "init:libbeget_proxy",
       "init:libbegetutil",
+      "skia:skia_canvaskit",
     ]
   } else {
     sources = [

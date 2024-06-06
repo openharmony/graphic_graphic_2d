@@ -30,13 +30,14 @@ enum RSCanvasDrawingNodeCommandType : uint16_t {
 class RSB_EXPORT RSCanvasDrawingNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
-    static void ResetSurface(RSContext& context, NodeId id);
+    static void ResetSurface(RSContext& context, NodeId id, int width, int height);
 };
 
 ADD_COMMAND(RSCanvasDrawingNodeCreate,
     ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE, RSCanvasDrawingNodeCommandHelper::Create, NodeId, bool))
-ADD_COMMAND(RSCanvasDrawingNodeResetSurface,
-    ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_RESET_SURFACE, RSCanvasDrawingNodeCommandHelper::ResetSurface, NodeId))
+ADD_COMMAND(
+    RSCanvasDrawingNodeResetSurface, ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_RESET_SURFACE,
+                                         RSCanvasDrawingNodeCommandHelper::ResetSurface, NodeId, int32_t, int32_t))
 
 } // namespace Rosen
 } // namespace OHOS

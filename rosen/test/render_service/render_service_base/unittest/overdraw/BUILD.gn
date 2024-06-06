@@ -42,8 +42,10 @@ ohos_unittest("overdraw_test") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
-  external_deps = [ "hilog:libhilog" ]
-  deps += [ "//third_party/skia:skia_ohos" ]
+  external_deps = [
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -1032,6 +1032,11 @@ void RSProfiler::CalcPerfNode(const ArgList& args)
     AwakeRenderServiceThread();
 }
 
+void RSProfiler::SocketShutdown(const ArgList& args)
+{
+    Network::ForceShutdown();
+}
+
 void RSProfiler::CalcPerfNodeAll(const ArgList& args)
 {
     if (g_nodeSetPerf.empty()) {
@@ -1431,6 +1436,7 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "get_perf_tree", GetPerfTree },
         { "calc_perf_node", CalcPerfNode },
         { "calc_perf_node_all", CalcPerfNodeAll },
+        { "socket_shutdown", SocketShutdown },
     };
 
     if (command.empty()) {
