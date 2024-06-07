@@ -25,11 +25,6 @@
 #include "pipeline/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "third_party/flutter/skia/include/gpu/GrContext.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
