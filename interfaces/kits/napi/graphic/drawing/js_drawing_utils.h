@@ -165,6 +165,8 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
 constexpr size_t ARGC_SEVEN = 7;
+constexpr size_t ARGC_EIGHT = 8;
+constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
 
 enum class DrawingErrorCode : int32_t {

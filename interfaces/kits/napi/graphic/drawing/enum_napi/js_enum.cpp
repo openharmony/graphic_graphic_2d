@@ -20,7 +20,9 @@
 
 #include "native_value.h"
 #include "draw/blend_mode.h"
+#include "draw/core_canvas.h"
 #include "draw/clip.h"
+#include "draw/path.h"
 #include "draw/pen.h"
 #include "effect/mask_filter.h"
 #include "text/font_types.h"
@@ -131,6 +133,37 @@ static const std::vector<struct JsEnumInt> g_fontMetricsFlags = {
     { "BOUNDS_INVALID", static_cast<int32_t>(Drawing::FontMetrics::FontMetricsFlags::BOUNDS_INVALID_FLAG) },
 };
 
+static const std::vector<struct JsEnumInt> g_fontEdging = {
+    { "FONT_EDGING_ALIAS", static_cast<int32_t>(FontEdging::ALIAS) },
+    { "FONT_EDGING_ANTI_ALIAS", static_cast<int32_t>(FontEdging::ANTI_ALIAS) },
+    { "FONT_EDGING_SUBPIXEL_ANTI_ALIAS", static_cast<int32_t>(FontEdging::SUBPIXEL_ANTI_ALIAS) },
+};
+
+static const std::vector<struct JsEnumInt> g_fontHinting = {
+    { "FONT_HINTING_NONE", static_cast<int32_t>(FontHinting::NONE) },
+    { "FONT_HINTING_SLIGHT", static_cast<int32_t>(FontHinting::SLIGHT) },
+    { "FONT_HINTING_NORMAL", static_cast<int32_t>(FontHinting::NORMAL) },
+    { "FONT_HINTING_FULL", static_cast<int32_t>(FontHinting::FULL) },
+};
+
+static const std::vector<struct JsEnumInt> g_pointMode = {
+    { "POINT_MODE_POINTS", static_cast<int32_t>(PointMode::POINTS_POINTMODE) },
+    { "POINT_MODE_LINES", static_cast<int32_t>(PointMode::LINES_POINTMODE) },
+    { "POINT_MODE_POLYGON", static_cast<int32_t>(PointMode::POLYGON_POINTMODE) },
+};
+
+static const std::vector<struct JsEnumInt> g_pathDirection = {
+    { "PATH_DIRECTION_CW", static_cast<int32_t>(PathDirection::CW_DIRECTION) },
+    { "PATH_DIRECTION_CCW", static_cast<int32_t>(PathDirection::CCW_DIRECTION) },
+};
+
+static const std::vector<struct JsEnumInt> g_pathFillType = {
+    { "PATH_FILL_TYPE_WINDING", 0 }, // 0: PathFillType::WINDING, conflict with define WINDING
+    { "PATH_FILL_TYPE_EVEN_ODD", static_cast<int32_t>(PathFillType::EVENTODD) },
+    { "PATH_FILL_TYPE_INVERSE_WINDING", static_cast<int32_t>(PathFillType::INVERSE_WINDING) },
+    { "PATH_FILL_TYPE_INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -141,6 +174,11 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "CapStyle", g_capStyle },
     { "BlurType", g_blurType },
     { "FontMetricsFlags", g_fontMetricsFlags },
+    { "FontEdging", g_fontEdging },
+    { "FontHinting", g_fontHinting },
+    { "PointMode", g_pointMode },
+    { "PathDirection", g_pathDirection },
+    { "PathFillType", g_pathFillType },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

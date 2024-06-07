@@ -51,14 +51,19 @@ public:
 
     static napi_value AttachBrush(napi_env env, napi_callback_info info);
     static napi_value AttachPen(napi_env env, napi_callback_info info);
+    static napi_value Clear(napi_env env, napi_callback_info info);
     static napi_value ClipPath(napi_env env, napi_callback_info info);
     static napi_value ClipRect(napi_env env, napi_callback_info info);
+    static napi_value ConcatMatrix(napi_env env, napi_callback_info info);
+    static napi_value DrawArc(napi_env env, napi_callback_info info);
     static napi_value DrawCircle(napi_env env, napi_callback_info info);
     static napi_value DrawColor(napi_env env, napi_callback_info info);
     static napi_value DrawImage(napi_env env, napi_callback_info info);
     static napi_value DrawLine(napi_env env, napi_callback_info info);
     static napi_value DrawRect(napi_env env, napi_callback_info info);
+    static napi_value DrawOval(napi_env env, napi_callback_info info);
     static napi_value DrawPoint(napi_env env, napi_callback_info info);
+    static napi_value DrawPoints(napi_env env, napi_callback_info info);
     static napi_value DrawPath(napi_env env, napi_callback_info info);
     static napi_value DrawPixelMapMesh(napi_env env, napi_callback_info info);
     static napi_value DrawRegion(napi_env env, napi_callback_info info);
@@ -66,6 +71,8 @@ public:
     static napi_value DetachBrush(napi_env env, napi_callback_info info);
     static napi_value DetachPen(napi_env env, napi_callback_info info);
     static napi_value GetSaveCount(napi_env env, napi_callback_info info);
+    static napi_value GetWidth(napi_env env, napi_callback_info info);
+    static napi_value GetHeight(napi_env env, napi_callback_info info);
     static napi_value Rotate(napi_env env, napi_callback_info info);
     static napi_value RestoreToCount(napi_env env, napi_callback_info info);
     static napi_value Restore(napi_env env, napi_callback_info info);
@@ -83,19 +90,26 @@ public:
     DRAWING_API void RestoreCanvas();
 
 private:
+    napi_value OnClear(napi_env env, napi_callback_info info);
     napi_value OnClipPath(napi_env env, napi_callback_info info);
     napi_value OnClipRect(napi_env env, napi_callback_info info);
+    napi_value OnConcatMatrix(napi_env env, napi_callback_info info);
+    napi_value OnDrawArc(napi_env env, napi_callback_info info);
     napi_value OnDrawCircle(napi_env env, napi_callback_info info);
     napi_value OnDrawColor(napi_env env, napi_callback_info info);
     napi_value OnDrawImage(napi_env env, napi_callback_info info);
     napi_value OnDrawLine(napi_env env, napi_callback_info info);
     napi_value OnDrawRect(napi_env env, napi_callback_info info);
+    napi_value OnDrawOval(napi_env env, napi_callback_info info);
     napi_value OnDrawPoint(napi_env env, napi_callback_info info);
+    napi_value OnDrawPoints(napi_env env, napi_callback_info info);
     napi_value OnDrawPath(napi_env env, napi_callback_info info);
     napi_value OnDrawPixelMapMesh(napi_env env, napi_callback_info info);
     napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
+    napi_value OnGetWidth(napi_env env, napi_callback_info info);
+    napi_value OnGetHeight(napi_env env, napi_callback_info info);
     napi_value OnRotate(napi_env env, napi_callback_info info);
     napi_value OnRestoreToCount(napi_env env, napi_callback_info info);
     napi_value OnRestore(napi_env env, napi_callback_info info);
