@@ -116,6 +116,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         return;
     }
 
+    if (needUpdateCache) {
+        filterRects_.clear();
+    }
     // in case of no filter
     if (needUpdateCache && !hasFilter) {
         RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu", nodeId_);
@@ -131,9 +134,32 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
         curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%llu", nodeId_);
+        RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
+        curDrawingCacheRoot_ = this;
         UpdateCacheSurface(canvas, params);
         curCanvas->SetCacheType(canvasType);
+        curDrawingCacheRoot_ = root;
     }
+}
+
+void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    if (filterRects_.empty()) {
+        return;
+    }
+    DrawBackground(canvas, params.GetBounds());
+    Drawing::Region filterRegion;
+    for (auto& rect : filterRects_) {
+        Drawing::Region region;
+        region.SetRect(rect);
+        filterRegion.Op(region, Drawing::RegionOp::UNION);
+    }
+    Drawing::Path filetrPath;
+    filterRegion.GetBoundaryPath(&filetrPath);
+    canvas.ClipPath(filetrPath);
+    DrawContent(canvas, params.GetFrameRect());
+    DrawChildren(canvas, params.GetBounds());
+    DrawForeground(canvas, params.GetBounds());
 }
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
@@ -149,8 +175,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         auto drawableCacheType = GetCacheType();
         SetCacheType(DrawableCacheType::NONE);
         RS_TRACE_NAME_FMT("DrawBlurForCache id:%llu", nodeId_);
-
-        RSRenderNodeDrawable::OnDraw(canvas);
+        TraverseSubTreeAndDrawFilterWithClip(canvas, params);
         SetCacheType(drawableCacheType);
         isOpDropped_ = isOpDropped;
         drawBlurForCache_ = false;
