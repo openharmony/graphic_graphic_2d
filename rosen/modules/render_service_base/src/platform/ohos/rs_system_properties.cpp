@@ -580,22 +580,22 @@ const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
         initialized = true;
         // Configure AiInvertCoef0: Low
         aiInvertCoef[0] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertLow", "0")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertLow", "0.5")).c_str());
         // Configure AiInvertCoef1: High.
         aiInvertCoef[1] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertHigh", "1")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertHigh", "0.7")).c_str());
         // Configure AiInvertCoef2: Threshold.
         aiInvertCoef[2] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertThreshold", "0.55")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertThreshold", "0.5")).c_str());
         // Configure AiInvertCoef3: Opacity.
         aiInvertCoef[3] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertOpacity", "0.4")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertOpacity", "0.2")).c_str());
         // Configure AiInvertCoef4: Saturation.
         aiInvertCoef[4] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertSaturation", "1.6")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertSaturation", "1.0")).c_str());
         // Configure AiInvertCoef5: Filter Radius.
         aiInvertCoef[5] =
-            std::atof((system::GetParameter("persist.sys.graphic.aiInvertFilterRadius", "45")).c_str());
+            std::atof((system::GetParameter("persist.sys.graphic.aiInvertFilterRadius", "300")).c_str());
     }
     return aiInvertCoef;
 }
