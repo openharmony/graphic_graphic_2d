@@ -18,6 +18,7 @@
 #define EGL_EGLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 
+#include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
@@ -27,9 +28,7 @@ namespace Rosen {
 class RSSurfaceCaptureTaskParallel {
 public:
     explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool useDma = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), useDma_(useDma),
-        rsSurfaceCaptureType_(RSSystemParameters::GetRsSurfaceCaptureType()),
-        rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), useDma_(useDma) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
     static void CheckModifiers(NodeId id,
@@ -37,37 +36,31 @@ public:
     static void Capture(NodeId id,
         sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
 
+    bool CreateResources();
+    
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
 
 private:
-    std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
-
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
-        bool isUniRender = false);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
-        bool isUniRender = false, bool hasSecurityOrSkipLayer = false);
-
-    bool FindSecurityOrSkipOrProtectedLayer();
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
 
     int32_t CalPixelMapRotation();
 
+    std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
     NodeId nodeId_;
-
     float scaleX_;
-
     float scaleY_;
-
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     int32_t finalRotationAngle_ = RS_ROTATION_0;
 
     // if true, do surfaceCapture on background thread
     bool useDma_ = false;
-    RsSurfaceCaptureType rsSurfaceCaptureType_;
-    RsParallelType rsParallelType_;
 };
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
