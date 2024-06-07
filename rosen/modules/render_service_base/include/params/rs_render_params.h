@@ -197,7 +197,7 @@ private:
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_;
+    bool freezeFlag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
