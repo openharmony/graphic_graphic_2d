@@ -16,12 +16,10 @@
 #include "gtest/gtest.h"
 #include "ui/rs_texture_export.h"
 #include "limit_number.h"
+#include "ui/rs_root_node.h"
 
 using namespace testing;
 using namespace testing::ext;
-static constexpr uint32_t FIRST_COLOR_VALUE = 0x034123;
-static constexpr uint32_t SECOND_COLOR_VALUE = 0x45ba87;
-static constexpr uint32_t THIRD_COLOR_VALUE = 0x32aadd;
 namespace OHOS::Rosen {
 class RSTextureExportTest : public testing::Test {
 public:
@@ -42,16 +40,48 @@ void RSTextureExportTest::TearDown() {}
 
 
 /**
- * @tc.name: DoTextureExport
+ * @tc.name: DoTextureExport001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSTextureExportTest, RSTextureExport, TestSize.Level1)
+HWTEST_F(RSTextureExportTest, DoTextureExport001, TestSize.Level1)
 {
-    std::shared_ptr<RSNode> rootNode;
-    SurfaceId surfaceId;
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
-    bool res = text->DoTextureExport();
+    bool res = text.DoTextureExport();
+    ASSERT_TRUE(res == true);
+}
+
+/**
+ * @tc.name: DoTextureExport002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTextureExportTest, DoTextureExport002, TestSize.Level1)
+{
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    SurfaceId surfaceId = 0;
+    RSTextureExport text(rootNode, surfaceId);
+    rootNode->isTextureExportNode_ = true;
+    bool res = text.DoTextureExport();
+    ASSERT_TRUE(res == true);
+}
+
+/**
+ * @tc.name: DoTextureExport003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTextureExportTest, DoTextureExport003, TestSize.Level1)
+{
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSRootNode> RSNode = std::make_shared<RSRootNode>(isRenderServiceNode);
+    SurfaceId surfaceId = 0;
+    RSTextureExport text(RSNode, surfaceId);
+    bool res = text.DoTextureExport();
     ASSERT_TRUE(res == true);
 }
 
@@ -60,15 +90,15 @@ HWTEST_F(RSTextureExportTest, RSTextureExport, TestSize.Level1)
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSTextureExportTest, RSTextureExport, TestSize.Level1)
+HWTEST_F(RSTextureExportTest, StopTextureExport, TestSize.Level1)
 {
-    std::shared_ptr<RSNode> rootNode;
-    SurfaceId surfaceId;
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
-    text->StopTextureExport();
+    text.StopTextureExport();
     bool res = true;
     ASSERT_TRUE(res == true);
-    delete text;
     res = false;
     ASSERT_TRUE(res == false);
 }
