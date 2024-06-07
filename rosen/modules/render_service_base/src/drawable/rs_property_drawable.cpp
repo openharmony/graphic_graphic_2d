@@ -379,7 +379,7 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
+    if ((filterInteractWithDirty_ || rotationChanged_ || filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0) {
         cacheUpdateInterval_--;
         pendingPurge_ = true;
     }
