@@ -151,6 +151,8 @@ void VSyncLTPOTest::Process1()
     sam->AddSystemAbility(ipcSystemAbilityIDApp, connServerApp->AsObject());
     sam->AddSystemAbility(ipcSystemAbilityIDRs, connServerRs->AsObject());
     VSyncTimeStamps timeStamps = {};
+    vsyncGenerator->SetRSDistributor(rsDistributor);
+    vsyncGenerator->SetAppDistributor(appDistributor);
 
     close(pipeFd[1]);
     close(pipe1Fd[0]);
