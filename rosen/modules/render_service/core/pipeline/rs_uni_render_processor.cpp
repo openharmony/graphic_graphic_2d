@@ -63,14 +63,19 @@ void RSUniRenderProcessor::PostProcess()
 
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
+    auto buffer = params.GetBuffer();
+    if (buffer == nullptr) {
+        return;
+    }
     auto& layerInfo = params.layerInfo_;
     RS_OPTIONAL_TRACE_NAME_FMT(
         "CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f]",
         node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        layerInfo.buffer->GetSurfaceBufferWidth(), layerInfo.buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    auto& preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
-        params, layerInfo.buffer, layerInfo.preBuffer, node.GetConsumer(), layerInfo.acquireFence);
+        params, buffer, preBuffer, node.GetConsumer(), params.GetAcquireFence());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
     layers_.emplace_back(layer);
 }
@@ -111,7 +116,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
-    layerInfo.preBuffer = nullptr;
+    preBuffer = nullptr;
     layer->SetZorder(layerInfo.zOrder);
 
     GraphicLayerAlpha alpha;

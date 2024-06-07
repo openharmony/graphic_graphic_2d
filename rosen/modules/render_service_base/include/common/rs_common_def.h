@@ -82,6 +82,7 @@ enum RSRenderParamsDirtyType {
     NO_DIRTY = 0,
     MATRIX_DIRTY,
     LAYER_INFO_DIRTY,
+    BUFFER_INFO_DIRTY,
     MAX_DIRTY_TYPE,
 };
 

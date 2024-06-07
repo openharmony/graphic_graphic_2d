@@ -38,17 +38,13 @@ struct RSLayerInfo {
     int32_t gravity = 0;
     int32_t zOrder = 0;
     float alpha = 1.f;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     GraphicBlendType blendType;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
-            (zOrder == layerInfo.zOrder) && (buffer == layerInfo.buffer) && (preBuffer == layerInfo.preBuffer) &&
-            (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
+            (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
     }
 #endif
@@ -304,6 +300,11 @@ private:
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer_;
+    sptr<SurfaceBuffer> preBuffer_;
+    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+#endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isForceHardwareByUser_ = false;
