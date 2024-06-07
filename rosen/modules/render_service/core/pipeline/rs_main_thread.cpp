@@ -3478,6 +3478,7 @@ void RSMainThread::UpdateUIFirstSwitch()
 {
     if (RSSystemProperties::GetUIFirstForceEnabled()) {
         isUiFirstOn_ = true;
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
 
