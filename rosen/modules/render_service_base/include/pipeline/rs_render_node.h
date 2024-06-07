@@ -120,8 +120,13 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
+    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
+    inline bool LastFrameSubTreeSkipped() const
+    {
+        return lastFrameSubTreeSkipped_;
+    }
 
     inline WeakPtr GetParent() const
     {
@@ -783,9 +788,16 @@ private:
     std::atomic<bool> isTunnelHandleChange_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
+    bool lastFrameSubTreeSkipped_ = false;
     bool hasChildrenOutOfRect_ = false;
+    bool lastFrameHasChildrenOutOfRect_ = false;
     RectI childrenRect_;
+    
+    // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
+    // aim to record current frame clipped children dirty region, in abs coords
+    RectI subTreeDirtyRegion_;
+
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     std::vector<NodeId> visibleFilterChild_;
