@@ -1558,7 +1558,8 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     std::vector<NodeId> blackList = {1, 2, 3};
-    rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
+    int32_t ret = rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
 }
 
 /*
