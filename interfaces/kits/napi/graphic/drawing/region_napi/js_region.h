@@ -26,8 +26,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsRegion final {
 public:
-    explicit JsRegion(Region* region) : m_region(region) {};
-    ~JsRegion();
+    explicit JsRegion(std::shared_ptr<Region> region) : m_region(region) {};
+    ~JsRegion() {};
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -51,7 +51,7 @@ private:
     napi_value OnSetPath(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
-    Region* m_region = nullptr;
+    std::shared_ptr<Region> m_region = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
