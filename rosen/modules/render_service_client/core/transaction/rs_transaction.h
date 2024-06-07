@@ -54,6 +54,21 @@ public:
         hostPid_ = hostPid;
     }
 
+    int32_t getHostPid()
+    {
+        return hostPid_;
+    }
+
+    bool IsOpenSyncTransaction()
+    {
+        return isOpenSyncTransaction_;
+    }
+
+    uint64_t GetSyncId()
+    {
+        return syncId_;
+    }
+
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
@@ -64,6 +79,7 @@ private:
     mutable int32_t transactionCount_ { 0 };
     int32_t duration_ = 0;
     int32_t hostPid_ { -1 };
+    bool isOpenSyncTransaction_ = false;
 
     friend class RSSyncTransactionController;
 };

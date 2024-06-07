@@ -244,6 +244,8 @@ public:
 
     void EnableCacheForRotation();
 
+    void ChangeSyncCount(int32_t hostPid);
+
     void DisableCacheForRotation();
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);

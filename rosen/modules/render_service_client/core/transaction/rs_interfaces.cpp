@@ -569,6 +569,11 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
+void RSInterfaces::ChangeSyncCount(int32_t hostPid)
+{
+    renderServiceClient_->ChangeSyncCount(hostPid);
+}
+
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);

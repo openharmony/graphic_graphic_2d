@@ -325,6 +325,8 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
+    
+    void ProcessSubSyncTransactionCount(int32_t hostPid);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

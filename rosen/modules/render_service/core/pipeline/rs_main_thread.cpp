@@ -1065,6 +1065,16 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     rsTransactionData->Process(*context_);
 }
 
+void RSMainThread::ProcessSubSyncTransactionCount(int32_t hostPid)
+{
+    auto count = subSyncTransactionCounts_[hostPid];
+    count--;
+    count == 0 ? subSyncTransactionCounts_.erase(hostPid) : subSyncTransactionCounts_[hostPid] = count;
+    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
+        ProcessAllSyncTransactionData();
+    }
+}
+
 void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();

@@ -68,6 +68,8 @@ public:
 
     void SetHostPid(const int32_t hostPid);
 
+    bool IsRemoteCommandEmpty();
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();

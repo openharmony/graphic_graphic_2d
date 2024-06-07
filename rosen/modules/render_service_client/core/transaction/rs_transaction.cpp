@@ -17,6 +17,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
@@ -38,6 +39,7 @@ void RSTransaction::OpenSyncTransaction()
         RS_TRACE_NAME("OpenSyncTransaction");
         transactionProxy->StartSyncTransaction();
         transactionProxy->Begin();
+        isOpenSyncTransaction_ = true;
     }
 }
 
@@ -48,6 +50,7 @@ void RSTransaction::CloseSyncTransaction()
         RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
         ROSEN_LOGD(
             "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
+        isOpenSyncTransaction_ = false;
         transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
@@ -75,6 +78,9 @@ void RSTransaction::Commit()
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->SetHostPid(hostPid_);
+        if (transactionProxy->IsRemoteCommandEmpty()) {
+            RSInterfaces::GetInstance().ChangeSyncCount(hostPid_);
+        }
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
     }
@@ -102,6 +108,7 @@ void RSTransaction::ResetSyncTransactionInfo()
     syncId_ = 0;
     transactionCount_ = 0;
     hostPid_ = -1;
+    isOpenSyncTransaction_ = false;
 }
 
 RSTransaction* RSTransaction::Unmarshalling(Parcel& parcel)
@@ -129,6 +136,10 @@ bool RSTransaction::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSTransaction marshalling failed");
         return false;
     }
+    if (!parcel.WriteBool(isOpenSyncTransaction_)) {
+        ROSEN_LOGE("RSTransaction marshalling failed");
+        return false;
+    }
     transactionCount_++;
     RS_TRACE_NAME_FMT("RSTransaction::Marshalling syncId: %lu syncCount: %d", syncId_, transactionCount_);
     ROSEN_LOGD("Marshalling syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
@@ -148,6 +159,9 @@ bool RSTransaction::UnmarshallingParam(Parcel& parcel)
     if (!parcel.ReadInt32(hostPid_)) {
         ROSEN_LOGE("RSTransaction unmarshallingParam failed");
         return false;
+    }
+    if (!parcel.ReadBool(isOpenSyncTransaction_)) {
+        ROSEN_LOGE("RSTransaction unmarshallingParam failed");
     }
     return true;
 }

@@ -490,6 +490,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::ChangeSyncCount(int32_t hostPid)
+{
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
