@@ -37,6 +37,22 @@ public:
 };
 
 /**
+ * @tc.name: QuickTouch
+ * @tc.desc: Verify the result of QuickTouch function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
+{
+    int32_t clickNum = 100;
+    auto touchManager = HgmTouchManager();
+    for (int i = 0; i < clickNum; i++) {
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
+    }
+}
+
+/**
  * @tc.name: ChangeState
  * @tc.desc: Verify the result of ChangeState function
  * @tc.type: FUNC

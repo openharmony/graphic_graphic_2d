@@ -723,7 +723,11 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGI("[touch manager] down");
-        touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
+        PolicyConfigData::StrategyConfig strategyRes;
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
+            strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
+            touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
+        }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up");

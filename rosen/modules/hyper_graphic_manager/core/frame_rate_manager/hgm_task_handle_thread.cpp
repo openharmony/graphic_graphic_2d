@@ -33,4 +33,12 @@ void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t de
         handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
+
+bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+    return false;
+}
 }

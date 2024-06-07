@@ -23,6 +23,7 @@ class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
+    bool PostSyncTask(const std::function<void()>& task);
 
 private:
     HgmTaskHandleThread();

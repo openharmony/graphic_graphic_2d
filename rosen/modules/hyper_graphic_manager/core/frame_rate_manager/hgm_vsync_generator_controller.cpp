@@ -61,7 +61,7 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
     }
     uint32_t maxPluseNum = HgmCore::Instance().GetSupportedMaxTE() / lastRate;
 
-    auto pulse = vsyncGenerator_->GetVSyncPulse();
+    uint32_t pulse = vsyncGenerator_->GetVSyncPulse() >= 0 ? vsyncGenerator_->GetVSyncPulse() : 0;
     uint64_t targetTime = lastVSyncTime + pulse * TARGET_TIME_TRIGGER_PULSE_NUM;
     uint64_t currTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
