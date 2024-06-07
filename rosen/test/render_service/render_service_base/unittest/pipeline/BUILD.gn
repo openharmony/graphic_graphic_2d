@@ -46,6 +46,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_node_gc_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
+    "rs_render_node_test2.cpp",
     "rs_root_render_node_test.cpp",
     "rs_single_frame_composer_test.cpp",
     "rs_surface_handler_test.cpp",
