@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include "buffer_handle.h"
 #include "render_context/render_context.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -57,20 +59,38 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetDamageRegion001, TestSize.Level1)
  * @tc.name: GetCanvas001
  * @tc.desc: test results of GetCanvas
  * @tc.type:FUNC
- * @tc.require: issueI9K9FU
+ * @tc.require: issueI9VW90
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetCanvas001, TestSize.Level1)
 {
-    int32_t width = 1;
-    int32_t height = 1;
-    RSSurfaceFrameOhosRaster raster(width, height);
+    RSSurfaceFrameOhosRaster raster(1, 1);
     EXPECT_EQ(raster.GetCanvas(), nullptr);
-    {
-        int32_t width = 1;
-        int32_t height = 1;
-        RSSurfaceFrameOhosRaster raster(width, height);
-        raster.buffer_ = SurfaceBuffer::Create();
-        EXPECT_EQ(raster.GetCanvas(), nullptr);
+
+    auto bufferTest = new SurfaceBufferImpl();
+    bufferTest->handle_ = nullptr;
+    raster.buffer_ = bufferTest;
+    EXPECT_EQ(raster.GetCanvas(), nullptr);
+
+    auto handleTest = new BufferHandle();
+    handleTest->width = 1;
+    handleTest->height = 0;
+    bufferTest->handle_ = handleTest;
+    EXPECT_EQ(raster.GetCanvas(), nullptr);
+
+    handleTest->width = 1;
+    handleTest->height = 1;
+    int data = 1;
+    handleTest->virAddr = &data;
+    EXPECT_NE(raster.GetCanvas(), nullptr);
+    if (handleTest) {
+        delete handleTest;
+        bufferTest->handle_ = nullptr;
+        handleTest = nullptr;
+    }
+    if (bufferTest) {
+        delete bufferTest;
+        raster.buffer_ = nullptr;
+        bufferTest = nullptr;
     }
 }
 
@@ -78,20 +98,36 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, GetCanvas001, TestSize.Level1)
  * @tc.name: GetSurface001
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
- * @tc.require: issueI9K9FU
+ * @tc.require: issueI9VW90
  */
 HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurface001, TestSize.Level1)
 {
-    int32_t width = 1;
-    int32_t height = 1;
-    RSSurfaceFrameOhosRaster raster(width, height);
+    RSSurfaceFrameOhosRaster raster(1, 1);
     EXPECT_EQ(raster.GetSurface(), nullptr);
-    {
-        int32_t width = 1;
-        int32_t height = 1;
-        RSSurfaceFrameOhosRaster raster(width, height);
-        raster.buffer_ = SurfaceBuffer::Create();
-        EXPECT_EQ(raster.GetSurface(), nullptr);
+
+    auto bufferTest = new SurfaceBufferImpl();
+    bufferTest->handle_ = nullptr;
+    raster.buffer_ = bufferTest;
+    EXPECT_EQ(raster.GetSurface(), nullptr);
+
+    auto handleTest = new BufferHandle();
+    handleTest->width = 1;
+    handleTest->height = 0;
+    bufferTest->handle_ = handleTest;
+    EXPECT_EQ(raster.GetSurface(), nullptr);
+
+    handleTest->width = 1;
+    handleTest->height = 1;
+    EXPECT_EQ(raster.GetSurface(), nullptr);
+    if (handleTest) {
+        delete handleTest;
+        bufferTest->handle_ = nullptr;
+        handleTest = nullptr;
+    }
+    if (bufferTest) {
+        delete bufferTest;
+        raster.buffer_ = nullptr;
+        bufferTest = nullptr;
     }
 }
 
@@ -126,23 +162,36 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetReleaseFence001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSurfaceTest
- * @tc.desc: test results of GetSurface
+ * @tc.name: CreateSurfaceTest
+ * @tc.desc: test results of CreateSurface
  * @tc.type:FUNC
- * @tc.require: issueI9K9FU
+ * @tc.require: issueI9VW90
  */
-HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurfaceTest, TestSize.Level1)
+HWTEST_F(RSSurfaceFrameOhosRasterTest, CreateSurfaceTest, TestSize.Level1)
 {
-    int32_t width = 0;
-    int32_t height = 0;
-    RSSurfaceFrameOhosRaster raster(width, height);
-    EXPECT_EQ(raster.GetSurface(), nullptr);
-    {
-        int32_t width = 1;
-        int32_t height = 1;
-        RSSurfaceFrameOhosRaster raster(width, height);
-        raster.buffer_ = SurfaceBuffer::Create();
-        EXPECT_EQ(raster.GetSurface(), nullptr);
+    RSSurfaceFrameOhosRaster raster(1, 1);
+    auto buffer = new SurfaceBufferImpl();
+    buffer->handle_ = nullptr;
+    raster.buffer_ = buffer;
+    raster.CreateSurface();
+    EXPECT_EQ(raster.surface_, nullptr);
+
+    auto handle = new BufferHandle();
+    handle->width = 1;
+    handle->height = 0;
+    int data = 1;
+    handle->virAddr = &data;
+    buffer->handle_ = handle;
+    raster.CreateSurface();
+    if (handle) {
+        delete handle;
+        buffer->handle_ = nullptr;
+        handle = nullptr;
+    }
+    if (buffer) {
+        delete buffer;
+        raster.buffer_ = nullptr;
+        buffer = nullptr;
     }
 }
 } // namespace Rosen
