@@ -21,6 +21,7 @@
 #include <sched.h>
 #include <sys/resource.h>
 #include <string>
+#include <parameters.h>
 #include "vsync_log.h"
 #include <ctime>
 #include <vsync_sampler.h>
@@ -50,6 +51,7 @@ constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
+constexpr int64_t REFRESH_PERIOD = 16666667; // 16666667ns == 16.666667ms
 
 static void SetThreadHighPriority()
 {
@@ -71,6 +73,20 @@ static uint32_t CalculateRefreshRate(int64_t period)
         return 120; // 120hz
     }
     return 0;
+}
+
+static bool IsPcType()
+{
+    static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
+                       (system::GetParameter("const.product.devicetype", "pc") == "2in1");
+    return isPc;
+}
+
+static bool IsPCRefreshRateLock60()
+{
+    static bool isPCRefreshRateLock60 =
+        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "1").c_str()) != 0);
+    return isPCRefreshRateLock60;
 }
 }
 
@@ -96,6 +112,9 @@ VSyncGenerator::VSyncGenerator()
     : period_(DEFAULT_SOFT_VSYNC_PERIOD), phase_(0), referenceTime_(0), wakeupDelay_(0),
       pulse_(0), currRefreshRate_(0), referenceTimeOffsetPulseNum_(0), defaultReferenceTimeOffsetPulseNum_(0)
 {
+    if (IsPcType() && IsPCRefreshRateLock60()) {
+        period_ = REFRESH_PERIOD;
+    }
     vsyncThreadRunning_ = true;
     thread_ = std::thread(std::bind(&VSyncGenerator::ThreadLoop, this));
     pthread_setname_np(thread_.native_handle(), "VSyncGenerator");
@@ -493,6 +512,9 @@ void VSyncGenerator::SubScribeSystemAbility()
 
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
+    if (IsPcType() && IsPCRefreshRateLock60()) {
+        period = REFRESH_PERIOD;
+    }
     std::lock_guard<std::mutex> locker(mutex_);
     ScopedBytrace func("UpdateMode, period:" + std::to_string(period) +
                         ", phase:" + std::to_string(phase) +
