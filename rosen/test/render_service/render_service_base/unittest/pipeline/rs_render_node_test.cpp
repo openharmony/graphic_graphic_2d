@@ -2389,5 +2389,163 @@ HWTEST_F(RSRenderNodeTest, ClearCacheSurfaceInThreadTest029, TestSize.Level1)
                                            std::shared_ptr<Drawing::Surface>&& s2, uint32_t w, uint32_t h) {};
     nodeTest->ClearCacheSurfaceInThread();
 }
+
+/**
+ * @tc.name: MarkFilterCacheFlags001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    bool needRequestNextVsync = true;
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->forceClearCache_ = true;
+    filterDrawable->forceUseCache_ = true;
+    filterDrawable->pendingPurge_ = true;
+    auto& properties = node.GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
+    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: MarkFilterCacheFlags002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    bool needRequestNextVsync = false;
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->forceClearCache_ = true;
+    filterDrawable->forceUseCache_ = true;
+    filterDrawable->filterInteractWithDirty_ = true;
+    filterDrawable->cacheUpdateInterval_ = 1;
+    auto& properties = node.GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
+    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: CheckFilterCacheAndUpdateDirtySlots
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, CheckFilterCacheAndUpdateDirtySlots, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    RSDrawableSlot slot = RSDrawableSlot::SHADOW;
+    node.CheckFilterCacheAndUpdateDirtySlots(filterDrawable, slot);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: MarkForceClearFilterCacheWhenWithInvisible
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWhenWithInvisible, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& properties = node.GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
+    node.MarkForceClearFilterCacheWhenWithInvisible();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetOccludedStatus
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, SetOccludedStatus, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& properties = node.GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
+    bool occluded = true;
+    node.SetOccludedStatus(occluded);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RenderTraceDebug
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, RenderTraceDebug, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.RenderTraceDebug();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplyBoundsGeometry
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ApplyBoundsGeometry, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.ApplyBoundsGeometry(*canvas_);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplyAlpha
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ApplyAlpha, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.ApplyAlpha(*canvas_);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ProcessRenderBeforeChildren
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ProcessRenderBeforeChildren, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ProcessTransitionAfterChildren
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.ProcessTransitionAfterChildren(*canvas_);
+    ASSERT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS
