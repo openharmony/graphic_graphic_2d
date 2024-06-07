@@ -420,6 +420,12 @@ public:
     float GetSpherize() const;
     bool IsSpherizeValid() const;
 
+    bool IsAttractionValid() const;
+    void SetAttractionFraction(float fraction);
+    void SetAttractionDstPoint(Vector2f dstPoint);
+    float GetAttractionFraction() const;
+    Vector2f GetAttractionDstPoint() const;
+
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
@@ -595,6 +601,10 @@ private:
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
     bool foregroundEffectDirty_ = false;
+
+    float attractFraction_ = 0.f;
+    Vector2f attractDstPoint_ = {0.f, 0.f};
+    bool isAttractionValid_ = false;
 
     // filter property
     float backgroundBlurRadius_ = 0.f;

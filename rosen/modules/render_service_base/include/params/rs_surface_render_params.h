@@ -90,6 +90,10 @@ public:
     {
         return isSpherizeValid_;
     }
+    bool IsAttractionValid() const
+    {
+        return isAttractionValid_;
+    }
     bool NeedBilinearInterpolation() const
     {
         return needBilinearInterpolation_;

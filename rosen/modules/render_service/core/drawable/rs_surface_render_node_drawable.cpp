@@ -234,7 +234,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
+    if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid() && !surfaceParams->IsAttractionValid()) {
         SetSkip(surfaceParams->GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         rscanvas->Save();
     }
@@ -464,7 +464,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
 
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
-    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
+    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid() && !surfaceParams.IsAttractionValid()) {
         SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         canvas.Save();
     }
