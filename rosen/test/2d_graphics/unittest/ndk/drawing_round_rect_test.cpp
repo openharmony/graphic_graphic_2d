@@ -14,6 +14,7 @@
  */
 
 #include "drawing_color.h"
+#include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
@@ -42,6 +43,9 @@ void NativeDrawingRoundRectTest::TearDownTestCase() {}
 void NativeDrawingRoundRectTest::SetUp() {}
 void NativeDrawingRoundRectTest::TearDown() {}
 
+constexpr uint32_t FOUR = 4;
+constexpr int32_t MINUS_ONE = -1;
+
 /*
  * @tc.name: NativeDrawingRectTest_CCornerPosCastToCornerPos001
  * @tc.desc: test CCornerPosCastToCornerPos
@@ -56,8 +60,20 @@ HWTEST_F(NativeDrawingRoundRectTest, CCornerPosCastToCornerPos001, TestSize.Leve
 
     OH_Drawing_Corner_Radii radius = { 10, 10 };
 
+    OH_Drawing_RoundRectSetCorner(nullptr, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT, radius);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_RoundRectSetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(FOUR), radius);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_RoundRectSetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(MINUS_ONE), radius);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT, radius);
 
+    OH_Drawing_RoundRectGetCorner(nullptr, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_RoundRectGetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(FOUR));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_RoundRectGetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(MINUS_ONE));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     OH_Drawing_Corner_Radii retrievedRadius;
     retrievedRadius = OH_Drawing_RoundRectGetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_TOP_LEFT);
     ASSERT_FLOAT_EQ(retrievedRadius.x, radius.x);
