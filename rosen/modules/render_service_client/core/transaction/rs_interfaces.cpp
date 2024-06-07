@@ -213,8 +213,25 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
 
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
+    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
+            [](uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
+        return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    };
+
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, []() {
+        Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
+    });
+
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        return renderServiceClient_->RegisterTypeface(typeface);
+        bool result = renderServiceClient_->RegisterTypeface(typeface);
+        if (result) {
+            RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
+                    typeface->GetUniqueID());
+            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+            RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        }
+        return result;
     }
 
     RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
@@ -227,7 +244,12 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        return renderServiceClient_->UnRegisterTypeface(typeface);
+        bool result = renderServiceClient_->UnRegisterTypeface(typeface);
+        if (result) {
+            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+            RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
+        }
+        return result;
     }
 
     RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",

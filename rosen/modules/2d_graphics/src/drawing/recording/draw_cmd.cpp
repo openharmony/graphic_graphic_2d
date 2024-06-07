@@ -1059,13 +1059,7 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
-    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    if (DrawOpItem::customTypefaceQueryfunc_) {
-        typeface = DrawOpItem::customTypefaceQueryfunc_(handle->globalUniqueId);
-    }
-
-    TextBlob::Context ctx {typeface, false};
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, &ctx);
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
 }
 
 std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -1222,7 +1216,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas)
 {
-    std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
+    std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob, globalUniqueId);
     if (!textBlob_) {
         LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
