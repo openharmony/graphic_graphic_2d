@@ -31,7 +31,11 @@ ohos_unittest("native_image_test") {
     sources += [ "native_image_test.cpp" ]
   }
 
-  deps = [ ":surface_test_common" ]
+  deps = [
+    ":surface_test_common",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
 }
 
 ## UnitTest native_image_test }}}
