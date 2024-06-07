@@ -148,12 +148,9 @@ HWTEST_F(SkiaImageTest, BuildFromTexture001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     GPUContext context;
-#ifdef NEW_SKIA
-    GrMockOptions options;
-    context.GetImpl<SkiaGPUContext>()->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     TextureInfo textureInfo;
-    BitmapFormat bitmapFormat;
+    textureInfo.SetWidth(10);
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
     skiaImage->BuildFromTexture(
@@ -171,7 +168,8 @@ HWTEST_F(SkiaImageTest, BuildFromTexture002, TestSize.Level1)
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     GPUContext context;
     TextureInfo textureInfo;
-    BitmapFormat bitmapFormat;
+    textureInfo.SetWidth(10);
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bool buildFromTexture = skiaImage->BuildFromTexture(
         context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
     ASSERT_FALSE(buildFromTexture);
@@ -307,29 +305,6 @@ HWTEST_F(SkiaImageTest, SetGrBackendTexture, TestSize.Level1)
     ASSERT_TRUE(skiaImage != nullptr);
     GrBackendTexture skBackendTexture;
     skiaImage->SetGrBackendTexture(skBackendTexture);
-}
-
-/**
- * @tc.name: GetBackendTexture
- * @tc.desc: Test GetBackendTexture
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaImageTest, GetBackendTexture, TestSize.Level1)
-{
-    Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    ASSERT_TRUE(skiaImage != nullptr);
-    TextureOrigin origin = TextureOrigin::TOP_LEFT;
-    BackendTexture backKendTexture = skiaImage->GetBackendTexture(true, nullptr);
-    ASSERT_TRUE(!backKendTexture.IsValid());
-    bitmap.Build(100, 100, bitmapFormat);
-    skiaImage->BuildFromBitmap(bitmap);
-    BackendTexture backKendTexture1 = skiaImage->GetBackendTexture(true, nullptr);
-    ASSERT_TRUE(!backKendTexture1.IsValid());
-    BackendTexture backKendTexture2 = skiaImage->GetBackendTexture(true, &origin);
-    ASSERT_TRUE(!backKendTexture2.IsValid());
 }
 #endif
 

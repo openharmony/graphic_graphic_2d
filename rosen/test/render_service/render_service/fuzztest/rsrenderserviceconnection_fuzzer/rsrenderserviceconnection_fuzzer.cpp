@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -781,11 +781,12 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     uint64_t nodeId = GetData<uint64_t>();
     float scaleX = GetData<float>();
     float scaleY = GetData<float>();
+    bool useDma = GetData<bool>();
     sptr<RSISurfaceCaptureCallback> callback = nullptr;
     uint8_t type = GetData<uint8_t>();
     SurfaceCaptureType surfaceCaptureType = (SurfaceCaptureType)type;
     bool isSync = GetData<bool>();
-    rsConn->TakeSurfaceCapture(nodeId, callback, scaleX, scaleY, surfaceCaptureType, isSync);
+    rsConn->TakeSurfaceCapture(nodeId, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
     return true;
 }
 

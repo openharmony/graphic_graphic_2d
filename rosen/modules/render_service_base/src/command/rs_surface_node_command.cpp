@@ -286,5 +286,12 @@ void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, 
         node->SetHDRPresent(ancoForceDoDirect);
     }
 }
+
+void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bool skip)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetSkipDraw(skip);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

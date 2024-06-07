@@ -452,6 +452,7 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
+    RSDrawableSlot::FRAME_OFFSET,
     RSDrawableSlot::FG_CLIP_TO_BOUNDS,
     RSDrawableSlot::FOREGROUND_COLOR,
     RSDrawableSlot::POINT_LIGHT,
@@ -498,7 +499,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     // Step 1.2: expand dirty slots by rules
     // if bounds or cornerRadius changed, mark affected drawables as dirty
     if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS)) ||
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CLIP_BOUNDS))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
     }
 

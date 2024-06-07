@@ -82,25 +82,19 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, FindSecurityOrSkipOrProtectedLayer, T
 }
 
 /*
- * @tc.name: ScreenCorrection
+ * @tc.name: CalPixelMapRotation
  * @tc.desc: function test
  * @tc.type: FUNC
  * @tc.require: issueI9PKY5
 */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, ScreenCorrection, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CalPixelMapRotation, TestSize.Level2)
 {
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    int32_t rotation_0 = 0;
-    int32_t rotation_90 = -90;
-    int32_t rotation_180 = -180;
-    int32_t rotation_270 = -270;
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
     RSSurfaceCaptureTaskParallel task(0, scaleX, scaleY);
-
-    ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_0), rotation_0);
-    ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_90), rotation_90);
-    ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_180), rotation_180);
-    ASSERT_EQ(task.ScreenCorrection(ScreenRotation::ROTATION_270), rotation_270);
+    task.screenCorrection_ = ScreenRotation::ROTATION_90;
+    task.screenRotation_ = ScreenRotation::ROTATION_270;
+    ASSERT_EQ(task.CalPixelMapRotation(), RS_ROTATION_180);
 }
 }
 }

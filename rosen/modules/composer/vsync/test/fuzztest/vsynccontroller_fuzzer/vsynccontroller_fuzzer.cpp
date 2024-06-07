@@ -24,6 +24,7 @@ namespace OHOS {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
+        constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
     }
 
     /*
@@ -66,7 +67,8 @@ namespace OHOS {
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
         vsyncController->SetEnable(enable, enable);
         vsyncController->SetPhaseOffset(offset);
-
+        vsyncController->SetEnable(false, enable);
+        sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
         return true;
     }
 }

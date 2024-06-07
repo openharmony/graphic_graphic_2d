@@ -103,12 +103,12 @@ template("skia_libtxt") {
       ":skia_paragraph",
       ":skia_shaper",
       ":skia_unicode",
-      "//third_party/skia:skia_$platform",
     ]
 
     external_deps += [
       "bounds_checking_function:libsec_shared",
       "hilog:libhilog",
+      "skia:skia_canvaskit",
     ]
 
     if (!is_cross_platform) {
@@ -191,12 +191,12 @@ ohos_source_set("skia_paragraph") {
   deps = [
     ":skia_shaper",
     ":skia_unicode",
-    "//third_party/skia:skia_$platform",
   ]
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
+    "skia:skia_canvaskit",
   ]
 
   is_cross_platform =
@@ -234,7 +234,7 @@ ohos_source_set("skia_unicode") {
   if (platform == "mingw") {
     platform = "windows"
   }
-  deps = [ "//third_party/skia:skia_$platform" ]
+  external_deps = [ "skia:skia_canvaskit" ]
   public_deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
 }
 
@@ -273,10 +273,10 @@ ohos_source_set("skia_shaper") {
   if (platform == "mingw") {
     platform = "windows"
   }
-  deps = [
-    ":skia_unicode",
-    "//third_party/skia:skia_$platform",
-  ]
+  deps = [ ":skia_unicode" ]
 
-  external_deps = [ "bounds_checking_function:libsec_shared" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "skia:skia_canvaskit",
+  ]
 }

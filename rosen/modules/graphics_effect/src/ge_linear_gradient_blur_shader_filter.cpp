@@ -32,8 +32,9 @@ static bool GetMaskLinearBlurEnabled()
     static bool enabled =
         std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "1")).c_str()) != 0;
     return enabled;
-#endif
+#else
     return false;
+#endif
 }
 } // namespace
 
@@ -68,7 +69,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImageDD
     Drawing::Filter imageFilter;
     Drawing::GradientBlurType blurType;
     if (GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
-        blurType = Drawing::GradientBlurType::AlPHA_BLEND;
+        blurType = Drawing::GradientBlurType::ALPHA_BLEND;
         radius /= 2; // 2: half radius.
     } else {
         radius -= GELinearGradientBlurPara::ORIGINAL_BASE;
@@ -114,7 +115,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
             return image;
         }
 
-        auto& RSFilter = para->LinearGradientBlurFilter_;
+        const auto& RSFilter = para->LinearGradientBlurFilter_;
         auto filter = RSFilter;
         return DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {
@@ -484,36 +485,35 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> GELinearGradientBlurShaderFilter:
     std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
     std::shared_ptr<Drawing::ShaderEffect> gradientShader)
 {
-    static const char* prog = R"(
-        uniform shader srcImageShader;
-        uniform shader blurImageShader;
-        uniform shader gradientShader;
-        half4 meanFilter(float2 coord)
-        {
-            vec3 srcColor = vec3(srcImageShader.eval(coord).r,
-                srcImageShader.eval(coord).g, srcImageShader.eval(coord).b);
-            vec3 blurColor = vec3(blurImageShader.eval(coord).r,
-                blurImageShader.eval(coord).g, blurImageShader.eval(coord).b);
-            float gradient = gradientShader.eval(coord).a;
-
-            vec3 color = blurColor * gradient + srcColor * (1 - gradient);
-            return vec4(color, 1.0);
-        }
-        half4 main(float2 coord)
-        {
-            if (abs(gradientShader.eval(coord).a) < 0.001) {
-                return srcImageShader.eval(coord);
-            }
-
-            if (abs(gradientShader.eval(coord).a) > 0.999) {
-                return blurImageShader.eval(coord);
-            }
-
-            return meanFilter(coord);
-        }
-    )";
-
     if (maskBlurShaderEffect_ == nullptr) {
+        static const char* prog = R"(
+            uniform shader srcImageShader;
+            uniform shader blurImageShader;
+            uniform shader gradientShader;
+            half4 meanFilter(float2 coord)
+            {
+                vec3 srcColor = vec3(srcImageShader.eval(coord).r,
+                    srcImageShader.eval(coord).g, srcImageShader.eval(coord).b);
+                vec3 blurColor = vec3(blurImageShader.eval(coord).r,
+                    blurImageShader.eval(coord).g, blurImageShader.eval(coord).b);
+                float gradient = gradientShader.eval(coord).a;
+
+                vec3 color = blurColor * gradient + srcColor * (1 - gradient);
+                return vec4(color, 1.0);
+            }
+            half4 main(float2 coord)
+            {
+                if (abs(gradientShader.eval(coord).a) < 0.001) {
+                    return srcImageShader.eval(coord);
+                }
+
+                if (abs(gradientShader.eval(coord).a) > 0.999) {
+                    return blurImageShader.eval(coord);
+                }
+
+                return meanFilter(coord);
+            }
+        )";
         maskBlurShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
         if (maskBlurShaderEffect_ == nullptr) {
             return nullptr;

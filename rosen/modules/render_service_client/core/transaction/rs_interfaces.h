@@ -64,6 +64,8 @@ public:
 
     void SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t EnableSkipWindow(ScreenId id, bool enable);
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
 
@@ -75,14 +77,14 @@ public:
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
-    bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
+    bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
 
-    bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
+    bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
 
-    bool TakeSurfaceCapture(NodeId id,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
+    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
@@ -110,6 +112,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void DisablePowerOffRenderControl(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 

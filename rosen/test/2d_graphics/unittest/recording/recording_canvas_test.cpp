@@ -1196,7 +1196,7 @@ HWTEST_F(RecordingCanvasTest, SaveRestore002, TestSize.Level1)
     EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
     recordingCanvas1->Save();
     recordingCanvas2->Save();
-    EXPECT_TRUE(recordingCanvas1->GetSaveCount() == 1 && recordingCanvas2->GetSaveCount() == 1);
+    EXPECT_TRUE(recordingCanvas1->GetSaveCount() == 2 && recordingCanvas2->GetSaveCount() == 2);
     recordingCanvas1->Restore();
     recordingCanvas2->Restore();
     auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();

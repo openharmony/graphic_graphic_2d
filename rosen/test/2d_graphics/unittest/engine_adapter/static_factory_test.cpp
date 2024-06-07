@@ -91,7 +91,7 @@ HWTEST_F(StaticFactoryTest, MakeFromName001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:I91EDT
  */
-HWTEST_F(GpuContextTest, MakeFromBackendRenderTarget001, TestSize.Level1)
+HWTEST_F(StaticFactoryTest, MakeFromBackendRenderTarget001, TestSize.Level1)
 {
     auto gpuContext = new GPUContext();
     ASSERT_TRUE(gpuContext != nullptr);

@@ -1139,6 +1139,9 @@ public:
     {
         return doDirectComposition_;
     }
+
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1203,9 +1206,9 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
-    sptr<RSIBufferAvailableCallback> callbackFromRT_;
-    sptr<RSIBufferAvailableCallback> callbackFromUI_;
-    sptr<RSIBufferClearCallback> clearBufferCallback_;
+    sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
+    sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
+    sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
     bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
@@ -1393,6 +1396,7 @@ private:
     bool isNodeToBeCaptured_ = false;
 
     bool doDirectComposition_ = true;
+    bool isSkipDraw_ = false;
 
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

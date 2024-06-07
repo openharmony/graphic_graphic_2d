@@ -45,6 +45,7 @@ ohos_unittest("2d_graphics_image_test") {
   if (ace_enable_gpu) {
     defines += [ "ACE_ENABLE_GPU" ]
   }
+  defines += gpu_defines
 
   subsystem_name = "graphic"
   external_deps = [

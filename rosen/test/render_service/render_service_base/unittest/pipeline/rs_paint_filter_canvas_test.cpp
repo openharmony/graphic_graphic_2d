@@ -500,8 +500,7 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawImageLatticeTest, TestSize.Level1)
     Drawing::Image image;
     Drawing::Lattice lattice;
     Drawing::Rect dst;
-    Drawing::Brush brush;
-    paintFilterCanvas_->DrawImageLattice(&image, lattice, dst, Drawing::FilterMode::LINEAR, &brush);
+    paintFilterCanvas_->DrawImageLattice(&image, lattice, dst, Drawing::FilterMode::LINEAR);
     EXPECT_TRUE(paintFilterCanvas_);
 }
 

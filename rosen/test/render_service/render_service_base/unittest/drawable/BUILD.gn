@@ -25,6 +25,9 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
     "rs_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
     "rs_property_drawable_background_test.cpp",
+    "rs_property_drawable_foreground_test.cpp",
+    "rs_property_drawable_utils_test.cpp",
+    "rs_render_node_shadow_drawable_test.cpp",
   ]
 
   cflags = [
@@ -34,7 +37,6 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
 
   configs = [
     ":render_test",
-    "$ace_root:ace_test_config",
     "../../../../../modules/render_service_base:export_config",
   ]
 

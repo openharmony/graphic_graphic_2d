@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,24 @@
 
 #include "rsmodifiermanager_fuzzer.h"
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
+#include <hilog/log.h>
+#include <iostream>
 #include <memory>
 #include <securec.h>
+#include <unistd.h>
 
+#include "common/rs_common_def.h"
 #include "modifier/rs_extended_modifier.h"
+#include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
-#include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,7 +62,6 @@ T GetData()
     return object;
 }
 
-
 bool TestModifierManager(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -67,10 +74,42 @@ bool TestModifierManager(const uint8_t* data, size_t size)
     g_pos = 0;
 
     float value = GetData<float>();
+    uint64_t id = GetData<uint64_t>();
+    int64_t time = GetData<int64_t>();
     std::shared_ptr<RSProperty<float>> property = std::make_shared<RSProperty<float>>(value);
     std::shared_ptr<RSPositionZModifier> modifier = std::make_shared<RSPositionZModifier>(property);
+    auto animation = std::make_shared<RSRenderAnimation>(id);
     RSModifierManager manager;
     manager.AddModifier(modifier);
+    manager.AddAnimation(animation);
+    manager.RemoveAnimation(id);
+    manager.Animate(time);
+    manager.RegisterSpringAnimation(id, id);
+    manager.UnregisterSpringAnimation(id, id);
+    manager.QuerySpringAnimation(id);
+    manager.JudgeAnimateWhetherSkip(id, time, time);
+    manager.SetDisplaySyncEnable(true);
+    manager.FlushStartAnimation(time);
+    manager.OnAnimationFinished(animation);
+    manager.GetAnimation(id);
+    return true;
+}
+bool TestHasUIAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSModifierManager manager;
+    manager.HasUIAnimation();
+    manager.Draw();
+    manager.GetFrameRateRange();
+    manager.IsDisplaySyncEnabled();
     return true;
 }
 } // namespace Rosen
@@ -81,6 +120,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);
+    OHOS::Rosen::TestHasUIAnimation(data, size);
     return 0;
 }
-

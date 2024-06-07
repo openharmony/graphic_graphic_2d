@@ -2085,7 +2085,6 @@ void RSProperties::SetSpherize(float spherizeDegree)
     }
     filterNeedUpdate_ = true;
     SetDirty();
-    contentDirty_ = true;
 }
 
 float RSProperties::GetSpherize() const
@@ -2138,7 +2137,7 @@ float RSProperties::GetBackgroundBlurRadius() const
 
 bool RSProperties::IsBackgroundBlurRadiusValid() const
 {
-    return ROSEN_GNE(GetBackgroundBlurRadius(), 0.999f);
+    return ROSEN_GNE(GetBackgroundBlurRadius(), 0.9f); // Adjust the materialBlur radius to 0.9 for the spring curve
 }
 
 void RSProperties::SetBackgroundBlurSaturation(float backgroundBlurSaturation)
@@ -2277,7 +2276,7 @@ float RSProperties::GetForegroundBlurRadius() const
 
 bool RSProperties::IsForegroundBlurRadiusValid() const
 {
-    return ROSEN_GNE(GetForegroundBlurRadius(), 0.999f);
+    return ROSEN_GNE(GetForegroundBlurRadius(), 0.9f); // Adjust the materialBlur radius to 0.9 for the spring curve
 }
 
 void RSProperties::SetForegroundBlurSaturation(float foregroundBlurSaturation)
@@ -3783,7 +3782,11 @@ void RSProperties::UpdateFilter()
         }
     } else if (IsSpherizeValid()) {
         auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-        foregroundFilter_ = spherizeEffectFilter;
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = spherizeEffectFilter;
+        } else {
+            foregroundFilter_ = spherizeEffectFilter;
+        }
     } else if (GetShadowMask()) {
         float elevation = GetShadowElevation();
         Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f

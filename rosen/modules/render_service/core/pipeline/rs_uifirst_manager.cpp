@@ -89,7 +89,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
     if (id == INVALID_NODEID) {
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("sub done %lx", id);
+    RS_OPTIONAL_TRACE_NAME_FMT("sub done %lld", id);
     std::lock_guard<std::mutex> lock(childernDrawableMutex_);
     subthreadProcessDoneNode_.push_back(id);
 }
@@ -141,7 +141,7 @@ void RSUifirstManager::RenderGroupUpdate(DrawableV2::RSSurfaceRenderNodeDrawable
             break;
         }
         if (node->IsSuggestedDrawInGroup()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("cache_changed by uifirst card %lx", node->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("cache_changed by uifirst card %lld", node->GetId());
             node->SetDrawingCacheChanged(true);
             node->AddToPendingSyncList();
         }
@@ -201,7 +201,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
     for (auto& id : tmp) {
-        RS_OPTIONAL_TRACE_NAME_FMT("Done %lx", id);
+        RS_OPTIONAL_TRACE_NAME_FMT("Done %lld", id);
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
         if (drawable && drawable->GetCacheSurfaceNeedUpdated() &&
             drawable->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
@@ -291,19 +291,14 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceR
     for (auto& child : *node->GetSortedChildren()) {
         if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            if (surfaceNode->GetVisibleRegion().IsEmpty()) {
+            auto visibleRegion = surfaceNode->GetVisibleRegion();
+            if (visibleRegion.IsEmpty()) {
                 surfaceNode->SetUIFirstIsPurge(false);
                 return true;
-            }
-            auto surfaceParams =
-                static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-            if (surfaceParams == nullptr) {
-                return false;
             }
             auto surfaceDirtyRect = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
             Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
                 surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-            auto visibleRegion =  surfaceParams->GetVisibleRegion();
             Occlusion::Region surfaceDirtyRegion { dirtyRect };
             Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
             if (surfaceVisibleDirtyRegion.IsEmpty()) {
@@ -370,7 +365,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
     RS_TRACE_NAME("post UpdateCacheSurface");
 
     if (subthreadProcessingNode_.find(id) != subthreadProcessingNode_.end()) { // drawable is doing, do not send
-        RS_TRACE_NAME_FMT("node %lx is doning", id);
+        RS_TRACE_NAME_FMT("node %lld is doning", id);
         RS_LOGE("RSUifirstManager ERROR: post task twice");
         return;
     }
@@ -381,7 +376,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
         // ref drawable
         subthreadProcessingNode_[id] = drawable;
         // post task
-        RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
+        RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lld", id);
         RSSubThreadManager::Instance()->ScheduleRenderNodeDrawable(
             static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable.get()));
     }
@@ -427,7 +422,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
         return;
     }
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
-        RS_TRACE_NAME_FMT("doning%lx", it->first);
+        RS_TRACE_NAME_FMT("doning%lld", it->first);
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(it->first);
         if (!node) {
             continue;
@@ -475,12 +470,12 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (NodeIsInCardWhiteList(*node) && processingCardNodeSkipSync_.count(node->GetUifirstRootNodeId())) {
         pendingSyncForSkipBefore_[node->GetUifirstRootNodeId()].push_back(node);
         if (node->GetUifirstRootNodeId() == node->GetId()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync card %lx root%lx",
+            RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync card %lld root%lld",
                 node->GetId(), node->GetUifirstRootNodeId());
             node->SetUifirstSkipPartialSync(true);
             return false;
         } else {
-            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode card root %lx, node %lx",
+            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode card root %lld, node %lld",
                 node->GetUifirstRootNodeId(), node->GetId());
             return true;
         }
@@ -488,16 +483,16 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (processingNodePartialSync_.count(node->GetInstanceRootNodeId()) > 0) {
         pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
         if (node->GetInstanceRootNodeId() == node->GetId()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync %lx root%lx", node->GetId(), node->GetInstanceRootNodeId());
+            RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync %lld root%lld", node->GetId(), node->GetInstanceRootNodeId());
             node->SetUifirstSkipPartialSync(true);
             return false;
         } else {
-            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lx, node %lx",
+            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lld, node %lld",
                 node->GetInstanceRootNodeId(), node->GetId());
             return true;
         }
     } else if (processingNodeSkipSync_.count(node->GetInstanceRootNodeId()) > 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lx, node %lx",
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lld, node %lld",
             node->GetInstanceRootNodeId(), node->GetId());
         pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
         return true;
@@ -513,7 +508,7 @@ void RSUifirstManager::RestoreSkipSyncNode()
         if (processingNodeSkipSync_.count(it.first) == 0 && processingNodePartialSync_.count(it.first) == 0 &&
             processingCardNodeSkipSync_.count(it.first) == 0) {
             todele.push_back(it.first);
-            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode %lx num%d", it.first, it.second.size());
+            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode %lld num%d", it.first, it.second.size());
             for (auto& node : it.second) {
                 node->SetUifirstSkipPartialSync(false);
                 node->AddToPendingSyncList();
@@ -995,7 +990,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
     if (lastFrameCacheType == MultiThreadCacheType::NONE) { // likely branch: last is disable
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // switch: disable -> enable
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
-            RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lx", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lld", node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
@@ -1006,16 +1001,16 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType); // clear pending reset status
             AddCardNodes(node.GetId(), currentFrameCacheType);
         } else { // keep disable
-            RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_keep disable  %lld", node.GetId());
         }
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
-            RS_TRACE_NAME_FMT("UIFirst_keep enable  %lx", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_keep enable  %lld", node.GetId());
             MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
-            RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lx", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lld", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
             RemoveCardNodes(node.GetId());

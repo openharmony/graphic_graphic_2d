@@ -251,5 +251,8 @@ void BootAnimationOperation::StopBootAnimation()
         system::SetParameter(BOOT_ANIMATION_STARTED, "true");
         LOGI("set boot animation started true");
     }
-    mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+    if (runner_ != nullptr) {
+        runner_->Stop();
+    }
+    mainHandler_ = nullptr;
 }

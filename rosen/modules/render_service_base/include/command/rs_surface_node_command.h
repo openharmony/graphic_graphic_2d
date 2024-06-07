@@ -59,6 +59,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_FORCE_UIFIRST,
     SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT,
     SURFACE_NODE_SET_HDR_PRESENT,
+    SURFACE_NODE_SET_SKIP_DRAW,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -98,6 +99,7 @@ public:
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
+    static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -172,6 +174,8 @@ ADD_COMMAND(RSSurfaceNodeSetAncoForceDoDirect,
     NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

@@ -132,10 +132,12 @@ private:
 
     void MarkPowerOffNeedProcessOneFrame() override;
 
+    void DisablePowerOffRenderControl(ScreenId id) override;
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType, bool isSync) override;
+        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync) override;
 
     void TakeSurfaceCaptureForUIWithUni(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);

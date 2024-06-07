@@ -299,9 +299,10 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     auto nodeId = GetData<NodeId>();
     float scaleX = GetData<float>();
     float scaleY = GetData<float>();
+    bool useDma = GetData<bool>();
 
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY);
+    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY, useDma);
     return true;
 }
 

@@ -250,6 +250,20 @@ bool RSRenderParams::GetDrawingCacheIncludeProperty() const
     return drawingCacheIncludeProperty_;
 }
 
+void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
+{
+    if (freezeFlag_ == freezeFlag) {
+        return;
+    }
+    freezeFlag_ = freezeFlag;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetRSFreezeFlag() const
+{
+    return freezeFlag_;
+}
+
 void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
 {
     if (isOpincRootFlag_ == suggestFlag) {
@@ -340,6 +354,8 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
         return;
     }
     target->canvasDrawingNodeSurfaceChanged_ = true;
+    target->surfaceParams_.width = surfaceParams_.width;
+    target->surfaceParams_.height = surfaceParams_.height;
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 
@@ -354,6 +370,17 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
         needSync_ = true;
     }
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
 }
 
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
@@ -399,6 +426,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->freezeFlag_ = freezeFlag_;
     needSync_ = false;
 }
 

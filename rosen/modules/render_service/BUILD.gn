@@ -246,7 +246,7 @@ ohos_shared_library("librender_service") {
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
-  public_deps = [ "//third_party/skia:skia_ohos" ]
+  public_external_deps = [ "skia:skia_canvaskit" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     include_dirs += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
@@ -270,7 +270,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    public_deps += [ "$graphic_2d_root:libvulkan" ]
+    public_deps = [ "$graphic_2d_root:libvulkan" ]
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -281,7 +281,7 @@ ohos_shared_library("librender_service") {
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
-  public_external_deps = [ "libxml2:libxml2" ]
+  public_external_deps += [ "libxml2:libxml2" ]
 
   external_deps = [
     "battery_manager:batterysrv_client",

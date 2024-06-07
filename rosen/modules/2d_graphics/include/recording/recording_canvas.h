@@ -88,7 +88,7 @@ public:
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filterMode, const Brush* brush = nullptr) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr) override;
+        FilterMode filterMode) override;
 
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
 

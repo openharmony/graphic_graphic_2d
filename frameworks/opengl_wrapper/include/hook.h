@@ -36,6 +36,9 @@ namespace OHOS {
 constexpr int32_t EGL_API_NUM = 100;
 constexpr int32_t GL_API_NUM = 1000;
 
+// for compatibility, if xxx_entries.in file modified, the value of g_entriesFilesVersion must be increased by 1.
+constexpr uint64_t ENTRIES_FILES_VERSION = 1;
+
 struct WrapperHookTable {
     #include "wrapper_hook_entries.in"
 };

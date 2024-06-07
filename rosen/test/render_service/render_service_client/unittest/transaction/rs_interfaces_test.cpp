@@ -18,6 +18,7 @@
 
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
+#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,6 +64,34 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
     type = RSUINodeType::UNKNOW;
     res = instance.TakeSurfaceCaptureForUI(nullptr, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
+
+    RSDisplayNodeConfig config;
+    auto rsDisplayNode = RSDisplayNode::Create(config);
+    res = instance.TakeSurfaceCaptureForUI(rsDisplayNode, callback, 1.f, 1.f, true);
+    EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureForUI002
+ * @tc.desc: test results of TakeSurfaceCaptureForUI
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSCanvasNode>(true);
+    res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
+    EXPECT_TRUE(res);
 }
 
 /**

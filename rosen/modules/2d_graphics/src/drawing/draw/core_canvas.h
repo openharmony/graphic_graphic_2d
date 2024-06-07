@@ -404,7 +404,7 @@ public:
      * @param brush   brush containing BlendMode, ColorFilter, ImageFilter, and so on; or nullptr
      */
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filter, const Brush* brush = nullptr);
+        FilterMode filter);
 
     // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix);

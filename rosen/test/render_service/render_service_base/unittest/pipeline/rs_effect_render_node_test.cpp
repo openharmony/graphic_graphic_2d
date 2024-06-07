@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_drawable.h"
+#include "params/rs_effect_render_params.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
@@ -62,7 +65,7 @@ HWTEST_F(RSEffectRenderNodeTest, Prepare, TestSize.Level1)
  * @tc.name: Process
  * @tc.desc: test results of Process
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSEffectRenderNodeTest, Process, TestSize.Level1)
 {
@@ -71,9 +74,10 @@ HWTEST_F(RSEffectRenderNodeTest, Process, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
     rsEffectRenderNode.Process(visitor);
-
+    rsEffectRenderNode.Prepare(visitor);
     std::shared_ptr<RSNodeVisitor> visitorTwo = std::make_shared<RSRenderThreadVisitor>();
     rsEffectRenderNode.Prepare(visitorTwo);
+    rsEffectRenderNode.Process(visitorTwo);
     ASSERT_TRUE(true);
 }
 
@@ -81,7 +85,7 @@ HWTEST_F(RSEffectRenderNodeTest, Process, TestSize.Level1)
  * @tc.name: GetFilterRect
  * @tc.desc: test results of GetFilterRect
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
 {
@@ -91,13 +95,15 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     Drawing::RectI path;
     rsEffectRenderNode.SetEffectRegion(path);
     rsEffectRenderNode.GetFilterRect();
+    rsEffectRenderNode.childHasVisibleEffect_ = true;
+    rsEffectRenderNode.GetFilterRect();
 }
 
 /**
  * @tc.name: ProcessRenderBeforeChildren
  * @tc.desc: test results of ProcessRenderBeforeChildren
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSEffectRenderNodeTest, ProcessRenderBeforeChildren, TestSize.Level1)
 {
@@ -107,13 +113,25 @@ HWTEST_F(RSEffectRenderNodeTest, ProcessRenderBeforeChildren, TestSize.Level1)
     Drawing::Canvas canvas(1, 1);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+    rsEffectRenderNode.renderContent_->renderProperties_.SetHaveEffectRegion(true);
+    rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+    auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
+    rsEffectRenderNode.renderContent_->renderProperties_.SetBackgroundFilter(backgroundFilter);
+    paintFilterCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+    paintFilterCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::UNDEFINED);
+    rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+    auto image = std::make_shared<RSImage>();
+    rsEffectRenderNode.renderContent_->renderProperties_.SetBgImage(image);
+    rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
+    EXPECT_NE(rsEffectRenderNode.renderContent_->renderProperties_.GetBgImage(), nullptr);
 }
 
 /**
  * @tc.name: SetEffectRegion
  * @tc.desc: test results of SetEffectRegion
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
 {
@@ -122,6 +140,113 @@ HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
     Drawing::RectI path(1, 1, 1, 1);
     rsEffectRenderNode.SetEffectRegion(path);
+    rsEffectRenderNode.SetEffectRegion(std::nullopt);
+    Drawing::RectI rectI(0, 0, 1, 1);
+    rsEffectRenderNode.SetEffectRegion(rectI);
+    rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[0] = 1.f;
+    rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[1] = 1.f;
+    rsEffectRenderNode.SetEffectRegion(rectI);
+}
+
+/**
+ * @tc.name: CheckBlurFilterCacheNeedForceClearOrSaveTest
+ * @tc.desc: test results of CheckBlurFilterCacheNeedForceClearOrSave
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, CheckBlurFilterCacheNeedForceClearOrSaveTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false);
+    auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
+    rsEffectRenderNode.renderContent_->renderProperties_.SetBackgroundFilter(backgroundFilter);
+    rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false);
+    EXPECT_EQ(rsEffectRenderNode.GetFilterDrawable(false), nullptr);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithSelfDirtyTest
+ * @tc.desc: test results of UpdateFilterCacheWithSelfDirty
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_EQ(rsEffectRenderNode.GetFilterDrawable(false), nullptr);
+}
+
+/**
+ * @tc.name: MarkFilterCacheFlagsTest
+ * @tc.desc: test results of MarkFilterCacheFlags
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    RSDirtyRegionManager dirtyManager;
+    rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
+    rsEffectRenderNode.isRotationChanged_ = true;
+    rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
+    filterDrawable->forceUseCache_ = true;
+    filterDrawable->forceClearCache_ = true;
+    rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
+    EXPECT_TRUE(rsEffectRenderNode.isRotationChanged_);
+}
+
+/**
+ * @tc.name: MarkFilterHasEffectChildrenTest
+ * @tc.desc: test results of MarkFilterHasEffectChildren
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, MarkFilterHasEffectChildrenTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
+    rsEffectRenderNode.renderContent_->renderProperties_.SetBackgroundFilter(backgroundFilter);
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: OnFilterCacheStateChangedTest
+ * @tc.desc: test results of OnFilterCacheStateChanged
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, OnFilterCacheStateChangedTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.OnFilterCacheStateChanged();
+    rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
+    rsEffectRenderNode.OnFilterCacheStateChanged();
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: MarkClearFilterCacheIfEffectChildrenChangedTest
+ * @tc.desc: test results of MarkClearFilterCacheIfEffectChildrenChanged
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, MarkClearFilterCacheIfEffectChildrenChangedTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
+    EXPECT_EQ(rsEffectRenderNode.GetFilterDrawable(false), nullptr);
 }
 
 /**
@@ -143,5 +268,22 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithBelowDirty, TestSize.Level
     rsEffectRenderNode.preRotationStatus_ = true;
     rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: QuickPrepareTest
+ * @tc.desc: test results of QuickPrepare
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSEffectRenderNodeTest, QuickPrepareTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSEffectRenderNode rsEffectRenderNode(id);
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    rsEffectRenderNode.QuickPrepare(visitor);
+    visitor = std::make_shared<RSRenderThreadVisitor>();
+    rsEffectRenderNode.QuickPrepare(visitor);
+    EXPECT_FALSE(rsEffectRenderNode.preStaticStatus_);
 }
 } // namespace OHOS::Rosen

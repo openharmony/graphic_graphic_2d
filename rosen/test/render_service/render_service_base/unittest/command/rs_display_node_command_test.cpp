@@ -121,6 +121,36 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddDisplayNodeToTree001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, AddDisplayNodeToTree001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id);
+
+    NodeId id2 = static_cast<NodeId>(2);
+    DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id2);
+}
+
+/**
+ * @tc.name: RemoveDisplayNodeFromTree001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, RemoveDisplayNodeFromTree001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    DisplayNodeCommandHelper::RemoveDisplayNodeFromTree(context, id);
+
+    NodeId id2 = static_cast<NodeId>(2);
+    DisplayNodeCommandHelper::RemoveDisplayNodeFromTree(context, id2);
+}
+
+/**
  * @tc.name: SetBootAnimation001
  * @tc.desc: test.
  * @tc.type: FUNC
@@ -191,5 +221,22 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
     config.mirrorNodeId = mirrorNodeId;
     DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+}
+
+/**
+ * @tc.name: SetScbNodePid
+ * @tc.desc: SetScbNodePid test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    std::vector<int32_t> oldScbPids = {};
+    int32_t currentScbPid = -1;
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+    oldScbPids.push_back(1);
+    oldScbPids.push_back(2);
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
 }
 } // namespace OHOS::Rosen

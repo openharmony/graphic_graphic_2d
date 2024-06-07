@@ -1303,7 +1303,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             }
             UpdateClipAbsDrawRectChangeState(clipRect);
         }
-        UpdateClipAbsDrawRectChangeState(clipRect);
     }
     // 3. update dirtyRegion if needed
     if (properties.GetBackgroundFilter()) {
@@ -1812,6 +1811,28 @@ std::shared_ptr<DrawableV2::RSFilterDrawable> RSRenderNode::GetFilterDrawable(bo
     return nullptr;
 }
 
+void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+        return;
+    }
+    auto hasBackground = drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_COLOR)] ||
+                         drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_SHADER)] ||
+                         drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_IMAGE)];
+    auto alphaDirty = dirtyTypes_.test(static_cast<size_t>(RSModifierType::ALPHA));
+    if (alphaDirty && hasBackground) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderNode[%llu] background color or shader or image is dirty due to changes in alpha", GetId());
+        filterDrawable->MarkFilterForceClearCache();
+    }
+#endif
+}
+
 void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -2247,6 +2268,8 @@ void RSRenderNode::ApplyModifiers()
     // Temporary code, copy matrix into render params
     UpdateDrawableVec();
     UpdateDrawableVecV2();
+
+    UpdateFilterCacheWithBackgroundDirty();
 
     //Clear node some resource
     ClearResource();
@@ -3395,6 +3418,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 {
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
+    stagingRenderParams_->SetRSFreezeFlag(isStaticCached);
     if (!isStaticCached_) {
         SetContentDirty();
     }
@@ -3802,7 +3826,7 @@ void RSRenderNode::OnSync()
 
     // copy newest for uifirst root node, now force sync done nodes
     if (uifirstNeedSync_) {
-        RS_TRACE_NAME_FMT("uifirst_sync %lx", GetId());
+        RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
         renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
                                                     renderDrawable_->drawCmdList_.end());
         renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
@@ -3820,7 +3844,7 @@ void RSRenderNode::OnSync()
             dirtySlots_.clear();
         }
     } else {
-        RS_TRACE_NAME_FMT("partial_sync %lx", GetId());
+        RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
         std::vector<RSDrawableSlot> todele;
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -3837,8 +3861,7 @@ void RSRenderNode::OnSync()
         }
         uifirstSkipPartialSync_ = false;
     }
-    if ((GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_)
-        && clearSurfaceTask_ && needClearSurface_) {
+    if (ShouldClearSurface()) {
         clearSurfaceTask_();
         needClearSurface_ = false;
     }
@@ -3849,6 +3872,13 @@ void RSRenderNode::OnSync()
     foregroundFilterInteractWithDirty_ = false;
 
     lastFrameSynced_ = true;
+}
+
+bool RSRenderNode::ShouldClearSurface()
+{
+    bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
+    bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
+    return (renderGroupFlag || freezeFlag) && clearSurfaceTask_ && needClearSurface_;
 }
 
 void RSRenderNode::ValidateLightResources()

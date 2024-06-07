@@ -224,7 +224,16 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
     displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
-    displayParams->SetNeedOffscreen(IsRotationChanged());
+}
+
+void RSDisplayRenderNode::UpdateOffscreenRenderParams(bool needOffscreen)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateOffscreenRenderParams displayParams is null");
+        return;
+    }
+    displayParams->SetNeedOffscreen(needOffscreen);
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()

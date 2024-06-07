@@ -258,5 +258,89 @@ HWTEST_F(GERenderTest, ApplyImageEffect001, TestSize.Level1)
     GTEST_LOG_(INFO) << "GERenderTest ApplyImageEffect001 end";
 }
 
+/**
+ * @tc.name: GenerateShaderFilter001
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter001 start";
+
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_AI_BAR);
+    visualEffect->SetParam(Drawing::GE_FILTER_AI_BAR_LOW, 1.0f); // 1.0 AI bar blur low
+    visualEffect->SetParam(Drawing::GE_FILTER_AI_BAR_HIGH, 1.0f); // 1.0 AI bar blur high
+    visualEffect->SetParam(Drawing::GE_FILTER_AI_BAR_THRESHOLD, 1.0f); // 1.0 AI bar blur threshold
+    visualEffect->SetParam(Drawing::GE_FILTER_AI_BAR_OPACITY, 1.0f); // 1.0 AI bar blur opacity
+    visualEffect->SetParam(Drawing::GE_FILTER_AI_BAR_SATURATION, 1.0f); // 1.0 AI bar blur saturation
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_NE(shaderFilters[0], nullptr);
+
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter001 end";
+}
+
+/**
+ * @tc.name: GenerateShaderFilter002
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter002 start";
+
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY);
+    visualEffect->SetParam(Drawing::GE_FILTER_GREY_COEF_1, 1.0f); // 1.0 grey blur coff
+    visualEffect->SetParam(Drawing::GE_FILTER_GREY_COEF_2, 1.0f); // 1.0 grey blur coff
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_NE(shaderFilters[0], nullptr);
+
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter002 end";
+}
+
+/**
+ * @tc.name: GenerateShaderFilter003
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter003 start";
+
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR);
+    visualEffect->SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_DIRECTION, 1); // 1 blur directon
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_NE(shaderFilters[0], nullptr);
+
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter003 end";
+}
+
+/**
+ * @tc.name: GenerateShaderFilter004
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter004 start";
+
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>("");
+    visualEffect->SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_DIRECTION, 1); // 1 blur directon
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_EQ(shaderFilters[0], nullptr);
+
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter003 end";
+}
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

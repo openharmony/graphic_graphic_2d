@@ -60,6 +60,7 @@ Note: If the text contains special characters, please escape them according to t
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files that do not need to be scanned">
                 <filteritem type="filename" name="*.cfg" desc="cfg no need to add policy"/>
+                <filteritem type="filepath" name="frameworks/bootanimation/data/bootvideo.mp4" desc="default video"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filename" name="graphic.png" desc="readme graphic png"/>

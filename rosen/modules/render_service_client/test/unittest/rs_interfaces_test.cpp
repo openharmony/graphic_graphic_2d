@@ -1560,5 +1560,29 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
     std::vector<NodeId> blackList = {1, 2, 3};
     rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
 }
+
+/*
+ * @tc.name: MarkPowerOffNeedProcessOneFrame
+ * @tc.desc: Test MarkPowerOffNeedProcessOneFrame
+ * @tc.type: FUNC
+ * @tc.require:issueI9P2VD
+ */
+HWTEST_F(RSInterfacesTest, MarkPowerOffNeedProcessOneFrame, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->MarkPowerOffNeedProcessOneFrame();
+}
+
+/*
+ * @tc.name: DisablePowerOffRenderControl
+ * @tc.desc: Test DisablePowerOffRenderControl
+ * @tc.type: FUNC
+ * @tc.require:issueI9P2VD
+ */
+HWTEST_F(RSInterfacesTest, DisablePowerOffRenderControl, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->DisablePowerOffRenderControl(INVALID_SCREEN_ID);
+}
 } // namespace Rosen
 } // namespace OHOS

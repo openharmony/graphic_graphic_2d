@@ -16,6 +16,8 @@
 #ifndef RS_PROFILER_MESSAGE_HELPER_H
 #define RS_PROFILER_MESSAGE_HELPER_H
 
+#include "rs_profiler_utils.h"
+
 #include <bitset>
 #include <iterator>
 #include <type_traits>
@@ -92,11 +94,9 @@ public:
         LOG_TRACE,
     };
 
-    enum class Header { TYPE = 0, LENGTH = 1 };
-
     static constexpr size_t HEADER_SIZE = sizeof(uint32_t) + sizeof(uint8_t);
 
-    explicit Packet(PacketType type);
+    explicit Packet(PacketType type, uint32_t reserve = DEFAULT_RESERVED_SIZE);
     Packet(const Packet&) = default;
     Packet& operator=(const Packet&) = default;
     Packet(Packet&&) = default;
@@ -120,7 +120,7 @@ public:
     template<typename T, typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
     [[maybe_unused]] bool Read(T& value);
 
-    template<typename T, typename = std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::size)>>>
+    template<typename T>
     [[maybe_unused]] bool Read(T& value, size_t size);
 
     [[maybe_unused]] bool Read(void* value, size_t size);
@@ -128,7 +128,7 @@ public:
     template<typename T, typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
     T Read();
 
-    template<typename T, typename = std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::size)>>>
+    template<typename T>
     T Read(size_t size);
 
     template<typename T>
@@ -139,23 +139,12 @@ public:
 private:
     void SetLength(uint32_t length);
 
-    template<typename T>
-    bool WriteTrivial(const T& value);
-
-    template<typename T, Header Offset>
-    constexpr const T* GetHeaderFieldPtr() const
-    {
-        return const_cast<Packet*>(this)->GetHeaderFieldPtr<T, Offset>();
-    }
-    template<typename T, Header Offset>
-    constexpr T* GetHeaderFieldPtr()
-    {
-        return reinterpret_cast<T*>(data_.data() + static_cast<int>(Offset));
-    }
-
     void InitData(PacketType type);
 
 private:
+    static constexpr size_t HEADER_TYPE_OFFSET = 0;
+    static constexpr size_t HEADER_LENGTH_OFFSET = sizeof(uint8_t);
+    static constexpr size_t DEFAULT_RESERVED_SIZE = 64;
     size_t readPointer_ = HEADER_SIZE;
     size_t writePointer_ = HEADER_SIZE;
     std::vector<char> data_ = { 0, 0, 0, 0, 0 };
@@ -164,31 +153,25 @@ private:
 template<typename T, typename>
 [[maybe_unused]] inline bool Packet::Read(T& value)
 {
-    if (readPointer_ + sizeof(T) > data_.size()) {
-        return false;
-    }
-    value = *reinterpret_cast<T*>(data_.data() + readPointer_);
-    readPointer_ += sizeof(T);
-    return true;
+    return Read(&value, sizeof(value));
 }
 
-template<typename T, typename>
-[[maybe_unused]] inline bool Packet::Read(T& value, size_t size)
+template<typename T>
+[[maybe_unused]] bool Packet::Read(T& value, size_t size)
 {
-    value.resize(size);
-    return Read(reinterpret_cast<void*>(value.data()), size * sizeof(typename T::value_type));
-}
-
-[[maybe_unused]] inline bool Packet::Read(void* value, size_t size)
-{
-    if (readPointer_ + size > data_.size()) {
-        return false;
+    if constexpr (HasContiguousLayout<T>::value) {
+        value.resize(size);
+        return Read(value.data(), size * sizeof(typename T::value_type));
+    } else {
+        bool res = true;
+        for (size_t i = 0; i < size; ++i) {
+            typename T::value_type v {};
+            res = res && Read(v);
+            value.emplace(std::move(v));
+        }
+        return res;
     }
-    if (::memcpy_s(reinterpret_cast<void*>(value), size, (void*)(data_.data() + readPointer_), size) != 0) {
-        return false;
-    }
-    readPointer_ += size;
-    return true;
+    return false;
 }
 
 template<typename T, typename>
@@ -199,7 +182,7 @@ inline T Packet::Read()
     return v;
 }
 
-template<typename T, typename>
+template<typename T>
 inline T Packet::Read(size_t size)
 {
     T v {};
@@ -211,9 +194,9 @@ template<typename T>
 [[maybe_unused]] bool Packet::Write(const T& value)
 {
     if constexpr (std::is_trivially_copyable_v<T>) {
-        return WriteTrivial(value);
+        return Write(&value, sizeof(value));
     } else if constexpr (HasContiguousLayout<T>::value) {
-        return Write(reinterpret_cast<const void*>(value.data()), value.size() * sizeof(typename T::value_type));
+        return Write(value.data(), value.size() * sizeof(typename T::value_type));
     } else {
         bool res = true;
         for (auto it = value.cbegin(); it != value.cend(); ++it) {
@@ -222,30 +205,6 @@ template<typename T>
         return res;
     }
     return false;
-}
-
-[[maybe_unused]] inline bool Packet::Write(const void* value, size_t size)
-{
-    data_.resize(data_.size() + size);
-    if (memcpy_s(reinterpret_cast<void*>(data_.data() + writePointer_), size, value, size) != 0) {
-        data_.resize(data_.size() - size);
-        return false;
-    }
-    writePointer_ += size;
-    SetLength(data_.size());
-    return true;
-}
-
-template<typename T>
-inline bool Packet::WriteTrivial(const T& value)
-{
-    if (writePointer_ + sizeof(T) > data_.size()) {
-        data_.resize(data_.size() + (sizeof(T) - (data_.size() - writePointer_)));
-    }
-    *reinterpret_cast<T*>((data_.data() + writePointer_)) = value;
-    writePointer_ += sizeof(T);
-    SetLength(data_.size());
-    return true;
 }
 
 } // namespace OHOS::Rosen

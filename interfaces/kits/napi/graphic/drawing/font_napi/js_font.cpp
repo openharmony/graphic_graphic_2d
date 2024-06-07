@@ -310,13 +310,15 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnMeasureText Argv[0] is invalid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The text input must be string.");
     }
 
     TextEncoding TextEncoding = TextEncoding::UTF8;
     if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[1])) {
         ROSEN_LOGE("JsFont::OnMeasureText ConvertFromJsTextEncoding failed");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The TextEncoding input must be valid.");
     }
 
     double textSize = m_font->MeasureText(text.c_str(), text.length(), TextEncoding);

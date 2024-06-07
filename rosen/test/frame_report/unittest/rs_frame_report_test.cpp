@@ -37,6 +37,18 @@ void RsFrameReportTest::SetUp() {}
 void RsFrameReportTest::TearDown() {}
 
 /**
+ * @tc.name: GetEnable001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
+{
+    RsFrameReport::GetInstance().LoadLibrary();
+    RsFrameReport::GetInstance().GetEnable();
+}
+
+/**
  * @tc.name: ProcessCommandsStart001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -73,6 +85,39 @@ HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRenderStart001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
+{
+    RsFrameReport::GetInstance().RSRenderStart();
+}
+
+/**
+ * @tc.name: RenderEnd001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
+{
+    RsFrameReport::GetInstance().RenderEnd();
+}
+
+/**
+ * @tc.name: RSRenderEnd001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
+{
+    RsFrameReport::GetInstance().RSRenderEnd();
+}
+
+/**
  * @tc.name: SendCommandsStart001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -81,6 +126,17 @@ HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, SendCommandsStart001, TestSize.Level1)
 {
     RsFrameReport::GetInstance().SendCommandsStart();
+}
+
+/**
+ * @tc.name: SetFrameParam001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, SetFrameParam001, TestSize.Level1)
+{
+    RsFrameReport::GetInstance().SetFrameParam(0, 0, 0, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

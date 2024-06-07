@@ -996,9 +996,10 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
     Image image;
     Lattice lattice;
     Rect dst;
-    Brush brush;
-    skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, &brush);
-    skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, nullptr);
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    skiaCanvas->AttachPaint(paint);
+    skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR);
 }
 
 /**

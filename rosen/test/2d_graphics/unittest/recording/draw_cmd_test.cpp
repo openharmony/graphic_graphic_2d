@@ -537,14 +537,11 @@ HWTEST_F(DrawCmdTest, Marshalling011, TestSize.Level1)
     Image image;
     Lattice lattice;
     Rect dst;
-    Brush brush;
-    DrawImageLatticeOpItem opItem{&image, lattice, dst, FilterMode::NEAREST, &brush};
+    Paint paint;
+    DrawImageLatticeOpItem opItem{&image, lattice, dst, FilterMode::NEAREST, paint};
     opItem.Marshalling(*drawCmdList);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     opItem.Playback(recordingCanvas.get(), nullptr);
-    DrawImageLatticeOpItem opItem2{&image, lattice, dst, FilterMode::NEAREST, nullptr};
-    opItem2.Marshalling(*drawCmdList);
-    opItem2.Playback(recordingCanvas.get(), nullptr);
 }
 
 /**

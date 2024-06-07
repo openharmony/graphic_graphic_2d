@@ -2725,5 +2725,41 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetDoDirectComposition001, TestSize.Level2)
     node->SetDoDirectComposition(true);
     ASSERT_EQ(node->GetDoDirectComposition(), true);
 }
+
+/**
+ * @tc.name: SetSkipDraw001
+ * @tc.desc: Test function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSkipDraw001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSkipDraw(true);
+    ASSERT_TRUE(node->GetSkipDraw());
+
+    node->SetSkipDraw(false);
+    ASSERT_FALSE(node->GetSkipDraw());
+}
+
+/**
+ * @tc.name: SetSkipDraw001
+ * @tc.desc: Test function SetSkipDraw
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6LX
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetSkipDraw001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->GetSkipDraw());
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -497,6 +497,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             MarkPowerOffNeedProcessOneFrame();
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            DisablePowerOffRenderControl(id);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -528,6 +538,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             float scaleX = data.ReadFloat();
             float scaleY = data.ReadFloat();
+            bool useDma = data.ReadBool();
             SurfaceCaptureType surfaceCaptureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
 
             auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
@@ -537,7 +548,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access TAKE_SURFACE_CAPTURE");
                 return ERR_INVALID_STATE;
             }
-            TakeSurfaceCapture(id, cb, scaleX, scaleY, surfaceCaptureType, isSync);
+            TakeSurfaceCapture(id, cb, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {

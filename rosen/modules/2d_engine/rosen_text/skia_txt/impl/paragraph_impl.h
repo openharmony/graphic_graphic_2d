@@ -87,7 +87,7 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    std::vector<LineMetrics>& GetLineMetrics() override;
+    std::vector<skia::textlayout::LineMetrics> GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 

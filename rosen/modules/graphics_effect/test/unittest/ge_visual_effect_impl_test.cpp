@@ -143,5 +143,139 @@ HWTEST_F(GEVisualEffectImplTest, SetParam002, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl2.GetGreyParams()->greyCoef2, paramfloat);
 }
 
+/**
+ * @tc.name: SetParam003
+ * @tc.desc: Verify function SetParam  no filter type
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam003, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    geVisualEffectImpl.SetParam("", 0); // 0 invalid params
+    geVisualEffectImpl.SetParam("", false);
+    geVisualEffectImpl.SetParam("", 1.0f); // 1.0f invalid params
+    geVisualEffectImpl.SetParam("", 1.0f); // 1.0f invalid params
+    Drawing::Matrix blurMat;
+    geVisualEffectImpl.SetParam("", blurMat);
+    std::vector<std::pair<float, float>> blurFractionStops;
+    geVisualEffectImpl.SetParam("", blurFractionStops);
+    geVisualEffectImpl.SetAIBarParams("", 1.0f); // 1.0f invalid params
+    geVisualEffectImpl.SetGreyParams("", 1.0f); // 1.0f invalid params
+    geVisualEffectImpl.SetLinearGradientBlurParams("", 1.0f); // 1.0f invalid params
+    EXPECT_EQ(geVisualEffectImpl.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::NONE);
+}
+
+/**
+ * @tc.name: SetParam004
+ * @tc.desc: Verify function SetParam for param is nullptr when filtertype is NONE
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam004, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR);
+    geVisualEffectImpl.SetParam("", 0); // 0 invalid params
+
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
+    geVisualEffectImpl.SetParam("", 0); // 0 invalid params
+    geVisualEffectImpl.SetParam("", false);
+    Drawing::Matrix blurMat;
+    geVisualEffectImpl.SetParam("", blurMat);
+    std::vector<std::pair<float, float>> blurFractionStops;
+    geVisualEffectImpl.SetParam("", blurFractionStops);
+
+    EXPECT_EQ(geVisualEffectImpl.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
+}
+
+/**
+ * @tc.name: SetParam005
+ * @tc.desc: Verify function SetParam for tag is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam005, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_KAWASE_BLUR);
+    geVisualEffectImpl.SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, 2); // 2 blur radius
+    EXPECT_EQ(geVisualEffectImpl.GetKawaseParams()->radius, 2);
+    geVisualEffectImpl.SetParam("", 3); // 3 blur radius, but invalid
+    EXPECT_NE(geVisualEffectImpl.GetKawaseParams()->radius, 3);
+}
+
+/**
+ * @tc.name: SetParam006
+ * @tc.desc: Verify function SetParam for tag is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam006, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR);
+    geVisualEffectImpl.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_DIRECTION, 2); // 2 blur direction
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->direction, 2);
+    geVisualEffectImpl.SetParam("", 3); // 3 blur direction, but invalid
+    EXPECT_NE(geVisualEffectImpl.GetLinearGradientBlurParams()->direction, 3);
+
+    geVisualEffectImpl.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_IS_OFF_SCREEN, true);
+    EXPECT_TRUE(geVisualEffectImpl.GetLinearGradientBlurParams()->isOffscreenCanvas);
+    geVisualEffectImpl.SetParam("", false);
+    EXPECT_TRUE(geVisualEffectImpl.GetLinearGradientBlurParams()->isOffscreenCanvas);
+
+    Drawing::Matrix blurMat;
+    blurMat.Set(Drawing::Matrix::SKEW_X, 0.002f); // 0.002f skew x
+    geVisualEffectImpl.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_CANVAS_MAT, blurMat);
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->mat, blurMat);
+    Drawing::Matrix mat;
+    mat.Set(Drawing::Matrix::SKEW_X, 0.005f); // 0.005f skew x
+    geVisualEffectImpl.SetParam("", mat);
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->mat, blurMat);
+
+    std::vector<std::pair<float, float>> blurFractionStops {{0.1f, 0.1f}};
+    geVisualEffectImpl.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_FRACTION_STOPS, blurFractionStops);
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->fractionStops, blurFractionStops);
+    std::vector<std::pair<float, float>> expectFractionStops {{0.2f, 0.2f}};
+    geVisualEffectImpl.SetParam("", expectFractionStops);
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->fractionStops, blurFractionStops);
+}
+
+/**
+ * @tc.name: SetParam007
+ * @tc.desc: Verify function SetParam for action is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam007, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_AI_BAR);
+    geVisualEffectImpl.SetAIBarParams(Drawing::GE_FILTER_AI_BAR_LOW, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetAIBarParams()->aiBarLow, 1.0f);
+    geVisualEffectImpl.SetAIBarParams("", 2.0f);
+    EXPECT_NE(geVisualEffectImpl.GetAIBarParams()->aiBarLow, 2.0f);
+}
+
+/**
+ * @tc.name: SetParam008
+ * @tc.desc: Verify function SetParam for action is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam008, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_GREY);
+    geVisualEffectImpl.SetGreyParams(Drawing::GE_FILTER_GREY_COEF_1, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetGreyParams()->greyCoef1, 1.0f);
+    geVisualEffectImpl.SetGreyParams("", 2.0f);
+    EXPECT_NE(geVisualEffectImpl.GetGreyParams()->greyCoef1, 2.0f);
+}
+
+/**
+ * @tc.name: SetParam009
+ * @tc.desc: Verify function SetParam for action is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam009, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR);
+    geVisualEffectImpl.SetLinearGradientBlurParams(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_RADIUS, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->blurRadius, 1.0f);
+    geVisualEffectImpl.SetLinearGradientBlurParams("", 2.0f);
+    EXPECT_NE(geVisualEffectImpl.GetLinearGradientBlurParams()->blurRadius, 2.0f);
+}
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

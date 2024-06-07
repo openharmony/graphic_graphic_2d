@@ -54,7 +54,6 @@ enum Extension {
     EXT_SWAPCHAIN_COLOR_SPACE,
     KHR_GET_SURFACE_CAPABILITIES_2,
     EXT_HDR_METADATA,
-    EXT_SWAPCHAIN_MAINTENANCE_1,
     EXTENSION_COUNT,
     EXTENSION_UNKNOWN,
 };
@@ -250,10 +249,6 @@ static const VkExtensionProperties g_deviceExtensions[] = {
     {
         .extensionName = VK_EXT_HDR_METADATA_EXTENSION_NAME,
         .specVersion = 2,
-    },
-    {
-        .extensionName = VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,
-        .specVersion = 1,
     }
 };
 
@@ -598,12 +593,12 @@ VKAPI_ATTR VkResult SetWindowBufferGeometry(NativeWindow* window, int width, int
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowTransformHint(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
+VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
 {
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    int err = NativeWindowSetTransformHint(window, transformType);
+    int err = NativeWindowHandleOpt(window, SET_TRANSFORM, transformType);
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Transform failed: %{public}d", err);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -737,7 +732,7 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
     OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
     SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
         static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
-    if (SetWindowTransformHint(window, transformType) != VK_SUCCESS) {
+    if (SetWindowTransform(window, transformType) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -1326,37 +1321,6 @@ VKAPI_ATTR void VKAPI_CALL SetHdrMetadataEXT(
     SWLOGE("NativeWindow Not Support Set HdrMetaData[TODO]");
 }
 
-/*
-    VK_EXT_swapchain_maintenance1
-*/
-
-VKAPI_ATTR VkResult VKAPI_CALL ReleaseSwapchainImagesEXT(
-    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo)
-{
-    ScopedBytrace trace(__func__);
-    Swapchain& swapchain = *SwapchainFromHandle(pReleaseInfo->swapchain);
-    if (swapchain.shared) {
-        return VK_SUCCESS;
-    }
-    NativeWindow* window = swapchain.surface.window;
-
-    for (uint32_t i = 0; i < pReleaseInfo->imageIndexCount; i++) {
-        Swapchain::Image& img = swapchain.images[pReleaseInfo->pImageIndices[i]];
-        NativeWindowCancelBuffer(window, img.buffer);
-        img.requestFence = -1;
-        img.requested = false;
-
-        if (img.releaseFence >= 0) {
-           close(img.releaseFence);
-           img.releaseFence = -1;
-        }
-    }
-
-    return VK_SUCCESS;
-}
-
-
-
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
     VkSurfaceCapabilities2KHR* pSurfaceCapabilities)
@@ -1527,9 +1491,6 @@ Extension GetExtensionBitFromName(const char* name)
     }
     if (strcmp(name, VK_EXT_HDR_METADATA_EXTENSION_NAME) == 0) {
         return Extension::EXT_HDR_METADATA;
-    }
-    if (strcmp(name, VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME) == 0) {
-        return Extension::EXT_SWAPCHAIN_MAINTENANCE_1;
     }
     return Extension::EXTENSION_UNKNOWN;
 }
@@ -1851,12 +1812,6 @@ static inline PFN_vkVoidFunction LayerInterceptDeviceProc(
         PFN_vkVoidFunction addr = GetSwapchainProc(name);
         if (addr != nullptr) {
             return addr;
-        }
-        // Extension EXT_SWAPCHAIN_MAINTENANCE_1 depends on KHR_SWAPCHAIN
-        if (enabledExtensions.test(Extension::EXT_SWAPCHAIN_MAINTENANCE_1)) {
-            if (strcmp("vkReleaseSwapchainImagesEXT", name) == 0) {
-                return reinterpret_cast<PFN_vkVoidFunction>(ReleaseSwapchainImagesEXT);
-            }
         }
     }
     if (enabledExtensions.test(Extension::EXT_HDR_METADATA)) {
