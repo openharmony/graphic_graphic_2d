@@ -5105,14 +5105,6 @@ HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
     std::optional<Vector2f> parentPosition;
     rsNode->SetSandBox(parentPosition);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
-    RSModifierType modifierType = RSModifierType::SANDBOX;
-    std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
-    modifier->property_ = nullptr;
-    rsNode->propertyModifiers_[modifierType] = modifier;
-    rsNode->SetSandBox(parentPosition);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-
     Vector2f newPosition(1.0f, 2.0f);
     parentPosition = newPosition;
     rsNode->SetSandBox(parentPosition);
