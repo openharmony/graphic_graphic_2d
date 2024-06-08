@@ -309,9 +309,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtilsTest->MakeBinarizationShader(1.0f, 1.0f, 1.0f, 1.0f, imageShaderTest2), nullptr);
 
     RSDynamicBrightnessPara params;
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params, -1.0f), nullptr);
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params, 1.0f), nullptr);
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params, -0.001f), nullptr);
+    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
+    params.fraction_ = -1.0f;
+    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
+    params.fraction_ = -0.001f;
+    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
 }
 
 /**

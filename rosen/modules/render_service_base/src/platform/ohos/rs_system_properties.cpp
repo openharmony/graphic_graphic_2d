@@ -507,6 +507,15 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     return enabled;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    // Determine whether the daynamic brightness render should be enabled. The default value is 1,
+    // which means that it is enabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.dynamicBrightnessEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     static bool kawaseBlurEnabled =

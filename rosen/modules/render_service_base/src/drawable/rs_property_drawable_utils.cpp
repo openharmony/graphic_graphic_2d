@@ -703,30 +703,31 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
 }
 
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-    const RSDynamicBrightnessPara& params, const float fract)
+    const RSDynamicBrightnessPara& params)
 {
+    if (!RSSystemProperties::GetDynamicBrightnessEnabled()) {
+        return nullptr;
+    }
+
     auto builder = MakeDynamicBrightnessBuilder();
     if (!builder) {
         ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make builder fail");
         return nullptr;
     }
 
-    constexpr int IDNEX_ZERO = 0;
-    constexpr int IDNEX_ONE = 1;
-    constexpr int IDNEX_TWO = 2;
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
-    builder->SetUniform("ubo_fract", std::clamp(fract, 0.0f, 1.0f));
-    builder->SetUniform("ubo_rate", params.rate_);
-    builder->SetUniform("ubo_degree", params.lightUpDegree_);
-    builder->SetUniform("ubo_cubic", params.cubicCoeff_);
-    builder->SetUniform("ubo_quad", params.quadCoeff_);
+    builder->SetUniform("ubo_fract", std::clamp(params.fraction_, 0.0f, 1.0f));
+    builder->SetUniform("ubo_cubic", params.rates_.x_);
+    builder->SetUniform("ubo_quad", params.rates_.y_);
+    builder->SetUniform("ubo_rate", params.rates_.z_);
+    builder->SetUniform("ubo_degree", params.rates_.w_);
     builder->SetUniform("ubo_baseSat", params.saturation_);
-    builder->SetUniform("ubo_posr", params.posRGB_[IDNEX_ZERO]);
-    builder->SetUniform("ubo_posg", params.posRGB_[IDNEX_ONE]);
-    builder->SetUniform("ubo_posb", params.posRGB_[IDNEX_TWO]);
-    builder->SetUniform("ubo_negr", params.negRGB_[IDNEX_ZERO]);
-    builder->SetUniform("ubo_negg", params.negRGB_[IDNEX_ONE]);
-    builder->SetUniform("ubo_negb", params.negRGB_[IDNEX_TWO]);
+    builder->SetUniform("ubo_posr", params.posCoeff_.x_);
+    builder->SetUniform("ubo_posg", params.posCoeff_.y_);
+    builder->SetUniform("ubo_posb", params.posCoeff_.z_);
+    builder->SetUniform("ubo_negr", params.negCoeff_.x_);
+    builder->SetUniform("ubo_negg", params.negCoeff_.y_);
+    builder->SetUniform("ubo_negb", params.negCoeff_.z_);
     return builder->MakeBlender();
 }
 

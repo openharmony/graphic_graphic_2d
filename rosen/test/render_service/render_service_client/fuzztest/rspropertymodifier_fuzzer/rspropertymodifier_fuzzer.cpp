@@ -330,13 +330,13 @@ bool DoModifier006(const uint8_t* data, size_t size)
     auto dynamicLightUpDegreemodifier = std::make_shared<RSDynamicLightUpDegreeModifier>(property);
     dynamicLightUpDegreemodifier->GetModifierType();
     dynamicLightUpDegreemodifier->CreateRenderModifier();
-    auto fgBrightnessParamsmodifier = std::make_shared<RSFgBrightnessParamsModifier>(property);
+    auto fgBrightnessParamsmodifier = std::make_shared<RSFgBrightnessRatesModifier>(property);
     fgBrightnessParamsmodifier->GetModifierType();
     fgBrightnessParamsmodifier->CreateRenderModifier();
     auto fgBrightnessFractmodifier = std::make_shared<RSFgBrightnessFractModifier>(property);
     fgBrightnessFractmodifier->GetModifierType();
     fgBrightnessFractmodifier->CreateRenderModifier();
-    auto bgBrightnessParamsmodifier = std::make_shared<RSBgBrightnessParamsModifier>(property);
+    auto bgBrightnessParamsmodifier = std::make_shared<RSBgBrightnessRatesModifier>(property);
     bgBrightnessParamsmodifier->GetModifierType();
     bgBrightnessParamsmodifier->CreateRenderModifier();
     auto bgBrightnessFractmodifier = std::make_shared<RSBgBrightnessFractModifier>(property);

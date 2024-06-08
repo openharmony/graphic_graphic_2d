@@ -273,7 +273,7 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
             stagingPropertyDescription_ = properties.GetFgBrightnessDescription();
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-            properties.GetFgBrightnessParams().value(), properties.GetFgBrightnessFract());
+            properties.GetFgBrightnessParams().value());
         stagingIsDangerous_ = false;
     } else if (blendMode && blendMode != static_cast<int>(RSColorBlendMode::NONE)) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {

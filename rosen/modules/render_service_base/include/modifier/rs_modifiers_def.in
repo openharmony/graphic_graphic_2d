@@ -180,14 +180,24 @@ DECLARE_NOANIMATABLE_MODIFIER(ColorBlendMode, int, COLOR_BLEND_MODE, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(ColorBlendApplyType, int, COLOR_BLEND_APPLY_TYPE, Background)
 
-DECLARE_NOANIMATABLE_MODIFIER(FgBrightnessParams, RSDynamicBrightnessPara, FG_BRIGHTNESS_PARAMS,
-    Foreground)
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessRates, Vector4f, FG_BRIGHTNESS_RATES, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessSaturation, float, FG_BRIGHTNESS_SATURATION, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessPosCoeff, Vector4f, FG_BRIGHTNESS_POSCOEFF, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessNegCoeff, Vector4f, FG_BRIGHTNESS_NEGCOEFF, Replace, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(FgBrightnessFract, float, FG_BRIGHTNESS_FRACTION, Replace,
     Foreground, COARSE)
 
-DECLARE_NOANIMATABLE_MODIFIER(BgBrightnessParams, RSDynamicBrightnessPara, BG_BRIGHTNESS_PARAMS,
-    Background)
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessRates, Vector4f, BG_BRIGHTNESS_RATES, Replace, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessSaturation, float, BG_BRIGHTNESS_SATURATION, Replace, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessPosCoeff, Vector4f, BG_BRIGHTNESS_POSCOEFF, Replace, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessNegCoeff, Vector4f, BG_BRIGHTNESS_NEGCOEFF, Replace, Background, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(BgBrightnessFract, float, BG_BRIGHTNESS_FRACTION, Replace,
     Background, COARSE)

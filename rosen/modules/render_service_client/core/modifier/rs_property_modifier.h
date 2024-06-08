@@ -589,10 +589,37 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSFgBrightnessParamsModifier : public RSForegroundModifier {
+class RSC_EXPORT RSFgBrightnessRatesModifier : public RSForegroundModifier {
 public:
-    explicit RSFgBrightnessParamsModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSFgBrightnessParamsModifier() = default;
+    explicit RSFgBrightnessRatesModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFgBrightnessRatesModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSFgBrightnessSaturationModifier : public RSForegroundModifier {
+public:
+    explicit RSFgBrightnessSaturationModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFgBrightnessSaturationModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSFgBrightnessPosCoeffModifier : public RSForegroundModifier {
+public:
+    explicit RSFgBrightnessPosCoeffModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFgBrightnessPosCoeffModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSFgBrightnessNegCoeffModifier : public RSForegroundModifier {
+public:
+    explicit RSFgBrightnessNegCoeffModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFgBrightnessNegCoeffModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
@@ -607,10 +634,37 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
  
-class RSC_EXPORT RSBgBrightnessParamsModifier : public RSBackgroundModifier {
+class RSC_EXPORT RSBgBrightnessRatesModifier : public RSBackgroundModifier {
 public:
-    explicit RSBgBrightnessParamsModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSBgBrightnessParamsModifier() = default;
+    explicit RSBgBrightnessRatesModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBgBrightnessRatesModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBgBrightnessSaturationModifier : public RSBackgroundModifier {
+public:
+    explicit RSBgBrightnessSaturationModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBgBrightnessSaturationModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBgBrightnessPosCoeffModifier : public RSBackgroundModifier {
+public:
+    explicit RSBgBrightnessPosCoeffModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBgBrightnessPosCoeffModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBgBrightnessNegCoeffModifier : public RSBackgroundModifier {
+public:
+    explicit RSBgBrightnessNegCoeffModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBgBrightnessNegCoeffModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

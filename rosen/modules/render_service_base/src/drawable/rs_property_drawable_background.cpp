@@ -328,7 +328,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
             RSPropertyDrawable::stagingPropertyDescription_ = properties.GetBgBrightnessDescription();
         }
         auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-            properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
+            properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
 
