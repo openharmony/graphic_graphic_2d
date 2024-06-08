@@ -283,6 +283,15 @@ public:
 
     bool IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
+    void SetPreScalingMode(ScalingMode scalingMode)
+    {
+        preScalingMode_ = scalingMode;
+    }
+    ScalingMode GetPreScalingMode() const
+    {
+        return preScalingMode_;
+    }
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
     sptr<SurfaceBuffer> GetBuffer() const;
@@ -355,6 +364,7 @@ private:
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
+    ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

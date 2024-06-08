@@ -298,10 +298,13 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
 
+        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-        if (node.GetConsumer()->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
-            scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+        if (node.GetConsumer()->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+            nodeParams->SetPreScalingMode(scalingMode);
+        }
+        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             info.srcRect.x = info.srcRect.x * scale;
             info.srcRect.y = info.srcRect.y * scale;
@@ -742,7 +745,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
     LayerCrop(layer);
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
+    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
@@ -751,11 +755,12 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     }
 
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            LayerScaleDown(layer, node);
-        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-            LayerScaleFit(layer, node);
-        }
+        nodeParams->SetPreScalingMode(scalingMode);
+    }
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        LayerScaleDown(layer, node);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        LayerScaleFit(layer, node);
     }
     return layer;
 }

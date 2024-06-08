@@ -562,13 +562,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, nodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            SrcRectScaleDown(params, buffer, consumer, localBounds);
-        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-            SrcRectScaleFit(params, buffer, consumer, localBounds);
-        }
+        nodeParams->SetPreScalingMode(scalingMode);
+    }
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        SrcRectScaleDown(params, buffer, consumer, localBounds);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
     return params;
 }
@@ -1311,11 +1312,13 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
- 
+        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-        if (node.GetConsumer()->GetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode) == GSERROR_OK &&
-            scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+        if (node.GetConsumer()->GetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode) == GSERROR_OK) {
+            nodeParams->SetPreScalingMode(scalingMode);
+        }
+        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             srcRect.left_ = srcRect.left_ * scale;
             srcRect.top_ = srcRect.top_ * scale;

@@ -1838,7 +1838,8 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
+    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     const auto& buffer = node.GetBuffer();
     const auto& surface = node.GetConsumer();
     if (surface == nullptr) {
@@ -1847,11 +1848,12 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     }
 
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            RSUniRenderUtil::LayerScaleDown(node);
-        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-            RSUniRenderUtil::LayerScaleFit(node);
-        }
+        nodeParams->SetPreScalingMode(scalingMode);
+    }
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        RSUniRenderUtil::LayerScaleDown(node);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        RSUniRenderUtil::LayerScaleFit(node);
     }
     node.SetCalcRectInPrepare(true);
 }
