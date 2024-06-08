@@ -92,6 +92,8 @@ public:
 
     bool IsCurFrameStatic(DeviceType deviceType);
 
+    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+
     bool HasCachedTexture() const;
 
     void SetTextureValidFlag(bool isValid);

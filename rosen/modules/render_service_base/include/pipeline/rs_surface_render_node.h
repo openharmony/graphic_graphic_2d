@@ -590,6 +590,21 @@ public:
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
 
+    void SetLeashWindowVisibleRegionEmpty(bool isLeashWindowVisibleRegionEmpty)
+    {
+        if (!IsLeashWindow()) {
+            return;
+        }
+        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+    }
+
+    bool GetLeashWindowVisibleRegionEmpty() const
+    {
+        return isLeashWindowVisibleRegionEmpty_;
+    }
+
+    void SetLeashWindowVisibleRegionEmptyParam();
+
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
         return visibleDirtyRegion_;
@@ -895,6 +910,8 @@ public:
         grContext_ = grContext;
     }
     // UIFirst
+    void UpdateUIFirstFrameGravity();
+
     void SetSubmittedSubThreadIndex(uint32_t index)
     {
         submittedSubThreadIndex_ = index;
@@ -1225,6 +1242,7 @@ private:
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
+    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
