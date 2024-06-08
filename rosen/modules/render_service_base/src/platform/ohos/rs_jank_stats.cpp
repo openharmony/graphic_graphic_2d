@@ -634,23 +634,20 @@ void RSJankStats::RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool i
     }
     if (!isReportTaskDelayed) {
         if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end() || jankFrames.totalFrames_ <= 0 ||
-            jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL || jankFrames.endTimeSteady_ == TIMESTAMP_INITIAL ||
-            jankFrames.endTimeSteady_ <= jankFrames.startTimeSteady_) {
+            jankFrames.totalFrameTimeSteadyForHTR_ <= 0) {
             return;
         }
-        float animationDuration = static_cast<float>(jankFrames.endTimeSteady_ - jankFrames.startTimeSteady_) / S_TO_MS;
+        float animationDuration = static_cast<float>(jankFrames.totalFrameTimeSteadyForHTR_) / S_TO_MS;
         float animationTotalFrames = static_cast<float>(jankFrames.totalFrames_);
         float animationDynamicFrameRate = animationTotalFrames / animationDuration;
         RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %.2f: %s",
                           animationDynamicFrameRate, animationAsyncTraces_.at(traceId).traceName_.c_str());
     } else {
         if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end() || jankFrames.lastTotalFrames_ <= 0 ||
-            jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL || jankFrames.lastEndTimeSteady_ == TIMESTAMP_INITIAL ||
-            jankFrames.lastEndTimeSteady_ <= jankFrames.startTimeSteady_) {
+            jankFrames.lastTotalFrameTimeSteadyForHTR_ <= 0) {
             return;
         }
-        float animationDuration =
-            static_cast<float>(jankFrames.lastEndTimeSteady_ - jankFrames.startTimeSteady_) / S_TO_MS;
+        float animationDuration = static_cast<float>(jankFrames.lastTotalFrameTimeSteadyForHTR_) / S_TO_MS;
         float animationTotalFrames = static_cast<float>(jankFrames.lastTotalFrames_);
         float animationDynamicFrameRate = animationTotalFrames / animationDuration;
         RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %.2f: %s",
