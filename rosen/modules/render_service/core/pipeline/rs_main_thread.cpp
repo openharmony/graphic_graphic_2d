@@ -1217,10 +1217,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
         }
-
+#ifdef RS_ENABLE_VK
         const auto& surfaceBuffer = surfaceNode->GetBuffer();
-        if (RSSystemProperties::GetDrmEnabled() && deviceType_ == DeviceType::PHONE && surfaceBuffer &&
-            (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+        if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
+            deviceType_ != DeviceType::PC && surfaceBuffer && (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
             }
@@ -1229,7 +1230,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hasProtectedLayer_ = true;
             }
         }
-
+#endif
         // still have buffer(s) to consume.
         if (surfaceHandler.GetAvailableBufferCount() > 0 || surfaceHandler.HasBufferCache()) {
             needRequestNextVsync = true;
@@ -3504,7 +3505,7 @@ void RSMainThread::UpdateUIFirstSwitch()
     auto screenManager_ = CreateOrGetScreenManager();
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ != DeviceType::PC) {
-        if (deviceType_ == DeviceType::PHONE && hasProtectedLayer_) {
+        if (hasProtectedLayer_) {
             isUiFirstOn_ = false;
         } else if (isFoldScreenDevice_) {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
