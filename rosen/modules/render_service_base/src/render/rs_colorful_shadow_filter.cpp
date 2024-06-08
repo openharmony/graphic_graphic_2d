@@ -42,6 +42,11 @@ bool RSColorfulShadowFilter::IsValid() const
 void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
     const Drawing::Rect &src, const Drawing::Rect &dst) const
 {
+    if (image == nullptr) {
+        ROSEN_LOGE("RSColorfulShadowFilter::DrawImageRect error");
+        return;
+    }
+
     // draw blur image
     canvas.Translate(offsetX_, offsetY_);
     RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
