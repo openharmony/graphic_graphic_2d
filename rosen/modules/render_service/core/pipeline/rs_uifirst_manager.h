@@ -200,6 +200,10 @@ private:
     // scene in scb
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
+        { "FINGERPRINT_UNLOCK_ANI" }, // finger unlock to desktop
+        { "PASSWORD_UNLOCK_ANI" }, // password unlock to desktop
+        { "FACIAL_FLING_UNLOCK_ANI" }, // facial unlock to desktop
+        { "FACIAL_UNLOCK_ANI" }, // facial unlock to desktop
         { "APP_SWIPER_SCROLL" }, // desktop swipe
         { "APP_SWIPER_FLING" }, // desktop swipe
         { "LAUNCHER_SCROLL" }, // desktop swipe

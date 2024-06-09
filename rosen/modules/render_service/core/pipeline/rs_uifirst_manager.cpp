@@ -731,6 +731,8 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 
 void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("uifirst uniqueId:%lld, appPid:%lld, sceneId:%s",
+        info.uniqueId, info.appPid, info.sceneId.c_str());
     EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};
     std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
     for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
