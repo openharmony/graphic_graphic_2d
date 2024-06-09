@@ -613,11 +613,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
                 canvasBackup_->ConcatMatrix(params->GetMatrix());
                 FinishOffscreenRender(
-                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
+                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
                 uniParam->SetOpDropped(isOpDropped);
             }
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
+        if (RSSystemProperties::IsFoldScreenFlag() && !params->IsRotationChanged()) {
+            offscreenSurface_ = nullptr;
+        }
     }
     RSMainThread::Instance()->SetDirtyFlag(false);
 
@@ -1427,11 +1430,20 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSRenderNode& nod
 {
     // cleanup
     canvasBackup_ = nullptr;
-    offscreenSurface_ = nullptr;
     // check offscreen size and hardware renderer
+    useFixedOffscreenSurfaceSize_ = false;
     const auto& property = node.GetRenderProperties();
     int32_t offscreenWidth = property.GetFrameWidth();
     int32_t offscreenHeight = property.GetFrameHeight();
+    auto params = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
+    // use fixed surface size in order to reduce create texture
+    if (RSSystemProperties::IsFoldScreenFlag() && params && params->IsRotationChanged()) {
+        useFixedOffscreenSurfaceSize_ = true;
+        auto maxRenderSize = std::max(params->GetScreenInfo().width, params->GetScreenInfo().height);
+        offscreenWidth = maxRenderSize;
+        offscreenHeight = maxRenderSize;
+    }
+
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
         RS_LOGE("RSDisplayRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
         return;
@@ -1442,7 +1454,15 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSRenderNode& nod
         return;
     }
     // create offscreen surface and canvas
-    offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+    if (useFixedOffscreenSurfaceSize_) {
+        if (!offscreenSurface_) {
+            RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+        }
+    } else {
+        offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+    }
+    
     if (offscreenSurface_ == nullptr) {
         RS_LOGE("RSDisplayRenderNodeDrawable::PrepareOffscreenRender, offscreenSurface is nullptr");
         curCanvas_->ClipRect(Drawing::Rect(0, 0, offscreenWidth, offscreenHeight), Drawing::ClipOp::INTERSECT, false);
@@ -1470,7 +1490,9 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     canvasBackup_->DrawImage(*offscreenSurface_->GetImageSnapshot().get(), 0, 0, sampling);
     canvasBackup_->DetachBrush();
     // restore current canvas and cleanup
-    offscreenSurface_ = nullptr;
+    if (!useFixedOffscreenSurfaceSize_) {
+        offscreenSurface_ = nullptr;
+    }
     curCanvas_ = std::move(canvasBackup_);
 }
 

@@ -98,6 +98,7 @@ private:
     bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;
     Drawing::Matrix lastMatrix_;
+    bool useFixedOffscreenSurfaceSize_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
