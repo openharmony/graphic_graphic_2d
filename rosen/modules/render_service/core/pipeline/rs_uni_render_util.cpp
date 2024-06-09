@@ -521,36 +521,35 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
 }
 
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-    bool forceCPU, uint32_t threadIndex, bool isRenderThread)
+    bool forceCPU, uint32_t threadIndex, bool useRenderParams)
 {
     BufferDrawParam params;
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
-    if (isRenderThread && !nodeParams) {
+    if (useRenderParams && !nodeParams) {
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam RenderThread nodeParams is nullptr");
         return params;
     }
     const RSProperties& property = node.GetRenderProperties();
 
     params.threadIndex = threadIndex;
-    if (isRenderThread) {
-        params.useBilinearInterpolation = nodeParams->NeedBilinearInterpolation(); // TO-DO
-    }
+    params.useBilinearInterpolation = useRenderParams ?
+        nodeParams->NeedBilinearInterpolation() : node.NeedBilinearInterpolation(); // TO-DO
     params.useCPU = forceCPU;
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
 
-    auto boundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
-    auto boundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
+    auto boundWidth = useRenderParams ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
+    auto boundHeight = useRenderParams ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
     params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
 
-    const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
+    const sptr<SurfaceBuffer> buffer = useRenderParams ? nodeParams->GetBuffer() : node.GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
     params.buffer = buffer;
-    params.acquireFence = nodeParams->GetAcquireFence();
+    params.acquireFence = useRenderParams ? nodeParams->GetAcquireFence() : node.GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
 
     auto& consumer = node.GetConsumer();
@@ -559,7 +558,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     }
     auto transform = consumer->GetTransform();
     RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
-    auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
+    auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, nodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     ScalingMode scalingMode = nodeParams->GetPreScalingMode();
