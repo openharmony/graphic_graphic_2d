@@ -32,6 +32,7 @@
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_drawing_filter.h"
@@ -308,6 +309,9 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     }
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        if (node.GetStagingRenderParams()->NeedSync()) {
+            RSUniRenderThread::Instance().PostSyncTask([&node]() mutable { node.Sync(); });
+        }
         auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(node.GetId());
         if (!drawable) {
             return;
