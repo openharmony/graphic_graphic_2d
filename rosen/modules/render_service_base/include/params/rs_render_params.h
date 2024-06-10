@@ -187,7 +187,7 @@ private:
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    bool canvasDrawingNodeSurfaceChanged_ = false;
+    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;

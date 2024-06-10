@@ -191,6 +191,9 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         }
         auto canvasDrawingParams =
             static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
+        if (canvasDrawingParams->GetCanvasDrawingSurfaceChanged()) {
+            return;
+        }
         DrawContent(*canvas_, rect);
         canvasDrawingParams->SetNeedProcess(false);
         canvasDrawingNode->SetDrawCmdListsVisited(true);
