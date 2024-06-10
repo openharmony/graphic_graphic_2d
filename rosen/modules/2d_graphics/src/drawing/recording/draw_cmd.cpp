@@ -571,6 +571,54 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPath(*path_);
 }
 
+std::shared_ptr<DrawImageRectOpItem> DrawPathOpItem::GenerateQuadCachedOpItem(Canvas* canvas)
+{
+    if (!path_ || paint_.GetWidth() > 1.f) { // only cache when stroke width is too small
+        return nullptr;
+    }
+    auto verbs = path_->GetVerbs();
+    if (std::find(verbs.begin(), verbs.end(), PathVerb::Quad) == verbs.end()) {
+        return nullptr;
+    }
+
+    auto bounds = path_->GetBounds();
+    if (!bounds.IsValid()) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->MakeSurface(bounds.GetWidth(), bounds.GetHeight());
+    } else {
+        // create CPU raster surface
+        Drawing::ImageInfo offscreenInfo { bounds.GetWidth(), bounds.GetHeight(), Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL, nullptr };
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return nullptr;
+    }
+
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+
+    // align draw op to [0, 0]
+    if (bounds.GetLeft() != 0 || bounds.GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds.GetLeft(), -bounds.GetTop());
+    }
+    Playback(offscreenCanvas, nullptr);
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
+    Paint fakePaint;
+    fakePaint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    fakePaint.SetAntiAlias(true);
+    return std::make_shared<DrawImageRectOpItem>(*image, src, dst,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
+}
+
 /* DrawBackgroundOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawBackground, DrawOpItem::BACKGROUND_OPITEM, DrawBackgroundOpItem::Unmarshalling);
 
