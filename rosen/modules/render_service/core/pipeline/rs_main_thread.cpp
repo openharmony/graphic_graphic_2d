@@ -1855,6 +1855,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+            if (!surfaceNode->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
+                params->SetPreBuffer(nullptr);
+                surfaceNode->AddToPendingSyncList();
+            }
             processor->CreateLayer(*surfaceNode, *params);
         }
     }
