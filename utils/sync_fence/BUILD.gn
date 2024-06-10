@@ -34,6 +34,11 @@ config("sync_fence_public_config") {
 }
 
 ohos_shared_library("sync_fence") {
+  sanitize = {
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
+  }
   sources = [
     "src/sync_fence.cpp",
     "src/sync_fence_timeline.cpp",

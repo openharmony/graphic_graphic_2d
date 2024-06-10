@@ -42,6 +42,11 @@ config("composer_public_config") {
 }
 
 ohos_shared_library("libcomposer") {
+  sanitize = {
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
+  }
   sources = [
     "hdi_backend/src/hdi_backend.cpp",
     "hdi_backend/src/hdi_device.cpp",

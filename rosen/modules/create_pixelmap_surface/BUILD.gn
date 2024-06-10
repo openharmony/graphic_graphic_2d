@@ -31,6 +31,9 @@ ohos_source_set("create_pixelmap_surface_src") {
     cfi_cross_dso = true
     cfi_no_nvcall = true
     debug = false
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
   }
 
   public_configs = [ ":create_pixelmap_surface_public_config" ]
