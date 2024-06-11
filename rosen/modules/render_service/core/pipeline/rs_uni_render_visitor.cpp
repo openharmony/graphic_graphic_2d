@@ -2106,13 +2106,16 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
     // if current frame hwc enable status not equal with last frame
     // or current frame do gpu composition and has buffer consumed,
     // we need merge hwc node dst rect to dirty region.
-    if (!hwcNode->IsHardwareForcedDisabled() != hwcNode->GetIsLastFrameHwcEnabled() ||
-        (hasMirrorDisplay_ && hwcNode->IsCurrentFrameBufferConsumed())) {
+    if (!hwcNode->IsHardwareForcedDisabled() != hwcNode->GetIsLastFrameHwcEnabled()) {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetDstRect());
         return;
     }
     if (hwcNode->IsHardwareForcedDisabled() && hwcNode->IsCurrentFrameBufferConsumed()) {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetOldDirtyInSurface());
+    }
+    if (hasMirrorDisplay_ && hwcNode->IsCurrentFrameBufferConsumed()) {
+        // merge hwc node dst rect for virtual screen dirty, in case the main display node skip
+        curDisplayDirtyManager_->MergeHwcDirtyRect(hwcNode->GetDstRect());
     }
 }
 

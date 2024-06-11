@@ -376,6 +376,13 @@ void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
     unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
 }
 
+void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag)
+{
+    isDisplayNodeSkipStatusChanged_ = (isDisplayNodeSkip_ != flag);
+    isDisplayNodeSkip_ = flag;
+    uniParam.SetForceMirrorScreenDirty(isDisplayNodeSkipStatusChanged_ && isDisplayNodeSkip_);
+}
+
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     // if screen power off, skip on draw
@@ -524,8 +531,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
         RSUniRenderThread::Instance().DvsyncRequestNextVsync();
+        SetDisplayNodeSkipFlag(*uniParam, true);
         return;
     }
+    SetDisplayNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
     RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
@@ -699,6 +708,9 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(std::shared_ptr<RSDisplayRend
         processor->ProcessDisplaySurface(*mirroredNode);
         uniParam->SetOpDropped(isOpDropped);
         curCanvas_ = mirroredProcessor->GetCanvas();
+        if (curCanvas_) {
+            curCanvas_->ResetMatrix();
+        }
         rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
     }
 }
@@ -750,10 +762,15 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
         mappedDamageRegionRects.emplace_back(mappedRect);
     }
-    if (!(lastMatrix_ == canvasMatrix) || isLastFrameHasSecSurface_) {
+    if (!(lastMatrix_ == canvasMatrix) || isLastFrameHasSecSurface_ || uniParam->GetForceMirrorScreenDirty()) {
         displayNode.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
         isLastFrameHasSecSurface_ = false;
+    }
+    RectI hwcRect = mirroredNode->GetSyncDirtyManager()->GetHwcDirtyRegion();
+    if (!hwcRect.IsEmpty()) {
+        RectI mappedHwcRect = tmpGeo->MapRect(hwcRect.ConvertTo<float>(), canvasMatrix);
+        displayNode.GetSyncDirtyManager()->MergeDirtyRect(mappedHwcRect);
     }
     displayNode.UpdateDisplayDirtyManager(bufferAge, false, true);
     auto extraDirty = displayNode.GetSyncDirtyManager()->GetDirtyRegion();
@@ -837,6 +854,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     RSUniRenderThread::ResetCaptureParam();
     FinishOffscreenRender(Drawing::SamplingOptions(Drawing::CubicResampler::Mitchell()));
     curCanvas_->Restore();
+    curCanvas_->ResetMatrix();
     rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(false);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetStartVisit(false);

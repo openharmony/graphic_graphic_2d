@@ -53,6 +53,18 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect, bool isDebugRect)
     }
 }
 
+void RSDirtyRegionManager::MergeHwcDirtyRect(const RectI& rect)
+{
+    if (rect.IsEmpty()) {
+        return;
+    }
+    if (hwcDirtyRegion_.IsEmpty()) {
+        hwcDirtyRegion_ = rect;
+    } else {
+        hwcDirtyRegion_ = hwcDirtyRegion_.JoinRect(rect);
+    }
+}
+
 bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
 {
     if (!currentFrameDirtyRegion_.Intersect(rect)) {
@@ -153,6 +165,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     }
     targetManager->surfaceRect_ = surfaceRect_;
     targetManager->dirtyRegion_ = dirtyRegion_;
+    targetManager->hwcDirtyRegion_ = hwcDirtyRegion_;
     targetManager->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
     targetManager->debugRect_ = debugRect_;
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
@@ -213,6 +226,7 @@ void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
     currentFrameDirtyRegion_.Clear();
+    hwcDirtyRegion_.Clear();
     visitedDirtyRegions_.clear();
     mergedDirtyRegions_.clear();
     cacheableFilterRects_.clear();
