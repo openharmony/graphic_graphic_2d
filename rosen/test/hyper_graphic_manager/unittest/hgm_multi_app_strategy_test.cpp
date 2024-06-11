@@ -420,14 +420,14 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
     constexpr int32_t gameType0 = 10046;
     PART("CaseDescription") {
         multiAppStrategy_->HandlePkgsEvent({ pkgName0 + ":" + std::to_string(pid0) });
-        auto foregroundPidAppType = multiAppStrategy_->GetForegroundPidAppType();
-        ASSERT_TRUE(foregroundPidAppType.find(pid0) != foregroundPidAppType.end());
+        auto foregroundPidAppMap = multiAppStrategy_->GetForegroundPidApp();
+        ASSERT_TRUE(foregroundPidAppMap.find(pid0) != foregroundPidAppMap.end());
         
         multiAppStrategy_->HandlePkgsEvent({ pkgName1 + ":" + std::to_string(pid1) + ":" + std::to_string(gameType0) });
-        foregroundPidAppType = multiAppStrategy_->GetForegroundPidAppType();
+        foregroundPidAppMap = multiAppStrategy_->GetForegroundPidApp();
         auto &backgroundPid = multiAppStrategy_->GetBackgroundPid();
-        ASSERT_TRUE(foregroundPidAppType.find(pid0) == foregroundPidAppType.end());
-        ASSERT_TRUE(foregroundPidAppType.find(pid1) != foregroundPidAppType.end());
+        ASSERT_TRUE(foregroundPidAppMap.find(pid0) == foregroundPidAppMap.end());
+        ASSERT_TRUE(foregroundPidAppMap.find(pid1) != foregroundPidAppMap.end());
         ASSERT_TRUE(backgroundPid.Existed(pid0));
         ASSERT_FALSE(backgroundPid.Existed(pid1));
     }

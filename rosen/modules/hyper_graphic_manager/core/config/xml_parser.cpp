@@ -167,7 +167,7 @@ int32_t XMLParser::ParseParams(xmlNode &node)
     } else if (paraName == "screen_config") {
         setResult = ParseScreenConfig(node);
     } else if (paraName == "rs_video_frame_rate_vote_config") {
-        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+        setResult = ParseVideoFrameVoteConfig(node);
     } else {
         setResult = 0;
     }
@@ -176,6 +176,12 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         HGM_LOGI("XMLParser failed to ParseParams %{public}s", paraName.c_str());
     }
     return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode &node)
+{
+    mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+    return ParseSimplex(node, mParsedData_->videoFrameRateList_);
 }
 
 int32_t XMLParser::ParseStrategyConfig(xmlNode &node)

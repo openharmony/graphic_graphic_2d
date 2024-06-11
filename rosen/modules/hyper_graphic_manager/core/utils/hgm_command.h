@@ -155,6 +155,8 @@ public:
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;
+    // <"pkgName", "1">
+    std::unordered_map<std::string, std::string> videoFrameRateList_;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

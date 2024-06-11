@@ -94,20 +94,25 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
         surfaceVideoRate_[surfaceNodeId] = rate;
     }
     if (surfaceVideoRate_.size() == 0) {
-        CancelVoteRate(VIDEO_VOTE_FLAG);
-        lastVotedRate_ = 0;
+        CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
+        lastVotedPid_ = DEFAULT_PID;
+        lastVotedRate_ = OLED_NULL_HZ;
         return;
     }
-    uint32_t maxRate = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),
-        [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; })->second;
-    if (maxRate == lastVotedRate_) {
+    auto maxElement = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),
+        [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+    uint32_t maxRate = maxElement->second;
+    pid_t maxPid = ExtractPid(maxElement->first);
+    if (maxRate == lastVotedRate_ && maxPid == lastVotedPid_) {
         return;
     }
-    VoteRate(VIDEO_VOTE_FLAG, maxRate);
+    CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
+    VoteRate(maxPid, VIDEO_VOTE_FLAG, maxRate);
+    lastVotedPid_ = maxPid;
     lastVotedRate_ = maxRate;
 }
 
-void RSFrameRateVote::VoteRate(std::string eventName, uint32_t rate)
+void RSFrameRateVote::VoteRate(pid_t pid, std::string eventName, uint32_t rate)
 {
     isVoted_ = true;
     EventInfo eventInfo = {
@@ -116,10 +121,10 @@ void RSFrameRateVote::VoteRate(std::string eventName, uint32_t rate)
         .minRefreshRate = rate,
         .maxRefreshRate = rate,
     };
-    NotifyRefreshRateEvent(eventInfo);
+    NotifyRefreshRateEvent(pid, eventInfo);
 }
 
-void RSFrameRateVote::CancelVoteRate(std::string eventName)
+void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
 {
     if (!isVoted_) {
         return;
@@ -129,14 +134,15 @@ void RSFrameRateVote::CancelVoteRate(std::string eventName)
         .eventName = eventName,
         .eventStatus = false,
     };
-    NotifyRefreshRateEvent(eventInfo);
+    NotifyRefreshRateEvent(pid, eventInfo);
 }
 
-void RSFrameRateVote::NotifyRefreshRateEvent(EventInfo eventInfo)
+void RSFrameRateVote::NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo)
 {
-    if (frameRateMgr_) {
-        RS_LOGI("video vote rate(%{public}u, %{public}u)", eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
-        frameRateMgr_->HandleRefreshRateEvent(GetRealPid(), eventInfo);
+    if (frameRateMgr_ && pid > DEFAULT_PID) {
+        RS_LOGI("video vote pid:%{public}d rate(%{public}u, %{public}u)",
+            pid, eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
+        frameRateMgr_->HandleRefreshRateEvent(pid, eventInfo);
     }
 }
 } // namespace Rosen

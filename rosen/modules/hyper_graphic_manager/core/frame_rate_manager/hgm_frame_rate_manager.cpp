@@ -971,7 +971,12 @@ bool HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, VoteRange ra
 bool HgmFrameRateManager::MergeLtpo2IdleVote(std::vector<std::string>::iterator &voterIter, VoteRange &mergedVoteRange)
 {
     bool mergeSuccess = false;
-
+    auto log = [](std::string voter, pid_t pid, uint32_t minTemp, uint32_t maxTemp) {
+        RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip",
+            voter.c_str(), pid, minTemp, maxTemp);
+        HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip",
+            voter.c_str(), pid, minTemp, maxTemp);
+    };
     // [VOTER_LTPO, VOTER_IDLE)
     for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
@@ -984,11 +989,23 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(std::vector<std::string>::iterator 
         auto &[pid, voteRange] = vec.back();
         auto &[minTemp, maxTemp] = voteRange;
         if (!multiAppStrategy_.CheckPidValid(pid)) {
-            RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip",
-                voterIter->c_str(), pid, minTemp, maxTemp);
-            HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip",
-                voterIter->c_str(), pid, minTemp, maxTemp);
+            log(*voterIter, pid, minTemp, maxTemp);
             continue;
+        }
+        auto &voter = *voterIter;
+        if (voter == "VOTER_VIDEO") {
+            auto foregroundPidApp = multiAppStrategy_.GetForegroundPidApp();
+            if (foregroundPidApp.find(pid) == foregroundPidApp.end()) {
+                log(voter, pid, minTemp, maxTemp);
+                continue;
+            }
+            auto configData = HgmCore::Instance().GetPolicyConfigData();
+            if (configData != nullptr &&
+                configData->videoFrameRateList_.find(foregroundPidApp[pid].second) ==
+                configData->videoFrameRateList_.end()) {
+                log(voter, pid, minTemp, maxTemp);
+                continue;
+            }
         }
         RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]", voterIter->c_str(), pid, minTemp, maxTemp);
         // FORMAT voter(pid):[min，max]

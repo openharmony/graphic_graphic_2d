@@ -990,7 +990,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
     surfaceHandler.ReduceAvailableBuffer();
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(consumer->GetUniqueId(),
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->timestamp);
     surfaceBuffer = nullptr;
     return true;
