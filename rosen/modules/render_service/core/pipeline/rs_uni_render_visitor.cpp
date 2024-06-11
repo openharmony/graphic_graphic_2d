@@ -1409,7 +1409,8 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
     Occlusion::Region selfDrawRegion { node.GetSurfaceOcclusionRect(true) };
     auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
     // wms default all visible about sefdrawing node and AbilityComponent node
-    auto instanceNode = node.GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
+    auto instanceNode = node.GetInstanceRootNode() ?
+        node.GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
     if (instanceNode == nullptr) {
         return;
     }
