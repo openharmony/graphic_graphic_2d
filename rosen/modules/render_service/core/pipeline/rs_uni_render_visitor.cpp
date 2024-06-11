@@ -157,12 +157,15 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 std::string VisibleDataToString(const VisibleData& val)
 {
-    std::string str = "VisibleData:";
+    std::stringstream ss;
+    ss << "VisibleData[name, nodeId, visibleLevel]:";
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& v : val) {
-        str += "[nodeId, visibleLevel] = [" + std::to_string(v.first) + ", " +
-            std::to_string(v.second) + "], ";
+        auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(v.first);
+        auto name = surfaceNode ? surfaceNode->GetName() : "";
+        ss << "[" << name << ", " << v.first << ", " << v.second << "], ";
     }
-    return str;
+    return ss.str();
 }
 } // namespace
 
@@ -1415,10 +1418,8 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
             WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
         return;
     }
-    if (visibleLevel != RSVisibleLevel::RS_INVISIBLE) {
-        dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
-            node.GetVisibleLevelForWMS(visibleLevel)));
-    }
+    dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
+        node.GetVisibleLevelForWMS(visibleLevel)));
 }
 
 void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
@@ -1436,11 +1437,10 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
                     WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
             }
         }
-        visibleChanged_ = true;
     }
     if (visibleChanged_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        RS_LOGD("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
+        RS_LOGI("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
             VisibleDataToString(allDstCurVisVec_).c_str());
     }
 }

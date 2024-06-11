@@ -177,7 +177,7 @@ void RSUniHwcPrevalidateUtil::LayerRotate(
             break;
         }
     }
-    int totalRotation = (RotateEnumToInt(screenRotation) + RSBaseRenderUtil::RotateEnumToInt(
+    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + RSBaseRenderUtil::RotateEnumToInt(
         RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % ROTATION_360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
         RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
