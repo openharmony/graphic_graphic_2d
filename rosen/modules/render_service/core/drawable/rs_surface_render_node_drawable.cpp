@@ -45,6 +45,11 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#include "luminance/rs_luminance_control.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
@@ -386,7 +391,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " +
         std::to_string(surfaceNode->GetGlobalAlpha()));
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    
+
     // First node don't need to concat matrix for application
     if (RSUniRenderThread::GetCaptureParam().isFirstNode_) {
         // Planning: If node is a sandbox.
@@ -497,9 +502,45 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+void RSSurfaceRenderNodeDrawable::DealWithHdr(RSSurfaceRenderNode& surfaceNode,
+    const RSSurfaceRenderParams& surfaceParams)
+{
+    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+    if (surfaceNode.GetAncestorDisplayNode().lock() != nullptr) {
+        ancestor = surfaceNode.GetAncestorDisplayNode.lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    }
+    if (ancestor == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable DealWithHdr GetAncestorDisplayNode() return nullptr");
+        return;
+    }
+    auto screenId = ancestor->GetScreenId();
+    if (!RSLuminanceControl::Get().IsHdrOn(screenId)) {
+        return;
+    }
+    const sptr<SurfaceBuffer> buffer = surfaceParams.GetBuffer();
+    if (buffer == nullptr) {
+        return;
+    }
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
+    if (MedadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+        return;
+    }
+    bool isHdrBuffer = colorSpaceInfo.transfun == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
+        colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
+
+    surfaceNode.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
+    surfaceNode.SetBrightnessRatio(
+        isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+}
+#endif
+
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
 {
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    DealWithHdr(surfaceNode, surfaceParams);
+#endif
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
@@ -517,20 +558,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    auto screenManager = CreateOrGetScreenManager();
-    auto ancestorDisplayNode = surfaceParams.GetAncestorDisplayNode().lock();
-    if (!ancestorDisplayNode) {
-        RS_LOGE("ancestorDisplayNode return nullptr");
-        return;
-    }
-    auto ancestor = ancestorDisplayNode->ReinterpretCastTo<RSDisplayRenderNode>();
-    if (!ancestor) {
-        RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
-        return;
-    }
-    auto ancestorParam = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
-    params.screenBrightnessNits =
-        screenManager->GetScreenBrightnessNits(ancestorParam ? ancestorParam->GetScreenId() : 0);
+    params.screenBrightnessNits = surfaceNode.GetDisplayNit();
 #endif
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

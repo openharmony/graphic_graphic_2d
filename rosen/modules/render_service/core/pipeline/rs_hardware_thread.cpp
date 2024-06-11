@@ -433,6 +433,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 #endif
+
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");

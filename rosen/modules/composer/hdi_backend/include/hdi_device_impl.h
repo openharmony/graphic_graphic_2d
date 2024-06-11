@@ -88,7 +88,7 @@ public:
                              const std::vector<GraphicHDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
-    int32_t GetSupportedLayerPerFrameParameterKey(std::vector<std::string>& keys) override;
+    std::vector<std::string>& GetSupportedLayerPerFrameParameterKey() override;
     int32_t SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
                                       const std::vector<int8_t>& value) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
@@ -108,6 +108,9 @@ private:
     HdiDeviceImpl& operator=(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl(HdiDeviceImpl&& rhs) = delete;
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
+
+    std::once_flag layerPerFrameParameterKeyCreateFlag_;
+    std::vector<std::string> layerPerFrameParameterKeys_ = {};
 };
 
 } // namespace Rosen
