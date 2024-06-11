@@ -95,6 +95,12 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
     double blurRadius = 0.0;
     GET_DOUBLE_PARAM(ARGC_ZERO, blurRadius);
 
+    if (blurRadius <= 0) {
+        ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. blurRadius must be greater than 0.");
+    }
+
     double dx = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, dx);
 
