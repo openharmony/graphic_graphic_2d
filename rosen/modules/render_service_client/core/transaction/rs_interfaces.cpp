@@ -604,19 +604,19 @@ void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
 }
 
-std::vector<ActiveDirtyRegionInfo> RSInterfaces::GetActiveDirtyRegionInfo()
+std::vector<ActiveDirtyRegionInfo> RSInterfaces::GetActiveDirtyRegionInfo() const
 {
     const auto& activeDirtyRegionInfo = renderServiceClient_->GetActiveDirtyRegionInfo();
     return activeDirtyRegionInfo;
 }
 
-GlobalDirtyRegionInfo RSInterfaces::GetGlobalDirtyRegionInfo()
+GlobalDirtyRegionInfo RSInterfaces::GetGlobalDirtyRegionInfo() const
 {
     const auto& globalDirtyRegionInfo = renderServiceClient_->GetGlobalDirtyRegionInfo();
     return globalDirtyRegionInfo;
 }
 
-LayerComposeInfo RSInterfaces::GetLayerComposeInfo()
+LayerComposeInfo RSInterfaces::GetLayerComposeInfo() const
 {
     const auto& layerComposeInfo = renderServiceClient_->GetLayerComposeInfo();
     return layerComposeInfo;
