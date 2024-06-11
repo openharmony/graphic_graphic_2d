@@ -620,11 +620,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             // switch color filtering
             SwitchColorFilter(*curCanvas_);
             if (needOffscreen) {
-                Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
-                canvasBackup_->ConcatMatrix(params->GetMatrix());
-                FinishOffscreenRender(
-                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
-                uniParam->SetOpDropped(isOpDropped);
+                if (canvasBackup_ != nullptr) {
+                    Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+                    canvasBackup_->ConcatMatrix(params->GetMatrix());
+                    FinishOffscreenRender(
+                        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
+                    uniParam->SetOpDropped(isOpDropped);
+                } else {
+                    RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
+                }
             }
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
