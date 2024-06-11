@@ -153,11 +153,10 @@ static SkPaint::Style ConvertSkStyle(Paint::PaintStyle style)
     }
 }
 
-static SkPaint& ConvertSkPaint(const Paint* drawingPaint)
+static void ConvertSkPaint(const Paint* drawingPaint, SkPaint &skPaint)
 {
-    SkPaint skPaint;
     if (drawingPaint == nullptr) {
-        return skPaint;
+        return;
     }
     skPaint.setStyle(ConvertSkStyle(drawingPaint->GetStyle()));
     skPaint.setAntiAlias(drawingPaint->IsAntiAlias());
@@ -168,13 +167,13 @@ static SkPaint& ConvertSkPaint(const Paint* drawingPaint)
     if (effct != nullptr) {
         skPaint.setPathEffect(effct->GetImpl<SkiaPathEffect>()->GetPathEffect());
     }
-    return skPaint;
 }
 
 int SkiaTextBlob::GetIntercepts(const float bounds[], float intervals[], const Paint* paint) const
 {
     if (skTextBlob_ && paint != nullptr) {
-        SkPaint skPaint = ConvertSkPaint(paint);
+        SkPaint skPaint;
+        ConvertSkPaint(paint, skPaint);
         return skTextBlob_->getIntercepts(bounds, intervals, &skPaint);
     }
     return 0;
