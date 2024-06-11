@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023 - 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,5 +14,34 @@
 group("fuzztest") {
   testonly = true
 
-  deps = [ "drawing_fuzzer:fuzztest" ]
+  deps = [
+    "drawing_fuzzer:fuzztest",
+    "ndkbitmap_fuzzer:fuzztest",
+    "ndkbrush_fuzzer:fuzztest",
+    "ndkcanvas_fuzzer:fuzztest",
+    "ndkcolor_fuzzer:fuzztest",
+    "ndkcolorfilter_fuzzer:fuzztest",
+    "ndkcolorspace_fuzzer:fuzztest",
+    "ndkerrorcode_fuzzer:fuzztest",
+    "ndkfilter_fuzzer:fuzztest",
+    "ndkfont_fuzzer:fuzztest",
+    "ndkimage_fuzzer:fuzztest",
+    "ndkimagefilter_fuzzer:fuzztest",
+    "ndkmaskfilter_fuzzer:fuzztest",
+    "ndkmatrix_fuzzer:fuzztest",
+    "ndkmemorystream_fuzzer:fuzztest",
+    "ndkpath_fuzzer:fuzztest",
+    "ndkpatheffect_fuzzer:fuzztest",
+    "ndkpen_fuzzer:fuzztest",
+    "ndkpixelmap_fuzzer:fuzztest",
+    "ndkpoint_fuzzer:fuzztest",
+    "ndkrect_fuzzer:fuzztest",
+    "ndkregion_fuzzer:fuzztest",
+    "ndkroundrect_fuzzer:fuzztest",
+    "ndksamplingoptions_fuzzer:fuzztest",
+    "ndkshadereffect_fuzzer:fuzztest",
+    "ndkshadowlayer_fuzzer:fuzztest",
+    "ndktextblob_fuzzer:fuzztest",
+    "ndktypeface_fuzzer:fuzztest",
+  ]
 }
