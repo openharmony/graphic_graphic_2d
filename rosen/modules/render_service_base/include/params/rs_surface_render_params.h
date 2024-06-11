@@ -282,6 +282,7 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
+    bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
