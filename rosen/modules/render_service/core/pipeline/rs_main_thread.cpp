@@ -1811,6 +1811,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s HardwareForcedDisabled is true", __func__);
     }
     bool needTraverseNodeTree = true;
+    RSUniRenderThread::Instance().PostTask([] { RSUniRenderThread::Instance().ResetClearMemoryTask(); });
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {

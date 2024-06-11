@@ -420,6 +420,7 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 bool RSUniRenderThread::GetClearMemoryFinished() const
 {
+    std::lock_guard<std::mutex> lock(clearMemoryMutex_);
     return clearMemoryFinished_;
 }
 
@@ -589,6 +590,16 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
+}
+
+void RSUniRenderThread::ResetClearMemoryTask()
+{
+    if (!GetClearMemoryFinished()) {
+        RemoveTask(CLEAR_GPU_CACHE);
+        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+    }
+    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+    DefaultClearMemoryCache();
 }
 
 void RSUniRenderThread::PurgeCacheBetweenFrames()
