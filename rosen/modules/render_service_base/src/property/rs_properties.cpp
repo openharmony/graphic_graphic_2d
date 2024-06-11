@@ -36,6 +36,7 @@
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_spherize_effect_filter.h"
 #include "src/core/SkOpts.h"
@@ -172,6 +173,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
+    [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
     [](RSProperties* prop) { prop->SetBackgroundBlurSaturation({}); },   // BACKGROUND_BLUR_SATURATION
     [](RSProperties* prop) { prop->SetBackgroundBlurBrightness({}); },   // BACKGROUND_BLUR_BRIGHTNESS
@@ -1644,6 +1646,23 @@ void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& par
     contentDirty_ = true;
 }
 
+void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
+{
+    magnifierPara_ = para;
+
+    if (para) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+    filterNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
+const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
+{
+    return magnifierPara_;
+}
+
 const std::shared_ptr<RSFilter>& RSProperties::GetBackgroundFilter() const
 {
     return backgroundFilter_;
@@ -2780,6 +2799,15 @@ void RSProperties::GenerateLinearGradientBlurFilter()
 
     filter_ = originalFilter;
     filter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+}
+
+void RSProperties::GenerateMagnifierFilter()
+{
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
+    filter_ = originalFilter;
+    filter_->SetFilterType(RSFilter::MAGNIFIER);
 }
 
 void RSProperties::GenerateBackgroundFilter()
@@ -3930,7 +3958,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr;
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || magnifierPara_ != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()

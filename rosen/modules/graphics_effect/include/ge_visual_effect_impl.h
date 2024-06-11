@@ -30,7 +30,7 @@ namespace Drawing {
 
 class GEVisualEffectImpl {
 public:
-    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, LINEAR_GRADIENT_BLUR, HPS_BLUR, MAX };
+    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, LINEAR_GRADIENT_BLUR, HPS_BLUR, MAGNIFIER, MAX };
 
     GEVisualEffectImpl(const std::string& name);
 
@@ -47,6 +47,7 @@ public:
     void SetParam(const std::string& tag, const Drawing::Matrix param);
     void SetParam(const std::string& tag, const std::vector<std::pair<float, float>>);
     void SetParam(const std::string& tag, bool param);
+    void SetParam(const std::string& tag, uint32_t param);
 
     void SetFilterType(FilterType type)
     {
@@ -108,6 +109,16 @@ public:
         return hpsBlurParams_;
     }
 
+    void MakeMagnifierParams()
+    {
+        magnifierParams_ = std::make_shared<GEMagnifierShaderFilterParams>();
+    }
+
+    const std::shared_ptr<GEMagnifierShaderFilterParams>& GetMagnifierParams() const
+    {
+        return magnifierParams_;
+    }
+
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
@@ -115,6 +126,8 @@ private:
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
     void SetHpsBlurParams(const std::string& tag, float param);
+    void SetMagnifierParamsFloat(const std::string& tag, float param);
+    void SetMagnifierParamsUint32(const std::string& tag, uint32_t param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
@@ -123,6 +136,7 @@ private:
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
     std::shared_ptr<HpsBlurFilterParams> hpsBlurParams_ = nullptr;
+    std::shared_ptr<GEMagnifierShaderFilterParams> magnifierParams_ = nullptr;
 };
 
 } // namespace Drawing

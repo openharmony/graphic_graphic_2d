@@ -63,6 +63,7 @@ public:
         MOTION_BLUR,
         SPHERIZE_EFFECT,
         COLORFUL_SHADOW,
+        MAGNIFIER,
     };
     FilterType GetFilterType() const
     {
