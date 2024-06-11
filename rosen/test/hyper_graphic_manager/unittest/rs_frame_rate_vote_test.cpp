@@ -52,42 +52,42 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 0);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 0);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 0);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 100000);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 100000);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 100000);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 0);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 100000);
-    usleep(1000);
+    usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
 }
 
@@ -158,7 +158,7 @@ HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level1)
 {
     DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VoteRate("VOTER_VIDEO", 30);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VoteRate(DEFAULT_PID, "VOTER_VIDEO", 30);
     ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
 }
 
@@ -173,7 +173,7 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level1)
     DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = true;
     ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate("VOTER_VIDEO");
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate(DEFAULT_PID, "VOTER_VIDEO");
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
 }
 
@@ -194,14 +194,14 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
         .minRefreshRate = 60,
         .maxRefreshRate = 60,
     };
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(eventInfo1);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
     EventInfo eventInfo2 = {
         .eventName = "VOTER_VIDEO",
         .eventStatus = false,
     };
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(eventInfo2);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(eventInfo2);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_, nullptr);
 }
 } // namespace Rosen

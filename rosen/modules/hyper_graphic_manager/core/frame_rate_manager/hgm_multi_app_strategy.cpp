@@ -47,10 +47,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     {
         std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
         // update pid of pkg
-        for (auto &[pid, appType] : foregroundPidAppType_) {
-            backgroundPid_.Put(pid);
+        for (auto &it : foregroundPidAppMap_) {
+            backgroundPid_.Put(it.first);
         }
-        foregroundPidAppType_.clear();
+        foregroundPidAppMap_.clear();
         pidAppTypeMap_.clear();
         for (auto &param : pkgs_) {
             RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
@@ -58,7 +58,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
             auto [pkgName, pid, appType] = AnalyzePkgParam(param);
             pidAppTypeMap_[pkgName] = { pid, appType };
             if (pid > DEFAULT_PID) {
-                foregroundPidAppType_[pid] = appType;
+                foregroundPidAppMap_[pid] = { appType, pkgName };
                 backgroundPid_.Erase(pid);
             }
         }
@@ -223,7 +223,7 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
-    foregroundPidAppType_.erase(pid);
+    foregroundPidAppMap_.erase(pid);
     backgroundPid_.Erase(pid);
 }
 
