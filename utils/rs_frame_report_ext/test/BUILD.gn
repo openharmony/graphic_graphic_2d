@@ -11,22 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
-
-config("rs_frame_report_ext_config") {
-  include_dirs = [ "include" ]
-}
-
-ohos_source_set("rs_frame_report_ext") {
-  sources = [ "src/rs_frame_report_ext.cpp" ]
-  public_configs = [ ":rs_frame_report_ext_config" ]
-
-  external_deps = [ "hilog:libhilog" ]
-  subsystem_name = "graphic"
-  part_name = "graphic_2d"
-}
-
 group("test") {
   testonly = true
-  deps = [ "test:test" ]
+  deps = [ "unittest:unittest" ]
 }

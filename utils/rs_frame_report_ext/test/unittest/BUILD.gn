@@ -11,22 +11,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-config("rs_frame_report_ext_config") {
-  include_dirs = [ "include" ]
-}
+ohos_unittest("rs_frame_report_ext_test") {
+  module_out_path = "graphic_2d/utils/rs_frame_report_ext"
 
-ohos_source_set("rs_frame_report_ext") {
-  sources = [ "src/rs_frame_report_ext.cpp" ]
-  public_configs = [ ":rs_frame_report_ext_config" ]
+  include_dirs = [ "$graphic_2d_root/utils/rs_frame_report_ext/include" ]
 
+  sources = [
+    "$graphic_2d_root/utils/rs_frame_report_ext/src/rs_frame_report_ext.cpp",
+    "rs_frame_report_ext_test.cpp",
+  ]
+
+  deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
   external_deps = [ "hilog:libhilog" ]
-  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }
 
-group("test") {
+group("unittest") {
   testonly = true
-  deps = [ "test:test" ]
+
+  deps = [ ":rs_frame_report_ext_test" ]
 }

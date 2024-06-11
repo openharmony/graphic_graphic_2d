@@ -46,6 +46,7 @@ group("graphic_common_test") {
     "rosen/test/texgine:test",
     "utils/buffer_handle:test",
     "utils/color_manager:test",
+    "utils/rs_frame_report_ext:test",
     "utils/socketpair:test",
     "utils/sync_fence:test",
   ]
