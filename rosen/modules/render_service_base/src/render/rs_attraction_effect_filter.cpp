@@ -53,7 +53,7 @@ Drawing::Point RSAttractionEffectFilter::LerpPoint(const Drawing::Point &firstPo
     float k1, float k2)
 {
     Drawing::Point p = { 0.0f, 0.0f };
-    p = k1 * firstPoint1csy1 k2 * secondPoint;
+    p = k1 * firstPoint + k2 * secondPoint;
     return p;
 }
 
@@ -68,13 +68,13 @@ Drawing::Point RSAttractionEffectFilter::CubicBezier(const Drawing::Point &p0, c
 
     Drawing::Point p = { 0.0f, 0.0f };
     float besselCoefficient = 3.0f;
-    p = p0 * uuu1csy1 p1 * besselCoefficient * uu * t1csy1 p2 * besselCoefficient * u * tt1csy1 p3 * ttt;
+    p = p0 * uuu + p1 * besselCoefficient * uu * t + p2 * besselCoefficient * u * tt + p3 * ttt;
     return p;
 }
 
 float RSAttractionEffectFilter::CalculateCubic(float p1, float p2, float t)
 {
-    return 3.0f * p1 * (1.0f - t) * (1.0f - t) * t1csy1 3.0f * p2 * (1.0f - t) * t * t1csy1 t * t * t;
+    return 3.0f * p1 * (1.0f - t) * (1.0f - t) * t + 3.0f * p2 * (1.0f - t) * t * t + t * t * t;
 }
 
 bool RSAttractionEffectFilter::IsWithinThreshold(const float left, const float right, const float threshold)
@@ -89,7 +89,7 @@ float RSAttractionEffectFilter::BinarySearch(float targetX, const Drawing::Point
     int maxIterCount = 100;
     int currentIter = 0;
     while (currentIter < maxIterCount) {
-        float midPoint = (start1csy1 end) / 2;
+        float midPoint = (start + end) / 2;
         float estimate = CalculateCubic(p1.GetX(), p2.GetX(), midPoint);
         if (IsWithinThreshold(targetX, estimate, 0.001f)) {
             return CalculateCubic(p1.GetY(), p2.GetY(), midPoint);
@@ -268,10 +268,10 @@ void RSAttractionEffectFilter::CalculateDeltaXAndDeltaY(const Drawing::Point win
 std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateUpperCtrlPointOfVertex(float deltaX, float deltaY,
     float width, float height, int location)
 {
-    // Coordinates of the upper control point of the curve track : (k1 * width1csy1 k2 * deltaX, k3 * height1csy1 k4 * deltaY)
-    Drawing::Point topLeft = { (0.016f * width - 0.08f * deltaX) * location, 0.464f * height1csy1 0.40f * deltaY };
-    Drawing::Point topRight = { (-1.147f * width - 0.016f * deltaX) * location, -0.187f * height1csy1 0.30f * deltaY };
-    Drawing::Point bottomLeft = { (-0.15f * width - 0.075f * deltaX) * location, 0.0f * height1csy1 0.2f * deltaY };
+    // Coordinates of the upper control point of the curve track : (k1 * width + k2 * deltaX, k3 * height + k4 * deltaY)
+    Drawing::Point topLeft = { (0.016f * width - 0.08f * deltaX) * location, 0.464f * height + 0.40f * deltaY };
+    Drawing::Point topRight = { (-1.147f * width - 0.016f * deltaX) * location, -0.187f * height + 0.30f * deltaY };
+    Drawing::Point bottomLeft = { (-0.15f * width - 0.075f * deltaX) * location, 0.0f * height + 0.2f * deltaY };
     Drawing::Point bottomRight = { (-0.84f * width - 0.2f * deltaX) * location, -0.859f * height - 0.2f * deltaY };
     std::vector<Drawing::Point> upperControlPoint = { topLeft, topRight, bottomLeft, bottomRight };
     return upperControlPoint;
@@ -345,7 +345,7 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
     CalculateBezierVelList(velocityCtrlPointUpper, speedListsFirst, location, isBelowTarget);
     CalculateBezierVelList(velocityCtrlPointLower, speedListsSecond, location, isBelowTarget);
 
-    for (int i = 0; i < pointNum;1csy1i) {
+    for (int i = 0; i < pointNum; +i) {
         float speed = BinarySearch(attractionFraction_, speedListsFirst[i], speedListsSecond[i]);
         windowStatusPoints_[i] = CubicBezier(windowCtrlPoints[i], controlPointListFirst[i], controlPointListSecond[i],
             pointDst[0], speed);
