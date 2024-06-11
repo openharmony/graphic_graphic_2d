@@ -28,7 +28,6 @@
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
-bool g_forceBgAntiAlias = true;
 constexpr int TRACE_LEVEL_TWO = 2;
 }
 
@@ -297,21 +296,26 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
         brush.SetBlender(blender);
     }
 
+    bool inner = !properties.GetBorderColorIsTransparent() &&
+        properties.GetBorderStyle().x_ == static_cast<uint32_t>(BorderStyle::SOLID);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
-        } else {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
+        auto rrect =
+            RSPropertyDrawableUtils::RRect2DrawingRRect(inner ? properties.GetInnerRRect() : properties.GetRRect());
+        if (antiAlias) {
+            Drawing::SaveLayerOps ops(&rrect.GetRect(), nullptr);
+            canvas.SaveLayer(ops);
+        }
+        canvas.DrawRoundRect(rrect);
+        if (antiAlias) {
+            canvas.Restore();
         }
     } else {
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
+        if (!inner) {
             canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
         } else {
             canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
@@ -340,25 +344,29 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
     Drawing::Brush brush;
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
+    bool inner = !properties.GetBorderColorIsTransparent() &&
+        properties.GetBorderStyle().x_ == static_cast<uint32_t>(BorderStyle::SOLID);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
-        } else {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
+        auto rrect =
+            RSPropertyDrawableUtils::RRect2DrawingRRect(inner ? properties.GetInnerRRect() : properties.GetRRect());
+        if (antiAlias) {
+            Drawing::SaveLayerOps ops(&rrect.GetRect(), nullptr);
+            canvas.SaveLayer(ops);
+        }
+        canvas.DrawRoundRect(rrect);
+        if (antiAlias) {
+            canvas.Restore();
         }
     } else {
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
+        if (!inner) {
             canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
         } else {
             canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
@@ -387,10 +395,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
-    bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     Drawing::Brush brush;
-    brush.SetAntiAlias(antiAlias);
     auto boundsRect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     bgImage->SetDstRect(properties.GetBgImageRect());

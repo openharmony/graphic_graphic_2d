@@ -535,7 +535,6 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.useBilinearInterpolation = useRenderParams ?
         nodeParams->NeedBilinearInterpolation() : node.NeedBilinearInterpolation(); // TO-DO
     params.useCPU = forceCPU;
-    params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
@@ -577,7 +576,6 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
 {
     BufferDrawParam params;
     params.useCPU = forceCPU;
-    params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
@@ -594,7 +592,6 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 {
     BufferDrawParam params;
     params.useCPU = forceCPU;
-    params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
