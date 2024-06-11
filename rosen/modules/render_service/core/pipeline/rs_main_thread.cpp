@@ -1998,21 +1998,23 @@ void RSMainThread::CheckSystemSceneStatus()
     }
 }
 
-void RSMainThread::CallbackDrawContextStatusToWMS()
+void RSMainThread::CallbackDrawContextStatusToWMS(bool isUniRender)
 {
+    auto& curDrawStatusVec = isUniRender ? RSUniRenderThread::Instance().GetDrawStatusVec() : curDrawStatusVec_;
+    auto timestamp = isUniRender ? RSUniRenderThread::Instance().GetCurrentTimestamp() : timestamp_;
     VisibleData drawStatusVec;
-    for (auto dynamicNodeId : curDrawStatusVec_) {
+    for (auto dynamicNodeId : curDrawStatusVec) {
         if (lastDrawStatusMap_.find(dynamicNodeId) == lastDrawStatusMap_.end()) {
             drawStatusVec.emplace_back(std::make_pair(dynamicNodeId,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS));
             RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, dynamicNodeId, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS);
         }
-        lastDrawStatusMap_[dynamicNodeId] = timestamp_;
+        lastDrawStatusMap_[dynamicNodeId] = timestamp;
     }
     auto drawStatusIter = lastDrawStatusMap_.begin();
     while (drawStatusIter != lastDrawStatusMap_.end()) {
-        if (timestamp_ - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
+        if (timestamp - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
             drawStatusVec.emplace_back(std::make_pair(drawStatusIter->first,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS));
             RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
@@ -2023,7 +2025,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
             drawStatusIter++;
         }
     }
-    curDrawStatusVec_.clear();
+    curDrawStatusVec.clear();
     if (!drawStatusVec.empty()) {
         std::lock_guard<std::mutex> lock(occlusionMutex_);
         for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {

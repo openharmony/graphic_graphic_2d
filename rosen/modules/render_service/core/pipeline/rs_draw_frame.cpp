@@ -64,6 +64,7 @@ void RSDrawFrame::RenderFrame()
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RSRenderEnd();
     }
+    RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     JankStatsRenderFrameEnd(doJankStats);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
