@@ -236,7 +236,7 @@ public:
      * @param bounds      Bounding box relative to (0, 0)
      * @return            The width of text.
      */
-    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr);
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr) const;
 
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
 

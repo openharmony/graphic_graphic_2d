@@ -1285,6 +1285,118 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRect041, T
     OH_Drawing_SamplingOptionsDestroy(samplingOptions);
     delete recordingCanvas;
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsClipEmpty042
+ * @tc.desc: test for if clip is empty
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsClipEmpty042, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    // 720: bitmap's width, 720: bitmap's height
+    constexpr uint32_t width = 720;
+    constexpr uint32_t height = 720;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+
+    // 150.0f: rect's left, 100.0f: rect's top, 500.0f: rect's right, 500.0f: rect's bottom
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(150.0f, 100.0f, 500.f, 500.f);
+
+    OH_Drawing_CanvasClipRect(canvas_, rect, OH_Drawing_CanvasClipOp::INTERSECT, false);
+
+    bool isClipEmpty = false;
+    EXPECT_EQ(OH_Drawing_CanvasIsClipEmpty(canvas_, &isClipEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isClipEmpty, false);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_GetImageInfo043
+ * @tc.desc: test for Gets ImageInfo of Canvas.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_GetImageInfo043, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    // 720: bitmap's width, 720: bitmap's height
+    constexpr uint32_t width = 720;
+    constexpr uint32_t height = 720;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+    OH_Drawing_Image_Info* imageInfo = new OH_Drawing_Image_Info();
+    EXPECT_EQ(OH_Drawing_CanvasGetImageInfo(canvas_, imageInfo), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(720, imageInfo->width);
+    EXPECT_EQ(720, imageInfo->height);
+    EXPECT_EQ(1, imageInfo->alphaType);
+    EXPECT_EQ(4, imageInfo->colorType);
+    delete imageInfo;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ClipRegion044
+ * @tc.desc: test for Drawing Canvas Clip Region.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ClipRegion044, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 720; // 720: width of canvas
+    constexpr uint32_t height = 720; // 720: height of canvas
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+
+    OH_Drawing_Region *region = OH_Drawing_RegionCreate();
+    // 0.0f: rect's left, 0.0f: rect's top, 720.0f: rect's right, 720.0f: rect's bottom
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0.0f, 0.0f, 720.f, 720.f);
+    OH_Drawing_RegionSetRect(region, rect);
+    EXPECT_EQ(OH_Drawing_CanvasClipRegion(canvas_, region, OH_Drawing_CanvasClipOp::INTERSECT), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasClipRegion(nullptr, region, OH_Drawing_CanvasClipOp::INTERSECT),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(720, OH_Drawing_CanvasGetWidth(canvas_));
+    EXPECT_EQ(720, OH_Drawing_CanvasGetHeight(canvas_));
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPoint_045
+ * @tc.desc: test for OH_Drawing_CanvasDrawPoint.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPoint_045, TestSize.Level1)
+{
+    OH_Drawing_Point2D point_ = {25.0f, 36.0f}; // 25.0f: x, 36.0f: y
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(canvas_, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(nullptr, &point_), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(canvas_, &point_), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawColor046
+ * @tc.desc: test for DrawColor
+ * @tc.type: FUNC
+ * @tc.require: SR000S9F0C
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawColor046, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_CanvasDrawColor(nullptr, 0xFFFF0000, OH_Drawing_BlendMode::BLEND_MODE_SRC),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawColor(canvas_, 0xFFFF0000, OH_Drawing_BlendMode::BLEND_MODE_COLOR),
+        OH_DRAWING_SUCCESS);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

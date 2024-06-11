@@ -724,6 +724,26 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly021, Test
     EXPECT_FALSE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 5));
     OH_Drawing_MatrixDestroy(matrix);
 }
+
+/**
+ * @tc.name: NativeDrawingMatrixTest_GetAll022
+ * @tc.desc: test for Copies nine scalar values contained by Matrix into buffer.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_GetAll022, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    float buffer[9];
+    float emptyBuffer[9] = {1, 2, 3, 3, 2, 1, 4, 5, 6};
+    OH_Drawing_MatrixSetMatrix(matrix, 1, 2, 3, 3, 2, 1, 4, 5, 6);
+    EXPECT_EQ(OH_Drawing_MatrixGetAll(matrix, buffer), OH_DRAWING_SUCCESS);
+    for (int i = 0; i < 9; ++i) {
+        EXPECT_TRUE(IsScalarAlmostEqual(buffer[i], emptyBuffer[i]));
+    }
+    OH_Drawing_MatrixDestroy(matrix);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
