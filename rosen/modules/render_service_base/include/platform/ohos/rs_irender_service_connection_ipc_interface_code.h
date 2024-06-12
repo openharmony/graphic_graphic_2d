@@ -100,9 +100,6 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REPORT_EVENT_COMPLETE,
     REPORT_EVENT_JANK_FRAME,
     REPORT_EVENT_GAMESTATE,
-    NOTIFY_LIGHT_FACTOR_STATUS,
-    NOTIFY_PACKAGE_EVENT,
-    NOTIFY_REFRESH_RATE_EVENT,
     NOTIFY_TOUCH_EVENT,
     SET_HARDWARE_ENABLED,
     REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK,
@@ -120,6 +117,10 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_ACTIVE_DIRTY_REGION_INFO,
     GET_GLOBAL_DIRTY_REGION_INFO,
     GET_LAYER_COMPOSE_INFO,
+// Special invocation. Do not change it.
+    NOTIFY_LIGHT_FACTOR_STATUS = 1000,
+    NOTIFY_PACKAGE_EVENT  = 1001,
+    NOTIFY_REFRESH_RATE_EVENT = 1002,
 };
 } // namespace Rosen
 } // namespace OHOS
