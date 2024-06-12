@@ -60,7 +60,8 @@ public:
     std::vector<Drawing::Point> CalculateCubicsCtrlPoint(std::vector<Drawing::Point> controlPointOfVertex,
         const Drawing::Point points[], float location, bool isBelowTarget, bool isFirstCtrl);
 
-    Drawing::Point LerpPoint(const Drawing::Point& firstPoint, const Drawing::Point& secondPoint, float k1, float k2);
+    Drawing::Point LerpPoint(const Drawing::Point& firstPoint, const Drawing::Point& secondPoint,
+        float firstFactor, float secondFactor);
     Drawing::Point CubicBezier(const Drawing::Point &p0, const Drawing::Point &p1, const Drawing::Point &p2,
         const Drawing::Point &p3, float t);
 

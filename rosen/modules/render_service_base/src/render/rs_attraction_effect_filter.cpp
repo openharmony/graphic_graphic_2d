@@ -49,37 +49,39 @@ float RSAttractionEffectFilter::GetAttractionFraction() const
     return attractionFraction_;
 }
 
+bool RSAttractionEffectFilter::IsWithinThreshold(const float left, const float right, const float threshold)
+{
+    return (std::abs(left - right) <= threshold);
+}
+
 Drawing::Point RSAttractionEffectFilter::LerpPoint(const Drawing::Point &firstPoint, const Drawing::Point &secondPoint,
-    float k1, float k2)
+    float firstFactor, float secondFactor)
 {
     Drawing::Point p = { 0.0f, 0.0f };
-    p = k1 * firstPoint + k2 * secondPoint;
+    p = firstFactor * firstPoint + secondFactor * secondPoint;
     return p;
 }
 
 Drawing::Point RSAttractionEffectFilter::CubicBezier(const Drawing::Point &p0, const Drawing::Point &p1,
     const Drawing::Point &p2, const Drawing::Point &p3, float t)
 {
+    // p(t) = (1 - t)^3 * p0 + 3 * t * (1 - t)^2 * p1 + 3 * t^2 * (1-t) * p2 + t^3 * p3
+    float tSquared = t * t;
+    float tCubed = t * t * t;
     float u = 1 - t;
-    float tt = t * t;
-    float uu = u * u;
-    float uuu = uu * u;
-    float ttt = tt * t;
-
+    float uSquared = u * u;
+    float uCubed = u * u * u;
+    
     Drawing::Point p = { 0.0f, 0.0f };
     float besselCoefficient = 3.0f;
-    p = p0 * uuu + p1 * besselCoefficient * uu * t + p2 * besselCoefficient * u * tt + p3 * ttt;
+    p = p0 * uCubed + p1 * besselCoefficient * uSquared * t + p2 * besselCoefficient * u * tSquared + p3 * tCubed;
     return p;
 }
 
 float RSAttractionEffectFilter::CalculateCubic(float p1, float p2, float t)
 {
+    // p(t) = 3 * t * (1 - t)^2 * p1 + 3 * t^2 * (1-t) * p2 + t^3
     return 3.0f * p1 * (1.0f - t) * (1.0f - t) * t + 3.0f * p2 * (1.0f - t) * t * t + t * t * t;
-}
-
-bool RSAttractionEffectFilter::IsWithinThreshold(const float left, const float right, const float threshold)
-{
-    return (std::abs(left - right) <= threshold);
 }
 
 float RSAttractionEffectFilter::BinarySearch(float targetX, const Drawing::Point &p1, const Drawing::Point &p2)
@@ -114,31 +116,36 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPointOf
     Drawing::Point bottomLeft = controlPointOfVertex[2];
     Drawing::Point bottomRight = controlPointOfVertex[3];
 
-    pathList.push_back(topLeft);                                          // 0
-    pathList.push_back(LerpPoint(topLeft, topRight, 0.67f, 0.33f));       // 1
-    pathList.push_back(LerpPoint(topLeft, topRight, 0.33f, 0.67f));       // 2
-    pathList.push_back(topRight);                                         // 3
-    pathList.push_back(LerpPoint(topRight, bottomRight, 0.67f, 0.33f));   // 4
-    pathList.push_back(LerpPoint(topRight, bottomRight, 0.33f, 0.67f));   // 5
-    pathList.push_back(bottomRight);                                      // 6
-    pathList.push_back(LerpPoint(bottomLeft, bottomRight, 0.33f, 0.67f)); // 7
-    pathList.push_back(LerpPoint(bottomLeft, bottomRight, 0.67f, 0.33f)); // 8
-    pathList.push_back(bottomLeft);                                       // 9
-    pathList.push_back(LerpPoint(topLeft, bottomLeft, 0.33f, 0.67f));     // 10
-    pathList.push_back(LerpPoint(topLeft, bottomLeft, 0.67f, 0.33f));     // 11
+    // The two numbers represent the weights of the two points
+    pathList.push_back(topLeft);                                          // 0:top left
+    pathList.push_back(LerpPoint(topLeft, topRight, 0.67f, 0.33f));       // 1:top one third
+    pathList.push_back(LerpPoint(topLeft, topRight, 0.33f, 0.67f));       // 2:top two thirds
+    pathList.push_back(topRight);                                         // 3:top right
+    pathList.push_back(LerpPoint(topRight, bottomRight, 0.67f, 0.33f));   // 4:right one third
+    pathList.push_back(LerpPoint(topRight, bottomRight, 0.33f, 0.67f));   // 5:right two thirds
+    pathList.push_back(bottomRight);                                      // 6:bottom right
+    pathList.push_back(LerpPoint(bottomLeft, bottomRight, 0.33f, 0.67f)); // 7:bottom two thirds
+    pathList.push_back(LerpPoint(bottomLeft, bottomRight, 0.67f, 0.33f)); // 8:bottom one third
+    pathList.push_back(bottomLeft);                                       // 9:bottom left
+    pathList.push_back(LerpPoint(topLeft, bottomLeft, 0.33f, 0.67f));     // 10:left two thirds
+    pathList.push_back(LerpPoint(topLeft, bottomLeft, 0.67f, 0.33f));     // 11:left one third
     return pathList;
 }
 
 std::vector<int> RSAttractionEffectFilter::CreateIndexSequence(bool isBelowTarget, float location)
 {
+    float locationValue = 1.0f;
+    float tolerance = 0.001f;
     // Select the parameter index of the window control point according to the window position.
     // 0 to 11 indicate the index of the window control point, which is rotated clockwise.
     if (!isBelowTarget) {
-        return location == 1.0f ? std::vector<int>{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } :
-                                  std::vector<int>{ 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4 };
+        return IsWithinThreshold(location, locationValue, tolerance) ?
+            std::vector<int>{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } :
+            std::vector<int>{ 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4 };
     } else {
-        return location == 1.0f ? std::vector<int>{ 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8 } :
-                                  std::vector<int>{ 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+        return IsWithinThreshold(location, locationValue, tolerance) ?
+            std::vector<int>{ 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8 } :
+            std::vector<int>{ 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
     }
 }
 
@@ -182,6 +189,7 @@ void RSAttractionEffectFilter::CalculateBezierVelList(const std::vector<Drawing:
     std::vector<Drawing::Point> curveVelList;
     Drawing::Point topVelocity = velocityList[0];
     Drawing::Point bottomVelocity = velocityList[1];
+    // The two numbers represent the weights of the two points
     curveVelList.push_back(LerpPoint(topVelocity, bottomVelocity, 0.5f, 0.5f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.33f, 0.67f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.17f, 0.83f));
@@ -219,10 +227,13 @@ void RSAttractionEffectFilter::GetWindowInitCtrlPoints(Drawing::Point windowCtrl
     const int LEFT_TWO_THIRDS       = 10;
     const int LEFT_ONE_THIRD        = 11;
 
-    float widthOneThird = canvasWidth / 3.0;
-    float widthTwoThirds = canvasWidth / 3.0 * 2.0;
-    float heightOneThird = canvasHeight / 3.0;
-    float heightTwoThirds = canvasHeight / 3.0 * 2.0;
+    // Find the third division point
+    float third = 1.0f / 3.0f;
+    float twoThirds = 2.0f / 3.0f;
+    float widthOneThird = canvasWidth * third;
+    float widthTwoThirds = canvasWidth * twoThirds;
+    float heightOneThird = canvasHeight * third;
+    float heightTwoThirds = canvasHeight * twoThirds;
 
     int pointNum = 12;
     if (size == pointNum) {
@@ -250,7 +261,9 @@ void RSAttractionEffectFilter::CalculateDeltaXAndDeltaY(const Drawing::Point win
     int bottomLeftIndex = 9;
     Drawing::Point windowCenter = { 0.5 * canvasWidth_, canvasHeight_ };
     if (windowCenter.GetY() > pointDst.GetY()) {
-        if (location == 1.0f) {
+        float locationValue = 1.0f;
+        float tolerance = 0.001f;
+        if (IsWithinThreshold(location, locationValue, tolerance)) {
             deltaX =
                 std::abs((windowCtrlPoints[topLeftIndex].GetY() +  windowCtrlPoints[bottomLeftIndex].GetY()) / 2.0f -
                 pointDst.GetY());
@@ -294,6 +307,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateLowerCtrlPointOfV
 
 std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPointUpper()
 {
+    // Cubic Bezier curve with two control points
     Drawing::Point topVelFirst = { 0.50f, 0.0f };
     Drawing::Point bottomVelFirst = { 0.20f, 0.0f };
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelFirst, bottomVelFirst};
@@ -302,6 +316,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 
 std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPointLower()
 {
+    // Cubic Bezier curve with two control points
     Drawing::Point topVelSecond = { 0.50f, 1.0f };
     Drawing::Point bottomVelSecond = { 0.20f, 1.0f };
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelSecond, bottomVelSecond};
