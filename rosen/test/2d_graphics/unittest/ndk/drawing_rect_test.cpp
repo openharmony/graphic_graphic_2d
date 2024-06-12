@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "drawing_color.h"
+#include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
@@ -89,6 +90,8 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect002, TestSize.Lev
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetHeight003, TestSize.Level1)
 {
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 400, 800);
+    OH_Drawing_RectGetHeight(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float height = OH_Drawing_RectGetHeight(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(height, 800)); // 800 means height
     OH_Drawing_RectDestroy(rect);
@@ -103,6 +106,8 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetHeight003, TestSize.Lev
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetWidth004, TestSize.Level1)
 {
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 400, 800);
+    OH_Drawing_RectGetWidth(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float width = OH_Drawing_RectGetWidth(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(width, 400)); // 400 means height
     OH_Drawing_RectDestroy(rect);
@@ -117,13 +122,30 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetWidth004, TestSize.Leve
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_SetAndGet005, TestSize.Level1)
 {
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 400, 800);
+    OH_Drawing_RectSetLeft(nullptr, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RectSetLeft(rect, 10);
+    OH_Drawing_RectSetTop(nullptr, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RectSetTop(rect, 10);
+    OH_Drawing_RectSetRight(nullptr, 300);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RectSetRight(rect, 300);
+    OH_Drawing_RectSetBottom(nullptr, 400);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RectSetBottom(rect, 400);
+
+    OH_Drawing_RectGetLeft(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float left = OH_Drawing_RectGetLeft(rect);
+    OH_Drawing_RectGetTop(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float top = OH_Drawing_RectGetTop(rect);
+    OH_Drawing_RectGetRight(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float right = OH_Drawing_RectGetRight(rect);
+    OH_Drawing_RectGetBottom(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     float bottom = OH_Drawing_RectGetBottom(rect);
     EXPECT_TRUE(IsScalarAlmostEqual(left, 10)); // 10 means left
     EXPECT_TRUE(IsScalarAlmostEqual(top, 10)); // 10 means top
@@ -142,6 +164,10 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Copy006, TestSize.Level1)
 {
     OH_Drawing_Rect* rectSrc = OH_Drawing_RectCreate(0, 0, 400, 800);
     OH_Drawing_Rect* rectDst = OH_Drawing_RectCreate(11, 22, 333, 444);
+    OH_Drawing_RectCopy(nullptr, rectSrc);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_RectCopy(rectDst, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RectCopy(rectDst, rectSrc);
     float left = OH_Drawing_RectGetLeft(rectSrc);
     float top = OH_Drawing_RectGetTop(rectSrc);
@@ -177,12 +203,15 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Intersect003, TestSize.Lev
 
     bool ret = OH_Drawing_RectIntersect(rectt, otherOne);
     EXPECT_EQ(ret, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     ret = OH_Drawing_RectIntersect(rect, otherTwo);
     EXPECT_EQ(ret, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     ret = OH_Drawing_RectIntersect(rectt, otherTwo);
     EXPECT_EQ(ret, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(rectt);
@@ -204,6 +233,10 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectJoin001, TestSize.Leve
     OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(300, 250, 600, 400); // 250 300 400 600  rect param
     EXPECT_NE(nullptr, otherOne);
 
+    OH_Drawing_RectJoin(nullptr, otherOne);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_RectJoin(rect, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     bool ret = OH_Drawing_RectJoin(rect, otherOne);
     EXPECT_EQ(ret, true);
 
