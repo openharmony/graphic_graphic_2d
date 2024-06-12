@@ -727,11 +727,8 @@ protected:
     Paint defaultPaint_;
 
 private:
-    void ApplyDrawProc(const Paint& paint, const std::function<void()>& proc);
-    void ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc);
-    void ApplyDrawLooper(const std::function<void()> drawProc);
+    void GetLooperPaint(const Paint& paint, Paint& looperPaint);
 
-    void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> gpuContext_;

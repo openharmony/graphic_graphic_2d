@@ -48,35 +48,6 @@ void SkiaPaintTest::SetUp() {}
 void SkiaPaintTest::TearDown() {}
 
 /**
- * @tc.name: ApplyPaint001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, ApplyPaint001, TestSize.Level1)
-{
-    Paint paint;
-    SkiaPaint skiaPaint;
-    skiaPaint.ApplyPaint(paint);
-    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
-}
-
-/**
- * @tc.name: ApplyPaint002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, ApplyPaint002, TestSize.Level1)
-{
-    Paint paint;
-    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
-    SkiaPaint skiaPaint;
-    skiaPaint.ApplyPaint(paint);
-    EXPECT_TRUE(skiaPaint.paintInUse_ != 0);
-}
-
-/**
  * @tc.name: AsBlendMode001
  * @tc.desc: Test AsBlendMode
  * @tc.type: FUNC
@@ -201,22 +172,6 @@ HWTEST_F(SkiaPaintTest, PaintToSkPaint001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSortedPaints001
- * @tc.desc: Test GetSortedPaints
- * @tc.type: FUNC
- * @tc.require: I8VQSW
- */
-HWTEST_F(SkiaPaintTest, GetSortedPaints001, TestSize.Level1)
-{
-    Paint paint;
-    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
-    SkiaPaint skiaPaint;
-    skiaPaint.ApplyPaint(paint);
-    skiaPaint.GetSortedPaints();
-    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
-}
-
-/**
  * @tc.name: ApplyStrokeParam001
  * @tc.desc: Test ApplyStrokeParam
  * @tc.type: FUNC
@@ -254,7 +209,6 @@ HWTEST_F(SkiaPaintTest, ComputeFastBounds001, TestSize.Level1)
     skiaPaint.ComputeFastBounds(brush, rect, nullptr);
     Rect storage;
     skiaPaint.ComputeFastBounds(brush, rect, &storage);
-    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
 }
 
 /**

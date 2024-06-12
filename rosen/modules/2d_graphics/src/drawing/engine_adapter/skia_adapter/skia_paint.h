@@ -34,10 +34,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 const int MAX_PAINTS_NUMBER = 2;
-struct SortedPaints {
-    SkPaint* paints_[MAX_PAINTS_NUMBER] = { 0 };
-    int count_ = 0;
-};
 
 class SkiaPaint {
 public:
@@ -48,10 +44,6 @@ public:
     static void PenToSkPaint(const Pen& pen, SkPaint& paint);
     static void PaintToSkPaint(const Paint& paint, SkPaint& skPaint);
 
-    void ApplyPaint(const Paint& paint);
-    SortedPaints& GetSortedPaints();
-    void Reset();
-
     static bool GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
@@ -61,12 +53,6 @@ public:
 private:
     static void ApplyFilter(SkPaint& paint, const Filter& filter);
     static void ApplyStrokeParam(const Paint& paint, SkPaint& skPaint);
-
-    int paintInUse_ = 0;
-    SkPaint paints_[MAX_PAINTS_NUMBER];
-    SkPaint defaultPaint_;
-
-    SortedPaints sortedPaints_;
 };
 } // namespace Drawing
 } // namespace Rosen

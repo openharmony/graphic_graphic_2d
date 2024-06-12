@@ -20,6 +20,78 @@
 
 namespace OHOS {
 namespace Rosen {
+#define DRAW_API_WITH_PAINT(func, ...)                                                     \
+    do {                                                                                   \
+        bool brushValid = paintBrush_.IsValid();                                           \
+        bool penValid = paintPen_.IsValid();                                               \
+        if (!brushValid && !penValid) {                                                    \
+            impl_->func(__VA_ARGS__, defaultPaint_);                                       \
+            return;                                                                        \
+        }                                                                                  \
+        if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {    \
+            paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);                      \
+            impl_->func(__VA_ARGS__, paintPen_);                                           \
+            paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);                           \
+            return;                                                                        \
+        }                                                                                  \
+        if (brushValid) {                                                                  \
+            impl_->func(__VA_ARGS__, paintBrush_);                                         \
+        }                                                                                  \
+        if (penValid) {                                                                    \
+            impl_->func(__VA_ARGS__, paintPen_);                                           \
+        }                                                                                  \
+    } while (0)
+
+
+#define DRAW_API_WITH_PAINT_LOOPER(func, ...)                                              \
+do {                                                                                       \
+    bool brushValid = paintBrush_.IsValid();                                               \
+    bool penValid = paintPen_.IsValid();                                                   \
+    if (!brushValid && !penValid) {                                                        \
+        impl_->func(__VA_ARGS__, defaultPaint_);                                           \
+        return;                                                                            \
+    }                                                                                      \
+    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {        \
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);                          \
+        std::shared_ptr looper = paintPen_.GetLooper();                                    \
+        if (looper != nullptr) {                                                           \
+            Paint looperPaint;                                                             \
+            GetLooperPaint(paintPen_, looperPaint);                                        \
+            impl_->Save();                                                                 \
+            impl_->Translate(looper->GetXOffset(), looper->GetYOffset());                  \
+            impl_->func(__VA_ARGS__, looperPaint);                                         \
+            impl_->Restore();                                                              \
+        }                                                                                  \
+        impl_->func(__VA_ARGS__, paintPen_);                                               \
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);                               \
+        return;                                                                            \
+    }                                                                                      \
+    if (brushValid) {                                                                      \
+        std::shared_ptr looper = paintBrush_.GetLooper();                                  \
+        if (looper != nullptr) {                                                           \
+            Paint looperPaint;                                                             \
+            GetLooperPaint(paintBrush_, looperPaint);                                      \
+            impl_->Save();                                                                 \
+            impl_->Translate(looper->GetXOffset(), looper->GetYOffset());                  \
+            impl_->func(__VA_ARGS__, looperPaint);                                         \
+            impl_->Restore();                                                              \
+        }                                                                                  \
+        impl_->func(__VA_ARGS__, paintBrush_);                                             \
+    }                                                                                      \
+    if (penValid) {                                                                        \
+        std::shared_ptr looper = paintPen_.GetLooper();                                    \
+        if (looper != nullptr) {                                                           \
+            Paint looperPaint;                                                             \
+            GetLooperPaint(paintPen_, looperPaint);                                        \
+            impl_->Save();                                                                 \
+            impl_->Translate(looper->GetXOffset(), looper->GetYOffset());                  \
+            impl_->func(__VA_ARGS__, looperPaint);                                         \
+            impl_->Restore();                                                              \
+        }                                                                                  \
+        impl_->func(__VA_ARGS__, paintPen_);                                               \
+    }                                                                                      \
+} while (0)
+
 namespace Drawing {
 CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl())
 {
@@ -102,74 +174,62 @@ bool CoreCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
 
 void CoreCanvas::DrawPoint(const Point& point)
 {
-    AttachPaint();
-    impl_->DrawPoint(point);
+    DRAW_API_WITH_PAINT(DrawPoint, point);
 }
 
 void CoreCanvas::DrawSdf(const SDFShapeBase& shape)
 {
-    AttachPaint();
     impl_->DrawSdf(shape);
 }
 
 void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
-    AttachPaint();
-    impl_->DrawPoints(mode, count, pts);
+    DRAW_API_WITH_PAINT(DrawPoints, mode, count, pts);
 }
 
 void CoreCanvas::DrawLine(const Point& startPt, const Point& endPt)
 {
-    AttachPaint();
-    impl_->DrawLine(startPt, endPt);
+    DRAW_API_WITH_PAINT(DrawLine, startPt, endPt);
 }
 
 void CoreCanvas::DrawRect(const Rect& rect)
 {
-    AttachPaint();
-    impl_->DrawRect(rect);
+    DRAW_API_WITH_PAINT(DrawRect, rect);
 }
 
 void CoreCanvas::DrawRoundRect(const RoundRect& roundRect)
 {
-    AttachPaint();
-    impl_->DrawRoundRect(roundRect);
+    DRAW_API_WITH_PAINT(DrawRoundRect, roundRect);
 }
 
 void CoreCanvas::DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner)
 {
-    AttachPaint();
-    impl_->DrawNestedRoundRect(outer, inner);
+    DRAW_API_WITH_PAINT(DrawNestedRoundRect, outer, inner);
 }
 
 void CoreCanvas::DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle)
 {
-    AttachPaint();
-    impl_->DrawArc(oval, startAngle, sweepAngle);
+    DRAW_API_WITH_PAINT(DrawArc, oval, startAngle, sweepAngle);
 }
 
 void CoreCanvas::DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle)
 {
-    AttachPaint();
-    impl_->DrawPie(oval, startAngle, sweepAngle);
+    DRAW_API_WITH_PAINT(DrawPie, oval, startAngle, sweepAngle);
 }
 
 void CoreCanvas::DrawOval(const Rect& oval)
 {
-    AttachPaint();
-    impl_->DrawOval(oval);
+    DRAW_API_WITH_PAINT(DrawOval, oval);
 }
 
 void CoreCanvas::DrawCircle(const Point& centerPt, scalar radius)
 {
-    AttachPaint();
-    impl_->DrawCircle(centerPt, radius);
+    DRAW_API_WITH_PAINT(DrawCircle, centerPt, radius);
 }
 
 void CoreCanvas::DrawPath(const Path& path)
 {
-    AttachPaint();
-    impl_->DrawPath(path);
+    DRAW_API_WITH_PAINT(DrawPath, path);
 }
 
 void CoreCanvas::DrawBackground(const Brush& brush)
@@ -197,20 +257,17 @@ void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)
 
 void CoreCanvas::DrawRegion(const Region& region)
 {
-    AttachPaint();
-    impl_->DrawRegion(region);
+    DRAW_API_WITH_PAINT(DrawRegion, region);
 }
 
 void CoreCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4], const Point texCoords[4], BlendMode mode)
 {
-    AttachPaint();
-    impl_->DrawPatch(cubics, colors, texCoords, mode);
+    DRAW_API_WITH_PAINT(DrawPatch, cubics, colors, texCoords, mode);
 }
 
 void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 {
-    AttachPaint();
-    impl_->DrawVertices(vertices, mode);
+    DRAW_API_WITH_PAINT(DrawVertices, vertices, mode);
 }
 
 bool CoreCanvas::OpCalculateBefore(const Matrix& matrix)
@@ -226,13 +283,12 @@ std::shared_ptr<Drawing::OpListHandle> CoreCanvas::OpCalculateAfter(const Rect& 
 void CoreCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {
-    impl_->DrawAtlas(atlas, xform, tex, colors, count, mode, sampling, cullRect);
+    DRAW_API_WITH_PAINT(DrawAtlas, atlas, xform, tex, colors, count, mode, sampling, cullRect);
 }
 
 void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
-    AttachPaint();
-    impl_->DrawBitmap(bitmap, px, py);
+    DRAW_API_WITH_PAINT(DrawBitmap, bitmap, px, py);
 }
 
 void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
@@ -244,27 +300,23 @@ void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
 void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
     FilterMode filter)
 {
-    AttachPaint();
-    impl_->DrawImageLattice(image, lattice, dst, filter);
+    DRAW_API_WITH_PAINT(DrawImageLattice, image, lattice, dst, filter);
 }
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
-    AttachPaint();
-    impl_->DrawImage(image, px, py, sampling);
+    DRAW_API_WITH_PAINT(DrawImage, image, px, py, sampling);
 }
 
 void CoreCanvas::DrawImageRect(
     const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
-    AttachPaint();
-    impl_->DrawImageRect(image, src, dst, sampling, constraint);
+    DRAW_API_WITH_PAINT(DrawImageRect, image, src, dst, sampling, constraint);
 }
 
 void CoreCanvas::DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling)
 {
-    AttachPaint();
-    impl_->DrawImageRect(image, dst, sampling);
+    DRAW_API_WITH_PAINT(DrawImageRect, image, dst, sampling);
 }
 
 void CoreCanvas::DrawPicture(const Picture& picture)
@@ -279,13 +331,12 @@ void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
 
 void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
-    ApplyDrawLooper([&]() { impl_->DrawTextBlob(blob, x, y); });
+    DRAW_API_WITH_PAINT_LOOPER(DrawTextBlob, blob, x, y);
 }
 
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
 {
-    AttachPaint();
-    impl_->DrawSymbol(symbol, locate);
+    DRAW_API_WITH_PAINT(DrawSymbol, symbol, locate);
 }
 
 void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
@@ -475,82 +526,6 @@ int CoreCanvas::GetAlphaSaveCount() const
     return 0;
 }
 
-void CoreCanvas::ApplyDrawProc(const Paint& paint, const std::function<void()>& proc)
-{
-    impl_->AttachPaint(paint);
-    proc();
-}
-
-void CoreCanvas::ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc)
-{
-    std::shared_ptr<BlurDrawLooper> looper = paint.GetLooper();
-    if (looper == nullptr) {
-        return;
-    }
-    Paint tmpPaint(paint);
-    tmpPaint.SetColor(looper->GetColor());
-    Filter filter = tmpPaint.GetFilter();
-    filter.SetMaskFilter(looper->GetMaskFilter());
-    tmpPaint.SetFilter(filter);
-    impl_->Save();
-    impl_->Translate(looper->GetXOffset(), looper->GetYOffset());
-    ApplyDrawProc(tmpPaint, proc);
-    impl_->Restore();
-}
-
-void CoreCanvas::ApplyDrawLooper(const std::function<void()> drawProc)
-{
-    bool brushValid = paintBrush_.IsValid();
-    bool penValid = paintPen_.IsValid();
-    if (!brushValid && !penValid) {
-        ApplyDrawProc(defaultPaint_, drawProc);
-        return;
-    }
-
-    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
-        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
-        ApplyBlurDrawProc(paintPen_, drawProc);
-        ApplyDrawProc(paintPen_, drawProc);
-        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
-        return;
-    }
-
-    if (brushValid) {
-        ApplyBlurDrawProc(paintBrush_, drawProc);
-        ApplyDrawProc(paintBrush_, drawProc);
-    }
-
-    if (penValid) {
-        ApplyBlurDrawProc(paintPen_, drawProc);
-        ApplyDrawProc(paintPen_, drawProc);
-    }
-}
-
-void CoreCanvas::AttachPaint()
-{
-    bool brushValid = paintBrush_.IsValid();
-    bool penValid = paintPen_.IsValid();
-    if (!brushValid && !penValid) {
-        impl_->AttachPaint(defaultPaint_);
-        return;
-    }
-
-    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
-        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
-        impl_->AttachPaint(paintPen_);
-        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
-        return;
-    }
-
-    if (brushValid) {
-        impl_->AttachPaint(paintBrush_);
-    }
-
-    if (penValid) {
-        impl_->AttachPaint(paintPen_);
-    }
-}
-
 void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
 {
     if (impl_ && canvas) {
@@ -571,6 +546,16 @@ void CoreCanvas::Reset(int32_t width, int32_t height)
 bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)
 {
     return impl_->DrawBlurImage(image, blurParams);
+}
+
+void CoreCanvas::GetLooperPaint(const Paint& paint, Paint& looperPaint)
+{
+    looperPaint = paint;
+    std::shared_ptr looper = paint.GetLooper();
+    looperPaint.SetColor(looper->GetColor());
+    Filter filter = looperPaint.GetFilter();
+    filter.SetMaskFilter(looper->GetMaskFilter());
+    looperPaint.SetFilter(filter);
 }
 } // namespace Drawing
 } // namespace Rosen
