@@ -320,23 +320,34 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
 }
 
 // use in IPC thread
-Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(const uint64_t tid)
+Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext* grContext)
 {
     Drawing::Bitmap bitmap;
     std::lock_guard<std::mutex> lock(drawingMutex);
+    // Judge valid of backendTexture_ by checking the image_.
     if (!image_) {
         RS_LOGE("Failed to get bitmap, image is null!");
         return bitmap;
     }
-#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) && (GetTid() != tid)) {
-        RS_LOGE("Failed to get bitmap, image is used by multi threads");
+    if (!grContext) {
+        RS_LOGE("Failed to get bitmap, grContext is null!");
         return bitmap;
     }
-#endif
-    if (!image_->AsLegacyBitmap(bitmap)) {
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
+    auto image = std::make_shared<Drawing::Image>();
+    SharedTextureContext* sharedContext = new SharedTextureContext(image); // last image
+    bool ret = image->BuildFromTexture(*grContext, backendTexture_.GetTextureInfo(), origin,
+        info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
+    if (!ret) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetBitmap image BuildFromTexture failed");
+        return bitmap;
+    }
+    if (!image->AsLegacyBitmap(bitmap)) {
         RS_LOGE("Failed to get bitmap, asLegacyBitmap failed");
     }
+#endif
     return bitmap;
 }
 
