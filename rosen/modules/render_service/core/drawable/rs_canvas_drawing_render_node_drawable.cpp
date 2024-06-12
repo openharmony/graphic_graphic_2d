@@ -451,9 +451,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
+    SharedTextureContext* sharedContext = new SharedTextureContext(image_);
     captureImage_ = std::make_shared<Drawing::Image>();
-    bool ret = captureImage_->BuildFromTexture(
-        *canvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin, info, nullptr);
+    bool ret = captureImage_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin, info,
+        nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage BuildFromTexture failed");
         return;
