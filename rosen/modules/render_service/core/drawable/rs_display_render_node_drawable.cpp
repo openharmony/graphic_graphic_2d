@@ -496,8 +496,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 WiredScreenProjection(displayNodeSp, *params, processor);
                 return;
             }
-            virtualScreenBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-            uniParam->SetBlackList(virtualScreenBlackList_);
+            castScreenEnableSkipWindow_ = screenManager->GetCastScreenEnableSkipWindow(paramScreenId);
+            if (castScreenEnableSkipWindow_) {
+                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable CastScreen SkipWindow.");
+                screenManager->GetCastScreenBlackList(castScreenBlackList_);
+                uniParam->SetBlackList(castScreenBlackList_);
+            } else {
+                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable RecordScreen SkipWindow.");
+                virtualScreenBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
+                uniParam->SetBlackList(virtualScreenBlackList_);
+            }
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(displayNodeSp, *params, processor);
         } else {
@@ -720,7 +728,7 @@ bool RSDisplayRenderNodeDrawable::CheckIfHasSpecialLayer(RSDisplayRenderParams& 
     if (params.HasSecurityLayer() || params.HasSkipLayer() || params.HasProtectedLayer() ||
         params.HasCaptureWindow() || RSUniRenderThread::Instance().IsCurtainScreenOn() ||
         params.GetHDRPresent() || !params.GetScreenInfo().filteredAppSet.empty() ||
-        !virtualScreenBlackList_.empty()) {
+        !virtualScreenBlackList_.empty() || !castScreenBlackList_.empty()) {
             return true;
     }
     return false;

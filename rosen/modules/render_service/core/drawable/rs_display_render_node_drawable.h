@@ -95,6 +95,8 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
     std::unordered_set<NodeId> virtualScreenBlackList_ = {};
+    std::unordered_set<NodeId> castScreenBlackList_ = {};
+    bool castScreenEnableSkipWindow_ = false;
     bool hasSpecialLayer_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;

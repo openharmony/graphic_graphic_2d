@@ -452,6 +452,12 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSRenderServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetCastScreenEnableSkipWindow(id, enable);
+}
+
 int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
