@@ -345,9 +345,11 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
         uniRenderEngine_->ResetCurrentContext();
     }
 #ifdef RS_ENABLE_VK
-    auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
-    if (frameBufferSurface) {
-        frameBufferSurface->ClearSurfaceMap();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
+        if (frameBufferSurface) {
+            frameBufferSurface->ClearSurfaceMap();
+        }
     }
 #endif
     return output->ClearFrameBuffer();
