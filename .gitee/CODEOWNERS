@@ -1,0 +1,7 @@
+# Code owners for graphic_2d
+[graphic_2d base]
+.gitee/CODEOWNERS @lijj01
+bundle.json @lijj01
+
+[cross-platform]
+rosen/modules/glfw_render_context/ @aslklw
