@@ -130,7 +130,8 @@ public:
     }
 
     void SetUseDmaBuffer(bool val);
-    bool GetUseDmaBuffer();
+    bool GetUseDmaBuffer() const;
+    bool IsScreenshotAnimation();
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
@@ -175,7 +176,6 @@ private:
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
     void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
     void ConvertPendingNodeToDrawable();
-    bool IsScreenshotAnimation();
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;

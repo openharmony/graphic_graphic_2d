@@ -460,7 +460,7 @@ void RSUifirstManager::ProcessSubDoneNode()
 
 void RSUifirstManager::ConvertPendingNodeToDrawable()
 {
-    if (!RSSystemParameters::GetUIFirstDmaBufferEnabled()) {
+    if (!useDmaBuffer_) {
         return;
     }
     pendingPostDrawables_.clear();
@@ -933,7 +933,8 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    if (node.GetName().find("ScreenShotWindow") != std::string::npos) {
+    if (RSUifirstManager::Instance().GetUseDmaBuffer() &&
+        node.GetName().find("ScreenShotWindow") != std::string::npos) {
         return true;
     }
     bool isNeedAssignToSubThread = false;
@@ -1097,6 +1098,9 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
 {
+    if (!useDmaBuffer_) {
+        return;
+    }
     for (auto iter : pendingPostNodes_) {
         if (!iter.second) {
             continue;
@@ -1134,9 +1138,9 @@ void RSUifirstManager::SetUseDmaBuffer(bool val)
     useDmaBuffer_ = val;
 }
 
-bool RSUifirstManager::GetUseDmaBuffer()
+bool RSUifirstManager::GetUseDmaBuffer() const
 {
-    return useDmaBuffer_ && IsScreenshotAnimation();
+    return useDmaBuffer_;
 }
 } // namespace Rosen
 } // namespace OHOS
