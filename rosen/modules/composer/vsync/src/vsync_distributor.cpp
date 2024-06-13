@@ -501,8 +501,6 @@ void VSyncDistributor::DisableVSync()
 }
 
 #if defined(RS_ENABLE_DVSYNC)
-
-
 void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     std::lock_guard<std::mutex> locker(mutex_);
