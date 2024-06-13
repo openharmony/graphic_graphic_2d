@@ -259,7 +259,7 @@ bool UnmarshallingPlayer::RegisterUnmarshallingFunc(uint32_t type, Unmarshalling
         static std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> opUnmarshallingFuncLUT = {};
         opUnmarshallingFuncLUT_ = &opUnmarshallingFuncLUT;
     }
-    std::unique_lock<std::shared_timed_mutex> lock(UnmarshallingFuncMapMutex_);
+    std::unique_lock<std::mutex> lock(UnmarshallingFuncMapMutex_);
     return opUnmarshallingFuncLUT_->emplace(type, func).second;
 }
 
