@@ -3978,13 +3978,14 @@ void RSProperties::UpdateForegroundFilter()
             foregroundFilter_ = spherizeEffectFilter;
         }
     } else if (GetShadowMask()) {
-        foregroundFilter_.reset();
         float elevation = GetShadowElevation();
         Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
         Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
-        if (ROSEN_GE(blurRadius, 1.0)) {
-            auto colorfulShadowFilter =
-                std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        auto colorfulShadowFilter =
+            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = colorfulShadowFilter;
+        } else {
             foregroundFilter_ = colorfulShadowFilter;
         }
     } else {
