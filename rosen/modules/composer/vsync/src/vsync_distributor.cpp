@@ -457,16 +457,12 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
 #if defined(RS_ENABLE_DVSYNC)
     // ensure the preexecution only gets ahead for at most one period(i.e., 3 buffer rotation)
     if (IsDVsyncOn()) {
-        int64_t periodBeforeDelay = 0L;
-        int64_t periodAfterDelay = 0L;
         {
             std::unique_lock<std::mutex> locker(mutex_);
-            periodBeforeDelay = event_.period;
             dvsync_->MarkDistributorSleep(true);
             dvsync_->RNVNotify();
             dvsync_->DelayBeforePostEvent(timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
-            periodAfterDelay = event_.period;
         }
         // if getting switched into vsync mode after sleep
         if (!IsDVsyncOn()) {
@@ -476,9 +472,6 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
                 RequestNextVSync(conn);
             }  // resend RNV for vsync
             return false;  // do not accumulate frame;
-        } else if (!IsUiDvsyncOn() && std::abs(periodAfterDelay - periodBeforeDelay) > MAX_PERIOD_BIAS) {
-            timestamp = timestamp + periodAfterDelay - periodBeforeDelay;
-            dvsync_->SetLastVirtualVSyncTS(timestamp);
         }
     }
     {
@@ -512,8 +505,13 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 {
     std::lock_guard<std::mutex> locker(mutex_);
     vsyncMode_ = vsyncMode;
-    event_.period = period;
     dvsync_->RuntimeSwitch();
+    if (IsDVsyncOn() && isRs_ && event_.period != 0 && event_.refreshRate != 0) {
+        period = event_.period;
+        refreshRate = event_.refreshRate;
+    } else {
+        event_.period = period;
+    }
     if (IsDVsyncOn()) {
         ScopedBytrace func("VSyncD onVSyncEvent, now:" + std::to_string(now));
     } else {
@@ -745,6 +743,16 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
     }
 }
 
+#if defined(RS_ENABLE_DVSYNC)
+void VSyncDistributor::UpdateVsyncPeriodAndRefreshRate()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    event_.refreshRate = dvsync_->GetImmediateRefreshRate();
+    event_.period = dvsync_->GetImmediatePeriod();
+    dvsync_->UpdateVsyncPeriodAndRefreshRate(event_.period, event_.refreshRate);
+}
+#endif
+
 void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -762,6 +770,11 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
             (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
             period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
         }
+#if defined(RS_ENABLE_DVSYNC)
+        if (isRs_) {
+            UpdateVsyncPeriodAndRefreshRate();
+        }
+#endif
         int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name_.c_str(), ret);

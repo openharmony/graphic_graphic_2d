@@ -296,9 +296,6 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         }
         FrameRateReport();
     }
-    if (dvsyncInfo.isRsDvsyncOn) {
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-    }
     ReportHiSysEvent(resultVoteInfo);
     lastVoteInfo_ = resultVoteInfo;
 }

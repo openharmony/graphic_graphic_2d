@@ -1667,16 +1667,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
             idleTimerExpiredFlag_, info);
     }
-
-    if (rsVSyncDistributor_->IsDVsyncOn()) {
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
-        if (pendingRefreshRate != nullptr
-            && (!info.isUiDvsyncOn || rsRate == *pendingRefreshRate)) {
-            hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
-            frameRateMgr_->ResetPendingRefreshRate();
-        }
-    }
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
