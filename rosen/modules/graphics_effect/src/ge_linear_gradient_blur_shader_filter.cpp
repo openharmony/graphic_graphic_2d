@@ -32,8 +32,9 @@ static bool GetMaskLinearBlurEnabled()
     static bool enabled =
         std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "1")).c_str()) != 0;
     return enabled;
-#endif
+#else
     return false;
+#endif
 }
 } // namespace
 
@@ -64,7 +65,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImageDD
     Drawing::Filter imageFilter;
     Drawing::GradientBlurType blurType;
     if (GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
-        blurType = Drawing::GradientBlurType::AlPHA_BLEND;
+        blurType = Drawing::GradientBlurType::ALPHA_BLEND;
         radius /= 2; // 2: half radius.
     } else {
         radius -= GELinearGradientBlurPara::ORIGINAL_BASE;
@@ -110,7 +111,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
             return image;
         }
 
-        auto& RSFilter = para->LinearGradientBlurFilter_;
+        const auto& RSFilter = para->LinearGradientBlurFilter_;
         auto filter = RSFilter;
         return DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {

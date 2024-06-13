@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
+#include "foundation/graphic/graphic_surface/surface/include/surface_buffer_impl.h"
 #include "gtest/gtest.h"
+#include "image_source.h"
+#include "pixel_map.h"
+#include "surface_buffer_impl.h"
 
 #include "pipeline/rs_draw_cmd.h"
 
@@ -50,7 +54,24 @@ HWTEST_F(RSDrawCmdTest, SetNodeId001, TestSize.Level1)
     extendImageObject.SetNodeId(id);
 
     RSExtendImageObject extendImageObjectTwo;
+    extendImageObjectTwo.rsImage_ = std::make_shared<RSImage>();
     extendImageObjectTwo.SetNodeId(id);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetPaintTest
+ * @tc.desc: test results of SetPaint
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSDrawCmdTest, SetPaintTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    Drawing::Paint paint;
+    extendImageObject.SetPaint(paint);
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    extendImageObject.SetPaint(paint);
     ASSERT_TRUE(true);
 }
 
@@ -65,6 +86,13 @@ HWTEST_F(RSDrawCmdTest, GetDrawingImageFromSurfaceBuffer, TestSize.Level1)
     RSExtendImageObject extendImageObject(pixelMap, imageInfo);
     Drawing::Canvas canvas(1, 1);
     OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
+    ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, nullptr));
+    extendImageObject.eglImage_ = EGL_NO_IMAGE_KHR;
+    ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
+    extendImageObject.texId_ = 0U;
+    ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
+    extendImageObject.nativeWindowBuffer_ = nullptr;
     ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
 }
 
@@ -82,12 +110,12 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback007
+ * @tc.name: Playback001
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -99,15 +127,44 @@ HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
     RSExtendImageObject extendImageObject(image, data, imageInfo);
     extendImageObject.Playback(canvas, rect, sampling, isBackground);
     ASSERT_TRUE(true);
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    RSExtendImageObject extendImageObjectT(pixelMapT, imageInfo);
+    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+    pixelMapT->isAstc_ = true;
+    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
 }
 
 /**
- * @tc.name: Playback001
+ * @tc.name: PreProcessPixelMap
+ * @tc.desc: test results of PreProcessPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSDrawCmdTest, PreProcessPixelMap, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    Drawing::SamplingOptions sampling;
+    RSExtendImageObject extendImageObject(pixelMap, imageInfo);
+    extendImageObject.PreProcessPixelMap(canvas, pixelMapT, sampling);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Playback002
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
 {
     Drawing::Rect src;
     Drawing::Rect dst;
@@ -119,6 +176,15 @@ HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
 
     RSExtendImageBaseObj obj;
     obj.Playback(canvas, rect, sampling);
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    RSExtendImageBaseObj extendImageBaseObjT(pixelMapT, src, dst);
+    extendImageBaseObjT.rsImage_ = std::make_shared<RSImage>();
+    extendImageBaseObjT.Playback(canvas, rect, sampling);
+    extendImageBaseObjT.SetNodeId(id);
     ASSERT_TRUE(true);
 }
 
@@ -136,6 +202,7 @@ HWTEST_F(RSDrawCmdTest, SetNodeId002, TestSize.Level1)
     extendImageBaseObj.SetNodeId(id);
 
     RSExtendImageBaseObj obj;
+    obj.rsImage_ = std::make_shared<RSImage>();
     obj.SetNodeId(id);
     ASSERT_TRUE(true);
 }
@@ -156,12 +223,48 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback002
+ * @tc.name: Unmarshalling003
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSDrawCmdTest, Unmarshalling003, TestSize.Level1)
+{
+    Drawing::RecordingCanvas::DrawFunc drawFunc;
+    RSExtendDrawFuncObj extendDrawFuncObj(std::move(drawFunc));
+    Parcel parcel;
+    extendDrawFuncObj.Marshalling(parcel);
+    ASSERT_EQ(extendDrawFuncObj.Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling004
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSDrawCmdTest, Unmarshalling004, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Image> image;
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::SamplingOptions sampling;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+    Drawing::Paint paint;
+    Drawing::DrawImageWithParmOpItem drawImageWithParmOpItem(image, data, imageInfo, sampling, paint);
+    Drawing::DrawCmdList cmdList;
+    drawImageWithParmOpItem.Marshalling(cmdList);
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle);
+    ASSERT_NE(drawImageWithParmOpItem.Unmarshalling(cmdList, (void*)(&handle)), nullptr);
+}
+
+/**
+ * @tc.name: Playback003
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback003, TestSize.Level1)
 {
     Drawing::RecordingCanvas::DrawFunc drawFunc;
     RSExtendDrawFuncObj extendDrawFuncObj(std::move(drawFunc));
@@ -176,12 +279,12 @@ HWTEST_F(RSDrawCmdTest, Playback002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback003
+ * @tc.name: Playback004
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback003, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback004, TestSize.Level1)
 {
     std::shared_ptr<Drawing::Image> image;
     std::shared_ptr<Drawing::Data> data;
@@ -217,12 +320,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId003, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback004
+ * @tc.name: Playback005
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback004, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback005, TestSize.Level1)
 {
     Drawing::DrawCmdList cmdList;
     Drawing::OpDataHandle objectHandle;
@@ -257,12 +360,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId004, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback005
+ * @tc.name: Playback006
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback005, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
 {
     Drawing::DrawCmdList list;
     Drawing::OpDataHandle objectHandle;
@@ -301,12 +404,12 @@ HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
 }
 
 /**
- * @tc.name: Playback006
+ * @tc.name: Playback007
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
  * @tc.require: issueI9H4AD
  */
-HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
 {
     Drawing::DrawCmdList list;
     uint32_t funcObjectId = 1;
@@ -345,5 +448,12 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     Drawing::Rect rect;
     drawSurfaceBufferOpItem.Playback(&canvas, &rect);
     ASSERT_EQ(drawSurfaceBufferOpItem.nativeWindowBuffer_, nullptr);
+  
+
+    if (drawSurfaceBufferOpItem.nativeWindowBuffer_) {
+        std::cerr << "1" << std::endl;
+    } else {
+        std::cerr << "0" << std::endl;
+    }
 }
 } // namespace OHOS::Rosen

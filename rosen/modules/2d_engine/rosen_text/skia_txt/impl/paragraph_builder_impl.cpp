@@ -111,18 +111,11 @@ ParagraphBuilderImpl::~ParagraphBuilderImpl() = default;
 void ParagraphBuilderImpl::PushStyle(const TextStyle& style)
 {
     builder_->pushStyle(TextStyleToSkStyle(style));
-    styleStack_.push(style);
 }
 
 void ParagraphBuilderImpl::Pop()
 {
     builder_->pop();
-    styleStack_.pop();
-}
-
-const TextStyle& ParagraphBuilderImpl::PeekStyle()
-{
-    return styleStack_.empty() ? baseStyle_ : styleStack_.top();
 }
 
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
@@ -202,7 +195,6 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setMaxLines(txt.maxLines);
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
-
     if (!txt.hintingIsOn) {
         skStyle.turnHintingOff();
     }

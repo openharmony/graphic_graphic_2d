@@ -119,7 +119,11 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, AddModifier001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
+    RSNodeCommandHelper::AddModifier(context, nodeId, nullptr);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
     RSNodeCommandHelper::AddModifier(context, nodeId, nullptr);
     EXPECT_EQ(0, nodeId);
 }
@@ -133,8 +137,12 @@ HWTEST_F(RSNodeCommandTest, AddModifier001, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, RemoveModifier001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
     PropertyId propertyId = 0;
+    RSNodeCommandHelper::RemoveModifier(context, nodeId, propertyId);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
     RSNodeCommandHelper::RemoveModifier(context, nodeId, propertyId);
     EXPECT_EQ(0, nodeId);
 }
@@ -148,7 +156,11 @@ HWTEST_F(RSNodeCommandTest, RemoveModifier001, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
+    RSNodeCommandHelper::SetFreeze(context, nodeId, true);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(0, nodeId);
 }
@@ -162,8 +174,12 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
     std::string nodeName = "";
+    RSNodeCommandHelper::SetNodeName(context, nodeId, nodeName);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
     RSNodeCommandHelper::SetNodeName(context, nodeId, nodeName);
     EXPECT_EQ(0, nodeId);
 }
@@ -177,7 +193,11 @@ HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, MarkNodeGroup001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
+    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
     RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
     EXPECT_EQ(0, nodeId);
 }
@@ -191,9 +211,31 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroup001, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, MarkNodeSingleFrameComposer001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 0;
+    NodeId nodeId = 1;
     pid_t pid = 0;
     RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true, pid);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
+    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true, pid);
+    EXPECT_EQ(0, nodeId);
+}
+
+/**
+ * @tc.name: MarkSuggestOpincNode001
+ * @tc.desc: test results of MarkSuggestOpincNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9SBEZ
+ */
+HWTEST_F(RSNodeCommandTest, MarkSuggestOpincNode001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSNodeCommandHelper::MarkSuggestOpincNode(context, nodeId, true, true);
+    EXPECT_EQ(1, nodeId);
+
+    nodeId = 0;
+    RSNodeCommandHelper::MarkSuggestOpincNode(context, nodeId, true, true);
     EXPECT_EQ(0, nodeId);
 }
 
@@ -210,6 +252,10 @@ HWTEST_F(RSNodeCommandTest, SetDrawRegion001, TestSize.Level1)
     auto rect = std::make_shared<RectF>();
     RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
     EXPECT_EQ(0, nodeId);
+
+    nodeId = 1;
+    RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
+    EXPECT_EQ(1, nodeId);
 }
 
 /**
@@ -225,6 +271,10 @@ HWTEST_F(RSNodeCommandTest, SetOutOfParent001, TestSize.Level1)
     OutOfParentType outOfParent = OutOfParentType::OUTSIDE;
     RSNodeCommandHelper::SetOutOfParent(context, nodeId, outOfParent);
     EXPECT_EQ(0, nodeId);
+
+    nodeId = 1;
+    RSNodeCommandHelper::SetOutOfParent(context, nodeId, outOfParent);
+    EXPECT_EQ(1, nodeId);
 }
 
 /**
@@ -239,6 +289,10 @@ HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
     NodeId nodeId = 0;
     RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
     EXPECT_EQ(0, nodeId);
+
+    nodeId = 1;
+    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
+    EXPECT_EQ(1, nodeId);
 }
 
 /**
@@ -256,9 +310,16 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
     EXPECT_EQ(0, inNodeId);
 
     inNodeId = 1;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(1, inNodeId);
+
     outNodeId = 1;
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
     EXPECT_EQ(1, inNodeId);
+
+    inNodeId = 0;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(0, inNodeId);
 }
 
 /**

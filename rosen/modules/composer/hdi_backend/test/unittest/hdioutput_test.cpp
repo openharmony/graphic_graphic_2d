@@ -265,11 +265,11 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer002, Function | MediumTest | Level1)
 */
 HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Level1)
 {
-    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(testing::Return(0));
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     int32_t skipState = 0;
     bool needFlush = false;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush),
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
         GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace

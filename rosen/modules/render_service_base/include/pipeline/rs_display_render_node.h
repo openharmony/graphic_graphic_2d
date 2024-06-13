@@ -53,8 +53,6 @@ public:
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::DISPLAY_NODE;
 
-    explicit RSDisplayRenderNode(
-        NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
@@ -284,6 +282,7 @@ public:
     void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
         std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
         std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -351,12 +350,12 @@ public:
     {
         surfaceSrcRects_.clear();
     }
-    
+
     void ClearSurfaceDstRect()
     {
         surfaceDstRects_.clear();
     }
-    
+
     void ClearSurfaceTotalMatrix()
     {
         surfaceTotalMatrix_.clear();
@@ -447,6 +446,8 @@ public:
 protected:
     void OnSync() override;
 private:
+    explicit RSDisplayRenderNode(
+        NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
@@ -500,7 +501,7 @@ private:
     bool isParallelDisplayNode_ = false;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    
+
 	// support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;
@@ -514,6 +515,8 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+
+    friend class DisplayNodeCommandHelper;
 };
 } // namespace Rosen
 } // namespace OHOS

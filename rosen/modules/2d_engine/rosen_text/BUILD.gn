@@ -80,6 +80,7 @@ if (enable_text_gine) {
     include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/texgine/convert.cpp",
@@ -118,6 +119,7 @@ if (enable_text_gine) {
     }
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/txt/convert.cpp",
@@ -164,6 +166,7 @@ if (enable_text_gine) {
     cflags = [ "-std=c++17" ]
 
     sources = [
+      "adapter/common/hm_symbol_txt.cpp",
       "adapter/common/text_style.cpp",
       "adapter/common/typography_style.cpp",
       "adapter/skia_txt/convert.cpp",

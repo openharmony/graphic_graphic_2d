@@ -22,22 +22,8 @@
 
 #include "text/hm_symbol.h"
 
-#define RENDER_SINGLE 0
-#define RENDER_MULTIPLE_COLOR 1
-#define RENDER_MULTIPLE_OPACITY 2
-
 namespace OHOS {
 namespace Rosen {
-
-static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
-    {0, Drawing::DrawingEffectStrategy::NONE},
-    {1, Drawing::DrawingEffectStrategy::SCALE},
-    {2, Drawing::DrawingEffectStrategy::VARIABLE_COLOR},
-    {3, Drawing::DrawingEffectStrategy::APPEAR},
-    {4, Drawing::DrawingEffectStrategy::DISAPPEAR},
-    {5, Drawing::DrawingEffectStrategy::BOUNCE},
-    {6, Drawing::DrawingEffectStrategy::PULSE},
-    {7, Drawing::DrawingEffectStrategy::REPLACE_APPEAR}};
 
 enum VisualMode {
     VISUAL_MEDIUM = 0,
@@ -50,127 +36,45 @@ public:
     HMSymbolTxt() {}
     ~HMSymbolTxt() {}
 
-    void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
-    {
-        colorList_ = colorList;
-    }
+    void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList);
 
-    void SetRenderColor(const std::vector<Drawing::Color>& colorList)
-    {
-        colorList_.clear();
-        for (auto color: colorList) {
-            Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-            colorList_.push_back(colorIt);
-        }
-    }
+    void SetRenderColor(const std::vector<Drawing::Color>& colorList);
 
-    void SetRenderColor(const Drawing::Color& color)
-    {
-        Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-        colorList_ = {colorIt};
-    }
+    void SetRenderColor(const Drawing::Color& color);
 
-    void SetRenderColor(const Drawing::DrawingSColor& colorList)
-    {
-        colorList_ = {colorList};
-    }
+    void SetRenderColor(const Drawing::DrawingSColor& colorList);
 
-    void SetRenderMode(const uint32_t& renderMode)
-    {
-        switch (renderMode) {
-            case RENDER_SINGLE:
-                renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
-                break;
-            case RENDER_MULTIPLE_OPACITY:
-                renderMode_ = Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY;
-                break;
-            case RENDER_MULTIPLE_COLOR:
-                renderMode_ = Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR;
-                break;
-            default:
-                break;
-        }
-    }
+    void SetRenderMode(const uint32_t& renderMode);
 
-    void SetSymbolEffect(const uint32_t& effectStrategy)
-    {
-        auto iter = EFFECT_TYPES.find(effectStrategy);
-        if (iter != EFFECT_TYPES.end()) {
-            effectStrategy_ = iter->second;
-        }
-    }
+    void SetSymbolEffect(const uint32_t& effectStrategy);
 
-    std::vector<Drawing::DrawingSColor> GetRenderColor() const
-    {
-        return colorList_;
-    }
+    // set animation mode: the 1 is whole or iteratuve, 0 is hierarchical or cumulative
+    void SetAnimationMode(const uint16_t animationMode);
 
-    Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const
-    {
-        return renderMode_;
-    }
+    void SetRepeatCount(const int repeatCount);
 
-    Drawing::DrawingEffectStrategy GetEffectStrategy() const
-    {
-        return effectStrategy_;
-    }
+    void SetAnimationStart(const bool animationStart);
 
-    void SetAnimationMode(const uint16_t animationMode)
-    {
-        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or iteratuve, 0 is hierarchical or cumulative
-    }
+    // set common subtype of symbol animation attribute
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);
 
-    void SetRepeatCount(const int repeatCount)
-    {
-        repeatCount_ = repeatCount;
-    }
+    void SetVisualMode(const VisualMode visual);
 
-    void SetAnimationStart(const bool animationStart)
-    {
-        animationStart_ = animationStart;
-    }
+    std::vector<Drawing::DrawingSColor> GetRenderColor() const;
 
-    uint16_t GetAnimationMode() const
-    {
-        return animationMode_;
-    }
+    Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const;
 
-    int GetRepeatCount() const
-    {
-        return repeatCount_;
-    }
+    Drawing::DrawingEffectStrategy GetEffectStrategy() const;
 
-    bool GetAnimationStart() const
-    {
-        return animationStart_;
-    }
+    uint16_t GetAnimationMode() const;
 
-    void SetVisualMode(const VisualMode visual)
-    {
-        visualMap_.clear();
-        if (visual == VisualMode::VISUAL_SMALL) {
-            visualMap_["ss01"] = 1;
-        }
+    int GetRepeatCount() const;
 
-        if (visual == VisualMode::VISUAL_LARGER) {
-            visualMap_["ss02"] = 1;
-        }
-    }
+    bool GetAnimationStart() const;
 
-    std::map<std::string, int> GetVisualMap() const
-    {
-        return visualMap_;
-    }
+    std::map<std::string, int> GetVisualMap() const;
 
-    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
-    {
-        commonSubType_ = commonSubType;
-    }
-
-    Drawing::DrawingCommonSubType GetCommonSubType() const
-    {
-        return commonSubType_;
-    }
+    Drawing::DrawingCommonSubType GetCommonSubType() const;
 
 private:
     std::vector<Drawing::DrawingSColor> colorList_;

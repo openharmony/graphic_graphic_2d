@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,7 +42,7 @@ void RSRenderNodeMapTest::TearDown() {}
  * @tc.name: ObtainScreenLockWindowNodeIdTest
  * @tc.desc: test results of ObtainScreenLockWindowNodeIdTest
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, ObtainScreenLockWindowNodeIdTest, TestSize.Level1)
 {
@@ -50,17 +50,19 @@ HWTEST_F(RSRenderNodeMapTest, ObtainScreenLockWindowNodeIdTest, TestSize.Level1)
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
     NodeId id = 1;
-    RSSurfaceRenderNode *surfaceNodeOne = new RSSurfaceRenderNode(id);
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNodeTwo(surfaceNodeOne);
-    rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNodeTwo);
+    surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
     ASSERT_EQ(rsRenderNodeMap.screenLockWindowNodeId_, 0);
+    surfaceNode->name_ = "SCBScreenLock";
+    rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
+    ASSERT_EQ(rsRenderNodeMap.screenLockWindowNodeId_, 1);
 }
 
 /**
  * @tc.name: ObtainLauncherNodeId
  * @tc.desc: test results of ObtainLauncherNodeId
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
 {
@@ -71,22 +73,47 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
 
     NodeId id = 1;
     surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->name_ = "SCBDesktop";
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
-    ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 0);
+    surfaceNode->name_ = "SCBWallpaper";
+    rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    surfaceNode->name_ = "SCBNegativeScreen";
+    rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
 }
 
 /**
  * @tc.name: CalCulateAbilityComponentNumsInProcess
  * @tc.desc: test results of CalCulateAbilityComponentNumsInProcess
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, CalCulateAbilityComponentNumsInProcess, TestSize.Level1)
 {
     RSRenderNodeMap rsRenderNodeMap;
     NodeId newId = 1; // 提供一个新的NodeId
     rsRenderNodeMap.CalCulateAbilityComponentNumsInProcess(newId);
+    rsRenderNodeMap.abilityComponentNumsInProcess_[0] = 101;
+    rsRenderNodeMap.CalCulateAbilityComponentNumsInProcess(newId);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetVisibleLeashWindowCountTest
+ * @tc.desc: test results of GetVisibleLeashWindowCount
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSRenderNodeMapTest, GetVisibleLeashWindowCountTest, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.GetVisibleLeashWindowCount();
+    EXPECT_TRUE(rsRenderNodeMap.surfaceNodeMap_.empty());
+    NodeId id = 1;
+    auto rssurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    rsRenderNodeMap.surfaceNodeMap_[id] = rssurfaceRenderNode;
+    rsRenderNodeMap.GetVisibleLeashWindowCount();
+    EXPECT_FALSE(rsRenderNodeMap.surfaceNodeMap_.empty());
 }
 
 /**
@@ -115,7 +142,7 @@ HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
 {
     NodeId id = 1;
     RSDisplayNodeConfig config;
-    RSDisplayRenderNode * rsDisplayRenderNode = new RSDisplayRenderNode(id, config);
+    RSDisplayRenderNode* rsDisplayRenderNode = new RSDisplayRenderNode(id, config);
     std::shared_ptr<RSDisplayRenderNode> node(rsDisplayRenderNode);
     RSRenderNodeMap rsRenderNodeMap;
     auto result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
@@ -128,7 +155,7 @@ HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
  * @tc.name: EraseAbilityComponentNumsInProcess
  * @tc.desc: test results of EraseAbilityComponentNumsInProcess
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, EraseAbilityComponentNumsInProcess, TestSize.Level1)
 {
@@ -136,7 +163,29 @@ HWTEST_F(RSRenderNodeMapTest, EraseAbilityComponentNumsInProcess, TestSize.Level
     auto node = std::make_shared<OHOS::Rosen::RSSurfaceRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.EraseAbilityComponentNumsInProcess(id);
-    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.find(id), rsRenderNodeMap.surfaceNodeMap_.end());
+    auto rssurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    rsRenderNodeMap.surfaceNodeMap_[id] = rssurfaceRenderNode;
+    rsRenderNodeMap.EraseAbilityComponentNumsInProcess(id);
+    EXPECT_FALSE(rsRenderNodeMap.surfaceNodeMap_.empty());
+}
+
+/**
+ * @tc.name: UnregisterRenderNodeTest
+ * @tc.desc: test results of UnregisterRenderNode
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSRenderNodeMapTest, UnregisterRenderNodeTest, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    NodeId id = 0;
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    auto rssurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    rsRenderNodeMap.surfaceNodeMap_[id] = rssurfaceRenderNode;
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    rssurfaceRenderNode->name_ = "ShellAssistantAnco";
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    EXPECT_TRUE(rsRenderNodeMap.renderNodeMap_.empty());
 }
 
 /**
@@ -162,7 +211,7 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
  * @tc.name: FilterNodeByPid
  * @tc.desc: test results of FilterNodeByPid
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 {
@@ -172,6 +221,12 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
     rsRenderNodeMap.FilterNodeByPid(1);
 
     rsRenderNodeMap.renderNodeMap_.emplace(id, node);
+    rsRenderNodeMap.FilterNodeByPid(1);
+    RSDisplayNodeConfig config;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rsRenderNodeMap.displayNodeMap_.emplace(id, rsDisplayRenderNode);
+    rsRenderNodeMap.FilterNodeByPid(1);
+    rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.FilterNodeByPid(1);
     EXPECT_TRUE(true);
 }
@@ -195,13 +250,14 @@ HWTEST_F(RSRenderNodeMapTest, GetRenderNode, TestSize.Level1)
  * @tc.name: GetAnimationFallbackNode
  * @tc.desc: test results of GetAnimationFallbackNode
  * @tc.type:FUNC
- * @tc.require: issueI9H4AD
+ * @tc.require: issueI9VAI2
  */
 HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 {
     NodeId id = 0;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.GetAnimationFallbackNode();
 
     rsRenderNodeMap.renderNodeMap_.emplace(id, node);

@@ -176,7 +176,7 @@ public:
 
     virtual Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
 
-    virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
+    virtual std::vector<skia::textlayout::LineMetrics> GetLineMetrics() = 0;
 
     virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
 

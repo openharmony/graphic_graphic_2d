@@ -15,6 +15,7 @@
 
 #include "skia_text_blob.h"
 
+#include <map>
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkRSXform.h"
 #include "include/core/SkSerialProcs.h"
@@ -25,10 +26,17 @@
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_typeface.h"
 #include "utils/log.h"
+#include "skia_adapter/skia_path_effect.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static const std::map<Drawing::Paint::PaintStyle, SkPaint::Style> PAINT_STYLE = {
+    {Drawing::Paint::PaintStyle::PAINT_FILL, SkPaint::kFill_Style},
+    {Drawing::Paint::PaintStyle::PAINT_STROKE, SkPaint::kStroke_Style},
+    {Drawing::Paint::PaintStyle::PAINT_FILL_STROKE, SkPaint::kStrokeAndFill_Style},
+};
+
 SkiaTextBlob::SkiaTextBlob(sk_sp<SkTextBlob> skTextBlob) : skTextBlob_(skTextBlob) {}
 
 sk_sp<SkTextBlob> SkiaTextBlob::GetTextBlob() const
@@ -134,6 +142,41 @@ std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t siz
     }
     std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
     return std::make_shared<TextBlob>(textBlobImpl);
+}
+
+static SkPaint::Style ConvertSkStyle(Paint::PaintStyle style)
+{
+    if (PAINT_STYLE.find(style) != PAINT_STYLE.end()) {
+        return PAINT_STYLE.at(style);
+    } else {
+        return SkPaint::kStrokeAndFill_Style;
+    }
+}
+
+static void ConvertSkPaint(const Paint* drawingPaint, SkPaint &skPaint)
+{
+    if (drawingPaint == nullptr) {
+        return;
+    }
+    skPaint.setStyle(ConvertSkStyle(drawingPaint->GetStyle()));
+    skPaint.setAntiAlias(drawingPaint->IsAntiAlias());
+    Color color = drawingPaint->GetColor();
+    skPaint.setColor(Color::ColorQuadSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetGreen()));
+    skPaint.setStrokeWidth(drawingPaint->GetWidth());
+    const std::shared_ptr<PathEffect> effct = drawingPaint->GetPathEffect();
+    if (effct != nullptr) {
+        skPaint.setPathEffect(effct->GetImpl<SkiaPathEffect>()->GetPathEffect());
+    }
+}
+
+int SkiaTextBlob::GetIntercepts(const float bounds[], float intervals[], const Paint* paint) const
+{
+    if (skTextBlob_ && paint != nullptr) {
+        SkPaint skPaint;
+        ConvertSkPaint(paint, skPaint);
+        return skTextBlob_->getIntercepts(bounds, intervals, &skPaint);
+    }
+    return 0;
 }
 
 void SkiaTextBlob::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)

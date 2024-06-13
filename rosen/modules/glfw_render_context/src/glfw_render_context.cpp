@@ -43,7 +43,9 @@ int GlfwRenderContext::Init()
 {
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "Init");
     external_ = false;
-    return glfwInit();
+    int flag = glfwInit();
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "Init end");
+    return flag;
 }
 
 void GlfwRenderContext::InitFrom(void *glfwWindow)
@@ -86,6 +88,7 @@ void GlfwRenderContext::Terminate()
 
 int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visible)
 {
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "CreateGlfwWindow");
     if (external_) {
         return 0;
     }
@@ -97,7 +100,9 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
     auto flag = visible ? GLFW_TRUE : GLFW_FALSE;
     glfwWindowHint(GLFW_DECORATED, flag);
     glfwWindowHint(GLFW_VISIBLE, flag);
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "CreateGlfwWindow::glfwWindowHint end");
     window_ = glfwCreateWindow(width, height, "glfw window", nullptr, nullptr);
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "CreateGlfwWindow::glfwCreateWindow end");
     if (window_ == nullptr) {
         return 1;
     }

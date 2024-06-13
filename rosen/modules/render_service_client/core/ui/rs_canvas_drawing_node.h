@@ -43,7 +43,7 @@ public:
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
-    bool ResetSurface();
+    bool ResetSurface(int width, int height);
 
 protected:
     RSCanvasDrawingNode(bool isRenderServiceNode, bool isTextureExportNode = false);

@@ -117,7 +117,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     return false;
 }
@@ -210,7 +210,15 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
     return {};
 }
 
+void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+}
+
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
+{
+}
+
+void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
 }
 
@@ -479,6 +487,10 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 }
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+}
+
+void RSRenderServiceClient::ChangeSyncCount(int32_t hostPid)
 {
 }
 

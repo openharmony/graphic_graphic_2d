@@ -224,7 +224,16 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
     displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
-    displayParams->SetNeedOffscreen(IsRotationChanged());
+}
+
+void RSDisplayRenderNode::UpdateOffscreenRenderParams(bool needOffscreen)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateOffscreenRenderParams displayParams is null");
+        return;
+    }
+    displayParams->SetNeedOffscreen(needOffscreen);
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()
@@ -257,7 +266,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     consumerListener_ = listener;
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(5); // 5 Buffer rotation
+    surface->SetQueueSize(4); // 4 Buffer rotation
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");

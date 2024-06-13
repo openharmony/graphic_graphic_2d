@@ -152,8 +152,6 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(GetPhysicalDeviceMemoryProperties2, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures2, instance_);
 
-    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", instance_);
-
     return true;
 }
 
@@ -214,7 +212,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
-    const float priorities[1] = {1.0f};
+    const float priorities[1] = {0.0f};
     VkDeviceQueueCreateFlags deviceQueueCreateFlags = isProtected ? VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT : 0;
     std::vector<VkDeviceQueueCreateInfo> queueCreate {{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .pNext = nullptr,
@@ -345,6 +343,8 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
+
+    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", device_);
 
     return true;
 }

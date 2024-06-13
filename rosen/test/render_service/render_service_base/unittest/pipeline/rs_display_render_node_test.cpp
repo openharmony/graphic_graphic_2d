@@ -49,9 +49,11 @@ HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    node->QuickPrepare(visitor);
     node->Prepare(visitor);
 
     visitor = std::make_shared<RSRenderThreadVisitor>();
+    node->QuickPrepare(visitor);
     node->Prepare(visitor);
     ASSERT_TRUE(true);
 }
@@ -73,6 +75,7 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest, TestSize.Level1)
     node->frameCount_ = 6;
     ASSERT_TRUE(node->SkipFrame(skipFrameInterval));
 }
+
 /**
  * @tc.name: SetMirrorSourceTest
  * @tc.desc: test results of SetMirrorSource
@@ -226,6 +229,124 @@ HWTEST_F(RSDisplayRenderNodeTest, ProcessTest, TestSize.Level1)
 
     visitor = std::make_shared<RSRenderThreadVisitor>();
     displayNode->Process(visitor);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree
+ * @tc.desc: test results of SetIsOnTheTree
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetIsOnTheTree, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    bool flag = true;
+    displayNode->SetIsOnTheTree(flag, id, id, id, id);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetCompositeType
+ * @tc.desc: test results of SetCompositeType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetCompositeType, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    RSDisplayRenderNode::CompositeType type = RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+    displayNode->SetCompositeType(type);
+    ASSERT_EQ(displayNode->GetCompositeType(), type);
+}
+
+/**
+ * @tc.name: SetForceSoftComposite
+ * @tc.desc: test results of SetForceSoftComposite
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetForceSoftComposite, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    bool flag = true;
+    displayNode->SetForceSoftComposite(flag);
+    ASSERT_EQ(displayNode->IsForceSoftComposite(), flag);
+}
+
+/**
+ * @tc.name: UpdateRenderParams
+ * @tc.desc: test results of UpdateRenderParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, UpdateRenderParams, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->UpdateRenderParams();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateScreenRenderParams
+ * @tc.desc: test results of UpdateRenderParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, UpdateScreenRenderParams, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ScreenInfo screenInfo;
+    std::map<ScreenId, bool> displayHasSecSurface;
+    std::map<ScreenId, bool> displayHasSkipSurface;
+    std::map<ScreenId, bool> displayHasProtectedSurface;
+    std::map<ScreenId, bool> hasCaptureWindow;
+    displayNode->UpdateScreenRenderParams(screenInfo, displayHasSecSurface, displayHasSkipSurface,
+        displayHasProtectedSurface, hasCaptureWindow);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdatePartialRenderParams
+ * @tc.desc: test results of UpdatePartialRenderParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->UpdatePartialRenderParams();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayDirtyManager
+ * @tc.desc: test results of UpdateDisplayDirtyManager
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    int32_t bufferage = 1;
+    bool useAlignedDirtyRegion = false;
+    bool renderParallel = false;
+    displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion, renderParallel);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetSortedChildren
+ * @tc.desc: test results of GetSortedChildren
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->GetSortedChildren();
+    displayNode->isNeedWaitNewScbPid_ = true;
+    displayNode->GetSortedChildren();
     ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

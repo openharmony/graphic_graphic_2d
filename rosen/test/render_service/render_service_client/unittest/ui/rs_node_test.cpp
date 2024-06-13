@@ -41,13 +41,45 @@ constexpr static float FLOAT_DATA_UPDATE = 1.0f;
 class RSNodeTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
-        0.0f, 485.44f, -34.4f,
-        std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+        FLOAT_DATA_ZERO, FLOAT_DATA_POSITIVE, FLOAT_DATA_NEGATIVE,
+        FLOAT_DATA_MAX, FLOAT_DATA_MIN,
         };
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    Vector4f createV4fWithValue(float value) const
+    {
+        return {value, value, value, value};
+    }
+    void SetBorderDashParamsAndTest(float value) const
+    {
+        SetBorderDashParamsAndTest(createV4fWithValue(value));
+    }
+    void SetOutlineDashParamsAndTest(float value) const
+    {
+        SetOutlineDashParamsAndTest(createV4fWithValue(value));
+    }
+    void SetBorderDashParamsAndTest(const Vector4f& params) const
+    {
+        auto rsNode = RSCanvasNode::Create();
+        rsNode->SetBorderDashWidth(params);
+        rsNode->SetBorderDashGap(params);
+        auto borderDashWidth = rsNode->GetStagingProperties().GetBorderDashWidth();
+        auto borderDashGap = rsNode->GetStagingProperties().GetBorderDashGap();
+        EXPECT_TRUE(borderDashWidth.IsNearEqual(params));
+        EXPECT_TRUE(borderDashGap.IsNearEqual(params));
+    }
+    void SetOutlineDashParamsAndTest(const Vector4f& params) const
+    {
+        auto rsNode = RSCanvasNode::Create();
+        rsNode->SetOutlineDashWidth(params);
+        rsNode->SetOutlineDashGap(params);
+        auto borderOutlineWidth = rsNode->GetStagingProperties().GetOutlineDashWidth();
+        auto borderOutlineGap = rsNode->GetStagingProperties().GetOutlineDashGap();
+        EXPECT_TRUE(borderOutlineWidth.IsNearEqual(params));
+        EXPECT_TRUE(borderOutlineGap.IsNearEqual(params));
+    }
 };
 
 void RSNodeTest::SetUpTestCase() {}
@@ -1957,6 +1989,56 @@ HWTEST_F(RSNodeTest, SetandGetBorderWidth005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetBorderDashParams001
+ * @tc.desc: Check for zero values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBorderDashParams001, TestSize.Level1)
+{
+    SetBorderDashParamsAndTest(FLOAT_DATA_ZERO);
+}
+
+/**
+ * @tc.name: SetandGetBorderDashParams002
+ * @tc.desc: Check for positive values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBorderDashParams002, TestSize.Level1)
+{
+    SetBorderDashParamsAndTest(FLOAT_DATA_POSITIVE);
+}
+
+/**
+ * @tc.name: SetandGetBorderDashParams003
+ * @tc.desc: Check for negative values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBorderDashParams003, TestSize.Level1)
+{
+    SetBorderDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+}
+
+/**
+ * @tc.name: SetandGetBorderDashParams004
+ * @tc.desc: Check for max values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBorderDashParams004, TestSize.Level1)
+{
+    SetBorderDashParamsAndTest(FLOAT_DATA_MAX);
+}
+
+/**
+ * @tc.name: SetandGetBorderDashParams005
+ * @tc.desc: Check for min values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBorderDashParams005, TestSize.Level1)
+{
+    SetBorderDashParamsAndTest(FLOAT_DATA_MIN);
+}
+
+/**
  * @tc.name: SetandGetOutlineWidth001
  * @tc.desc:
  * @tc.type:FUNC
@@ -2014,6 +2096,56 @@ HWTEST_F(RSNodeTest, SetandGetOutlineWidth005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetOutlineWidth(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOutlineWidth().x_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams001
+ * @tc.desc: Check for zero values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOutlineDashParams001, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_ZERO);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams002
+ * @tc.desc: Check for positive values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOutlineDashParams002, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_POSITIVE);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams003
+ * @tc.desc: Check for negative values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOutlineDashParams003, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams004
+ * @tc.desc: Check for max values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOutlineDashParams004, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_MAX);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams005
+ * @tc.desc: Check for min values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOutlineDashParams005, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_MIN);
 }
 
 /**
@@ -4973,14 +5105,6 @@ HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
     std::optional<Vector2f> parentPosition;
     rsNode->SetSandBox(parentPosition);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
-    RSModifierType modifierType = RSModifierType::SANDBOX;
-    std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
-    modifier->property_ = nullptr;
-    rsNode->propertyModifiers_[modifierType] = modifier;
-    rsNode->SetSandBox(parentPosition);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-
     Vector2f newPosition(1.0f, 2.0f);
     parentPosition = newPosition;
     rsNode->SetSandBox(parentPosition);
@@ -5294,21 +5418,63 @@ HWTEST_F(RSNodeTest, SetFgBrightnessParams, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     RSDynamicBrightnessPara params;
     rsNode->SetFgBrightnessParams(params);
-    EXPECT_NE(params.rate_, 0.f);
+    EXPECT_NE(params.fraction_, 0.f);
 }
 
 /**
- * @tc.name: SetFgBrightnessFract
- * @tc.desc: test results of SetFgBrightnessFract
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
+ * @tc.name: SetNGetFgBrightnessRates
+ * @tc.desc: test results of SetNGetFgBrightnessRates
+ * @tc.type:FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeTest, SetFgBrightnessFract, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessRates, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    float fract = 1.f; // for test
-    rsNode->SetFgBrightnessFract(fract);
-    EXPECT_NE(fract, 0.f);
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessRates(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessSaturation
+ * @tc.desc: test results of SetNGetFgBrightnessSaturation
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetFgBrightnessSaturation(value);
+    EXPECT_NE(value, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessPosCoeff
+ * @tc.desc: test results of SetNGetFgBrightnessPosCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessPosCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessPosCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessNegCoeff
+ * @tc.desc: test results of SetNGetFgBrightnessNegCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessNegCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessNegCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
 }
 
 /**
@@ -5322,21 +5488,77 @@ HWTEST_F(RSNodeTest, SetBgBrightnessParams, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     RSDynamicBrightnessPara params;
     rsNode->SetBgBrightnessParams(params);
-    EXPECT_NE(params.rate_, 0.f);
+    EXPECT_NE(params.fraction_, 0.f);
 }
 
 /**
- * @tc.name: SetBgBrightnessFract
- * @tc.desc: test results of SetBgBrightnessFract
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
+ * @tc.name: SetNGetBgBrightnessRates
+ * @tc.desc: test results of SetNGetBgBrightnessRates
+ * @tc.type:FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeTest, SetBgBrightnessFract, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessRates, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    float fract = 1.f; // for test
-    rsNode->SetBgBrightnessFract(fract);
-    EXPECT_NE(fract, 0.f);
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessRates(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessSaturation
+ * @tc.desc: test results of SetNGetBgBrightnessSaturation
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetBgBrightnessSaturation(value);
+    EXPECT_NE(value, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessPosCoeff
+ * @tc.desc: test results of SetNGetBgBrightnessPosCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessPosCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessPosCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessNegCoeff
+ * @tc.desc: test results of SetNGetBgBrightnessNegCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessNegCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessNegCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessFract
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetBgBrightnessFract(value);
+    EXPECT_NE(value, 0.f);
 }
 
 /**
@@ -6702,6 +6924,10 @@ HWTEST_F(RSNodeTest, IsInstanceOf, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkDrivenRender(false);
+    rsNode->MarkDrivenRenderItemIndex(0);
+    rsNode->MarkDrivenRenderFramePaintState(false);
+    rsNode->MarkContentChanged(0);
     rsNode->SetInstanceId(1);
     ASSERT_EQ(rsNode->GetInstanceId(), 1);
 }

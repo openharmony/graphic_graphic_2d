@@ -145,6 +145,26 @@ HWTEST_F(KawaseBlurFilterTest, GetDescriptionTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckInputImageTest
+ * @tc.desc: Verify function CheckInputImage
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(KawaseBlurFilterTest, CheckInputImageTest, TestSize.Level1)
+{
+    auto kawaseBlurFilter = std::make_shared<KawaseBlurFilter>();
+    Drawing::Canvas canvas(1, 1);
+    auto image = std::make_shared<Drawing::Image>();
+    auto checkedImage = std::make_shared<Drawing::Image>();
+    Drawing::Rect srcRect;
+    Drawing::Rect dstRect;
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>();
+    KawaseParameter param(srcRect, dstRect, 1, colorFilter, 0.f);
+    kawaseBlurFilter->CheckInputImage(canvas, image, param, checkedImage);
+    EXPECT_EQ(param.src.GetBottom(), 0);
+}
+
+/**
  * @tc.name: ExecutePingPongBlurTest
  * @tc.desc: Verify function ExecutePingPongBlur
  * @tc.type: FUNC

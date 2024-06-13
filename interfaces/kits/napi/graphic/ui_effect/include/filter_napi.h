@@ -17,9 +17,9 @@
 
 #include <hilog/log.h>
 #include <iostream>
-#include "filter.h"
-#include "filter_blur_para.h"
-#include "filter_pixel_stretch_para.h"
+#include "filter/include/filter.h"
+#include "filter/include/filter_blur_para.h"
+#include "filter/include/filter_pixel_stretch_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 

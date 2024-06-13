@@ -65,14 +65,14 @@ static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
     return reinterpret_cast<const Point&>(cPoint);
 }
 
-static const Point CastToPoint(const OH_Drawing_Point2D& cPoint)
+static const Point& CastToPoint(const OH_Drawing_Point2D& cPoint)
 {
-    return {cPoint.x, cPoint.y};
+    return reinterpret_cast<const Point&>(cPoint);
 }
 
-static Point3 CastToPoint3(OH_Drawing_Point3D& cPoint3)
+static const Point3& CastToPoint3(OH_Drawing_Point3D& cPoint3)
 {
-    return {cPoint3.x, cPoint3.y, cPoint3.z};
+    return reinterpret_cast<const Point3&>(cPoint3);
 }
 
 static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
@@ -252,25 +252,6 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
     canvas->DrawPath(CastToPath(*cPath));
 }
 
-static PointMode pointModeCastToPointMode(const OH_Drawing_PointMode& pointMode)
-{
-    PointMode mode = PointMode::POINTS_POINTMODE;
-    switch (pointMode) {
-        case POINT_MODE_POINTS:
-            mode = PointMode::POINTS_POINTMODE;
-            break;
-        case POINT_MODE_LINES:
-            mode = PointMode::LINES_POINTMODE;
-            break;
-        case POINT_MODE_POLYGON:
-            mode = PointMode::POLYGON_POINTMODE;
-            break;
-        default:
-            break;
-    }
-    return mode;
-}
-
 void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMode mode,
     uint32_t count, const OH_Drawing_Point2D* pts)
 {
@@ -283,34 +264,8 @@ void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMod
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    Point* point = new Point[count];
-    if (point == nullptr) {
-        return;
-    }
-    for (uint32_t i = 0; i < count; ++i) {
-        point[i] = CastToPoint(pts[i]);
-    }
-    canvas->DrawPoints(pointModeCastToPointMode(mode), count, point);
-    delete [] point;
-}
-
-static VertexMode vertexMmodeCastToVertexMmode(const OH_Drawing_VertexMode& vertexMmode)
-{
-    VertexMode mode = VertexMode::TRIANGLES_VERTEXMODE;
-    switch (vertexMmode) {
-        case VERTEX_MODE_TRIANGLES:
-            mode = VertexMode::TRIANGLES_VERTEXMODE;
-            break;
-        case VERTEX_MODE_TRIANGLES_STRIP:
-            mode = VertexMode::TRIANGLESSTRIP_VERTEXMODE;
-            break;
-        case VERTEX_MODE_TRIANGLE_FAN:
-            mode = VertexMode::TRIANGLEFAN_VERTEXMODE;
-            break;
-        default:
-            break;
-    }
-    return mode;
+    const Point* points = reinterpret_cast<const Point*>(pts);
+    canvas->DrawPoints(static_cast<PointMode>(mode), count, points);
 }
 
 void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_VertexMode vertexMode,
@@ -345,7 +300,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         texsPoint[i] = CastToPoint(texs[i]);
     }
     Vertices* vertices = new Vertices();
-    vertices->MakeCopy(vertexMmodeCastToVertexMmode(vertexMode), vertexCount, positionsPoint,
+    vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint,
         texsPoint, colors, indexCount, indices);
     canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
     delete vertices;
@@ -804,4 +759,69 @@ bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_
         return false;
     }
     return canvas->ReadPixels(CastToBitmap(*cBitmap), srcX, srcY);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasIsClipEmpty(OH_Drawing_Canvas* cCanvas, bool* isClipEmpty)
+{
+    if (isClipEmpty == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *isClipEmpty = canvas->IsClipEmpty();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo)
+{
+    if (cCanvas == nullptr || cImageInfo == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    ImageInfo imageInfo = CastToCanvas(cCanvas)->GetImageInfo();
+
+    cImageInfo->width = imageInfo.GetWidth();
+    cImageInfo->height = imageInfo.GetHeight();
+    cImageInfo->colorType = static_cast<OH_Drawing_ColorFormat>(imageInfo.GetColorType());
+    cImageInfo->alphaType = static_cast<OH_Drawing_AlphaFormat>(imageInfo.GetAlphaType());
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasClipRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Region* cRegion,
+    OH_Drawing_CanvasClipOp op)
+{
+    if (cRegion == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->ClipRegion(CastToRegion(*cRegion), CClipOpCastToClipOp(op));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPoint(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point2D* cPoint)
+{
+    if (cPoint == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawPoint(CastToPoint(*cPoint));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint32_t color,
+    OH_Drawing_BlendMode cBlendMode)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawColor(color, static_cast<BlendMode>(cBlendMode));
+    return OH_DRAWING_SUCCESS;
 }

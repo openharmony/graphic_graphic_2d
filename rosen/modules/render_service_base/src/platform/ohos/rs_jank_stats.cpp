@@ -94,7 +94,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     isCurrentFrameSwitchToNotDoDirectComposition_ = isLastFrameDoDirectComposition_ && !doDirectComposition;
     if (!doDirectComposition) { UpdateEndTime(); }
     if (discardJankFrames) { ClearAllAnimation(); }
-    SetRSJankStats(skipJankAnimatorFrame, dynamicRefreshRate);
+    SetRSJankStats(skipJankAnimatorFrame || discardJankFrames, dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isReportEventResponse_) {
@@ -102,10 +102,8 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
             jankFrames.isUpdateJankFrame_ = true;
         }
         if (jankFrames.isUpdateJankFrame_ && !jankFrames.isFirstFrame_ && !(!jankFrames.isDisplayAnimator_ &&
-            (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_)) &&
-            !(jankFrames.isDisplayAnimator_ && skipJankAnimatorFrame) &&
-            !(!jankFrames.isDisplayAnimator_ && jankFrames.isImplicitAnimationEnd_)) {
-            UpdateJankFrame(jankFrames, dynamicRefreshRate);
+            (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_))) {
+            UpdateJankFrame(jankFrames, skipJankAnimatorFrame, dynamicRefreshRate);
         }
         if (jankFrames.isReportEventComplete_) {
             ReportEventComplete(jankFrames);
@@ -184,6 +182,7 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
 void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshRate */)
 {
     if (skipJankStats) {
+        RS_TRACE_NAME("RSJankStats::SetRSJankStats skip jank frame statistics");
         return;
     }
     const int64_t frameTime = GetEffectiveFrameTime(true);
@@ -191,9 +190,35 @@ void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshR
     if (missedVsync <= 0) {
         return;
     }
+    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %" PRId64 " frameTime %" PRId64, missedVsync, frameTime);
     if (missedVsync >= VSYNC_JANK_LOG_THRESHOLED) {
-        ROSEN_LOGW("RSJankStats::SetJankStats jank frames %{public} " PRId64 "", missedVsync);
+        ROSEN_LOGW("RSJankStats::SetJankStats jank frames %{public}" PRId64, missedVsync);
     }
+    const size_t type = GetJankRangeType(missedVsync);
+    if (type == JANK_FRAME_INVALID) {
+        return;
+    }
+    if (rsJankStats_[type] == USHRT_MAX) {
+        ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
+        return;
+    }
+    if (type == JANK_FRAME_6_FREQ) {
+        RS_TRACE_INT(JANK_FRAME_1_TO_5F_COUNT_TRACE_NAME, missedVsync);
+    } else {
+        RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
+        lastJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;
+    }
+    rsJankStats_[type]++;
+    isNeedReportJankStats_ = true;
+    if (type == JANK_FRAME_6_FREQ) {
+        RS_TRACE_INT(JANK_FRAME_1_TO_5F_COUNT_TRACE_NAME, 0);
+    } else {
+        RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, 0);
+    }
+}
+
+size_t RSJankStats::GetJankRangeType(int64_t missedVsync) const
+{
     size_t type = JANK_FRAME_INVALID;
     if (missedVsync < 6) {                                       // JANK_FRAME_6_FREQ   : (0,6)
         type = JANK_FRAME_6_FREQ;
@@ -213,32 +238,18 @@ void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshR
         type = JANK_FRAME_180_FREQ;
     } else {
         ROSEN_LOGW("RSJankStats::SetJankStats jank frames over 180");
-        return;
     }
-    if (rsJankStats_[type] == USHRT_MAX) {
-        ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
-        return;
-    }
-
-    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %" PRId64 " frameTime %" PRId64, missedVsync, frameTime);
-
-    if (type != JANK_FRAME_6_FREQ) {
-        RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
-        lastJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;
-    }
-    rsJankStats_[type]++;
-    isNeedReportJankStats_ = true;
-    if (type != JANK_FRAME_6_FREQ) {
-        RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, 0);
-    }
+    return type;
 }
 
-void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate)
+void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, uint32_t dynamicRefreshRate)
 {
-    if (jankFrames.startTime_ == TIMESTAMP_INITIAL) {
-        jankFrames.startTime_ = rsStartTime_;
+    if (skipJankStats) {
+        RS_TRACE_NAME("RSJankStats::UpdateJankFrame skip jank animator frame");
+        return;
     }
-    if (jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL) {
+    if (jankFrames.startTime_ == TIMESTAMP_INITIAL || jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL) {
+        jankFrames.startTime_ = rsStartTime_;
         jankFrames.startTimeSteady_ = rsStartTimeSteady_;
     }
     jankFrames.lastEndTimeSteady_ = jankFrames.endTimeSteady_;
@@ -263,12 +274,10 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     if (missedFramesToReport > 0) {
         jankFrames.totalMissedFrames_ += missedFramesToReport;
         jankFrames.seqMissedFrames_ += missedFramesToReport;
-        jankFrames.maxSeqMissedFrames_ =
-            std::max<int32_t>(jankFrames.maxSeqMissedFrames_, jankFrames.seqMissedFrames_);
+        jankFrames.maxSeqMissedFrames_ = std::max<int32_t>(jankFrames.maxSeqMissedFrames_, jankFrames.seqMissedFrames_);
     } else {
         jankFrames.seqMissedFrames_ = 0;
     }
-
     // hitch time ratio
     jankFrames.lastMaxHitchTime_ = jankFrames.maxHitchTime_;
     jankFrames.lastTotalHitchTimeSteady_ = jankFrames.totalHitchTimeSteady_;
@@ -424,7 +433,9 @@ void RSJankStats::SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
         if (jankFrames.isDisplayAnimator_) {
             continue;
         }
-        jankFrames.isImplicitAnimationEnd_ = true;
+        SetAnimationTraceEnd(jankFrames);
+        jankFrames.isUpdateJankFrame_ = false;
+        jankFrames.isAnimationEnded_ = true;
     }
 }
 
@@ -623,23 +634,20 @@ void RSJankStats::RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool i
     }
     if (!isReportTaskDelayed) {
         if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end() || jankFrames.totalFrames_ <= 0 ||
-            jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL || jankFrames.endTimeSteady_ == TIMESTAMP_INITIAL ||
-            jankFrames.endTimeSteady_ <= jankFrames.startTimeSteady_) {
+            jankFrames.totalFrameTimeSteadyForHTR_ <= 0) {
             return;
         }
-        float animationDuration = static_cast<float>(jankFrames.endTimeSteady_ - jankFrames.startTimeSteady_) / S_TO_MS;
+        float animationDuration = static_cast<float>(jankFrames.totalFrameTimeSteadyForHTR_) / S_TO_MS;
         float animationTotalFrames = static_cast<float>(jankFrames.totalFrames_);
         float animationDynamicFrameRate = animationTotalFrames / animationDuration;
         RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %.2f: %s",
                           animationDynamicFrameRate, animationAsyncTraces_.at(traceId).traceName_.c_str());
     } else {
         if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end() || jankFrames.lastTotalFrames_ <= 0 ||
-            jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL || jankFrames.lastEndTimeSteady_ == TIMESTAMP_INITIAL ||
-            jankFrames.lastEndTimeSteady_ <= jankFrames.startTimeSteady_) {
+            jankFrames.lastTotalFrameTimeSteadyForHTR_ <= 0) {
             return;
         }
-        float animationDuration =
-            static_cast<float>(jankFrames.lastEndTimeSteady_ - jankFrames.startTimeSteady_) / S_TO_MS;
+        float animationDuration = static_cast<float>(jankFrames.lastTotalFrameTimeSteadyForHTR_) / S_TO_MS;
         float animationTotalFrames = static_cast<float>(jankFrames.lastTotalFrames_);
         float animationDynamicFrameRate = animationTotalFrames / animationDuration;
         RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %.2f: %s",

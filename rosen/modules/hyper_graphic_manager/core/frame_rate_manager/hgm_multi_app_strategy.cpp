@@ -37,6 +37,7 @@ HgmMultiAppStrategy::HgmMultiAppStrategy()
 
 HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& pkgs)
 {
+    RS_TRACE_FUNC();
     // update pkgs
     if (pkgs_ == pkgs) {
         return HGM_ERROR;
@@ -46,10 +47,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     {
         std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
         // update pid of pkg
-        for (auto &[pid, appType] : foregroundPidAppType_) {
-            backgroundPidAppType_[pid] = appType;
+        for (auto &it : foregroundPidAppMap_) {
+            backgroundPid_.Put(it.first);
         }
-        foregroundPidAppType_.clear();
+        foregroundPidAppMap_.clear();
         pidAppTypeMap_.clear();
         for (auto &param : pkgs_) {
             RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
@@ -57,8 +58,8 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
             auto [pkgName, pid, appType] = AnalyzePkgParam(param);
             pidAppTypeMap_[pkgName] = { pid, appType };
             if (pid > DEFAULT_PID) {
-                foregroundPidAppType_[pid] = appType;
-                backgroundPidAppType_.erase(pid);
+                foregroundPidAppMap_[pid] = { appType, pkgName };
+                backgroundPid_.Erase(pid);
             }
         }
     }
@@ -70,17 +71,23 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
 void HgmMultiAppStrategy::HandleTouchInfo(const std::string& pkgName, TouchState touchState)
 {
+    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d", pkgName.c_str(), touchState);
     HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d", pkgName.c_str(), touchState);
     touchInfo_ = { pkgName, touchState };
     if (pkgName == "" && !pkgs_.empty()) {
         auto [focusPkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
         touchInfo_.first = focusPkgName;
+        HGM_LOGD("auto change touch pkgName to focusPkgName:%{public}s", focusPkgName.c_str());
     }
     CalcVote();
 }
 
 void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
 {
+    RS_TRACE_NAME_FMT("[HandleLightFactorStatus] isSafe: %d", isSafe);
+    if (lightFactorStatus_ == isSafe) {
+        return;
+    }
     lightFactorStatus_ = isSafe;
     CalcVote();
 }
@@ -88,10 +95,13 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
+    static std::mutex calcVoteMutex;
+    std::unique_lock<std::mutex> lock(calcVoteMutex);
     voteRes_ = { HGM_ERROR, {
         .min = OledRefreshRate::OLED_NULL_HZ,
         .max = OledRefreshRate::OLED_120_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED,
+        .isFactor = false,
         .drawMin = OledRefreshRate::OLED_NULL_HZ,
         .drawMax = OledRefreshRate::OLED_120_HZ,
         .down = OledRefreshRate::OLED_120_HZ,
@@ -124,15 +134,16 @@ void HgmMultiAppStrategy::CalcVote()
         // using setting mode when fail to calc vote
         auto &strategyConfigs = GetStrategyConfigs();
         auto &strategyName = GetScreenSetting().strategy;
+        RS_TRACE_NAME_FMT("use default strategy: %s", strategyName.c_str());
         if (strategyConfigs.find(strategyName) != strategyConfigs.end()) {
             voteRes_.second = strategyConfigs.at(strategyName);
+            OnLightFactor(voteRes_.second);
         }
     }
 
     UpdateStrategyByTouch(voteRes_.second, "", true);
-    if (lightFactorStatus_) {
-        voteRes_.second.min = voteRes_.second.max;
-    }
+    uniqueTouchInfo_ = nullptr;
+
     HGM_LOGD("final apps res: %{public}d, [%{public}d, %{public}d]",
         voteRes_.first, voteRes_.second.min, voteRes_.second.max);
 
@@ -158,7 +169,7 @@ bool HgmMultiAppStrategy::CheckPidValid(pid_t pid)
         return true;
     }
     std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
-    return backgroundPidAppType_.find(pid) == backgroundPidAppType_.end();
+    return !backgroundPid_.Existed(pid);
 }
 
 std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName) const
@@ -176,7 +187,7 @@ std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkg
         }
     }
 
-    return NULL_STRATEGY_CONFIG_NAME;
+    return GetScreenSetting().strategy;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const
@@ -212,12 +223,14 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
-    foregroundPidAppType_.erase(pid);
-    backgroundPidAppType_.erase(pid);
+    foregroundPidAppMap_.erase(pid);
+    backgroundPid_.Erase(pid);
 }
 
 void HgmMultiAppStrategy::UpdateXmlConfigCache()
 {
+    static std::mutex updateCacheMutex;
+    std::unique_lock<std::mutex> lock(updateCacheMutex);
     auto &hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
 
@@ -251,9 +264,11 @@ void HgmMultiAppStrategy::UseStrategyNum()
 {
     auto &strategyConfigs = GetStrategyConfigs();
     auto &strategyName = GetScreenSetting().multiAppStrategyName;
+    RS_TRACE_NAME_FMT("[UseStrategyNum] strategyName:%s", strategyName.c_str());
     if (strategyConfigs.find(strategyName) != strategyConfigs.end()) {
         voteRes_.first = EXEC_SUCCESS;
         voteRes_.second = strategyConfigs.at(strategyName);
+        OnLightFactor(voteRes_.second);
         UpdateStrategyByTouch(voteRes_.second, touchInfo_.first);
     }
 }
@@ -268,9 +283,11 @@ void HgmMultiAppStrategy::FollowFocus()
 
     auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
     auto strategyName = GetAppStrategyConfigName(pkgName);
+    RS_TRACE_NAME_FMT("[FollowFocus] strategyName:%s", strategyName.c_str());
     if (strategyName != NULL_STRATEGY_CONFIG_NAME && strategyConfigs.find(strategyName) != strategyConfigs.end()) {
         voteRes_.first = EXEC_SUCCESS;
         voteRes_.second = strategyConfigs.at(strategyName);
+        OnLightFactor(voteRes_.second);
         UpdateStrategyByTouch(voteRes_.second, pkgName);
     } else {
         HGM_LOGD("[xml] not find pkg cfg: %{public}s", pkgName.c_str());
@@ -279,6 +296,7 @@ void HgmMultiAppStrategy::FollowFocus()
 
 void HgmMultiAppStrategy::UseMax()
 {
+    RS_TRACE_FUNC();
     auto &strategyConfigs = GetStrategyConfigs();
     for (const auto &param : pkgs_) {
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
@@ -288,6 +306,9 @@ void HgmMultiAppStrategy::UseMax()
         }
         auto isVoteSuccess = voteRes_.first;
         auto pkgStrategyConfig = strategyConfigs.at(strategyName);
+        RS_TRACE_NAME_FMT("pkgName:%s strategyName:%s min:%d max:%d",
+            pkgName.c_str(), strategyName.c_str(), pkgStrategyConfig.min, pkgStrategyConfig.max);
+        OnLightFactor(pkgStrategyConfig);
         UpdateStrategyByTouch(pkgStrategyConfig, pkgName);
         HGM_LOGD("app %{public}s res: [%{public}d, %{public}d]",
             pkgName.c_str(), voteRes_.second.min, voteRes_.second.max);
@@ -338,6 +359,14 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
     return { pkgName, pid, appType };
 }
 
+void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
+{
+    if (lightFactorStatus_ && strategyRes.isFactor) {
+        RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
+        strategyRes.min = strategyRes.max;
+    }
+}
+
 void HgmMultiAppStrategy::UpdateStrategyByTouch(
     PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate)
 {
@@ -351,10 +380,22 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
     if (forceUpdate) {
         // click pkg which not config
         HGM_LOGD("force update touch info");
+        auto &strategyConfigs = GetStrategyConfigs();
+        auto &strategyName = GetScreenSetting().strategy;
+        if (strategyConfigs.find(strategyName) == strategyConfigs.end()) {
+            return;
+        }
+        const auto &settingStrategy = strategyConfigs.at(strategyName);
+        if (settingStrategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
+            return;
+        }
+
         auto touchInfo = std::move(uniqueTouchInfo_);
         if (touchInfo->second != TouchState::IDLE_STATE) {
-            strategy.min = OLED_120_HZ;
-            strategy.max = OLED_120_HZ;
+            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] state:%d, downFps:%d force update",
+                touchInfo->second, strategy.down);
+            strategy.min = settingStrategy.down;
+            strategy.max = settingStrategy.down;
         }
     } else {
         if (pkgName != uniqueTouchInfo_->first) {
@@ -362,6 +403,8 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
         }
         auto touchInfo = std::move(uniqueTouchInfo_);
         if (touchInfo->second != TouchState::IDLE_STATE) {
+            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
+                pkgName.c_str(), touchInfo->second, strategy.down);
             strategy.min = strategy.down;
             strategy.max = strategy.down;
             voteRes_.first = EXEC_SUCCESS;
@@ -372,7 +415,7 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
 void HgmMultiAppStrategy::OnStrategyChange()
 {
     HGM_LOGI("multi app strategy change: [%{public}d, %{public}d]", voteRes_.second.min, voteRes_.second.max);
-    for (auto &callback : strategyChangeCallbacks_) {
+    for (const auto &callback : strategyChangeCallbacks_) {
         if (callback != nullptr) {
             HgmTaskHandleThread::Instance().PostTask([callback, strategy = voteRes_.second] () {
                 callback(strategy);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,6 +72,73 @@ void RSPaintFilterCanvasTest::TearDownTestCase()
 }
 void RSPaintFilterCanvasTest::SetUp() {}
 void RSPaintFilterCanvasTest::TearDown() {}
+
+class SDFShapeBaseTest : public Drawing::SDFShapeBase {
+public:
+    std::string Getshader() const override
+    {
+        return "";
+    };
+    float GetSize() const override
+    {
+        return 0.0f;
+    };
+    void SetSize(float size) override
+    {
+        return;
+    };
+
+    int GetParaNum() const override
+    {
+        return 0;
+    };
+    int GetFillType() const override
+    {
+        return 0;
+    };
+    std::vector<float> GetPara() const override
+    {
+        return {};
+    };
+    std::vector<float> GetTransPara() const override
+    {
+        return {};
+    };
+    std::vector<float> GetColorPara() const override
+    {
+        return {};
+    };
+
+    void UpdateTime(float time) override
+    {
+        return;
+    };
+    void BuildShader() override
+    {
+        return;
+    };
+    void SetColor(std::string fillColor, std::string strokeColor, float alpha) override
+    {
+        return;
+    };
+};
+
+class PaintFilterCanvasBaseTest : public RSPaintFilterCanvasBase {
+public:
+    explicit PaintFilterCanvasBaseTest(Drawing::Canvas* canvas) : RSPaintFilterCanvasBase(canvas) {};
+    bool OnFilter() const override
+    {
+        return true;
+    };
+    bool OnFilterWithBrush(Drawing::Brush& brush) const override
+    {
+        return true;
+    };
+    Drawing::Brush* GetFilteredBrush() const override
+    {
+        return nullptr;
+    };
+};
 
 /**
  * @tc.name: SetHighContrastTest001
@@ -490,6 +557,25 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawImageNineTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageNineTest002
+ * @tc.desc: DrawImageNine Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawImageNineTest002, TestSize.Level1)
+{
+    Drawing::Image image;
+    Drawing::RectI center;
+    Drawing::Rect dst;
+    Drawing::Brush* brush = nullptr;
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+    paintFilterCanvas->alphaStack_.push(1.0f);
+    paintFilterCanvas->DrawImageNine(&image, center, dst, Drawing::FilterMode::LINEAR, brush);
+}
+
+/**
  * @tc.name: DrawImageLatticeTest
  * @tc.desc: DrawImageLattice Test
  * @tc.type:FUNC
@@ -500,9 +586,26 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawImageLatticeTest, TestSize.Level1)
     Drawing::Image image;
     Drawing::Lattice lattice;
     Drawing::Rect dst;
-    Drawing::Brush brush;
-    paintFilterCanvas_->DrawImageLattice(&image, lattice, dst, Drawing::FilterMode::LINEAR, &brush);
+    paintFilterCanvas_->DrawImageLattice(&image, lattice, dst, Drawing::FilterMode::LINEAR);
     EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
+ * @tc.name: DrawImageLatticeTest
+ * @tc.desc: DrawImageLattice Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawImageLatticeTest002, TestSize.Level1)
+{
+    Drawing::Image image;
+    Drawing::Lattice lattice;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+    paintFilterCanvas->alphaStack_.push(1.0f);
+    paintFilterCanvas->DrawImageLattice(&image, lattice, dst, Drawing::FilterMode::LINEAR);
 }
 
 /**
@@ -1137,7 +1240,6 @@ HWTEST_F(RSPaintFilterCanvasTest, GetLocalClipBoundsTest, TestSize.Level1)
     EXPECT_TRUE(result.has_value());
 }
 
-
 /**
  * @tc.name: PaintFilter001
  * @tc.desc: Test has not filter before PaintFilter
@@ -1194,5 +1296,187 @@ HWTEST_F(RSPaintFilterCanvasTest, SetBlenderTest, TestSize.Level1)
     brush.SetBlender(blender);
 }
 
+/**
+ * @tc.name: DrawSdfTest001
+ * @tc.desc: DrawSdf Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawSdfTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+
+    SDFShapeBaseTest shape;
+    Drawing::Canvas canvasTest;
+    paintFilterCanvasBase->pCanvasList_.emplace_back(&canvasTest);
+    paintFilterCanvasBase->alphaStack_.push(1.0f);
+    paintFilterCanvasBase->DrawSdf(shape);
+}
+
+/**
+ * @tc.name: DrawAtlasTest002
+ * @tc.desc: DrawAtlas Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawAtlasTest002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+
+    paintFilterCanvasBase->alphaStack_.push(1.0f);
+    Drawing::Image atlas;
+    Drawing::RSXform xform;
+    xform.Make(0.0f, 0.0f, 1.0f, 1.0f);
+    Drawing::Rect tex = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::SamplingOptions samplingOptions;
+    Drawing::Rect cullRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::ColorQuad colors = 0;
+    paintFilterCanvasBase->DrawAtlas(
+        &atlas, &xform, &tex, &colors, 0, Drawing::BlendMode::CLEAR, samplingOptions, &cullRect);
+}
+
+/**
+ * @tc.name: DrawBlurImageTest003
+ * @tc.desc: DrawBlurImage Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawBlurImageTest003, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<PaintFilterCanvasBaseTest> paintFilterCanvasBase =
+        std::make_shared<PaintFilterCanvasBaseTest>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+
+    Drawing::Image image;
+    Drawing::Rect s = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::Rect d = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::HpsBlurParameter blurParams = { s, d, 0.0f, 0.0f, 1.0f };
+    paintFilterCanvasBase->DrawBlurImage(image, blurParams);
+}
+
+/**
+ * @tc.name: AttachPenTest004
+ * @tc.desc: AttachPen Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, AttachPenTest004, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+
+    Drawing::Pen pen;
+    Drawing::Canvas canvasTest;
+    paintFilterCanvas->canvas_ = &canvasTest;
+    paintFilterCanvas->hasHdrPresent_ = true;
+    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->alphaStack_.push(1.0f);
+    pen.brush_.color_ = 0x00000001;
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
+    std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    paintFilterCanvas->envStack_.push(env);
+    paintFilterCanvas->AttachPen(pen);
+
+    paintFilterCanvas->canvas_ = nullptr;
+    paintFilterCanvas->AttachPen(pen);
+}
+
+/**
+ * @tc.name: AttachBrushTest005
+ * @tc.desc: AttachBrush Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+
+    Drawing::Brush brush;
+    Drawing::Canvas canvasTest;
+    paintFilterCanvas->canvas_ = &canvasTest;
+    paintFilterCanvas->hasHdrPresent_ = true;
+    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->alphaStack_.push(1.0f);
+    brush.color_ = 0x00000001;
+    brush.forceBrightnessDisable_ = false;
+    brush.isHdr_ = false;
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
+    std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    paintFilterCanvas->envStack_.push(env);
+    paintFilterCanvas->AttachBrush(brush);
+
+    paintFilterCanvas->canvas_ = nullptr;
+    paintFilterCanvas->AttachBrush(brush);
+}
+
+/**
+ * @tc.name: AttachPaintTest006
+ * @tc.desc: AttachPaint Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest006, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+
+    Drawing::Paint paint;
+    Drawing::Canvas canvasTest;
+    paintFilterCanvas->canvas_ = &canvasTest;
+    paintFilterCanvas->hasHdrPresent_ = true;
+    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->alphaStack_.push(1.0f);
+    paint.color_ = 0x00000001;
+    paint.hdrImage_ = false;
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
+    std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    paintFilterCanvas->AttachPaint(paint);
+
+    paintFilterCanvas->canvas_ = nullptr;
+    paintFilterCanvas->AttachPaint(paint);
+}
+
+/**
+ * @tc.name: AttachBrushAndAttachBrushTest007
+ * @tc.desc: RSPaintFilterCanvasBase AttachBrush and AttachBrush Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, AttachBrushAndAttachBrushTest007, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<PaintFilterCanvasBaseTest> paintFilterCanvasBase =
+        std::make_shared<PaintFilterCanvasBaseTest>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    Drawing::Pen pen;
+    paintFilterCanvasBase->AttachPen(pen);
+    Drawing::Brush brush;
+    paintFilterCanvasBase->AttachBrush(brush);
+    Drawing::Paint paint;
+    paintFilterCanvasBase->AttachPaint(paint);
+
+    Drawing::SaveLayerOps saveLayerRec;
+    paintFilterCanvasBase->canvas_ = nullptr;
+    paintFilterCanvasBase->SaveLayer(saveLayerRec);
+
+    Drawing::Canvas canvasTest;
+    paintFilterCanvasBase->canvas_ = &canvasTest;
+    paintFilterCanvasBase->SaveLayer(saveLayerRec);
+    Drawing::Brush brushTest;
+    saveLayerRec.brush_ = &brushTest;
+    paintFilterCanvasBase->SaveLayer(saveLayerRec);
+}
 } // namespace Rosen
 } // namespace OHOS

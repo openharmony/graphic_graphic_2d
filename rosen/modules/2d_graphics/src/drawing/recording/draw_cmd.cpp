@@ -259,6 +259,7 @@ bool UnmarshallingPlayer::RegisterUnmarshallingFunc(uint32_t type, Unmarshalling
         static std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> opUnmarshallingFuncLUT = {};
         opUnmarshallingFuncLUT_ = &opUnmarshallingFuncLUT;
     }
+    std::unique_lock<std::shared_timed_mutex> lock(UnmarshallingFuncMapMutex_);
     return opUnmarshallingFuncLUT_->emplace(type, func).second;
 }
 
@@ -570,6 +571,54 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPath(*path_);
 }
 
+std::shared_ptr<DrawImageRectOpItem> DrawPathOpItem::GenerateQuadCachedOpItem(Canvas* canvas)
+{
+    if (!path_ || paint_.GetWidth() > 1.f) { // only cache when stroke width is too small
+        return nullptr;
+    }
+    auto verbs = path_->GetVerbs();
+    if (std::find(verbs.begin(), verbs.end(), PathVerb::Quad) == verbs.end()) {
+        return nullptr;
+    }
+
+    auto bounds = path_->GetBounds();
+    if (!bounds.IsValid()) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->MakeSurface(bounds.GetWidth(), bounds.GetHeight());
+    } else {
+        // create CPU raster surface
+        Drawing::ImageInfo offscreenInfo { bounds.GetWidth(), bounds.GetHeight(), Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL, nullptr };
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return nullptr;
+    }
+
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+
+    // align draw op to [0, 0]
+    if (bounds.GetLeft() != 0 || bounds.GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds.GetLeft(), -bounds.GetTop());
+    }
+    Playback(offscreenCanvas, nullptr);
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
+    Paint fakePaint;
+    fakePaint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    fakePaint.SetAntiAlias(true);
+    return std::make_shared<DrawImageRectOpItem>(*image, src, dst,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
+}
+
 /* DrawBackgroundOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawBackground, DrawOpItem::BACKGROUND_OPITEM, DrawBackgroundOpItem::Unmarshalling);
 
@@ -802,15 +851,12 @@ REGISTER_UNMARSHALLING_FUNC(DrawImageLattice, DrawOpItem::IMAGE_LATTICE_OPITEM, 
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     const DrawCmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle)
-    : DrawOpItem(IMAGE_LATTICE_OPITEM), lattice_(handle->lattice), dst_(handle->dst), filter_(handle->filter),
-    hasBrush_(handle->hasBrush)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM), lattice_(handle->lattice),
+    dst_(handle->dst), filter_(handle->filter)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
     if (DrawOpItem::holdDrawingImagefunc_) {
         DrawOpItem::holdDrawingImagefunc_(image_);
-    }
-    if (hasBrush_) {
-        BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
     }
 }
 
@@ -822,13 +868,10 @@ std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdL
 
 void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
 {
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
-    BrushHandle brushHandle;
-    if (hasBrush_) {
-        BrushToBrushHandle(brush_, cmdList, brushHandle);
-    }
-
-    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, brushHandle, hasBrush_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, paintHandle);
 }
 
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -837,8 +880,53 @@ void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("DrawImageNineOpItem image is null");
         return;
     }
-    Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
-    canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_, brushPtr);
+    canvas->AttachPaint(paint_);
+    canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_);
+}
+
+/* DrawAtlasOpItem */
+REGISTER_UNMARSHALLING_FUNC(DrawAtlas, DrawOpItem::ATLAS_OPITEM, DrawAtlasOpItem::Unmarshalling);
+
+DrawAtlasOpItem::DrawAtlasOpItem(const DrawCmdList& cmdList, DrawAtlasOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ATLAS_OPITEM), mode_(handle->mode),
+      samplingOptions_(handle->samplingOptions), hasCullRect_(handle->hasCullRect), cullRect_(handle->cullRect)
+{
+    atlas_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->atlas);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(atlas_);
+    }
+    xform_ = CmdListHelper::GetVectorFromCmdList<RSXform>(cmdList, handle->xform);
+    tex_ = CmdListHelper::GetVectorFromCmdList<Rect>(cmdList, handle->tex);
+    colors_ = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, handle->colors);
+}
+
+std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawAtlasOpItem>(cmdList, static_cast<DrawAtlasOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawAtlasOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *atlas_);
+    auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(cmdList, xform_);
+    auto texData = CmdListHelper::AddVectorToCmdList<Rect>(cmdList, tex_);
+    auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(cmdList, colors_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, xformData, texData, colorData, mode_, samplingOptions_,
+        hasCullRect_, cullRect_, paintHandle);
+}
+
+void DrawAtlasOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (atlas_ == nullptr) {
+        LOGD("DrawAtlasOpItem atlas is null");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    Rect* rectPtr = hasCullRect_ ? &cullRect_ : nullptr;
+    canvas->DrawAtlas(atlas_.get(), xform_.data(), tex_.data(), colors_.data(), xform_.size(), mode_,
+        samplingOptions_, rectPtr);
 }
 
 /* DrawBitmapOpItem */
@@ -1019,13 +1107,7 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
-    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    if (DrawOpItem::customTypefaceQueryfunc_) {
-        typeface = DrawOpItem::customTypefaceQueryfunc_(handle->globalUniqueId);
-    }
-
-    TextBlob::Context ctx {typeface, false};
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, &ctx);
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
 }
 
 std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -1182,7 +1264,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas)
 {
-    std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
+    std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob, globalUniqueId);
     if (!textBlob_) {
         LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;

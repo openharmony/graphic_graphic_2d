@@ -35,6 +35,7 @@ using NodeId = uint64_t;
 using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
+using InteractiveImplictAnimatorId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
@@ -81,6 +82,7 @@ enum RSRenderParamsDirtyType {
     NO_DIRTY = 0,
     MATRIX_DIRTY,
     LAYER_INFO_DIRTY,
+    BUFFER_INFO_DIRTY,
     MAX_DIRTY_TYPE,
 };
 
@@ -97,8 +99,9 @@ enum class DrawableCacheType : uint8_t {
 
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
-    FORCED_CACHE,    // must-to-do case
-    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+    FORCED_CACHE,           // must-to-do case
+    TARGETED_CACHE,         // suggested case which could be disabled by optimized strategy
+    FOREGROUND_FILTER_CACHE // using cache to draw foreground filter
 };
 
 enum class FilterCacheType : uint8_t {
@@ -182,9 +185,9 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
-enum BufferHandleAttrKey : uint32_t {
-    // used in set roi region to codec, must be the same as HDI
-    ATTRKEY_HDR_DYNAMIC_METADATA = 5,
+enum GrallocBufferAttr : uint32_t {
+    // used in set roi region to codec, must be the same as private key in codec
+    GRALLOC_BUFFER_ATTR_BUFFER_ROI_INFO = 2054,
 };
 
 // types for PC SystemAnimatedScenes
@@ -235,6 +238,11 @@ enum class SelfDrawingNodeType : uint8_t {
     VIDEO,
 };
 
+enum class SurfaceWindowType : uint8_t {
+    DEFAULT_WINDOW = 0,
+    SYSTEM_SCB_WINDOW = 1,
+};
+
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
@@ -243,6 +251,7 @@ struct RSSurfaceRenderNodeConfig {
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
     bool isSync = false;
+    enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
 // types for RSSurfaceExt

@@ -418,7 +418,7 @@ const RSShowingPropertiesFreezer& RSNode::GetShowingProperties() const
     return showingPropertiesFreezer_;
 }
 
-void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
+void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation)
 {
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to add animation, animation is null!");
@@ -445,7 +445,10 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
         std::unique_lock<std::mutex> lock(animationMutex_);
         AddAnimationInner(animation);
     }
-    animation->StartInner(shared_from_this());
+
+    if (isStartAnimation) {
+        animation->StartInner(shared_from_this());
+    }
 }
 
 void RSNode::RemoveAllAnimations()
@@ -474,6 +477,12 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
 {
     motionPathOption_ = motionPathOption;
     UpdateModifierMotionPathOption();
+}
+
+void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
+{
+    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
+        RSModifierType::MAGNIFIER_PARA, para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -545,9 +554,9 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, width, 0.f);
@@ -567,9 +576,9 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, 0.f, height);
@@ -600,9 +609,9 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(positionX, 0.f, 0.f, 0.f);
@@ -621,9 +630,9 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(0.f, positionY, 0.f, 0.f);
@@ -671,9 +680,9 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(pivotX, 0.5f);
@@ -692,9 +701,9 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(0.5f, pivotY);
@@ -771,9 +780,9 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 }
 void RSNode::SetTranslateX(float translate)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ translate, 0.f });
@@ -792,9 +801,9 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ 0.f, translate });
@@ -832,9 +841,9 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(scaleX, 1.f);
@@ -853,9 +862,9 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(1.f, scaleY);
@@ -1037,8 +1046,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
             auto diameMax = particleParams[i].emitterConfig_.radius_ * 2 * scaleMax; // diameter = 2 * radius
-            left[i] = std::min(bounds.x_ - diameMax, position.x_ - diameMax);
-            top[i] = std::min(bounds.y_ - diameMax, position.y_ - diameMax);
+            left[i] = std::min(bounds.x_ - diameMax, bounds.x_ + position.x_ - diameMax);
+            top[i] = std::min(bounds.y_ - diameMax, bounds.y_ + position.y_ - diameMax);
             right[i] = std::max(boundsRight + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
             bottom[i] = std::max(boundsBottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
@@ -1055,8 +1064,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             }
             float imageSizeWidthMax = imageSizeWidth * scaleMax;
             float imageSizeHeightMax = imageSizeHeight * scaleMax;
-            left[i] = std::min(bounds.x_ - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
-            top[i] = std::min(bounds.y_ - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
+            left[i] = std::min(bounds.x_ - imageSizeWidthMax, bounds.x_ + position.x_ - imageSizeWidthMax);
+            top[i] = std::min(bounds.y_ - imageSizeHeightMax, bounds.y_ + position.y_ - imageSizeHeightMax);
             right[i] = std::max(boundsRight + imageSizeWidthMax + imageSizeWidthMax,
                 position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
             bottom[i] = std::max(boundsBottom + imageSizeHeightMax + imageSizeHeightMax,
@@ -1067,7 +1076,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     float t = *std::min_element(top.begin(), top.end());
     boundsRight = *std::max_element(right.begin(), right.end());
     boundsBottom = *std::max_element(bottom.begin(), bottom.end());
-    std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(l, t, boundsRight - l, boundsBottom - t);
+    std::shared_ptr<RectF> overlayRect =
+        std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t);
     SetDrawRegion(overlayRect);
 }
 
@@ -1214,6 +1224,20 @@ void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
     SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
 }
 
+// set dash width for border
+void RSNode::SetBorderDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSBorderDashWidthModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_WIDTH, dashWidth);
+}
+
+// set dash gap for border
+void RSNode::SetBorderDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSBorderDashGapModifier, RSProperty<Vector4f>>(
+        RSModifierType::BORDER_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
     SetOutlineColor(color);
@@ -1254,10 +1278,93 @@ void RSNode::SetOutlineStyle(const Vector4<BorderStyle>& style)
         RSModifierType::OUTLINE_STYLE, styles);
 }
 
+void RSNode::SetOutlineDashWidth(const Vector4f& dashWidth)
+{
+    SetProperty<RSOutlineDashWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_WIDTH, dashWidth);
+}
+
+void RSNode::SetOutlineDashGap(const Vector4f& dashGap)
+{
+    SetProperty<RSOutlineDashGapModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_DASH_GAP, dashGap);
+}
+
 void RSNode::SetOutlineRadius(const Vector4f& radius)
 {
     SetProperty<RSOutlineRadiusModifier, RSAnimatableProperty<Vector4f>>(
         RSModifierType::OUTLINE_RADIUS, radius);
+}
+
+void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
+{
+    // To do: generate composed filter here. Now we just set background blur in v1.0.
+    auto filterParas = backgroundFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetBackgroundBlurRadiusX(blurRadius);
+            SetBackgroundBlurRadiusY(blurRadius);
+        }
+    }
+}
+
+void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
+{
+    // To do: generate composed filter here. Now we just set compositing blur in v1.0.
+    auto filterParas = compositingFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundBlurRadiusX(blurRadius);
+            SetForegroundBlurRadiusY(blurRadius);
+        }
+    }
+}
+
+void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
+{
+    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
+    auto filterParas = foregroundFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundEffectRadius(blurRadius);
+        }
+        if (filterPara->GetParaType() == FilterPara::PIXEL_STRETCH) {
+            auto pixelStretchPara = std::static_pointer_cast<PixelStretchPara>(filterPara);
+            auto stretchPercent = pixelStretchPara->GetStretchPercent();
+            SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
+        }
+    }
+}
+
+void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
+{
+    // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
+    auto visualEffectParas = visualEffect->GetAllPara();
+    for (const auto& visualEffectPara : visualEffectParas) {
+        if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
+            continue;
+        }
+        auto backgroundColorEffectPara = std::static_pointer_cast<BackgroundColorEffectPara>(visualEffectPara);
+        auto blender = backgroundColorEffectPara->GetBlender();
+        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
+        if (brightnessBlender == nullptr) {
+            continue;
+        }
+        auto fraction = brightnessBlender->GetFraction();
+        SetBgBrightnessFract(fraction);
+        SetBgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
+            brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
+            { brightnessBlender->GetPositiveCoeff().data_[0], brightnessBlender->GetPositiveCoeff().data_[1],
+                brightnessBlender->GetPositiveCoeff().data_[2] },
+            { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
+                brightnessBlender->GetNegativeCoeff().data_[2] } });
+    }
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -1355,8 +1462,35 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
 
 void RSNode::SetFgBrightnessParams(const RSDynamicBrightnessPara& params)
 {
-    SetProperty<RSFgBrightnessParamsModifier,
-        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::FG_BRIGHTNESS_PARAMS, params);
+    // Compatible with original interfaces
+    SetFgBrightnessRates(params.rates_);
+    SetFgBrightnessSaturation(params.saturation_);
+    SetFgBrightnessPosCoeff(params.posCoeff_);
+    SetFgBrightnessNegCoeff(params.negCoeff_);
+}
+
+void RSNode::SetFgBrightnessRates(const Vector4f& rates)
+{
+    SetProperty<RSFgBrightnessRatesModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_RATES, rates);
+}
+
+void RSNode::SetFgBrightnessSaturation(const float& saturation)
+{
+    SetProperty<RSFgBrightnessSaturationModifier,
+        RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_SATURATION, saturation);
+}
+
+void RSNode::SetFgBrightnessPosCoeff(const Vector4f& coeff)
+{
+    SetProperty<RSFgBrightnessPosCoeffModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_POSCOEFF, coeff);
+}
+
+void RSNode::SetFgBrightnessNegCoeff(const Vector4f& coeff)
+{
+    SetProperty<RSFgBrightnessNegCoeffModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_NEGCOEFF, coeff);
 }
 
 void RSNode::SetFgBrightnessFract(const float& fract)
@@ -1367,8 +1501,36 @@ void RSNode::SetFgBrightnessFract(const float& fract)
 
 void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
 {
-    SetProperty<RSBgBrightnessParamsModifier,
-        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::BG_BRIGHTNESS_PARAMS, params);
+    ROSEN_LOGE("LJQDEBUG: params.saturation_ %{public}f", params.saturation_);
+    // Compatible with original interfaces
+    SetBgBrightnessRates(params.rates_);
+    SetBgBrightnessSaturation(params.saturation_);
+    SetBgBrightnessPosCoeff(params.posCoeff_);
+    SetBgBrightnessNegCoeff(params.negCoeff_);
+}
+
+void RSNode::SetBgBrightnessRates(const Vector4f& rates)
+{
+    SetProperty<RSBgBrightnessRatesModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::BG_BRIGHTNESS_RATES, rates);
+}
+
+void RSNode::SetBgBrightnessSaturation(const float& saturation)
+{
+    SetProperty<RSBgBrightnessSaturationModifier,
+        RSAnimatableProperty<float>>(RSModifierType::BG_BRIGHTNESS_SATURATION, saturation);
+}
+
+void RSNode::SetBgBrightnessPosCoeff(const Vector4f& coeff)
+{
+    SetProperty<RSBgBrightnessPosCoeffModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::BG_BRIGHTNESS_POSCOEFF, coeff);
+}
+
+void RSNode::SetBgBrightnessNegCoeff(const Vector4f& coeff)
+{
+    SetProperty<RSBgBrightnessNegCoeffModifier,
+        RSAnimatableProperty<Vector4f>>(RSModifierType::BG_BRIGHTNESS_NEGCOEFF, coeff);
 }
 
 void RSNode::SetBgBrightnessFract(const float& fract)
@@ -1458,8 +1620,13 @@ void RSNode::SetFrameGravity(Gravity gravity)
 
 void RSNode::SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius)
 {
+    SetClipRRect(std::make_shared<RRect>(clipRect, clipRadius));
+}
+
+void RSNode::SetClipRRect(const std::shared_ptr<RRect>& rrect)
+{
     SetProperty<RSClipRRectModifier, RSAnimatableProperty<RRect>>(
-        RSModifierType::CLIP_RRECT, RRect(clipRect, clipRadius));
+        RSModifierType::CLIP_RRECT, rrect ? *rrect : RRect());
 }
 
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
@@ -1521,10 +1688,12 @@ void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stre
         RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
-void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
+void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent, Drawing::TileMode stretchTileMode)
 {
     SetProperty<RSPixelStretchPercentModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH_PERCENT,
         stretchPercent);
+    SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
+        RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetFreeze(bool isFreeze)

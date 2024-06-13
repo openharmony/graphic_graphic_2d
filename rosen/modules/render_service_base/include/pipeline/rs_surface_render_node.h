@@ -59,9 +59,6 @@ public:
         return Type;
     }
 
-    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
-        bool isTextureExportNode = false);
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -353,6 +350,11 @@ public:
         offsetX_ = offset;
     }
 
+    enum SurfaceWindowType GetSurfaceWindowType() const
+    {
+        return surfaceWindowType_;
+    }
+
     int32_t GetOffSetX() const
     {
         return offsetX_;
@@ -467,7 +469,7 @@ public:
     bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -584,6 +586,21 @@ public:
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
+
+    void SetLeashWindowVisibleRegionEmpty(bool isLeashWindowVisibleRegionEmpty)
+    {
+        if (!IsLeashWindow()) {
+            return;
+        }
+        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+    }
+
+    bool GetLeashWindowVisibleRegionEmpty() const
+    {
+        return isLeashWindowVisibleRegionEmpty_;
+    }
+
+    void SetLeashWindowVisibleRegionEmptyParam();
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
@@ -890,6 +907,8 @@ public:
         grContext_ = grContext;
     }
     // UIFirst
+    void UpdateUIFirstFrameGravity();
+
     void SetSubmittedSubThreadIndex(uint32_t index)
     {
         submittedSubThreadIndex_ = index;
@@ -1134,11 +1153,17 @@ public:
     {
         return doDirectComposition_;
     }
+
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
 protected:
     void OnSync() override;
     void OnSkipSync() override;
 
 private:
+    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void OnResetParent() override;
     void ClearChildrenCache();
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -1189,6 +1214,7 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
@@ -1197,9 +1223,9 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
-    sptr<RSIBufferAvailableCallback> callbackFromRT_;
-    sptr<RSIBufferAvailableCallback> callbackFromUI_;
-    sptr<RSIBufferClearCallback> clearBufferCallback_;
+    sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
+    sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
+    sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
     bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
@@ -1216,6 +1242,7 @@ private:
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
+    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
@@ -1387,7 +1414,9 @@ private:
     bool isNodeToBeCaptured_ = false;
 
     bool doDirectComposition_ = true;
+    bool isSkipDraw_ = false;
 
+    friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

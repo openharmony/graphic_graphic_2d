@@ -16,9 +16,21 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
+#ifndef ROSEN_CROSS_PLATFORM
+#include <ibuffer_consumer_listener.h>
+#include <iconsumer_surface.h>
+#include <surface.h>
+#endif
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
+#include "platform/drawing/rs_surface.h"
+#endif
+
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
@@ -31,7 +43,7 @@ struct UIFirstParams {
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
+class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable, public RSSurfaceHandler {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
 
@@ -50,6 +62,23 @@ public:
     {
         return name_;
     }
+
+    // Dma Buffer
+    bool UseDmaBuffer();
+
+    bool IsSurfaceCreated() const
+    {
+        return surfaceCreated_;
+    }
+
+    void ClearBufferQueue();
+
+#ifndef ROSEN_CROSS_PLATFORM
+    bool CreateSurface();
+#endif
+    BufferRequestConfig GetFrameBufferRequestConfig();
+    std::unique_ptr<RSRenderFrame> RequestFrame(
+        RenderContext* renderContext, std::shared_ptr<Drawing::GPUContext> grContext);
 
     // UIFirst
     void SetSubmittedSubThreadIndex(uint32_t index)
@@ -91,6 +120,8 @@ public:
     }
 
     bool IsCurFrameStatic(DeviceType deviceType);
+
+    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
 
     bool HasCachedTexture() const;
 
@@ -163,9 +194,10 @@ public:
     void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
-    const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void ClearCacheSurfaceOnly();
 
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -193,6 +225,19 @@ private:
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
+
+    // DMA Buffer
+    bool DrawUIFirstCacheWithDma(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IBufferConsumerListener> consumerListener_ = nullptr;
+#endif
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
+#else
+    std::shared_ptr<RSSurface> surface_ = nullptr;
+#endif
+    bool surfaceCreated_ = false;
 
     // UIFIRST
     UIFirstParams uiFirstParams;

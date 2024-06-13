@@ -89,7 +89,7 @@ ohos_executable("drawing_engine_sample") {
 
   deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
-  deps += [ "//third_party/skia:skia_ohos" ]
+  external_deps = [ "skia:skia_canvaskit" ]
 
   public_deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
@@ -109,7 +109,7 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

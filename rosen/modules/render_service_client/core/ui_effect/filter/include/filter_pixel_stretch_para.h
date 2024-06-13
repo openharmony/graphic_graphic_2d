@@ -27,7 +27,7 @@ public:
     {
         this->type_ = FilterPara::ParaType::PIXEL_STRETCH;
     }
-    ~PixelStretchPara() override;
+    ~PixelStretchPara() override = default;
 
     void SetStretchPercent(Vector4f stretchPercent)
     {

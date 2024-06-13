@@ -1033,6 +1033,37 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
 
 /**
  * @tc.name: SetGet002
+ * @tc.desc: see SetGet002
+ * @tc.type:FUNC
+ * @tc.require: SetGet002 aux function
+ */
+void CheckDashParams(RSProperties& properties)
+{
+    Vector4f zeroData(0.f, 0.f, 0.f, 0.f);
+    Vector4f posData(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderDashWidth(zeroData);
+    properties.SetBorderDashGap(zeroData);
+    properties.SetOutlineDashWidth(zeroData);
+    properties.SetOutlineDashGap(zeroData);
+
+    properties.SetBorderDashWidth(posData);
+    properties.SetBorderDashGap(posData);
+    properties.SetOutlineDashWidth(posData);
+    properties.SetOutlineDashGap(posData);
+
+    auto borderDashWidth = properties.GetBorderDashWidth();
+    auto borderDashGap = properties.GetBorderDashGap();
+    auto outlineDashWidth = properties.GetOutlineDashWidth();
+    auto outlineDashGap = properties.GetOutlineDashGap();
+
+    EXPECT_TRUE(borderDashWidth.IsNearEqual(posData));
+    EXPECT_TRUE(borderDashGap.IsNearEqual(posData));
+    EXPECT_TRUE(outlineDashWidth.IsNearEqual(posData));
+    EXPECT_TRUE(outlineDashGap.IsNearEqual(posData));
+}
+
+/**
+ * @tc.name: SetGet002
  * @tc.desc: test results of SetGet002
  * @tc.type:FUNC
  * @tc.require:
@@ -1074,18 +1105,24 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
     properties.SetBackgroundColor(color);
     EXPECT_NE(0, properties.GetBackgroundColor().GetBlue());
 
-    Vector4<Color> borderColor = { color, color, color, color };
+    Vector4<Color> borderColor = {color, color, color, color};
     properties.SetBorderColor(borderColor);
     properties.GetBorderColor();
-    Vector4f zeroWidth = { 0, 0, 0, 0 };
-    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
-    properties.SetBorderWidth(zeroWidth);
-    properties.SetBorderWidth(width);
+
+    float zeroData1f{0.f};
+    Vector2f zeroData2f{zeroData1f, zeroData1f};
+    float posData1f{1.f};
+    properties.SetBorderWidth(Vector4(zeroData1f, zeroData1f, zeroData1f, zeroData1f));
+
+    properties.SetBorderWidth(Vector4(posData1f, posData1f, posData1f, posData1f));
+
     EXPECT_NE(0, properties.GetBorderWidth().GetLength());
 
     Vector4<uint32_t> style = { 1, 1, 1, 1 };
     properties.SetBorderStyle(style);
     EXPECT_NE(0, properties.GetBorderStyle().GetLength());
+
+    CheckDashParams(properties);
 
     EXPECT_NE(nullptr, properties.GetBorder());
 }
@@ -1342,12 +1379,12 @@ HWTEST_F(RSPropertiesTest, SetDynamicLightUpDegree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFgBrightnessParams001
- * @tc.desc: test results of SetFgBrightnessParams
+ * @tc.name: SetNGetFgBrightnessParams001
+ * @tc.desc: test results of SetNGetFgBrightnessParams001
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetFgBrightnessParams001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessParams001, TestSize.Level1)
 {
     RSProperties properties;
     RSDynamicBrightnessPara para;
@@ -1361,12 +1398,117 @@ HWTEST_F(RSPropertiesTest, SetFgBrightnessParams001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBgBrightnessParams001
- * @tc.desc: test results of SetBgBrightnessParams
+ * @tc.name: SetNGetFgBrightnessRates001
+ * @tc.desc: test results of SetNGetFgBrightnessRates001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessRates001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetFgBrightnessRates(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessRates();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessSaturation001
+ * @tc.desc: test results of SetNGetFgBrightnessSaturation001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessSaturation001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFgBrightnessSaturation(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessSaturation();
+    EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessPosCoeff001
+ * @tc.desc: test results of SetNGetFgBrightnessPosCoeff001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessPosCoeff001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetFgBrightnessPosCoeff(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessPosCoeff();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessNegCoeff001
+ * @tc.desc: test results of SetNGetFgBrightnessNegCoeff001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessNegCoeff001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetFgBrightnessNegCoeff(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessNegCoeff();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessFract001
+ * @tc.desc: test results of SetNGetFgBrightnessFract001
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetBgBrightnessParams001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessFract001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessFract();
+    EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessParams002
+ * @tc.desc: test results of SetNGetFgBrightnessParams002
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessParams002, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetFgBrightnessRates(value);
+    properties.SetFgBrightnessSaturation(0.5f);
+    properties.SetFgBrightnessPosCoeff(value);
+    properties.SetFgBrightnessNegCoeff(value);
+    properties.SetFgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetFgBrightnessParams();
+    EXPECT_EQ(valueGet.has_value(), true);
+    EXPECT_EQ(properties.IsFgBrightnessValid(), true);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessParams001
+ * @tc.desc: test results of SetNGetBgBrightnessParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessParams001, TestSize.Level1)
 {
     RSProperties properties;
     RSDynamicBrightnessPara para;
@@ -1377,6 +1519,111 @@ HWTEST_F(RSPropertiesTest, SetBgBrightnessParams001, TestSize.Level1)
     params = para;
     properties.SetBgBrightnessParams(params);
     EXPECT_EQ(params.has_value(), true);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessRates001
+ * @tc.desc: test results of SetNGetBgBrightnessRates001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessRates001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetBgBrightnessRates(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessRates();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessSaturation001
+ * @tc.desc: test results of SetNGetBgBrightnessSaturation001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessSaturation001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBgBrightnessSaturation(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessSaturation();
+    EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessPosCoeff001
+ * @tc.desc: test results of SetNGetBgBrightnessPosCoeff001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessPosCoeff001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetBgBrightnessPosCoeff(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessPosCoeff();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessNegCoeff001
+ * @tc.desc: test results of SetNGetBgBrightnessNegCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessNegCoeff001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetBgBrightnessNegCoeff(value);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessNegCoeff();
+    EXPECT_EQ(valueGet, value);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessFract001
+ * @tc.desc: test results of SetNGetBgBrightnessFract001
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessFract001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessFract();
+    EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessParams002
+ * @tc.desc: test results of SetNGetBgBrightnessParams002
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBgBrightnessParams002, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    properties.SetBgBrightnessRates(value);
+    properties.SetBgBrightnessSaturation(0.5f);
+    properties.SetBgBrightnessPosCoeff(value);
+    properties.SetBgBrightnessNegCoeff(value);
+    properties.SetBgBrightnessFract(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetBgBrightnessParams();
+    EXPECT_EQ(valueGet.has_value(), true);
+    EXPECT_EQ(properties.IsBgBrightnessValid(), true);
 }
 
 /**

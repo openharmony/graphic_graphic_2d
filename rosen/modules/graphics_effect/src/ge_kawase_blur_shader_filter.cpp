@@ -76,7 +76,7 @@ static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const
         LOGE("%s: Invalid width or height.", __func__);
         return;
     }
-    SkV2 normalizedOffsets[BLUR_SAMPLE_COUNT] = { SkV2 { 0.0f, 0.0f },
+    const SkV2 normalizedOffsets[BLUR_SAMPLE_COUNT] = { SkV2 { 0.0f, 0.0f },
         SkV2 { offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height },
         SkV2 { -offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height },
         SkV2 { offsetInfo.offsetX / offsetInfo.width, -offsetInfo.offsetY / offsetInfo.height },
@@ -205,8 +205,8 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
         blurBuilder.SetChild("imageShader", blurShader);
 
         // Advanced Filter
-        auto offsetXY = radiusByPasses * stepScale;
-        SetBlurBuilderParam(blurBuilder, offsetXY, scaledInfo, width, height);
+        auto offsetXYFilter = radiusByPasses * stepScale;
+        SetBlurBuilderParam(blurBuilder, offsetXYFilter, scaledInfo, width, height);
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
     }
 
@@ -280,7 +280,12 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const st
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
-        if (resizedImage->BuildSubset(image, srcRect, *canvas.GetGPUContext())) {
+        auto gpu = canvas.GetGPUContext();
+        if (resizedImage == nullptr || gpu == nullptr) {
+            LOGE("GEKawaseBlurShaderFilter::resize image failed, input nullptr");
+            return;
+        }
+        if (resizedImage->BuildSubset(image, srcRect, *gpu)) {
             checkedImage = resizedImage;
             LOGD("GEKawaseBlurShaderFilter::resize image success");
         } else {

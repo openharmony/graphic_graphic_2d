@@ -35,8 +35,6 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasDrawingRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_DRAWING_NODE;
 
-    explicit RSCanvasDrawingRenderNode(
-        NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasDrawingRenderNode();
 
     // Used in uni render thread.
@@ -70,7 +68,7 @@ public:
 
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
-    void ResetSurface();
+    void ResetSurface(int width, int height);
     bool IsNeedProcess() const;
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
@@ -79,6 +77,8 @@ public:
     bool IsDrawCmdListsVisited() const;
     void SetDrawCmdListsVisited(bool flag);
 private:
+    explicit RSCanvasDrawingRenderNode(
+        NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
@@ -108,6 +108,8 @@ private:
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::atomic<bool> drawCmdListsVisited_ = false;
+
+    friend class RSCanvasDrawingNodeCommandHelper;
 };
 
 } // namespace Rosen

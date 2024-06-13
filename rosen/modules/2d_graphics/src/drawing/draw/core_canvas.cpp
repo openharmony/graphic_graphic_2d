@@ -242,9 +242,10 @@ void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
 }
 
 void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filter, const Brush* brush)
+    FilterMode filter)
 {
-    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
+    AttachPaint();
+    impl_->DrawImageLattice(image, lattice, dst, filter);
 }
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)

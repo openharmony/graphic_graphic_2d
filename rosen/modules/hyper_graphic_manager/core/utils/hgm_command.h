@@ -94,6 +94,7 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        bool isFactor;
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
@@ -154,6 +155,8 @@ public:
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;
+    // <"pkgName", "1">
+    std::unordered_map<std::string, std::string> videoFrameRateList_;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

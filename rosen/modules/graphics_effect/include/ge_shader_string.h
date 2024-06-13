@@ -34,10 +34,9 @@ static std::string g_aibarString(R"(
         half3 c = imageShader.eval(coord).rgb;
         float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
         float bin = mix(high, low, step(threshold, gray));
-        half3 invert = half3(bin, bin, bin);
         float luminance = dot(c, toLuminance);
         half3 satAdjust = mix(vec3(luminance), c, saturation);
-        half3 res = mix(satAdjust, invert, opacity);
+        half3 res = satAdjust - (opacity + 1.0) * gray + bin;
         return half4(res, 1.0);
     }
 )");
@@ -68,8 +67,9 @@ static std::string g_greyGradationString(R"(
 
     float calculateGreyAdjustY(float rgb) {
         float t_r = calculateT_y(rgb);
-        return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) : (rgb - coefficient2 * pow((1 - t_r), 3));
-    }
+        return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) :
+            (rgb - coefficient2 * pow((1 - t_r), 3));
+        }
 
     half4 main(float2 coord) {
         vec3 color = vec3(imageShader.eval(coord).r, imageShader.eval(coord).g, imageShader.eval(coord).b);

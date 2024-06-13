@@ -262,23 +262,15 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 }
 
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filterMode, const Brush* brush)
+    FilterMode filterMode)
 {
     if (!addDrawOpImmediate_) {
-        cmdList_->AddDrawOp(std::make_shared<DrawImageLatticeOpItem>(image, lattice, dst, filterMode, brush));
+        AddDrawOpDeferred<DrawImageLatticeOpItem>(image, lattice, dst, filterMode);
         return;
     }
 
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
-    BrushHandle brushHandle;
-    bool hasBrush = false;
-    if (brush != nullptr) {
-        hasBrush = true;
-        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
-    }
-
-    cmdList_->AddDrawOp<DrawImageLatticeOpItem::ConstructorHandle>(
-        imageHandle, lattice, dst, filterMode, brushHandle, hasBrush);
+    AddDrawOpImmediate<DrawImageLatticeOpItem::ConstructorHandle>(imageHandle, lattice, dst, filterMode);
 }
 
 void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
@@ -288,6 +280,33 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
         return;
     }
     cmdList_->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, mode);
+}
+
+void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    std::vector<RSXform> xformVec(xform, xform + count);
+    std::vector<Rect> texVec(tex, tex + count);
+    std::vector<ColorQuad> colorVec;
+    if (colors) {
+        colorVec.assign(colors, colors + count);
+    }
+    Rect rect;
+    bool hasCullRect = false;
+    if (cullRect) {
+        rect = *cullRect;
+        hasCullRect = true;
+    }
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<DrawAtlasOpItem>(atlas, xformVec, texVec, colorVec, mode, sampling, hasCullRect, rect);
+        return;
+    }
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *atlas);
+    auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(*cmdList_, xformVec);
+    auto texData = CmdListHelper::AddVectorToCmdList<Rect>(*cmdList_, texVec);
+    auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*cmdList_, colorVec);
+    AddDrawOpImmediate<DrawAtlasOpItem::ConstructorHandle>(imageHandle, xformData, texData, colorData, mode,
+        sampling, hasCullRect, rect);
 }
 
 void RecordingCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
@@ -304,6 +323,7 @@ void RecordingCanvas::DrawImage(const Image& image, const scalar px, const scala
         AddDrawOpDeferred<DrawImageOpItem>(image, px, py, sampling);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageOpItem::ConstructorHandle>(imageHandle, px, py, sampling);
 }
@@ -315,6 +335,7 @@ void RecordingCanvas::DrawImageRect(
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, constraint);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling, constraint);
 }
@@ -326,6 +347,7 @@ void RecordingCanvas::DrawImageRect(const Image& image, const Rect& dst, const S
         AddDrawOpDeferred<DrawImageRectOpItem>(image, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         return;
     }
+    opCount++;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
     Rect src(0, 0, image.GetWidth(), image.GetHeight());
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(
@@ -668,6 +690,9 @@ void RecordingCanvas::CheckForLazySave()
 template<typename T, typename... Args>
 void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
 {
+    if (opCount > 40000) { //image opitems upper limit
+        return;
+    }
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {

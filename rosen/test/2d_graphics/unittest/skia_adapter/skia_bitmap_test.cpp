@@ -393,16 +393,16 @@ HWTEST_F(SkiaBitmapTest, ComputeByteSize, TestSize.Level1)
  */
 HWTEST_F(SkiaBitmapTest, CopyPixels, TestSize.Level1)
 {
-    const int srcLeft = 100;
-    const int srcTop = 50;
+    const int srcWidth = 100;
+    const int srcHight = 50;
     std::unique_ptr<Bitmap> dstBitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(dstBitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
     SkiaBitmap skiaBitmap;
-    skiaBitmap.Build(srcLeft, srcTop, bitmapFormat, 0);
-    skiaBitmap.CopyPixels(*dstBitmap, srcLeft, srcTop);
+    skiaBitmap.Build(srcWidth, srcHight, bitmapFormat, 0);
+    skiaBitmap.CopyPixels(*dstBitmap, 0, 0);
     void* pixels = dstBitmap->GetPixels();
-    ASSERT_TRUE(pixels == skiaBitmap.GetPixels());
+    ASSERT_TRUE(pixels != skiaBitmap.GetPixels());
 }
 
 /**

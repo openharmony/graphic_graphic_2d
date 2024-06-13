@@ -223,7 +223,7 @@ public:
     bool HasRemovedChild() const;
     inline void ResetChildrenRect()
     {
-        childrenRect_ = RectI();
+        childrenRect_.Clear();
     }
     RectI GetChildrenRect() const;
 
@@ -236,11 +236,20 @@ public:
     const std::unordered_set<NodeId>& GetVisibleEffectChild() const;
     void UpdateVisibleEffectChild(RSRenderNode& childNode);
 
-    NodeId GetInstanceRootNodeId() const;
+    inline NodeId GetInstanceRootNodeId() const
+    {
+        return instanceRootNodeId_;
+    }
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
-    NodeId GetFirstLevelNodeId() const;
+    inline NodeId GetFirstLevelNodeId() const
+    {
+        return firstLevelNodeId_;
+    }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
-    NodeId GetUifirstRootNodeId() const;
+    inline NodeId GetUifirstRootNodeId() const
+    {
+        return uifirstRootNodeId_;
+    }
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
@@ -263,7 +272,8 @@ public:
     const RectI& GetAbsDrawRect() const;
 
     void ResetChangeState();
-    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect);
+    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
+        const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
@@ -479,6 +489,7 @@ public:
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
+    void UpdateFilterCacheWithBackgroundDirty();
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
@@ -499,9 +510,11 @@ public:
         GROUPED_BY_ANIM = 1,
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_USER,
+        GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
+    void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType();
     bool IsNodeGroupIncludeProperty() const;
 
@@ -680,6 +693,7 @@ public:
     bool HasBlurFilter() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+    void RemoveChildFromFulllist(NodeId nodeId);
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -785,6 +799,7 @@ private:
 
     void GenerateFullChildrenList();
     void ResortChildren();
+    bool ShouldClearSurface();
 
     std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
@@ -820,12 +835,14 @@ private:
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
+    void CollectAndUpdateLocalForegroundEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
@@ -939,6 +956,7 @@ private:
     RectI localShadowRect_;
     RectI localOutlineRect_;
     RectI localPixelStretchRect_;
+    RectI localForegroundEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
 

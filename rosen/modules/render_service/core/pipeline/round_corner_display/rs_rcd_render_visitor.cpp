@@ -62,6 +62,20 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged)
+{
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || resourceChanged) {
+        RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid or resource is changed!");
+        return;
+    }
+
+    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (!resourceChanged && buffer != nullptr) {
+        uniProcessor_->ProcessRcdSurface(node);
+        return;
+    }
+}
+
 void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
     bool resourceChanged)
 {

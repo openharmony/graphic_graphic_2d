@@ -134,6 +134,9 @@ HWTEST_F(RSCanvasNodeCommandTest, UpdateRecording001, TestSize.Level1)
     RSCanvasNodeCommandHelper::UpdateRecording(context, id, drawCmds, modifierType);
     EXPECT_TRUE(drawCmds == nullptr);
 
+    RSCanvasNodeCommandHelper::UpdateRecording(context, 0, drawCmds, modifierType);
+    EXPECT_TRUE(drawCmds == nullptr);
+
     drawCmds = std::make_shared<Drawing::DrawCmdList>();
     RSCanvasNodeCommandHelper::UpdateRecording(context, id, drawCmds, modifierType);
     EXPECT_TRUE(drawCmds != nullptr);
@@ -151,6 +154,8 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(1);
     RSCanvasNodeCommandHelper::Create(context, id, true);
     RSCanvasNodeCommandHelper::ClearRecording(context, id);
+
+    RSCanvasNodeCommandHelper::ClearRecording(context, 0);
     EXPECT_TRUE(id);
 }
 } // namespace OHOS::Rosen

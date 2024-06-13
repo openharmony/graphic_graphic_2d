@@ -372,7 +372,7 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
     canvas->AttachPaint(paint);
     canvas->DrawImageRect(*drawingImage,
         OHOS::Rosen::Drawing::Rect(srcRect.left, srcRect.top, srcRect.width, srcRect.height),
-        OHOS::Rosen::Drawing::Rect(srcRect.left, srcRect.top, srcRect.width, srcRect.height),
+        OHOS::Rosen::Drawing::Rect(0, 0, srcRect.width, srcRect.height),
         Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
         OHOS::Rosen::Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     {
@@ -419,7 +419,6 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper)) {
-        cleanUpHelper->UnRef();
         return nullptr;
     }
     return drawingImage;

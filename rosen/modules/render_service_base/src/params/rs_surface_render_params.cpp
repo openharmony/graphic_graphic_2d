@@ -158,38 +158,38 @@ bool RSSurfaceRenderParams::GetForceHardwareByUser() const
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 {
-    layerInfo_.buffer = buffer;
+    buffer_ = buffer;
     needSync_ = true;
-    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
 {
-    return layerInfo_.buffer;
+    return buffer_;
 }
 
 void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
-    layerInfo_.preBuffer = preBuffer;
+    preBuffer_ = preBuffer;
     needSync_ = true;
-    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
 {
-    return layerInfo_.preBuffer;
+    return preBuffer_;
 }
 
 void RSSurfaceRenderParams::SetAcquireFence(const sptr<SyncFence>& acquireFence)
 {
-    layerInfo_.acquireFence = acquireFence;
+    acquireFence_ = acquireFence;
     needSync_ = true;
-    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
 sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
 {
-    return layerInfo_.acquireFence;
+    return acquireFence_;
 }
 #endif
 
@@ -280,6 +280,16 @@ bool RSSurfaceRenderParams::IsNodeToBeCaptured() const
     return isNodeToBeCaptured_;
 }
 
+void RSSurfaceRenderParams::SetSkipDraw(bool skip)
+{
+    isSkipDraw_ = skip;
+}
+
+bool RSSurfaceRenderParams::GetSkipDraw() const
+{
+    return isSkipDraw_;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -292,6 +302,16 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->layerInfo_ = layerInfo_;
         dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
+        targetSurfaceParams->buffer_ = buffer_;
+        targetSurfaceParams->preBuffer_ = preBuffer_;
+        targetSurfaceParams->acquireFence_ = acquireFence_;
+        dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+#endif
+
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
@@ -333,6 +353,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
+    targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     RSRenderParams::OnSync(target);
 }
 
@@ -352,4 +374,14 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
+bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+{
+    if (IsMainWindowType()) {
+        return curSurfaceDrawRegion.IsEmpty();
+    }
+    if (IsLeashWindow()) {
+        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+    }
+    return false;
+}
 } // namespace OHOS::Rosen

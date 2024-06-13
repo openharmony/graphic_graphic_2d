@@ -237,6 +237,16 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetMagnifierEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
@@ -444,6 +454,11 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
 }
 
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
     return false;
 }

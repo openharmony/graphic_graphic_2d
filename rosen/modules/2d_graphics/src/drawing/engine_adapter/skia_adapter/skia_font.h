@@ -72,7 +72,7 @@ public:
     int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
         uint16_t glyphs[], int maxGlyphCount) const override;
 
-    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) override;
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const override;
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;
 
     const SkFont& GetFont() const;

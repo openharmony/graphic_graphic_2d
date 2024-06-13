@@ -99,7 +99,7 @@ public:
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filter, const Brush* brush = nullptr) override;
+        FilterMode filter) override;
 
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;

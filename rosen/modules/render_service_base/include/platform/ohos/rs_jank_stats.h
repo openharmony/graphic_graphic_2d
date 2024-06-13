@@ -49,7 +49,6 @@ struct JankFrames {
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
-    bool isImplicitAnimationEnd_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
@@ -133,7 +132,8 @@ private:
 
     void UpdateEndTime();
     void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
-    void UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate);
+    size_t GetJankRangeType(int64_t missedVsync) const;
+    void UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, uint32_t dynamicRefreshRate);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
@@ -165,6 +165,7 @@ private:
     static constexpr bool IS_FOLD_DISP = false;
     static constexpr bool IS_CALCULATE_PRECISE_HITCH_TIME = true;
     static inline const std::string ACCUMULATED_BUFFER_COUNT_TRACE_NAME = "ACCUMULATED_BUFFER_COUNT";
+    static inline const std::string JANK_FRAME_1_TO_5F_COUNT_TRACE_NAME = "JANK_FRAME_1-5F";
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
     std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_1F", 1},
                                                                           {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };

@@ -63,13 +63,15 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
 {
     bool isRenderServiceNode = true;
+    int width = 1;
+    int height = 1;
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
-    bool res = canvasNode->ResetSurface();
+    bool res = canvasNode->ResetSurface(width, height);
     EXPECT_EQ(res, true);
 
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    res = canvasNode->ResetSurface();
+    res = canvasNode->ResetSurface(width, height);
     EXPECT_EQ(res, false);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }

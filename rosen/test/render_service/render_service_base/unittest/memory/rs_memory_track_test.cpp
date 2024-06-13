@@ -48,15 +48,30 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeRecordTest, testing::ext::TestSize.Level1)
 }
 
 /**
- * @tc.name: CountRSMemoryTest
+ * @tc.name: CountRSMemoryTest001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest001, testing::ext::TestSize.Level1)
 {
     MemoryGraphic memoryGraphic;
     pid_t pid1 = -1;
+    MemoryTrack::Instance().CountRSMemory(pid1);
+    auto mem = memoryGraphic.GetCpuMemorySize();
+    ASSERT_EQ(mem, 0);
+}
+
+/**
+ * @tc.name: CountRSMemoryTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest002, testing::ext::TestSize.Level1)
+{
+    MemoryGraphic memoryGraphic;
+    pid_t pid1 = 0;
     MemoryTrack::Instance().CountRSMemory(pid1);
     auto mem = memoryGraphic.GetCpuMemorySize();
     ASSERT_EQ(mem, 0);
@@ -135,16 +150,42 @@ HWTEST_F(RSMemoryTrackTest, GetAppMemorySizeInMBTest, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: MemoryType2StringTest
+ * @tc.name: MemoryType2StringTest001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest001, testing::ext::TestSize.Level1)
 {
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
     const char* ret = MemoryTrack::Instance().MemoryType2String(type);
     ASSERT_EQ(ret, "pixelmap");
+}
+
+/**
+ * @tc.name: MemoryType2StringTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest002, testing::ext::TestSize.Level1)
+{
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_SKIMAGE;
+    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
+    ASSERT_EQ(ret, "skimage");
+}
+
+/**
+ * @tc.name: MemoryType2StringTest003
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest003, testing::ext::TestSize.Level1)
+{
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_NODE;
+    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
+    ASSERT_EQ(ret, "");
 }
 
 /**
@@ -184,17 +225,37 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize
 }
 
 /**
- * @tc.name: RemoveNodeFromMapTest
+ * @tc.name: RemoveNodeFromMapTest001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Level1)
 {
     // fot test
     const NodeId id = 1;
     // fot test
     pid_t pid = -1;
+    // fot test
+    size_t size = sizeof(10);
+    MemoryTrack::Instance().RemoveNodeFromMap(id, pid, size);
+    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, size, id);
+    int ret = 1;
+    ASSERT_EQ(ret, 1);
+}
+
+/**
+ * @tc.name: RemoveNodeFromMapTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest002, testing::ext::TestSize.Level1)
+{
+    // fot test
+    const NodeId id = 0;
+    // fot test
+    pid_t pid = 0;
     // fot test
     size_t size = sizeof(10);
     MemoryTrack::Instance().RemoveNodeFromMap(id, pid, size);

@@ -36,6 +36,7 @@ static RoundRect* CastToRoundRect(OH_Drawing_RoundRect* cRoundRect)
 OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect* cRect, float xRad, float yRad)
 {
     if (cRect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     return (OH_Drawing_RoundRect*)new RoundRect(CastToRect(*cRect), xRad, yRad);
@@ -71,6 +72,10 @@ void OH_Drawing_RoundRectSetCorner(OH_Drawing_RoundRect* cRoundRect, OH_Drawing_
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
+    if (pos < CORNER_POS_TOP_LEFT || pos > CORNER_POS_BOTTOM_LEFT) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     rounRect->SetCornerRadius(CCornerPosCastToCornerPos(pos), radiusXY.x, radiusXY.y);
 }
 
@@ -81,6 +86,10 @@ OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect* cRou
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return {0, 0};
     }
+    if (pos < CORNER_POS_TOP_LEFT || pos > CORNER_POS_BOTTOM_LEFT) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return {0, 0};
+    }
     Point radiusXY = rounRect->GetCornerRadius(CCornerPosCastToCornerPos(pos));
     return {radiusXY.GetX(), radiusXY.GetY()};
 }
@@ -88,4 +97,14 @@ OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect* cRou
 void OH_Drawing_RoundRectDestroy(OH_Drawing_RoundRect* cRoundRect)
 {
     delete CastToRoundRect(cRoundRect);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RoundRectOffset(OH_Drawing_RoundRect* cRoundRect, float dx, float dy)
+{
+    RoundRect* rounRect = CastToRoundRect(cRoundRect);
+    if (rounRect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    rounRect->Offset(dx, dy);
+    return OH_DRAWING_SUCCESS;
 }

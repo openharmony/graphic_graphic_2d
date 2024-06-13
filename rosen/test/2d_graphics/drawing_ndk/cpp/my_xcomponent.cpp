@@ -282,52 +282,28 @@ void MyXComponent::TestPerformanceGpu(napi_env env, std::string caseName)
 
 void MyXComponent::TestFunctionCpu(napi_env env, std::string caseName)
 {
-    if (caseName == "All") {
-        for (auto map : TestCaseFactory::GetFunctionCpuCaseAll()) {
-            std::shared_ptr<TestBase> testCase = map.second();
-            if (testCase == nullptr) {
-                DRAWING_LOGE("TestCase is null");
-                return;
-            }
-            testCase->SetFileName(map.first);
-            testCase->TestFunctionCpu(env);
-        }
-    } else {
-        auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
-        if (testCase == nullptr) {
-            FlushScreen();
-            DRAWING_LOGE("failed to get testcase");
-            return;
-        }
-        testCase->SetFileName(caseName);
-        testCase->TestFunctionCpu(env);
-        BitmapToScreenCanvas(testCase->GetBitmap());
+    auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
+    if (testCase == nullptr) {
+        FlushScreen();
+        DRAWING_LOGE("failed to get testcase");
+        return;
     }
+    testCase->SetFileName(caseName);
+    testCase->TestFunctionCpu(env);
+    BitmapToScreenCanvas(testCase->GetBitmap());
 }
 
 void MyXComponent::TestFunctionGpu(napi_env env, std::string caseName)
 {
-    if (caseName == "All") {
-        for (auto map : TestCaseFactory::GetFunctionCpuCaseAll()) {
-            std::shared_ptr<TestBase> testCase = map.second();
-            if (testCase == nullptr) {
-                DRAWING_LOGE("TestCase is null");
-                return;
-            }
-            testCase->SetFileName(map.first);
-            testCase->TestFunctionGpu(env);
-        }
-    } else {
-        auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
-        if (testCase == nullptr) {
-            FlushScreen();
-            DRAWING_LOGE("failed to get testcase");
-            return;
-        }
-        testCase->SetFileName(caseName);
-        testCase->TestFunctionGpu(env);
-        BitmapToScreenCanvas(testCase->GetBitmap());
+    auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
+    if (testCase == nullptr) {
+        FlushScreen();
+        DRAWING_LOGE("failed to get testcase");
+        return;
     }
+    testCase->SetFileName(caseName);
+    testCase->TestFunctionGpu(env);
+    BitmapToScreenCanvas(testCase->GetBitmap());
 }
 
 void MyXComponent::SetTestCount(uint32_t testCount)
@@ -435,6 +411,67 @@ napi_value MyXComponent::NapiGetTime(napi_env env, napi_callback_info info)
         return value;
     } else {
         DRAWING_LOGE("DrawingTest render is nullptr");
+    }
+    return nullptr;
+}
+
+std::string MyXComponent::GetTestNames()
+{
+    std::string str = "";
+    for (auto map: TestCaseFactory::GetFunctionCpuCaseAll()) {
+        if (str == "") {
+            str += map.first;
+        } else {
+            str += "," + map.first;
+        }
+    }
+    return str;
+}
+
+napi_value MyXComponent::NapiGetTestNames(napi_env env, napi_callback_info info)
+{
+    DRAWING_LOGI("MyXComponent NapiGetTestNames");
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiGetTestNames: env or info is null");
+        return nullptr;
+    }
+
+    napi_value thisArg;
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr) != napi_ok) {
+        DRAWING_LOGE("NapiGetTestNames: napi_get_cb_info fail");
+        return nullptr;
+    }
+
+    napi_value exportInstance;
+    if (napi_get_named_property(env, thisArg, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
+        DRAWING_LOGE("NapiGetTestNames: napi_get_named_property fail");
+        return nullptr;
+    }
+
+    OH_NativeXComponent *nativeXComponent = nullptr;
+    if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
+        DRAWING_LOGE("NapiGetTestNames: napi_unwrap fail");
+        return nullptr;
+    }
+
+    char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
+    uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
+    if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
+        DRAWING_LOGE("NapiGetTestNames: Unable to get XComponent id");
+        return nullptr;
+    }
+    DRAWING_LOGI("ID = %{public}s", idStr);
+    std::string id(idStr);
+    MyXComponent *render = MyXComponent().GetOrCreateInstance(id);
+    if (render != nullptr) {
+        napi_value value = nullptr;
+        std::string str = render->GetTestNames();
+        (void)napi_create_string_utf8(env, str.c_str(), str.length(), &value);
+        return value;
+    } else {
+        DRAWING_LOGE("NapiGetTestNames: render is nullptr");
     }
     return nullptr;
 }
@@ -701,6 +738,7 @@ void MyXComponent::Export(napi_env env, napi_value exports)
     napi_property_descriptor desc[] = {
         {"setTestCount", nullptr, MyXComponent::NapiSetTestCount, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getTime", nullptr, MyXComponent::NapiGetTime, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getTestNames", nullptr, MyXComponent::NapiGetTestNames, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testFunctionCpu", nullptr, MyXComponent::NapiFunctionCpu, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testFunctionGpu", nullptr, MyXComponent::NapiFunctionGpu, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPerformanceCpu", nullptr, MyXComponent::NapiPerformanceCpu,

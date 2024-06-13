@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -178,6 +178,37 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetBufferAge001, TestSize.Level1)
     ASSERT_NE(context, nullptr);
     rsSurface.SetRenderContext(context);
     ASSERT_EQ(rsSurface.GetBufferAge(), -1);
+}
+
+/**
+ * @tc.name: GetCanvasAndGetSurface001
+ * @tc.desc: test results of GetBufferAge
+ * @tc.type:FUNC
+ * @tc.require: issueI9VW90
+ */
+HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
+{
+    RSSurfaceFrameOhosGl rsSurfaceTest1(1, 1);
+    rsSurfaceTest1.surface_ = nullptr;
+    RenderContext renderContextTest1;
+    std::shared_ptr<Drawing::GPUContext> drGPUContextTest1 = std::make_shared<Drawing::GPUContext>();
+    EXPECT_NE(drGPUContextTest1, nullptr);
+    renderContextTest1.drGPUContext_ = drGPUContextTest1;
+    rsSurfaceTest1.renderContext_ = &renderContextTest1;
+    EXPECT_EQ(rsSurfaceTest1.GetCanvas(), NULL);
+    std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
+    EXPECT_NE(surface, nullptr);
+    rsSurfaceTest1.surface_ = surface;
+    EXPECT_EQ(rsSurfaceTest1.GetCanvas(), nullptr);
+
+    RSSurfaceFrameOhosGl rsSurfaceTest2(1, 1);
+    rsSurfaceTest2.surface_ = nullptr;
+    RenderContext renderContextTest2;
+    std::shared_ptr<Drawing::GPUContext> drGPUContextTest2 = std::make_shared<Drawing::GPUContext>();
+    EXPECT_NE(drGPUContextTest2, nullptr);
+    renderContextTest2.drGPUContext_ = drGPUContextTest2;
+    rsSurfaceTest2.renderContext_ = &renderContextTest2;
+    EXPECT_EQ(rsSurfaceTest2.GetSurface(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

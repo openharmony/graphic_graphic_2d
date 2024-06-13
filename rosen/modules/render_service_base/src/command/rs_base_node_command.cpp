@@ -27,9 +27,13 @@ void BaseNodeCommandHelper::Destroy(RSContext& context, NodeId nodeId)
     if (node == nullptr) {
         return;
     }
+    auto parent = node->GetParent().lock();
     node->ClearChildren();
     node->RemoveFromTree();
     nodeMap.UnregisterRenderNode(node->GetId());
+    if (parent) {
+        parent->RemoveChildFromFulllist(node->GetId());
+    }
 }
 
 void BaseNodeCommandHelper::AddChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index)

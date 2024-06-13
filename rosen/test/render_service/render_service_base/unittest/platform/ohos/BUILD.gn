@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_accessibility_test.cpp",
     "rs_ashmem_helper_test.cpp",
     "rs_event_detector_test.cpp",
     "rs_event_manager_test.cpp",
@@ -47,7 +48,6 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
 
   configs = [
     ":render_test",
-    "$ace_root:ace_test_config",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
@@ -74,9 +74,10 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
-  public_external_deps = [ "graphic_surface:sync_fence" ]
-  deps += [ "//third_party/skia:skia_ohos" ]
-  public_deps += [ "//third_party/skia:skia_ohos" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
@@ -98,6 +99,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"

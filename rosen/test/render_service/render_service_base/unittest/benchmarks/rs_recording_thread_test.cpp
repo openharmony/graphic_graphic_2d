@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-
+#include "benchmarks/rs_recording_thread.h"
+#include "render_context/render_context.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSRenderThreadTest : public testing::Test {
+class RSRecordingThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -27,10 +28,10 @@ public:
     void TearDown() override;
 };
 
-void RSRenderThreadTest::SetUpTestCase() {}
-void RSRenderThreadTest::TearDownTestCase() {}
-void RSRenderThreadTest::SetUp() {}
-void RSRenderThreadTest::TearDown() {}
+void RSRecordingThreadTest::SetUpTestCase() {}
+void RSRecordingThreadTest::TearDownTestCase() {}
+void RSRecordingThreadTest::SetUp() {}
+void RSRecordingThreadTest::TearDown() {}
 
 /**
  * @tc.name: CheckAndRecording001
@@ -38,21 +39,24 @@ void RSRenderThreadTest::TearDown() {}
  * @tc.type:FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSRenderThreadTest, CheckAndRecording001, TestSize.Level1)
+HWTEST_F(RSRecordingThreadTest, CheckAndRecording001, TestSize.Level1)
 {
-    bool ret = RSRecordingThread::Instance().CheckAndRecording();
-    EXPECT_EQ(ret, true);
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    bool ret = RSRecordingThread::Instance(renderContext).CheckAndRecording();
+    EXPECT_EQ(ret, false);
 }
 
 /**
- * @tc.name: FinishRecordingOneFrame001
+ * @tc.name: GetCurDumpFrame001
  * @tc.desc: test results of Detach
  * @tc.type:FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSRenderThreadTest, FinishRecordingOneFrame001, TestSize.Level1)
+HWTEST_F(RSRecordingThreadTest, GetCurDumpFrame001, TestSize.Level1)
 {
-    RSRecordingThread::Instance().FinishRecordingOneFrame();
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    int ret = RSRecordingThread::Instance(renderContext).GetCurDumpFrame();
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -61,11 +65,12 @@ HWTEST_F(RSRenderThreadTest, FinishRecordingOneFrame001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSRenderThreadTest, RecordingToFile001, TestSize.Level1)
+HWTEST_F(RSRecordingThreadTest, RecordingToFile001, TestSize.Level1)
 {
     int w = 150;
     int h = 300;
-    auto list = make_shared<DrawCmdList>(w, h);
-    RSRecordingThread::Instance().RecordingToFile(list);
+    auto list = std::make_shared<Drawing::DrawCmdList>(w, h);
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    RSRecordingThread::Instance(renderContext).RecordingToFile(list);
 }
 } // namespace OHOS::Rosen

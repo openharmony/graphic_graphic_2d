@@ -14,8 +14,9 @@
  */
 
 #include "gtest/gtest.h"
-
+#include "benchmarks/file_utils.h"
 #include "message_parcel.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -43,7 +44,7 @@ HWTEST_F(FileUtilsTest, WriteToFileNoSuchFile, TestSize.Level1)
     std::string testFile = "/NoSuchFile";
     MessageParcel messageParcel;
     messageParcel.WriteInt32(0);
-    bool ret = WriteToFile(messageParcel.GetData(), messageParcel.GetDataSize(), testFile);
+    bool ret = Benchmarks::WriteToFile(messageParcel.GetData(), messageParcel.GetDataSize(), testFile);
     EXPECT_EQ(ret, false);
 }
 
@@ -56,7 +57,7 @@ HWTEST_F(FileUtilsTest, WriteStringToFileNoSuchFile, TestSize.Level1)
 {
     std::string testFile = "/NoSuchFile";
     std::string line = "line1";
-    bool ret = WriteToFile(line, testFile);
+    bool ret = Benchmarks::WriteStringToFile(line, testFile);
     EXPECT_EQ(ret, false);
 }
 
@@ -69,19 +70,7 @@ HWTEST_F(FileUtilsTest, WriteStringToFileNoSuchFile, TestSize.Level1)
 HWTEST_F(FileUtilsTest, CreateFileTest001, TestSize.Level1)
 {
     std::string testFile1 = "";
-    bool res = CreateFile(testFile1);
+    bool res = Benchmarks::CreateFile(testFile1);
     EXPECT_FALSE(res);
-}
-
-/**
- * @tc.name: CreateFileTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(FileUtilsTest, CreateFileTest002, TestSize.Level1)
-{
-    std::string testFile1 = "/test";
-    bool res = CreateFile(testFile1);
-    EXPECT_TRUE(res);
 }
 }

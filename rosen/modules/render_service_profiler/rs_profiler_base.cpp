@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <sys/mman.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -25,8 +26,8 @@
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_utils.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -39,6 +40,7 @@
 #include "common/rs_common_def.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS::Rosen {
 
@@ -229,7 +231,7 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
     if (g_mode == Mode::WRITE) {
         g_commandParseBuffer.packetTime = Utils::ToSeconds(time);
         g_commandParseBuffer.packetSize = parcel.GetDataSize();
-        int index = g_commandLoopIndexEnd++;
+        uint32_t index = g_commandLoopIndexEnd++;
         index %= COMMAND_LOOP_SIZE;
         g_commandLoop[index] = g_commandParseBuffer;
         g_commandParseBuffer.cmdCount = 0;
@@ -499,7 +501,7 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     parcel.SetMaxCapacity(GetParcelMaxCapacity());
     const_cast<RSRenderModifier&>(modifier).Marshalling(parcel);
 
-    const int32_t dataSize = parcel.GetDataSize();
+    const size_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
     data.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
 }
@@ -562,7 +564,7 @@ static void CreateRenderSurfaceNode(RSContext& context, NodeId id, bool isTextur
         .isTextureExportNode = isTextureExportNode,
         .isSync = false };
 
-    if (auto node = std::make_shared<RSSurfaceRenderNode>(config, context.weak_from_this())) {
+    if (auto node = SurfaceNodeCommandHelper::CreateWithConfigInRS(config, context)) {
         node->SetAbilityBGAlpha(backgroundAlpha);
         node->SetGlobalAlpha(globalAlpha);
         context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -649,7 +651,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
 
 static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data)
 {
-    int32_t bufferSize = 0;
+    size_t bufferSize = 0;
     data.read(reinterpret_cast<char*>(&bufferSize), sizeof(bufferSize));
 
     std::vector<uint8_t> buffer;
@@ -796,7 +798,7 @@ std::string RSProfiler::GetCommandParcelList(double recordStartTime)
         return "";
     }
 
-    int index = g_commandLoopIndexStart;
+    uint32_t index = g_commandLoopIndexStart;
     g_commandLoopIndexStart++;
     index %= COMMAND_LOOP_SIZE;
 
@@ -902,10 +904,12 @@ int RSProfiler::PerfTreeFlatten(
     return drawCmdListCount;
 }
 
-void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image)
+void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
+    std::shared_ptr<Drawing::Data>& compressData)
 {
-    if (!IsSharedMemoryEnabled()) {
+    if (IsEnabled() && !IsSharedMemoryEnabled()) {
         image = nullptr;
+        compressData = nullptr;
     }
 }
 
@@ -929,6 +933,59 @@ bool RSProfiler::IsBetaRecordEnabledWithMetrics()
 {
     constexpr uint32_t metricsMode = 3u;
     return RSSystemProperties::GetBetaRecordingMode() == metricsMode;
+}
+
+static uint64_t NewAshmemDataCacheId()
+{
+    static uint32_t id = 0u;
+    return Utils::ComposeDataId(Utils::GetPid(), id++);
+}
+
+static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
+{
+    if (g_mode != Mode::WRITE) {
+        return;
+    }
+
+    if (data && (size > 0)) {
+        Image ashmem;
+        ashmem.data.insert(ashmem.data.end(), data, data + size);
+        ImageCache::Add(id, std::move(ashmem));
+    }
+}
+
+static const uint8_t* GetCachedAshmemData(uint64_t id)
+{
+    const auto ashmem = (g_mode == Mode::READ) ? ImageCache::Get(id) : nullptr;
+    return ashmem ? ashmem->data.data() : nullptr;
+}
+
+void RSProfiler::WriteParcelData(Parcel& parcel)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+
+    parcel.WriteUint64(NewAshmemDataCacheId());
+}
+
+const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
+{
+    if (!IsEnabled()) {
+        return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
+    }
+
+    const uint64_t id = parcel.ReadUint64();
+    if (auto data = GetCachedAshmemData(id)) {
+        constexpr uint32_t skipBytes = 24u;
+        parcel.SkipBytes(skipBytes);
+        isMalloc = false;
+        return data;
+    }
+
+    auto data = RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
+    CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), size);
+    return data;
 }
 
 } // namespace OHOS::Rosen

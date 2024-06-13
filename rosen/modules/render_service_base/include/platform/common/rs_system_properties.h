@@ -175,6 +175,8 @@ public:
     static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
+    static bool GetMagnifierEnabled();
+    static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
@@ -234,6 +236,7 @@ public:
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
+    static bool GetSkipDisplayIfScreenOffEnabled();
 
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();

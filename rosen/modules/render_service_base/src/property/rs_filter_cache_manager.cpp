@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -207,6 +208,13 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     Drawing::RectI snapshotIBounds;
     snapshotIBounds = srcRect;
 
+    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    if (magnifierShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
+        auto para = tmpFilter->GetMagnifierShaderFilterPara();
+        snapshotIBounds.Offset(para->offsetX_, para->offsetY_);
+    }
+
     // Take a screenshot.
     auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
     if (snapshot == nullptr) {
@@ -252,6 +260,11 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (paintFilterCanvas != nullptr) {
+        offscreenCanvas.SetHDRPresent(paintFilterCanvas->GetHDRPresent());
+        offscreenCanvas.SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
+    }
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
@@ -294,6 +307,7 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
         cachedFilteredSnapshot_->cachedRect_.ToString().c_str(), src.ToString().c_str(), dst.ToString().c_str());
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*cachedFilteredSnapshot_->cachedImage_, src, dst, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);

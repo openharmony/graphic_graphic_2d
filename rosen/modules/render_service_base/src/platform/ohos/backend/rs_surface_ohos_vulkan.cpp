@@ -53,6 +53,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
             NativeWindowCancelBuffer(mNativeWindow, key);
         }
         mSurfaceMap.clear();
+        mSurfaceList.clear();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
@@ -220,6 +221,11 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
 
+    if (mSurfaceMap.find(mSurfaceList.front()) == mSurfaceMap.end()) {
+        ROSEN_LOGE("RSSurfaceOhosVulkan Can not find drawingsurface");
+        return false;
+    }
+
     auto& surface = mSurfaceMap[mSurfaceList.front()];
 
     RSTagTracker tagTracker(mSkContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
@@ -275,6 +281,7 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
             NativeWindowCancelBuffer(mNativeWindow, key);
         }
         mSurfaceMap.clear();
+        mSurfaceList.clear();
     }
 }
 
@@ -290,6 +297,7 @@ void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
             NativeWindowCancelBuffer(mNativeWindow, key);
         }
         mSurfaceMap.clear();
+        mSurfaceList.clear();
     }
     pixelFormat_ = pixelFormat;
 }

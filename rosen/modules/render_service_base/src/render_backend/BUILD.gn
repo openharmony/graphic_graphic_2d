@@ -83,7 +83,7 @@ ohos_static_library("librender_backend") {
     public_external_deps = [ "openssl:libcrypto_shared" ]
   }
 
-  public_deps += [ "//third_party/skia:skia_ohos" ]
+  public_external_deps = [ "skia:skia_canvaskit" ]
 
   external_deps = [
     "c_utils:utils",

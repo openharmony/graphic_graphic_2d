@@ -73,13 +73,19 @@ public:
      *        extended sRGB values (sRGB gamut, and encoded with the sRGB transfer function).
      * @return unpremultiplied RGBA
      */
-    Color4f GetColor4f();
+    const Color4f& GetColor4f();
 
     /**
      * @brief Retrieves a shared pointer to color space of current Brush.
      * @return a shared pointer to color space of current Brush
      */
-    std::shared_ptr<ColorSpace> GetColorSpace() const;
+    const std::shared_ptr<ColorSpace> GetColorSpace() const { return colorSpace_; }
+
+    /**
+     * @brief Retrieves a pointer to color space of current Brush.
+     * @return a pointer to color space of current Brush
+     */
+    const ColorSpace* GetColorSpacePtr() const { return colorSpace_.get(); }
 
     /**
      * @brief Sets alpha and RGB used when stroking and filling. The color is four floating
@@ -163,7 +169,13 @@ public:
      * @brief Returns optional colors used when filling a path, such as a gradient.
      * @return ShaderEffect if previously set, nullptr otherwise
      */
-    std::shared_ptr<ShaderEffect> GetShaderEffect() const;
+    const std::shared_ptr<ShaderEffect> GetShaderEffect() const { return shaderEffect_; }
+
+    /**
+     * @brief Returns optional colors used when filling a path, such as a gradient.
+     * @return ShaderEffect if previously set, nullptr otherwise
+     */
+    const ShaderEffect* GetShaderEffectPtr() const { return shaderEffect_.get(); }
 
     /**
      * @brief Sets the current blender, increasing its refcnt, and if a blender is already
@@ -176,7 +188,13 @@ public:
      * @brief Returns the user-supplied blend function, if one has been set.
      * @return the Blender assigned to this Brush, otherwise nullptr
      */
-    std::shared_ptr<Blender> GetBlender() const { return blender_; }
+    const std::shared_ptr<Blender> GetBlender() const { return blender_; }
+
+    /**
+     * @brief Returns the user-supplied blend function, if one has been set.
+     * @return the Blender assigned to this Brush, otherwise nullptr
+     */
+    const Blender* GetBlenderPtr() const { return blender_.get(); }
 
     /**
      * @brief Returns true if pixels on the active edges of Path may be drawn with partial transparency.

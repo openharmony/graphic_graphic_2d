@@ -17,6 +17,7 @@
 
 #include "utils/point.h"
 #include "utils/point3.h"
+#include "drawing_canvas_utils.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -25,6 +26,11 @@ using namespace Drawing;
 static Point* CastToPoint(OH_Drawing_Point* cPoint)
 {
     return reinterpret_cast<Point*>(cPoint);
+}
+
+static const Point* CastToPoint(const OH_Drawing_Point* cPoint)
+{
+    return reinterpret_cast<const Point*>(cPoint);
 }
 
 OH_Drawing_Point* OH_Drawing_PointCreate(float x, float y)
@@ -36,3 +42,34 @@ void OH_Drawing_PointDestroy(OH_Drawing_Point* cPoint)
 {
     delete CastToPoint(cPoint);
 }
+
+OH_Drawing_ErrorCode OH_Drawing_PointGetX(const OH_Drawing_Point* cPoint, float* x)
+{
+    const Point* point = CastToPoint(cPoint);
+    if (point == nullptr || x == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *x = point->GetX();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PointGetY(const OH_Drawing_Point* cPoint, float* y)
+{
+    const Point* point = CastToPoint(cPoint);
+    if (point == nullptr || y == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *y = point->GetY();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PointSet(OH_Drawing_Point* cPoint, float x, float y)
+{
+    Point* point = CastToPoint(cPoint);
+    if (point == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    point->Set(x, y);
+    return OH_DRAWING_SUCCESS;
+}
+

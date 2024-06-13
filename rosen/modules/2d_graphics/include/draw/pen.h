@@ -37,8 +37,8 @@ public:
 
     enum class CapStyle {
         FLAT_CAP,
-        SQUARE_CAP,
         ROUND_CAP,
+        SQUARE_CAP,
         DEFAULT_CAP = FLAT_CAP
     };
 
@@ -84,14 +84,21 @@ public:
      *
      * @return Color4f
      */
-    Color4f GetColor4f();
+    const Color4f& GetColor4f();
 
     /**
      * @brief Get the Color Space object
      *
      * @return a shared pointer ColorSpace
      */
-    std::shared_ptr<ColorSpace> GetColorSpace() const;
+    const std::shared_ptr<ColorSpace> GetColorSpace() const;
+
+    /**
+     * @brief Get a Color Space pointer
+     *
+     * @return a pointer ColorSpace
+     */
+    const ColorSpace* GetColorSpacePtr() const;
 
     /**
      * @brief Set the Color and ColorSpace of pen
@@ -213,6 +220,12 @@ public:
     std::shared_ptr<Blender> GetBlender() const;
 
     /**
+     * @brief Returns the user-supplied blend function, if one has been set.
+     * @return the Blender assigned to this Brush, otherwise nullptr
+     */
+    const Blender* GetBlenderPtr() const;
+
+    /**
      * @brief Returns true if pixels on the active edges of Path may be drawn with partial transparency.
      * @return antialiasing state
      */
@@ -237,12 +250,18 @@ public:
     std::shared_ptr<PathEffect> GetPathEffect() const;
 
     /**
+     * @brief Returns PathEffect if set, or nullptr.
+     * @return A pointer to PathEffect if previously set, nullptr otherwise
+     */
+    const PathEffect* GetPathEffectPtr() const;
+
+    /**
      * @brief Set the Filter object with three property.
      * ColorFilter, MaskFilter, and ImageFilter to apply to subsequent draw
      * @param filter the Filter object to set
      */
     void SetFilter(const Filter& filter);
-    Filter GetFilter() const;
+    const Filter& GetFilter() const;
     bool HasFilter() const;
 
     /**
@@ -256,6 +275,12 @@ public:
      * @return A shared pointer to ShaderEffect
      */
     std::shared_ptr<ShaderEffect> GetShaderEffect() const;
+
+    /**
+     * @brief Returns optional colors used when filling a path, such as a gradient.
+     * @return A pointer to ShaderEffect
+     */
+    const ShaderEffect* GetShaderEffectPtr() const;
 
     /**
      * @brief Sets all contents to their initial values. This is equivalent to replacing

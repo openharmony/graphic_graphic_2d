@@ -70,6 +70,12 @@ bool RSTextureExport::DoTextureExport()
     return true;
 }
 
+void RSTextureExport::UpdateBufferInfo(float x, float y, float width, float height)
+{
+    virtualRootNode_->SetBounds({-x, -y, width, height});
+    virtualRootNode_->SetFrame({-x, -y, width, height});
+}
+
 void RSTextureExport::StopTextureExport()
 {
     rsUiDirector_->Destroy(true);

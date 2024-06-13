@@ -37,8 +37,6 @@ public:
         return false;
     }
 
-    explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
-        bool isTextureExportNode = false);
     ~RSEffectRenderNode() override;
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
@@ -89,6 +87,8 @@ protected:
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync) override;
     
 private:
+    explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
     bool FirstFrameHasNoEffectChildren() const;
 
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
@@ -98,6 +98,8 @@ private:
 
     uint64_t currentAttachedScreenId_ = INVALID_SCREEN_ID; // the current screen this node attached.
     bool foldStatusChanged_ = false; // fold or expand screen.
+
+    friend class EffectNodeCommandHelper;
 };
 } // namespace Rosen
 } // namespace OHOS

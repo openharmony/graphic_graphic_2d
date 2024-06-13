@@ -422,15 +422,16 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     sptr<RSISurfaceCaptureCallback> callback;
     float scaleX = 1.0f;
     float scaleY = 1.0f;
+    bool useDma = false;
     SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::UICAPTURE;
     bool isSync = true;
-    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, surfaceCaptureType, isSync);
+    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, surfaceCaptureType, isSync);
+    proxy->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -871,6 +872,47 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RunOnRemoteDiedCallback, TestSize.L
     proxy->SetOnRemoteDiedCallback(callback);
     proxy->RunOnRemoteDiedCallback();
     ASSERT_NE(proxy->OnRemoteDiedCallback_, nullptr);
+}
+
+/**
+ * @tc.name: GetActiveDirtyRegionInfo Test
+ * @tc.desc: GetActiveDirtyRegionInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetActiveDirtyRegionInfo, TestSize.Level1)
+{
+    NodeId id = 0;
+    std::string windowName = "Test";
+    RectI rectI(0, 0, 0, 0);
+    std::vector<RectI> rectIs = {rectI};
+    GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(id, windowName, rectIs);
+    ASSERT_NE(proxy->GetActiveDirtyRegionInfo().size(), 0);
+}
+
+/**
+ * @tc.name: GetGlobalDirtyRegionInfo Test
+ * @tc.desc: GetGlobalDirtyRegionInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetGlobalDirtyRegionInfo, TestSize.Level1)
+{
+    RectI rectI(0, 0, 0, 0);
+    GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rectI);
+    ASSERT_NE(proxy->GetGlobalDirtyRegionInfo().globalFramesNumber, 0);
+}
+
+/**
+ * @tc.name: GetLayerComposeInfo Test
+ * @tc.desc: GetLayerComposeInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetLayerComposeInfo, TestSize.Level1)
+{
+    LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
+    ASSERT_NE(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

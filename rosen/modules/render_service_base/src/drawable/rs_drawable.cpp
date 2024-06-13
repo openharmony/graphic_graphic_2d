@@ -65,14 +65,22 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::BORDER,                        // BORDER_COLOR
     RSDrawableSlot::BORDER,                        // BORDER_WIDTH
     RSDrawableSlot::BORDER,                        // BORDER_STYLE
+    RSDrawableSlot::BORDER,                        // BORDER_DASH_WIDTH
+    RSDrawableSlot::BORDER,                        // BORDER_DASH_GAP
     RSDrawableSlot::COMPOSITING_FILTER,            // FILTER
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_FILTER
     RSDrawableSlot::COMPOSITING_FILTER,            // LINEAR_GRADIENT_BLUR_PARA
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_RATE
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_DEGREE
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_PARAMS
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_RATES
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_SATURATION
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_POSCOEFF
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_NEGCOEFF
     RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_FRACTION
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_PARAMS
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_RATES
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_SATURATION
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_POSCOEFF
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_NEGCOEFF
     RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_FRACTION
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME_GRAVITY
     RSDrawableSlot::CLIP_TO_BOUNDS,                // CLIP_RRECT
@@ -114,6 +122,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
+    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_WIDTH
+    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_GAP
     RSDrawableSlot::OUTLINE,                       // OUTLINE_RADIUS
     RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING
     RSDrawableSlot::INVALID,                       // GREY_COEF
@@ -128,6 +138,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
+    RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_BRIGHTNESS
@@ -448,6 +459,7 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
+    RSDrawableSlot::FRAME_OFFSET,
     RSDrawableSlot::FG_CLIP_TO_BOUNDS,
     RSDrawableSlot::FOREGROUND_COLOR,
     RSDrawableSlot::POINT_LIGHT,
@@ -494,8 +506,14 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     // Step 1.2: expand dirty slots by rules
     // if bounds or cornerRadius changed, mark affected drawables as dirty
     if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS)) ||
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CLIP_BOUNDS))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::SHADOW_MASK)) || dirtySlots.count(RSDrawableSlot::SHADOW)) {
+        dirtySlots.emplace(RSDrawableSlot::SHADOW);
+        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
     }
 
     // if frame changed, mark affected drawables as dirty

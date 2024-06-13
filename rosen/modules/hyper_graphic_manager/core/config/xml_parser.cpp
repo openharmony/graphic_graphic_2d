@@ -167,7 +167,7 @@ int32_t XMLParser::ParseParams(xmlNode &node)
     } else if (paraName == "screen_config") {
         setResult = ParseScreenConfig(node);
     } else if (paraName == "rs_video_frame_rate_vote_config") {
-        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+        setResult = ParseVideoFrameVoteConfig(node);
     } else {
         setResult = 0;
     }
@@ -176,6 +176,12 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         HGM_LOGI("XMLParser failed to ParseParams %{public}s", paraName.c_str());
     }
     return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode &node)
+{
+    mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+    return ParseSimplex(node, mParsedData_->videoFrameRateList_);
 }
 
 int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
@@ -199,6 +205,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
         auto down = ExtractPropertyValue("down", *currNode);
@@ -210,6 +217,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.isFactor = isFactor;
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;

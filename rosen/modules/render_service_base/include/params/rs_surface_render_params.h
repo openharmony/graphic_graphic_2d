@@ -38,17 +38,13 @@ struct RSLayerInfo {
     int32_t gravity = 0;
     int32_t zOrder = 0;
     float alpha = 1.f;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     GraphicBlendType blendType;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
-            (zOrder == layerInfo.zOrder) && (buffer == layerInfo.buffer) && (preBuffer == layerInfo.preBuffer) &&
-            (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
+            (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
     }
 #endif
@@ -57,11 +53,11 @@ class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
     ~RSSurfaceRenderParams() override = default;
-    bool IsMainWindowType() const
+    inline bool IsMainWindowType() const
     {
         return isMainWindowType_;
     }
-    bool IsLeashWindow() const
+    inline bool IsLeashWindow() const
     {
         return isLeashWindow_;
     }
@@ -149,6 +145,20 @@ public:
         return name_;
     }
 
+    void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
+    {
+        if (isLeashWindowVisibleRegionEmpty_ == isLeashWindowVisibleRegionEmpty) {
+            return;
+        }
+        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        needSync_ = true;
+    }
+
+    bool GetLeashWindowVisibleRegionEmptyParam() const
+    {
+        return isLeashWindowVisibleRegionEmpty_;
+    }
+
     void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
@@ -158,7 +168,7 @@ public:
         needSync_ = true;
     }
 
-    MultiThreadCacheType GetUifirstNodeEnableParam()
+    MultiThreadCacheType GetUifirstNodeEnableParam() const
     {
         return uiFirstFlag_;
     }
@@ -212,6 +222,21 @@ public:
     {
         return uiFirstParentFlag_;
     }
+
+    void SetUIFirstFrameGravity(Gravity gravity)
+    {
+        if (uiFirstFrameGravity_ == gravity) {
+            return;
+        }
+        uiFirstFrameGravity_ = gravity;
+        needSync_ = true;
+    }
+
+    Gravity GetUIFirstFrameGravity() const
+    {
+        return uiFirstFrameGravity_;
+    }
+
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
@@ -252,6 +277,20 @@ public:
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
+
+    void SetSkipDraw(bool skip);
+    bool GetSkipDraw() const;
+
+    bool IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
+
+    void SetPreScalingMode(ScalingMode scalingMode)
+    {
+        preScalingMode_ = scalingMode;
+    }
+    ScalingMode GetPreScalingMode() const
+    {
+        return preScalingMode_;
+    }
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
@@ -297,10 +336,16 @@ private:
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
+    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer_;
+    sptr<SurfaceBuffer> preBuffer_;
+    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+#endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isForceHardwareByUser_ = false;
@@ -309,6 +354,7 @@ private:
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool isSubSurfaceNode_ = false;
+    Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
@@ -317,6 +363,8 @@ private:
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
+    bool isSkipDraw_ = false;
+    ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

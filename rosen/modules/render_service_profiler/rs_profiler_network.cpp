@@ -31,6 +31,7 @@
 namespace OHOS::Rosen {
 
 bool Network::isRunning_ = false;
+bool Network::forceShutdown_ = false;
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -76,7 +77,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     file.AddLayer();
 
     std::string dataFirstFrame;
-    uint32_t sizeDataFirstFrame = 0;
+    size_t sizeDataFirstFrame = 0;
     stream.read(reinterpret_cast<char*>(&sizeDataFirstFrame), sizeof(sizeDataFirstFrame));
     dataFirstFrame.resize(sizeDataFirstFrame);
     stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
@@ -107,6 +108,7 @@ void Network::Run()
     Socket* socket = nullptr;
 
     isRunning_ = true;
+    forceShutdown_ = false;
 
     while (isRunning_) {
         if (!socket) {
@@ -114,7 +116,11 @@ void Network::Run()
         }
 
         const SocketState state = socket->GetState();
-        if (state == SocketState::INITIAL) {
+        if (forceShutdown_) {
+            delete socket;
+            socket = nullptr;
+            forceShutdown_ = false;
+        } else if (state == SocketState::INITIAL) {
             socket->Open(port);
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
@@ -372,6 +378,11 @@ void Network::ProcessBinary(const char* data, size_t size)
             SendBinary(&type, sizeof(type));
         }
     }
+}
+
+void Network::ForceShutdown()
+{
+    forceShutdown_ = true;
 }
 
 void Network::ProcessIncoming(Socket& socket)

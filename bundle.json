@@ -57,6 +57,7 @@
           "resource_management",
           "napi",
           "samgr",
+          "hdf_core",
           "hilog",
           "hisysevent",
           "hitrace",
@@ -99,7 +100,8 @@
           "icu",
           "libpng",
           "ffrt",
-          "libxml2"
+          "libxml2",
+          "skia"
         ],
         "third_party": [
           "flutter",
@@ -139,7 +141,8 @@
             "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
-            "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect"
+            "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect",
+            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -457,6 +460,7 @@
         ],
         "test": [
           "//foundation/graphic/graphic_2d:graphic_common_test",
+          "//foundation/graphic/graphic_2d/frameworks/surfaceimage/test/unittest/:unittest",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",

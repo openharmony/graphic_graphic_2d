@@ -66,6 +66,8 @@ public:
     void ClipDirtyRectWithinSurface();
     // clear allinfo except dirtyregion history
     void Clear();
+    // record hwc region for virtual screen
+    void MergeHwcDirtyRect(const RectI& rect);
 
     // update current frame's visited dirtyregion
     void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
@@ -169,6 +171,11 @@ public:
         return mergedDirtyInVirtualScreen_;
     }
 
+    RectI GetHwcDirtyRegion() const
+    {
+        return hwcDirtyRegion_;
+    }
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
@@ -179,6 +186,7 @@ private:
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    RectI hwcDirtyRegion_;          // hwc dirty region used in virtual screen
     RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
     RectI mergedDirtyInVirtualScreen_;
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion

@@ -40,6 +40,7 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
     { RSFilter::AIBAR, "RSAIBarFilterBlur" },
     { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
+    { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
 };
 }
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
@@ -266,6 +267,7 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
         filter.SetImageFilter(imageFilter_);
         brush.SetFilter(filter);
     }
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
@@ -317,6 +319,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
             tmpFilter->GenerateGEVisualEffect(effectContainer);
             auto blurImage = geRender->ApplyImageEffect(
                 canvas, *effectContainer, outImage, src, src, Drawing::SamplingOptions());
+            brush.SetForceBrightnessDisable(true);
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
@@ -324,6 +327,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
         }
     }
 
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();

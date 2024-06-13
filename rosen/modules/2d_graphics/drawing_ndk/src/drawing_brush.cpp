@@ -16,6 +16,7 @@
 #include "drawing_brush.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_helper.h"
 
 #include "draw/brush.h"
 
@@ -36,11 +37,6 @@ static const Brush& CastToBrush(const OH_Drawing_Brush& cBrush)
 static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
 {
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
-}
-
-static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
-{
-    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
 }
 
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
@@ -155,7 +151,8 @@ void OH_Drawing_BrushSetShadowLayer(OH_Drawing_Brush* cBrush, OH_Drawing_ShadowL
         brush->SetLooper(nullptr);
         return;
     }
-    brush->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowLayer), [](auto p) {}});
+    auto blurDrawLooperHandle = Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(cShadowLayer);
+    brush->SetLooper(blurDrawLooperHandle->value);
 }
 
 void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFilter)

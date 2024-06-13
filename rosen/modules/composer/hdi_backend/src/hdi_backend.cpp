@@ -93,6 +93,7 @@ RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, vo
 {
     if (func == nullptr) {
         HLOGE("OnScreenVBlankIdleFunc is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
     }
 
     RosenError retCode = InitDevice();
@@ -101,7 +102,7 @@ RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, vo
     }
 
     int32_t ret = device_->RegScreenVBlankIdleCallback(func, data);
-    if (!ret) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("RegScreenVBlankIdleCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
     }
@@ -155,7 +156,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
     }
 
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush);
+    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
@@ -169,8 +170,8 @@ void HdiBackend::Repaint(const OutputPtr &output)
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             return;
         }
-
-        ret = output->Commit(fbFence);
+        skipState = INT32_MAX;
+        ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, true);
         HLOGD("%{public}s: ValidateDisplay", __func__);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("second commit failed, ret is %{public}d", ret);

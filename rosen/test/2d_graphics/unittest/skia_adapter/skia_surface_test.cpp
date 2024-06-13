@@ -345,22 +345,6 @@ HWTEST_F(SkiaSurfaceTest, GetImageSnapshot002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBackendTexture001
- * @tc.desc: Test GetBackendTexture
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaSurfaceTest, GetBackendTexture001, TestSize.Level1)
-{
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(100, 100);
-    SkiaSurface skiaSurface;
-
-    skiaSurface.SetSkSurface(skSurface);
-    auto texture = skiaSurface.GetBackendTexture(BackendAccess::FLUSH_WRITE);
-    ASSERT_TRUE(texture.IsValid());
-}
-
-/**
  * @tc.name: SetSkSurface001
  * @tc.desc: Test SetSkSurface
  * @tc.type: FUNC

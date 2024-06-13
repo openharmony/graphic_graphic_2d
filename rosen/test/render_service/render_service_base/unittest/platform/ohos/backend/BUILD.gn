@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -25,13 +25,21 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
   sources = [
     "rs_surface_frame_ohos_gl_test.cpp",
     "rs_surface_frame_ohos_raster_test.cpp",
+    "rs_surface_frame_ohos_vulkan_test.cpp",
     "rs_surface_ohos_gl_test.cpp",
     "rs_surface_ohos_raster_test.cpp",
   ]
 
+  if (graphic_2d_feature_enable_vulkan) {
+    sources += [
+      "native_buffer_utils_test.cpp",
+      "rs_surface_ohos_vulkan_test.cpp",
+      "rs_vulkan_context_test.cpp",
+    ]
+  }
+
   configs = [
     ":render_test",
-    "$ace_root:ace_test_config",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
@@ -47,10 +55,14 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
+    "//third_party/vulkan-headers/include",
   ]
 
   deps = [
+    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
   deps += [ "//third_party/skia:skia_ohos" ]

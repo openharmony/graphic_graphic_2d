@@ -45,6 +45,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
     { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
+    { DrawOpItem::ATLAS_OPITEM,             "ATLAS_OPITEM" },
     { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
     { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
     { DrawOpItem::IMAGE_RECT_OPITEM,        "IMAGE_RECT_OPITEM" },
@@ -436,6 +437,27 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
     } while (offset != 0 && offset < maxOffset);
     isCached_ = true;
     cachedHighContrast_ = canvas && canvas->isHighContrastEnabled();
+#endif
+}
+
+void DrawCmdList::CacheQuadPath()
+{
+#ifdef ROSEN_OHOS
+    if (drawOpItems_.size() == 0) {
+        return;
+    }
+    uint32_t opSize = drawOpItems_.size();
+    for (auto index = 0u; index < opSize; ++index) {
+        std::shared_ptr<DrawOpItem> op = drawOpItems_[index];
+        if (!op || op->GetType() != DrawOpItem::PATH_OPITEM) {
+            continue;
+        }
+        DrawPathOpItem* pathOp = static_cast<DrawPathOpItem*>(op.get());
+        auto replaceCache = pathOp->GenerateQuadCachedOpItem(nullptr);
+        if (replaceCache) {
+            drawOpItems_[index] = replaceCache;
+        }
+    }
 #endif
 }
 

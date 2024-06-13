@@ -51,35 +51,51 @@ HgmOneShotTimer::HgmOneShotTimer(std::string name, const Interval& interval,
 {
     int result = sem_init(&semaphone_, 0, 0);
     HGM_LOGD("HgmOneShotTimer::sem_init result: %{public}d", result);
+    thread_ = std::thread([this] () {
+        pthread_setname_np(pthread_self(), name_.c_str());
+        std::mutex startCondMutex;
+        std::unique_lock<std::mutex> lock(startCondMutex);
+        while (threadAlive_) {
+            startCond_.wait(lock);
+            if (!threadAlive_) {
+                break;
+            }
+            Loop();
+        }
+    });
 };
 
 HgmOneShotTimer::~HgmOneShotTimer()
 {
+    threadAlive_ = false;
     Stop();
+    startCond_.notify_all();
+    if (thread_.joinable()) {
+        thread_.join();
+    }
     int result = sem_destroy(&semaphone_);
     HGM_LOGD("HgmOneShotTimer::sem_destroy result: %{public}d", result);
 }
 
 void HgmOneShotTimer::Start()
 {
-    if (!thread_.joinable()) {
-        thread_ = std::thread(&HgmOneShotTimer::Loop, this);
-    }
+    startCond_.notify_all();
 }
 
 void HgmOneShotTimer::Stop()
 {
-    stopFlag_ = true;
+    if (stoppingFlag_) {
+        return;
+    }
+    stopFlag_.store(true);
     int result = sem_post(&semaphone_);
     HGM_LOGD("HgmOneShotTimer::sem_post result: %{public}d", result);
-    if (thread_.joinable()) {
-        thread_.join();
-    }
+    std::lock_guard<std::mutex> lock(loopMutex_); // wait loop end
 }
 
 void HgmOneShotTimer::Loop()
 {
-    pthread_setname_np(pthread_self(), name_.c_str());
+    std::lock_guard<std::mutex> lock(loopMutex_);
     HgmTimerState state = HgmTimerState::RESET;
     while (true) {
         bool resetFlag = false;
@@ -123,8 +139,8 @@ void HgmOneShotTimer::Loop()
                 state = HgmTimerState::IDLE;
             }
         }
-        if (expiredFlag && expiredCallback_) {
-            expiredCallback_();
+        if (expiredFlag) {
+            OnExpiredCallback();
         }
     }
 }
@@ -157,5 +173,15 @@ std::string HgmOneShotTimer::Dump() const
     std::ostringstream stream;
     stream << interval_.count() << "ms";
     return stream.str();
+}
+
+void HgmOneShotTimer::OnExpiredCallback()
+{
+    if (expiredCallback_ == nullptr) {
+        return;
+    }
+    stoppingFlag_.store(true);
+    expiredCallback_();
+    stoppingFlag_.store(false);
 }
 } // namespace OHOS::Rosen

@@ -248,6 +248,16 @@ public:
         return hasCaptureImg_;
     }
 
+    void SetBlackList(std::unordered_set<NodeId> blackList)
+    {
+        blackList_ = blackList;
+    }
+
+    std::unordered_set<NodeId> GetBlackList() const
+    {
+        return blackList_;
+    }
+
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
     {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
@@ -278,6 +288,16 @@ public:
         return clipRegion_;
     }
 
+    void SetForceMirrorScreenDirty(bool flag)
+    {
+        isMirrorScreenDirty_ = flag;
+    }
+
+    bool GetForceMirrorScreenDirty() const
+    {
+        return isMirrorScreenDirty_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -288,9 +308,20 @@ public:
         return isImplicitAnimationEnd_;
     }
 
+    void SetDiscardJankFrames(bool discardJankFrames)
+    {
+        discardJankFrames_ = discardJankFrames;
+    }
+
+    bool GetDiscardJankFrames() const
+    {
+        return discardJankFrames_;
+    }
+
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
+    std::unordered_set<NodeId> blackList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -310,6 +341,7 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
+    bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
@@ -330,6 +362,7 @@ private:
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
+    bool discardJankFrames_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

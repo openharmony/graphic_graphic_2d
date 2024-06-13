@@ -132,7 +132,8 @@ protected:
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::mutex drawingCacheInfoMutex_;
-    static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
+    static inline std::unordered_map<NodeId, std::pair<RectI, int32_t>> drawingCacheInfos_; // (id, <rect, updateTimes>)
+    static inline std::unordered_map<NodeId, bool> cacheUpdatedNodeMap_;
 
     // opinc global state
     static inline bool autoCacheEnable_ = false;
@@ -143,20 +144,22 @@ protected:
     static inline bool isOpincDropNodeExt_ = true;
     static inline int opincRootTotalCount_ = 0;
 
-    // used foe render group cache
+    // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;
-    void DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
-    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize);
+    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
+    const std::shared_ptr<RSFilter>& rsFilter = nullptr);
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
 
     static thread_local bool drawBlurForCache_;
 

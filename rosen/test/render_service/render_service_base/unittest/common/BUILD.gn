@@ -43,7 +43,6 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
 
   configs = [
     ":common_test",
-    "$ace_root:ace_test_config",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
@@ -63,13 +62,13 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]
-  deps += [ "//third_party/skia:skia_ohos" ]
   include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"

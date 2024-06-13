@@ -287,7 +287,7 @@ int OH_Drawing_FontCountText(OH_Drawing_Font* cFont, const void* text, size_t by
 uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* text, uint32_t byteLength,
     OH_Drawing_TextEncoding encoding, uint16_t* glyphs, int maxGlyphCount)
 {
-    if (cFont == nullptr || text == nullptr || glyphs == nullptr || byteLength <= 0 || maxGlyphCount <= 0) {
+    if (cFont == nullptr || text == nullptr || glyphs == nullptr || byteLength == 0 || maxGlyphCount <= 0) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
@@ -302,6 +302,18 @@ void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyp
         return;
     }
     CastToFont(*cFont).GetWidths(glyphs, count, widths);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* cFont, const void* text, size_t byteLength,
+    OH_Drawing_TextEncoding encoding, OH_Drawing_Rect* bounds, float* textWidth)
+{
+    if (cFont == nullptr || text == nullptr || byteLength == 0 || textWidth == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    *textWidth = CastToFont(*cFont).MeasureText(text, byteLength,
+        static_cast<TextEncoding>(encoding), reinterpret_cast<Drawing::Rect*>(bounds));
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_FontSetLinearText(OH_Drawing_Font* cFont, bool isLinearText)

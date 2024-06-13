@@ -108,6 +108,12 @@ napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info i
     double sigma = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, sigma);
 
+    if (sigma <= 0) {
+        ROSEN_LOGE("JsMaskFilter::CreateBlurMaskFilter Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. sigma must be greater than 0.");
+    }
+
     auto maskFilter = MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma);
     return JsMaskFilter::Create(env, maskFilter);
 }

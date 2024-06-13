@@ -43,14 +43,24 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
 }
 
 void SurfaceNodeCommandHelper::CreateWithConfig(
-    RSContext& context, NodeId nodeId, std::string name, uint8_t type, std::string bundleName)
+    RSContext& context, NodeId nodeId, std::string name, uint8_t type,
+    std::string bundleName, enum SurfaceWindowType windowType)
 {
     RSSurfaceRenderNodeConfig config = {
-        .id = nodeId, .name = name, .bundleName = bundleName, .nodeType = static_cast<RSSurfaceNodeType>(type)
+        .id = nodeId, .name = name, .bundleName = bundleName,
+        .nodeType = static_cast<RSSurfaceNodeType>(type), .surfaceWindowType = windowType
     };
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
+}
+
+std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigInRS(
+    const RSSurfaceRenderNodeConfig& config, RSContext& context)
+{
+    auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
+        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    return node;
 }
 
 void SurfaceNodeCommandHelper::SetContextMatrix(
@@ -282,6 +292,13 @@ void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, 
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetHDRPresent(ancoForceDoDirect);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bool skip)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetSkipDraw(skip);
     }
 }
 } // namespace Rosen

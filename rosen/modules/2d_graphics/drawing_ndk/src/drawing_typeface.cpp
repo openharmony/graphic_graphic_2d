@@ -48,6 +48,10 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateDefault()
 
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int index)
 {
+    if (path == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, index);
     if (typeface == nullptr) {
         return nullptr;

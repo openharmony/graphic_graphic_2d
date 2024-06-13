@@ -29,7 +29,9 @@ public:
 
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU) override;
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+        const ScreenInfo& screenInfo = {}) override;
+    void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override {}
 
 private:
     void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,

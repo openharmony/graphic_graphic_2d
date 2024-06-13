@@ -88,6 +88,8 @@ public:
         int32_t flags = 0,
         std::vector<NodeId> filteredAppVector = {}) = 0;
 
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
 #ifdef RS_ENABLE_VK
@@ -118,10 +120,14 @@ public:
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
+    virtual void MarkPowerOffNeedProcessOneFrame() = 0;
+
+    virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
+
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType, bool isSync = false) = 0;
+        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync = false) = 0;
 
     virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -241,6 +247,8 @@ public:
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
+
+    virtual void ChangeSyncCount(int32_t hostPid) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

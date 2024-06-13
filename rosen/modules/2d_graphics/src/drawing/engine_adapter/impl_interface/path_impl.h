@@ -37,6 +37,7 @@ enum class PathOp;
 enum class ArcSize;
 enum class PathAddMode;
 enum class PathMeasureMatrixFlags;
+enum class PathVerb;
 class PathImpl : public BaseImpl {
 public:
     PathImpl() noexcept {}
@@ -101,6 +102,10 @@ public:
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) = 0;
     virtual bool IsClosed(bool forceClosed) = 0;
     virtual bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) = 0;
+
+    virtual int GetVerbsCount() const;
+    virtual std::vector<PathVerb> GetVerbs() const;
+
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };

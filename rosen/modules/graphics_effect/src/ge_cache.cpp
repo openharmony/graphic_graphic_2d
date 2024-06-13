@@ -25,13 +25,23 @@ GECache& GECache::GetInstance()
     return instance;
 }
 
-void GECache::Set(size_t key, const std::shared_ptr<Drawing::Image>& value)
+void GECache::Set(size_t key, const std::shared_ptr<Drawing::Image> value)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (cache_.size() >= maxCapacity_) {
+        EvictLeastUsed();
+    }
+    auto it = keySet_.find(key);
+    if (it != keySet_.end()) {
+        accessOrder_.remove(key);
+        keySet_.erase(it);
+    }
     cache_[key] = value;
+    accessOrder_.push_front(key);
+    keySet_.insert(key);
 }
 
-const std::shared_ptr<Drawing::Image>& GECache::Get(size_t key) const
+const std::shared_ptr<Drawing::Image> GECache::Get(size_t key) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = cache_.find(key);
@@ -39,6 +49,27 @@ const std::shared_ptr<Drawing::Image>& GECache::Get(size_t key) const
         return it->second;
     }
     return nullptr;
+}
+
+void GECache::EvictLeastUsed()
+{
+    size_t key = accessOrder_.back();
+    cache_.erase(key);
+    accessOrder_.pop_back();
+}
+
+void GECache::SetMaxCapacity(size_t size)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    maxCapacity_ = size;
+}
+
+void GECache::Clear()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    cache_.clear();
+    accessOrder_.clear();
+    keySet_.clear();
 }
 
 } // namespace GraphicsEffectEngine

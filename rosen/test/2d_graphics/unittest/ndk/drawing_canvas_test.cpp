@@ -27,6 +27,7 @@
 #include "drawing_matrix.h"
 #include "drawing_path.h"
 #include "drawing_pen.h"
+#include "drawing_pixel_map.h"
 #include "drawing_point.h"
 #include "drawing_rect.h"
 #include "drawing_region.h"
@@ -38,6 +39,8 @@
 #include "drawing_memory_stream.h"
 #include "effect/color_filter.h"
 #include "effect/filter.h"
+#include "recording/recording_canvas.h"
+#include "image/pixelmap_native.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1181,8 +1184,218 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBackground039, Tes
  */
 HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRect040, TestSize.Level1)
 {
-    // unkown how to create napi pixelmap
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    // 4 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 4);
+    // 4 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 4);
+    // 4 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 255 means rgba data
+    uint8_t data[] = {
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255
+    };
+    // 16 means data length
+    size_t dataLength = 16;
+    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, drPixelMap, srcRect, dstRect, samplingOptions);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, drPixelMap, srcRect, dstRect, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, drPixelMap, srcRect, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, drPixelMap, nullptr, nullptr, nullptr);
     OH_Drawing_CanvasDrawPixelMapRect(canvas_, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(nullptr, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRect041
+ * @tc.desc: test for DrawPixelMapRect
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRect041, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    // 4 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 4);
+    // 4 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 4);
+    // 4 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 255 means rgba data
+    uint8_t data[] = {
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255
+    };
+    // 16 means data length
+    size_t dataLength = 16;
+    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas *cCanvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(cCanvas, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(cCanvas, drPixelMap, srcRect, dstRect, samplingOptions);
+    OH_Drawing_CanvasDrawPixelMapRect(cCanvas, drPixelMap, srcRect, dstRect, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(cCanvas, drPixelMap, srcRect, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(cCanvas, drPixelMap, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(cCanvas, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(nullptr, nullptr, nullptr, nullptr, nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_NE(drawCmdList, nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    delete recordingCanvas;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsClipEmpty042
+ * @tc.desc: test for if clip is empty
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsClipEmpty042, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    // 720: bitmap's width, 720: bitmap's height
+    constexpr uint32_t width = 720;
+    constexpr uint32_t height = 720;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+
+    // 150.0f: rect's left, 100.0f: rect's top, 500.0f: rect's right, 500.0f: rect's bottom
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(150.0f, 100.0f, 500.f, 500.f);
+
+    OH_Drawing_CanvasClipRect(canvas_, rect, OH_Drawing_CanvasClipOp::INTERSECT, false);
+
+    bool isClipEmpty = false;
+    EXPECT_EQ(OH_Drawing_CanvasIsClipEmpty(canvas_, &isClipEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isClipEmpty, false);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_GetImageInfo043
+ * @tc.desc: test for Gets ImageInfo of Canvas.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_GetImageInfo043, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    // 720: bitmap's width, 720: bitmap's height
+    constexpr uint32_t width = 720;
+    constexpr uint32_t height = 720;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+    OH_Drawing_Image_Info* imageInfo = new OH_Drawing_Image_Info();
+    EXPECT_EQ(OH_Drawing_CanvasGetImageInfo(canvas_, imageInfo), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(720, imageInfo->width);
+    EXPECT_EQ(720, imageInfo->height);
+    EXPECT_EQ(1, imageInfo->alphaType);
+    EXPECT_EQ(4, imageInfo->colorType);
+    delete imageInfo;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ClipRegion044
+ * @tc.desc: test for Drawing Canvas Clip Region.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ClipRegion044, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 720; // 720: width of canvas
+    constexpr uint32_t height = 720; // 720: height of canvas
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas_, bitmap);
+
+    OH_Drawing_Region *region = OH_Drawing_RegionCreate();
+    // 0.0f: rect's left, 0.0f: rect's top, 720.0f: rect's right, 720.0f: rect's bottom
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0.0f, 0.0f, 720.f, 720.f);
+    OH_Drawing_RegionSetRect(region, rect);
+    EXPECT_EQ(OH_Drawing_CanvasClipRegion(canvas_, region, OH_Drawing_CanvasClipOp::INTERSECT), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasClipRegion(nullptr, region, OH_Drawing_CanvasClipOp::INTERSECT),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(720, OH_Drawing_CanvasGetWidth(canvas_));
+    EXPECT_EQ(720, OH_Drawing_CanvasGetHeight(canvas_));
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPoint_045
+ * @tc.desc: test for OH_Drawing_CanvasDrawPoint.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPoint_045, TestSize.Level1)
+{
+    OH_Drawing_Point2D point_ = {25.0f, 36.0f}; // 25.0f: x, 36.0f: y
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(canvas_, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(nullptr, &point_), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawPoint(canvas_, &point_), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawColor046
+ * @tc.desc: test for DrawColor
+ * @tc.type: FUNC
+ * @tc.require: SR000S9F0C
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawColor046, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_CanvasDrawColor(nullptr, 0xFFFF0000, OH_Drawing_BlendMode::BLEND_MODE_SRC),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawColor(canvas_, 0xFFFF0000, OH_Drawing_BlendMode::BLEND_MODE_COLOR),
+        OH_DRAWING_SUCCESS);
 }
 } // namespace Drawing
 } // namespace Rosen

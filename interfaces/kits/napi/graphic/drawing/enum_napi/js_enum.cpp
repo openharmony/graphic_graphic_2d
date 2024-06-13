@@ -24,6 +24,7 @@
 #include "draw/pen.h"
 #include "effect/mask_filter.h"
 #include "text/font_types.h"
+#include "utils/region.h"
 #include "utils/sampling_options.h"
 
 #include "js_drawing_utils.h"
@@ -85,6 +86,15 @@ static const std::vector<struct JsEnumInt> g_filterMode = {
     { "FILTER_MODE_LINEAR", static_cast<int32_t>(FilterMode::LINEAR) },
 };
 
+static const std::vector<struct JsEnumInt> g_regionOp = {
+    { "DIFFERENCE", static_cast<int32_t>(RegionOp::DIFFERENCE) },
+    { "INTERSECT", static_cast<int32_t>(RegionOp::INTERSECT) },
+    { "UNION", static_cast<int32_t>(RegionOp::UNION) },
+    { "XOR", static_cast<int32_t>(RegionOp::XOR) },
+    { "REVERSE_DIFFERENCE", static_cast<int32_t>(RegionOp::REVERSE_DIFFERENCE) },
+    { "REPLACE", static_cast<int32_t>(RegionOp::REPLACE) },
+};
+
 static const std::vector<struct JsEnumInt> g_clipOp = {
     { "DIFFERENCE", static_cast<int32_t>(ClipOp::DIFFERENCE) },
     { "INTERSECT", static_cast<int32_t>(ClipOp::INTERSECT) },
@@ -97,9 +107,9 @@ static const std::vector<struct JsEnumInt> g_joinStyle = {
 };
 
 static const std::vector<struct JsEnumInt> g_capStyle = {
-    { "FLAT_CAP", static_cast<int32_t>(Pen::CapStyle::FLAT_CAP) },
-    { "SQUARE_CAP", static_cast<int32_t>(Pen::CapStyle::SQUARE_CAP) },
-    { "ROUND_CAP", static_cast<int32_t>(Pen::CapStyle::ROUND_CAP) },
+    { "FLAT_CAP", 0 }, // 0: CapStyle::FLAT_CAP
+    { "SQUARE_CAP", 1 }, // 1: CapStyle::SQUARE_CAP
+    { "ROUND_CAP", 2 }, // 2: CapStyle::ROUND_CAP
 };
 
 static const std::vector<struct JsEnumInt> g_blurType = {
@@ -125,6 +135,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
     { "FilterMode", g_filterMode },
+    { "RegionOp", g_regionOp },
     { "ClipOp", g_clipOp },
     { "JoinStyle", g_joinStyle },
     { "CapStyle", g_capStyle },

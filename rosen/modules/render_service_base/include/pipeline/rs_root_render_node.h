@@ -34,8 +34,6 @@ public:
         return Type;
     }
 
-    explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
-        bool isTextureExportNode = false);
     ~RSRootRenderNode() override;
 
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -68,6 +66,8 @@ public:
     }
 
 private:
+    explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> rsSurface_ = nullptr;
@@ -80,6 +80,7 @@ private:
     float suggestedBufferHeight_ = 0.f;
 
     std::vector<NodeId> childSurfaceNodeIds_;
+    friend class RootNodeCommandHelper;
     friend class RSRenderThreadVisitor;
 };
 } // namespace Rosen

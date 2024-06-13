@@ -34,6 +34,11 @@
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/visual_effect.h"
+#include "ui_effect/filter/include/filter.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -158,7 +163,7 @@ public:
 
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
-    void AddAnimation(const std::shared_ptr<RSAnimation>& animation);
+    void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);
     void RemoveAllAnimations();
     void RemoveAnimation(const std::shared_ptr<RSAnimation>& animation);
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption);
@@ -261,6 +266,8 @@ public:
     void SetBorderStyle(uint32_t styleValue);
     void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
     void SetBorderStyle(const Vector4<BorderStyle>& style);
+    void SetBorderDashWidth(const Vector4f& dashWidth);
+    void SetBorderDashGap(const Vector4f& dashGap);
     void SetOuterBorderColor(const Vector4<Color>& color);
     void SetOuterBorderWidth(const Vector4f& width);
     void SetOuterBorderStyle(const Vector4<BorderStyle>& style);
@@ -268,19 +275,36 @@ public:
     void SetOutlineColor(const Vector4<Color>& color);
     void SetOutlineWidth(const Vector4f& width);
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
+    void SetOutlineDashWidth(const Vector4f& dashWidth);
+    void SetOutlineDashGap(const Vector4f& dashGap);
     void SetOutlineRadius(const Vector4f& radius);
+
+    // UIEffect
+    void SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter);
+    void SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter);
+    void SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter);
+    void SetVisualEffect(const VisualEffect* visualEffect);
 
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
     void SetFgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetFgBrightnessRates(const Vector4f& rates);
+    void SetFgBrightnessSaturation(const float& saturation);
+    void SetFgBrightnessPosCoeff(const Vector4f& coeff);
+    void SetFgBrightnessNegCoeff(const Vector4f& coeff);
     void SetFgBrightnessFract(const float& fract);
     void SetBgBrightnessParams(const RSDynamicBrightnessPara& params);
+    void SetBgBrightnessRates(const Vector4f& rates);
+    void SetBgBrightnessSaturation(const float& saturation);
+    void SetBgBrightnessPosCoeff(const Vector4f& coeff);
+    void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
     void SetGreyCoef(const Vector2f greyCoef);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
@@ -300,6 +324,7 @@ public:
     void SetFrameGravity(Gravity gravity);
 
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
+    void SetClipRRect(const std::shared_ptr<RRect>& rrect);
     void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
@@ -310,7 +335,8 @@ public:
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
-    void SetPixelStretchPercent(const Vector4f& stretchPercent);
+    void SetPixelStretchPercent(const Vector4f& stretchPercent,
+        Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -547,6 +573,7 @@ private:
     friend class RSProperty;
     template<typename T>
     friend class RSAnimatableProperty;
+    friend class RSInteractiveImplictAnimator;
 };
 // backward compatibility
 using RSBaseNode = RSNode;

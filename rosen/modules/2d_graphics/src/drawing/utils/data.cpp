@@ -28,6 +28,11 @@ bool Data::BuildFromMalloc(const void* data, size_t length)
     return impl_->BuildFromMalloc(data, length);
 }
 
+bool Data::BuildFromOHNativeBuffer(OH_NativeBuffer *nativeBuffer, size_t length)
+{
+    return impl_->BuildFromOHNativeBuffer(nativeBuffer, length);
+}
+
 bool Data::BuildWithCopy(const void* data, size_t length)
 {
     return impl_->BuildWithCopy(data, length);

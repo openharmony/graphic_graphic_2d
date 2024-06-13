@@ -46,5 +46,7 @@ HWTEST_F(RSVBlankIdleCorrectorTest, SetScreenVBlankIdle001, TestSize.Level1)
     ASSERT_NE(nullptr, rsVBlankIdleCorrector);
     // device id is 0
     rsVBlankIdleCorrector->SetScreenVBlankIdle(0);
+    sleep(1); // wait 1s for processing data
+    rsVBlankIdleCorrector = nullptr;
 }
 } // namespace OHOS::Rosen

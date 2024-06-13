@@ -44,6 +44,10 @@ export class MyRenderNode extends RenderNode {
     }
   }
 
+  GetAllFunctionalNames(): string {
+    return nativeXNode.GetXnodeTestNames();
+  }
+
   async TestFunctional(context: DrawContext) {
     console.info(TAG, 'MyRenderNode TestFunctional', this.caseNameStr);
     nativeXNode.TestFunctional(context, this.caseNameStr);
@@ -88,6 +92,11 @@ export class MyNodeController extends NodeController {
     console.info(TAG, 'MyNodeController makeNode end');
     return this.rootNode;
   }
+
+  GetAllFunctionalNames(): string {
+    return this.myRenderNode.GetAllFunctionalNames();
+  }
+
   TestFunctional(caseName: string) {
     console.info(TAG, "TestFunctional");
     this.myRenderNode.clear = false;

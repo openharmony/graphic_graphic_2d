@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -63,8 +64,8 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording001, TestSize.Level1)
 /**
  * @tc.name: UpdateRecording002
  * @tc.desc: test results of UpdateRecording
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
  */
 HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
 {
@@ -72,8 +73,11 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     int32_t h;
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id + 1);
     auto drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    Drawing::Paint paint;
+    auto drawOpItem = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, Drawing::DrawOpItem::Type::POINT_OPITEM);
+    drawCmds->drawOpItems_.emplace_back(drawOpItem);
+    EXPECT_TRUE(!drawCmds->IsEmpty());
     canvasRenderNode->UpdateRecording(drawCmds, RSModifierType::INVALID);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -115,6 +119,19 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessRenderBeforeChildrenTest001
+ * @tc.desc: test results of ProcessRenderBeforeChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessRenderBeforeChildrenTest001, TestSize.Level1)
+{
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
+    ASSERT_TRUE(canvas_ != nullptr);
+    canvasRenderNode->ProcessRenderBeforeChildren(*canvas_);
+}
+
+/**
  * @tc.name: ProcessAnimatePropertyAfterChildrenTest001
  * @tc.desc: test results of ProcessRenderAfterChildren
  * @tc.type:FUNC
@@ -125,6 +142,19 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest001, Tes
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
     canvasRenderNode->ProcessRenderAfterChildren(*canvas_);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ProcessTransitionAfterChildren001
+ * @tc.desc: test results of ProcessTransitionAfterChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessTransitionAfterChildren001, TestSize.Level1)
+{
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
+    ASSERT_TRUE(canvas_ != nullptr);
+    canvasRenderNode->ProcessTransitionAfterChildren(*canvas_);
 }
 
 /**
@@ -182,20 +212,22 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
 /**
  * @tc.name: OnTreeStateChanged
  * @tc.desc: test results of OnTreeStateChanged
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
  */
 HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 {
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    RSCanvasRenderNode::ClearSurfaceTask taskCallback = []() { printf("OnTreeStateChanged taskCallback\n"); };
+    rsCanvasRenderNode.SetCacheType(CacheType::CONTENT);
+    rsCanvasRenderNode.RegisterClearSurfaceFunc(taskCallback);
+    EXPECT_EQ(rsCanvasRenderNode.IsOnTheTree(), false);
+    EXPECT_FALSE(rsCanvasRenderNode.needClearSurface_);
     rsCanvasRenderNode.OnTreeStateChanged();
-    rsCanvasRenderNode.isOnTheTree_ = true;
-    rsCanvasRenderNode.OnTreeStateChanged();
-    rsCanvasRenderNode.cacheType_ = CacheType::CONTENT;
-    rsCanvasRenderNode.OnTreeStateChanged();
-    ASSERT_TRUE(true);
+    EXPECT_EQ(rsCanvasRenderNode.GetCacheType(), CacheType::NONE);
+    EXPECT_TRUE(rsCanvasRenderNode.needClearSurface_);
 }
 
 /**
@@ -226,8 +258,8 @@ HWTEST_F(RSCanvasRenderNodeTest, DrawShadow, TestSize.Level1)
 /**
  * @tc.name: PropertyDrawableRender
  * @tc.desc: test results of PropertyDrawableRender
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
  */
 HWTEST_F(RSCanvasRenderNodeTest, PropertyDrawableRender, TestSize.Level1)
 {
@@ -241,21 +273,28 @@ HWTEST_F(RSCanvasRenderNodeTest, PropertyDrawableRender, TestSize.Level1)
     includeProperty = true;
     rsCanvasRenderNode.PropertyDrawableRender(canvas, includeProperty);
 
-    RSContext* rsContext = new RSContext();
-    std::shared_ptr<RSContext> sharedContext(rsContext);
-    std::weak_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(1, sharedContext);
-    rsCanvasRenderNode.SetParent(parent);
+    auto sharedContext = std::make_shared<RSContext>();
+    auto rSCanvasRenderNodeParent = std::make_shared<RSCanvasRenderNode>(nodeId + 1, sharedContext);
+    rsCanvasRenderNode.SetParent(rSCanvasRenderNodeParent);
     rsCanvasRenderNode.PropertyDrawableRender(canvas, includeProperty);
     includeProperty = false;
     rsCanvasRenderNode.PropertyDrawableRender(canvas, includeProperty);
-    ASSERT_TRUE(true);
+
+    auto& parentProperty = rSCanvasRenderNodeParent->GetMutableRenderProperties();
+    parentProperty.SetUseShadowBatching(true);
+    EXPECT_TRUE(rsCanvasRenderNode.GetParent().lock()->GetRenderProperties().GetUseShadowBatching());
+    rsCanvasRenderNode.PropertyDrawableRender(canvas, includeProperty);
+    includeProperty = true;
+    rsCanvasRenderNode.PropertyDrawableRender(canvas, includeProperty);
+
+    rsCanvasRenderNode.ProcessAnimatePropertyBeforeChildren(canvas, includeProperty);
 }
 
 /**
  * @tc.name: ApplyDrawCmdModifier
  * @tc.desc: test results of ApplyDrawCmdModifier
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
  */
 HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
 {
@@ -266,14 +305,26 @@ HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
     RSModifierContext modifierContext(property);
     RSModifierType type = RSModifierType::INVALID;
     rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-    ASSERT_TRUE(true);
+    EXPECT_TRUE(rsCanvasRenderNode.renderContent_->drawCmdModifiers_.empty());
+
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    drawCmdList->SetWidth(2024);
+    drawCmdList->SetHeight(2090);
+    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    propertyTwo->GetRef() = drawCmdList;
+    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
+        propertyTwo) };
+    type = RSModifierType::FOREGROUND_STYLE;
+    rsCanvasRenderNode.renderContent_->drawCmdModifiers_.emplace(type, listModifier);
+    EXPECT_FALSE(RSSystemProperties::GetSingleFrameComposerEnabled());
+    rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
 }
 
 /**
  * @tc.name: InternalDrawContent
  * @tc.desc: test results of InternalDrawContent
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
  */
 HWTEST_F(RSCanvasRenderNodeTest, InternalDrawContent, TestSize.Level1)
 {
@@ -284,6 +335,51 @@ HWTEST_F(RSCanvasRenderNodeTest, InternalDrawContent, TestSize.Level1)
     RSProperties* properties = const_cast<RSProperties*>(&rsCanvasRenderNode.GetRenderProperties());
     properties->SetClipToFrame(true);
     rsCanvasRenderNode.InternalDrawContent(*canvas_);
-    ASSERT_TRUE(true);
+    EXPECT_TRUE(rsCanvasRenderNode.GetSortedChildren()->empty());
+
+    auto rSCanvasRenderNodeChild = std::make_shared<RSCanvasRenderNode>(nodeId + 1);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->emplace_back(rSCanvasRenderNodeChild);
+    rsCanvasRenderNode.fullChildrenList_ = std::move(fullChildrenList);
+    EXPECT_TRUE(!rsCanvasRenderNode.GetSortedChildren()->empty());
+    rsCanvasRenderNode.InternalDrawContent(*canvas_);
+}
+
+/**
+ * @tc.name: QuickPrepare001
+ * @tc.desc: test results of QuickPrepare
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::shared_ptr<RSNodeVisitor> visitor;
+    EXPECT_TRUE(visitor == nullptr);
+    rsCanvasRenderNode->QuickPrepare(visitor);
+
+    visitor = std::make_shared<RSRenderThreadVisitor>();
+    rsCanvasRenderNode->QuickPrepare(visitor);
+}
+
+/**
+ * @tc.name: OpincGetNodeSupportFlag001
+ * @tc.desc: test results of OpincGetNodeSupportFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
+{
+    NodeId nodeId = 2;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+    Color color(255, 0, 0);
+    std::optional<Color> colorBlend = color;
+    property.SetColorBlend(colorBlend);
+    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 }
 } // namespace OHOS::Rosen

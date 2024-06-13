@@ -40,6 +40,11 @@ public:
     RSRenderParams(NodeId id) : id_(id) {}
     virtual ~RSRenderParams() = default;
 
+    struct SurfaceParam {
+        int width = 0;
+        int height = 0;
+    };
+
     void SetAlpha(float alpha);
     float GetAlpha() const;
 
@@ -71,6 +76,9 @@ public:
 
     bool NeedSync() const;
     void SetNeedSync(bool needSync);
+
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
+    void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
 
     inline NodeId GetId() const
     {
@@ -105,7 +113,10 @@ public:
     bool ChildHasVisibleEffect() const;
 
     void SetCacheSize(Vector2f size);
-    Vector2f GetCacheSize() const;
+    inline Vector2f GetCacheSize() const
+    {
+        return cacheSize_;
+    }
 
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const;
@@ -123,6 +134,8 @@ public:
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
 
+    void SetRSFreezeFlag(bool freezeFlag);
+    bool GetRSFreezeFlag() const;
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
 
@@ -133,6 +146,8 @@ public:
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
+    SurfaceParam GetCanvasDrawingSurfaceParams();
+    void SetCanvasDrawingSurfaceParams(int width, int height);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -172,14 +187,17 @@ private:
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    bool canvasDrawingNodeSurfaceChanged_ = false;
+    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
+    SurfaceParam surfaceParams_;
+    bool freezeFlag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

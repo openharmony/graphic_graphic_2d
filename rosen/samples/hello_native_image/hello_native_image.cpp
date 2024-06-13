@@ -71,7 +71,8 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* nativeDisplay, c
         if (extensions &&
             (CheckEglExtension(extensions, EGL_EXT_PLATFORM_WAYLAND) ||
                 CheckEglExtension(extensions, EGL_KHR_PLATFORM_WAYLAND))) {
-            eglGetPlatformDisplayExt = (GetPlatformDisplayExt)eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT);
+            eglGetPlatformDisplayExt =
+                static_cast<GetPlatformDisplayExt>(eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT));
         }
     }
 
@@ -79,7 +80,7 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* nativeDisplay, c
         return eglGetPlatformDisplayExt(platform, nativeDisplay, attribList);
     }
 
-    return eglGetDisplay((EGLNativeDisplayType)nativeDisplay);
+    return eglGetDisplay(static_cast<EGLNativeDisplayType>(nativeDisplay));
 }
 
 void AddBuffer(OHNativeWindow* nativeWindow)

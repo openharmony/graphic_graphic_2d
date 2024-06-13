@@ -15,6 +15,7 @@
 
 #include "recording/cmd_list_helper.h"
 
+#include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
 #include "skia_adapter/skia_image_filter.h"
@@ -383,11 +384,17 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, void* ctx)
+    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
     }
+
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    if (DrawOpItem::customTypefaceQueryfunc_) {
+        typeface = DrawOpItem::customTypefaceQueryfunc_(globalUniqueId);
+    }
+    TextBlob::Context customCtx {typeface, false};
 
     const void* data = cmdList.GetImageData(textBlobHandle.offset);
     if (!data) {
@@ -397,7 +404,7 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), ctx);
+    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
 }
 
 OpDataHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)

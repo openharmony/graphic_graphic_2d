@@ -45,6 +45,12 @@ HWTEST_F(RSCommandFactoryTest, Register001, TestSize.Level1)
     UnmarshallingFunc func = nullptr;
     factory.Register(0, 0, func);
     EXPECT_TRUE(func == nullptr);
+
+    uint16_t type = 65535; // for test
+    uint16_t subtype = 65535; // for test
+    func = factory.GetUnmarshallingFunc(type, subtype);
+    factory.Register(type, subtype, func);
+    EXPECT_TRUE(func == nullptr);
 }
 
 /**
@@ -59,7 +65,10 @@ HWTEST_F(RSCommandFactoryTest, GetUnmarshallingFunc001, TestSize.Level1)
     UnmarshallingFunc func = factory.GetUnmarshallingFunc(0, 0);
     EXPECT_TRUE(func != nullptr);
 
-    func = factory.GetUnmarshallingFunc(65535, 65535); // for test
+    factory.unmarshallingFuncLUT_.clear();
+    uint16_t type = 65535; // for test
+    uint16_t subtype = 65535; // for test
+    func = factory.GetUnmarshallingFunc(type, subtype);
     EXPECT_TRUE(func == nullptr);
 }
 } // namespace OHOS::Rosen

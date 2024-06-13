@@ -172,12 +172,46 @@ std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(u
 
 void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceInThread()
 {
-    std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-    if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
-            completedSurfaceThreadIndex_);
+    if (UseDmaBuffer()) {
+        ClearBufferQueue();
+    } else {
+        std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
+        if (clearCacheSurfaceFunc_) {
+            clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+        }
+        ClearCacheSurface();
     }
-    ClearCacheSurface();
+}
+
+void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
+{
+    RS_TRACE_NAME("ClearCacheSurfaceOnly");
+    if (cacheSurface_ == nullptr) {
+        return;
+    }
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(
+            std::move(cacheSurface_), nullptr, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+    }
+    ClearCacheSurface(false);
+    cacheSurface_.reset();
+}
+
+Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
+        return Vector2f{};
+    }
+    auto gravity = surfaceParams->GetUIFirstFrameGravity();
+    float boundsWidth = surfaceParams->GetCacheSize().x_;
+    float boundsHeight = surfaceParams->GetCacheSize().y_;
+    Drawing::Matrix gravityMatrix;
+    RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
+        imgWidth, imgHeight, gravityMatrix);
+    return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
 }
 
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
@@ -250,7 +284,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
         origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
-        delete sharedContext;
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
         return nullptr;
     }
@@ -285,10 +318,13 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         }
     }
     Drawing::Brush brush;
-    brush.SetForceBrightnessDisable(true);
+    if (GetHDRPresent()) {
+        brush.SetForceBrightnessDisable(true);
+    }
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
+    auto gravityTranslate = GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight());
+    canvas.DrawImage(*cacheImage, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
     canvas.DetachBrush();
     canvas.Restore();
     return true;
@@ -372,7 +408,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 bool RSSurfaceRenderNodeDrawable::HasCachedTexture() const
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    return isTextureValid_.load();
+    return isTextureValid_.load() || GetBuffer() != nullptr;
 #else
     return true;
 #endif
@@ -495,12 +531,19 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+    bool useDmaBuffer = UseDmaBuffer();
+    if (useDmaBuffer) {
+        DrawBackground(canvas, bounds);
+    }
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
+    if (useDmaBuffer) {
+        DrawForeground(canvas, bounds);
+    }
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)
@@ -515,7 +558,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
     static constexpr int REQUEST_FRAME_AWARE_LOAD = 90;
     static constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
     if (!HasCachedTexture()) {
-        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lx", canSkipWait, nodeId_);
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lld", canSkipWait, nodeId_);
         if (canSkipWait) {
             return false; // draw nothing
         }

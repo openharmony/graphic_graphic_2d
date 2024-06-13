@@ -65,8 +65,6 @@ ohos_unittest("EffectTest") {
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
-  deps += [ "//third_party/skia:skia_ohos" ]
-
   configs = [
     ":effect_test_config",
     "$graphic_2d_root/utils/color_manager:color_manager_public_config",
@@ -77,6 +75,7 @@ ohos_unittest("EffectTest") {
     "hilog:libhilog",
     "image_framework:image",
     "image_framework:pixelmap",
+    "skia:skia_canvaskit",
   ]
 }
 

@@ -70,6 +70,8 @@ public:
     static bool GetOcclusionCallBackToWMSDebugType();
     static bool GetPrevalidateHwcNodeEnabled();
     static bool GetControlBufferConsumeEnabled();
+    static bool GetHideNotchStatus();
+    static bool GetUIFirstDmaBufferEnabled();
 };
 
 } // namespace Rosen

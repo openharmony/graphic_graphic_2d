@@ -126,7 +126,7 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(
-        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma,
         SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE, bool isSync = false);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -147,6 +147,8 @@ public:
         ScreenId mirrorId, int32_t flags, std::vector<NodeId> filteredAppVector = {});
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+
+    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 #endif
 
 #ifdef RS_ENABLE_VK
@@ -180,6 +182,10 @@ public:
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
+
+    void MarkPowerOffNeedProcessOneFrame();
+
+    void DisablePowerOffRenderControl(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
@@ -299,6 +305,8 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType);
 
     void SetCacheEnabledForRotation(bool isEnabled);
+
+    void ChangeSyncCount(int32_t hostPid);
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
