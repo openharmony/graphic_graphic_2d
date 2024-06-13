@@ -57,7 +57,10 @@ public:
     {
         return pidAppTypeMap_;
     }
-    const std::unordered_map<pid_t, int32_t>& GetForegroundPidAppType() const { return foregroundPidAppType_; }
+    const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& GetForegroundPidApp() const
+    {
+        return foregroundPidAppMap_;
+    }
     const HgmLRUCache<pid_t>& GetBackgroundPid() const { return backgroundPid_; }
     HgmErrCode GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const;
     const std::vector<std::string>& GetPackages() const { return pkgs_; }
@@ -72,14 +75,14 @@ private:
     void FollowFocus();
     void UseMax();
 
-    void OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes);
+    void OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const;
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
 
     std::vector<std::string> pkgs_;
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;
-    std::unordered_map<pid_t, int32_t> foregroundPidAppType_;
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap_;
     HgmLRUCache<pid_t> backgroundPid_{ 100 }; // max nums of pkgs that can be stored is 100
     std::mutex pidAppTypeMutex_;
     std::pair<HgmErrCode, PolicyConfigData::StrategyConfig> voteRes_ = { HGM_ERROR, {

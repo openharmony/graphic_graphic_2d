@@ -44,6 +44,8 @@ public:
     static napi_value GetSize(napi_env env, napi_callback_info info);
     static napi_value GetMetrics(napi_env env, napi_callback_info info);
     static napi_value MeasureText(napi_env env, napi_callback_info info);
+    static napi_value SetScaleX(napi_env env, napi_callback_info info);
+    static napi_value SetSkewX(napi_env env, napi_callback_info info);
 
     std::shared_ptr<Font> GetFont();
     void SetFont(std::shared_ptr<Font> font);
@@ -58,6 +60,8 @@ private:
     napi_value OnGetSize(napi_env env, napi_callback_info info);
     napi_value OnGetMetrics(napi_env env, napi_callback_info info);
     napi_value OnMeasureText(napi_env env, napi_callback_info info);
+    napi_value OnSetScaleX(napi_env env, napi_callback_info info);
+    napi_value OnSetSkewX(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Font> m_font = nullptr;

@@ -379,16 +379,25 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
+    if ((filterInteractWithDirty_ || rotationChanged_ || filterType_ == RSFilter::AIBAR) && cacheUpdateInterval_ > 0) {
         cacheUpdateInterval_--;
         pendingPurge_ = true;
     }
 }
 
-bool RSFilterDrawable::IsAIBarCacheValid() const
+bool RSFilterDrawable::IsAIBarCacheValid()
 {
-    return (filterType_ == RSFilter::AIBAR) && !filterRegionChanged_ &&
-        (forceUseCache_ || ((filterInteractWithDirty_ || rotationChanged_))) && cacheUpdateInterval_ > 0;
+    if (filterType_ != RSFilter::AIBAR) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("IsAIBarCacheValid cacheUpdateInterval_:%d forceClearCacheWithLastFrame_:%d",
+        cacheUpdateInterval_, forceClearCacheWithLastFrame_);
+    if (cacheUpdateInterval_ == 0 || forceClearCacheWithLastFrame_) {
+        return false;
+    } else {
+        MarkFilterForceUseCache(true);
+        return true;
+    }
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

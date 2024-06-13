@@ -760,3 +760,68 @@ bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_
     }
     return canvas->ReadPixels(CastToBitmap(*cBitmap), srcX, srcY);
 }
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasIsClipEmpty(OH_Drawing_Canvas* cCanvas, bool* isClipEmpty)
+{
+    if (isClipEmpty == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *isClipEmpty = canvas->IsClipEmpty();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo)
+{
+    if (cCanvas == nullptr || cImageInfo == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    ImageInfo imageInfo = CastToCanvas(cCanvas)->GetImageInfo();
+
+    cImageInfo->width = imageInfo.GetWidth();
+    cImageInfo->height = imageInfo.GetHeight();
+    cImageInfo->colorType = static_cast<OH_Drawing_ColorFormat>(imageInfo.GetColorType());
+    cImageInfo->alphaType = static_cast<OH_Drawing_AlphaFormat>(imageInfo.GetAlphaType());
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasClipRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Region* cRegion,
+    OH_Drawing_CanvasClipOp op)
+{
+    if (cRegion == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->ClipRegion(CastToRegion(*cRegion), CClipOpCastToClipOp(op));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPoint(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point2D* cPoint)
+{
+    if (cPoint == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawPoint(CastToPoint(*cPoint));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint32_t color,
+    OH_Drawing_BlendMode cBlendMode)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawColor(color, static_cast<BlendMode>(cBlendMode));
+    return OH_DRAWING_SUCCESS;
+}

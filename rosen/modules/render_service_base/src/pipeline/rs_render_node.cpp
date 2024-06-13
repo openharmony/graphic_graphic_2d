@@ -3695,6 +3695,11 @@ bool RSRenderNode::HasCachedTexture() const
 }
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
+    if (rect && (rect->GetHeight() >= std::numeric_limits<uint16_t>::max() ||
+        rect->GetWidth() >= std::numeric_limits<uint16_t>::max())) {
+        RS_LOGW("large draw region from arkui: %{public}s", rect->ToString().c_str());
+        RS_OPTIONAL_TRACE_NAME_FMT("large draw region from arkui: %s", rect->ToString().c_str());
+    }
     drawRegion_ = rect;
     GetMutableRenderProperties().SetDrawRegion(rect);
 }
@@ -3916,6 +3921,19 @@ void RSRenderNode::AddToPendingSyncList()
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 {
     childrenHasSharedTransition_ = hasSharedTransition;
+}
+
+void RSRenderNode::RemoveChildFromFulllist(NodeId id)
+{
+    // Make a copy of the fullChildrenList
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+
+    fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),
+        fullChildrenList->end(), [id](const auto& node) { return id == node->GetId(); }), fullChildrenList->end());
+
+    // Move the fullChildrenList to fullChildrenList_ atomically
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;

@@ -2497,6 +2497,31 @@ Vector2f RSSurfaceRenderNode::GetGravityTranslate(float imgWidth, float imgHeigh
     return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
 }
 
+void RSSurfaceRenderNode::UpdateUIFirstFrameGravity()
+{
+    Gravity gravity = GetRenderProperties().GetFrameGravity();
+    if (IsLeashWindow()) {
+        std::vector<Gravity> subGravity{};
+        for (const auto& child : *GetSortedChildren()) {
+            auto childSurfaceNode = child ? child->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+            if (childSurfaceNode) {
+                subGravity.push_back(childSurfaceNode->GetRenderProperties().GetFrameGravity());
+            }
+        }
+        // planning: how to handle gravity while leashwindow has multiple subAppWindows is not clear yet
+        if (subGravity.size() == 1) {
+            gravity = subGravity.front();
+        }
+    }
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("RSSurfaceRenderNode::UpdateUIFirstFrameGravity staingSurfaceParams is null");
+        return;
+    }
+    stagingSurfaceParams->SetUIFirstFrameGravity(gravity);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -2594,6 +2619,16 @@ void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
         stagingSurfaceParams->SetUifirstChildrenDirtyRectParam(rect);
         AddToPendingSyncList();
     }
+}
+
+void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam staingSurfaceParams is null");
+        return;
+    }
+    stagingSurfaceParams->SetLeashWindowVisibleRegionEmptyParam(isLeashWindowVisibleRegionEmpty_);
 }
 
 void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)

@@ -72,9 +72,15 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COMPOSITING_FILTER,            // LINEAR_GRADIENT_BLUR_PARA
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_RATE
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_DEGREE
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_PARAMS
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_RATES
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_SATURATION
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_POSCOEFF
+    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_NEGCOEFF
     RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_FRACTION
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_PARAMS
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_RATES
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_SATURATION
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_POSCOEFF
+    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_NEGCOEFF
     RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_FRACTION
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME_GRAVITY
     RSDrawableSlot::CLIP_TO_BOUNDS,                // CLIP_RRECT
@@ -132,6 +138,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
+    RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_BRIGHTNESS

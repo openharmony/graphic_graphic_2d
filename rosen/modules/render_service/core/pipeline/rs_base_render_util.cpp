@@ -990,7 +990,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
     surfaceHandler.ReduceAvailableBuffer();
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(consumer->GetUniqueId(),
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->timestamp);
     surfaceBuffer = nullptr;
     return true;
@@ -1392,7 +1392,6 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     return WriteToPng(filename, param);
 }
 
-
 bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo)
 {
     if (!RSSystemProperties::GetDumpImgEnabled()) {
@@ -1646,6 +1645,15 @@ GraphicTransformType RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(Graphic
             return transform;
         }
     }
+}
+
+int RSBaseRenderUtil::RotateEnumToInt(ScreenRotation rotation)
+{
+    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
+        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
+        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
+    auto iter = screenRotationEnumToIntMap.find(rotation);
+    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
 }
 
 int RSBaseRenderUtil::RotateEnumToInt(GraphicTransformType rotation)

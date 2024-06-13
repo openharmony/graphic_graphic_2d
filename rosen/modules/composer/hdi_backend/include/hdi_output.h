@@ -86,7 +86,7 @@ public:
     int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
     int32_t Commit(sptr<SyncFence> &fbFence);
-    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush, bool isValidated);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
@@ -127,7 +127,6 @@ private:
 
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
-    int32_t skipState_ = -1;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();

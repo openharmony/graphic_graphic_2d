@@ -16,6 +16,7 @@
 #ifndef TEXT_BLOB_IMPL_H
 #define TEXT_BLOB_IMPL_H
 
+#include "draw/paint.h"
 #include "impl_interface/base_impl.h"
 #include "utils/data.h"
 #include "utils/rect.h"
@@ -30,6 +31,7 @@ public:
     virtual std::shared_ptr<Data> Serialize(void* ctx) const = 0;
     virtual std::shared_ptr<Rect> Bounds() const = 0;
     virtual uint32_t UniqueID() const = 0;
+    virtual int GetIntercepts(const float bounds[], float intervals[], const Paint* paint) const = 0;
 
 protected:
     TextBlobImpl() noexcept = default;

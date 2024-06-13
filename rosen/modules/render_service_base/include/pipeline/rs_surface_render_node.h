@@ -59,9 +59,6 @@ public:
         return Type;
     }
 
-    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
-        bool isTextureExportNode = false);
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -590,6 +587,21 @@ public:
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
 
+    void SetLeashWindowVisibleRegionEmpty(bool isLeashWindowVisibleRegionEmpty)
+    {
+        if (!IsLeashWindow()) {
+            return;
+        }
+        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+    }
+
+    bool GetLeashWindowVisibleRegionEmpty() const
+    {
+        return isLeashWindowVisibleRegionEmpty_;
+    }
+
+    void SetLeashWindowVisibleRegionEmptyParam();
+
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
         return visibleDirtyRegion_;
@@ -895,6 +907,8 @@ public:
         grContext_ = grContext;
     }
     // UIFirst
+    void UpdateUIFirstFrameGravity();
+
     void SetSubmittedSubThreadIndex(uint32_t index)
     {
         submittedSubThreadIndex_ = index;
@@ -1147,6 +1161,9 @@ protected:
     void OnSkipSync() override;
 
 private:
+    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void OnResetParent() override;
     void ClearChildrenCache();
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -1225,6 +1242,7 @@ private:
     Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
+    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
@@ -1398,6 +1416,7 @@ private:
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
 
+    friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

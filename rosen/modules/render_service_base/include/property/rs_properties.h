@@ -35,6 +35,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
+#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
@@ -253,18 +254,35 @@ public:
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
 
+    void SetFgBrightnessRates(const Vector4f& rates);
+    Vector4f GetFgBrightnessRates() const;
+    void SetFgBrightnessSaturation(const float& saturation);
+    float GetFgBrightnessSaturation() const;
+    void SetFgBrightnessPosCoeff(const Vector4f& coeff);
+    Vector4f GetFgBrightnessPosCoeff() const;
+    void SetFgBrightnessNegCoeff(const Vector4f& coeff);
+    Vector4f GetFgBrightnessNegCoeff() const;
+    void SetFgBrightnessFract(const float& fraction);
+    float GetFgBrightnessFract() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
-    void SetFgBrightnessFract(float fraction);
-    float GetFgBrightnessFract() const;
 
+    void SetBgBrightnessRates(const Vector4f& rates);
+    Vector4f GetBgBrightnessRates() const;
+    void SetBgBrightnessSaturation(const float& saturation);
+    float GetBgBrightnessSaturation() const;
+    void SetBgBrightnessPosCoeff(const Vector4f& coeff);
+    Vector4f GetBgBrightnessPosCoeff() const;
+    void SetBgBrightnessNegCoeff(const Vector4f& coeff);
+    Vector4f GetBgBrightnessNegCoeff() const;
+    void SetBgBrightnessFract(const float& fraction);
+    float GetBgBrightnessFract() const;
     void SetBgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
-    void SetBgBrightnessFract(float fraction);
-    float GetBgBrightnessFract() const;
 
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -272,6 +290,7 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
+    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
@@ -334,7 +353,7 @@ public:
 
     bool IsBackgroundMaterialFilterValid() const;
     bool IsForegroundMaterialFilterVaild() const;
-    
+
     // shadow properties
     void SetShadowColor(Color color);
     void SetShadowOffsetX(float offsetX);
@@ -535,6 +554,7 @@ private:
     std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
     void GenerateAIBarFilter();
     void GenerateLinearGradientBlurFilter();
+    void GenerateMagnifierFilter();
 
     bool NeedClip() const;
 
@@ -565,10 +585,8 @@ private:
     int colorBlendMode_ = 0;
     int colorBlendApplyType_ = 0;
 
-    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_ = std::nullopt;
-    float fgBrightnessFract_ = 1.0f;
-    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_ = std::nullopt;
-    float bgBrightnessFract_ = 1.0f;
+    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
+    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -587,6 +605,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
+    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
@@ -625,7 +644,7 @@ private:
     int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
     float foregroundBlurRadiusX_ = 0.f;
     float foregroundBlurRadiusY_ = 0.f;
-    
+
     std::weak_ptr<RSRenderNode> backref_;
 
     std::optional<Vector4f> pixelStretch_;
@@ -657,6 +676,7 @@ private:
     void CheckGreyCoef();
 
     void UpdateFilter();
+    void UpdateForegroundFilter();
 
     // partial update
     bool colorFilterNeedUpdate_ = false;

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "drawing_error_code.h"
 #include "drawing_memory_stream.h"
 #include "drawing_path.h"
 #include "drawing_typeface.h"
@@ -62,6 +63,8 @@ HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromStream, TestSiz
     OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(testData, length, false);
     ASSERT_TRUE(memoryStream != nullptr);
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromStream(memoryStream, 1);
+    OH_Drawing_TypefaceCreateFromStream(nullptr, 1);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     ASSERT_TRUE(typeface == nullptr);
 }
 

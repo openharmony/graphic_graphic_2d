@@ -36,6 +36,8 @@ napi_value JsFont::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
         DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
         DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
+        DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
+        DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
     };
 
     napi_value constructor = nullptr;
@@ -177,6 +179,18 @@ napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnMeasureText(env, info) : nullptr;
+}
+
+napi_value JsFont::SetScaleX(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnSetScaleX(env, info) : nullptr;
+}
+
+napi_value JsFont::SetSkewX(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnSetSkewX(env, info) : nullptr;
 }
 
 napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
@@ -323,6 +337,40 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 
     double textSize = m_font->MeasureText(text.c_str(), text.length(), TextEncoding);
     return GetDoubleAndConvertToJsValue(env, textSize);
+}
+
+napi_value JsFont::OnSetScaleX(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnSetScaleX font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    double scaleX = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, scaleX);
+
+    JS_CALL_DRAWING_FUNC(m_font->SetScaleX(scaleX));
+    return nullptr;
+}
+
+napi_value JsFont::OnSetSkewX(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnSetSkewX font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    double skewX = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, skewX);
+
+    JS_CALL_DRAWING_FUNC(m_font->SetSkewX(skewX));
+    return nullptr;
 }
 
 std::shared_ptr<Font> JsFont::GetFont()

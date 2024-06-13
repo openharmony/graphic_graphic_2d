@@ -64,6 +64,7 @@ public:
         SPHERIZE_EFFECT,
         COLORFUL_SHADOW,
         ATTRACTION_EFFECT,
+        MAGNIFIER,
     };
     FilterType GetFilterType() const
     {

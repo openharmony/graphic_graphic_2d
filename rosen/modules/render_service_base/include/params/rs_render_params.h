@@ -187,7 +187,7 @@ private:
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    bool canvasDrawingNodeSurfaceChanged_ = false;
+    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
@@ -197,7 +197,7 @@ private:
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_;
+    bool freezeFlag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

@@ -129,7 +129,7 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
             callback->OnSurfaceCapture(id, nullptr);
         }
     };
-    RSUniRenderThread::Instance().PostTask(captureTask);
+    RSUniRenderThread::Instance().PostSyncTask(captureTask);
 }
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
@@ -208,7 +208,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext);
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
         Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");

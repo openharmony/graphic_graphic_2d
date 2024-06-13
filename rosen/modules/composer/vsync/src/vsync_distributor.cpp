@@ -569,41 +569,49 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
 {
     std::vector<sptr<VSyncConnection>> conns;
     bool waitForVSync = false;
-    std::lock_guard<std::mutex> locker(mutex_);
-    event_.vsyncCount++;
+    uint32_t generatorRefreshRate;
+    int64_t vsyncCount;
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        event_.vsyncCount++;
+        vsyncCount = event_.vsyncCount;
 
-    if (refreshRate > 0) {
-        event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
-        generatorRefreshRate_ = refreshRate;
-    }
-    vsyncMode_ = vsyncMode;
-    ChangeConnsRateLocked();
+        if (refreshRate > 0) {
+            event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
+            generatorRefreshRate_ = refreshRate;
+        }
+        vsyncMode_ = vsyncMode;
+        ChangeConnsRateLocked();
 
-    if (vsyncMode_ == VSYNC_MODE_LTPO) {
-        CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
-    } else {
-        CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
-    }
-    if (!waitForVSync) {
-        DisableVSync();
-        return;
-    }
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
+        } else {
+            CollectConnections(waitForVSync, now, conns, vsyncCount);
+        }
+        if (!waitForVSync) {
+            DisableVSync();
+            return;
+        }
 
-    countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
-    CountTrace(HITRACE_TAG_GRAPHIC_AGP, "VSync-" + name_, countTraceValue_);
+        countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
+        CountTrace(HITRACE_TAG_GRAPHIC_AGP, "VSync-" + name_, countTraceValue_);
+        
+        generatorRefreshRate = generatorRefreshRate_;
+    }
 
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t actualPeriod = period;
-        if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
-            (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
-            actualPeriod = period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
+        if ((generatorRefreshRate > 0) && (conns[i]->refreshRate_ > 0) &&
+            (generatorRefreshRate % conns[i]->refreshRate_ == 0)) {
+            actualPeriod = period * static_cast<int64_t>(generatorRefreshRate / conns[i]->refreshRate_);
         }
-        int32_t ret = conns[i]->PostEvent(now, actualPeriod, event_.vsyncCount);
+        int32_t ret = conns[i]->PostEvent(now, actualPeriod, vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name.c_str(), ret);
         if (ret == 0 || ret == ERRNO_OTHER) {
             RemoveConnection(conns[i]);
         } else if (ret == ERRNO_EAGAIN) {
+            std::lock_guard<std::mutex> locker(mutex_);
             // Trigger VSync Again for LTPO
             conns[i]->triggerThisTime_ = true;
             // Exclude SetVSyncRate for LTPS

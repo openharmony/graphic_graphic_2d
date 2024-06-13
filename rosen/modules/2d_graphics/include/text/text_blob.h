@@ -42,6 +42,7 @@ public:
         const Font& font, TextEncoding encoding = TextEncoding::UTF8);
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    int GetIntercepts(const float bounds[], float intervals[], const Paint* paint);
 
     /**
      * @brief   Serialize TextBlob.

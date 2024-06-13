@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "drawing_error_code.h"
 #include "drawing_rect.h"
 #include "drawing_region.h"
 
@@ -61,6 +62,10 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionSetRectTest_region002, Test
     OH_Drawing_Region* region = OH_Drawing_RegionCreate();
     OH_Drawing_Rect* rect=OH_Drawing_RectCreate(0.0f, 0.0f, 256.0f, 256.0f);
     EXPECT_TRUE(OH_Drawing_RegionSetRect(region, rect));
+    OH_Drawing_RegionSetRect(nullptr, rect);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_RegionSetRect(region, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RectDestroy(rect);
 }

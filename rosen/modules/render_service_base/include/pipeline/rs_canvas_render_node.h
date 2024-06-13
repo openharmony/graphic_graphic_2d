@@ -36,8 +36,6 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_NODE;
 
-    explicit RSCanvasRenderNode(NodeId id,
-        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasRenderNode();
 
     void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
@@ -66,6 +64,11 @@ public:
     }
 
     void OnTreeStateChanged() override;
+
+protected:
+    explicit RSCanvasRenderNode(NodeId id,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
@@ -75,6 +78,7 @@ private:
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
 
+    friend class RSCanvasNodeCommandHelper;
     friend class RSColorfulShadowDrawable;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;

@@ -16,10 +16,10 @@
 #ifndef RS_GPU_DIRTY_REGION_COLLECTION_H
 #define RS_GPU_DIRTY_REGION_COLLECTION_H
 
-#include <unordered_map>
+#include <mutex>
 
 #include "common/rs_common_def.h"
-#include "common/rs_occlusion_region.h"
+#include "common/rs_rect.h"
 #include "surface_type.h"
 
 namespace OHOS {
@@ -54,12 +54,12 @@ class RSB_EXPORT GpuDirtyRegionCollection {
 public:
     static GpuDirtyRegionCollection& GetInstance();
 
-    void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Occlusion::Region region);
+    void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, std::vector<RectI> rectIs);
     void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage);
     void UpdateGlobalDirtyInfoForDFX(RectI rect);
     void AddSkipProcessFramesNumberForDFX();
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
-    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
     void ResetActiveDirtyRegionInfo();
     void ResetGlobalDirtyRegionInfo();
 
@@ -73,6 +73,8 @@ private:
 
     std::unordered_map<NodeId, ActiveDirtyRegionInfo> activeDirtyRegionInfoMap_;
     GlobalDirtyRegionInfo globalDirtyRegionInfo_;
+    mutable std::mutex activeMtx_;
+    mutable std::mutex globalMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS

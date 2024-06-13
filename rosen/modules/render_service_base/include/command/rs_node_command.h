@@ -67,6 +67,7 @@ enum RSNodeCommandType : uint16_t {
 
     SET_NODE_NAME,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    UPDATE_MODIFIER_MAGNIFIER_PTR,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -187,6 +188,10 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyMagnifierPara,
+    ARG(RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMagnifierParams>>,
+        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,

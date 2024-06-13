@@ -105,7 +105,7 @@ bool HgmTouchManager::CheckChangeStateValid(TouchState lastState, TouchState new
 void HgmTouchManager::ExecuteCallback(const std::function<void()>& callback)
 {
     if (callback != nullptr) {
-        HgmTaskHandleThread::Instance().PostTask(callback);
+        HgmTaskHandleThread::Instance().PostSyncTask(callback);
     }
 }
 } // OHOS::Rosen

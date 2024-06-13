@@ -60,7 +60,6 @@ std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigI
 {
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    context.GetMutableNodeMap().RegisterRenderNode(node);
     return node;
 }
 

@@ -1086,27 +1086,12 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RS_LOGE("RSRenderServiceConnection::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
         return false;
     }
-    auto tid = node->GetTid(); // planning: id may change in subthread
-    auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-    if (drawableNode) {
-        tid = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetTid();
-    }
-    auto getDrawableBitmapTask = [&node, &bitmap, tid]() {
+    auto grContext = renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    auto getDrawableBitmapTask = [&node, &bitmap, grContext]() {
         auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-        bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(tid);
+        bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(grContext);
     };
-    auto getBitmapTask = [&node, &bitmap, tid]() { bitmap = node->GetBitmap(tid); };
-    if (tid == UNI_MAIN_THREAD_INDEX) {
-        if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
-            return false;
-        }
-        mainThread_->PostSyncTask(getBitmapTask);
-    } else if (tid == UNI_RENDER_THREAD_INDEX) {
-        renderThread_.PostSyncTask(getDrawableBitmapTask);
-    } else {
-        RSTaskDispatcher::GetInstance().PostTask(
-            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getDrawableBitmapTask, true);
-    }
+    renderThread_.PostSyncTask(getDrawableBitmapTask);
     return !bitmap.IsEmpty();
 }
 

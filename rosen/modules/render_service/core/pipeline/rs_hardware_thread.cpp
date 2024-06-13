@@ -174,8 +174,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
         uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu",
-            currentRate, param.frameTimestamp);
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu, size: %lu",
+            currentRate, param.frameTimestamp, layers.size());
         ExecuteSwitchRefreshRate(param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
@@ -345,9 +345,11 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
         uniRenderEngine_->ResetCurrentContext();
     }
 #ifdef RS_ENABLE_VK
-    auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
-    if (frameBufferSurface) {
-        frameBufferSurface->ClearSurfaceMap();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
+        if (frameBufferSurface) {
+            frameBufferSurface->ClearSurfaceMap();
+        }
     }
 #endif
     return output->ClearFrameBuffer();
@@ -381,7 +383,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+        if (RSSystemProperties::GetDrmEnabled() && RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

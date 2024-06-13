@@ -65,6 +65,14 @@ config("rs_render_animation_test_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
     "$rosen_root/modules/render_service_client/core/animation/",
   ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 group("unittest") {

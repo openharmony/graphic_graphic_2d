@@ -62,9 +62,12 @@ private:
     void Loop();
     HgmTimerState CheckForResetAndStop(HgmTimerState state);
     bool CheckTimerExpired(std::chrono::steady_clock::time_point expireTime) const;
+    void OnExpiredCallback();
 
     std::thread thread_;
-    std::mutex threadMutex_;
+    std::condition_variable startCond_;
+    bool threadAlive_ = true;
+    std::mutex loopMutex_;
     std::unique_ptr<ChronoSteadyClock> clock_;
 
     sem_t semaphone_;
@@ -76,6 +79,7 @@ private:
 
     std::atomic<bool> resetFlag_ = false;
     std::atomic<bool> stopFlag_ = false;
+    std::atomic<bool> stoppingFlag_ = false;
 };
 } //namespace OHOS::Rosen
 

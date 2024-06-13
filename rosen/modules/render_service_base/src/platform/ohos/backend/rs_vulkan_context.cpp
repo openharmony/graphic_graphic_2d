@@ -212,7 +212,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
-    const float priorities[1] = {1.0f};
+    const float priorities[1] = {0.0f};
     VkDeviceQueueCreateFlags deviceQueueCreateFlags = isProtected ? VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT : 0;
     std::vector<VkDeviceQueueCreateInfo> queueCreate {{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .pNext = nullptr,

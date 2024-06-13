@@ -20,6 +20,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "rs_base_render_util.h"
 #include "rs_uni_render_util.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
 
@@ -150,6 +151,53 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     return true;
 }
 
+void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
+    std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
+    uint32_t curFps, uint32_t &zOrder, const ScreenInfo& screenInfo)
+{
+    for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (!surfaceNode) {
+            continue;
+        }
+        const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+        if (hwcNodes.empty()) {
+            continue;
+        }
+        for (auto& hwcNode : hwcNodes) {
+            auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->IsHardwareForcedDisabled()
+                || hwcNodePtr->GetAncoForceDoDirect()) {
+                continue;
+            }
+            auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo);
+            RequestLayerInfo surfaceLayer;
+            if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
+                zOrder++, hwcNodePtr, transform, curFps, surfaceLayer)) {
+                prevalidLayers.emplace_back(surfaceLayer);
+            }
+        }
+    }
+}
+
+void RSUniHwcPrevalidateUtil::CollectUIFirstLayerInfo(std::vector<RequestLayerInfo>& uiFirstLayers,
+    uint32_t curFps, float zOrder, const ScreenInfo& screenInfo)
+{
+    auto pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
+    for (auto iter : pendingNodes) {
+        if (iter.second->IsHardwareForcedDisabled()) {
+            continue;
+        }
+        iter.second->SetGlobalZOrder(zOrder++);
+        auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
+        RequestLayerInfo uiFirstLayer;
+        if (RSUniHwcPrevalidateUtil::GetInstance().CreateUIFirstLayerInfo(
+            iter.second, transform, curFps, uiFirstLayer)) {
+            uiFirstLayers.emplace_back(uiFirstLayer);
+        }
+    }
+}
+
 void RSUniHwcPrevalidateUtil::LayerRotate(
     RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo)
 {
@@ -177,7 +225,7 @@ void RSUniHwcPrevalidateUtil::LayerRotate(
             break;
         }
     }
-    int totalRotation = (RotateEnumToInt(screenRotation) + RSBaseRenderUtil::RotateEnumToInt(
+    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + RSBaseRenderUtil::RotateEnumToInt(
         RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % ROTATION_360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
         RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));

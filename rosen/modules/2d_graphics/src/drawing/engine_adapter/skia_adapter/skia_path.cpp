@@ -467,6 +467,23 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
         &matrix->GetImpl<SkiaMatrix>()->ExportMatrix(), skFlag);
 }
 
+int SkiaPath::GetVerbsCount() const
+{
+    return path_.countVerbs();
+}
+
+std::vector<PathVerb> SkiaPath::GetVerbs() const
+{
+    int cnt = GetVerbsCount();
+    uint8_t verbs[cnt];
+    path_.getVerbs(verbs, cnt);
+    std::vector<PathVerb> result;
+    for (int i = 0; i < cnt; i++) {
+        result.push_back(static_cast<PathVerb>(verbs[i]));
+    }
+    return result;
+}
+
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     SkBinaryWriteBuffer writer;

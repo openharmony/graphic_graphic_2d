@@ -232,6 +232,16 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetMagnifierEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;

@@ -39,6 +39,11 @@ std::shared_ptr<TextBlob> StaticFactory::MakeFromText(const void* text, size_t b
 std::shared_ptr<TextBlob> StaticFactory::MakeFromPosText(const void* text, size_t byteLength,
     const Point pos[], const Font& font, TextEncoding encoding)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromPosText(text, byteLength, pos, font, encoding);
+    }
+#endif
     return EngineStaticFactory::MakeFromPosText(text, byteLength, pos, font, encoding);
 }
 
@@ -138,6 +143,11 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
 
 std::shared_ptr<Image> StaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+    }
+#endif
     return EngineStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
 }
 #endif
@@ -208,8 +218,7 @@ std::shared_ptr<Typeface> StaticFactory::DeserializeTypeface(const void* data, s
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        // DDGR need to be adapted
-        return nullptr;
+        return DDGRStaticFactory::DeserializeTypeface(data, size);
     }
 #endif
     return EngineStaticFactory::DeserializeTypeface(data, size);
@@ -218,7 +227,9 @@ std::shared_ptr<Typeface> StaticFactory::DeserializeTypeface(const void* data, s
 bool StaticFactory::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
-    // DDGR need to be adapted
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetFillPath(pen, src, dst, rect, matrix);
+    }
 #endif
     return EngineStaticFactory::GetFillPath(pen, src, dst, rect, matrix);
 }
@@ -306,6 +317,11 @@ Path StaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* 
 
 void StaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetDrawingPointsForTextBlob(blob, points);
+    }
+#endif
     return EngineStaticFactory::GetDrawingPointsForTextBlob(blob, points);
 }
 
@@ -322,6 +338,11 @@ DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 std::vector<std::vector<DrawingPiecewiseParameter>> StaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
+    }
+#endif
     return EngineStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
 }
 

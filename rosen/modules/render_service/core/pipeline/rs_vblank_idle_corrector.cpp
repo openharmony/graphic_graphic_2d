@@ -54,7 +54,8 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(uint64_t timestamp, uint64_t
     }
 
     if (isVBlankIdle_) {
-        int64_t pipelineOffset = HgmCore::Instance().GetPipelineOffset();
+        auto offset = HgmCore::Instance().GetPipelineOffset();
+        uint64_t pipelineOffset = offset >= 0 ? offset : 0;
         if (idleFrameCount_ > 0) {
             uint64_t absoluteTime = timestamp + pipelineOffset;
             screenManager->SetScreenConstraint(currIdleScreenId_,

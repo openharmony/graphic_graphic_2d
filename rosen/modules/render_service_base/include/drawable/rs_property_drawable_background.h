@@ -68,15 +68,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 };
 
-class RSColorfulShadowDrawable : public RSPropertyDrawable {
-public:
-    RSColorfulShadowDrawable(
-        std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSColorfulShadowDrawable() = default;
-    bool OnUpdate(const RSRenderNode& node) override;
-};
-
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
     RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}

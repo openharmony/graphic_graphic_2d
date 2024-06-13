@@ -228,7 +228,7 @@ int SkiaFont::TextToGlyphs(const void* text, size_t byteLength, TextEncoding enc
     return skFont_.textToGlyphs(text, byteLength, skEncoding, glyphs, maxGlyphCount);
 }
 
-scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds)
+scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
     if (bounds) {

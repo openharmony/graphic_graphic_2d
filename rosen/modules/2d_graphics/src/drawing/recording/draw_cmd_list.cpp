@@ -440,6 +440,27 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
 #endif
 }
 
+void DrawCmdList::CacheQuadPath()
+{
+#ifdef ROSEN_OHOS
+    if (drawOpItems_.size() == 0) {
+        return;
+    }
+    uint32_t opSize = drawOpItems_.size();
+    for (auto index = 0u; index < opSize; ++index) {
+        std::shared_ptr<DrawOpItem> op = drawOpItems_[index];
+        if (!op || op->GetType() != DrawOpItem::PATH_OPITEM) {
+            continue;
+        }
+        DrawPathOpItem* pathOp = static_cast<DrawPathOpItem*>(op.get());
+        auto replaceCache = pathOp->GenerateQuadCachedOpItem(nullptr);
+        if (replaceCache) {
+            drawOpItems_[index] = replaceCache;
+        }
+    }
+#endif
+}
+
 void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);

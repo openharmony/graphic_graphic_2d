@@ -42,8 +42,6 @@ public:
         return false;
     }
 
-    explicit RSProxyRenderNode(NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId,
-        const std::weak_ptr<RSContext>& context = {});
     ~RSProxyRenderNode() override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -63,6 +61,8 @@ protected:
     void OnTreeStateChanged() override;
 
 private:
+    explicit RSProxyRenderNode(NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId,
+        const std::weak_ptr<RSContext>& context = {});
     std::weak_ptr<RSSurfaceRenderNode> target_;
     NodeId targetId_;
 
@@ -72,6 +72,7 @@ private:
 
     void CleanUp(bool removeModifiers);
 
+    friend class ProxyNodeCommandHelper;
     friend class RSUniRenderVisitor;
 };
 } // namespace Rosen

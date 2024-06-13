@@ -183,6 +183,9 @@ public:
     void UpdateNodeIdToPicture(NodeId nodeId);
 
     size_t CountTextBlobNum();
+
+    void CacheQuadPath();
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

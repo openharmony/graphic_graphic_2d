@@ -77,7 +77,7 @@ public:
     static void SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-        bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool isRenderThread = false);
+        bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool useRenderParams = false);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
@@ -119,6 +119,8 @@ public:
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
+    static void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        Drawing::Matrix& matrix, float& alpha);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

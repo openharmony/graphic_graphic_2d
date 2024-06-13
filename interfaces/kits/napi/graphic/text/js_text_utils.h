@@ -387,7 +387,7 @@ inline napi_value CreateTextRectJsValue(napi_env env, TextRect textrect)
     return objValue;
 }
 
-inline napi_value CreateArrayStringJsValue(napi_env env, std::vector<std::string>& vectorString)
+inline napi_value CreateArrayStringJsValue(napi_env env, const std::vector<std::string>& vectorString)
 {
     napi_value jsArray = nullptr;
     if (napi_create_array_with_length(env, vectorString.size(), &jsArray) == napi_ok) {

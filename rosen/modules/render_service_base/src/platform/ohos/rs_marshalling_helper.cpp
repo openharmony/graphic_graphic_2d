@@ -44,12 +44,13 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
-#include "render/rs_motion_blur_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
 #include "render/rs_light_up_effect_filter.h"
+#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
@@ -620,6 +621,85 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
 
     if (success) {
         val = std::make_shared<MotionBlurParam>(radius, anchor);
+    }
+    return success;
+}
+
+// MagnifierPara
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMagnifierParams>& val)
+{
+    bool success = Marshalling(parcel, val->factor_);
+    success = success && Marshalling(parcel, val->width_);
+    success = success && Marshalling(parcel, val->height_);
+    success = success && Marshalling(parcel, val->borderWidth_);
+    success = success && Marshalling(parcel, val->cornerRadius_);
+    success = success && Marshalling(parcel, val->offsetX_);
+    success = success && Marshalling(parcel, val->offsetY_);
+
+    success = success && Marshalling(parcel, val->shadowOffsetX_);
+    success = success && Marshalling(parcel, val->shadowOffsetY_);
+    success = success && Marshalling(parcel, val->shadowSize_);
+    success = success && Marshalling(parcel, val->shadowStrength_);
+
+    success = success && Marshalling(parcel, val->gradientMaskColor1_);
+    success = success && Marshalling(parcel, val->gradientMaskColor2_);
+    success = success && Marshalling(parcel, val->outerContourColor1_);
+    success = success && Marshalling(parcel, val->outerContourColor2_);
+
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
+{
+    float factor;
+    float width;
+    float height;
+    float borderWidth;
+    float cornerRadius;
+    float offsetX;
+    float offsetY;
+    float shadowOffsetX;
+    float shadowOffsetY;
+    float shadowSize;
+    float shadowStrength;
+    uint32_t gradientMaskColor1;
+    uint32_t gradientMaskColor2;
+    uint32_t outerContourColor1;
+    uint32_t outerContourColor2;
+
+    bool success = Unmarshalling(parcel, factor);
+    success = success && Unmarshalling(parcel, width);
+    success = success && Unmarshalling(parcel, height);
+    success = success && Unmarshalling(parcel, borderWidth);
+    success = success && Unmarshalling(parcel, cornerRadius);
+    success = success && Unmarshalling(parcel, offsetX);
+    success = success && Unmarshalling(parcel, offsetY);
+
+    success = success && Unmarshalling(parcel, shadowOffsetX);
+    success = success && Unmarshalling(parcel, shadowOffsetY);
+    success = success && Unmarshalling(parcel, shadowSize);
+    success = success && Unmarshalling(parcel, shadowStrength);
+
+    success = success && Unmarshalling(parcel, gradientMaskColor1);
+    success = success && Unmarshalling(parcel, gradientMaskColor2);
+    success = success && Unmarshalling(parcel, outerContourColor1);
+    success = success && Unmarshalling(parcel, outerContourColor2);
+    if (success) {
+        val->factor_ = factor;
+        val->width_ = width;
+        val->height_ = height;
+        val->borderWidth_ = borderWidth;
+        val->cornerRadius_ = cornerRadius;
+        val->offsetX_ = offsetX;
+        val->offsetY_ = offsetY;
+        val->shadowOffsetX_ = shadowOffsetX;
+        val->shadowOffsetY_ = shadowOffsetY;
+        val->shadowSize_ = shadowSize;
+        val->shadowStrength_ = shadowStrength;
+        val->gradientMaskColor1_ = gradientMaskColor1;
+        val->gradientMaskColor2_ = gradientMaskColor2;
+        val->outerContourColor1_ = outerContourColor1;
+        val->outerContourColor2_ = outerContourColor2;
     }
     return success;
 }
@@ -1809,6 +1889,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseField>)                \

@@ -28,7 +28,6 @@
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
-bool g_forceBgAntiAlias = true;
 constexpr int TRACE_LEVEL_TWO = 2;
 }
 
@@ -54,8 +53,8 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    // skip shadow if not valid. ShadowMask is processed by foregound
-    if (!properties.IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
+    // skip shadow if not valid. ShadowMask is processed by foreground
+    if (!properties.IsShadowValid() || properties.GetShadowMask()) {
         return false;
     }
 
@@ -120,8 +119,8 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 
 bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
-    // skip shadow if not valid
-    if (!node.GetRenderProperties().IsShadowValid()) {
+    // skip shadow if not valid. ShadowMask is processed by foreground
+    if (!node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return false;
     }
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
@@ -187,41 +186,6 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
         }
         ptr->drawCmdList_->Playback(*canvas);
     };
-}
-
-bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
-{
-    // regenerate stagingDrawCmdList_
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    const RSProperties& properties = node.GetRenderProperties();
-    // skip shadow if not valid or cache is enabled
-    if (!properties.IsShadowValid() || canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
-        return false;
-    }
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
-        properties.GetClipBounds(), properties.GetRRect());
-    if (!properties.GetShadowIsFilled()) {
-        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    }
-    // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
-    const Drawing::scalar blurRadius =
-        properties.GetShadowElevation() > 0.f
-            ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
-            : properties.GetShadowRadius();
-    // save layer, draw image with clipPath, blur and draw back
-    Drawing::Brush blurBrush;
-    Drawing::Filter filter;
-    filter.SetImageFilter(
-        Drawing::ImageFilter::CreateBlurImageFilter(blurRadius, blurRadius, Drawing::TileMode::DECAL, nullptr));
-    blurBrush.SetFilter(filter);
-    canvas.SaveLayer({ nullptr, &blurBrush });
-    canvas.Translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-    canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, false);
-    // draw node content as shadow
-    // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
-    return true;
 }
 
 RSDrawable::Ptr RSMaskDrawable::OnGenerate(const RSRenderNode& node)
@@ -328,7 +292,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
             RSPropertyDrawable::stagingPropertyDescription_ = properties.GetBgBrightnessDescription();
         }
         auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-            properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
+            properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
 
@@ -375,7 +339,6 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
     Drawing::Brush brush;
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
@@ -422,10 +385,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
-    bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     Drawing::Brush brush;
-    brush.SetAntiAlias(antiAlias);
     auto boundsRect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     bgImage->SetDstRect(properties.GetBgImageRect());

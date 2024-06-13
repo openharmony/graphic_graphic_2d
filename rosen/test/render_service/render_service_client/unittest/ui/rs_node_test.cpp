@@ -5105,14 +5105,6 @@ HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
     std::optional<Vector2f> parentPosition;
     rsNode->SetSandBox(parentPosition);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
-    RSModifierType modifierType = RSModifierType::SANDBOX;
-    std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
-    modifier->property_ = nullptr;
-    rsNode->propertyModifiers_[modifierType] = modifier;
-    rsNode->SetSandBox(parentPosition);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-
     Vector2f newPosition(1.0f, 2.0f);
     parentPosition = newPosition;
     rsNode->SetSandBox(parentPosition);
@@ -5426,21 +5418,63 @@ HWTEST_F(RSNodeTest, SetFgBrightnessParams, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     RSDynamicBrightnessPara params;
     rsNode->SetFgBrightnessParams(params);
-    EXPECT_NE(params.rate_, 0.f);
+    EXPECT_NE(params.fraction_, 0.f);
 }
 
 /**
- * @tc.name: SetFgBrightnessFract
- * @tc.desc: test results of SetFgBrightnessFract
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
+ * @tc.name: SetNGetFgBrightnessRates
+ * @tc.desc: test results of SetNGetFgBrightnessRates
+ * @tc.type:FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeTest, SetFgBrightnessFract, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessRates, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    float fract = 1.f; // for test
-    rsNode->SetFgBrightnessFract(fract);
-    EXPECT_NE(fract, 0.f);
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessRates(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessSaturation
+ * @tc.desc: test results of SetNGetFgBrightnessSaturation
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetFgBrightnessSaturation(value);
+    EXPECT_NE(value, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessPosCoeff
+ * @tc.desc: test results of SetNGetFgBrightnessPosCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessPosCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessPosCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessNegCoeff
+ * @tc.desc: test results of SetNGetFgBrightnessNegCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetFgBrightnessNegCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetFgBrightnessNegCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
 }
 
 /**
@@ -5454,21 +5488,77 @@ HWTEST_F(RSNodeTest, SetBgBrightnessParams, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     RSDynamicBrightnessPara params;
     rsNode->SetBgBrightnessParams(params);
-    EXPECT_NE(params.rate_, 0.f);
+    EXPECT_NE(params.fraction_, 0.f);
 }
 
 /**
- * @tc.name: SetBgBrightnessFract
- * @tc.desc: test results of SetBgBrightnessFract
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
+ * @tc.name: SetNGetBgBrightnessRates
+ * @tc.desc: test results of SetNGetBgBrightnessRates
+ * @tc.type:FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeTest, SetBgBrightnessFract, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessRates, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    float fract = 1.f; // for test
-    rsNode->SetBgBrightnessFract(fract);
-    EXPECT_NE(fract, 0.f);
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessRates(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessSaturation
+ * @tc.desc: test results of SetNGetBgBrightnessSaturation
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessSaturation, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetBgBrightnessSaturation(value);
+    EXPECT_NE(value, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessPosCoeff
+ * @tc.desc: test results of SetNGetBgBrightnessPosCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessPosCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessPosCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessNegCoeff
+ * @tc.desc: test results of SetNGetBgBrightnessNegCoeff
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessNegCoeff, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    rsNode->SetBgBrightnessNegCoeff(value);
+    EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetNGetBgBrightnessFract
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetNGetBgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 1.0;
+    rsNode->SetBgBrightnessFract(value);
+    EXPECT_NE(value, 0.f);
 }
 
 /**

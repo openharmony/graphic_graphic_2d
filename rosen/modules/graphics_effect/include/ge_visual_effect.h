@@ -47,6 +47,7 @@ public:
     void SetParam(const std::string& tag, const Drawing::Matrix param);
     void SetParam(const std::string& tag, const std::vector<std::pair<float, float>>);
     void SetParam(const std::string& tag, bool param);
+    void SetParam(const std::string& tag, uint32_t param);
 
     const std::string& GetName() const
     {

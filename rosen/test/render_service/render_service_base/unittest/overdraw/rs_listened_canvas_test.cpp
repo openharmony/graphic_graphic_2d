@@ -98,6 +98,10 @@ public:
         static uint32_t idCounter = 0;
         return idCounter++;
     }
+    int GetIntercepts(const float bounds[], float intervals[], const Drawing::Paint* paint) const override
+    {
+        return 0;
+    }
 };
 
 /*

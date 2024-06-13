@@ -25,3 +25,8 @@ ohos_source_set("rs_frame_report_ext") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
+
+group("test") {
+  testonly = true
+  deps = [ "test:test" ]
+}

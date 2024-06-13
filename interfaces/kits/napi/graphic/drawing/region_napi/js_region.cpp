@@ -68,14 +68,13 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsRegion::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
-    Region *region = new Region();
+    auto region = std::make_shared<Region>();
     JsRegion* jsRegion = new(std::nothrow) JsRegion(region);
     status = napi_wrap(env, jsThis, jsRegion,
                        JsRegion::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         if (jsRegion != nullptr) {
             delete jsRegion;
-            jsRegion = nullptr;
         }
         ROSEN_LOGE("JsRegion::Constructor Failed to wrap native instance");
         return nullptr;
@@ -90,14 +89,6 @@ void JsRegion::Destructor(napi_env env, void* nativeObject, void* finalize)
     if (nativeObject != nullptr) {
         JsRegion* napi = reinterpret_cast<JsRegion*>(nativeObject);
         delete napi;
-    }
-}
-
-JsRegion::~JsRegion()
-{
-    if (m_region != nullptr) {
-        delete m_region;
-        m_region = nullptr;
     }
 }
 
@@ -278,7 +269,7 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
 
 Region* JsRegion::GetRegion()
 {
-    return m_region;
+    return m_region.get();
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

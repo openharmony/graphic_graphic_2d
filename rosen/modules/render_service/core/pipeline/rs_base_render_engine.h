@@ -184,8 +184,12 @@ public:
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
 
+    virtual void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
+
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
+    void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
+    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
 
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers,
         bool forceCPU = false, const ScreenInfo& screenInfo = {}) = 0;
@@ -252,8 +256,6 @@ public:
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
 #endif
 protected:
-    void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
-    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
