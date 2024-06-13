@@ -1,0 +1,79 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//build/config/feature.gni")
+
+module_out_path = "graphic_2d/create_pixelmap_surface"
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":pixel_map_from_surface_test" ]
+}
+
+## UnitTest pixel_map_from_surface_test {{{
+ohos_unittest("pixel_map_from_surface_test") {
+  module_out_path = module_out_path
+
+  sources = [ "pixel_map_from_surface_test.cpp" ]
+
+  deps = [ ":pixel_map_test_common" ]
+}
+
+## UnitTest pixel_map_from_surface_test }}}
+
+## Build pixel_map_test_common.a {{{
+config("pixel_map_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/create_pixelmap_surface/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("pixel_map_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_no_nvcall = true
+    debug = false
+  }
+  public_configs = [ ":vsync_test_common_public_config" ]
+
+  public_deps = [
+    "$graphic_2d_root/rosen/module/create_pixelmap_surface:create_pixelmap_suface",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+## Build pixel_map_test_common.a }}}
