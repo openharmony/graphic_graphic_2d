@@ -172,6 +172,18 @@ static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRend
     RSUniRenderUtil::MergeDirtyHistory(displayNodeSp, bufferAge, false, true);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
+    const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
+    if (clipRectThreshold < 1.f) {
+        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+        allDirtyRegion.OrSelf(dirtyRegion);
+        auto bound = allDirtyRegion.GetBound();
+        if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
+            allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
+            dirtyManager->MergeDirtyRectAfterMergeHistory(bound.ToRectI());
+            RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
+                allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
+        }
+    }
     RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, dirtyManager->GetDirtyRegion());
 
     // DFX START
