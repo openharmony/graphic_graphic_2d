@@ -546,13 +546,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
-        RSUniRenderThread::Instance().DvsyncRequestNextVsync();
         SetDisplayNodeSkipFlag(*uniParam, true);
         return;
     }
     SetDisplayNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
-    RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
     bool isHdrOn = params->GetHDRPresent();
     RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);

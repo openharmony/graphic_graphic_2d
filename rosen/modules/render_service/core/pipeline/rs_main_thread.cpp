@@ -327,6 +327,20 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
+void RSMainThread::DvsyncCheckRequestNextVsync()
+{
+    bool needAnimate = false;
+    if (needRequestNextVsyncAnimate_) {
+        rsVSyncDistributor_->MarkRSAnimate();
+        needAnimate = true;
+    } else {
+        rsVSyncDistributor_->UnmarkRSAnimate();
+    }
+    if (needAnimate || rsVSyncDistributor_->HasPendingUIRNV()) {
+        RequestNextVSync("animate", timestamp_);
+    }
+}
+
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -346,6 +360,7 @@ void RSMainThread::Init()
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         Animate(timestamp_);
+        DvsyncCheckRequestNextVsync();
         CollectInfoForHardwareComposer();
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
         ProcessHgmFrameRate(timestamp_);
