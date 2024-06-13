@@ -36,7 +36,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class DrawCmdList;
-class DrawImageRectOpItem;
 class DRAWING_API DrawOpItem : public OpItem {
 public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
@@ -460,7 +459,6 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
-    std::shared_ptr<DrawImageRectOpItem> GenerateQuadCachedOpItem(Canvas* canvas);
 private:
     std::shared_ptr<Path> path_;
 };

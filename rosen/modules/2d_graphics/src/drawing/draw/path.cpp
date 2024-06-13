@@ -285,16 +285,6 @@ bool Path::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasu
     return impl_->GetMatrix(forceClosed, distance, matrix, flag);
 }
 
-int Path::GetVerbsCount() const
-{
-    return impl_->GetVerbsCount();
-}
-
-std::vector<PathVerb> Path::GetVerbs() const
-{
-    return impl_->GetVerbs();
-}
-
 std::shared_ptr<Data> Path::Serialize() const
 {
     return impl_->Serialize();
