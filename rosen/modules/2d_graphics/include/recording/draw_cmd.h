@@ -117,7 +117,7 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
-static std::shared_timed_mutex UnmarshallingFuncMapMutex_;
+static std::mutex UnmarshallingFuncMapMutex_;
 class UnmarshallingPlayer {
 public:
     using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
