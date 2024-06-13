@@ -424,6 +424,9 @@ void Utils::FileClose(FILE* file)
     if (file == g_recordInMemoryFile) {
         return;
     }
+    if (fflush(file) != 0) {
+        RS_LOGE("File flush failed"); // NOLINT
+    }
     if (fclose(file) != 0) {
         RS_LOGE("File close failed"); // NOLINT
     }

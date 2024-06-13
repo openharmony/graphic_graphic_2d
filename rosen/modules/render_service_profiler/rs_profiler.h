@@ -180,8 +180,12 @@ private:
     static void SendBetaRecordPath();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
+    static void WriteBetaRecordFileThread(RSFile& file, const std::string path);
+    static void RenameAndSendFilenameThread();
     static bool OpenBetaRecordFile(RSFile& file);
+    static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
+    static void UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion);
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static Mode GetMode();

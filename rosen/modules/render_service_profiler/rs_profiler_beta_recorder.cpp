@@ -13,28 +13,32 @@
  * limitations under the License.
  */
 
+#include <thread>
+
 #include "rs_profiler.h"
+#include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
-#include "rs_profiler_file.h"
 
 namespace OHOS::Rosen {
 
 static constexpr uint32_t INACTIVITY_THRESHOLD_SECONDS = 5u;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
+static std::mutex g_fileSavingMutex;
 static bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
 static std::vector<std::string> g_records;
 static double g_recordsTimestamp = 0.0;
+static double g_currentFrameDirtyRegion = 0.0;
 
 // implemented in rs_profiler.cpp
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out);
 
 static bool HasInitializationFinished()
 {
-    constexpr uint32_t maxAttempts = 100u;
+    constexpr uint32_t maxAttempts = 600u;
     static uint32_t attempt = 0u;
     if (attempt < maxAttempts) {
         attempt++;
@@ -85,6 +89,35 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
     thread.detach();
 }
 
+void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string path)
+{
+    std::vector<uint8_t> fileData;
+    if (!file.GetDataCopy(fileData)) {
+        return;
+    }
+    
+    std::thread thread([fileData, path]() {
+        const std::lock_guard<std::mutex> fileSavingMutex(g_fileSavingMutex);
+
+        FILE* fileCopy = Utils::FileOpen(path, "wbe");
+        if (!Utils::IsFileValid(fileCopy)) {
+            return;
+        }
+        Utils::FileWrite(fileCopy, fileData.data(), fileData.size());
+        Utils::FileClose(fileCopy);
+    });
+    thread.detach();
+}
+
+void RSProfiler::RenameAndSendFilenameThread()
+{
+    std::thread thread([]() {
+        const std::lock_guard<std::mutex> fileSavingMutex(g_fileSavingMutex);
+        SendBetaRecordPath();
+    });
+    thread.detach();
+}
+
 void RSProfiler::StartBetaRecord()
 {
     if (HasInitializationFinished() && !IsBetaRecordStarted() && IsBetaRecordEnabled()) {
@@ -122,11 +155,12 @@ void RSProfiler::SendBetaRecordPath()
             path.clear();
             break;
         }
-         
+
         Network::SendMessage(message);
         path += renamed + ";";
     }
-        
+    g_records.clear();
+
     Network::SendBetaRecordPath(path);
 }
 
@@ -137,9 +171,8 @@ bool RSProfiler::SaveBetaRecord()
     }
 
     RecordStop(ArgList());
-    SendBetaRecordPath();
+    RenameAndSendFilenameThread();
     EnableBetaRecord();
-    g_records.clear();
     RecordStart(ArgList());
     return true;
 }
@@ -160,16 +193,18 @@ void RSProfiler::UpdateBetaRecord()
     }
 
     if (!SaveBetaRecord()) {
-        constexpr uint32_t recordMaxLengthSeconds = 90u;
+        constexpr uint32_t recordMaxLengthSeconds = 30u; // 30sec length of each recording
         const double recordLength = Now() - g_recordsTimestamp;
-        if (IsBetaRecordInactive() && (recordLength > recordMaxLengthSeconds)) {
+        if (recordLength > recordMaxLengthSeconds) {
             RecordStop(ArgList());
             RecordStart(ArgList());
         }
     }
 
     // the last time any rendering is done
-    g_inactiveTimestamp = Now();
+    if (g_currentFrameDirtyRegion > 0) {
+        g_inactiveTimestamp = Now();
+    }
 }
 
 bool RSProfiler::OpenBetaRecordFile(RSFile& file)
@@ -178,8 +213,21 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
         return false;
     }
 
+    const auto path = "RECORD_IN_MEMORY";
+    file.Create(path);
+
+    g_recordsTimestamp = Now();
+    return true;
+}
+
+bool RSProfiler::SaveBetaRecordFile(RSFile& file)
+{
+    if (!IsBetaRecordStarted()) {
+        return false;
+    }
+
     const std::string cacheFile("data/service/el0/render_service/file0");
-    constexpr uint32_t maxCacheFiles = 6u;
+    constexpr uint32_t maxCacheFiles = 5u; // 5 recordings in a "ring buffer" way
 
     static uint32_t index = 0u;
     const auto path = cacheFile + std::to_string(index++) + ".ohr";
@@ -187,9 +235,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
         index = 0u;
     }
 
-    file.Create(path);
-
-    g_recordsTimestamp = Now();
+    WriteBetaRecordFileThread(file, path);
 
     constexpr uint32_t maxRecords = 4u;
     if (g_records.size() < maxRecords) {
@@ -204,7 +250,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
 
 void RSProfiler::WriteBetaRecordMetrics(RSFile& file, double time)
 {
-    if (!IsBetaRecordStarted() || (time < 0.0)) {
+    if (!IsBetaRecordStarted() || (time < 0.0) || !IsBetaRecordEnabledWithMetrics()) {
         return;
     }
 
@@ -221,6 +267,11 @@ void RSProfiler::WriteBetaRecordMetrics(RSFile& file, double time)
     out.insert(out.begin(), headerType);
 
     file.WriteGFXMetrics(0, time, 0, out.data(), out.size());
+}
+
+void RSProfiler::UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion)
+{
+    g_currentFrameDirtyRegion = currentFrameDirtyRegion;
 }
 
 } // namespace OHOS::Rosen

@@ -450,6 +450,25 @@ bool RSFile::ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_
         { &RSFileLayer::readindexGfxMetrics, &RSFileLayer::gfxMetrics }, untilTime, layer, data, readTime);
 }
 
+bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
+{
+    WriteHeaders(); // Make sure the header is written
+
+    size_t fileSize = Utils::FileSize(file_);
+    if (fileSize == 0) {
+        return false;
+    }
+    data.clear();
+    data.resize(fileSize);
+
+    const int64_t position = Utils::FileTell(file_);
+    Utils::FileSeek(file_, 0, SEEK_SET);
+    Utils::FileRead(file_, data.data(), fileSize);
+    Utils::FileSeek(file_, position, SEEK_SET); // set ptr back
+
+    return true;
+}
+
 bool RSFile::HasLayer(uint32_t layer) const
 {
     // if this condition is true, then layerData_ is surely not empty
@@ -461,6 +480,9 @@ bool RSFile::HasLayer(uint32_t layer) const
 
 void RSFile::WriteHeaders()
 {
+    if (!(file_ && wasChanged_)) {
+        return;
+    }
     for (size_t i = 0; i < layerData_.size(); i++) {
         LayerWriteHeader(i);
     }
@@ -481,10 +503,7 @@ void RSFile::Close()
         return;
     }
 
-    if (wasChanged_) {
-        WriteHeaders();
-        wasChanged_ = false;
-    }
+    WriteHeaders();
 
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 

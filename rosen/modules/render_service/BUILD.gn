@@ -286,7 +286,6 @@ ohos_shared_library("librender_service") {
   public_external_deps += [ "libxml2:libxml2" ]
 
   external_deps = [
-    "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "eventhandler:libeventhandler",
@@ -297,7 +296,6 @@ ohos_shared_library("librender_service") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
     "libpng:libpng",

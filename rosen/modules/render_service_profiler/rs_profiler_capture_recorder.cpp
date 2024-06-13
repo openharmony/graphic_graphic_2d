@@ -37,7 +37,6 @@
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_marshalling_helper.h"
 
-#include "rs_profiler.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_settings.h"
@@ -52,9 +51,15 @@ static const StringParameter MSKP_PATH("mskp.path");
 RSCaptureRecorder::RSCaptureRecorder() = default;
 RSCaptureRecorder::~RSCaptureRecorder() = default;
 
+bool RSCaptureRecorder::IsRecordingEnabled()
+{
+    static const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
+    return profilerEnabled && RSSystemProperties::GetInstantRecording();
+}
+
 Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
 {
-    if (!RSSystemProperties::GetInstantRecording()) {
+    if (!IsRecordingEnabled()) {
         return nullptr;
     }
     if (RSSystemProperties::GetSaveRDC()) {
@@ -81,7 +86,7 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
 
 void RSCaptureRecorder::EndInstantCapture()
 {
-    if (!RSSystemProperties::GetInstantRecording() || !recordingTriggered_) {
+    if (!(IsRecordingEnabled() && recordingTriggered_)) {
         return;
     }
     recordingTriggered_ = false;
@@ -105,7 +110,7 @@ void RSCaptureRecorder::EndInstantCapture()
 
 std::pair<uint32_t, uint32_t> RSCaptureRecorder::GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight)
 {
-    if (RSSystemProperties::GetInstantRecording()) {
+    if (IsRecordingEnabled()) {
         return std::pair<uint32_t, uint32_t>(displayWidth, displayHeight);
     }
     return std::pair<uint32_t, uint32_t>(0, 0);

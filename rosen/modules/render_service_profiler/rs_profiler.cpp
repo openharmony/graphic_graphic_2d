@@ -372,6 +372,8 @@ void RSProfiler::OnFrameEnd()
     ProcessCommands();
     ProcessSendingRdc();
     RecordUpdate();
+
+    UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);
     UpdateBetaRecord();
 
     CalcNodeWeigthOnFrameEnd();
@@ -1176,13 +1178,14 @@ void RSProfiler::RecordStop(const ArgList& args)
             stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
         }
 
-        size_t sizeFirstFrame = g_recordFile.GetHeaderFirstFrame().size();
+        uint32_t sizeFirstFrame = static_cast<uint32_t>(g_recordFile.GetHeaderFirstFrame().size());
         stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
         stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
 
         ImageCache::Serialize(stream);
         Network::SendBinary(stream.str().data(), stream.str().size());
     }
+    SaveBetaRecordFile(g_recordFile);
     g_recordFile.Close();
     g_recordStartTime = 0.0;
 

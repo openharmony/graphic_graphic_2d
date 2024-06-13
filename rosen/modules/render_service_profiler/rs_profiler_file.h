@@ -94,6 +94,7 @@ public:
     bool ReadRSMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
+    bool GetDataCopy(std::vector<uint8_t>& data); // copy the content of RSFile so far
 
     bool HasLayer(uint32_t layer) const;
 
