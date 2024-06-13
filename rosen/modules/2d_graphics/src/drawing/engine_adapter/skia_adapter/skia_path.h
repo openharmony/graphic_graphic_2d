@@ -108,9 +108,6 @@ public:
     bool IsClosed(bool forceClosed) override;
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) override;
 
-    int GetVerbsCount() const override;
-    std::vector<PathVerb> GetVerbs() const override;
-
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 private:
