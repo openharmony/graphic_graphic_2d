@@ -48,7 +48,7 @@ HWTEST_F(RSOcclusionDataTest, UnmarshallingTest001, TestSize.Level1)
     Parcel parcel;
     RSOcclusionData rsOcclusionData;
     RSOcclusionData* rsOcclusionDataPtr = rsOcclusionData.Unmarshalling(parcel);
-    ASSERT_NE(rsOcclusionDataPtr,nullptr);
+    ASSERT_NE(rsOcclusionDataPtr, nullptr);
 }
 
 /**
@@ -63,7 +63,7 @@ HWTEST_F(RSOcclusionDataTest, UnmarshallingTest002, TestSize.Level1)
     RSOcclusionData rsOcclusionData;
     parcel.WriteUint32(5); // for test size
     RSOcclusionData* rsOcclusionDataPtr = rsOcclusionData.Unmarshalling(parcel);
-    ASSERT_NE(rsOcclusionDataPtr,nullptr);
+    ASSERT_NE(rsOcclusionDataPtr, nullptr);
 }
 
 /**

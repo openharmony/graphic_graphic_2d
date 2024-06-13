@@ -56,7 +56,7 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest001, TestSize.Level1)
     rsHgmConfigData.AddAnimDynamicItem(item);
     rsHgmConfigData.Marshalling(parcel);
     RSHgmConfigData* rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel);
-    ASSERT_NE(rsHgmConfigDataPtr,nullptr);
+    ASSERT_NE(rsHgmConfigDataPtr, nullptr);
 }
 
 /**
@@ -74,7 +74,7 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel.WriteFloat(rsHgmConfigData.yDpi_);
     parcel.WriteUint32(17); // for test size
     RSHgmConfigData* rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel);
-    ASSERT_NE(rsHgmConfigDataPtr,nullptr);
+    ASSERT_NE(rsHgmConfigDataPtr, nullptr);
 }
 
 /**
