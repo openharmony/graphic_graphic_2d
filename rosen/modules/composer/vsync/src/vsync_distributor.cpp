@@ -501,22 +501,23 @@ void VSyncDistributor::DisableVSync()
 }
 
 #if defined(RS_ENABLE_DVSYNC)
+
+
 void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     vsyncMode_ = vsyncMode;
     dvsync_->RuntimeSwitch();
-    if (IsDVsyncOn() && isRs_ && event_.period != 0 && event_.refreshRate != 0) {
-        period = event_.period;
-        refreshRate = event_.refreshRate;
-    } else {
-        event_.period = period;
-    }
     if (IsDVsyncOn()) {
+        if (isRs_ && event_.period != 0 && event_.refreshRate != 0) {
+            period = event_.period;
+            refreshRate = event_.refreshRate;
+        }
         ScopedBytrace func("VSyncD onVSyncEvent, now:" + std::to_string(now));
     } else {
         ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
     }
+    event_.period = period;
 
     dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
