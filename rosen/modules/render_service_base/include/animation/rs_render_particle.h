@@ -290,7 +290,7 @@ public:
     void SetImageIndex(size_t imageIndex);
 
 private:
-    size_t imageIndex_;
+    size_t imageIndex_ = 0;
 };
 
 class RSB_EXPORT RSRenderParticle {
