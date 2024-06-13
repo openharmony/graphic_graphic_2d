@@ -182,8 +182,6 @@ HWTEST_F(BrightnessFilterUnittest, GetFragmentShader001, TestSize.Level1)
             fragColor = vec4((textureColor.rgb + brightness), textureColor.a);
         }
     )SHADER";
-    GTEST_LOG_(INFO) << "brightness->GetFragmentShader()" << brightness->GetFragmentShader();
-    GTEST_LOG_(INFO) << "result:" << result;
     EXPECT_TRUE(brightness->GetFragmentShader() == result);
 }
 
