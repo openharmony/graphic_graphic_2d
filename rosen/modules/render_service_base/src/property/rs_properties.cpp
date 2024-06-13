@@ -100,8 +100,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetBorderColor(RSColor()); },         // BORDER_COLOR
     [](RSProperties* prop) { prop->SetBorderWidth(0.f); },               // BORDER_WIDTH
     [](RSProperties* prop) { prop->SetBorderStyle(BORDER_TYPE_NONE); },  // BORDER_STYLE
-    [](RSProperties* prop) { prop->SetBorderDashWidth({0.f}); },         // BORDER_DASH_WIDTH
-    [](RSProperties* prop) { prop->SetBorderDashGap({0.f}); },           // BORDER_DASH_GAP
+    [](RSProperties* prop) { prop->SetBorderDashWidth({-1.f}); },        // BORDER_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetBorderDashGap({-1.f}); },          // BORDER_DASH_GAP
     [](RSProperties* prop) { prop->SetFilter({}); },                     // FILTER
     [](RSProperties* prop) { prop->SetBackgroundFilter({}); },           // BACKGROUND_FILTER
     [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA
@@ -157,8 +157,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR
     [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH
     [](RSProperties* prop) { prop->SetOutlineStyle(BORDER_TYPE_NONE); }, // OUTLINE_STYLE
-    [](RSProperties* prop) { prop->SetOutlineDashWidth({0.f}); },        // OUTLINE_DASH_WIDTH
-    [](RSProperties* prop) { prop->SetOutlineDashGap({0.f}); },          // OUTLINE_DASH_GAP
+    [](RSProperties* prop) { prop->SetOutlineDashWidth({-1.f}); },       // OUTLINE_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetOutlineDashGap({-1.f}); },         // OUTLINE_DASH_GAP
     [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF

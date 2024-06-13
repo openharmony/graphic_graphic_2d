@@ -118,7 +118,8 @@ BorderStyle RSBorder::GetStyle(int idx) const
 float RSBorder::GetDashWidth(int idx) const
 {
     if (dashWidth_.empty()) {
-        return 0.f;
+        // if dashWidth is not set, return -1 and the value will be calculated
+        return -1.f;
     } else if (dashWidth_.size() == 1) {
         return dashWidth_.front();
     } else {
@@ -129,7 +130,8 @@ float RSBorder::GetDashWidth(int idx) const
 float RSBorder::GetDashGap(int idx) const
 {
     if (dashGap_.empty()) {
-        return 0.f;
+        // if dashGap is not set, return -1 and the value will be calculated
+        return -1.f;
     } else if (dashGap_.size() == 1) {
         return dashGap_.front();
     } else {
@@ -256,7 +258,7 @@ void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot
     if (style == BorderStyle::DASHED) {
         float dashWidth = GetDashWidth(idx);
         float dashGap = GetDashGap(idx);
-        if (dashWidth > 0.f && dashGap > 0.f) {
+        if (dashWidth >= 0.f && dashGap >= 0.f) {
             float intervals[] = { dashWidth, dashGap };
             pen.SetPathEffect(
                 Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
@@ -275,8 +277,8 @@ void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot
             }
         }
         float intervals[] = {
-            (dashWidth > 0.f ? dashWidth : width * DASHED_LINE_LENGTH - delLen),
-            (dashGap > 0.f ? dashGap : width + addLen) };
+            (dashWidth >= 0.f ? dashWidth : width * DASHED_LINE_LENGTH - delLen),
+            (dashGap >= 0.f ? dashGap : width + addLen) };
         pen.SetPathEffect(Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
         return;
     }
