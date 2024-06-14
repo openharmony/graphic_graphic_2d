@@ -865,7 +865,7 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
-    int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
+    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + surfaceNodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
         RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));

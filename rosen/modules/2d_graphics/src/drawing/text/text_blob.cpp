@@ -52,6 +52,13 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromRSXform(const void* text, size_t byt
     return StaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
 
+int TextBlob::GetIntercepts(const SkScalar bounds[], SkScalar intervals[], const Paint *paint)
+{
+    if (textBlobImpl_) {
+        return textBlobImpl_->GetIntercepts(bounds, intervals, paint);
+    }
+    return 0;
+}
 std::shared_ptr<Data> TextBlob::Serialize(void* ctx) const
 {
     if (!textBlobImpl_) {

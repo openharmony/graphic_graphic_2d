@@ -53,8 +53,6 @@ public:
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::DISPLAY_NODE;
 
-    explicit RSDisplayRenderNode(
-        NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
@@ -448,6 +446,8 @@ public:
 protected:
     void OnSync() override;
 private:
+    explicit RSDisplayRenderNode(
+        NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
@@ -515,6 +515,8 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+
+    friend class DisplayNodeCommandHelper;
 };
 } // namespace Rosen
 } // namespace OHOS

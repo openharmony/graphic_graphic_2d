@@ -136,6 +136,7 @@ public:
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static float GetClipRectThreshold();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetOcclusionEnabled();
@@ -175,6 +176,7 @@ public:
     static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
+    static bool GetMagnifierEnabled();
     static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static bool GetHpsBlurEnabled();
@@ -213,6 +215,7 @@ public:
     static bool GetSnapshotWithDMAEnabled();
     static bool GetDrmEnabled();
     static bool IsPhoneType();
+    static bool IsTabletType();
     static bool IsPcType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();

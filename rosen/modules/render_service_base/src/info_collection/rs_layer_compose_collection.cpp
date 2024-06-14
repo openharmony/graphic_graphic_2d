@@ -33,6 +33,7 @@ LayerComposeCollection::~LayerComposeCollection() noexcept
 
 void LayerComposeCollection::UpdateUniformOrOfflineComposeFrameNumberForDFX(size_t layerSize)
 {
+    std::lock_guard<std::mutex> lock(layerMtx_);
     if (layerSize == 1) {
         ++layerComposeInfo_.uniformRenderFrameNumber;
         return;
@@ -42,17 +43,20 @@ void LayerComposeCollection::UpdateUniformOrOfflineComposeFrameNumberForDFX(size
 
 void LayerComposeCollection::UpdateRedrawFrameNumberForDFX()
 {
+    std::lock_guard<std::mutex> lock(layerMtx_);
     --layerComposeInfo_.offlineComposeFrameNumber;
     ++layerComposeInfo_.redrawFrameNumber;
 }
 
 LayerComposeInfo LayerComposeCollection::GetLayerComposeInfo() const
 {
+    std::lock_guard<std::mutex> lock(layerMtx_);
     return layerComposeInfo_;
 }
 
 void LayerComposeCollection::ResetLayerComposeInfo()
 {
+    std::lock_guard<std::mutex> lock(layerMtx_);
     layerComposeInfo_ = LayerComposeInfo {};
 }
 } // namespace Rosen

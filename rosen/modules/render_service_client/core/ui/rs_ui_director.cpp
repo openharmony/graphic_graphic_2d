@@ -371,9 +371,10 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     static uint32_t messageId = 0;
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
-        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(id);
+        NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
+        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
         if (instanceId == INSTANCE_ID_UNDEFINED) {
-            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(id);
+            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
         }
         m[instanceId].push_back(std::move(cmd));
     }

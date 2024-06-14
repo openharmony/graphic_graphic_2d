@@ -16,6 +16,8 @@
 #ifndef RS_LAYER_COMPOSE_COLLECTION_H
 #define RS_LAYER_COMPOSE_COLLECTION_H
 
+#include <mutex>
+
 #include "common/rs_common_def.h"
 
 namespace OHOS {
@@ -51,6 +53,7 @@ private:
     LayerComposeCollection& operator=(const LayerComposeCollection&&) = delete;
 
     LayerComposeInfo layerComposeInfo_;
+    mutable std::mutex layerMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS

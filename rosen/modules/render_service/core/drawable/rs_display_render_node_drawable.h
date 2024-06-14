@@ -56,7 +56,7 @@ private:
     void WiredScreenProjection(std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNode& node, RSDisplayRenderNode& mirroredNode);
-    void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
+    void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
     void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
     void RotateMirrorCanvasOnExFoldScreen(RSDisplayRenderParams& params, ScreenRotation& rotation, float mainWidth,
         float mainHeight);
@@ -86,6 +86,8 @@ private:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool SkipDisplayIfScreenOff() const;
     bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
+    void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
+    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -97,7 +99,10 @@ private:
     bool hasSpecialLayer_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;
+    bool isDisplayNodeSkip_ = false;
+    bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
+    bool useFixedOffscreenSurfaceSize_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

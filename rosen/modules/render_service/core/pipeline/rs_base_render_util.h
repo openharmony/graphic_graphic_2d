@@ -52,15 +52,6 @@ struct ComposeInfo {
     float brightnessRatio { 0.0 };
 };
 
-static inline int RotateEnumToInt(ScreenRotation rotation)
-{
-    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
-        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
-        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
-    auto iter = screenRotationEnumToIntMap.find(rotation);
-    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
-}
-
 class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -169,6 +160,7 @@ public:
     // GraphicTransformType from hdi layer info is clockwise, for surface and surface node is anti-clockwise
     // need conversion here
     static GraphicTransformType ClockwiseToAntiClockwiseTransform(GraphicTransformType transform);
+    static int RotateEnumToInt(ScreenRotation rotation);
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);

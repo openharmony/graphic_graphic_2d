@@ -48,6 +48,7 @@ public:
     bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node);
     void ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
         bool resourceChanged);
+    void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
 
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 

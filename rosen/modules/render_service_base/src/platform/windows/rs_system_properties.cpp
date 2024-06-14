@@ -87,6 +87,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+float RSSystemProperties::GetClipRectThreshold()
+{
+    return 1.f;
+}
+
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 {
     return {};
@@ -237,6 +242,11 @@ bool RSSystemProperties::GetDynamicBrightnessEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetMagnifierEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
@@ -335,6 +345,11 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 }
 
 bool RSSystemProperties::IsPhoneType()
+{
+    return false;
+}
+
+bool RSSystemProperties::IsTabletType()
 {
     return false;
 }

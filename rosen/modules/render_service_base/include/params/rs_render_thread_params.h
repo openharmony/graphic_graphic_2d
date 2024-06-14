@@ -288,6 +288,16 @@ public:
         return clipRegion_;
     }
 
+    void SetForceMirrorScreenDirty(bool flag)
+    {
+        isMirrorScreenDirty_ = flag;
+    }
+
+    bool GetForceMirrorScreenDirty() const
+    {
+        return isMirrorScreenDirty_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -331,6 +341,7 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
+    bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;

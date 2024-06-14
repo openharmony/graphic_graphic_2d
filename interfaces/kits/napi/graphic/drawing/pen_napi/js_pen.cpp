@@ -346,6 +346,44 @@ napi_value JsPen::GetJoinStyle(napi_env env, napi_callback_info info)
     return CreateJsNumber(env, static_cast<int32_t>(pen->GetJoinStyle()));
 }
 
+static int32_t CapCastToTsCap(Pen::CapStyle cap)
+{
+    int32_t tsCap = 0; // 0: CapStyle::FLAT_CAP
+    switch (cap) {
+        case Pen::CapStyle::FLAT_CAP:
+            tsCap = 0; // 0: CapStyle::FLAT_CAP
+            break;
+        case Pen::CapStyle::SQUARE_CAP:
+            tsCap = 1; // 1: CapStyle::SQUARE_CAP
+            break;
+        case Pen::CapStyle::ROUND_CAP:
+            tsCap = 2; // 2: CapStyle::ROUND_CAP
+            break;
+        default:
+            break;
+    }
+    return tsCap;
+}
+
+static Pen::CapStyle TsCapCastToCap(int32_t tsCap)
+{
+    Pen::CapStyle cap = Pen::CapStyle::FLAT_CAP;
+    switch (tsCap) {
+        case 0: // 0: CapStyle::FLAT_CAP
+            cap = Pen::CapStyle::FLAT_CAP;
+            break;
+        case 1: // 1: CapStyle::SQUARE_CAP
+            cap = Pen::CapStyle::SQUARE_CAP;
+            break;
+        case 2: // 2: CapStyle::ROUND_CAP
+            cap = Pen::CapStyle::ROUND_CAP;
+            break;
+        default:
+            break;
+    }
+    return cap;
+}
+
 napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
@@ -365,7 +403,7 @@ napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
     int32_t capStyle = 0;
     GET_INT32_PARAM(ARGC_ZERO, capStyle);
 
-    pen->SetCapStyle(static_cast<Pen::CapStyle>(capStyle));
+    pen->SetCapStyle(TsCapCastToCap(capStyle));
     return nullptr;
 }
 
@@ -383,7 +421,7 @@ napi_value JsPen::GetCapStyle(napi_env env, napi_callback_info info)
     }
 
     Pen::CapStyle capStyle = pen->GetCapStyle();
-    return CreateJsNumber(env, static_cast<int32_t>(capStyle));
+    return CreateJsNumber(env, CapCastToTsCap(capStyle));
 }
 napi_value JsPen::SetPathEffect(napi_env env, napi_callback_info info)
 {

@@ -213,9 +213,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    RS_OPTIONAL_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnDraw:[" + name_ + "] " +
-        surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " +
-        std::to_string(surfaceNode->GetGlobalAlpha()));
+    const auto &absDrawRect = surfaceParams->GetAbsDrawRect();
+    // warning : don't delete this trace or change trace level to optional !!!
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d %d %d %d)Alpha: %f", name_.c_str(),
+        absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, surfaceNode->GetGlobalAlpha());
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u,"
             "name:%{public}s,OcclusionVisible:%{public}d",
@@ -461,10 +462,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
         return;
     }
 
+    bool hwcEnable = surfaceParams.GetHardwareEnabled();
+    surfaceParams.SetHardwareEnabled(false);
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
         hasHdrPresent_) && DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
+        surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
+    surfaceParams.SetHardwareEnabled(hwcEnable);
 
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
@@ -555,7 +560,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     RSAutoCanvasRestore arc(&canvas);
     surfaceNode.SetGlobalAlpha(1.0f); // TO-DO
     pid_t threadId = gettid();
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);
+    bool useRenderParams = !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_;
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, useRenderParams);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.screenBrightnessNits = surfaceNode.GetDisplayNit();
@@ -596,16 +602,22 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
-    DrawBackground(canvas, bounds);
-    bool drawCacheSuccess = true;
+    bool useDmaBuffer = UseDmaBuffer();
+    if (!useDmaBuffer) {
+        DrawBackground(canvas, bounds);
+    }
     bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
         (RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
-    if (!DrawUIFirstCache(canvas, canSkipFirstWait)) {
+
+    bool drawCacheSuccess = useDmaBuffer ?
+        DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
+    if (!drawCacheSuccess) {
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
         RS_LOGE("DrawUIFirstCache failed!");
-        drawCacheSuccess = false;
     }
-    DrawForeground(canvas, bounds);
+    if (!useDmaBuffer) {
+        DrawForeground(canvas, bounds);
+    }
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

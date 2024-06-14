@@ -107,9 +107,9 @@ static const std::vector<struct JsEnumInt> g_joinStyle = {
 };
 
 static const std::vector<struct JsEnumInt> g_capStyle = {
-    { "FLAT_CAP", static_cast<int32_t>(Pen::CapStyle::FLAT_CAP) },
-    { "SQUARE_CAP", static_cast<int32_t>(Pen::CapStyle::SQUARE_CAP) },
-    { "ROUND_CAP", static_cast<int32_t>(Pen::CapStyle::ROUND_CAP) },
+    { "FLAT_CAP", 0 }, // 0: CapStyle::FLAT_CAP
+    { "SQUARE_CAP", 1 }, // 1: CapStyle::SQUARE_CAP
+    { "ROUND_CAP", 2 }, // 2: CapStyle::ROUND_CAP
 };
 
 static const std::vector<struct JsEnumInt> g_blurType = {

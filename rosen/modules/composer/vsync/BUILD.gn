@@ -50,6 +50,11 @@ config("vsync_public_config") {
 }
 
 ohos_shared_library("libvsync") {
+  sanitize = {
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
+  }
   sources = [
     "src/vsync_connection_proxy.cpp",
     "src/vsync_connection_stub.cpp",

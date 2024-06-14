@@ -724,6 +724,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSMagnifierParamsModifier : public RSForegroundModifier {
+public:
+    explicit RSMagnifierParamsModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSMagnifierParamsModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSBackgroundFilterModifier : public RSBackgroundModifier {
 public:
     explicit RSBackgroundFilterModifier(const std::shared_ptr<RSPropertyBase>& property);

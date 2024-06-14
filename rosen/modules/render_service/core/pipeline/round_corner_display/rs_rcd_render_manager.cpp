@@ -76,6 +76,23 @@ void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
     RS_LOGD("RCD: Finish Do Rcd Render process");
 }
 
+void RSRcdRenderManager::DoProcessRenderMainThreadTask(const RcdProcessInfo& info)
+{
+    RS_LOGD("RCD: Start Do Rcd Render process in MainThread");
+    RS_TRACE_BEGIN("RSUniRender:DoRCDProcessMainThreadTask");
+    if (!IsRcdProcessInfoValid(info)) {
+        RS_LOGE("RCD: RcdProcessInfo in MainThread is incorrect");
+        RS_TRACE_END();
+        return;
+    }
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    visitor->SetUniProcessor(info.uniProcessor);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*bottomSurfaceNode_, info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode_, info.resourceChanged);
+    RS_TRACE_END();
+    RS_LOGD("RCD: Finish Do Rcd Render process in MainThread");
+}
+
 void RSRcdRenderManager::Reset()
 {
     topSurfaceNode_->Reset();

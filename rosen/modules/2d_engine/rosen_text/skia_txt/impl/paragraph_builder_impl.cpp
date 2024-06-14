@@ -195,7 +195,6 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setMaxLines(txt.maxLines);
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
-
     if (!txt.hintingIsOn) {
         skStyle.turnHintingOff();
     }

@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -206,6 +207,13 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds;
     snapshotIBounds = srcRect;
+
+    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    if (magnifierShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
+        auto para = tmpFilter->GetMagnifierShaderFilterPara();
+        snapshotIBounds.Offset(para->offsetX_, para->offsetY_);
+    }
 
     // Take a screenshot.
     auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);

@@ -16,6 +16,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
+#include "drawing_error_code.h"
 #include "drawing_memory_stream.h"
 
 #include "utils/memory_stream.h"
@@ -50,6 +51,10 @@ HWTEST_F(NativeDrawingMemoryStreamTest, NativeDrawingMemoryStreamCreateTest001, 
     char data[10] = { 0 };
     OH_Drawing_MemoryStream* stream = OH_Drawing_MemoryStreamCreate(data, 10, false);
     ASSERT_TRUE(stream != nullptr);
+    OH_Drawing_MemoryStreamCreate(nullptr, 0, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MemoryStreamCreate(stream, 0, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /**

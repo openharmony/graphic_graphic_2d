@@ -35,6 +35,11 @@ ohos_fuzztest("RSRenderNodeFuzzTest") {
     "//third_party/zlib:libz",
   ]
   cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
     "-g",
     "-O0",
     "-Wno-unused-variable",

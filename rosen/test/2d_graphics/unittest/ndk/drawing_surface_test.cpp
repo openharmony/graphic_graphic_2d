@@ -18,6 +18,7 @@
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
 #include "drawing_canvas.h"
+#include "drawing_error_code.h"
 #include "drawing_gpu_context.h"
 #include "drawing_surface.h"
 
@@ -116,6 +117,7 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateFromGpuContext
 
     surface_ = OH_Drawing_SurfaceCreateFromGpuContext(nullptr, false, imageInfo);
     EXPECT_EQ(surface_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_SurfaceDestroy(surface_);
     OH_Drawing_GpuContextDestroy(gpuContext_);
 }
@@ -143,6 +145,7 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_GetCanvas, TestSize.
 
     canvas_ = OH_Drawing_SurfaceGetCanvas(nullptr);
     EXPECT_EQ(canvas_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_SurfaceDestroy(surface_);
     OH_Drawing_GpuContextDestroy(gpuContext_);
 }

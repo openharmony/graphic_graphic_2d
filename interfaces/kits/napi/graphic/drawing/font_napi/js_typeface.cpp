@@ -28,6 +28,7 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+        DECLARE_NAPI_STATIC_FUNCTION("makeFromFile", JsTypeface::MakeFromFile),
     };
 
     napi_value constructor = nullptr;
@@ -139,5 +140,37 @@ napi_value JsTypeface::OnGetFamilyName(napi_env env, napi_callback_info info)
     auto name = m_typeface->GetFamilyName();
     return GetStringAndConvertToJsValue(env, name);
 }
+
+napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
+
+    std::string text = "";
+    GET_JSVALUE_PARAM(ARGC_ZERO, text);
+
+    auto typeface = new(std::nothrow) JsTypeface(Typeface::MakeFromFile(text.c_str()));
+
+    napi_value jsObj = nullptr;
+    napi_create_object(env, &jsObj);
+    if (jsObj == nullptr) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
+        return nullptr;
+    }
+    napi_property_descriptor resultFuncs[] = {
+        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+    };
+    napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    return jsObj;
+}
+
 } // namespace Drawing
 } // namespace OHOS::Rosen

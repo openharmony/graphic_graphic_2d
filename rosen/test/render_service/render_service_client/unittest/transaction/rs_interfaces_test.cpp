@@ -243,6 +243,48 @@ HWTEST_F(RSInterfacesTest, SetOnRemoteDiedCallback001, TestSize.Level1)
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
+/**
+ * @tc.name: GetActiveDirtyRegionInfo001
+ * @tc.desc: test results of GetActiveDirtyRegionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetActiveDirtyRegionInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.GetActiveDirtyRegionInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: GetGlobalDirtyRegionInfo001
+ * @tc.desc: test results of GetGlobalDirtyRegionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetGlobalDirtyRegionInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.GetGlobalDirtyRegionInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: GetLayerComposeInfo001
+ * @tc.desc: test results of GetLayerComposeInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetLayerComposeInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.GetLayerComposeInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
 #ifdef TP_FEATURE_ENABLE
 /**
  * @tc.name: SetTpFeatureConfig001

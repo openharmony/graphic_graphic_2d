@@ -629,6 +629,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, co
     data.WriteUint32(range.min_);
     data.WriteUint32(range.max_);
     data.WriteUint32(range.preferred_);
+    data.WriteUint32(range.type_);
     data.WriteBool(isAnimatorStopped);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -2317,7 +2318,7 @@ LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()
         return layerComposeInfo;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_SYNTHESIS_MODE_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetLayerComposeInfo: Send Request err.");

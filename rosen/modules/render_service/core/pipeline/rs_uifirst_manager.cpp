@@ -452,9 +452,25 @@ void RSUifirstManager::UpdateSkipSyncNode()
 void RSUifirstManager::ProcessSubDoneNode()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("ProcessSubDoneNode");
+    ConvertPendingNodeToDrawable();
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
+}
+
+void RSUifirstManager::ConvertPendingNodeToDrawable()
+{
+    if (!RSSystemParameters::GetUIFirstDmaBufferEnabled()) {
+        return;
+    }
+    pendingPostDrawables_.clear();
+    for (auto& iter : pendingPostNodes_) {
+        if (!iter.second) {
+            continue;
+        }
+        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second);
+        pendingPostDrawables_.emplace_back(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawableNode.get()));
+    }
 }
 
 bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node)
@@ -731,6 +747,8 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 
 void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("uifirst uniqueId:%lld, appPid:%lld, sceneId:%s",
+        info.uniqueId, info.appPid, info.sceneId.c_str());
     EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};
     std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
     for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
@@ -848,6 +866,17 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     return false;
 }
 
+bool RSUifirstManager::IsScreenshotAnimation()
+{
+    for (auto& it : currentFrameEvent_) {
+        if (std::find(screenshotAnimation_.begin(), screenshotAnimation_.end(), it.sceneId) !=
+            screenshotAnimation_.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 {
     if (currentFrameEvent_.empty()) {
@@ -904,6 +933,9 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
+    if (node.GetName().find("ScreenShotWindow") != std::string::npos) {
+        return true;
+    }
     bool isNeedAssignToSubThread = false;
     if ((RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
@@ -981,6 +1013,27 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 
+void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects)
+{
+    if (node.GetLastFrameUifirstFlag() != MultiThreadCacheType::LEASH_WINDOW || !GetUseDmaBuffer()) {
+        return;
+    }
+    bool intersect = false;
+    for (auto& rect : rects) {
+        if (rect.Intersect(node.GetDstRect())) {
+            intersect = true;
+            break;
+        }
+    }
+    node.SetHardwareForcedDisabledState(intersect);
+
+    Drawing::Matrix totalMatrix;
+    float alpha = 1.f;
+    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    RSUniRenderUtil::AccumulateMatrixAndAlpha(surfaceNode, totalMatrix, alpha);
+    node.SetTotalMatrix(totalMatrix);
+}
+
 void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType)
 {
     auto lastFrameCacheType = node.GetLastFrameUifirstFlag();
@@ -1042,6 +1095,18 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
     node.SetUifirstChildrenDirtyRectParam(rect);
 }
 
+void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
+{
+    for (auto iter : pendingPostNodes_) {
+        if (!iter.second) {
+            continue;
+        }
+        auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
+        iter.second->UpdateHwcNodeLayerInfo(transform);
+        iter.second->SetIsLastFrameHwcEnabled(!iter.second->IsHardwareForcedDisabled());
+    }
+}
+
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
     // Planning: do not clear complete image for card
@@ -1062,6 +1127,16 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 void RSUifirstManager::AddCapturedNodes(NodeId id)
 {
     capturedNodes_.push_back(id);
+}
+
+void RSUifirstManager::SetUseDmaBuffer(bool val)
+{
+    useDmaBuffer_ = val;
+}
+
+bool RSUifirstManager::GetUseDmaBuffer()
+{
+    return useDmaBuffer_ && IsScreenshotAnimation();
 }
 } // namespace Rosen
 } // namespace OHOS

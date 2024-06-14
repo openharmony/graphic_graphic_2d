@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "drawing_error_code.h"
 #include "drawing_image.h"
 #include "drawing_point.h"
 #include "drawing_sampling_options.h"
@@ -38,6 +39,9 @@ void NativeDrawingShaderEffectTest::TearDownTestCase() {}
 void NativeDrawingShaderEffectTest::SetUp() {}
 void NativeDrawingShaderEffectTest::TearDown() {}
 
+constexpr uint32_t NUM_20 = 20;
+constexpr uint32_t NUM_300 = 300;
+
 /*
  * @tc.name: OH_Drawing_ShaderEffectCreateLinearGradient
  * @tc.desc: Test OH_Drawing_ShaderEffectCreateLinearGradient
@@ -45,9 +49,23 @@ void NativeDrawingShaderEffectTest::TearDown() {}
  */
 HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateLinearGradient, TestSize.Level1)
 {
+    OH_Drawing_Point* startPt = OH_Drawing_PointCreate(NUM_20, NUM_20);
+    OH_Drawing_Point* endPt = OH_Drawing_PointCreate(NUM_300, NUM_300);
+    uint32_t colors[] = { 0xFFFFFFFF };
+    float pos[] = { 0.0f, 1.0f };
     OH_Drawing_ShaderEffect* effect =
         OH_Drawing_ShaderEffectCreateLinearGradient(nullptr, nullptr, nullptr, nullptr, 1, OH_Drawing_TileMode::CLAMP);
     ASSERT_TRUE(effect == nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ShaderEffectCreateLinearGradient(nullptr, endPt, colors, pos, 1, OH_Drawing_TileMode::CLAMP);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ShaderEffectCreateLinearGradient(startPt, nullptr, colors, pos, 1, OH_Drawing_TileMode::CLAMP);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ShaderEffectCreateLinearGradient(startPt, endPt, nullptr, pos, 1, OH_Drawing_TileMode::CLAMP);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_PointDestroy(startPt);
+    OH_Drawing_PointDestroy(endPt);
 }
 
 /*
@@ -69,6 +87,10 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateRadialGradi
     OH_Drawing_ShaderEffect* effect1 =
         OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
     ASSERT_TRUE(effect1 != nullptr);
+    OH_Drawing_ShaderEffectCreateRadialGradient(nullptr, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, nullptr, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -85,6 +107,10 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateImageShader
     OH_Drawing_Matrix* matrix = nullptr;
     OH_Drawing_ShaderEffect* effect = OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP, CLAMP, options, matrix);
     ASSERT_TRUE(effect != nullptr);
+    OH_Drawing_ShaderEffectCreateImageShader(nullptr, CLAMP, CLAMP, options, matrix);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP, CLAMP, nullptr, matrix);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 } // namespace Drawing
 } // namespace Rosen

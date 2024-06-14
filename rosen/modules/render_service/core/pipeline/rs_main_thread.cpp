@@ -217,7 +217,7 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
                 auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
                 rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
                     hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
+                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(rcdInfo->processInfo);
             }
         );
     }
@@ -327,6 +327,20 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
+void RSMainThread::DvsyncCheckRequestNextVsync()
+{
+    bool needAnimate = false;
+    if (needRequestNextVsyncAnimate_) {
+        rsVSyncDistributor_->MarkRSAnimate();
+        needAnimate = true;
+    } else {
+        rsVSyncDistributor_->UnmarkRSAnimate();
+    }
+    if (needAnimate || rsVSyncDistributor_->HasPendingUIRNV()) {
+        RequestNextVSync("animate", timestamp_);
+    }
+}
+
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -346,6 +360,7 @@ void RSMainThread::Init()
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         Animate(timestamp_);
+        DvsyncCheckRequestNextVsync();
         CollectInfoForHardwareComposer();
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
         ProcessHgmFrameRate(timestamp_);
@@ -1645,6 +1660,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     if (rsFrameRateLinker_ != nullptr) {
+        rsCurrRange_.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }
@@ -1665,16 +1681,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
             idleTimerExpiredFlag_, info);
-    }
-
-    if (rsVSyncDistributor_->IsDVsyncOn()) {
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
-        if (pendingRefreshRate != nullptr
-            && (!info.isUiDvsyncOn || rsRate == *pendingRefreshRate)) {
-            hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
-            frameRateMgr_->ResetPendingRefreshRate();
-        }
     }
 }
 
@@ -1855,6 +1861,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+            if (!surfaceNode->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
+                params->SetPreBuffer(nullptr);
+                surfaceNode->AddToPendingSyncList();
+            }
             processor->CreateLayer(*surfaceNode, *params);
         }
     }
@@ -1994,21 +2004,23 @@ void RSMainThread::CheckSystemSceneStatus()
     }
 }
 
-void RSMainThread::CallbackDrawContextStatusToWMS()
+void RSMainThread::CallbackDrawContextStatusToWMS(bool isUniRender)
 {
+    auto& curDrawStatusVec = isUniRender ? RSUniRenderThread::Instance().GetDrawStatusVec() : curDrawStatusVec_;
+    auto timestamp = isUniRender ? RSUniRenderThread::Instance().GetCurrentTimestamp() : timestamp_;
     VisibleData drawStatusVec;
-    for (auto dynamicNodeId : curDrawStatusVec_) {
+    for (auto dynamicNodeId : curDrawStatusVec) {
         if (lastDrawStatusMap_.find(dynamicNodeId) == lastDrawStatusMap_.end()) {
             drawStatusVec.emplace_back(std::make_pair(dynamicNodeId,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS));
             RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, dynamicNodeId, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS);
         }
-        lastDrawStatusMap_[dynamicNodeId] = timestamp_;
+        lastDrawStatusMap_[dynamicNodeId] = timestamp;
     }
     auto drawStatusIter = lastDrawStatusMap_.begin();
     while (drawStatusIter != lastDrawStatusMap_.end()) {
-        if (timestamp_ - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
+        if (timestamp - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
             drawStatusVec.emplace_back(std::make_pair(drawStatusIter->first,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS));
             RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
@@ -2019,7 +2031,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
             drawStatusIter++;
         }
     }
-    curDrawStatusVec_.clear();
+    curDrawStatusVec.clear();
     if (!drawStatusVec.empty()) {
         std::lock_guard<std::mutex> lock(occlusionMutex_);
         for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
@@ -3431,7 +3443,6 @@ bool RSMainThread::HasMirrorDisplay() const
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
-        RS_LOGW("RSMainThread::HasMirrorDisplay GetGlobalRootRenderNode fail or rootnode's child not enough");
         return false;
     }
 
@@ -3491,6 +3502,8 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+    RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        deviceType_ == DeviceType::PHONE);
     if (RSSystemProperties::GetUIFirstForceEnabled()) {
         isUiFirstOn_ = true;
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);

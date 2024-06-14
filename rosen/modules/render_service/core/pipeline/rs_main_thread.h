@@ -333,6 +333,8 @@ public:
         return isFirstFrameOfPartialRender_;
     }
 
+    void CallbackDrawContextStatusToWMS(bool isUniRender = false);
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -373,7 +375,6 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
-    void CallbackDrawContextStatusToWMS();
     void CheckSystemSceneStatus();
     void UpdateUIFirstSwitch();
     // ROG: Resolution Online Government
@@ -443,6 +444,7 @@ private:
     float GetCurrentSteadyTimeMsFloat() const;
     void RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex);
     void UpdateLuminance();
+    void DvsyncCheckRequestNextVsync();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

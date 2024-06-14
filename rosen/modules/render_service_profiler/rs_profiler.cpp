@@ -53,7 +53,7 @@ static double g_playbackStartTime = 0.0;
 static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
 static bool g_playbackShouldBeTerminated = false;
-static uint64_t g_playbackPauseTime = 0;
+static double g_playbackPauseTime = 0;
 static int g_playbackWaitFrames = 0;
 
 static std::unordered_set<NodeId> g_nodeSetPerf;

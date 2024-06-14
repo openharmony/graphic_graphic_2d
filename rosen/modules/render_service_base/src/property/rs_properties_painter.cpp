@@ -30,6 +30,7 @@
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_skia_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -711,6 +712,13 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
+
+    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    if (magnifierShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
+        auto para = tmpFilter->GetMagnifierShaderFilterPara();
+        imageClipIBounds.Offset(para->offsetX_, para->offsetY_);
+    }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter image null");

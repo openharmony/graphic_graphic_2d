@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
+#include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
@@ -168,7 +169,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(canvas_, nullptr);
-    displayDrawable_->DrawWatermarkIfNeed(*renderNode_, *canvas_);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    if (params) {
+        displayDrawable_->DrawWatermarkIfNeed(*params, *canvas_);
+    }
 }
 
 /**

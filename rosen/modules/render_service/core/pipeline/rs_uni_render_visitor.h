@@ -256,7 +256,7 @@ private:
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
-    void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node, Drawing::Matrix& matrix, float& alpha);
+    void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
 
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
@@ -614,6 +614,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
 
     std::vector<RectI> globalFilterRects_;
+    std::vector<RectI> globalSurfaceBounds_;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
     bool needRequestNextVsync_ = true;

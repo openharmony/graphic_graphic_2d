@@ -86,6 +86,11 @@ public:
         if (bottom_ < MIN_REGION_VALUE || bottom_ > MAX_REGION_VALUE) {
             hasAbnormalValue = true;
         }
+        if (hasAbnormalValue) {
+            RS_LOGE("Occlusion::Rect initialized with invalid value, [%{public}d, %{public}d, %{public}d, %{public}d], \
+                should in range [%{public}d, %{public}d]",
+                left_, top_, right_, bottom_, MIN_REGION_VALUE, MAX_REGION_VALUE);
+        }
         return hasAbnormalValue;
     }
 
@@ -140,8 +145,19 @@ public:
         return RectI{left_, top_, right_ - left_, bottom_ - top_};
     }
 
-    int Area() const;
-    int IntersectArea(const Rect& r) const;
+    int Area() const
+    {
+        if (IsEmpty()) {
+            return 0;
+        }
+        return (right_ - left_) * (bottom_ - top_);
+    }
+
+    int IntersectArea(const Rect& r) const
+    {
+        Rect res = this->Intersect(r);
+        return res.Area();
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const Rect& r);
@@ -263,6 +279,16 @@ public:
     {
         return rects_;
     }
+
+    const std::vector<RectI>& GetRegionRectIs()
+    {
+        std::vector<RectI> rectIs;
+        for (const auto& rect : rects_) {
+            rectIs.emplace_back(rect.ToRectI());
+        }
+        return rectIs;
+    }
+
     int GetSize() const
     {
         return rects_.size();

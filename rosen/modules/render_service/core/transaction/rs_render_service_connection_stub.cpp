@@ -407,8 +407,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t min = data.ReadUint32();
             uint32_t max = data.ReadUint32();
             uint32_t preferred = data.ReadUint32();
+            uint32_t type = data.ReadUint32();
             bool isAnimatorStopped = data.ReadBool();
-            SyncFrameRateRange(id, {min, max, preferred}, isAnimatorStopped);
+            SyncFrameRateRange(id, {min, max, preferred, type}, isAnimatorStopped);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
@@ -1513,6 +1514,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
+                ret = ERR_TRANSACTION_FAILED;
+                break;
+            }
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             reply.WriteInt32(activeDirtyRegionInfos.size());
             for (const auto& activeDirtyRegionInfo : activeDirtyRegionInfos) {
@@ -1535,7 +1541,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_SYNTHESIS_MODE_INFO) : {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO) : {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;

@@ -28,7 +28,6 @@
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
-bool g_forceBgAntiAlias = true;
 constexpr int TRACE_LEVEL_TWO = 2;
 }
 
@@ -340,7 +339,6 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
     Drawing::Brush brush;
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
@@ -387,10 +385,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
-    bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     Drawing::Brush brush;
-    brush.SetAntiAlias(antiAlias);
     auto boundsRect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     bgImage->SetDstRect(properties.GetBgImageRect());

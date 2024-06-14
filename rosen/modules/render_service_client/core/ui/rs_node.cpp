@@ -479,6 +479,12 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
+void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
+{
+    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
+        RSModifierType::MAGNIFIER_PARA, para);
+}
+
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 {
     return motionPathOption_;
@@ -1066,13 +1072,13 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
                 position.y_ + emitSize.y_ + imageSizeHeightMax + imageSizeHeightMax);
         }
     }
-    float l = *std::min_element(left.begin(), left.end());
-    float t = *std::min_element(top.begin(), top.end());
-    boundsRight = *std::max_element(right.begin(), right.end());
-    boundsBottom = *std::max_element(bottom.begin(), bottom.end());
-    std::shared_ptr<RectF> overlayRect =
-        std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t);
-    SetDrawRegion(overlayRect);
+    if (emitterCount != 0) {
+        float l = *std::min_element(left.begin(), left.end());
+        float t = *std::min_element(top.begin(), top.end());
+        boundsRight = *std::max_element(right.begin(), right.end());
+        boundsBottom = *std::max_element(bottom.begin(), bottom.end());
+        SetDrawRegion(std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t));
+    }
 }
 
 // Update Particle Emitter

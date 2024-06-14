@@ -41,13 +41,14 @@ public:
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);
     void SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate);
-    void VoteRate(std::string eventName, uint32_t rate);
-    void CancelVoteRate(std::string eventName);
-    void NotifyRefreshRateEvent(EventInfo eventInfo);
+    void VoteRate(pid_t pid, std::string eventName, uint32_t rate);
+    void CancelVoteRate(pid_t pid, std::string eventName);
+    void NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo);
 
 private:
     bool isSwitchOn_ {false};
-    uint32_t lastVotedRate_ {0};
+    pid_t lastVotedPid_ {DEFAULT_PID};
+    uint32_t lastVotedRate_ {OLED_NULL_HZ};
     bool isVoted_ {false};
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ {nullptr};
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_ {};
