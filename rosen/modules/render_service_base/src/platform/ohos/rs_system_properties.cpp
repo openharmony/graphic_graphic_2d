@@ -784,6 +784,12 @@ bool RSSystemProperties::IsPhoneType()
     return isPhone;
 }
 
+bool RSSystemProperties::IsTabletType()
+{
+    static bool isTablet = system::GetParameter("const.product.devicetype", "pc") == "tablet";
+    return isTablet;
+}
+
 bool RSSystemProperties::IsPcType()
 {
     static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
