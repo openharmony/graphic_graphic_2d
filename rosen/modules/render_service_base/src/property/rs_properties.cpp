@@ -3629,6 +3629,18 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // ForegroundFilter
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ForegroundFilter, ret=" + std::to_string(ret);
+    }
+    auto foregroundFilterCache_ = GetForegroundFilterCache();
+    if (foregroundFilterCache_ && foregroundFilterCache_->IsValid() &&
+        sprintf_s(buffer, UINT8_MAX, ", ForegroundFilter[%s]", foregroundFilterCache_->GetDescription().c_str()) !=
+        -1) {
+        dumpInfo.append(buffer);
+    }
+
     // Outline
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
