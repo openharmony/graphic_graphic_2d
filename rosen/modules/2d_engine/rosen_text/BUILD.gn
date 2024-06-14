@@ -192,11 +192,12 @@ if (enable_text_gine) {
       }
     }
 
-    deps = [
-      "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
-      "$skia_root_new:skia_$platform",
-      "./skia_txt:skia_libtxt_$platform",
-    ]
+    deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
+    if (!(is_linux && host_cpu == "arm64")) {
+      deps += [ "./skia_txt:skia_libtxt_$platform",
+                "$skia_root_new:skia_$platform",
+              ]
+    }
 
     external_deps = [ "hilog:libhilog" ]
 
