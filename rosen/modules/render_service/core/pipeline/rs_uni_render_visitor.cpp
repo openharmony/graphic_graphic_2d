@@ -6453,7 +6453,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate()
         }
         auto &geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
         tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // trueЈєdebugRect for dislplayNode skip
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true: debugRect for dislplayNode skip
     }
 }
 
