@@ -191,6 +191,10 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     }
     surfaceIdMap_[surfaceId] = layer;
 
+    if (device_ == nullptr) {
+        HLOGE("[%{public}s]HdiDevice is nullptr.", __func__);
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
     // DISPLAY ENGINE
     if (!arsrPreEnabled_) {
         return GRAPHIC_DISPLAY_SUCCESS;
