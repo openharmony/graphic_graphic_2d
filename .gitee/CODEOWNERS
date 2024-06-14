@@ -7,8 +7,8 @@ bundle.json @lijj01
 rosen/modules/glfw_render_context/ @aslklw
 
 [drawing]
-rosen/modules/2d_graphics/BUILD.gn @hw_yang
-rosen/modules/2d_graphics/include/ @hw_yang
-rosen/modules/2d_graphics/src/drawing/ @hw_yang
-rosen/modules/2d_graphics/drawing_ndk/ @hw_yang
-interfaces/kits/napi/graphic/drawing/ @hw_yang
+rosen/modules/2d_graphics/BUILD.gn @ustc-tianyu
+rosen/modules/2d_graphics/include/ @ustc-tianyu
+rosen/modules/2d_graphics/src/drawing/ @ustc-tianyu
+rosen/modules/2d_graphics/drawing_ndk/ @ustc-tianyu
+interfaces/kits/napi/graphic/drawing/ @ustc-tianyu
