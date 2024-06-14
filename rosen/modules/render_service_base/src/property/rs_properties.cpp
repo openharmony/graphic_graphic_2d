@@ -40,6 +40,7 @@
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_spherize_effect_filter.h"
 #include "src/core/SkOpts.h"
+#include "render/rs_water_ripple_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -150,6 +151,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT
     [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT
     [](RSProperties* prop) { prop->SetSystemBarEffect({}); },            // SYSTEMBAREFFECT
+    [](RSProperties* prop) { prop->SetWaterRippleProgress(0.0f); },      // WATER_RIPPLE_PROGRESS
+    [](RSProperties* prop) { prop->SetWaterRippleParams({}); },          // WATER_RIPPLE_PARAMS
     [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE
@@ -1360,6 +1363,41 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+void RSProperties::SetWaterRippleProgress(const float& progress)
+{
+    waterRippleProgress_ = progress;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+float RSProperties::GetWaterRippleProgress() const
+{
+    return waterRippleProgress_;
+}
+ 
+void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params)
+{
+    waterRippleParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
+{
+    return waterRippleParams_;
+}
+ 
+bool RSProperties::IsWaterRippleValid() const
+{
+    return ROSEN_GE(waterRippleProgress_, 0.0f) && waterRippleParams_.has_value();
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -2810,6 +2848,25 @@ void RSProperties::GenerateMagnifierFilter()
     filter_->SetFilterType(RSFilter::MAGNIFIER);
 }
 
+void RSProperties::GenerateWaterRippleFilter()
+{
+    float waveCount = waterRippleParams_->waveCount;
+    float rippleCenterX = waterRippleParams_->rippleCenterX;
+    float rippleCenterY = waterRippleParams_->rippleCenterY;
+    std::shared_ptr<RSWaterRippleShaderFilter> waterRippleFilter =
+        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY);
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(waterRippleFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::WATER_RIPPLE);
+    } else {
+        auto backgroudDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroudDrawingFilter->Compose(waterRippleFilter);
+        backgroudDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroudDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -2820,6 +2877,9 @@ void RSProperties::GenerateBackgroundFilter()
         GenerateBackgroundBlurFilter();
     } else {
         backgroundFilter_ = nullptr;
+    }
+    if (IsWaterRippleValid()) {
+        GenerateWaterRippleFilter();
     }
     if (backgroundFilter_ == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateBackgroundFilter failed");
@@ -3958,7 +4018,8 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || magnifierPara_ != nullptr;
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
+                  magnifierPara_ != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()

@@ -241,6 +241,12 @@ void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyLinearGradientBlurPara, value, type);
 }
 template<>
+void RSProperty<RSWaterRipplePara>::UpdateToRender(
+    const RSWaterRipplePara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyWaterRipple, value, type);
+}
+template<>
 void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
     const std::shared_ptr<MotionBlurParam>& value, PropertyUpdateType type) const
 {

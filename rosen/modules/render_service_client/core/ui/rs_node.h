@@ -39,6 +39,7 @@
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -337,6 +338,8 @@ public:
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
+    
+    void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
 
     void SetPaintOrder(bool drawContentLast);
 

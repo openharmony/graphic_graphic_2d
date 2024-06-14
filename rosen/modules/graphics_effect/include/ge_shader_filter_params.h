@@ -39,6 +39,18 @@ struct GEAIBarShaderFilterParams {
     float aiBarSaturation;
 };
 
+constexpr char GE_FILTER_WATER_RIPPLE[] = "WATER_RIPPLE";
+constexpr char GE_FILTER_WATER_RIPPLE_PROGRESS[] = "PROGRESS";
+constexpr char GE_FILTER_WATER_RIPPLE_WAVE_NUM[] = "WAVE_NUM";
+constexpr char GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X[] = "RIPPLE_CENTER_X";
+constexpr char GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y[] = "RIPPLE_CENTER_Y";
+struct GEWaterRippleFilterParams {
+    float progress = 0.0f;
+    float waveCount = 2.0f;
+    float rippleCenterX = 0.5f;
+    float rippleCenterY = 0.7f;
+};
+
 constexpr char GE_FILTER_GREY[] = "GREY";
 constexpr char GE_FILTER_GREY_COEF_1[] = "GREY_COEF_1";
 constexpr char GE_FILTER_GREY_COEF_2[] = "GREY_COEF_2";

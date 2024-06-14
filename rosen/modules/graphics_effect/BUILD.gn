@@ -62,6 +62,7 @@ ohos_source_set("graphics_effect_src") {
     "src/ge_visual_effect.cpp",
     "src/ge_visual_effect_container.cpp",
     "src/ge_visual_effect_impl.cpp",
+    "src/ge_water_ripple_filter.cpp",
   ]
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]

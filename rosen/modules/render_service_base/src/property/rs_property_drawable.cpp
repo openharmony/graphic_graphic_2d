@@ -120,6 +120,8 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::LIGHT_UP_EFFECT },
     { RSModifierType::AIINVERT, RSPropertyDrawableSlot::BINARIZATION },
     { RSModifierType::SYSTEMBAREFFECT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::WATER_RIPPLE_PROGRESS, RSPropertyDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::WATER_RIPPLE_PARAMS, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_TILE_MODE, RSPropertyDrawableSlot::PIXEL_STRETCH },

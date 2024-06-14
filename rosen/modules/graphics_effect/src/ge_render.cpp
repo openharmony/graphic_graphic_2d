@@ -22,6 +22,7 @@
 #include "ge_log.h"
 #include "ge_magnifier_shader_filter.h"
 #include "ge_visual_effect_impl.h"
+#include "ge_water_ripple_filter.h"
 
 namespace OHOS {
 namespace GraphicsEffectEngine {
@@ -105,6 +106,11 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
             case Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR: {
                 const auto& linearGradientBlurParams = ve->GetLinearGradientBlurParams();
                 shaderFilter = std::make_shared<GELinearGradientBlurShaderFilter>(*linearGradientBlurParams);
+                break;
+            }
+            case Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE: {
+                const auto& waterRippleParams = ve->GetWaterRippleParams();
+                shaderFilter = std::make_shared<GEWaterRippleFilter>(*waterRippleParams);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER: {
