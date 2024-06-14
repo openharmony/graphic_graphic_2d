@@ -215,6 +215,7 @@ public:
     static bool GetSnapshotWithDMAEnabled();
     static bool GetDrmEnabled();
     static bool IsPhoneType();
+    static bool IsTabletType();
     static bool IsPcType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
