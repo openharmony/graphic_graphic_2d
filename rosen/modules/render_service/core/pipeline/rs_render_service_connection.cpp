@@ -33,6 +33,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
@@ -149,10 +150,11 @@ void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
 {
     auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     MoveRenderNodeMap(subRenderNodeMap);
-    RSBackgroundThread::Instance().PostTask(
-        [this, subRenderNodeMap]() {
-            RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
-        });
+    RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
+    if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
+        RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
+        RSRenderNodeGC::Instance().ReleaseNodeMemory();
+    }
 }
 
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
