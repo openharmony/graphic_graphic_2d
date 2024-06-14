@@ -3636,8 +3636,8 @@ std::string RSProperties::Dump() const
     }
     auto foregroundFilterCache_ = GetForegroundFilterCache();
     if (foregroundFilterCache_ && foregroundFilterCache_->IsValid() &&
-        sprintf_s(buffer, UINT8_MAX, ", ForegroundFilter[%s]", foregroundFilterCache_->GetDescription().c_str()) !=
-            -1) {
+        sprintf_s(buffer, UINT8_MAX, ", ForegroundFilter[%s]", foregroundFilterCache_->GetDescription().c_str()) != -1)
+    {
         dumpInfo.append(buffer);
     }
 
