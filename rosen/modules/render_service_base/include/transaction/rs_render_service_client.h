@@ -154,7 +154,8 @@ public:
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable);
 #endif
-
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
+    
     void RemoveVirtualScreen(ScreenId id);
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);

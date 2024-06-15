@@ -90,6 +90,8 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
+    
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
 #ifdef RS_ENABLE_VK

@@ -72,6 +72,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
+
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable) override;
 #endif

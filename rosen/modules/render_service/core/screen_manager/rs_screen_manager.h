@@ -70,8 +70,14 @@ public:
         int flags = 0,
         std::vector<uint64_t> filteredAppVector = {}) = 0;
 
-    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t> blackListVector = {}) = 0;
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) = 0;
 
+    virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
+
+    virtual void GetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList) = 0;
+
+    virtual bool GetCastScreenEnableSkipWindow(ScreenId id) = 0;
+    
     virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
@@ -256,8 +262,14 @@ public:
         int32_t flags,
         std::vector<uint64_t> filteredAppVector) override;
 
-    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t> blackListVector) override;
+    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) override;
 
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
+
+    void GetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList) override;
+
+    bool GetCastScreenEnableSkipWindow(ScreenId id) override;
+    
     std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
@@ -429,6 +441,7 @@ private:
     ScreenRotation GetScreenCorrectionLocked(ScreenId id) const;
     int32_t GetScreenBacklightLocked(ScreenId id) const;
 
+    void SetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList);
     void RemoveVirtualScreenLocked(ScreenId id);
     ScreenId GenerateVirtualScreenIdLocked();
     void ReuseVirtualScreenIdLocked(ScreenId id);
@@ -460,6 +473,7 @@ private:
 #endif
 
     mutable std::mutex mutex_;
+    mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
     std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
@@ -471,6 +485,7 @@ private:
     std::vector<ScreenId> connectedIds_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
+    std::unordered_set<uint64_t> castScreenBlackLists_ = {};
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
