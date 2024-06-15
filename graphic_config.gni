@@ -46,7 +46,7 @@ declare_args() {
   graphic_2d_feature_use_igraphics_extend_hooks = false
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
-  graphic_2d_feature_enable_rspipeline = false
+  graphic_2d_feature_enable_rspipeline = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -129,7 +129,8 @@ if (graphic_2d_feature_ace_enable_gpu) {
 }
 
 if (graphic_2d_feature_parallel_upload_enable &&
-    graphic_2d_feature_rs_enable_uni_render) {
+    graphic_2d_feature_rs_enable_uni_render &&
+    graphic_2d_feature_product == "phone") {
   rs_enable_parallel_upload = true
   gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
 } else {

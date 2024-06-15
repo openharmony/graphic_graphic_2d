@@ -241,6 +241,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
             Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
                 Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
             std::shared_ptr<Drawing::Surface> surface;
+#ifdef RS_ENABLE_VK
             DmaMem dmaMem;
             if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
                 sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
@@ -256,6 +257,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
                 auto tmpImg = std::make_shared<Drawing::Image>();
                 DrawCapturedImg(*tmpImg, *surface, backendTexture);
             } else {
+#else
+            {
+#endif
                 auto grContext = RSBackgroundThread::Instance().GetShareGPUContext().get();
                 surface = Drawing::Surface::MakeRenderTarget(grContext, false, info);
                 if (surface == nullptr) {
@@ -283,7 +287,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
             RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
             callback->OnSurfaceCapture(id, pixelmap.get());
             RSBackgroundThread::Instance().CleanGrResource();
+#ifdef RS_ENABLE_VK
             dmaMem.ReleaseDmaMemory();
+#endif
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
         };
@@ -511,6 +517,5 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(sptr<Surfa
     return drawingSurface;
 }
 #endif
-
 } // namespace Rosen
 } // namespace OHOS
