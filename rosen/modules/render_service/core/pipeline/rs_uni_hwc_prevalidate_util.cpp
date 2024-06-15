@@ -183,6 +183,9 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
 void RSUniHwcPrevalidateUtil::CollectUIFirstLayerInfo(std::vector<RequestLayerInfo>& uiFirstLayers,
     uint32_t curFps, float zOrder, const ScreenInfo& screenInfo)
 {
+    if (!RSUifirstManager::Instance().GetUseDmaBuffer()) {
+        return;
+    }
     auto pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
     for (auto iter : pendingNodes) {
         if (iter.second->IsHardwareForcedDisabled()) {
