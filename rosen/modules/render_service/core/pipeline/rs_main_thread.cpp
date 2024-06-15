@@ -1080,11 +1080,17 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     rsTransactionData->Process(*context_);
 }
 
-void RSMainThread::ProcessSubSyncTransactionCount(int32_t hostPid)
+void RSMainThread::ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    auto count = subSyncTransactionCounts_[hostPid];
-    count--;
-    count == 0 ? subSyncTransactionCounts_.erase(hostPid) : subSyncTransactionCounts_[hostPid] = count;
+    ROSEN_LOGD("RSMainThread::ProcessEmptySyncTransactionCount syncId:%{public}" PRIu64 " parentPid:%{public}d "
+        "childPid:%{public}d", syncId, parentPid, childPid);
+    if ((parentPid == -1 && childPid == -1) || ExtractPid(syncId) == childPid) {
+        syncTransactionCount_ -= 1;
+    } else {
+        auto count = subSyncTransactionCounts_[childPid];
+        count--;
+        count == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = count;
+    }
     if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
         ProcessAllSyncTransactionData();
     }
@@ -1093,25 +1099,34 @@ void RSMainThread::ProcessSubSyncTransactionCount(int32_t hostPid)
 void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
-    auto hostPid = rsTransactionData->GetHostPid();
-    if (hostPid == -1 || ExtractPid(rsTransactionData->GetSyncId()) == hostPid) {
-        // Synchronous commands initiated directly from the SCB
-        if (isNeedCloseSync) {
-            syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
-        } else {
-            syncTransactionCount_ -= 1;
-        }
+    auto parentPid = rsTransactionData->GetParentPid();
+    auto childPid = rsTransactionData->GetChildPid();
+    auto syncNum = rsTransactionData->GetSyncTransactionNum();
+    auto isFromSCB = ((parentPid == -1 && childPid == -1) || ExtractPid(rsTransactionData->GetSyncId()) == childPid);
+
+    if (isNeedCloseSync) {
+        syncTransactionCount_ += syncNum;
+    } else if (isFromSCB && syncNum == 0) {
+        // Synchronous commands initiated directly from the SCB and the subprocess does not contain UiExtension.
+        syncTransactionCount_ -= 1;
     } else {
-        // Synchronous command initiated by uiextension host
-        auto count = subSyncTransactionCounts_[hostPid];
-        if (rsTransactionData->GetSyncTransactionNum() > 0) {
-            count += rsTransactionData->GetSyncTransactionNum();
-            syncTransactionCount_ -= 1;
+        // Synchronous command initiated by uiextension host or the subprocess contain UiExtension.
+        auto parentNum = subSyncTransactionCounts_[parentPid];
+        auto childNum = subSyncTransactionCounts_[childPid];
+        if (syncNum > 0) {
+            parentPid == -1 ? syncTransactionCount_ -= 1 : parentNum -= 1;
+            childNum += syncNum;
         } else {
-            count -= 1;
+            childNum -= 1;
         }
-        count == 0 ? subSyncTransactionCounts_.erase(hostPid) : subSyncTransactionCounts_[hostPid] = count;
+        parentNum == 0 ? subSyncTransactionCounts_.erase(parentPid) : subSyncTransactionCounts_[parentPid] = parentNum;
+        childNum == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = childNum;
     }
+    ROSEN_LOGD("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
+               " parentPid:%{public}d childPid:%{public}d syncNum:%{public}d  syncTransactionCount_:%{public}d "
+               "subSyncTransactionCounts_.size:%{public}zd",
+        isNeedCloseSync, rsTransactionData->GetSyncId(), parentPid, childPid, syncNum, syncTransactionCount_,
+        subSyncTransactionCounts_.size());
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
@@ -1159,6 +1174,7 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
 
 void RSMainThread::ProcessAllSyncTransactionData()
 {
+    RS_TRACE_NAME("RSMainThread::ProcessAllSyncTransactionData");
     for (auto& [pid, transactions] : syncTransactionData_) {
         for (auto& transaction: transactions) {
             ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData GetCommandCount: %{public}lu pid: %{public}d",

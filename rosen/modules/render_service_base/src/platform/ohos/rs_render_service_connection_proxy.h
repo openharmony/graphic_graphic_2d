@@ -223,7 +223,7 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
-    void ChangeSyncCount(int32_t hostPid) override;
+    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
 
     void RunOnRemoteDiedCallback() override;
 

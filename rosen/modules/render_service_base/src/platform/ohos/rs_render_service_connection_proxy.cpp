@@ -2234,7 +2234,7 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::ChangeSyncCount(int32_t hostPid)
+void RSRenderServiceConnectionProxy::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2242,7 +2242,13 @@ void RSRenderServiceConnectionProxy::ChangeSyncCount(int32_t hostPid)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    if (!data.WriteInt32(hostPid)) {
+    if (!data.WriteUint64(syncId)) {
+        return;
+    }
+    if (!data.WriteInt32(parentPid)) {
+        return;
+    }
+    if (!data.WriteInt32(childPid)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

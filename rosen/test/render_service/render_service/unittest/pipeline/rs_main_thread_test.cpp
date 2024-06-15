@@ -425,19 +425,19 @@ HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
     auto rsTransactionData = std::make_unique<RSTransactionData>();
 
     mainThread->syncTransactionCount_ = 1;
-    rsTransactionData->SetHostPid(-1);
+    rsTransactionData->SetParentPid(-1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     ASSERT_EQ(mainThread->syncTransactionCount_, 0);
 
     mainThread->syncTransactionCount_ = 0;
-    rsTransactionData->SetHostPid(-1);
+    rsTransactionData->SetParentPid(-1);
     rsTransactionData->MarkNeedCloseSync();
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     ASSERT_EQ(mainThread->syncTransactionCount_, 0);
 
     mainThread->syncTransactionCount_ = 1;
     rsTransactionData->SetSyncTransactionNum(1);
-    rsTransactionData->SetHostPid(1);
+    rsTransactionData->SetParentPid(1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     ASSERT_EQ(mainThread->syncTransactionCount_, 0);
 }

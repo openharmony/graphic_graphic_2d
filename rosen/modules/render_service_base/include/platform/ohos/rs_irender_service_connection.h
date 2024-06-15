@@ -248,7 +248,7 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void ChangeSyncCount(int32_t hostPid) = 0;
+    virtual void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

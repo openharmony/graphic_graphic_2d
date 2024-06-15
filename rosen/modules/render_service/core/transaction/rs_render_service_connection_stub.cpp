@@ -1504,8 +1504,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            auto hostPid = data.ReadInt32();
-            ChangeSyncCount(hostPid);
+            auto syncId = data.ReadUint64();
+            auto parentPid = data.ReadInt32();
+            auto childPid = data.ReadInt32();
+            ChangeSyncCount(syncId, parentPid, childPid);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {

@@ -1360,10 +1360,10 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
-void RSRenderServiceConnection::ChangeSyncCount(int32_t hostPid)
+void RSRenderServiceConnection::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    auto task = [this, hostPid]() -> void {
-        mainThread_->ProcessSubSyncTransactionCount(hostPid);
+    auto task = [this, syncId, parentPid, childPid]() -> void {
+        mainThread_->ProcessEmptySyncTransactionCount(syncId, parentPid, childPid);
     };
     mainThread_->PostTask(task);
 }
