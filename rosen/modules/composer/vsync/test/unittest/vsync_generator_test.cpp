@@ -14,6 +14,8 @@
  */
 
 #include "vsync_generator.h"
+#include "vsync_controller.h"
+#include "vsync_distributor.h"
 
 #include <gtest/gtest.h>
 
@@ -36,11 +38,21 @@ public:
 
     static inline sptr<VSyncGenerator> vsyncGenerator_;
     static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
+    static inline sptr<VSyncController> appController;
+    static inline sptr<VSyncController> rsController;
+    static inline sptr<VSyncDistributor> appDistributor;
+    static inline sptr<VSyncDistributor> rsDistributor;
 };
 
 void VSyncGeneratorTest::SetUpTestCase()
 {
     vsyncGenerator_ = CreateVSyncGenerator();
+    appController = new VSyncController(vsyncGenerator_, 0);
+    rsController = new VSyncController(vsyncGenerator_, 0);
+    appDistributor = new VSyncDistributor(appController, "app");
+    rsDistributor = new VSyncDistributor(rsController, "app");
+    vsyncGenerator_->SetRSDistributor(rsDistributor);
+    vsyncGenerator_->SetAppDistributor(appDistributor);
 }
 
 void VSyncGeneratorTest::TearDownTestCase()
