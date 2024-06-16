@@ -1292,7 +1292,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 {
     switch (visibleLevel) {
         case RSVisibleLevel::RS_INVISIBLE:
-            return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
+            return WINDOW_LAYER_INFO_TYPE::INVISIBLE;
         case RSVisibleLevel::RS_ALL_VISIBLE:
             return WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE;
         case RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE:
@@ -1957,7 +1957,8 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     return true;
 }
 
-void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation)
+void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
+    const bool isFocusWindow)
 {
     auto absRect = GetDstRect().IntersectRect(GetOldDirtyInSurface());
     Vector4f tmpCornerRadius;
@@ -1971,14 +1972,15 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.absRect_ == absRect &&
         opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
     if (!ret) {
         // planning: default process focus window
-        ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, true, cornerRadius);
+        ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
     }
-    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, true, cornerRadius);
+    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
 }
 
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,

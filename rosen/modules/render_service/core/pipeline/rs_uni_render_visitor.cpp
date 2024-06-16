@@ -1394,7 +1394,10 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
 {
     // CheckAndUpdateOpaqueRegion only in mainWindow
-    node.CheckAndUpdateOpaqueRegion(screenRect_, curDisplayNode_->GetRotation());
+    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+    auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
+        (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
+    node.CheckAndUpdateOpaqueRegion(screenRect_, curDisplayNode_->GetRotation(), isFocused);
     if (!needRecalculateOcclusion_) {
         needRecalculateOcclusion_ = node.CheckIfOcclusionChanged();
     }
@@ -1429,7 +1432,8 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
     if (instanceNode == nullptr) {
         return;
     }
-    if ((node.IsSelfDrawingNode() && !instanceNode->GetVisibleRegion().IsEmpty()) || node.IsAbilityComponent()) {
+    if ((node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
+        !instanceNode->GetVisibleRegion().IsEmpty()) || node.IsAbilityComponent()) {
         dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
             WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
         return;
