@@ -80,7 +80,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
  * @tc.name: OnGenerateAndOnUpdateTest002
  * @tc.desc: OnGenerate and OnUpdate test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSize.Level1)
 {
@@ -120,17 +120,19 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     EXPECT_NE(foregroundFilterDrawable, nullptr);
     renderNodeTest7.renderContent_->renderProperties_.foregroundFilter_ = nullptr;
     EXPECT_EQ(foregroundFilterDrawable->OnGenerate(renderNodeTest7), nullptr);
+    EXPECT_FALSE(foregroundFilterDrawable->OnUpdate(renderNodeTest7));
     std::shared_ptr<RSFilter> foregroundFilterTest1 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest1, nullptr);
     renderNodeTest7.renderContent_->renderProperties_.foregroundFilter_ = foregroundFilterTest1;
     EXPECT_NE(foregroundFilterDrawable->OnGenerate(renderNodeTest7), nullptr);
+    EXPECT_TRUE(foregroundFilterDrawable->OnUpdate(renderNodeTest7));
 }
 
 /**
  * @tc.name: OnGenerateAndOnUpdateTest003
  * @tc.desc: OnGenerate and OnUpdate test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSize.Level1)
 {
@@ -139,11 +141,13 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
     renderNodeTest8.renderContent_->renderProperties_.foregroundFilter_ = nullptr;
+    EXPECT_FALSE(foregroundFilterRestoreDrawable->OnUpdate(renderNodeTest8));
     EXPECT_EQ(foregroundFilterRestoreDrawable->OnGenerate(renderNodeTest8), nullptr);
     std::shared_ptr<RSFilter> foregroundFilterTest2 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest2, nullptr);
     renderNodeTest8.renderContent_->renderProperties_.foregroundFilter_ = foregroundFilterTest2;
     EXPECT_NE(foregroundFilterRestoreDrawable->OnGenerate(renderNodeTest8), nullptr);
+    EXPECT_TRUE(foregroundFilterRestoreDrawable->OnUpdate(renderNodeTest8));
 
     RSRenderNode renderNodeTest9(0);
     std::shared_ptr<DrawableV2::RSPixelStretchDrawable> pixelStretchDrawable =
@@ -160,7 +164,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
  * @tc.name: OnGenerateAndOnUpdateTest004
  * @tc.desc: OnGenerate and OnUpdate test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest004, TestSize.Level1)
 {
@@ -171,10 +175,11 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest004, TestSiz
     EXPECT_EQ(borderDrawable->OnGenerate(renderNodeTest10), nullptr);
     std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
     EXPECT_NE(border, nullptr);
+    renderNodeTest10.renderContent_->renderProperties_.border_ = border;
+    EXPECT_EQ(borderDrawable->OnGenerate(renderNodeTest10), nullptr);
     border->colors_.emplace_back(RSColor(1.0f, 1.0f, 1.0f, 1.0f));
     border->widths_.emplace_back(1.0f);
     border->styles_.emplace_back(BorderStyle::SOLID);
-    renderNodeTest10.renderContent_->renderProperties_.border_ = border;
     EXPECT_NE(borderDrawable->OnGenerate(renderNodeTest10), nullptr);
 
     RSRenderNode renderNodeTest11(0);
@@ -438,5 +443,40 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest001, TestSize.Level1)
     pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
         std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest4);
+}
+
+/**
+ * @tc.name: DrawBorderTest001
+ * @tc.desc: DrawBorder test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable = std::make_shared<DrawableV2::RSBorderDrawable>();
+    EXPECT_NE(borderDrawable, nullptr);
+    RSProperties properties;
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color());
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    EXPECT_EQ(border->colors_.size(), 1);
+    EXPECT_EQ(border->styles_.size(), 1);
+    borderDrawable->DrawBorder(properties, canvas, border, false);
+
+    border->styles_.at(0) = BorderStyle::DASHED;
+    Vector4<float> radiusTest1 = { 0.0f, 0.0f, 0.0f, 0.0f };
+    border->radius_ = radiusTest1;
+    borderDrawable->DrawBorder(properties, canvas, border, true);
+
+    Vector4<float> radiusTest2 = { 10.0f, 0.0f, 0.0f, 0.0f };
+    border->radius_ = radiusTest2;
+    border->widths_.emplace_back(1.0f);
+    border->dashWidth_.emplace_back(1.0f);
+    border->dashGap_.emplace_back(1.0f);
+    borderDrawable->DrawBorder(properties, canvas, border, true);
+
+    border->dashGap_.clear();
+    borderDrawable->DrawBorder(properties, canvas, border, true);
 }
 } // namespace OHOS::Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1070,26 +1070,43 @@ HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1
 
 /**
  * @tc.name: OnSyncTest
- * @tc.desc:
+ * @tc.desc: OnSync Test
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueIA5Y41
  */
 HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(id, context);
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(node, nullptr);
+    node->renderDrawable_ = nullptr;
     node->OnSync();
-    EXPECT_TRUE(node->renderDrawable_ == nullptr);
 
-    auto child = std::make_shared<const RSRenderNode>(id, context);
+    std::shared_ptr<RSRenderNode> child = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(child, nullptr);
+
     node->renderDrawable_ = std::make_shared<RSRenderNodeDrawableAdapterBoy>(child);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->id_);
+    EXPECT_NE(node->renderDrawable_, nullptr);
+
     node->drawCmdListNeedSync_ = true;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->stagingRenderParams_, nullptr);
+
     node->stagingRenderParams_->needSync_ = true;
+    node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->renderDrawable_->renderParams_, nullptr);
+
     node->uifirstNeedSync_ = true;
+    node->renderDrawable_->uifirstRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->renderDrawable_->uifirstRenderParams_, nullptr);
+
     node->uifirstSkipPartialSync_ = false;
     node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     auto drawableFilter = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+
     node->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawableFilter;
+    node->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
+    node->stagingRenderParams_->freezeFlag_ = true;
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->clearSurfaceTask_ = clearTask;
@@ -1591,9 +1608,9 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
 
 /**
  * @tc.name: RemoveFromTreeTest010
- * @tc.desc: RemoveCrossParentChild test
+ * @tc.desc: RemoveFromTree test
  * @tc.type: FUNC
- * @tc.require: issueI9US6V
+ * @tc.require: issueIA5Y41
  */
 HWTEST_F(RSRenderNodeTest, RemoveFromTreeTest010, TestSize.Level1)
 {
