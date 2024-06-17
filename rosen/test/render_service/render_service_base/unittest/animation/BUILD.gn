@@ -55,6 +55,7 @@ ohos_unittest("RSRenderServiceBaseAnimationTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "init:libbegetutil",
     "skia:skia_canvaskit",
   ]

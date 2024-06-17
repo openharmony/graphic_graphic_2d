@@ -112,13 +112,6 @@ ohos_source_set("rosen_ohos_sources") {
     "$graphic_2d_root/utils/log",
   ]
 
-  public_external_deps = [
-    "c_utils:utils",
-    "graphic_surface:surface",
-    "graphic_surface:sync_fence",
-    "image_framework:image_native",
-  ]
-
   # profiler
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
@@ -130,8 +123,6 @@ ohos_source_set("rosen_ohos_sources") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
-
-  public_external_deps += [ "skia:skia_canvaskit" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     defines += [ "NEW_RENDER_CONTEXT" ]
@@ -145,13 +136,13 @@ ohos_source_set("rosen_ohos_sources") {
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
-
-    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -159,7 +150,9 @@ ohos_source_set("rosen_ohos_sources") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "openssl:libcrypto_shared",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
     "window_manager:libwsutils",
   ]
 
