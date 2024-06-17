@@ -30,12 +30,12 @@ sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::instance_ = nullptr;
 
 namespace {
 constexpr double PI = 3.1415926;
-constexpr int64_t ERROR_THRESHOLD = 160000000000; // 400 usec squared
+constexpr double ERROR_THRESHOLD = 160000000000.0; // 400 usec squared
 constexpr int32_t INVALID_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
-constexpr int64_t SAMPLE_VARIANCE_THRESHOLD = 250000000000; // 500 usec squared
+constexpr double SAMPLE_VARIANCE_THRESHOLD = 250000000000.0; // 500 usec squared
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -176,7 +176,7 @@ void VSyncSampler::UpdateModeLocked()
         int64_t max = 0;
         int64_t diffPrev = 0;
         int64_t diff = 0;
-        int64_t variance = 0;
+        double variance = 0;
         for (uint32_t i = 1; i < numSamples_; i++) {
             int64_t prevSample = samples_[(firstSampleIndex_ + i - 1 + MAX_SAMPLES) % MAX_SAMPLES];
             int64_t currentSample = samples_[(firstSampleIndex_ + i) % MAX_SAMPLES];
@@ -184,13 +184,13 @@ void VSyncSampler::UpdateModeLocked()
             diff = currentSample - prevSample;
             if (diffPrev != 0) {
                 int64_t delta = diff - diffPrev;
-                variance += delta * delta;
+                variance += pow(static_cast<double>(delta), 2); // the 2nd power of delta
             }
             min = min < diff ? min : diff;
             max = max > diff ? max : diff;
             sum += diff;
         }
-        variance /= (int64_t)(numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
+        variance /= (numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
         if (variance > SAMPLE_VARIANCE_THRESHOLD) {
             // keep only the latest 5 samples, and sample the next timestamp.
             firstSampleIndex_ = (firstSampleIndex_ + numSamples_ - MIN_SAMPLES_FOR_UPDATE + 1) % MAX_SAMPLES;
@@ -236,7 +236,7 @@ void VSyncSampler::UpdateErrorLocked()
     }
 
     int numErrSamples = 0;
-    int64_t sqErrSum = 0;
+    double sqErrSum = 0;
 
     for (uint32_t i = 0; i < NUM_PRESENT; i++) {
         int64_t t = presentFenceTime_[i];
@@ -254,7 +254,7 @@ void VSyncSampler::UpdateErrorLocked()
         if (sampleErr > period_ / 2) {
             sampleErr -= period_;
         }
-        sqErrSum += sampleErr * sampleErr;
+        sqErrSum += pow(static_cast<double>(sampleErr), 2); // the 2nd power of sampleErr
         numErrSamples++;
     }
 
