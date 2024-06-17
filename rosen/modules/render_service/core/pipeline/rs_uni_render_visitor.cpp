@@ -2147,7 +2147,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     ResetDisplayDirtyRegion();
-    CheckMergeDebugRectforRefreshRate();
+    CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 
@@ -6433,27 +6433,29 @@ bool RSUniRenderVisitor::CheckColorFilterChange() const
     return true;
 }
 
-void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate()
+void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces)
 {
     // Debug dirtyregion of show current refreshRation
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
-
-        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        curDisplayNode_->CollectSurface(curDisplayNode_, curAllSurfaces, true, true);
-
-        for (auto surface : curAllSurfaces) {
-            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-            if (surfaceNode) {
+        bool surfaceNodeSet = false;
+        std::for_each(curMainAndLeashSurfaces.begin(), curMainAndLeashSurfaces.end(),
+            [this, &tempRect, &surfaceNodeSet](RSBaseRenderNode::SharedPtr& nodePtr) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
+            if (surfaceNode->IsMainWindowType()) {
+                // refresh rate rect for mainwindow
                 auto& geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
                 tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true: debugRect for dislplayNode skip
+                surfaceNodeSet = true;
                 return;
             }
+        });
+        if (!surfaceNodeSet) {
+            auto &geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
+            tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true: debugRect for dislplayNode skip
         }
-        auto &geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
-        tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true: debugRect for dislplayNode skip
     }
 }
 
