@@ -252,7 +252,7 @@ HWTEST_F(HdiOutputTest, Commit002, Function | MediumTest| Level1)
 */
 HWTEST_F(HdiOutputTest, ClearFrameBuffer002, Function | MediumTest | Level1)
 {
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_INVALID_OPERATING);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_CONSUMER_DISCONNECTED);
 }
 
 /*
