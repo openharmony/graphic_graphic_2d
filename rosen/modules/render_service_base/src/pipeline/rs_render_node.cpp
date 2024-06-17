@@ -2104,14 +2104,12 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         return;
     }
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        auto it = std::find_if(modifiers.begin(), modifiers.end(),
-            [id](const auto& modifier) -> bool { return modifier->GetPropertyId() == id; });
-        if (it == modifiers.end()) {
-            continue;
+        bool found = EraseIf(modifiers,
+            [id](const auto& modifier) -> bool { return modifier == nullptr || modifier->GetPropertyId() == id; });
+        if (found) {
+            AddDirtyType(type);
+            return;
         }
-        AddDirtyType(type);
-        modifiers.erase(it);
-        return;
     }
 }
 
