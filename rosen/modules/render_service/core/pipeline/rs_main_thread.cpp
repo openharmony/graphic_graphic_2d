@@ -1096,6 +1096,22 @@ void RSMainThread::ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t par
     }
 }
 
+void RSMainThread::StartSyncTransactionFallbackTask(std::unique_ptr<RSTransactionData>& rsTransactionData)
+{
+    if (handler_) {
+        auto task = [this, syncId = rsTransactionData->GetSyncId()]() {
+            if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
+                    syncTransactionData_.begin()->second.front()->GetSyncId() != syncId) {
+                return;
+            }
+            ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData timeout task");
+            ProcessAllSyncTransactionData();
+        };
+        handler_->PostTask(
+            task, "ProcessAllSyncTransactionsTimeoutTask", RSSystemProperties::GetSyncTransactionWaitDelay());
+    }
+}
+
 void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
@@ -1145,22 +1161,12 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
 
     if (syncTransactionData_.empty()) {
-        if (handler_) {
-            auto task = [this, syncId = rsTransactionData->GetSyncId()]() {
-                if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
-                        syncTransactionData_.begin()->second.front()->GetSyncId() != syncId) {
-                    return;
-                }
-                ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData timeout task");
-                ProcessAllSyncTransactionData();
-            };
-            handler_->PostTask(task, "ProcessAllSyncTransactionsTimeoutTask",
-                RSSystemProperties::GetSyncTransactionWaitDelay());
-        }
+        StartSyncTransactionFallbackTask(rsTransactionData);
     }
     if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
         (syncTransactionData_.begin()->second.front()->GetSyncId() != rsTransactionData->GetSyncId())) {
         ProcessAllSyncTransactionData();
+        StartSyncTransactionFallbackTask(rsTransactionData);
     }
     if (syncTransactionData_.count(pid) == 0) {
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
