@@ -172,6 +172,18 @@ static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRend
     RSUniRenderUtil::MergeDirtyHistory(displayNodeSp, bufferAge, false, true);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
+    const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
+    if (clipRectThreshold < 1.f) {
+        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+        allDirtyRegion.OrSelf(dirtyRegion);
+        auto bound = allDirtyRegion.GetBound();
+        if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
+            allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
+            dirtyManager->MergeDirtyRectAfterMergeHistory(bound.ToRectI());
+            RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
+                allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
+        }
+    }
     RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, dirtyManager->GetDirtyRegion());
 
     // DFX START
@@ -512,8 +524,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 WiredScreenProjection(displayNodeSp, *params, processor);
                 return;
             }
-            virtualScreenBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-            uniParam->SetBlackList(virtualScreenBlackList_);
+            castScreenEnableSkipWindow_ = screenManager->GetCastScreenEnableSkipWindow(paramScreenId);
+            if (castScreenEnableSkipWindow_) {
+                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable CastScreen SkipWindow.");
+                screenManager->GetCastScreenBlackList(castScreenBlackList_);
+                uniParam->SetBlackList(castScreenBlackList_);
+            } else {
+                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable RecordScreen SkipWindow.");
+                virtualScreenBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
+                uniParam->SetBlackList(virtualScreenBlackList_);
+            }
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(displayNodeSp, *params, processor);
         } else {
@@ -546,13 +566,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
-        RSUniRenderThread::Instance().DvsyncRequestNextVsync();
         SetDisplayNodeSkipFlag(*uniParam, true);
         return;
     }
     SetDisplayNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
-    RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
     bool isHdrOn = params->GetHDRPresent();
     RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);
@@ -664,7 +682,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable CommitLayer");
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    float globalZOrder = 0.f;
     for (const auto& surfaceNode : hardwareNodes) {
         if (surfaceNode == nullptr) {
             continue;
@@ -672,10 +689,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
         if (params->GetHardwareEnabled()) {
             processor->CreateLayer(*surfaceNode, *params);
-            globalZOrder++;
         }
     }
-    displayNodeSp->SetGlobalZOrder(globalZOrder);
     displayNodeSp->SetDirtyRects(damageRegionrects);
     processor->ProcessDisplaySurface(*displayNodeSp);
     CreateUIFirstLayer(processor);
@@ -741,7 +756,7 @@ bool RSDisplayRenderNodeDrawable::CheckIfHasSpecialLayer(RSDisplayRenderParams& 
     if (params.HasSecurityLayer() || params.HasSkipLayer() || params.HasProtectedLayer() ||
         params.HasCaptureWindow() || RSUniRenderThread::Instance().IsCurtainScreenOn() ||
         params.GetHDRPresent() || !params.GetScreenInfo().filteredAppSet.empty() ||
-        !virtualScreenBlackList_.empty()) {
+        !virtualScreenBlackList_.empty() || !castScreenBlackList_.empty()) {
             return true;
     }
     return false;

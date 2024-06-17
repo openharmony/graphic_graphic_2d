@@ -110,6 +110,8 @@ enum class RSModifierType : int16_t {
     INVERT,
     AIINVERT,
     SYSTEMBAREFFECT,
+    WATER_RIPPLE_PROGRESS,
+    WATER_RIPPLE_PARAMS,
     HUE_ROTATE,
     COLOR_BLEND,
     PARTICLE,

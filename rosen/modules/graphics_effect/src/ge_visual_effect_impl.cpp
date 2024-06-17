@@ -54,6 +54,12 @@ std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEf
             impl->MakeHpsBlurParams();
         }
     },
+    { GE_FILTER_WATER_RIPPLE,
+        [](GEVisualEffectImpl* impl) {
+            impl->SetFilterType(GEVisualEffectImpl::FilterType::WATER_RIPPLE);
+            impl->MakeWaterRippleParams();
+        }
+    },
     { GE_FILTER_MAGNIFIER,
         [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::MAGNIFIER);
@@ -138,6 +144,10 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, float param)
         }
         case FilterType::HPS_BLUR: {
             SetHpsBlurParams(tag, param);
+            break;
+        }
+        case FilterType::WATER_RIPPLE: {
+            SetWaterRippleParams(tag, param);
             break;
         }
         case FilterType::MAGNIFIER: {
@@ -284,6 +294,30 @@ void GEVisualEffectImpl::SetHpsBlurParams(const std::string& tag, float param)
         { GE_FILTER_HPS_BLUR_BRIGHTNESS, [](GEVisualEffectImpl* obj, float p) { obj->hpsBlurParams_->brightness = p; } }
     };
 
+    auto it = actions.find(tag);
+    if (it != actions.end()) {
+        it->second(this, param);
+    }
+}
+
+void GEVisualEffectImpl::SetWaterRippleParams(const std::string& tag, float param)
+{
+    if (waterRippleParams_ == nullptr) {
+        return;
+    }
+ 
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        
+        { GE_FILTER_WATER_RIPPLE_PROGRESS,
+            [](GEVisualEffectImpl* obj, float p) { obj->waterRippleParams_->progress = p; } },
+        { GE_FILTER_WATER_RIPPLE_WAVE_NUM,
+            [](GEVisualEffectImpl* obj, float p) { obj->waterRippleParams_->waveCount = p; } },
+        { GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X,
+            [](GEVisualEffectImpl* obj, float p) { obj->waterRippleParams_->rippleCenterX = p; } },
+        { GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y,
+            [](GEVisualEffectImpl* obj, float p) { obj->waterRippleParams_->rippleCenterY = p; } },
+    };
+ 
     auto it = actions.find(tag);
     if (it != actions.end()) {
         it->second(this, param);

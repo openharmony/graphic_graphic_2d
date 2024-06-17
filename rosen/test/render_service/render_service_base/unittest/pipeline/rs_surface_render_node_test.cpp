@@ -2060,7 +2060,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckAndUpdateOpaqueRegion, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     RectI screeninfo { 0, 0, 100, 100 };
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
-    node->CheckAndUpdateOpaqueRegion(screeninfo, screenRotation);
+    node->CheckAndUpdateOpaqueRegion(screeninfo, screenRotation, true);
     EXPECT_FALSE(node->IsOpaqueRegionChanged());
 }
 

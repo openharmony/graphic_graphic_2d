@@ -2322,6 +2322,10 @@ void RSRenderNode::UpdateDrawableVecV2()
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
         // if shadow changed, update shadow rect
         UpdateShadowRect();
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::SHADOW);
+        std::unordered_set<RSDrawableSlot> dirtySlotShadow;
+        dirtySlotShadow.emplace(RSDrawableSlot::SHADOW);
+        RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlotShadow);
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
     }

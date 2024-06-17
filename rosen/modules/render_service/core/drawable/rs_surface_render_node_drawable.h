@@ -31,6 +31,7 @@
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
@@ -199,6 +200,8 @@ public:
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
+    bool PrepareOffscreenRender();
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
@@ -222,6 +225,10 @@ private:
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    void DealWithHdr(RSSurfaceRenderNode& surfaceNode, const RSSurfaceRenderParams& surfaceParams);
+#endif
+
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
@@ -262,6 +269,14 @@ private:
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
     uint64_t frameCount_ = 0;
+
+    RSPaintFilterCanvas* curCanvas_ = nullptr;
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
+    int releaseCount_ = 0;
+    static constexpr int MAX_RELEASE_FRAME = 10;
+    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
+    int maxRenderSize_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

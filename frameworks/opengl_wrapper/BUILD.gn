@@ -105,7 +105,9 @@ if (current_os != "ohos") {
     if (defined(graphic_2d_ext_configs.vendor_root)) {
       install_enable = false
     }
-
+    if (is_emulator) {
+      defines += [ "IS_EMULATOR" ]
+    }
     output_name = "EGL"
     output_extension = "so"
 

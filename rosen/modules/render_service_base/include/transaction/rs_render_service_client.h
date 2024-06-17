@@ -154,7 +154,8 @@ public:
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable);
 #endif
-
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
+    
     void RemoveVirtualScreen(ScreenId id);
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
@@ -306,7 +307,7 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
-    void ChangeSyncCount(int32_t hostPid);
+    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 

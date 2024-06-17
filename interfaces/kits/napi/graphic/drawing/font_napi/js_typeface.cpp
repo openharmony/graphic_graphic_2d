@@ -148,7 +148,7 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
 
     std::string text = "";
-    GET_JSVALUE_PARAM(argc, text);
+    GET_JSVALUE_PARAM(ARGC_ZERO, text);
 
     auto typeface = new(std::nothrow) JsTypeface(Typeface::MakeFromFile(text.c_str()));
 
@@ -165,6 +165,10 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
         return nullptr;
     }
+    napi_property_descriptor resultFuncs[] = {
+        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+    };
+    napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return jsObj;
 }
 

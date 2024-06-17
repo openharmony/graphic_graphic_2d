@@ -33,6 +33,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
@@ -149,10 +150,11 @@ void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
 {
     auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     MoveRenderNodeMap(subRenderNodeMap);
-    RSBackgroundThread::Instance().PostTask(
-        [this, subRenderNodeMap]() {
-            RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
-        });
+    RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
+    if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
+        RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
+        RSRenderNodeGC::Instance().ReleaseNodeMemory();
+    }
 }
 
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
@@ -450,6 +452,12 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
         RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
     }
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetCastScreenEnableSkipWindow(id, enable);
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
@@ -1358,10 +1366,10 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
-void RSRenderServiceConnection::ChangeSyncCount(int32_t hostPid)
+void RSRenderServiceConnection::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    auto task = [this, hostPid]() -> void {
-        mainThread_->ProcessSubSyncTransactionCount(hostPid);
+    auto task = [this, syncId, parentPid, childPid]() -> void {
+        mainThread_->ProcessEmptySyncTransactionCount(syncId, parentPid, childPid);
     };
     mainThread_->PostTask(task);
 }

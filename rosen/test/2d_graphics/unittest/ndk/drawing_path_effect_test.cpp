@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "drawing_error_code.h"
 #include "drawing_path_effect.h"
 #include "drawing_pen.h"
 
@@ -49,13 +50,16 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_PathEffect001,
     float intervals[] = {1, 1, 1};
     OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateDashPathEffect(intervals, 3, 0.0);
     OH_Drawing_PenSetPathEffect(nullptr, pathEffect);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_PenSetPathEffect(pen, pathEffect);
     OH_Drawing_PathEffectDestroy(pathEffect);
     // 3 is the number of elements of the intervals array
     pathEffect = OH_Drawing_CreateDashPathEffect(nullptr, 3, 0.0);
     EXPECT_EQ(pathEffect, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     pathEffect = OH_Drawing_CreateDashPathEffect(intervals, 0, 0.0);
     EXPECT_EQ(pathEffect, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     pathEffect = OH_Drawing_CreateDashPathEffect(intervals, -1, 0.0);
     EXPECT_EQ(pathEffect, nullptr);
 }

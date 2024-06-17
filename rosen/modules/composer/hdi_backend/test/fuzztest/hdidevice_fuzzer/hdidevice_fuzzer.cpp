@@ -72,8 +72,7 @@ namespace OHOS {
         device->SetLayerMaskInfo(screenId, layerId, maskInfo);
 
         // DISPLAY ENGINE
-        std::vector<std::string> keys{};
-        device->GetSupportedLayerPerFrameParameterKey(keys);
+        std::vector<std::string> keys = device->GetSupportedLayerPerFrameParameterKey();
         std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
         std::string validKey = "ArsrDoEnhance";
         device->SetLayerPerFrameParameter(screenId, layerId, validKey, valueBlob);
@@ -104,7 +103,7 @@ namespace OHOS {
         float matrixElement = GetData<float>();
         std::vector<float> matrix = { matrixElement };
         GraphicColorDataSpace colorSpace = GetData<GraphicColorDataSpace>();
-        
+
         uint32_t deletingIndex = GetData<uint32_t>();
         std::vector<uint32_t> deletingList = { deletingIndex };
 

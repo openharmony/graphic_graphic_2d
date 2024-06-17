@@ -72,6 +72,148 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSTagTracker002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker002, TestSize.Level1)
+{
+    RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    RSTagTracker tagTracker(gpuContext, tagType);
+    tagTracker.UpdateReleaseResourceEnabled(true);
+    RSTagTracker tagTracker1(gpuContext, tagType);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker003
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker003, TestSize.Level1)
+{
+    RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    RSTagTracker tagTracker(gpuContext, tagType);
+    tagTracker.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker1(gpuContext, tagType);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker004
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker004, TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    NodeId nodeId = 1;
+    RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker005
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker005, TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = nullptr;
+    NodeId nodeId = 1;
+    RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker006
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker006, TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = nullptr;
+    NodeId nodeId = 1;
+    RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker007
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker007, TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    NodeId nodeId = 1;
+    RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.UpdateReleaseResourceEnabled(true);
+    RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker008
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker008, TestSize.Level1)
+{
+    Drawing::GPUResourceTag tag(0, 0, 0, 0);
+    Drawing::GPUContext gpuContext;
+    RSTagTracker tagTracker(&gpuContext, tag);
+    tagTracker.UpdateReleaseResourceEnabled(true);
+    RSTagTracker tagTracker1(&gpuContext, tag);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker009
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker009, TestSize.Level1)
+{
+    Drawing::GPUResourceTag tag(0, 0, 0, 0);
+    Drawing::GPUContext gpuContext;
+    RSTagTracker tagTracker(&gpuContext, tag);
+    tagTracker.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker1(&gpuContext, tag);
+    tagTracker.SetTagEnd();
+}
+
+/**
+ * @tc.name: RSTagTracker010
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker010, TestSize.Level1)
+{
+    RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
+    Drawing::GPUContext* gpuContext = nullptr;
+    RSTagTracker tagTracker(gpuContext, tagType);
+    tagTracker.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker1(gpuContext, tagType);
+    tagTracker.SetTagEnd();
+}
+
+/**
  * @tc.name: UpdateReleaseResourceEnabled
  * @tc.desc: Test UpdateReleaseResourceEnabled and SetTagEnd
  * @tc.type: FUNC

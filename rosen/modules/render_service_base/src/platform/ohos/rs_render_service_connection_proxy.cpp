@@ -456,6 +456,28 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id, s
     return status;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    data.WriteBool(enable);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCastScreenEnableSkipWindow: Send Request err.");
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     if (surface == nullptr) {
@@ -2234,7 +2256,7 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::ChangeSyncCount(int32_t hostPid)
+void RSRenderServiceConnectionProxy::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2242,7 +2264,13 @@ void RSRenderServiceConnectionProxy::ChangeSyncCount(int32_t hostPid)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    if (!data.WriteInt32(hostPid)) {
+    if (!data.WriteUint64(syncId)) {
+        return;
+    }
+    if (!data.WriteInt32(parentPid)) {
+        return;
+    }
+    if (!data.WriteInt32(childPid)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

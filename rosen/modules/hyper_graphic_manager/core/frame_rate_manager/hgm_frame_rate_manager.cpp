@@ -296,9 +296,6 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         }
         FrameRateReport();
     }
-    if (dvsyncInfo.isRsDvsyncOn) {
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-    }
     ReportHiSysEvent(resultVoteInfo);
     lastVoteInfo_ = resultVoteInfo;
 }
@@ -723,6 +720,14 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
             touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
         }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
+        if (touchCnt != LAST_TOUCH_CNT) {
+            return;
+        }
+        if (auto iter = voteRecord_.find("VOTER_GAMES"); iter != voteRecord_.end() && !iter->second.empty() &&
+            gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.front().pid)) {
+            HGM_LOGI("[touch manager] keep down in games");
+            return;
+        }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up");
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");

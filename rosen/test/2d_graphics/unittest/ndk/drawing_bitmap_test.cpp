@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "drawing_bitmap.h"
+#include "drawing_error_code.h"
 #include "drawing_types.h"
 
 using namespace testing;
@@ -64,6 +65,14 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild001, TestSi
     OH_Drawing_BitmapBuild(bitmap_, width, height, &bitmapFormat);
     EXPECT_EQ(width, OH_Drawing_BitmapGetWidth(bitmap_));
     EXPECT_EQ(height, OH_Drawing_BitmapGetHeight(bitmap_));
+    OH_Drawing_BitmapBuild(bitmap_, width, height, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_BitmapBuild(nullptr, width, height, &bitmapFormat);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BitmapGetWidth(nullptr), 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BitmapGetHeight(nullptr), 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -97,6 +106,8 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild003, TestSi
     EXPECT_EQ(width, OH_Drawing_BitmapGetWidth(bitmap_));
     EXPECT_EQ(height, OH_Drawing_BitmapGetHeight(bitmap_));
     EXPECT_EQ(OH_Drawing_BitmapGetPixels(bitmap_) == nullptr, false);
+    EXPECT_EQ(OH_Drawing_BitmapGetPixels(nullptr) == nullptr, true);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -137,10 +148,13 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapCreateFromPixels
     EXPECT_NE(bitmap_, nullptr);
     bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, 0);
     EXPECT_EQ(bitmap_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo, nullptr, 0);
     EXPECT_EQ(bitmap_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     bitmap_ = OH_Drawing_BitmapCreateFromPixels(nullptr, nullptr, 0);
     EXPECT_EQ(bitmap_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -159,6 +173,10 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetImageInfo006,
     OH_Drawing_BitmapGetImageInfo(bitmap_, imageInfo);
     EXPECT_EQ(width, imageInfo->width);
     EXPECT_EQ(height, imageInfo->height);
+    OH_Drawing_BitmapGetImageInfo(nullptr, imageInfo);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_BitmapGetImageInfo(bitmap_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -177,12 +195,16 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_BitmapReadPixels007, T
     void* pixels = new uint32_t[width * height];
     bool res = OH_Drawing_BitmapReadPixels(nullptr, nullptr, nullptr, width * 4, 0, 0);
     EXPECT_EQ(res, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     res = OH_Drawing_BitmapReadPixels(nullptr, &imageInfo, pixels, width * 4, 0, 0);
     EXPECT_EQ(res, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     res = OH_Drawing_BitmapReadPixels(bitmap_, nullptr, pixels, width * 4, 0, 0);
     EXPECT_EQ(res, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     res = OH_Drawing_BitmapReadPixels(bitmap_, &imageInfo, nullptr, width * 4, 0, 0);
     EXPECT_EQ(res, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     res = OH_Drawing_BitmapReadPixels(bitmap_, &imageInfo, pixels, width * 4, 0, 0);
     EXPECT_EQ(res, true);
     if (pixels != nullptr) {
@@ -224,6 +246,7 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetColorFormat008, Tes
         if (bitmap == nullptr) {
             colorFormat_ = OH_Drawing_BitmapGetColorFormat(bitmap);
             EXPECT_EQ(colorFormat_, formats[0]);
+            EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
         }
         colorFormat_ = OH_Drawing_BitmapGetColorFormat(bitmap);
         EXPECT_EQ(colorFormat_, formats[i]);
@@ -263,6 +286,7 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat009, Tes
         if (bitmap == nullptr) {
             alphaFormat_ = OH_Drawing_BitmapGetAlphaFormat(bitmap);
             EXPECT_EQ(alphaFormat_, alphaFormats[0]);
+            EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
         }
         alphaFormat_ = OH_Drawing_BitmapGetAlphaFormat(bitmap);
         EXPECT_EQ(alphaFormat_, alphaFormats[i]);

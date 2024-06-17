@@ -145,8 +145,19 @@ public:
         return RectI{left_, top_, right_ - left_, bottom_ - top_};
     }
 
-    int Area() const;
-    int IntersectArea(const Rect& r) const;
+    int Area() const
+    {
+        if (IsEmpty()) {
+            return 0;
+        }
+        return (right_ - left_) * (bottom_ - top_);
+    }
+
+    int IntersectArea(const Rect& r) const
+    {
+        Rect res = this->Intersect(r);
+        return res.Area();
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const Rect& r);

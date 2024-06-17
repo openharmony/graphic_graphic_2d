@@ -154,7 +154,7 @@ public:
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
-    void SetSchedulerPreferredFps(int32_t schedulePreferredFps)
+    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
             schedulePreferredFps_ = schedulePreferredFps;
@@ -240,7 +240,7 @@ private:
     bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
     bool isNeedUpdateAppOffset_ = false;
-    int32_t schedulePreferredFps_ = 60;
+    uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
 };
 } // namespace Rosen

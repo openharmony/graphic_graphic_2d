@@ -62,14 +62,18 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
     return matrix_;
 }
 
-void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
 {
     if (UNLIKELY(HasSandBox())) {
-        canvas.SetMatrix(parentSurfaceMatrix_);
-        canvas.ConcatMatrix(matrix_);
+        if (applyMatrix) {
+            canvas.SetMatrix(parentSurfaceMatrix_);
+            canvas.ConcatMatrix(matrix_);
+        }
         canvas.SetAlpha(alpha_);
     } else {
-        canvas.ConcatMatrix(matrix_);
+        if (applyMatrix) {
+            canvas.ConcatMatrix(matrix_);
+        }
         if (alpha_ < 1.0f && (drawingCacheType_ == RSDrawingCacheType::FORCED_CACHE || alphaOffScreen_)) {
             auto rect = GetBounds();
             Drawing::Brush brush;

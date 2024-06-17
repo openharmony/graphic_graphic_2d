@@ -1,0 +1,14 @@
+# Code owners for graphic_2d
+[graphic_2d base]
+.gitee/CODEOWNERS @lijj01
+bundle.json @lijj01
+
+[cross-platform]
+rosen/modules/glfw_render_context/ @aslklw
+
+[drawing]
+rosen/modules/2d_graphics/BUILD.gn @ustc-tianyu
+rosen/modules/2d_graphics/include/ @ustc-tianyu
+rosen/modules/2d_graphics/src/drawing/ @ustc-tianyu
+rosen/modules/2d_graphics/drawing_ndk/ @ustc-tianyu
+interfaces/kits/napi/graphic/drawing/ @ustc-tianyu

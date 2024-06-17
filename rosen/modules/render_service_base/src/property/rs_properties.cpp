@@ -41,6 +41,7 @@
 #include "render/rs_spherize_effect_filter.h"
 #include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
+#include "render/rs_water_ripple_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -102,8 +103,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetBorderColor(RSColor()); },         // BORDER_COLOR
     [](RSProperties* prop) { prop->SetBorderWidth(0.f); },               // BORDER_WIDTH
     [](RSProperties* prop) { prop->SetBorderStyle(BORDER_TYPE_NONE); },  // BORDER_STYLE
-    [](RSProperties* prop) { prop->SetBorderDashWidth({0.f}); },         // BORDER_DASH_WIDTH
-    [](RSProperties* prop) { prop->SetBorderDashGap({0.f}); },           // BORDER_DASH_GAP
+    [](RSProperties* prop) { prop->SetBorderDashWidth({-1.f}); },        // BORDER_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetBorderDashGap({-1.f}); },          // BORDER_DASH_GAP
     [](RSProperties* prop) { prop->SetFilter({}); },                     // FILTER
     [](RSProperties* prop) { prop->SetBackgroundFilter({}); },           // BACKGROUND_FILTER
     [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA
@@ -152,6 +153,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT
     [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT
     [](RSProperties* prop) { prop->SetSystemBarEffect({}); },            // SYSTEMBAREFFECT
+    [](RSProperties* prop) { prop->SetWaterRippleProgress(0.0f); },      // WATER_RIPPLE_PROGRESS
+    [](RSProperties* prop) { prop->SetWaterRippleParams({}); },          // WATER_RIPPLE_PARAMS
     [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE
@@ -159,8 +162,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR
     [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH
     [](RSProperties* prop) { prop->SetOutlineStyle(BORDER_TYPE_NONE); }, // OUTLINE_STYLE
-    [](RSProperties* prop) { prop->SetOutlineDashWidth({0.f}); },        // OUTLINE_DASH_WIDTH
-    [](RSProperties* prop) { prop->SetOutlineDashGap({0.f}); },          // OUTLINE_DASH_GAP
+    [](RSProperties* prop) { prop->SetOutlineDashWidth({-1.f}); },       // OUTLINE_DASH_WIDTH
+    [](RSProperties* prop) { prop->SetOutlineDashGap({-1.f}); },         // OUTLINE_DASH_GAP
     [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF
@@ -1364,6 +1367,41 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+void RSProperties::SetWaterRippleProgress(const float& progress)
+{
+    waterRippleProgress_ = progress;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+float RSProperties::GetWaterRippleProgress() const
+{
+    return waterRippleProgress_;
+}
+ 
+void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params)
+{
+    waterRippleParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
+{
+    return waterRippleParams_;
+}
+ 
+bool RSProperties::IsWaterRippleValid() const
+{
+    return ROSEN_GE(waterRippleProgress_, 0.0f) && waterRippleParams_.has_value();
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -2870,6 +2908,25 @@ void RSProperties::GenerateMagnifierFilter()
     filter_->SetFilterType(RSFilter::MAGNIFIER);
 }
 
+void RSProperties::GenerateWaterRippleFilter()
+{
+    float waveCount = waterRippleParams_->waveCount;
+    float rippleCenterX = waterRippleParams_->rippleCenterX;
+    float rippleCenterY = waterRippleParams_->rippleCenterY;
+    std::shared_ptr<RSWaterRippleShaderFilter> waterRippleFilter =
+        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY);
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(waterRippleFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::WATER_RIPPLE);
+    } else {
+        auto backgroudDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroudDrawingFilter->Compose(waterRippleFilter);
+        backgroudDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroudDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -2880,6 +2937,9 @@ void RSProperties::GenerateBackgroundFilter()
         GenerateBackgroundBlurFilter();
     } else {
         backgroundFilter_ = nullptr;
+    }
+    if (IsWaterRippleValid()) {
+        GenerateWaterRippleFilter();
     }
     if (backgroundFilter_ == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateBackgroundFilter failed");
@@ -3711,6 +3771,18 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // ForegroundFilter
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ForegroundFilter, ret=" + std::to_string(ret);
+    }
+    auto foregroundFilterCache_ = GetForegroundFilterCache();
+    if (foregroundFilterCache_ && foregroundFilterCache_->IsValid() &&
+        sprintf_s(buffer, UINT8_MAX, ", ForegroundFilter[%s]", foregroundFilterCache_->GetDescription().c_str()) !=
+        -1) {
+        dumpInfo.append(buffer);
+    }
+
     // Outline
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -4040,7 +4112,8 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || magnifierPara_ != nullptr;
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
+                  magnifierPara_ != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4057,13 +4130,14 @@ void RSProperties::UpdateForegroundFilter()
     } else if (IsAttractionValid()) {
         CreateAttractionEffectFilter();
     } else if (GetShadowMask()) {
-        foregroundFilter_.reset();
         float elevation = GetShadowElevation();
         Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
         Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
-        if (ROSEN_GE(blurRadius, 1.0)) {
-            auto colorfulShadowFilter =
-                std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        auto colorfulShadowFilter =
+            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = colorfulShadowFilter;
+        } else {
             foregroundFilter_ = colorfulShadowFilter;
         }
     } else {

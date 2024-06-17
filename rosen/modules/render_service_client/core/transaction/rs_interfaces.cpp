@@ -86,9 +86,9 @@ int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
-int32_t EnableSkipWindow(ScreenId id, bool enable)
+int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
-    return 0;
+    return renderServiceClient_->SetCastScreenEnableSkipWindow(id, enable);
 }
 
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
@@ -569,9 +569,9 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
-void RSInterfaces::ChangeSyncCount(int32_t hostPid)
+void RSInterfaces::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    renderServiceClient_->ChangeSyncCount(hostPid);
+    renderServiceClient_->ChangeSyncCount(syncId, parentPid, childPid);
 }
 
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)

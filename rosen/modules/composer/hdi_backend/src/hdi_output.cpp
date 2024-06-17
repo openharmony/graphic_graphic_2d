@@ -195,22 +195,16 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     if (!arsrPreEnabled_) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
-    int32_t ret = 0;
-    std::vector<std::string> validKeys{};
-    ret = device_->GetSupportedLayerPerFrameParameterKey(validKeys);
-    if (ret != 0) {
-        HLOGD("GetSupportedLayerPreFrameParameter Fail! ret = %{public}d", ret);
-        return GRAPHIC_DISPLAY_SUCCESS;
-    }
+
+    const auto& validKeys = device_->GetSupportedLayerPerFrameParameterKey();
     const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
     if (std::find(validKeys.begin(), validKeys.end(), GENERIC_METADATA_KEY_ARSR_PRE_NEEDED) != validKeys.end()) {
         if (CheckIfDoArsrPre(layerInfo)) {
             const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
-            ret = device_->SetLayerPerFrameParameter(screenId_, layerId,
-                                                     GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob);
-        }
-        if (ret != 0) {
-            HLOGD("SetLayerPerFrameParameter Fail! ret = %{public}d", ret);
+            if (device_->SetLayerPerFrameParameter(screenId_,
+                layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != 0) {
+                HLOGE("SetLayerPerFrameParameter Fail!");
+            }
         }
     }
 

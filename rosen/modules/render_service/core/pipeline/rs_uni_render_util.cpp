@@ -1469,6 +1469,10 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
     if (resDstRect == dstRectI) {
         return;
     }
+    if (node.GetForceHardware()) {
+        node.SetDstRect(resDstRect);
+        return;
+    }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
     srcRect.left_ = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
         originSrcRect.width_ / dstRectI.width_);

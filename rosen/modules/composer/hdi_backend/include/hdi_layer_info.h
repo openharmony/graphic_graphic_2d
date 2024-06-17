@@ -382,6 +382,26 @@ public:
         presentTimestamp_ = timestamp;
     }
 
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
+    int32_t SetDisplayNit(int32_t displayNit)
+    {
+        return displayNit_ = displayNit;
+    }
+
+    int32_t SetBrightnessRatio(float brightnessRatio)
+    {
+        return brightnessRatio_ = brightnessRatio;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -408,6 +428,8 @@ public:
         pbuffer_= layerInfo->GetPreBuffer();
         acquireFence_ = layerInfo->GetAcquireFence();
         preMulti_ = layerInfo->IsPreMulti();
+        displayNit_ = layerInfo->GetDisplayNit();
+        brightnessRatio_ = layerInfo->GetBrightnessRatio();
     }
 
     void Dump(std::string &result) const
@@ -452,6 +474,8 @@ public:
         if (cSurface_ != nullptr) {
             cSurface_->Dump(result);
         }
+        result += " displayNit = " + std::to_string(displayNit_) +
+            ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
     }
 
     RosenError SetLayerMaskInfo(LayerMask mask)
@@ -508,6 +532,8 @@ private:
     bool preMulti_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
+    int32_t displayNit_ = 500; // default luminance for sdr
+    float brightnessRatio_ = 1.0f; // default ratio for sdr
 };
 } // namespace Rosen
 } // namespace OHOS

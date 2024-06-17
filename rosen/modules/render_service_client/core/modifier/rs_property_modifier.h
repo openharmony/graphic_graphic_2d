@@ -589,6 +589,24 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSWaterRippleParamsModifier : public RSBackgroundModifier {
+public:
+    explicit RSWaterRippleParamsModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSWaterRippleParamsModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+ 
+class RSC_EXPORT RSWaterRippleProgressModifier : public RSBackgroundModifier {
+public:
+    explicit RSWaterRippleProgressModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSWaterRippleProgressModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSFgBrightnessRatesModifier : public RSForegroundModifier {
 public:
     explicit RSFgBrightnessRatesModifier(const std::shared_ptr<RSPropertyBase>& property);

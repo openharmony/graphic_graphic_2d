@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,8 +75,8 @@ HWTEST_F(RSPropertiesPainterTest, RRect2DrawingRRect001, TestSize.Level1)
 /**
  * @tc.name: GetGravityMatrix001
  * @tc.desc: test results of GetGravityMatrix
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
  */
 HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
 {
@@ -84,22 +84,69 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     float w = 0.1;
     float h = 0.1;
     Drawing::Matrix mat;
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::CENTER, rect, 0.f, 0.f, mat));
     EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::CENTER, rect, w, h, mat));
-    RSPropertiesPainter::GetGravityMatrix(Gravity::TOP, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::LEFT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RIGHT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_LEFT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_RIGHT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_LEFT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, w, h, mat);
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::TOP, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::LEFT, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RIGHT, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_LEFT, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_RIGHT, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_LEFT, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, 0.f, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, 0.f, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat));
+    rect.width_ = 0.2f;
+    rect.height_ = 0.3f;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat));
+}
+
+/**
+ * @tc.name: GetGravityMatrix002
+ * @tc.desc: test results of GetGravityMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix002, TestSize.Level1)
+{
+    RectF rect;
+    float w = 0.1;
+    float h = 0.1;
+    Drawing::Matrix mat;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, 0.f, 0.f, mat));
+    rect.width_ = 0.f;
+    rect.height_ = 0.f;
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, 0.f, 0.f, mat));
+    rect.width_ = 0.2f;
+    rect.height_ = 0.3f;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, w, h, mat));
+    rect.width_ = 0.f;
+    rect.height_ = 0.f;
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, 0.f, 0.f, mat));
+    rect.width_ = 0.2f;
+    rect.height_ = 0.3f;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat));
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, 0.f, 0.f, mat));
+    rect.width_ = 0.f;
+    rect.height_ = 0.f;
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, w, h, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, w, 0.f, mat));
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, 0.f, 0.f, mat));
+    rect.width_ = 0.2f;
+    rect.height_ = 0.3f;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, w, h, mat));
     RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
     Gravity gravity = static_cast<Gravity>(100);
     EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(gravity, rect, w, h, mat));
@@ -396,12 +443,26 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.IsShadowValid());
 
+    properties.shadow_->isFilled_ = true;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowIsFilled());
+    properties.shadow_->isFilled_ = false;
+
     RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
     EXPECT_TRUE(properties.IsShadowValid());
+
+    properties.shadow_->isFilled_ = true;
+    RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
+    EXPECT_TRUE(properties.GetShadowIsFilled());
+    properties.shadow_->isFilled_ = false;
 
     properties.clipPath_ = std::make_shared<RSPath>();
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.GetClipBounds());
+
+    properties.shadow_->isFilled_ = true;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowIsFilled());
 
     properties.shadow_->path_ = std::make_shared<RSPath>();
     properties.shadow_->path_->drPath_ = new Drawing::Path();
@@ -410,6 +471,56 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
     EXPECT_TRUE(properties.GetShadowMask());
     delete properties.shadow_->path_->drPath_;
     properties.shadow_->path_->drPath_ = nullptr;
+}
+
+/**
+ * @tc.name: GetForegroundEffectDirtyRect001
+ * @tc.desc: test results of GetForegroundEffectDirtyRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Level1)
+{
+    RectI dirtyForegroundEffect;
+    RSProperties properties;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(!properties.GetForegroundFilter());
+
+    properties.foregroundFilter_ = std::make_shared<RSFilter>();
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(properties.GetForegroundFilter());
+
+    properties.foregroundFilter_->type_ = RSFilter::FOREGROUND_EFFECT;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(properties.GetForegroundFilter());
+
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(!properties.GetForegroundFilterCache());
+
+    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(properties.GetForegroundFilterCache());
+
+    properties.foregroundFilterCache_->type_ = RSFilter::FOREGROUND_EFFECT;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(properties.GetForegroundFilterCache());
+}
+
+/**
+ * @tc.name: MakeDynamicDimShader001
+ * @tc.desc: test results of MakeDynamicDimShader
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(RSPropertiesPainterTest, MakeDynamicDimShader001, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::ShaderEffect> imageShader = std::make_shared<Drawing::ShaderEffect>();
+    RSPropertiesPainter::MakeDynamicDimShader(1.0f, imageShader);
+    EXPECT_TRUE(imageShader);
+
+    RSPropertiesPainter::MakeDynamicDimShader(1.0f, imageShader);
+    EXPECT_TRUE(imageShader);
 }
 
 /**
@@ -745,7 +856,7 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, GetAndResetBlurCnt001, TestSize.Level1)
 {
     int res = RSPropertiesPainter::GetAndResetBlurCnt();
-    EXPECT_EQ(res, 1);
+    EXPECT_EQ(res, 2);
 }
 
 /**

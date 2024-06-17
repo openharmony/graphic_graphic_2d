@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawing_bitmap.h"
+#include "drawing_error_code.h"
 #include "drawing_image.h"
 
 using namespace testing;
@@ -54,7 +55,9 @@ HWTEST_F(NativeImageTest, NativeImageTest_BuildFromBitmap001, TestSize.Level1)
     OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
     EXPECT_TRUE(OH_Drawing_ImageBuildFromBitmap(image, bitmap));
     EXPECT_TRUE(!OH_Drawing_ImageBuildFromBitmap(image, nullptr));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_TRUE(!OH_Drawing_ImageBuildFromBitmap(nullptr, nullptr));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BitmapDestroy(bitmap);
     OH_Drawing_ImageDestroy(image);
 }
@@ -78,6 +81,7 @@ HWTEST_F(NativeImageTest, NativeImageTest_GetWidth001, TestSize.Level1)
     OH_Drawing_ImageBuildFromBitmap(image, bitmap);
     EXPECT_EQ(OH_Drawing_ImageGetWidth(image), width);
     EXPECT_EQ(OH_Drawing_ImageGetWidth(nullptr), -1);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BitmapDestroy(bitmap);
     OH_Drawing_ImageDestroy(image);
 }
@@ -101,6 +105,7 @@ HWTEST_F(NativeImageTest, NativeImageTest_GetHeight001, TestSize.Level1)
     OH_Drawing_ImageBuildFromBitmap(image, bitmap);
     EXPECT_EQ(OH_Drawing_ImageGetHeight(image), height);
     EXPECT_EQ(OH_Drawing_ImageGetHeight(nullptr), -1);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BitmapDestroy(bitmap);
     OH_Drawing_ImageDestroy(image);
 }
@@ -124,6 +129,9 @@ HWTEST_F(NativeImageTest, NativeImageTest_GetImageInfo001, TestSize.Level1)
     OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
     OH_Drawing_ImageBuildFromBitmap(image, bitmap);
     OH_Drawing_ImageGetImageInfo(image, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ImageGetImageInfo(nullptr, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_Image_Info imageInfo;
     OH_Drawing_ImageGetImageInfo(image, &imageInfo);
     EXPECT_EQ(imageInfo.width, width);

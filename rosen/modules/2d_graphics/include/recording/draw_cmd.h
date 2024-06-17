@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <ctime>
 #include <functional>
-#include <shared_mutex>
+#include <mutex>
 #include <stack>
 #include <unordered_map>
 #include <utility>
@@ -36,7 +36,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class DrawCmdList;
-class DrawImageRectOpItem;
 class DRAWING_API DrawOpItem : public OpItem {
 public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
@@ -118,7 +117,7 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
-static std::shared_timed_mutex UnmarshallingFuncMapMutex_;
+static std::mutex UnmarshallingFuncMapMutex_;
 class UnmarshallingPlayer {
 public:
     using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
@@ -460,7 +459,6 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
-    std::shared_ptr<DrawImageRectOpItem> GenerateQuadCachedOpItem(Canvas* canvas);
 private:
     std::shared_ptr<Path> path_;
 };

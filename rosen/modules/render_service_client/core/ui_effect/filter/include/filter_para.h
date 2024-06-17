@@ -40,6 +40,7 @@ public:
         NONE,
         BLUR,
         PIXEL_STRETCH,
+        WATER_RIPPLE,
     };
 
     FilterPara()  = default;

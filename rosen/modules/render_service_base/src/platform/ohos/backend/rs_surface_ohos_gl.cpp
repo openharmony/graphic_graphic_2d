@@ -39,10 +39,10 @@ void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
 
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
-    DestoryNativeWindow(mWindow);
     if (context_ != nullptr) {
         context_->DestroyEGLSurface(mEglSurface);
     }
+    DestoryNativeWindow(mWindow);
     mWindow = nullptr;
     mEglSurface = EGL_NO_SURFACE;
 }

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "drawing_error_code.h"
 #include "drawing_matrix.h"
 #include "drawing_rect.h"
 #include "utils/scalar.h"
@@ -32,6 +33,9 @@ public:
     void SetUp() override;
     void TearDown() override;
 };
+
+constexpr uint32_t INTNUM_TEN = 10;
+constexpr int32_t NEGATIVE_ONE = -1;
 
 void NativeDrawingMatrixTest::SetUpTestCase() {}
 void NativeDrawingMatrixTest::TearDownTestCase() {}
@@ -127,7 +131,11 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetRectToRect002, Test
 HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Reset003, TestSize.Level1)
 {
     OH_Drawing_Matrix *matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetMatrix(nullptr, 2, 0, 0, 0, 1, 2, 0, 0, 1);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixSetMatrix(matrix, 2, 0, 0, 0, 1, 2, 0, 0, 1);
+    OH_Drawing_MatrixReset(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixReset(matrix);
     bool isIdentity = OH_Drawing_MatrixIsIdentity(matrix);
     EXPECT_EQ(isIdentity, true);
@@ -144,6 +152,12 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_CreateRotation004, Tes
 {
     // rotate deg: 180 pivot, point (1, 1)
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreateRotation(180, 1, 1);
+    OH_Drawing_MatrixGetValue(nullptr, 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixGetValue(matrix, NEGATIVE_ONE);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_MatrixGetValue(matrix, INTNUM_TEN);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
     EXPECT_TRUE(IsScalarAlmostEqual(value, -1));
@@ -315,6 +329,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Rotate008, TestSize.Le
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     // rotate deg: 180 pivot, point (1, 1)
     OH_Drawing_MatrixRotate(nullptr, 180, 1, 1);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixRotate(matrix, 180, 1, 1);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -361,6 +376,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PreRotate009, TestSize
     OH_Drawing_MatrixSetMatrix(matrix, 2, 0, 0, 0, 1, 2, 0, 0, 1);
     OH_Drawing_MatrixPreRotate(matrix, 5, 10, 20);
     OH_Drawing_MatrixPreRotate(nullptr, 5, 10, 20);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     OH_Drawing_MatrixSetMatrix(matrix, 1, 2, 3, 4, 5, 6, 7, 8, 9);
     OH_Drawing_MatrixPreRotate(matrix, 90, 1, 0);
@@ -385,6 +401,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PostRotate010, TestSiz
     OH_Drawing_MatrixSetMatrix(matrix, 2, 0, 0, 0, 1, 2, 0, 0, 1);
     OH_Drawing_MatrixPostRotate(matrix, 5, 10, 20);
     OH_Drawing_MatrixPostRotate(nullptr, 5, 10, 20);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     OH_Drawing_MatrixSetMatrix(matrix, 1, 2, 3, 4, 5, 6, 7, 8, 9);
     OH_Drawing_MatrixPostRotate(matrix, 90, 1, 0);
@@ -412,6 +429,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Scale011, TestSize.Lev
     The fourth 10 is the pivot on y-axis.
     */
     OH_Drawing_MatrixScale(nullptr, 10, 10, 10, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixScale(matrix, 10, 10, 10, 10);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -448,6 +466,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PreScale012, TestSize.
 {
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_MatrixPreScale(nullptr, 10, 10, 10, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixPreScale(matrix, 10, 10, 10, 10);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -475,6 +494,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PostScale013, TestSize
 {
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_MatrixPostScale(nullptr, 10, 10, 10, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixPostScale(matrix, 10, 10, 10, 10);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -505,8 +525,10 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Translate014, TestSize
     EXPECT_TRUE(ret);
     ret = OH_Drawing_MatrixIsIdentity(nullptr);
     EXPECT_TRUE(!ret);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     // translate x = 100, y = 200
     OH_Drawing_MatrixTranslate(nullptr, 100, 200);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixTranslate(matrix, 100, 200);
     ret = OH_Drawing_MatrixIsIdentity(matrix);
     EXPECT_TRUE(!ret);
@@ -545,6 +567,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PreTranslate015, TestS
 {
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_MatrixPreTranslate(nullptr, 10, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixPreTranslate(matrix, 10, 10);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -571,6 +594,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_PostTranslate016, Test
 {
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_MatrixPostTranslate(nullptr, 10, 10);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_MatrixPostTranslate(matrix, 10, 10);
     float value;
     value = OH_Drawing_MatrixGetValue(matrix, 0);
@@ -603,8 +627,10 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Invert017, TestSize.Le
     OH_Drawing_Matrix* matrixB = OH_Drawing_MatrixCreate();
     ret = OH_Drawing_MatrixInvert(nullptr, matrixB);
     EXPECT_TRUE(!ret);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     ret = OH_Drawing_MatrixInvert(matrixA, nullptr);
     EXPECT_TRUE(!ret);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     ret = OH_Drawing_MatrixInvert(matrixA, matrixB);
     EXPECT_TRUE(ret);
     OH_Drawing_MatrixSetMatrix(
@@ -659,6 +685,12 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly018, Test
     OH_Drawing_Point2D src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
     OH_Drawing_Point2D dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
     EXPECT_TRUE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 0));
+    OH_Drawing_MatrixSetPolyToPoly(nullptr, src, dst, 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, NEGATIVE_ONE);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, INTNUM_TEN);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     OH_Drawing_MatrixDestroy(matrix);
 }
 
@@ -743,6 +775,57 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_GetAll022, TestSize.Le
         EXPECT_TRUE(IsScalarAlmostEqual(buffer[i], emptyBuffer[i]));
     }
     OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_IsEqualAndConcat023
+ * @tc.desc: test for IsEqual and Concat.
+ * @tc.type: FUNC
+ * @tc.require: SR000S9F0C
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_IsEqualAndConcat023, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrixA = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* matrixB = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixIsEqual(nullptr, matrixB);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixIsEqual(matrixA, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_MatrixConcat(nullptr, matrixA, matrixB);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixConcat(matrix, nullptr, matrixB);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixConcat(matrix, matrixA, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(matrixA);
+    OH_Drawing_MatrixDestroy(matrixB);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_SetRectToRect024
+ * @tc.desc: test for SetRectToRect.
+ * @tc.type: FUNC
+ * @tc.require: SR000S9F0C
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetRectToRect024, TestSize.Level1)
+{
+    OH_Drawing_Rect *rectSrcOne = OH_Drawing_RectCreate(0, 0, 0, 0);
+    OH_Drawing_Rect *rectDstOne = OH_Drawing_RectCreate(0, 0, 0, 0);
+    OH_Drawing_Matrix *matrixOne = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetRectToRect(nullptr, rectSrcOne, rectDstOne, OH_Drawing_ScaleToFit::SCALE_TO_FIT_FILL);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixSetRectToRect(matrixOne, nullptr, rectDstOne, OH_Drawing_ScaleToFit::SCALE_TO_FIT_FILL);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_MatrixSetRectToRect(matrixOne, rectSrcOne, nullptr, OH_Drawing_ScaleToFit::SCALE_TO_FIT_FILL);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_MatrixDestroy(matrixOne);
+    OH_Drawing_RectDestroy(rectSrcOne);
+    OH_Drawing_RectDestroy(rectDstOne);
 }
 } // namespace Drawing
 } // namespace Rosen
