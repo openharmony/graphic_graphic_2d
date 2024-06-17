@@ -20,6 +20,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_packet.h"
 
 namespace OHOS::Rosen {
 
@@ -262,7 +263,7 @@ void RSProfiler::WriteBetaRecordMetrics(RSFile& file, double time)
     DeviceInfoToCaptureData(time, deviceInfo, captureData);
 
     std::vector<char> out;
-    const char headerType = 3; // TYPE: GFX METRICS
+    const char headerType = static_cast<const char>(PackageID::RS_PROFILER_GFX_METRICS);
     captureData.Serialize(out);
     out.insert(out.begin(), headerType);
 
