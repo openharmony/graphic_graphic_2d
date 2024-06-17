@@ -5503,6 +5503,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()), isUpdateCachedSurface_,
                     IsHardwareComposerEnabled(), node.IsHardwareForcedDisabled());
             }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            if (RSLuminanceControl::Get().IsHdrOn(curDisplayNode_->GetScreenId())) {
+                node.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(curDisplayNode_->GetScreenId()));
+                node.SetBrightnessRatio(
+                    RSLuminanceControl::Get().GetHdrBrightnessRatio(curDisplayNode_->GetScreenId(), 0));
+            }
+#endif
             // if this window is in freeze state, disable hardware composer for its child surfaceView
             if (IsHardwareComposerEnabled() && UpdateSrcRectForHwcNode(node, node.GetProtectedLayer()) &&
                 (node.GetProtectedLayer() || (node.IsHardwareEnabledType() && (!node.IsHardwareForcedDisabled() ||
@@ -5519,14 +5526,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-                auto screenManager = CreateOrGetScreenManager();
-                std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-                if (node.GetAncestorDisplayNode().lock() != nullptr) {
-                    ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-                }
-                if (ancestor != nullptr) {
-                    params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
-                }
+                params.screenBrightnessNits = node.GetDisplayNit();
 #endif
                 auto bgColor = property.GetBackgroundColor();
                 if ((node.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&

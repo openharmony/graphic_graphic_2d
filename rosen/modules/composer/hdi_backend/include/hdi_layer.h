@@ -124,6 +124,10 @@ private:
     int32_t SetLayerMaskInfo();
     bool CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
                                         std::vector<uint32_t>& deletingList);
+
+    int32_t SetPerFrameParameters();
+    int32_t SetPerFrameParameterDisplayNit();
+    int32_t SetPerFrameParameterBrightnessRatio();
 };
 } // namespace Rosen
 } // namespace OHOS
