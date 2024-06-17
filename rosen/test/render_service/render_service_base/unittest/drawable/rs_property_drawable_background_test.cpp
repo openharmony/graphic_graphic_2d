@@ -149,6 +149,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable, TestSize.Level
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundImageDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     std::shared_ptr<RSImage> shader = std::make_shared<RSImage>();
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    shader->SetPixelMap(pixelmap);
     node.renderContent_->GetMutableRenderProperties().SetBgImage(shader);
     ASSERT_NE(DrawableV2::RSBackgroundImageDrawable::OnGenerate(node), nullptr);
 }

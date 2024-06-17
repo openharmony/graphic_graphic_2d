@@ -30,6 +30,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void DisplayTestInfo();
+    static inline std::weak_ptr<RSContext> context = {};
 };
 
 void RSDrawableTest::SetUpTestCase() {}
@@ -47,14 +48,13 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    ModifierDirtyTypes dirtyTypes(std::string("001100111"));
+    ModifierDirtyTypes dirtyTypes;
     RSDrawable::Vec drawableVec;
-    RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec);
-    ModifierDirtyTypes dirtyTypesTwo(std::string("111111111"));
+    dirtyTypes.set();
     std::optional<Vector4f> aiInvert = { Vector4f() };
     node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
-    ASSERT_NE(RSDrawable::CalculateDirtySlots(dirtyTypesTwo, drawableVec).size(), 0);
+    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 33);
 }
 
 /**
@@ -68,11 +68,11 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     RSDrawable::Vec drawableVec;
-    std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (size_t i = 0; i < 33; ++i) {
-        dirtySlots.insert(static_cast<RSDrawableSlot>(static_cast<size_t>(RSDrawableSlot::SAVE_ALL) + i));
-    }
-    RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots);
+    ModifierDirtyTypes dirtyTypes;
+    dirtyTypes.set();
+    std::optional<Vector4f> aiInvert = { Vector4f() };
+    node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
+    std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
     node.renderContent_->GetMutableRenderProperties().SetBackgroundShader(shader);
     for (auto& drawable : drawableVec) {
@@ -91,10 +91,35 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
 HWTEST_F(RSDrawableTest, UpdateSaveRestore, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
+    RSSurfaceRenderNode node(id, context);
     RSDrawable::Vec drawableVec;
-    uint8_t drawableVecStatus = 77;
+    auto& properties = node.GetMutableRenderProperties();
+    properties.clipToBounds_ = true;
+    RectF rect = {1.0, 2.0, 3.0, 4.0};
+    properties.clipRRect_ = std::make_optional<RRect>(rect, 1.0, 2.0);
+    auto path = std::make_shared<RSPath>();
+    properties.SetClipBounds(path);
+    properties.colorBlendMode_ = 1;
+    properties.fgBrightnessParams_ = std::make_optional<RSDynamicBrightnessPara>();
+    properties.fgBrightnessFract_ = 0;
+    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::BG_PROPERTIES_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::FG_PROPERTIES_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::EXTRA_PROPERTIES_BEGIN)] = drawable;
+    uint8_t drawableVecStatus = 0;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
-    ASSERT_NE(drawableVecStatus, 77);
+    ASSERT_EQ(drawableVecStatus, 63);
+    drawableVecStatus = 53;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 63);
+    drawableVecStatus = 51;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 63);
+    drawableVecStatus = 49;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 63);
 }
 } // namespace OHOS::Rosen
