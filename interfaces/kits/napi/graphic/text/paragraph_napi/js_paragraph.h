@@ -31,6 +31,7 @@ public:
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Layout(napi_env env, napi_callback_info info);
     static napi_value Paint(napi_env env, napi_callback_info info);
+    static napi_value PaintOnPath(napi_env env, napi_callback_info info);
     static napi_value GetMaxWidth(napi_env env, napi_callback_info info);
     static napi_value GetHeight(napi_env env, napi_callback_info info);
     static napi_value GetLongestLine(napi_env env, napi_callback_info info);
@@ -58,6 +59,7 @@ private:
     static thread_local napi_ref constructor_;
     napi_value OnLayout(napi_env env, napi_callback_info info);
     napi_value OnPaint(napi_env env, napi_callback_info info);
+    napi_value OnPaintOnPath(napi_env env, napi_callback_info info);
     napi_value OnGetMaxWidth(napi_env env, napi_callback_info info);
     napi_value OnGetHeight(napi_env env, napi_callback_info info);
     napi_value OnGetLongestLine(napi_env env, napi_callback_info info);

@@ -19,6 +19,7 @@
 #include "js_paragraph.h"
 #include "js_text_utils.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
+#include "path_napi/js_path.h"
 #include "utils/log.h"
 #include "text_line_napi/js_text_line.h"
 
@@ -62,6 +63,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
         DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
+        DECLARE_NAPI_FUNCTION("paintOnPath", JsParagraph::PaintOnPath),
         DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
         DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),
         DECLARE_NAPI_FUNCTION("getLongestLine", JsParagraph::GetLongestLine),
@@ -170,6 +172,42 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
     paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
+
+    return NapiGetUndefined(env);
+}
+
+napi_value JsParagraph::PaintOnPath(napi_env env, napi_callback_info info)
+{
+    ROSEN_LOGE("liyan JsParagraph::PaintOnPath");
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnPaintOnPath(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnPaintOnPath(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        ROSEN_LOGE("JsParagraph::OnPaintOnPath paragraph_ is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_FOUR;
+    napi_value argv[ARGC_FOUR] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_FOUR) {
+        ROSEN_LOGE("JsParagraph::OnPaintOnPath Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Drawing::JsCanvas* jsCanvas = nullptr;
+    Drawing::JsPath* jsPath = nullptr;
+    double hOffset = 0.0;
+    double vOffset = 0.0;
+    napi_unwrap(env, argv[0], reinterpret_cast<void**>(&jsCanvas));
+    GET_UNWRAP_PARAM(ARGC_ONE, jsPath);
+    if (!jsCanvas || !jsCanvas->GetCanvas() || !jsPath || !jsPath->GetPath() ||
+        !(ConvertFromJsValue(env, argv[ARGC_TWO], hOffset) && ConvertFromJsValue(env, argv[ARGC_THREE], vOffset))) {
+        ROSEN_LOGE("JsParagraph::OnPaintOnPath Argv is invalid");
+        return NapiGetUndefined(env);
+    }
+    paragraph_->Paint(jsCanvas->GetCanvas(), jsPath->GetPath(), hOffset, vOffset);
 
     return NapiGetUndefined(env);
 }
