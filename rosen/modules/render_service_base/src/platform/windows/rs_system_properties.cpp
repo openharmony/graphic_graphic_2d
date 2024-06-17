@@ -428,11 +428,6 @@ bool RSSystemProperties::GetUIFirstForceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::IsForceClient()
 {
     return false;

@@ -223,7 +223,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled() &&
         RSUniHwcPrevalidateUtil::GetInstance().IsLoadSuccess();
     isOverdrawDfxOn_ = RSOverdrawController::GetInstance().IsEnabled();
-    aceDebugBoundaryEnabled_ = RSSystemProperties::GetAceDebugBoundaryEnabled();
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
@@ -5919,16 +5918,7 @@ void RSUniRenderVisitor::StartOverDraw()
     auto height = canvas_->GetHeight();
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    if (!aceDebugBoundaryEnabled_) {
-        auto gpuContext = canvas_->GetGPUContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: need gpu canvas");
-            return;
-        }
-        overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
-    } else {
-        overdrawSurface_ = Drawing::Surface::MakeRaster(info);
-    }
+    overdrawSurface_ = Drawing::Surface::MakeRaster(info);
     if (!overdrawSurface_) {
         RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: surface is nullptr");
         return;
