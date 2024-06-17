@@ -66,7 +66,7 @@ public:
         syncId_ = syncId;
     }
 
-    void SetHostPid(const int32_t hostPid);
+    void SetParentAndChildPid(const int32_t parentPid, const int32_t childPid);
 
     bool IsRemoteCommandEmpty();
 

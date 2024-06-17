@@ -170,27 +170,6 @@ SkiaPaint::SkiaPaint() noexcept {}
 
 SkiaPaint::~SkiaPaint() {}
 
-void SkiaPaint::ApplyPaint(const Paint& paint)
-{
-    if (paintInUse_ >= MAX_PAINTS_NUMBER || !paint.IsValid()) {
-        return;
-    }
-    SkPaint& skPaint = paints_[paintInUse_];
-    skPaint = defaultPaint_;
-    PaintToSkPaint(paint, skPaint);
-    paintInUse_++;
-}
-
-SortedPaints& SkiaPaint::GetSortedPaints()
-{
-    sortedPaints_.count_ = paintInUse_;
-    for (int i = 0; i < paintInUse_; i++) {
-        sortedPaints_.paints_[i] = &paints_[i];
-    }
-    paintInUse_ = 0;
-    return sortedPaints_;
-}
-
 void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
 {
     if (const ColorFilter* cs = filter.GetColorFilterPtr()) {
@@ -261,11 +240,6 @@ bool SkiaPaint::AsBlendMode(const Brush& brush)
     SkPaint skPaint;
     BrushToSkPaint(brush, skPaint);
     return skPaint.asBlendMode().has_value();
-}
-
-void SkiaPaint::Reset()
-{
-    paintInUse_ = 0;
 }
 } // namespace Drawing
 } // namespace Rosen

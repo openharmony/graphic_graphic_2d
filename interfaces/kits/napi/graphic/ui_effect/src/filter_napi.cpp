@@ -157,6 +157,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("blur", SetBlur),
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
+        DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
     };
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
@@ -280,6 +281,59 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     }
     filterObj->AddPara(para);
 
+    return thisVar;
+}
+
+float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
+{
+    double tmp = 0.0f;
+    if (UIEffectNapiUtils::getType(env, argValue) == napi_number &&
+        UIEFFECT_IS_OK(napi_get_value_double(env, argValue, &tmp)) && tmp >= 0) {
+            return static_cast<float>(tmp);
+    }
+    return tmp;
+}
+ 
+napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_4] = {0};
+    size_t argCount = NUM_4;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_water_ripple_info"));
+ 
+    std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
+ 
+    float progress = 0.0f;
+    float waveCount = 0.0f;
+    float rippleCenterX = 0.0f;
+    float rippleCenterY = 0.0f;
+ 
+    if (argCount != NUM_4) {
+        FILTER_LOG_E("Args number less than 4");
+    }
+    
+    progress = GetSpecialValue(env, argValue[NUM_0]);
+    waveCount = GetSpecialValue(env, argValue[NUM_1]);
+    rippleCenterX = GetSpecialValue(env, argValue[NUM_2]);
+    rippleCenterY = GetSpecialValue(env, argValue[NUM_3]);
+
+    para->SetProgress(progress);
+    para->SetWaveCount(waveCount);
+    para->SetRippleCenterX(rippleCenterX);
+    para->SetRippleCenterY(rippleCenterY);
+   
+    Filter* filterObj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return thisVar;
+    }
+    filterObj->AddPara(para);
+ 
     return thisVar;
 }
 

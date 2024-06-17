@@ -15,6 +15,7 @@
 
 #include "common/rs_singleton.h"
 #include "info_collection/rs_layer_compose_collection.h"
+#include "luminance/rs_luminance_control.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
@@ -111,8 +112,10 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.targetColorGamut = colorGamut;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager != nullptr) {
-            params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(params.screenId);
+            params.screenBrightnessNits = layer->GetDisplayNit();
         }
+        canvas.SetHDRPresent(RSLuminanceControl::Get().IsHdrOn(screenInfo.id));
+        canvas.SetBrightnessRatio(layer->GetBrightnessRatio());
 #endif
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
@@ -140,6 +143,15 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), true);
+        DrawImage(canvas, params);
+    } else {
+        DrawBuffer(canvas, params);
+    }
+}
+
+void RSUniRenderEngine::DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    if (!params.useCPU) {
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

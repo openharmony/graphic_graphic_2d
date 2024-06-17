@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)>;
 class RSComposerAdapter {
 public:

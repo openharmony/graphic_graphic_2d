@@ -72,6 +72,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
+
 #ifdef RS_ENABLE_VK
     bool Set2DRenderCtrl(bool enable) override;
 #endif
@@ -223,7 +225,7 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
-    void ChangeSyncCount(int32_t hostPid) override;
+    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
 
     void RunOnRemoteDiedCallback() override;
 

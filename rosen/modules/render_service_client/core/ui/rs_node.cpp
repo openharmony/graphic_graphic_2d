@@ -1072,13 +1072,13 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
                 position.y_ + emitSize.y_ + imageSizeHeightMax + imageSizeHeightMax);
         }
     }
-    float l = *std::min_element(left.begin(), left.end());
-    float t = *std::min_element(top.begin(), top.end());
-    boundsRight = *std::max_element(right.begin(), right.end());
-    boundsBottom = *std::max_element(bottom.begin(), bottom.end());
-    std::shared_ptr<RectF> overlayRect =
-        std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t);
-    SetDrawRegion(overlayRect);
+    if (emitterCount != 0) {
+        float l = *std::min_element(left.begin(), left.end());
+        float t = *std::min_element(top.begin(), top.end());
+        boundsRight = *std::max_element(right.begin(), right.end());
+        boundsBottom = *std::max_element(bottom.begin(), bottom.end());
+        SetDrawRegion(std::make_shared<RectF>(l - bounds.x_, t - bounds.y_, boundsRight - l, boundsBottom - t));
+    }
 }
 
 // Update Particle Emitter
@@ -1306,6 +1306,19 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
             auto blurRadius = filterBlurPara->GetRadius();
             SetBackgroundBlurRadiusX(blurRadius);
             SetBackgroundBlurRadiusY(blurRadius);
+        }
+        if (filterPara->GetParaType() == FilterPara::WATER_RIPPLE) {
+            auto waterRipplePara = std::static_pointer_cast<WaterRipplePara>(filterPara);
+            auto waveCount = waterRipplePara->GetWaveCount();
+            auto rippleCenterX = waterRipplePara->GetRippleCenterX();
+            auto rippleCenterY = waterRipplePara->GetRippleCenterY();
+            auto progress = waterRipplePara->GetProgress();
+            RSWaterRipplePara rs_water_ripple_param = {
+                waveCount,
+                rippleCenterX,
+                rippleCenterY
+            };
+            SetWaterRippleParams(rs_water_ripple_param, progress);
         }
     }
 }
@@ -1696,6 +1709,14 @@ void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent, Drawing::Til
         RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
+void RSNode::SetWaterRippleParams(const RSWaterRipplePara& params, float progress)
+{
+    SetProperty<RSWaterRippleParamsModifier,
+        RSProperty<RSWaterRipplePara>>(RSModifierType::WATER_RIPPLE_PARAMS, params);
+    SetProperty<RSWaterRippleProgressModifier,
+        RSAnimatableProperty<float>>(RSModifierType::WATER_RIPPLE_PROGRESS, progress);
+}
+
 void RSNode::SetFreeze(bool isFreeze)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
@@ -1726,6 +1747,24 @@ void RSNode::SetTakeSurfaceForUIFlag()
 void RSNode::SetSpherizeDegree(float spherizeDegree)
 {
     SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
+}
+
+void RSNode::SetAttractionEffect(float fraction, const Vector2f& destinationPoint)
+{
+    SetAttractionEffectFraction(fraction);
+    SetAttractionEffectDstPoint(destinationPoint);
+}
+
+void RSNode::SetAttractionEffectFraction(float fraction)
+{
+    SetProperty<RSAttractionFractionModifier, RSAnimatableProperty<float>>(RSModifierType::ATTRACTION_FRACTION,
+        fraction);
+}
+
+void RSNode::SetAttractionEffectDstPoint(Vector2f destinationPoint)
+{
+    SetProperty<RSAttractionDstPointModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::ATTRACTION_DSTPOINT,
+        destinationPoint);
 }
 
 void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
@@ -2152,6 +2191,19 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     isSuggestOpincNode_ = isOpincNode;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkSuggestOpincNode>(GetId(),
         isOpincNode, isNeedCalculate);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkUifirstNode(bool isUifirstNode)
+{
+    if (isUifirstNode_ == isUifirstNode) {
+        return;
+    }
+    isUifirstNode_ = isUifirstNode;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());

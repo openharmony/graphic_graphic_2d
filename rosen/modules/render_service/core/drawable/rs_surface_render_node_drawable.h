@@ -16,9 +16,22 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
+#ifndef ROSEN_CROSS_PLATFORM
+#include <ibuffer_consumer_listener.h>
+#include <iconsumer_surface.h>
+#include <surface.h>
+#endif
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
+#include "platform/drawing/rs_surface.h"
+#endif
+
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_base_render_engine.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
@@ -50,6 +63,23 @@ public:
     {
         return name_;
     }
+
+    // Dma Buffer
+    bool UseDmaBuffer();
+
+    bool IsSurfaceCreated() const
+    {
+        return surfaceCreated_;
+    }
+
+    void ClearBufferQueue();
+
+#ifndef ROSEN_CROSS_PLATFORM
+    bool CreateSurface();
+#endif
+    BufferRequestConfig GetFrameBufferRequestConfig();
+    std::unique_ptr<RSRenderFrame> RequestFrame(
+        RenderContext* renderContext, std::shared_ptr<Drawing::GPUContext> grContext);
 
     // UIFirst
     void SetSubmittedSubThreadIndex(uint32_t index)
@@ -153,6 +183,16 @@ public:
     {
         return brightnessRatio_;
     }
+
+    void SetSubThreadSkip(bool isSubThreadSkip)
+    {
+        isSubThreadSkip_ = isSubThreadSkip;
+    }
+
+    bool IsSubThreadSkip() const
+    {
+        return isSubThreadSkip_;
+    }
     void SetTaskFrameCount(uint64_t frameCount);
 
     uint64_t GetTaskFrameCount() const;
@@ -170,6 +210,8 @@ public:
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
+    bool PrepareOffscreenRender();
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
@@ -193,9 +235,26 @@ private:
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    void DealWithHdr(RSSurfaceRenderNode& surfaceNode, const RSSurfaceRenderParams& surfaceParams);
+#endif
+
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
+
+    // DMA Buffer
+    bool DrawUIFirstCacheWithDma(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IBufferConsumerListener> consumerListener_ = nullptr;
+#endif
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
+#else
+    std::shared_ptr<RSSurface> surface_ = nullptr;
+#endif
+    bool surfaceCreated_ = false;
 
     // UIFIRST
     UIFirstParams uiFirstParams;
@@ -220,6 +279,15 @@ private:
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
     uint64_t frameCount_ = 0;
+    bool isSubThreadSkip_ = false;
+
+    RSPaintFilterCanvas* curCanvas_ = nullptr;
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
+    int releaseCount_ = 0;
+    static constexpr int MAX_RELEASE_FRAME = 10;
+    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
+    int maxRenderSize_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

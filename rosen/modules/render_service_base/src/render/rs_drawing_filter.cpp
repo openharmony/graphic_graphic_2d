@@ -40,6 +40,8 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
     { RSFilter::AIBAR, "RSAIBarFilterBlur" },
     { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
+    { RSFilter::WATER_RIPPLE, "RSWaterRippleFilter" },
+    { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
     { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
 };
 }

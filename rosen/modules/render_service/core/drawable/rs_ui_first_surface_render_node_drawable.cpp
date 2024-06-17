@@ -172,12 +172,16 @@ std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(u
 
 void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceInThread()
 {
-    std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-    if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
-            completedSurfaceThreadIndex_);
+    if (UseDmaBuffer()) {
+        ClearBufferQueue();
+    } else {
+        std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
+        if (clearCacheSurfaceFunc_) {
+            clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+        }
+        ClearCacheSurface();
     }
-    ClearCacheSurface();
 }
 
 void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
@@ -404,7 +408,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 bool RSSurfaceRenderNodeDrawable::HasCachedTexture() const
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    return isTextureValid_.load();
+    return isTextureValid_.load() || GetBuffer() != nullptr;
 #else
     return true;
 #endif
@@ -527,12 +531,19 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+    bool useDmaBuffer = UseDmaBuffer();
+    if (useDmaBuffer) {
+        DrawBackground(canvas, bounds);
+    }
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
+    if (useDmaBuffer) {
+        DrawForeground(canvas, bounds);
+    }
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)

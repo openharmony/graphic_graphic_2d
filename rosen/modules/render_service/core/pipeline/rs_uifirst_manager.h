@@ -48,6 +48,7 @@ public:
     CacheProcessStatus GetNodeStatus(NodeId id);
     // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
     void UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation);
+    void UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects);
     void PostUifistSubTasks();
     void ProcessSubDoneNode();
     bool CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node);
@@ -70,6 +71,8 @@ public:
     bool CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node);
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
+
+    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo);
     
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
@@ -116,6 +119,20 @@ public:
         collectedCardNodes_.erase(id);
     }
 
+    std::vector<DrawableV2::RSSurfaceRenderNodeDrawable*> GetPendingPostDrawables()
+    {
+        return pendingPostDrawables_;
+    }
+
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetPendingPostNodes()
+    {
+        return pendingPostNodes_;
+    }
+
+    void SetUseDmaBuffer(bool val);
+    bool GetUseDmaBuffer() const;
+    bool IsScreenshotAnimation();
+
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
 
@@ -158,7 +175,7 @@ private:
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
     void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
-
+    void ConvertPendingNodeToDrawable();
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
@@ -180,6 +197,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
+    std::vector<DrawableV2::RSSurfaceRenderNodeDrawable*> pendingPostDrawables_;
     bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
 
@@ -209,6 +227,11 @@ private:
         { "LAUNCHER_SCROLL" }, // desktop swipe
         { "SCROLL_2_AA" }, // desktop to negativeScreen
     };
+    const std::vector<std::string> screenshotAnimation_ = {
+        { "SCREENSHOT_SCALE_ANIMATION" },
+        { "SCREENSHOT_DISMISS_ANIMATION" },
+    };
+    bool useDmaBuffer_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;

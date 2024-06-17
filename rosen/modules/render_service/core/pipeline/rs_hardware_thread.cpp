@@ -174,8 +174,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
         uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu",
-            currentRate, param.frameTimestamp);
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu, size: %lu",
+            currentRate, param.frameTimestamp, layers.size());
         ExecuteSwitchRefreshRate(param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
@@ -435,6 +435,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 #endif
+
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");

@@ -54,7 +54,7 @@ public:
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
-    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix = true) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const;

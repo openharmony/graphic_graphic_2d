@@ -26,20 +26,6 @@ namespace Occlusion {
 static Rect _s_empty_rect_ { 0, 0, 0, 0 };
 static Rect _s_invalid_rect_ { 0, 0, -1, -1 };
 
-int Rect::Area() const
-{
-    if (IsEmpty()) {
-        return 0;
-    }
-    return (right_ - left_) * (bottom_ - top_);
-}
-
-int Rect::IntersectArea(const Rect& r) const
-{
-    Rect res = this->Intersect(r);
-    return res.Area();
-}
-
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
     os << "{" << r.left_ << "," << r.top_ << "," << r.right_ << "," << r.bottom_ << "}";

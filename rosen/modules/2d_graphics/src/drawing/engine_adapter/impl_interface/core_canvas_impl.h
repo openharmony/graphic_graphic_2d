@@ -81,32 +81,32 @@ public:
         int srcX, int srcY) = 0;
     virtual bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) = 0;
     // shapes
-    virtual void DrawPoint(const Point& point) = 0;
+    virtual void DrawPoint(const Point& point, const Paint& paint) = 0;
     virtual void DrawSdf(const SDFShapeBase& shape) = 0;
-    virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]) = 0;
-    virtual void DrawLine(const Point& startPt, const Point& endPt) = 0;
-    virtual void DrawRect(const Rect& rect) = 0;
-    virtual void DrawRoundRect(const RoundRect& roundRect) = 0;
-    virtual void DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner) = 0;
-    virtual void DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle) = 0;
-    virtual void DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle) = 0;
-    virtual void DrawOval(const Rect& oval) = 0;
-    virtual void DrawCircle(const Point& centerPt, scalar radius) = 0;
-    virtual void DrawPath(const Path& path) = 0;
+    virtual void DrawPoints(PointMode mode, size_t count, const Point pts[], const Paint& paint) = 0;
+    virtual void DrawLine(const Point& startPt, const Point& endPt, const Paint& paint) = 0;
+    virtual void DrawRect(const Rect& rect, const Paint& paint) = 0;
+    virtual void DrawRoundRect(const RoundRect& roundRect, const Paint& paint) = 0;
+    virtual void DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner, const Paint& paint) = 0;
+    virtual void DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle, const Paint& paint) = 0;
+    virtual void DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle, const Paint& paint) = 0;
+    virtual void DrawOval(const Rect& oval, const Paint& paint) = 0;
+    virtual void DrawCircle(const Point& centerPt, scalar radius, const Paint& paint) = 0;
+    virtual void DrawPath(const Path& path, const Paint& paint) = 0;
     virtual void DrawBackground(const Brush& brush) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
         scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation) = 0;
-    virtual void DrawRegion(const Region& region) = 0;
+    virtual void DrawRegion(const Region& region, const Paint& paint) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
-        const Point texCoords[4], BlendMode mode) = 0;
-    virtual void DrawVertices(const Vertices& vertices, BlendMode mode) = 0;
+        const Point texCoords[4], BlendMode mode, const Paint& paint) = 0;
+    virtual void DrawVertices(const Vertices& vertices, BlendMode mode, const Paint& paint) = 0;
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) = 0;
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filter) = 0;
+        FilterMode filter, const Paint& paint) = 0;
 
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
@@ -117,22 +117,24 @@ public:
 
     // image
     virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
-        int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) = 0;
-    virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
-    virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
+        int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect, const Paint& paint) = 0;
+    virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py, const Paint& paint) = 0;
+    virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling,
+        const Paint& paint) = 0;
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
-        SrcRectConstraint constraint) = 0;
-    virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) = 0;
+        SrcRectConstraint constraint, const Paint& paint) = 0;
+    virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling,
+        const Paint& paint) = 0;
     virtual void DrawPicture(const Picture& picture) = 0;
 
     // temporary interface. Support drawing of SkSVGDOM
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) = 0;
 
     // text
-    virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) = 0;
+    virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint) = 0;
 
     // symbol
-    virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) = 0;
+    virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, const Paint& paint) = 0;
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;
@@ -162,9 +164,6 @@ public:
     virtual void Restore() = 0;
     virtual uint32_t  GetSaveCount() const = 0;
     virtual void Discard() = 0;
-
-    // paint
-    virtual void AttachPaint(const Paint& paint) = 0;
 
     virtual void BuildOverDraw(std::shared_ptr<Canvas> canvas) = 0;
 

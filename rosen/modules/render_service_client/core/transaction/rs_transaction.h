@@ -49,14 +49,24 @@ public:
     void SetDuration(int32_t duration) { duration_ = duration; }
     int32_t GetDuration() const { return duration_; }
 
-    void SetHostPid(int32_t hostPid)
+    void SetParentPid(int32_t parentPid)
     {
-        hostPid_ = hostPid;
+        parentPid_ = parentPid;
     }
 
-    int32_t getHostPid()
+    int32_t GetParentPid()
     {
-        return hostPid_;
+        return parentPid_;
+    }
+
+    void SetChildPid(int32_t childPid)
+    {
+        childPid_ = childPid;
+    }
+
+    int32_t GetChildPid()
+    {
+        return childPid_;
     }
 
     bool IsOpenSyncTransaction()
@@ -78,7 +88,8 @@ private:
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };
     int32_t duration_ = 0;
-    int32_t hostPid_ { -1 };
+    int32_t parentPid_ { -1 };
+    int32_t childPid_ { -1 };
     bool isOpenSyncTransaction_ = false;
 
     friend class RSSyncTransactionController;

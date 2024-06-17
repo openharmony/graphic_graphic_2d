@@ -89,7 +89,7 @@ public:
                                      const std::vector<GraphicHDRMetaData> &graphicMetaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                         const std::vector<uint8_t> &metaData) = 0;
-    virtual int32_t GetSupportedLayerPerFrameParameterKey(std::vector<std::string>& keys) = 0;
+    virtual std::vector<std::string>& GetSupportedLayerPerFrameParameterKey() = 0;
     virtual int32_t SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
                                               const std::vector<int8_t>& value) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;

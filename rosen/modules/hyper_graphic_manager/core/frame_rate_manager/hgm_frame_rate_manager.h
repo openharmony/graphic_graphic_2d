@@ -154,7 +154,7 @@ public:
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
-    void SetSchedulerPreferredFps(int32_t schedulePreferredFps)
+    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
             schedulePreferredFps_ = schedulePreferredFps;
@@ -199,6 +199,7 @@ private:
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
+    void ClearScene();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -240,7 +241,7 @@ private:
     bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
     bool isNeedUpdateAppOffset_ = false;
-    int32_t schedulePreferredFps_ = 60;
+    uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
 };
 } // namespace Rosen

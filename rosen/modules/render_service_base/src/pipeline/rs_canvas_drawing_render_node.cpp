@@ -484,7 +484,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
             if (cmd == nullptr) {
                 continue;
             }
-            cmd->CacheQuadPath();
             drawCmdLists_[type].emplace_back(cmd);
             SetNeedProcess(true);
         }

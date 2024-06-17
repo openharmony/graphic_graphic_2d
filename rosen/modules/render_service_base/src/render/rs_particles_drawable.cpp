@@ -22,6 +22,7 @@ namespace Rosen {
 constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 constexpr float DOUBLE = 2.f;
 constexpr float DEFAULT_RADIUS = 100;
+constexpr int MAX_ATLAS_COUNT = 2000;
 RSParticlesDrawable::RSParticlesDrawable(const std::vector<std::shared_ptr<RSRenderParticle>>& particles,
     std::vector<std::shared_ptr<RSImage>>& imageVector, size_t imageCount)
     : particles_(particles), imageVector_(imageVector), imageCount_(imageCount)
@@ -167,31 +168,64 @@ void RSParticlesDrawable::Draw(Drawing::Canvas& canvas, std::shared_ptr<RectF> b
 void RSParticlesDrawable::DrawParticles(Drawing::Canvas& canvas)
 {
     if (circleImage_ != nullptr) {
-        Drawing::Brush brush;
-        brush.SetAntiAlias(true);
-        canvas.AttachBrush(brush);
-        canvas.DrawAtlas(circleImage_.get(), pointRsxform_.data(), pointTex_.data(),
-            pointColors_.data(), pointCount_, Drawing::BlendMode::DST_IN,
-            Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), nullptr);
-        canvas.DetachBrush();
+        DrawCircle(canvas);
     }
+    if (imageCount_ > 0) {
+        DrawImages(canvas);
+    }
+}
+
+void RSParticlesDrawable::DrawCircle(Drawing::Canvas& canvas)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    Drawing::RSXform* rsxform = pointRsxform_.data();
+    Drawing::Rect* tex = pointTex_.data();
+    Drawing::ColorQuad* colors = pointColors_.data();
+    canvas.AttachBrush(brush);
+    while (pointCount_ > MAX_ATLAS_COUNT) {
+        canvas.DrawAtlas(circleImage_.get(), rsxform, tex, colors, MAX_ATLAS_COUNT, Drawing::BlendMode::DST_IN,
+            Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), nullptr);
+        pointCount_ -= MAX_ATLAS_COUNT;
+        rsxform += MAX_ATLAS_COUNT;
+        tex += MAX_ATLAS_COUNT;
+        colors += MAX_ATLAS_COUNT;
+    }
+    canvas.DrawAtlas(circleImage_.get(), rsxform, tex, colors, pointCount_, Drawing::BlendMode::DST_IN,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), nullptr);
+    canvas.DetachBrush();
+}
+
+void RSParticlesDrawable::DrawImages(Drawing::Canvas& canvas)
+{
     while (imageCount_--) {
         if (imageVector_[imageCount_] != nullptr) {
             auto pixelmap = imageVector_[imageCount_]->GetPixelMap();
             if (!pixelmap) {
                 ROSEN_LOGE("RSParticlesDrawable::Draw !pixel");
-                continue;
+                return;
             }
             auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
             if (!image) {
                 ROSEN_LOGE("RSParticlesDrawable::Draw !image");
-                continue;
+                return;
             }
             Drawing::Brush brush;
             brush.SetAntiAlias(true);
+            int count = count_[imageCount_];
+            Drawing::RSXform* rsxform = imageRsxform_[imageCount_].data();
+            Drawing::Rect* tex = imageTex_[imageCount_].data();
+            Drawing::ColorQuad* colors = imageColors_[imageCount_].data();
             canvas.AttachBrush(brush);
-            canvas.DrawAtlas(image.get(), imageRsxform_[imageCount_].data(), imageTex_[imageCount_].data(),
-                imageColors_[imageCount_].data(), count_[imageCount_], Drawing::BlendMode::SRC_IN,
+            while (count > MAX_ATLAS_COUNT) {
+                canvas.DrawAtlas(image.get(), rsxform, tex, colors, MAX_ATLAS_COUNT, Drawing::BlendMode::SRC_IN,
+                    Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), nullptr);
+                count -= MAX_ATLAS_COUNT;
+                rsxform += MAX_ATLAS_COUNT;
+                tex += MAX_ATLAS_COUNT;
+                colors += MAX_ATLAS_COUNT;
+            }
+            canvas.DrawAtlas(image.get(), rsxform, tex, colors, count, Drawing::BlendMode::SRC_IN,
                 Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), nullptr);
             canvas.DetachBrush();
         }

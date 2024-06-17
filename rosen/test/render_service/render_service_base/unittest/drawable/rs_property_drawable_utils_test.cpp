@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_utils.h"
+#include "draw/surface.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -22,6 +23,9 @@
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_material_filter.h"
+#include "skia_adapter/skia_image.h"
+#include "skia_adapter/skia_image_info.h"
+#include "skia_adapter/skia_surface.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -141,7 +145,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
  * @tc.name: DrawAndBeginForegroundFilterTest006
  * @tc.desc: DrawFilter and BeginForegroundFilter test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testing::ext::TestSize.Level1)
 {
@@ -154,9 +158,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     std::unique_ptr<RSFilterCacheManager> cacheManager = nullptr;
     paintFilterCanvasTest1.surface_ = nullptr;
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false, false);
-    std::shared_ptr<RSShaderFilter> shaderFilter = std::make_shared<RSShaderFilter>();
-    EXPECT_NE(shaderFilter, nullptr);
-    rsFilter = std::make_shared<RSDrawingFilter>(shaderFilter);
+    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    EXPECT_NE(rsFilterTest, nullptr);
+    rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_NE(rsFilter, nullptr);
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
@@ -167,8 +171,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     Drawing::Surface surfaceTest1;
     paintFilterCanvasTest1.disableFilterCache_ = false;
     paintFilterCanvasTest1.surface_ = &surfaceTest1;
+    std::shared_ptr<RSShaderFilter> rsShaderFilter = std::make_shared<RSShaderFilter>();
+    EXPECT_NE(rsShaderFilter, nullptr);
+    rsShaderFilter->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    rsFilter->shaderFilters_.emplace_back(rsShaderFilter);
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, true);
-
+    
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
@@ -264,7 +272,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::Test
  * @tc.name: DrawLightUpEffectTest010
  * @tc.desc: DrawLightUpEffect and DrawDynamicDim test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::TestSize.Level1)
 {
@@ -275,6 +283,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
     paintFilterCanvasTest1.surface_ = nullptr;
     rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, -1.0f);
     rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 1.0f);
+    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 0.0f);
     Drawing::Surface surfaceTest1;
     paintFilterCanvasTest1.surface_ = &surfaceTest1;
     rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 0.0f);
@@ -284,38 +293,45 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
     paintFilterCanvasTest2.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest2->DrawLightUpEffect(&paintFilterCanvasTest2, -1.0f);
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 1.0f);
+    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, -1.0f);
+    rsPropertyDrawableUtilsTest1->DrawDynamicDim(&paintFilterCanvasTest2, 1.0f);
+    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, 0.0f);
     Drawing::Surface surfaceTest2;
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
-    rsPropertyDrawableUtilsTest2->DrawLightUpEffect(&paintFilterCanvasTest2, 0.0f);
+    std::shared_ptr<Drawing::SkiaSurface> implTest2 = std::make_shared<Drawing::SkiaSurface>();
+    EXPECT_NE(implTest2, nullptr);
+    implTest2->skSurface_ = nullptr;
+    paintFilterCanvasTest2.surface_->impl_ = implTest2;
+    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, 0.0f);
 }
 
 /**
  * @tc.name: TransformativeShaderTest011
- * @tc.desc: MakeDynamicDimShader MakeBinarizationShader and MakeDynamicBrightnessBlender test
+ * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIA5Y41
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext::TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
-
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
     std::shared_ptr<Drawing::ShaderEffect> imageShaderTest1 = std::make_shared<Drawing::ShaderEffect>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicDimShader(1.0f, imageShaderTest1), nullptr);
+    EXPECT_NE(rsPropertyDrawableUtilsTest1->MakeDynamicDimShader(1.0f, imageShaderTest1), nullptr);
 
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);
     std::shared_ptr<Drawing::ShaderEffect> imageShaderTest2 = std::make_shared<Drawing::ShaderEffect>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeBinarizationShader(1.0f, 1.0f, 1.0f, 1.0f, imageShaderTest2), nullptr);
+    EXPECT_NE(rsPropertyDrawableUtilsTest2->MakeBinarizationShader(1.0f, 1.0f, 1.0f, 1.0f, imageShaderTest2), nullptr);
 
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest3 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest3, nullptr);
+    EXPECT_NE(rsPropertyDrawableUtilsTest3->MakeDynamicBrightnessBuilder(), nullptr);
+
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest4 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest4, nullptr);
     RSDynamicBrightnessPara params;
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
-    params.fraction_ = -1.0f;
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
-    params.fraction_ = -0.001f;
-    EXPECT_NE(rsPropertyDrawableUtilsTest->MakeDynamicBrightnessBlender(params), nullptr);
+    EXPECT_NE(rsPropertyDrawableUtilsTest4->MakeDynamicBrightnessBlender(params), nullptr);
 }
-
 /**
  * @tc.name: DrawBinarizationTest012
  * @tc.desc: DrawBinarization test
@@ -456,5 +472,63 @@ HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest016, 
     Drawing::Canvas canvasTest;
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest);
     rsPropertyDrawableUtilsTest1->EndBlender(paintFilterCanvasTest1, 0);
+}
+
+/**
+ * @tc.name: GetColorForShadowSynTest017
+ * @tc.desc: GetColorForShadowSyn and GpuScaleImage test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+
+    Drawing::Canvas canvasTest1;
+    Drawing::Path path;
+    Color color;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
+    paintFilterCanvas.surface_ = nullptr;
+    rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
+    Drawing::Surface surface;
+    paintFilterCanvas.surface_ = &surface;
+    rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
+
+    Drawing::Canvas canvasTest2;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    EXPECT_NE(image, nullptr);
+    std::shared_ptr<Drawing::SkiaImage> imageImpl = std::make_shared<Drawing::SkiaImage>();
+    image->imageImplPtr = imageImpl;
+    rsPropertyDrawableUtilsTest->GpuScaleImage(&canvasTest2, image);
+}
+
+/**
+ * @tc.name: GetShadowRegionImageTest018
+ * @tc.desc: GetShadowRegionImage test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+
+    Drawing::Canvas canvasTest;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    Drawing::Path drPath;
+    Drawing::Matrix matrix;
+    auto resultTest1 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
+    EXPECT_EQ(resultTest1, nullptr);
+
+    Drawing::Surface surface;
+    std::shared_ptr<Drawing::SkiaSurface> skiaSurface = std::make_shared<Drawing::SkiaSurface>();
+    EXPECT_NE(skiaSurface, nullptr);
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(1, 1);
+    skiaSurface->skSurface_ = skSurface;
+    surface.impl_ = skiaSurface;
+    paintFilterCanvas.surface_ = &surface;
+    auto resultTest2 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
+    EXPECT_EQ(resultTest2, nullptr);
 }
 } // namespace OHOS::Rosen

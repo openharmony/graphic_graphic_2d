@@ -260,6 +260,7 @@ private:
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 #endif
     NodeId id_ = 0;
+    mutable std::mutex bufMutex_;
     SurfaceBufferEntry buffer_;
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;

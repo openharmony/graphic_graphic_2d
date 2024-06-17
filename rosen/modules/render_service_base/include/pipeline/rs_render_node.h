@@ -620,7 +620,7 @@ public:
 
     virtual bool GetUifirstSupportFlag()
     {
-        return !GetRenderProperties().GetSandBox() && isChildSupportUifirst_;
+        return !GetRenderProperties().GetSandBox() && isChildSupportUifirst_ && isUifirstNode_;
     }
 
     virtual void MergeOldDirtyRect()
@@ -684,6 +684,9 @@ public:
     {
         return context_;
     }
+
+    // arkui mark uifirst
+    void MarkUifirstNode(bool isUifirstNode);
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -763,6 +766,7 @@ protected:
     bool childHasSharedTransition_ = false;
     bool lastFrameSynced_ = true;
     bool clipAbsDrawRectChange_ = false;
+    bool isUifirstNode_ = true;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,

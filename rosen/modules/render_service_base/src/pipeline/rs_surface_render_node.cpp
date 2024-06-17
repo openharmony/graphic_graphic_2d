@@ -1292,7 +1292,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 {
     switch (visibleLevel) {
         case RSVisibleLevel::RS_INVISIBLE:
-            return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
+            return WINDOW_LAYER_INFO_TYPE::INVISIBLE;
         case RSVisibleLevel::RS_ALL_VISIBLE:
             return WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE;
         case RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE:
@@ -1533,7 +1533,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     }
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic);
+        stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
     }
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -1957,7 +1957,8 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     return true;
 }
 
-void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation)
+void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
+    const bool isFocusWindow)
 {
     auto absRect = GetDstRect().IntersectRect(GetOldDirtyInSurface());
     Vector4f tmpCornerRadius;
@@ -1971,14 +1972,15 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.absRect_ == absRect &&
         opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
     if (!ret) {
         // planning: default process focus window
-        ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, true, cornerRadius);
+        ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
     }
-    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, true, cornerRadius);
+    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
 }
 
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
@@ -2573,6 +2575,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
+    surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
@@ -2599,6 +2602,17 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
+}
+
+void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetNeedOffscreen(needOffscreen);
+        AddToPendingSyncList();
+    } else {
+        RS_LOGE("RSSurfaceRenderNode::SetNeedOffscreen stagingSurfaceParams is null");
+    }
 }
 
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()

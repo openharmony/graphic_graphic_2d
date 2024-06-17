@@ -143,6 +143,17 @@ struct RSDynamicBrightnessPara {
     }
 };
 
+struct RSWaterRipplePara {
+    float waveCount = 0.0f;
+    float rippleCenterX = 0.5f;
+    float rippleCenterY = 0.7f;
+    bool operator==(const RSWaterRipplePara& other) const
+    {
+        return (waveCount == other.waveCount && rippleCenterX == other.rippleCenterX &&
+        rippleCenterY == other.rippleCenterY);
+    }
+};
+
 class Decoration final {
 public:
     Decoration() {}

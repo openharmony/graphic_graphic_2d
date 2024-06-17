@@ -75,31 +75,31 @@ public:
 
     // shapes
     void DrawSdf(const SDFShapeBase& shape) override;
-    void DrawPoint(const Point& point) override;
-    void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
-    void DrawLine(const Point& startPt, const Point& endPt) override;
-    void DrawRect(const Rect& rect) override;
-    void DrawRoundRect(const RoundRect& roundRect) override;
-    void DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner) override;
-    void DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle) override;
-    void DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle) override;
-    void DrawOval(const Rect& oval) override;
-    void DrawCircle(const Point& centerPt, scalar radius) override;
-    void DrawPath(const Path& path) override;
+    void DrawPoint(const Point& point, const Paint& paint) override;
+    void DrawPoints(PointMode mode, size_t count, const Point pts[], const Paint& paint) override;
+    void DrawLine(const Point& startPt, const Point& endPt, const Paint& paint) override;
+    void DrawRect(const Rect& rect, const Paint& paint) override;
+    void DrawRoundRect(const RoundRect& roundRect, const Paint& paint) override;
+    void DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner, const Paint& paint) override;
+    void DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle, const Paint& paint) override;
+    void DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle, const Paint& paint) override;
+    void DrawOval(const Rect& oval, const Paint& paint) override;
+    void DrawCircle(const Point& centerPt, scalar radius, const Paint& paint) override;
+    void DrawPath(const Path& path, const Paint& paint) override;
     void DrawBackground(const Brush& brush) override;
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
     void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation) override;
-    void DrawRegion(const Region& region) override;
+    void DrawRegion(const Region& region, const Paint& paint) override;
     void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
-        const Point texCoords[4], BlendMode mode) override;
-    void DrawVertices(const Vertices& vertices, BlendMode mode) override;
+        const Point texCoords[4], BlendMode mode, const Paint& paint) override;
+    void DrawVertices(const Vertices& vertices, BlendMode mode, const Paint& paint) override;
 
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filter) override;
+        FilterMode filter, const Paint& paint) override;
 
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;
@@ -109,21 +109,23 @@ public:
 
     // image
     void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[], int count,
-        BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;
-    void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
-    void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
+        BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect, const Paint& paint) override;
+    void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py, const Paint& paint) override;
+    void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling,
+        const Paint& paint) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
-        SrcRectConstraint constraint) override;
-    void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
+        SrcRectConstraint constraint, const Paint& paint) override;
+    void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling,
+        const Paint& paint) override;
     void DrawPicture(const Picture& picture) override;
 
     void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) override;
 
     // text
-    void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
+    void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint) override;
 
     // symbol
-    void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) override;
+    void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, const Paint& paint) override;
 
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
@@ -154,9 +156,6 @@ public:
     uint32_t GetSaveCount() const override;
     void Discard() override;
 
-    // paint
-    void AttachPaint(const Paint& paint) override;
-
     SkCanvas* ExportSkCanvas() const;
     void ImportSkCanvas(SkCanvas* skCanvas);
 
@@ -177,7 +176,8 @@ private:
     SkCanvas* skCanvas_;
     SkCanvas* skCanvasBackup_ = nullptr;
     std::shared_ptr<SkiaCanvasOp> skiaCanvasOp_ = nullptr;
-    SkiaPaint skiaPaint_;
+    SkPaint defaultPaint_;
+    SkPaint skPaint_;
 };
 } // namespace Drawing
 } // namespace Rosen

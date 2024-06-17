@@ -48,6 +48,8 @@ struct ComposeInfo {
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     GraphicBlendType blendType;
     bool needClient = false;
+    int32_t displayNit { 0 };
+    float brightnessRatio { 0.0 };
 };
 
 class RSSurfaceRenderParams;

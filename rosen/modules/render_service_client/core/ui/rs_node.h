@@ -39,6 +39,7 @@
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -334,9 +335,15 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
+    void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
+    void SetAttractionEffectFraction(float fraction);
+    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
+
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
+    
+    void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -377,6 +384,9 @@ public:
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
+
+    // Mark uifirst node
+    void MarkUifirstNode(bool isUifirstNode);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -534,6 +544,8 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+
+    bool isUifirstNode_ = true;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

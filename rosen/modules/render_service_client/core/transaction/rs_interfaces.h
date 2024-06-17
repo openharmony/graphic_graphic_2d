@@ -64,7 +64,7 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
-    int32_t EnableSkipWindow(ScreenId id, bool enable);
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
@@ -244,7 +244,7 @@ public:
 
     void EnableCacheForRotation();
 
-    void ChangeSyncCount(int32_t hostPid);
+    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     void DisableCacheForRotation();
 

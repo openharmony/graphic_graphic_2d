@@ -90,6 +90,8 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
+    
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
 #ifdef RS_ENABLE_VK
@@ -248,7 +250,7 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void ChangeSyncCount(int32_t hostPid) = 0;
+    virtual void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

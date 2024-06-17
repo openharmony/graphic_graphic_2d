@@ -33,6 +33,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
@@ -149,10 +150,11 @@ void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
 {
     auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     MoveRenderNodeMap(subRenderNodeMap);
-    RSBackgroundThread::Instance().PostTask(
-        [this, subRenderNodeMap]() {
-            RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
-        });
+    RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
+    if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
+        RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
+        RSRenderNodeGC::Instance().ReleaseNodeMemory();
+    }
 }
 
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
@@ -450,6 +452,12 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
         RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
     }
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetCastScreenEnableSkipWindow(id, enable);
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
@@ -1086,27 +1094,12 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RS_LOGE("RSRenderServiceConnection::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
         return false;
     }
-    auto tid = node->GetTid(); // planning: id may change in subthread
-    auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-    if (drawableNode) {
-        tid = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetTid();
-    }
-    auto getDrawableBitmapTask = [&node, &bitmap, tid]() {
+    auto grContext = renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    auto getDrawableBitmapTask = [&node, &bitmap, grContext]() {
         auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-        bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(tid);
+        bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(grContext);
     };
-    auto getBitmapTask = [&node, &bitmap, tid]() { bitmap = node->GetBitmap(tid); };
-    if (tid == UNI_MAIN_THREAD_INDEX) {
-        if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
-            return false;
-        }
-        mainThread_->PostSyncTask(getBitmapTask);
-    } else if (tid == UNI_RENDER_THREAD_INDEX) {
-        renderThread_.PostSyncTask(getDrawableBitmapTask);
-    } else {
-        RSTaskDispatcher::GetInstance().PostTask(
-            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getDrawableBitmapTask, true);
-    }
+    renderThread_.PostSyncTask(getDrawableBitmapTask);
     return !bitmap.IsEmpty();
 }
 
@@ -1373,10 +1366,10 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
-void RSRenderServiceConnection::ChangeSyncCount(int32_t hostPid)
+void RSRenderServiceConnection::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    auto task = [this, hostPid]() -> void {
-        mainThread_->ProcessSubSyncTransactionCount(hostPid);
+    auto task = [this, syncId, parentPid, childPid]() -> void {
+        mainThread_->ProcessEmptySyncTransactionCount(syncId, parentPid, childPid);
     };
     mainThread_->PostTask(task);
 }

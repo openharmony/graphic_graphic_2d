@@ -87,6 +87,7 @@ private:
     bool SkipDisplayIfScreenOff() const;
     bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
+    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -95,6 +96,8 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     bool canvasRotation_ = false;
     std::unordered_set<NodeId> virtualScreenBlackList_ = {};
+    std::unordered_set<NodeId> castScreenBlackList_ = {};
+    bool castScreenEnableSkipWindow_ = false;
     bool hasSpecialLayer_ = false;
     bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;

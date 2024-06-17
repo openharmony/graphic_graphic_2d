@@ -28,17 +28,19 @@ public:
         std::vector<std::shared_ptr<RSImage>>& imageVector, size_t imageCount);
     RSParticlesDrawable() = default;
     ~RSParticlesDrawable() = default;
+    void Draw(Drawing::Canvas& canvas, std::shared_ptr<RectF> bounds);
 
+private:
     std::shared_ptr<Drawing::Image> MakeCircleImage(int radius);
     Drawing::RSXform MakeRSXform(Vector2f ofs, Vector2f position, float spin, float scale);
     void CaculatePointAtlsArry(
         const std::shared_ptr<RSRenderParticle>& particle, Vector2f position, float opacity, float scale);
     void CaculateImageAtlsArry(Drawing::Canvas& canvas, const std::shared_ptr<RSRenderParticle>& particle,
         Vector2f position, float opacity, float scale);
-    void Draw(Drawing::Canvas& canvas, std::shared_ptr<RectF> bounds);
     void DrawParticles(Drawing::Canvas& canvas);
+    void DrawCircle(Drawing::Canvas& canvas);
+    void DrawImages(Drawing::Canvas& canvas);
 
-private:
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
     std::shared_ptr<Drawing::Image> circleImage_;
     std::vector<std::shared_ptr<RSImage>> imageVector_;

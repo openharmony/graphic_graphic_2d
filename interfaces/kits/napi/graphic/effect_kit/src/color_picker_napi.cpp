@@ -171,7 +171,7 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
     IMG_JS_NO_ARGS(env, info, status, thisVar);
 
     IMG_NAPI_CHECK_RET(IMG_IS_READY(status, thisVar), undefineVar);
-    std::unique_ptr<ColorPickerNapi> pColorPickerNapi = std::make_unique<ColorPickerNapi>();
+    ColorPickerNapi* pColorPickerNapi = new ColorPickerNapi();
 
     IMG_NAPI_CHECK_RET(IMG_NOT_NULL(pColorPickerNapi), undefineVar);
 
@@ -179,7 +179,7 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
     pColorPickerNapi->nativeColorPicker_ = sColorPicker_;
 
     status = napi_wrap(env, thisVar,
-                       reinterpret_cast<void*>(pColorPickerNapi.get()),
+                       reinterpret_cast<void*>(pColorPickerNapi),
                        ColorPickerNapi::Destructor,
                        nullptr,
                        nullptr);
@@ -187,7 +187,6 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
                          undefineVar,
                          EFFECT_LOG_E("Failure wrapping js to native napi"));
 
-    pColorPickerNapi.release();
     sColorPicker_ = nullptr;
 
     return thisVar;

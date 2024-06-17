@@ -1392,7 +1392,6 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     return WriteToPng(filename, param);
 }
 
-
 bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo)
 {
     if (!RSSystemProperties::GetDumpImgEnabled()) {

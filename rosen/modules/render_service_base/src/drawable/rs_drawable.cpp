@@ -115,6 +115,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COLOR_FILTER,                  // INVERT
     RSDrawableSlot::BINARIZATION,                  // AIINVERT
     RSDrawableSlot::BACKGROUND_FILTER,             // SYSTEMBAREFFECT
+    RSDrawableSlot::BACKGROUND_FILTER,             // WATER_RIPPLE_PROGRESS
+    RSDrawableSlot::BACKGROUND_FILTER,             // WATER_RIPPLE_EFFECT
     RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
     RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
@@ -153,6 +155,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
+    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
+    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION

@@ -178,5 +178,13 @@ bool RSSystemParameters::GetHideNotchStatus()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return (strcmp(enable, "true") == 0);
 }
+
+bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dma.enabled", "0");
+    int changed = 0;
+    const char *dmaEnable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(dmaEnable, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

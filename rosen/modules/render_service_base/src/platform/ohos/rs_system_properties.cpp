@@ -26,12 +26,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr int DEFAULT_CACHE_WIDTH = 1250;
 constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
+constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.9";
+}
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = Drawing::SystemProperties::GetGpuApiType();
@@ -202,6 +205,14 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
+}
+
+float RSSystemProperties::GetClipRectThreshold()
+{
+    int changed = 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.cliprect.threshold", DEFAULT_CLIP_RECT_THRESHOLD);
+    const char *threshold = CachedParameterGetChanged(g_Handle, &changed);
+    return threshold == nullptr ? std::atof(DEFAULT_CLIP_RECT_THRESHOLD) : std::atof(threshold);
 }
 
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
@@ -791,6 +802,12 @@ bool RSSystemProperties::IsPhoneType()
 {
     static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
     return isPhone;
+}
+
+bool RSSystemProperties::IsTabletType()
+{
+    static bool isTablet = system::GetParameter("const.product.devicetype", "pc") == "tablet";
+    return isTablet;
 }
 
 bool RSSystemProperties::IsPcType()

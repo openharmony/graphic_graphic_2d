@@ -1585,5 +1585,31 @@ HWTEST_F(RSInterfacesTest, DisablePowerOffRenderControl, Function | SmallTest | 
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->DisablePowerOffRenderControl(INVALID_SCREEN_ID);
 }
+
+/*
+ * @tc.name: SetCastScreenEnableSkipWindow
+ * @tc.desc: Test SetCastScreenEnableSkipWindow
+ * @tc.type: FUNC
+ * @tc.require: issueI9VAB2
+ */
+HWTEST_F(RSInterfacesTest, SetCastScreenEnableSkipWindow_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    bool enable = true;
+    auto res = rsInterfaces->SetCastScreenEnableSkipWindow(virtualScreenId, enable);
+    EXPECT_EQ(res, SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS

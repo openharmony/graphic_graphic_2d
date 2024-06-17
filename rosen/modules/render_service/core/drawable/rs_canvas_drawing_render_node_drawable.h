@@ -41,7 +41,7 @@ public:
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas();
     void Flush(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
-    Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
+    Drawing::Bitmap GetBitmap(Drawing::GPUContext* grContext);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     void DrawCaptureImage(RSPaintFilterCanvas& canvas);

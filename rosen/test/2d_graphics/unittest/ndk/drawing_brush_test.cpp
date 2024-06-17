@@ -17,6 +17,7 @@
 
 #include "drawing_brush.h"
 #include "drawing_color.h"
+#include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
@@ -73,11 +74,23 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetColor002, TestSi
     OH_Drawing_Brush* brush1 = OH_Drawing_BrushCreate();
     OH_Drawing_BrushSetAntiAlias(brush1, false);
     EXPECT_EQ(OH_Drawing_BrushIsAntiAlias(brush1), false);
+    OH_Drawing_BrushSetAntiAlias(nullptr, false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushIsAntiAlias(nullptr), false);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BrushSetColor(brush1, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
     EXPECT_EQ(OH_Drawing_BrushGetColor(brush1), 0xFFFF0000);
+    OH_Drawing_BrushSetColor(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetColor(nullptr), 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     constexpr uint8_t alpha = 128;
     OH_Drawing_BrushSetAlpha(brush1, alpha);
     EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush1), alpha);
+    OH_Drawing_BrushSetAlpha(nullptr, alpha);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetAlpha(nullptr), 0);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
 /*
@@ -89,6 +102,7 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetColor002, TestSi
 HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetBlendMode003, TestSize.Level1)
 {
     OH_Drawing_BrushSetBlendMode(nullptr, OH_Drawing_BlendMode::BLEND_MODE_CLEAR);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     EXPECT_NE(brush, nullptr);
     OH_Drawing_BrushSetBlendMode(brush, OH_Drawing_BlendMode::BLEND_MODE_CLEAR);
@@ -112,6 +126,8 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushReset004, TestSize.
     EXPECT_EQ(OH_Drawing_BrushIsAntiAlias(brush1), false);
     EXPECT_EQ(OH_Drawing_BrushGetColor(brush1), 0xFF000000);
     EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush1), 0xFF);
+    OH_Drawing_BrushReset(nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     OH_Drawing_BrushDestroy(brush1);
 }
@@ -145,6 +161,14 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushGetFilter005, TestS
 
     EXPECT_NE(CastToFilter(tmpFilter_)->GetColorFilter(), nullptr);
     EXPECT_EQ(CastToFilter(tmpFilter_)->GetColorFilter()->GetType(), ColorFilter::FilterType::BLEND_MODE);
+
+    OH_Drawing_BrushSetFilter(nullptr, cFilter_);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_BrushGetFilter(nullptr, tmpFilter_);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_BrushGetFilter(brush, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
     OH_Drawing_FilterDestroy(cFilter_);
     OH_Drawing_FilterDestroy(tmpFilter_);
     OH_Drawing_ColorFilterDestroy(cColorFilter_);
@@ -170,6 +194,7 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetShadowLayer006, 
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     EXPECT_NE(brush, nullptr);
     OH_Drawing_BrushSetShadowLayer(nullptr, shadowLayer);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BrushSetShadowLayer(brush, nullptr);
     OH_Drawing_BrushSetShadowLayer(brush, shadowLayer);
     OH_Drawing_ShadowLayerDestroy(shadowLayer);

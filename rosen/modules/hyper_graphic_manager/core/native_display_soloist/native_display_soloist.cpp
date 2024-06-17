@@ -19,7 +19,8 @@
 #include "transaction/rs_interfaces.h"
 #include "vsync_receiver.h"
 
-namespace OHOS::Rosen {
+using namespace OHOS::Rosen;
+
 struct OH_DisplaySoloist {
     std::shared_ptr<SoloistId> soloistId_;
 };
@@ -117,4 +118,3 @@ int32_t OH_DisplaySoloist_SetExpectedFrameRateRange(OH_DisplaySoloist* displaySo
     soloistManager.InsertFrameRateRange(soloistId, frameRateRange);
     return EXEC_SUCCESS;
 }
-} // namespace OHOS::Rosen

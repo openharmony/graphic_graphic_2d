@@ -69,16 +69,6 @@ enum class PathMeasureMatrixFlags {
     GET_POS_AND_TAN_MATRIX,
 };
 
-enum class PathVerb {
-    Move = 0,
-    Line,
-    Quad,
-    Conic,
-    Cubic,
-    Close,
-    Done
-};
-
 class DRAWING_API Path {
 public:
     Path() noexcept;
@@ -509,9 +499,6 @@ public:
 
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
-
-    int GetVerbsCount() const;
-    std::vector<PathVerb> GetVerbs() const;
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);

@@ -402,8 +402,6 @@ HWTEST_F(GELinearGradientBlurShaderFilterTest, DrawMeanLinearGradientBlur001, Te
     auto filter = std::make_shared<GELinearGradientBlurShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
-    filter->MakeHorizontalMeanBlurEffect();
-    filter->MakeVerticalMeanBlurEffect();
     EXPECT_NE(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
 }
 

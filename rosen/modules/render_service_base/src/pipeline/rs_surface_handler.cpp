@@ -82,9 +82,11 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 
 void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 {
+    std::lock_guard<std::mutex> lock(bufMutex_);
     uint64_t bufferTimestamp = static_cast<uint64_t>(buffer.timestamp);
-    if (bufferCache_.count(bufferTimestamp)) {
-        ReleaseBuffer(bufferCache_[bufferTimestamp]);
+    auto found = bufferCache_.find(bufferTimestamp);
+    if (found != bufferCache_.end()) {
+        ReleaseBuffer(found->second);
     }
     bufferCache_[bufferTimestamp] = buffer;
     RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
@@ -92,11 +94,13 @@ void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 
 bool RSSurfaceHandler::HasBufferCache() const
 {
+    std::lock_guard<std::mutex> lock(bufMutex_);
     return bufferCache_.size() != 0;
 }
 
 RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
 {
+    std::lock_guard<std::mutex> lock(bufMutex_);
     RSSurfaceHandler::SurfaceBufferEntry buffer;
     for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
         if (iter->first < vsyncTimestamp) {
@@ -117,6 +121,7 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
 
 void RSSurfaceHandler::ClearBufferCache()
 {
+    std::lock_guard<std::mutex> lock(bufMutex_);
     while (!bufferCache_.empty()) {
         ReleaseBuffer(bufferCache_.begin()->second);
         bufferCache_.erase(bufferCache_.begin());

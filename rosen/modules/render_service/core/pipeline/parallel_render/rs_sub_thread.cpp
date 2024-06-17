@@ -248,58 +248,26 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         return;
     }
 
+    nodeDrawable->SetSubThreadSkip(false);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
         RS_TRACE_NAME_FMT("subthread skip node id %llu", param->GetId());
+        nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum--;
         return;
     }
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
     RSTagTracker tagTracker(grContext_.get(), param->GetId(), RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
-
-    auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
-    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
-            &RSUniRenderUtil::ClearNodeCacheSurface, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4);
-        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
-        cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
+    if (nodeDrawable->UseDmaBuffer()) {
+        DrawableCacheWithDma(nodeDrawable);
+    } else {
+        DrawableCacheWithSkImage(nodeDrawable);
     }
 
-    if (!cacheSurface) {
-        RS_LOGE("RSSubThread::DrawableCache cacheSurface is nullptr");
-        return;
-    }
-
-    auto rscanvas = std::make_shared<RSPaintFilterCanvas>(cacheSurface.get());
-    if (rscanvas == nullptr) {
-        RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
-        return;
-    }
-    SetHighContrastIfEnabled(*rscanvas);
-    rscanvas->SetIsParallelCanvas(true);
-    rscanvas->SetDisableFilterCache(true);
-    rscanvas->SetParallelThreadIdx(threadIndex_);
-    rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
-    rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
-    rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    nodeDrawable->SubDraw(*rscanvas);
-    bool optFenceWait = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
-        optFenceWait = false;
-    }
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
-    nodeDrawable->UpdateBackendTexture();
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
     });
-
-    // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
-    // 1. hdc shell mount -o rw,remount /
-    // 2. hdc shell setenforce 0 # close selinux temporarily
-    // 3. hdc shell chmod 0777 /data
-    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, nodeDrawable->GetName());
 
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     nodeDrawable->SetCacheSurfaceNeedUpdated(true);
@@ -350,6 +318,80 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     }
 #endif
     return nullptr;
+}
+
+void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+{
+    auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
+    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
+        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
+            &RSUniRenderUtil::ClearNodeCacheSurface, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4);
+        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
+        cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
+    }
+
+    if (!cacheSurface) {
+        RS_LOGE("RSSubThread::DrawableCacheWithSkImage cacheSurface is nullptr");
+        return;
+    }
+
+    auto rscanvas = std::make_shared<RSPaintFilterCanvas>(cacheSurface.get());
+    if (rscanvas == nullptr) {
+        RS_LOGE("RSSubThread::DrawableCacheWithSkImage canvas is nullptr");
+        return;
+    }
+
+    rscanvas->SetIsParallelCanvas(true);
+    rscanvas->SetDisableFilterCache(true);
+    rscanvas->SetParallelThreadIdx(threadIndex_);
+    rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    nodeDrawable->SubDraw(*rscanvas);
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
+    nodeDrawable->UpdateBackendTexture();
+
+    // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
+    // 1. hdc shell mount -o rw,remount /
+    // 2. hdc shell setenforce 0 # close selinux temporarily
+    // 3. hdc shell chmod 0777 /data
+    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, nodeDrawable->GetName());
+}
+
+void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+{
+    RS_TRACE_NAME("DrawableCacheWithDma");
+    if (!nodeDrawable->IsSurfaceCreated()) {
+        nodeDrawable->CreateSurface();
+    }
+    auto renderFrame = nodeDrawable->RequestFrame(renderContext_, grContext_);
+    if (!renderFrame) {
+        RS_LOGE("RSSubThread::DrawableCache renderFrame is nullptr");
+        return;
+    }
+    auto drSurface = renderFrame->GetFrame()->GetSurface();
+    if (!drSurface) {
+        RS_LOGE("RSSubThread::DrawableCache DrawingSurface is null");
+        return;
+    }
+    auto rsCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    if (rsCanvas == nullptr) {
+        RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
+        return;
+    }
+
+    rsCanvas->SetIsParallelCanvas(true);
+    rsCanvas->SetDisableFilterCache(true);
+    rsCanvas->SetParallelThreadIdx(threadIndex_);
+    rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+
+    nodeDrawable->SubDraw(*rsCanvas);
+    RS_TRACE_BEGIN("FlushFrame");
+    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get());
+    renderFrame->Flush();
+    RS_TRACE_END();
+    // uifirst_debug dump img
+    std::string pidstring = nodeDrawable->GetDebugInfo();
+    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(drSurface, pidstring);
 }
 
 void RSSubThread::ResetGrContext()

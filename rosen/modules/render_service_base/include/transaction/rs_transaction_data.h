@@ -160,14 +160,24 @@ public:
         return syncId_;
     }
 
-    void SetHostPid(const int32_t hostPid)
+    void SetParentPid(const int32_t parentPid)
     {
-        hostPid_ = hostPid;
+        parentPid_ = parentPid;
     }
 
-    int32_t GetHostPid() const
+    int32_t GetParentPid() const
     {
-        return hostPid_;
+        return parentPid_;
+    }
+
+    void SetChildPid(const int32_t childPid)
+    {
+        childPid_ = childPid;
+    }
+
+    int32_t GetChildPid() const
+    {
+        return childPid_;
     }
 
 private:
@@ -185,7 +195,8 @@ private:
     bool needCloseSync_ { false };
     bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
-    int32_t hostPid_ { -1 };
+    int32_t parentPid_ { -1 };
+    int32_t childPid_ { -1 };
     uint64_t syncId_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;

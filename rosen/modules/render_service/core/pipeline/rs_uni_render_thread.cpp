@@ -260,7 +260,6 @@ void RSUniRenderThread::Render()
 
     if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
         RSMainThread::Instance()->SetFrameIsRender(true);
-        DvsyncRequestNextVsync();
     }
     RSMainThread::Instance()->ResetMarkRenderFlag();
 }
@@ -617,17 +616,6 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
         return;
     }
     rootNodeDrawable_->DumpDrawableTree(0, dumpString);
-}
-
-void RSUniRenderThread::DvsyncRequestNextVsync()
-{
-    if ((renderThreadParams_ && renderThreadParams_->GetRequestNextVsyncFlag()) ||
-        RSMainThread::Instance()->rsVSyncDistributor_->HasPendingUIRNV()) {
-        RSMainThread::Instance()->rsVSyncDistributor_->MarkRSAnimate();
-        RSMainThread::Instance()->RequestNextVSync("animate", renderThreadParams_->GetCurrentTimestamp());
-    } else {
-        RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSAnimate();
-    }
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

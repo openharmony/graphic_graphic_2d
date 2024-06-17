@@ -40,6 +40,7 @@ public:
         LINEAR_GRADIENT_BLUR,
         MASK_COLOR,
         HPS,
+        WATER_RIPPLE,
         MAGNIFIER,
     };
 

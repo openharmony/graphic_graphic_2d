@@ -240,6 +240,7 @@ ohos_source_set("render_service_base_src") {
     #render
     "src/render/rs_aibar_filter.cpp",
     "src/render/rs_aibar_shader_filter.cpp",
+    "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
@@ -273,6 +274,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_skia_filter.cpp",
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
+    "src/render/rs_water_ripple_shader_filter.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",

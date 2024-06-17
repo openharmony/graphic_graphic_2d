@@ -118,7 +118,7 @@ public:
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
-        if (IsRosenWeb() && !RSSystemProperties::IsPhoneType()) {
+        if (IsRosenWeb() && !(RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType())) {
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
@@ -840,7 +840,8 @@ public:
     }
 
 
-    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation);
+    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
+        const bool isFocusWindow);
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
@@ -1133,7 +1134,7 @@ public:
     {
         return overDrawBufferNodeCornerRadius_;
     }
-    
+
     bool HasSubSurfaceNodes() const;
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
@@ -1154,8 +1155,29 @@ public:
         return doDirectComposition_;
     }
 
+    void SetDisplayNit(int32_t displayNit)
+    {
+        displayNit_ = displayNit;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        brightnessRatio_ = brightnessRatio;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetNeedOffscreen(bool needOffscreen);
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1288,6 +1310,10 @@ private:
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
+
+    // hdr
+    int32_t displayNit_ = 500; // default sdr luminance
+    float brightnessRatio_ = 1.0f; // no ratio by default
 
     struct OpaqueRegionBaseInfo
     {

@@ -21,8 +21,10 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
 
@@ -31,13 +33,15 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-const std::string OUT_STR1 =
-    "DISPLAY_NODERS_NODESURFACE_NODECANVAS_NODEROOT_NODEPROXY_NODECANVAS_DRAWING_NODEEFFECT_NODEUNKNOWN_NODE";
-const std::string OUT_STR2 =
-    "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
-    "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
-    "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n";
+const std::string OUT_STR3 =
+    ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, VisibleRegion [Empty], "
+    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0";
+const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
+const std::string OUT_STR5 = ", skipLayer: 0";
+const std::string OUT_STR6 = ", DrawCmdModifiers:[type:131, modifiers: Property_]]";
+const std::string OUT_STR7 =
+    "ENV_FOREGROUND_COLOR:[Rgba-111ENV_FOREGROUND_COLOR_STRATEGY:[0GEOMETRYTRANS:[\n SkMatrix:{ \n[  0.0000   0.0000   "
+    "0.0000][  0.0000  10.0000   0.0000][  0.0000   0.0000   0.0000]}\n";
 
 class RSRenderNodeTest2 : public testing::Test {
 public:
@@ -982,6 +986,251 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: AddSubSurfaceNodeTest030
+ * @tc.desc: AddSubSurfaceNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, ClearCacheSurfaceInThreadTest030, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> parent = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(parent, nullptr);
+
+    nodeTest->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    nodeTest->AddSubSurfaceNode(parent);
+
+    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest1;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(surfaceTest1, nullptr);
+    subSurfaceNodesTest1.emplace_back(surfaceTest1);
+    parent->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
+    nodeTest->AddSubSurfaceNode(parent);
+    parent->subSurfaceNodes_.clear();
+
+    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest2;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceTest2 = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(surfaceTest2, nullptr);
+    subSurfaceNodesTest2.emplace_back(surfaceTest2);
+    nodeTest->subSurfaceNodes_.emplace(1, subSurfaceNodesTest2);
+    nodeTest->AddSubSurfaceNode(parent);
+    parent->subSurfaceNodes_.clear();
+
+    parent->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    parent->subSurfaceNodes_.emplace(1, subSurfaceNodesTest1);
+    nodeTest->AddSubSurfaceNode(parent);
+}
+
+/**
+ * @tc.name: RemoveSubSurfaceNodeTest031
+ * @tc.desc: RemoveSubSurfaceNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, RemoveSubSurfaceNodeTest031, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> parent = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(parent, nullptr);
+    nodeTest->RemoveSubSurfaceNode(parent);
+
+    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest1;
+    std::shared_ptr<RSRenderNode> surfaceTest1 = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(surfaceTest1, nullptr);
+    subSurfaceNodesTest1.emplace_back(surfaceTest1);
+    parent->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
+    nodeTest->RemoveSubSurfaceNode(parent);
+    EXPECT_EQ(parent->subSurfaceNodes_.size(), 0);
+
+    parent->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    parent->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
+    std::shared_ptr<RSRenderNode> parentTest = nullptr;
+    parent->parent_ = parentTest;
+    nodeTest->RemoveSubSurfaceNode(parent);
+    EXPECT_EQ(parent->subSurfaceNodes_.size(), 0);
+
+    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest2;
+    std::shared_ptr<RSRenderNode> surfaceTest2 = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(surfaceTest2, nullptr);
+    subSurfaceNodesTest2.emplace_back(surfaceTest2);
+    parent->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
+    parent->subSurfaceNodes_.emplace(1, subSurfaceNodesTest2);
+    parentTest = std::make_shared<RSRenderNode>(0);
+    parent->parent_ = parentTest;
+    EXPECT_NE(parentTest, nullptr);
+    nodeTest->RemoveSubSurfaceNode(parent);
+    EXPECT_EQ(parent->subSurfaceNodes_.size(), 1);
+}
+
+/**
+ * @tc.name: DumpSubClassNodeTest032
+ * @tc.desc: DumpSubClassNode and DumpDrawCmdModifiers test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> nodeTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(nodeTest1, nullptr);
+    std::string outTest3 = "";
+    nodeTest1->DumpSubClassNode(outTest3);
+    EXPECT_EQ(outTest3, OUT_STR3);
+
+    std::shared_ptr<RSRootRenderNode> nodeTest2 = std::make_shared<RSRootRenderNode>(0);
+    EXPECT_NE(nodeTest2, nullptr);
+    std::string outTest4 = "";
+    nodeTest2->DumpSubClassNode(outTest4);
+    EXPECT_EQ(outTest4, OUT_STR4);
+
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSDisplayRenderNode> nodeTest3 = std::make_shared<RSDisplayRenderNode>(0, config);
+    EXPECT_NE(nodeTest3, nullptr);
+    std::string outTest5 = "";
+    nodeTest3->DumpSubClassNode(outTest5);
+    EXPECT_EQ(outTest5, OUT_STR5);
+
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::string outTest6 = "";
+    nodeTest->DumpDrawCmdModifiers(outTest6);
+    EXPECT_EQ(outTest6, "");
+    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    EXPECT_NE(propertyTest, nullptr);
+    std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
+        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
+    EXPECT_NE(drawCmdModifiersTest, nullptr);
+    nodeTest->renderContent_->drawCmdModifiers_[RSModifierType::CHILDREN].emplace_back(drawCmdModifiersTest);
+    nodeTest->DumpDrawCmdModifiers(outTest6);
+    EXPECT_EQ(outTest6, OUT_STR6);
+}
+
+/**
+ * @tc.name: DumpDrawCmdModifierTest033
+ * @tc.desc: DumpDrawCmdModifier ForceMergeSubTreeDirtyRegion SubTreeSkipPrepare test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, DumpDrawCmdModifierTest033, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+
+    std::string outTest7;
+    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    EXPECT_NE(propertyTest, nullptr);
+    std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
+        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
+    EXPECT_NE(drawCmdModifiersTest, nullptr);
+    std::shared_ptr<RSRenderModifier> modifier = std::dynamic_pointer_cast<RSRenderModifier>(drawCmdModifiersTest);
+    EXPECT_NE(modifier, nullptr);
+    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::ENV_FOREGROUND_COLOR, modifier);
+    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, modifier);
+    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::GEOMETRYTRANS, modifier);
+    EXPECT_EQ(outTest7, OUT_STR7);
+
+    RSDirtyRegionManager dirtyManagerTest1;
+    RectI clipRectTest1 = RectI { 0, 0, 1, 1 };
+    nodeTest->lastFrameSubTreeSkipped_ = true;
+    nodeTest->geoUpdateDelay_ = true;
+    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1, clipRectTest1);
+    EXPECT_FALSE(nodeTest->lastFrameSubTreeSkipped_);
+
+    RSDirtyRegionManager dirtyManagerTest2;
+    RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
+    nodeTest->lastFrameHasChildrenOutOfRect_ = false;
+    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
+    nodeTest->hasChildrenOutOfRect_ = true;
+    nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
+
+    RSDirtyRegionManager dirtyManagerTest3;
+    RectI clipRectTest3 = RectI { 0, 0, 1, 1 };
+    nodeTest->clipAbsDrawRectChange_ = true;
+    nodeTest->hasChildrenOutOfRect_ = false;
+    nodeTest->lastFrameHasChildrenOutOfRect_ = true;
+    nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    nodeTest->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
+}
+
+/**
+ * @tc.name: IsSubTreeNeedPrepareTest034
+ * @tc.desc: Prepare QuickPrepare IsSubTreeNeedPrepare IsUifirstArkTsCardNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    nodeTest->Prepare(visitor);
+    nodeTest->QuickPrepare(visitor);
+
+    nodeTest->shouldPaint_ = false;
+    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
+    nodeTest->shouldPaint_ = true;
+    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, true));
+    nodeTest->isSubTreeDirty_ = true;
+    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
+    nodeTest->isSubTreeDirty_ = false;
+    nodeTest->childHasSharedTransition_ = true;
+    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
+    nodeTest->childHasSharedTransition_ = false;
+    nodeTest->childHasVisibleFilter_ = true;
+    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
+
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
+    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest035
+ * @tc.desc: UpdateDrawingCacheInfoBeforeChildren UpdateDrawingCacheInfoAfterChildren DisableDrawingCacheByHwcNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoBeforeChildrenTest035, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+
+    nodeTest->shouldPaint_ = false;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->shouldPaint_ = true;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    nodeTest->hasChildrenOutOfRect_ = true;
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->hasChildrenOutOfRect_ = false;
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_NE(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+    nodeTest->DisableDrawingCacheByHwcNode();
+    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
+    nodeTest->DisableDrawingCacheByHwcNode();
+    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 }
 } // namespace Rosen
 } // namespace OHOS

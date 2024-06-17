@@ -281,6 +281,7 @@ public:
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
     void SetFrameIsRender(bool isRender);
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     bool GetMarkRenderFlag() const
     {
         return markRenderFlag_;
@@ -326,7 +327,7 @@ public:
         return needRequestNextVsyncAnimate_;
     }
     
-    void ProcessSubSyncTransactionCount(int32_t hostPid);
+    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {
@@ -444,6 +445,7 @@ private:
     float GetCurrentSteadyTimeMsFloat() const;
     void RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex);
     void UpdateLuminance();
+    void DvsyncCheckRequestNextVsync();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

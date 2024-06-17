@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/benchmarks"
 
@@ -21,13 +22,18 @@ ohos_unittest("RSRenderServiceBaseBenchmarksTest") {
   module_out_path = module_output_path
 
   sources = [
-    "file_util_test.cpp",
+    "file_utils_test.cpp",
     "rs_recording_thread_test.cpp",
   ]
 
   configs = [
     ":render_test",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   include_dirs = [
@@ -43,6 +49,7 @@ ohos_unittest("RSRenderServiceBaseBenchmarksTest") {
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "ipc:ipc_core",
     "skia:skia_canvaskit",
   ]
 
