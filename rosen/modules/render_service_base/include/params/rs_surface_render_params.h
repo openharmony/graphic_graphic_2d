@@ -209,7 +209,7 @@ public:
     {
         return dstRect_;
     }
-    void SetSurfaceCacheContentStatic(bool contentStatic);
+    void SetSurfaceCacheContentStatic(bool contentStatic, bool lastFrameSynced);
     bool GetSurfaceCacheContentStatic() const;
     bool GetPreSurfaceCacheContentStatic() const;
 

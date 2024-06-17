@@ -1533,7 +1533,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     }
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic);
+        stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
     }
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

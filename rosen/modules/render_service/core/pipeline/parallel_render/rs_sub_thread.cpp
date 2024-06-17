@@ -248,9 +248,11 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         return;
     }
 
+    nodeDrawable->SetSubThreadSkip(false);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
         RS_TRACE_NAME_FMT("subthread skip node id %llu", param->GetId());
+        nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum--;
         return;
     }

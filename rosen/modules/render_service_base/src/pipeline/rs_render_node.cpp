@@ -3818,6 +3818,7 @@ void RSRenderNode::UpdateClipAbsDrawRectChangeState(const RectI& clipRect)
 void RSRenderNode::OnSync()
 {
     addedToPendingSyncList_ = false;
+    bool isLeashWindowPartialSkip = false;
 
     if (renderDrawable_ == nullptr) {
         return;
@@ -3869,6 +3870,7 @@ void RSRenderNode::OnSync()
             }
         }
         uifirstSkipPartialSync_ = false;
+        isLeashWindowPartialSkip = true;
     }
     if (ShouldClearSurface()) {
         clearSurfaceTask_();
@@ -3880,7 +3882,7 @@ void RSRenderNode::OnSync()
     foregroundFilterRegionChanged_ = false;
     foregroundFilterInteractWithDirty_ = false;
 
-    lastFrameSynced_ = true;
+    lastFrameSynced_ = !isLeashWindowPartialSkip;
 }
 
 bool RSRenderNode::ShouldClearSurface()

@@ -183,6 +183,16 @@ public:
     {
         return brightnessRatio_;
     }
+
+    void SetSubThreadSkip(bool isSubThreadSkip)
+    {
+        isSubThreadSkip_ = isSubThreadSkip;
+    }
+
+    bool IsSubThreadSkip() const
+    {
+        return isSubThreadSkip_;
+    }
     void SetTaskFrameCount(uint64_t frameCount);
 
     uint64_t GetTaskFrameCount() const;
@@ -269,6 +279,7 @@ private:
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
     uint64_t frameCount_ = 0;
+    bool isSubThreadSkip_ = false;
 
     RSPaintFilterCanvas* curCanvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface

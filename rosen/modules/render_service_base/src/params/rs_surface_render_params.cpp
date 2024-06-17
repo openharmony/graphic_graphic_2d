@@ -198,9 +198,14 @@ bool RSSurfaceRenderParams::GetPreSurfaceCacheContentStatic() const
     return preSurfaceCacheContentStatic_;
 }
 
-void RSSurfaceRenderParams::SetSurfaceCacheContentStatic(bool contentStatic)
+void RSSurfaceRenderParams::SetSurfaceCacheContentStatic(bool contentStatic, bool lastFrameSynced)
 {
+    // 1. don't sync while contentStatic not change
     if (surfaceCacheContentStatic_ == contentStatic) {
+        return;
+    }
+    // 2. don't sync while last frame isn't static and skip sync
+    if (!surfaceCacheContentStatic_ && !lastFrameSynced) {
         return;
     }
     preSurfaceCacheContentStatic_ = surfaceCacheContentStatic_;
