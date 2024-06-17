@@ -19,16 +19,6 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-static const std::map<RSEffectStrategy, TextEngine::SymbolAnimationEffectStrategy> ANIMATION_TYPES = {
-    {RSEffectStrategy::NONE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE},
-    {RSEffectStrategy::SCALE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE},
-    {RSEffectStrategy::VARIABLE_COLOR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR},
-    {RSEffectStrategy::APPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR},
-    {RSEffectStrategy::DISAPPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR},
-    {RSEffectStrategy::BOUNCE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE},
-    {RSEffectStrategy::PULSE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_PULSE},
-    {RSEffectStrategy::REPLACE_APPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR}};
-
 static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
 {
     for (const auto& groupInfo : groupInfos) {
@@ -90,8 +80,8 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     TextEngine::SymbolNode symbolNode;
     symbolNode.symbolData = symbolData;
     symbolNode.nodeBoundary = nodeBounds;
-    symbolAnimationConfig->SymbolNodes.push_back(symbolNode);
-    symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode);
+    symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
 
 void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
@@ -120,9 +110,9 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
         }
         TextEngine::SymbolNode symbolNode = {multPath, color, nodeBounds, symbolData,
             groupSetting.animationIndex, isMask};
-        symbolAnimationConfig->SymbolNodes.push_back(symbolNode);
+        symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     }
-    symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
+    symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
 
 void SymbolNodeBuild::ClearAnimation()
@@ -134,7 +124,7 @@ void SymbolNodeBuild::ClearAnimation()
     if (symbolAnimationConfig == nullptr) {
         return;
     }
-    symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);
 }
@@ -162,10 +152,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
         AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
     }
 
-    auto iter = ANIMATION_TYPES.find(effectStrategy_);
-    if (iter != ANIMATION_TYPES.end()) {
-        symbolAnimationConfig->effectStrategy = iter->second;
-    }
+    symbolAnimationConfig->effectStrategy = effectStrategy_;
     symbolAnimationConfig->repeatCount = repeatCount_;
     symbolAnimationConfig->animationMode = animationMode_;
     symbolAnimationConfig->animationStart = animationStart_;

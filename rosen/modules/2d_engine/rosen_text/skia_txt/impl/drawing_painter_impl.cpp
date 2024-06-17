@@ -170,8 +170,7 @@ void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
     if (painterSymbolAnimationConfig == nullptr) {
         return;
     }
-    painterSymbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy(
-        pr.symbol.GetEffectStrategy());
+    painterSymbolAnimationConfig->effectStrategy = pr.symbol.GetEffectStrategy();
     if (animationFunc_ != nullptr) {
         animationFunc_(painterSymbolAnimationConfig);
     }

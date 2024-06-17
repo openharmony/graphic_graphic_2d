@@ -54,8 +54,8 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     SymbolNode symbolNode;
     symbolNode.symbolData = symbolData;
     symbolNode.nodeBoundary = nodeBounds;
-    symbolAnimationConfig->SymbolNodes.push_back(symbolNode);
-    symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode);
+    symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
 
 void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
@@ -76,9 +76,9 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
             i++;
         }
         SymbolNode symbolNode = {multPath, color, nodeBounds, symbolData, groupSetting.animationIndex};
-        symbolAnimationConfig->SymbolNodes.push_back(symbolNode);
+        symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     }
-    symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
+    symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
 
 void SymbolNodeBuild::ClearAnimation()
@@ -87,7 +87,7 @@ void SymbolNodeBuild::ClearAnimation()
         return;
     }
     auto symbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
-    symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);
 }
@@ -108,11 +108,11 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 
     if (effectStrategy_ == RSEffectStrategy::SCALE) {
         AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_SCALE;
+        symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::SCALE;
     }
     if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR;
+        symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::VARIABLE_COLOR;
     }
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);

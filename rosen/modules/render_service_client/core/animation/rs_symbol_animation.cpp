@@ -25,11 +25,11 @@ static const Vector2f CENTER_NODE_COORDINATE = { 0.5f, 0.5f }; // scale center n
 static const std::string SCALE_PROP_X = "sx";
 static const std::string SCALE_PROP_Y = "sy";
 static const std::string ALPHA_PROP = "alpha";
-static const unsigned int PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
+static const size_t PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
 static const unsigned int PROP_START = 0; // symbol animation property contains two values, change from START to the END
 static const unsigned int PROP_END = 1;   // symbol animation property contains two values, change from START to the END
-static const unsigned int WIDTH = 2;
-static const unsigned int HEIGHT = 3;
+static const unsigned int NODE_WIDTH = 2;
+static const unsigned int NODE_HEIGHT = 3;
 static const unsigned int INVALID_STATUS = -1;  // invalid status label
 static const unsigned int APPEAR_STATUS = 1 ;   // appear status label
 
@@ -48,21 +48,15 @@ bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property
 template<typename T>
 bool ElementInMap(const std::string& curElement, const std::map<std::string, T>& curMap)
 {
-    if (curMap.empty()) {
-        return false;
-    }
     auto element = curMap.find(curElement);
     return (element != curMap.end());
 }
 
 float CurveArgsInMap(const std::string& curElement, const std::map<std::string, double>& curMap)
 {
-    if (curMap.empty()) {
-        return 0.0;
-    }
     auto element = curMap.find(curElement);
     if (element == curMap.end()) {
-        return 0.0;
+        return 0.0f;
     }
     return static_cast<float>(element->second);
 }
@@ -87,8 +81,6 @@ void CreateAnimationTimingCurve(const OHOS::Rosen::Drawing::DrawingCurveType typ
         float ctrlX2 = CurveArgsInMap("ctrlX2", curveArgs);
         float ctrlY2 = CurveArgsInMap("ctrlY2", curveArgs);
         curve = RSAnimationTimingCurve::CreateCubicCurve(ctrlX1, ctrlY1, ctrlX2, ctrlY2);
-    } else {
-        return;
     }
 }
 
@@ -103,10 +95,18 @@ void CalcOneTimePercent(std::vector<float>& timePercents, const uint32_t totalDu
 }
 } // namespace SymbolAnimation
 
-RSSymbolAnimation::RSSymbolAnimation() {}
+RSSymbolAnimation::RSSymbolAnimation()
+{
+    InitSupportAnimationTable();
+}
 
 RSSymbolAnimation::~RSSymbolAnimation() {}
 
+/**
+ * @brief SymbolAnimation interface for arkui
+ * @param symbolAnimationConfig indicates all the information about a symbol
+ * @return true if set animation success
+ */
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
@@ -116,12 +116,11 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     }
 
     NodeProcessBeforeAnimation(symbolAnimationConfig);
-    if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE) {
+    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::NONE) {
         return true; // pre code already clear nodes.
     }
-    InitSupportAnimationTable();
 
-    if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR) {
+    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
         return SetReplaceAnimation(symbolAnimationConfig);
     }
 
@@ -132,7 +131,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
     if (symbolAnimationConfig->effectStrategy ==
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR) {
+        Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
         PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
         return;
     }
@@ -147,15 +146,14 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
 void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
 {
     std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
-    if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
+    if (rsNode_->canvasNodesListMap.count(symbolSpanId) == 0) {
         rsNode_->canvasNodesListMap[symbolSpanId] = {};
     }
 
     if (rsNode_->replaceNodesSwapMap.find(INVALID_STATUS) == rsNode_->replaceNodesSwapMap.end()) {
         rsNode_->replaceNodesSwapMap[INVALID_STATUS] = {};
     } else {
-        std::unordered_map<NodeId,
-            OHOS::Rosen::AnimationNodeConfig> invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
+        auto& invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
         for (const auto& [id, config] : invalidNodes) {
             if (rsNode_->canvasNodesListMap[symbolSpanId].count(id) > 0) {
                 rsNode_->canvasNodesListMap[symbolSpanId].erase(id);
@@ -197,7 +195,7 @@ bool RSSymbolAnimation::SetDisappearConfig(
     for (const auto& [id, config] : disappearNodes) {
         TextEngine::SymbolNode symbolNode;
         symbolNode.animationIndex = config.symbolNode.animationIndex;
-        disappearConfig->SymbolNodes.push_back(symbolNode);
+        disappearConfig->symbolNodes.push_back(symbolNode);
         animationLevelNum =
             animationLevelNum < symbolNode.animationIndex ? symbolNode.animationIndex : animationLevelNum;
         numNodes++;
@@ -216,34 +214,32 @@ bool RSSymbolAnimation::SetReplaceAnimation(
         SetReplaceDisappear(disappearConfig);
     }
     SetReplaceAppear(symbolAnimationConfig,
-        rsNode_->replaceNodesSwapMap[INVALID_STATUS].size() > 0);
+        !rsNode_->replaceNodesSwapMap[INVALID_STATUS].empty());
     return true;
 }
 
 bool RSSymbolAnimation::SetReplaceDisappear(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    if (symbolAnimationConfig->numNodes <= 0) {
+    if (symbolAnimationConfig->numNodes == 0) {
         ROSEN_LOGD("[%{public}s]::getNode or get symbolAnimationConfig:failed \n", __func__);
         return false;
     }
 
-    std::unordered_map<NodeId,
-        OHOS::Rosen::AnimationNodeConfig> disappearNodes = rsNode_->replaceNodesSwapMap[APPEAR_STATUS];
+    auto& disappearNodes = rsNode_->replaceNodesSwapMap[APPEAR_STATUS];
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    TextEngine::SymbolAnimationEffectStrategy effectStrategy =
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_DISAPPEAR;
+    Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_DISAPPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
     for (const auto& [id, config] : disappearNodes) {
-        rsNode_->childrenNodeLock_.lock();
-        rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
-        rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
-        rsNode_->childrenNodeLock_.unlock();
+        {
+            std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+            rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
+            rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
+        }
         if (!res || (config.symbolNode.animationIndex < 0)) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
 
         if (static_cast<int>(parameters.size()) <= config.symbolNode.animationIndex ||
             parameters.at(config.symbolNode.animationIndex).empty()) {
@@ -255,7 +251,8 @@ bool RSSymbolAnimation::SetReplaceDisappear(
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        SpliceAnimation(canvasNode, oneGroupParas, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR);
+        auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
+        SpliceAnimation(canvasNode, oneGroupParas, Drawing::DrawingEffectStrategy::DISAPPEAR);
     }
     return true;
 }
@@ -270,27 +267,28 @@ bool RSSymbolAnimation::SetReplaceAppear(
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->SymbolNodes[0]; // calculate offset by the first node
+    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
         symbolFirstNode.nodeBoundary[0], symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    TextEngine::SymbolAnimationEffectStrategy effectStrategy =
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR;
+    Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters,
         effectStrategy);
     for (uint32_t n = 0; n < nodeNum; n++) {
-        auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
-        rsNode_->childrenNodeLock_.lock();
-        if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
-            rsNode_->canvasNodesListMap.insert({symbolSpanId, {}}) ;
+        {
+            std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+            if (rsNode_->canvasNodesListMap.count(symbolSpanId) == 0) {
+                rsNode_->canvasNodesListMap.insert({symbolSpanId, {}}) ;
+            }
+            rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
+            AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode,
+                                                    .animationIndex = symbolNode.animationIndex};
+            rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
         }
-        rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
-        AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode, .animationIndex = symbolNode.animationIndex};
-        rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
-        rsNode_->childrenNodeLock_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
-            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
+            symbolNode.nodeBoundary[NODE_WIDTH], symbolNode.nodeBoundary[NODE_HEIGHT]))) {
             continue;
         }
         rsNode_->AddChild(canvasNode, -1);
@@ -308,7 +306,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        SpliceAnimation(canvasNode, oneGroupParas, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR);
+        SpliceAnimation(canvasNode, oneGroupParas, Drawing::DrawingEffectStrategy::APPEAR);
     }
     return true;
 }
@@ -316,24 +314,24 @@ bool RSSymbolAnimation::SetReplaceAppear(
 void RSSymbolAnimation::InitSupportAnimationTable()
 {
     // Init public animation list
-    publicSupportAnimations_ = { TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE,
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR,
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR,
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE};
-    upAndDownSupportAnimations_ = {TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE,
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE};
+    publicSupportAnimations_ = { Drawing::DrawingEffectStrategy::BOUNCE,
+        Drawing::DrawingEffectStrategy::APPEAR,
+        Drawing::DrawingEffectStrategy::DISAPPEAR,
+        Drawing::DrawingEffectStrategy::SCALE};
+    upAndDownSupportAnimations_ = {Drawing::DrawingEffectStrategy::BOUNCE,
+        Drawing::DrawingEffectStrategy::SCALE};
 }
 
 bool RSSymbolAnimation::GetAnimationGroupParameters(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
-    TextEngine::SymbolAnimationEffectStrategy& effectStrategy)
+    Drawing::DrawingEffectStrategy& effectStrategy)
 {
     // count animation levels
     int animationLevelNum = -1;
     auto nodeNum = symbolAnimationConfig->numNodes;
     for (uint32_t n = 0; n < nodeNum; n++) {
-        const auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        const auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         animationLevelNum =
             animationLevelNum < symbolNode.animationIndex ? symbolNode.animationIndex : animationLevelNum;
     }
@@ -373,9 +371,9 @@ bool RSSymbolAnimation::ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
     }
 
     switch (symbolAnimationConfig->effectStrategy) {
-        case TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR:
+        case Drawing::DrawingEffectStrategy::VARIABLE_COLOR:
             return SetKeyframeAlphaAnimation(rsNode, parameters, symbolAnimationConfig);
-        case TextEngine::SymbolAnimationEffectStrategy::SYMBOL_PULSE:
+        case Drawing::DrawingEffectStrategy::PULSE:
             return SetKeyframeAlphaAnimation(rsNode, parameters, symbolAnimationConfig);
         default:
             ROSEN_LOGD("[%{public}s] not support input animation type \n", __func__);
@@ -393,7 +391,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
     }
 
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->SymbolNodes[0]; // calculate offset by the first node
+    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
 
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_, symbolFirstNode.nodeBoundary[0],
         symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
@@ -402,20 +400,21 @@ bool RSSymbolAnimation::SetPublicAnimation(
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, symbolAnimationConfig->effectStrategy);
 
     for (uint32_t n = 0; n < nodeNum; n++) {
-        auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
-        rsNode_->childrenNodeLock_.lock();
-        if (!rsNode_->canvasNodesListMap.count(symbolSpanId)) {
-            rsNode_->canvasNodesListMap[symbolSpanId] = {};
+        {
+            std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+            if (!rsNode_->canvasNodesListMap.count(symbolSpanId)) {
+                rsNode_->canvasNodesListMap[symbolSpanId] = {};
+            }
+            rsNode_->canvasNodesListMap[symbolSpanId][canvasNode->GetId()] = canvasNode;
         }
-        rsNode_->canvasNodesListMap[symbolSpanId][canvasNode->GetId()] = canvasNode;
-        rsNode_->childrenNodeLock_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
-            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
+            symbolNode.nodeBoundary[NODE_WIDTH], symbolNode.nodeBoundary[NODE_HEIGHT]))) {
             return false;
         }
         rsNode_->AddChild(canvasNode, -1);
-    
+
         // if there is mask layer, set the blendmode on the original node rsNode_
         if (symbolNode.isMask) {
             rsNode_->SetColorBlendMode(RSColorBlendMode::SRC_OVER);
@@ -473,13 +472,13 @@ void RSSymbolAnimation::SetNodePivot(const std::shared_ptr<RSNode>& rsNode)
 
 void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
-    const TextEngine::SymbolAnimationEffectStrategy& effectStrategy)
+    const Drawing::DrawingEffectStrategy& effectStrategy)
 {
-    if (effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR ||
-        effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR) {
+    if (effectStrategy == Drawing::DrawingEffectStrategy::DISAPPEAR ||
+        effectStrategy == Drawing::DrawingEffectStrategy::APPEAR) {
         AppearAnimation(rsNode, parameters);
-    } else if (effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE ||
-        effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
+    } else if (effectStrategy == Drawing::DrawingEffectStrategy::BOUNCE ||
+        effectStrategy == Drawing::DrawingEffectStrategy::SCALE) {
         BounceAnimation(rsNode, parameters);
     } else {
         return;
@@ -490,7 +489,7 @@ void RSSymbolAnimation::BounceAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
     unsigned int animationStageNum = 2; // the count of atomizated animations
-    if (rsNode == nullptr || parameters.empty() || parameters.size() < animationStageNum) {
+    if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
     }
@@ -512,7 +511,7 @@ void RSSymbolAnimation::AppearAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
     unsigned int animationStageNum = 2; // the count of atomizated animations
-    if (rsNode == nullptr || parameters.empty() || parameters.size() < animationStageNum) {
+    if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
     }
@@ -546,7 +545,7 @@ void RSSymbolAnimation::GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvas
     TextEngine::SymbolNode& symbolNode, const Vector4f& offsets, bool isMultiLayer)
 {
     // drawing a symbol or a path group
-    auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]);
+    auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[NODE_WIDTH], symbolNode.nodeBoundary[NODE_HEIGHT]);
     if (isMultiLayer) {
         DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
     } else {
@@ -593,63 +592,6 @@ void RSSymbolAnimation::DrawPathOnCanvas(
     recordingCanvas->DetachPen();
 }
 
-bool RSSymbolAnimation::GetScaleUnitAnimationParas(
-    Drawing::DrawingPiecewiseParameter& scaleUnitParas, Vector2f& scaleValueBegin, Vector2f& scaleValueEnd)
-{
-    auto& scaleProperties = scaleUnitParas.properties;
-    if (!SymbolAnimation::ElementInMap(SCALE_PROP_X, scaleProperties) ||
-        !SymbolAnimation::ElementInMap(SCALE_PROP_Y, scaleProperties)) {
-        ROSEN_LOGD("[%{public}s] scaleProperties is null \n", __func__);
-        return false;
-    }
-
-    if (scaleProperties[SCALE_PROP_X].size() != PROPERTIES || scaleProperties[SCALE_PROP_Y].size() != PROPERTIES) {
-        ROSEN_LOGD("[%{public}s] scaleProperties have wrong number \n", __func__);
-        return false;
-    }
-
-    scaleValueBegin = { scaleProperties[SCALE_PROP_X][PROP_START], scaleProperties[SCALE_PROP_Y][PROP_START] };
-    scaleValueEnd = { scaleProperties[SCALE_PROP_X][PROP_END], scaleProperties[SCALE_PROP_Y][PROP_END] };
-    return true;
-}
-
-bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode,
-    std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
-{
-    unsigned int validSize = 2; // 2 means this animation type has two animation stages
-    if (rsNode_ == nullptr || parameters.size() != validSize) {
-        ROSEN_LOGD("HmSymbol SetScaleUnitAnimation::getNode or get parameters:failed");
-        return false;
-    }
-    Vector2f scaleValueBegin;
-    Vector2f scaleValueEnd;
-    // 0 means first stage of this animation
-    if (!GetScaleUnitAnimationParas(parameters[0], scaleValueBegin, scaleValueEnd)) {
-        return false;
-    }
-    scaleProperty_ = nullptr; // reset
-    bool isCreate = SymbolAnimation::CreateOrSetModifierValue(scaleProperty_, scaleValueBegin);
-    if (isCreate) {
-        auto scaleModifier = std::make_shared<RSScaleModifier>(scaleProperty_);
-        rsNode->AddModifier(scaleModifier);
-    }
-    auto animation0 = ScaleSymbolAnimation(rsNode, parameters[0], scaleValueEnd);
-    if (animation0 == nullptr) {
-        return false;
-    }
-    // 1 means second stage of this animation
-    if (!GetScaleUnitAnimationParas(parameters[1], scaleValueBegin, scaleValueEnd)) {
-        return false;
-    }
-    auto animation1 = ScaleSymbolAnimation(rsNode, parameters[1], scaleValueEnd);
-    if (animation1 == nullptr) {
-        return false;
-    }
-    animation0->Start(rsNode);
-    animation1->Start(rsNode);
-    return true;
-}
-
 bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds)
 {
     if (rsNode == nullptr) {
@@ -673,34 +615,13 @@ bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode,
     return true;
 }
 
-std::shared_ptr<RSAnimation> RSSymbolAnimation::ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-    const Drawing::DrawingPiecewiseParameter& scaleUnitParas, const Vector2f& scaleValueEnd)
-{
-    if (rsNode == nullptr) {
-        return nullptr;
-    }
-    SetNodePivot(rsNode);
-    RSAnimationTimingCurve scaleCurve;
-    SymbolAnimation::CreateAnimationTimingCurve(scaleUnitParas.curveType, scaleUnitParas.curveArgs, scaleCurve);
-
-    RSAnimationTimingProtocol protocol;
-    protocol.SetStartDelay(scaleUnitParas.delay);
-
-    auto animations = RSNode::Animate(protocol, scaleCurve, [this, scaleValueEnd]() {
-        scaleProperty_->Set(scaleValueEnd);
-    });
-    if (animations.size() <= 0) {
-        return nullptr;
-    }
-    return animations[0];
-}
-
 bool RSSymbolAnimation::SetKeyframeAlphaAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    if (rsNode_ == nullptr || symbolAnimationConfig == nullptr) {
+    if (rsNode == nullptr || symbolAnimationConfig == nullptr) {
         ROSEN_LOGD("HmSymbol SetVariableColorAnimation::getNode or get symbolAnimationConfig:failed");
+        return false;
     }
     alphaPropertyStages_.clear();
     uint32_t duration = 0;
@@ -718,7 +639,7 @@ bool RSSymbolAnimation::SetKeyframeAlphaAnimation(const std::shared_ptr<RSNode>&
         return false;
     }
 
-    if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR &&
+    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::VARIABLE_COLOR &&
         symbolAnimationConfig->animationMode == 0) {
         animation->SetRepeatCount(1);
     } else {
@@ -737,7 +658,7 @@ bool RSSymbolAnimation::GetKeyframeAlphaAnimationParas(
     }
     totalDuration = 0;
     // traverse all time stages
-    for (unsigned int i = 0; i < oneGroupParas.size(); i++) {
+    for (size_t i = 0; i < oneGroupParas.size(); i++) {
         int interval = 0;
         if (i + 1 < oneGroupParas.size()) {
             interval = oneGroupParas[i + 1].delay -
@@ -843,10 +764,9 @@ bool RSSymbolAnimation::AddScaleBaseModifier(const std::shared_ptr<RSNode>& rsNo
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return false;
     }
-    unsigned int validSize = 2;
     if (scaleParameter.properties.count(SCALE_PROP_X) <= 0 || scaleParameter.properties.count(SCALE_PROP_Y) <= 0 ||
-        scaleParameter.properties[SCALE_PROP_X].size() < validSize ||
-        scaleParameter.properties[SCALE_PROP_Y].size() < validSize) {
+        scaleParameter.properties[SCALE_PROP_X].size() < PROPERTIES ||
+        scaleParameter.properties[SCALE_PROP_Y].size() < PROPERTIES) {
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return false;
     }
@@ -876,16 +796,15 @@ void RSSymbolAnimation::ScaleAnimationBase(std::shared_ptr<RSAnimatableProperty<
         return;
     }
 
-    unsigned int validSize = 2;
     if (scaleParameter.properties.count(SCALE_PROP_X) <= 0 || scaleParameter.properties.count(SCALE_PROP_Y) <= 0 ||
-        scaleParameter.properties[SCALE_PROP_X].size() < validSize ||
-        scaleParameter.properties[SCALE_PROP_Y].size() < validSize) {
+        scaleParameter.properties[SCALE_PROP_X].size() < PROPERTIES ||
+        scaleParameter.properties[SCALE_PROP_Y].size() < PROPERTIES) {
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
 
-    const Vector2f scaleValueEnd = {scaleParameter.properties[SCALE_PROP_X][1],
-        scaleParameter.properties[SCALE_PROP_Y][1]};
+    const Vector2f scaleValueEnd = {scaleParameter.properties[SCALE_PROP_X][PROP_END],
+        scaleParameter.properties[SCALE_PROP_Y][PROP_END]};
 
     // set animation curve and protocol
     RSAnimationTimingCurve scaleCurve;
@@ -914,14 +833,13 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
-    unsigned int validSize = 2;
-    if (alphaParameter.properties.count("alpha") <= 0 || alphaParameter.properties["alpha"].size() < validSize) {
+    if (alphaParameter.properties.count("alpha") <= 0 || alphaParameter.properties["alpha"].size() < PROPERTIES) {
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
 
-    float alphaBegin = static_cast<float>(alphaParameter.properties["alpha"][0]);
-    float alphaValueEnd = static_cast<float>(alphaParameter.properties["alpha"][1]);
+    float alphaBegin = static_cast<float>(alphaParameter.properties["alpha"][PROP_START]);
+    float alphaValueEnd = static_cast<float>(alphaParameter.properties["alpha"][PROP_END]);
 
     std::shared_ptr<RSAnimatableProperty<float>> alphaProperty;
 
