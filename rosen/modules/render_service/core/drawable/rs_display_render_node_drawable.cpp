@@ -1502,7 +1502,8 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSRenderNode& nod
     // use fixed surface size in order to reduce create texture
     if (RSSystemProperties::IsFoldScreenFlag() && params && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
-        auto maxRenderSize = std::max(params->GetScreenInfo().width, params->GetScreenInfo().height);
+        int32_t maxRenderSize =
+            static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
     }
