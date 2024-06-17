@@ -1285,7 +1285,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curDisplayNode_->UpdatePartialRenderParams();
     curDisplayNode_->UpdateScreenRenderParams(screenInfo_, displayHasSecSurface_, displayHasSkipSurface_,
         displayHasProtectedSurface_, hasCaptureWindow_);
-    curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged() || isScreenRotationAnimating_);
+    curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
