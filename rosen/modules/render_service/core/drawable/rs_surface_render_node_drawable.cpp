@@ -614,7 +614,7 @@ void RSSurfaceRenderNodeDrawable::DealWithHdr(RSSurfaceRenderNode& surfaceNode,
 {
     std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
     if (surfaceNode.GetAncestorDisplayNode().lock() != nullptr) {
-        ancestor = surfaceNode.GetAncestorDisplayNode.lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+        ancestor = surfaceNode.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
     }
     if (ancestor == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable DealWithHdr GetAncestorDisplayNode() return nullptr");
@@ -629,10 +629,10 @@ void RSSurfaceRenderNodeDrawable::DealWithHdr(RSSurfaceRenderNode& surfaceNode,
         return;
     }
     Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
-    if (MedadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
         return;
     }
-    bool isHdrBuffer = colorSpaceInfo.transfun == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
+    bool isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
         colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
 
     surfaceNode.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
