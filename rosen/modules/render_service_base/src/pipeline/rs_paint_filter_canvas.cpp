@@ -1044,8 +1044,8 @@ void RSPaintFilterCanvas::PaintFilter(T& paint)
 
     auto colorFilter = filter.GetColorFilter();
     if (colorFilter) {
-        RS_LOGE("hdr PaintFilter has colorFilter");
-        return;
+        RS_LOGD("hdr PaintFilter has colorFilter");
+        luminanceColorFilter->Compose(*colorFilter.get());
     }
     filter.SetColorFilter(luminanceColorFilter);
 
