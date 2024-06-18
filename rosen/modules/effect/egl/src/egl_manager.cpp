@@ -120,7 +120,8 @@ void EglManager::Init()
     eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
 }
 
-EGLBoolean EglManager::IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context) {
+EGLBoolean EglManager::IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context)
+{
     EGLBoolean isContextInCurrent = EGL_FALSE;
     EGLint isContextLost = 0;
 
