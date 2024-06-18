@@ -24,6 +24,12 @@ namespace OHOS {
 namespace Rosen {
 class RSUniRenderProcessor : public RSProcessor {
 public:
+    static inline constexpr RSProcessorType Type = RSProcessorType::UNIRENDER_PROCESSOR;
+    RSProcessorType GetType() const override
+    {
+        return Type;
+    }
+    
     RSUniRenderProcessor();
     ~RSUniRenderProcessor() noexcept override;
 
