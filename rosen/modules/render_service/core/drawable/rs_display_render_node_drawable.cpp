@@ -1437,9 +1437,12 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         auto screenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
         auto mainWidth = static_cast<float>(screenInfo.width);
         auto mainHeight = static_cast<float>(screenInfo.height);
-        if (RSSystemProperties::IsFoldScreenFlag() && params.GetScreenId() == 0) {
-            auto rotation = params.GetScreenRotation();
-            if (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) {
+
+        // in certain cases (such as fold screen), the width and height must be swapped to fix the screen correction.
+        auto screenCorrection = screenManager->GetScreenCorrection(params.GetScreenId());
+        if (screenCorrection == ScreenRotation::ROTATION_90 || screenCorrection == ScreenRotation::ROTATION_270) {
+            auto screenRotation = params.GetScreenRotation();
+            if (screenRotation == ScreenRotation::ROTATION_0 || screenRotation == ScreenRotation::ROTATION_180) {
                 std::swap(mainWidth, mainHeight);
             }
         }
