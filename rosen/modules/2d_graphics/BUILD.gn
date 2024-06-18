@@ -369,7 +369,7 @@ if (!is_arkui_x) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    if (!(is_linux && host_cpu == "arm64")) {
+    if (host_cpu != "arm64") {
       deps = [ ":2d_graphics_source_$platform" ]
     }
     external_deps = [ "hilog:libhilog" ]
@@ -391,7 +391,7 @@ if (enable_text_gine) {
       platform = "windows"
     }
     deps = [ "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing" ]
-    if (!(is_linux && host_cpu == "arm64")) {
+    if (host_cpu != "arm64") {
       deps += [ ":2d_graphics_source_$platform" ]
     }
     external_deps = [ "hilog:libhilog" ]
