@@ -320,6 +320,7 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         return;
     }
     auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
+    params.isMirror = true;
     renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
     canvas_->Restore();
 }
