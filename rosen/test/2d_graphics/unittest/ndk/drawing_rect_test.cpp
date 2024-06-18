@@ -182,6 +182,24 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Copy006, TestSize.Level1)
 }
 
 /*
+ * @tc.name: NativeDrawingRectTest_RectJoin007
+ * @tc.desc: test for sets rect to the union of rect and other.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectJoin007, TestSize.Level1)
+{
+    // rect left[10], top[20], right[40], bottom[30]
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(10, 20, 40, 30);
+    // rect left[20], top[20], right[100], bottom[100]
+    OH_Drawing_Rect *other = OH_Drawing_RectCreate(20, 20, 100, 100);
+    EXPECT_EQ(OH_Drawing_RectJoin(rect, nullptr), false);
+    EXPECT_NE(OH_Drawing_RectJoin(rect, other), false);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(other);
+}
+
+/*
  * @tc.name: NativeDrawingRectTest_Intersect003
  * @tc.desc: test for the Intersect methods of Rect.
  * @tc.type: FUNC
