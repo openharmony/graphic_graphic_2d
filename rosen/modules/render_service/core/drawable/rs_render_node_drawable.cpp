@@ -120,6 +120,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
     bool needUpdateCache = CheckIfNeedUpdateCache(params);
+    // reset drawing cache changed false for render param if drawable is visited this frame
+    // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
+    params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !params.OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
@@ -518,7 +521,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
     }
 
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
-        params.SetDrawingCacheChanged(false, true);
         return true;
     }
     return false;
