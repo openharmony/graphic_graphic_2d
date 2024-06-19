@@ -2973,7 +2973,11 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         }
         SetDirty();
     }
+    if (nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE) && !isNodeGroup) {
+        needClearSurface_ = true;
+    }
     nodeGroupIncludeProperty_ = includeProperty;
+    AddToPendingSyncList();
 }
 
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
@@ -3889,7 +3893,8 @@ bool RSRenderNode::ShouldClearSurface()
 {
     bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
     bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
-    return (renderGroupFlag || freezeFlag) && clearSurfaceTask_ && needClearSurface_;
+    return (renderGroupFlag || freezeFlag || nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE)) &&
+        clearSurfaceTask_ && needClearSurface_;
 }
 
 void RSRenderNode::ValidateLightResources()
