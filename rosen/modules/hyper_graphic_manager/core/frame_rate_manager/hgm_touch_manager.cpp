@@ -17,8 +17,6 @@
 #include <map>
 #include <set>
 
-#include "hgm_core.h"
-#include "hgm_frame_rate_manager.h"
 #include "hgm_task_handle_thread.h"
 #include "hgm_touch_manager.h"
 
@@ -30,23 +28,20 @@ namespace {
 
 HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(TouchState::IDLE_STATE),
     upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        frameRateMgr->SetSchedulerPreferredFps(OLED_60_HZ);
-        frameRateMgr->SetIsNeedUpdateAppOffset(true);
-        ChangeState(TouchState::IDLE_STATE);
+        OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
     }),
     rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this] () {
-        ChangeState(TouchState::IDLE_STATE);
+        OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
     })
 {
-    // register event callback
-    RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        frameRateMgr->SetSchedulerPreferredFps(OLED_120_HZ);
-        ChangeState(TouchState::DOWN_STATE);
-    });
     RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {
         ChangeState(TouchState::UP_STATE);
+    });
+    RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
+        ChangeState(TouchState::IDLE_STATE);
+    });
+    RegisterEventCallback(TouchEvent::RS_IDLE_TIMEOUT_EVENT, [this] (TouchEvent event) {
+        ChangeState(TouchState::IDLE_STATE);
     });
 
     // register state callback
