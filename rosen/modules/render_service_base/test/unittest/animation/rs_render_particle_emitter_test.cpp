@@ -130,7 +130,9 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticle001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle001 start";
     particleEmitter->EmitParticle(NS_TO_S);
-    EXPECT_TRUE(particleEmitter != nullptr);
+    ASSERT_TRUE(particleEmitter != nullptr);
+    bool isFinish = particleEmitter->IsEmitterFinish();
+    EXPECT_TRUE(isFinish == false);
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle001 end";
 }
 
