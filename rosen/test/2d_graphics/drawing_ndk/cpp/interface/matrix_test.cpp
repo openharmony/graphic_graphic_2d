@@ -34,18 +34,10 @@
 
 void MatrixReset::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    float x1 = rand.nextULessThan(bitmapWidth_);
-    float y1 = rand.nextULessThan(bitmapHeight_);
-    float x2 = rand.nextULessThan(bitmapWidth_);
-    float y2 = rand.nextULessThan(bitmapHeight_);
-    float base1 = rand.nextULessThan(bitmapHeight_);
-    float base2 = rand.nextULessThan(bitmapHeight_);
-    float base3 = rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_PathAddRect(path, x1, y1, x2, y2, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
+    OH_Drawing_PathAddRect(path, 0, 0, 100, 100, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 100 矩形宽高
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_MatrixSetMatrix(matrix, base1, 0, 0, 0, base2, 0, 0, 0, base3);
+    OH_Drawing_MatrixSetMatrix(matrix, 50, 0, 0, 0, 50, 0, 0, 0, 50); // 50 matrix值
 
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_MatrixReset(matrix);
@@ -58,24 +50,13 @@ void MatrixReset::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void MatrixConcat::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    float x1 = rand.nextULessThan(bitmapWidth_);
-    float y1 = rand.nextULessThan(bitmapHeight_);
-    float x2 = rand.nextULessThan(bitmapWidth_);
-    float y2 = rand.nextULessThan(bitmapHeight_);
-    float base1 = rand.nextULessThan(bitmapHeight_);
-    float base2 = rand.nextULessThan(bitmapHeight_);
-    float base3 = rand.nextULessThan(bitmapHeight_);
-    float base4 = rand.nextULessThan(bitmapHeight_);
-    float base5 = rand.nextULessThan(bitmapHeight_);
-    float base6 = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_Matrix* matrix_a = OH_Drawing_MatrixCreate();
     OH_Drawing_Matrix* matrix_b = OH_Drawing_MatrixCreate();
     OH_Drawing_Matrix* total = OH_Drawing_MatrixCreate();
-    OH_Drawing_PathAddRect(path, x1, y1, x2, y2, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    OH_Drawing_MatrixSetMatrix(matrix_a, base1, 0, 0, 0, base2, 0, 0, 0, base3);
-    OH_Drawing_MatrixSetMatrix(matrix_b, base4, 0, 0, 0, base5, 0, 0, 0, base6);
+    OH_Drawing_PathAddRect(path, 0, 0, 100, 100, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 100 宽高
+    OH_Drawing_MatrixSetMatrix(matrix_a, 50, 0, 0, 0, 50, 0, 0, 0, 50); // 50 matrix值
+    OH_Drawing_MatrixSetMatrix(matrix_b, 60, 0, 0, 0, 60, 0, 0, 0, 60); // 60 matrix值
 
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_MatrixConcat(total, matrix_a, matrix_b);
@@ -90,19 +71,11 @@ void MatrixConcat::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void MatrixInvert::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    float x1 = rand.nextULessThan(bitmapWidth_);
-    float y1 = rand.nextULessThan(bitmapHeight_);
-    float x2 = rand.nextULessThan(bitmapWidth_);
-    float y2 = rand.nextULessThan(bitmapHeight_);
-    float base1 = rand.nextULessThan(bitmapHeight_);
-    float base2 = rand.nextULessThan(bitmapHeight_);
-    float base3 = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_Matrix* inverse = OH_Drawing_MatrixCreate();
-    OH_Drawing_PathAddRect(path, x1, y1, x2, y2, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    OH_Drawing_MatrixSetMatrix(matrix, base1, 0, 0, 0, base2, 0, 0, 0, base3);
+    OH_Drawing_PathAddRect(path, 0, 0, 100, 100, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 100 宽高
+    OH_Drawing_MatrixSetMatrix(matrix, 50, 0, 0, 0, 50, 0, 0, 0, 50); // 50 matrix值
 
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_MatrixInvert(matrix, inverse);
@@ -117,20 +90,11 @@ void MatrixInvert::OnTestPerformance(OH_Drawing_Canvas* canvas)
 void MatrixSetPolyToPoly::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
     int count = 4;
-    TestRend rand;
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    float x1 = rand.nextULessThan(bitmapWidth_);
-    float y1 = rand.nextULessThan(bitmapHeight_);
-    float x2 = rand.nextULessThan(bitmapWidth_);
-    float y2 = rand.nextULessThan(bitmapHeight_);
-    float x3 = rand.nextULessThan(bitmapWidth_);
-    float y3 = rand.nextULessThan(bitmapHeight_);
-    float x4 = rand.nextULessThan(bitmapWidth_);
-    float y4 = rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_PathAddRect(path, x1, y1, x2, y2, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
+    OH_Drawing_PathAddRect(path, 0, 0, 100, 100, OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 100 宽高
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_Point2D src[] = { { x1, y1 }, { x2, y1 }, { x1, y2 }, { x2, y2 } };
-    OH_Drawing_Point2D dst[] = { { x3, y3 }, { x3, y4 }, { x4, y3 }, { x4, y4 } };
+    OH_Drawing_Point2D src[] = { { 0, 0 }, { 100, 0 }, { 0, 100 }, { 100, 100 } }; // 0, 100 坐标值
+    OH_Drawing_Point2D dst[] = { { 20, 20 }, { 20, 200 }, { 200, 20 }, { 200, 200 } }; // 20, 200 坐标值
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, count);
     }
@@ -156,12 +120,7 @@ void MatrixPreRotate::OnTestPerformance(OH_Drawing_Canvas* canvas)
     if (result == true) {
         DRAWING_LOGI("The OH_Drawing_MatrixPreRotate interface returns a value of true,result=%{public}s",
             result ? "true" : "false");
-        TestRend rand;
-        float l = rand.nextULessThan(bitmapWidth_);
-        float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-        float r = l + rand.nextULessThan(bitmapWidth_);
-        float b = t + rand.nextULessThan(bitmapHeight_);
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
         OH_Drawing_CanvasDrawRect(canvas, rect);
         OH_Drawing_RectDestroy(rect);
     } else {
@@ -190,12 +149,7 @@ void MatrixPostScale::OnTestPerformance(OH_Drawing_Canvas* canvas)
     if (result == true) {
         DRAWING_LOGI("The OH_Drawing_MatrixPostScale interface returns a value of true,result=%{public}s",
             result ? "true" : "false");
-        TestRend rand;
-        float l = rand.nextULessThan(bitmapWidth_);
-        float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-        float r = l + rand.nextULessThan(bitmapWidth_);
-        float b = t + rand.nextULessThan(bitmapHeight_);
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
         OH_Drawing_CanvasDrawRect(canvas, rect);
         OH_Drawing_RectDestroy(rect);
     } else {
@@ -224,12 +178,7 @@ void MatrixPostTranslate::OnTestPerformance(OH_Drawing_Canvas* canvas)
     if (result == true) {
         DRAWING_LOGI("The OH_Drawing_MatrixPostTranslate interface returns a value of true,result=%{public}s",
             result ? "true" : "false");
-        TestRend rand;
-        float l = rand.nextULessThan(bitmapWidth_);
-        float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-        float r = l + rand.nextULessThan(bitmapWidth_);
-        float b = t + rand.nextULessThan(bitmapHeight_);
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
         OH_Drawing_CanvasDrawRect(canvas, rect);
         OH_Drawing_RectDestroy(rect);
     } else {
@@ -243,14 +192,9 @@ void MatrixPostTranslate::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void MatrixIsEqual::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_Matrix* matrix1 = OH_Drawing_MatrixCreate();
     OH_Drawing_Matrix* matrix2 = OH_Drawing_MatrixCreate();
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_);
-    float r = l + rand.nextULessThan(bitmapWidth_);
-    float b = t + rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     bool matrixIsEqual = false;
     for (int i = 0; i < testCount_; i++) {
         matrixIsEqual = OH_Drawing_MatrixIsEqual(matrix1, matrix2);

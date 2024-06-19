@@ -30,14 +30,10 @@ export class CanvasDrawRect extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    console.log(TAG, 'xyj DRAW_ STYLE_COMPLEX end');
+    console.log(TAG, 'draw performance end');
+    // 保证性能测试稳定性: 绘制100，100的矩形
+    let rect: common2D.Rect = {left: 0, top: 0, right: 100, bottom: 100};
     for (let i = 0; i < this.testCount_; i++) {
-      let l = i % this.width_;
-      let t = (i + 100) % this.height_;
-      let r = ((l + 100) > this.width_) ? this.width_ : (l + 100);
-      let b = ((t + 100) > this.height_) ? this.height_ : (t + 100);
-      //针对rect，每次的绘制起点位置，绘制的宽高大小需要不一致
-      let rect: common2D.Rect = {left: l, top: t, right: r, bottom: b};
       canvas.drawRect(rect);
     }
   }
@@ -101,13 +97,9 @@ export class CanvasDrawLine extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
+    // 保证性能测试稳定性: 绘制（0, 0) (100, 100)的直线
     for (let i = 0; i < this.testCount_; i++) {
-      let x1: number = rand.nextULessThan(this.width_);
-      let y1: number = rand.nextULessThan(this.height_);
-      let x2: number = rand.nextULessThan(this.width_);
-      let y2: number = rand.nextULessThan(this.height_);
-      canvas.drawLine(x1, y1, x2, y2);
+      canvas.drawLine(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     }
   }
   
@@ -166,10 +158,10 @@ export class CanvasDrawPath extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    // 保证性能测试稳定性: 绘制半弧的path
     let path: drawing.Path = new drawing.Path();
-    path.moveTo(0, 0);
-    let rand: OHRandom = new OHRandom();
-    path.lineTo(rand.nextRangeF(0, 720), rand.nextRangeF(0, 720));
+    path.arcTo(0, 0, 100, 100, 0, 180);
+    path.close;
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawPath(path);
     }
@@ -259,11 +251,9 @@ export class CanvasDrawPoint extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
+    // 保证性能测试稳定性: 绘制 (10, 10)的点
     for (let i = 0; i < this.testCount_; i++) {
-      let x: number = rand.nextUScalar1() * 640;
-      let y: number = rand.nextUScalar1() * 480;
-      canvas.drawPoint(x, y);
+      canvas.drawPoint(10, 10);
     }
   }
   
@@ -326,12 +316,10 @@ export class CanvasDrawImage extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
+    // 保证性能测试稳定性: 绘制test_1图片
     let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg")
     for (let i = 0; i < this.testCount_; i++) {
-      let x: number = rand.nextULessThan(this.width_);
-      let y: number = rand.nextULessThan(this.height_);
-      canvas.drawImage(pixelMap, x, y);
+      canvas.drawImage(pixelMap, 0, 0);
     }
   }
   
@@ -395,12 +383,9 @@ export class CanvasDrawCircle extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
+    // 保证性能测试稳定性: 绘制圆心（200, 200）半径100的圆
     for (let i = 0; i < this.testCount_; i++) {
-      let x: number = rand.nextULessThan(this.width_);
-      let y: number = rand.nextULessThan(this.height_);
-      let r: number = rand.nextULessThan(this.height_);
-      canvas.drawCircle(x, y, r);
+      canvas.drawCircle(200, 200, 100);
     }
   }
   
@@ -464,15 +449,13 @@ export class CanvasDrawTextBlob extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
+    // 保证性能测试稳定性: 绘制'textblob'文字
     let text: string = 'textblob';
     const font: drawing.Font = new drawing.Font();
     font.setSize(20);
     const textBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
     for (let i = 0; i < this.testCount_; i++) {
-      let x: number = rand.nextRangeF(0, this.width_);
-      let y: number = rand.nextRangeF(0, this.height_);
-      canvas.drawTextBlob(textBlob, x, y);
+      canvas.drawTextBlob(textBlob, 0, 0);
     }
   }
   
@@ -563,12 +546,13 @@ export class CanvasDrawPixelMapMesh extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    // 保证性能测试稳定性: 绘制1*1PixelMapMesh
     let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg")
     const brush = new drawing.Brush();
     canvas.attachBrush(brush);
+    let verts: Array<number> = [100, 100, 200, 100, 150, 200, 200, 200];
+    let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
     for (let i = 0; i < this.testCount_; i++) {
-      let verts: Array<number> = [100, 100, 200, 100, 150, 200, 200, 200];
-      let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
       canvas.drawPixelMapMesh(pixelMap, 1, 1, verts, 0, null, 0);
     }
     canvas.detachBrush();

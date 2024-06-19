@@ -65,7 +65,7 @@ public:
 
     enum {                      // 公共的pen，brush，filter等配置,在执行性能用例前设置
         DRAW_STYLE_NONE = 0, // 无配置
-        DRAW_STYLE_COMPLEX,  // 最复杂的配置，会将所有配置加上，得出近似最恶劣的性能数据
+        DRAW_STYLE_COMPLEX,  // 保证性能测试稳定性: 绘制一个红色填充
     };
     int styleType_ = DRAW_STYLE_NONE;
     void StyleSettings(OH_Drawing_Canvas* canvas, int32_t type);

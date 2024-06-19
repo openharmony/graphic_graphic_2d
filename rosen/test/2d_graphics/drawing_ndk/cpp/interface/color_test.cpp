@@ -34,18 +34,13 @@
 
 void ColorFilterCreateBlendMode::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_ColorFilter* colorFilter;
 
     for (int i = 0; i < testCount_; i++) {
         colorFilter = OH_Drawing_ColorFilterCreateBlendMode(0x11, BLEND_MODE_DST_ATOP);
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateBlendMode(0x11, BLEND_MODE_DST_ATOP);
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -56,11 +51,6 @@ void ColorFilterCreateBlendMode::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void ColorFilterCreateCompose::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_ColorFilter* colorFilter1 = OH_Drawing_ColorFilterCreateBlendMode(0xFF, BLEND_MODE_DST_ATOP);
     OH_Drawing_ColorFilter* colorFilter2 = OH_Drawing_ColorFilterCreateBlendMode(0x11, BLEND_MODE_DST_ATOP);
     OH_Drawing_ColorFilter* colorFilter;
@@ -69,7 +59,7 @@ void ColorFilterCreateCompose::OnTestPerformance(OH_Drawing_Canvas* canvas)
         colorFilter = OH_Drawing_ColorFilterCreateCompose(colorFilter1, colorFilter2);
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateCompose(colorFilter1, colorFilter2);
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -82,11 +72,6 @@ void ColorFilterCreateCompose::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void ColorFilterCreateMatrix::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     float colorMatrix[20] = { 1, 0, 0, 0, 0, // 1, 0, 0, 0, 0, 颜色矩阵参数
         0, 1, 0, 0, 0,                       // 0, 1, 0, 0, 0, 颜色矩阵参数
         0, 0, 0.5, 0.5, 0,                   // 0, 0, 0.5, 0.5, 0, 颜色矩阵参数
@@ -97,7 +82,7 @@ void ColorFilterCreateMatrix::OnTestPerformance(OH_Drawing_Canvas* canvas)
         colorFilter = OH_Drawing_ColorFilterCreateMatrix(colorMatrix);
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateMatrix(colorMatrix);
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -108,18 +93,13 @@ void ColorFilterCreateMatrix::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void ColorFilterCreateLinearToSrgbGamma::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_ColorFilter* colorFilter;
 
     for (int i = 0; i < testCount_; i++) {
         colorFilter = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -130,18 +110,13 @@ void ColorFilterCreateLinearToSrgbGamma::OnTestPerformance(OH_Drawing_Canvas* ca
 
 void ColorFilterCreateSrgbGammaToLinear::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_ColorFilter* colorFilter;
 
     for (int i = 0; i < testCount_; i++) {
         colorFilter = OH_Drawing_ColorFilterCreateSrgbGammaToLinear();
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateSrgbGammaToLinear();
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -152,18 +127,13 @@ void ColorFilterCreateSrgbGammaToLinear::OnTestPerformance(OH_Drawing_Canvas* ca
 
 void ColorFilterCreateLuma::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_ColorFilter* colorFilter;
 
     for (int i = 0; i < testCount_; i++) {
         colorFilter = OH_Drawing_ColorFilterCreateLuma();
         OH_Drawing_ColorFilterDestroy(colorFilter);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     colorFilter = OH_Drawing_ColorFilterCreateLuma();
     OH_Drawing_FilterSetColorFilter(styleFilter_, colorFilter);
     OH_Drawing_PenSetFilter(stylePen_, styleFilter_);
@@ -175,17 +145,11 @@ void ColorFilterCreateLuma::OnTestPerformance(OH_Drawing_Canvas* canvas)
 // 接口使用方法暂未开放
 void ColorSpaceCreateSrgb::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
-
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_ColorSpace* colorSpace = OH_Drawing_ColorSpaceCreateSrgb();
         OH_Drawing_ColorSpaceDestroy(colorSpace);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     OH_Drawing_CanvasDrawRect(canvas, rect);
     OH_Drawing_RectDestroy(rect);
 }
@@ -193,17 +157,11 @@ void ColorSpaceCreateSrgb::OnTestPerformance(OH_Drawing_Canvas* canvas)
 // 接口使用方法暂未开放
 void ColorSpaceCreateSrgbLinear::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_) + __LINE__;
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
-
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_ColorSpace* colorSpace = OH_Drawing_ColorSpaceCreateSrgbLinear();
         OH_Drawing_ColorSpaceDestroy(colorSpace);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     OH_Drawing_CanvasDrawRect(canvas, rect);
     OH_Drawing_RectDestroy(rect);
 }

@@ -25,7 +25,6 @@
 
 void PenReset::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetColor(pen, DRAW_COLORRED);
@@ -35,10 +34,6 @@ void PenReset::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_PenSetWidth(pen, 10); // 10 width
     OH_Drawing_PenSetColor(pen, DRAW_COLORGREEN);
     OH_Drawing_CanvasAttachPen(canvas, pen);
-    float x1 = rand.nextULessThan(bitmapWidth_);
-    float y1 = rand.nextULessThan(bitmapHeight_);
-    float x2 = rand.nextULessThan(bitmapWidth_);
-    float y2 = rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_CanvasDrawLine(canvas, x1, y1, x2, y2);
+    OH_Drawing_CanvasDrawLine(canvas, 0, 0, 100, 100); // 100 宽高
     OH_Drawing_PenDestroy(pen);
 }
