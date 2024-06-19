@@ -426,6 +426,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
+        RS_TRACE_NAME("CaptureSurface with security or skip layer");
         if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
             Drawing::Brush rectBrush;
             rectBrush.SetColor(Drawing::Color::COLOR_WHITE);

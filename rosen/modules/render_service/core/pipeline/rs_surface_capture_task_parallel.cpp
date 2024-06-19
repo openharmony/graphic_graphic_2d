@@ -46,14 +46,12 @@ namespace OHOS {
 namespace Rosen {
 
 static inline void DrawCapturedImg(Drawing::Image& image,
-    Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture)
+    Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
+    Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
 {
     RSPaintFilterCanvas canvas(&surface);
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    Drawing::BitmapFormat bitmapFormat =
-        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     image.BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
-        origin, bitmapFormat, nullptr);
+        textureOrigin, bitmapFormat, nullptr);
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
@@ -240,6 +238,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 
             Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
                 Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+            Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+            Drawing::BitmapFormat bitmapFormat =
+                Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
             std::shared_ptr<Drawing::Surface> surface;
             DmaMem dmaMem;
             if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
@@ -254,19 +255,12 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
                     return;
                 }
                 auto tmpImg = std::make_shared<Drawing::Image>();
-                DrawCapturedImg(*tmpImg, *surface, backendTexture);
+                DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
             } else {
                 auto grContext = RSBackgroundThread::Instance().GetShareGPUContext().get();
-                surface = Drawing::Surface::MakeRenderTarget(grContext, false, info);
-                if (surface == nullptr) {
-                    RS_LOGE("RSSurfaceCaptureTaskParallel: MakeRenderTarget fail.");
-                    callback->OnSurfaceCapture(id, nullptr);
-                    RSUniRenderUtil::ClearNodeCacheSurface(
-                        std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                    return;
-                }
                 auto tmpImg = std::make_shared<Drawing::Image>();
-                DrawCapturedImg(*tmpImg, *surface, backendTexture);
+                tmpImg->BuildFromTexture(*grContext, backendTexture.GetTextureInfo(),
+                    textureOrigin, bitmapFormat, nullptr);
                 if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
                     RS_LOGE("RSSurfaceCaptureTaskParallel: CopyDataToPixelMap failed");
                     callback->OnSurfaceCapture(id, nullptr);
