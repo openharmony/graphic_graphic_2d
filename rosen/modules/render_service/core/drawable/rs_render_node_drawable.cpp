@@ -509,7 +509,8 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
     }
 
     if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
-        updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        (updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME ||
+            (params.NeedFilter() && params.GetDrawingCacheIncludeProperty()))) {
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;

@@ -347,6 +347,15 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
     needSync_ = true;
 }
 
+void RSRenderParams::SetNeedFilter(bool needFilter)
+{
+    if (needFilter_ == needFilter) {
+        return;
+    }
+    needFilter_ = needFilter;
+    needSync_ = true;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -428,6 +437,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
+    target->needFilter_ = needFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;

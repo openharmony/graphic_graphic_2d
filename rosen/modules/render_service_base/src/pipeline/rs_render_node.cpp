@@ -3782,6 +3782,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
+    stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
