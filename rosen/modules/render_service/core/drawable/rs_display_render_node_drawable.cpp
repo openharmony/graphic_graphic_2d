@@ -1205,10 +1205,10 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             !RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetBlackList().empty();
     }
     if (hasSpecialLayer_) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: params %{public}s \
+        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
-            params->ToString().c_str(), params->GetId());
-        RS_TRACE_NAME("RSDisplayRenderNodeDrawable::OnCapture: processRSDisplayRenderNodeDrawable[" +
+            params->GetId());
+        RS_TRACE_NAME("Process RSDisplayRenderNodeDrawable[" +
             std::to_string(params->GetScreenId()) + "] Not using UniRender buffer.");
 
         // Adding matrix affine transformation logic
@@ -1252,13 +1252,17 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
         return;
     }
 
-    RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: params %{public}s \
-        process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.",
-    params->ToString().c_str(), params->GetId());
-    RS_TRACE_NAME("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: processRSDisplayRenderNodeDrawable[" +
-        std::to_string(params->GetScreenId()) + "] using UniRender buffer.");
+    auto hwcNodesNum = params->GetHardwareEnabledNodes().size();
+    auto hwcTopNodesNum = params->GetHardwareEnabledTopNodes().size();
 
-    if (params->GetHardwareEnabledNodes().size() != 0) {
+    RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
+        process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) \
+        using UniRender buffer with hwcNodes(%{public}d, %{public}d)",
+        params->GetId(), hwcNodesNum, hwcTopNodesNum);
+    RS_TRACE_NAME_FMT("Process RSDisplayRenderNodeDrawable[%" PRIu64 "] using UniRender buffer with hwcNodes(%d, %d)",
+        params->GetScreenId(), hwcNodesNum, hwcTopNodesNum);
+
+    if (hwcNodesNum > 0) {
         AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas, *params);
     }
 
@@ -1279,7 +1283,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
     RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
     renderEngine->DrawDisplayNodeWithParams(*rscanvas, *displayNodeSp, drawParams);
 
-    if (params->GetHardwareEnabledTopNodes().size() != 0) {
+    if (hwcTopNodesNum > 0) {
         AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledTopNodes(), canvas, *params);
     }
 }
