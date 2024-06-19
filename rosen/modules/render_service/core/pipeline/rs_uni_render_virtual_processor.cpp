@@ -60,20 +60,27 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             node.GetScreenId());
         return false;
     }
-    auto rsSurface = node.GetVirtualSurface();
-    if (rsSurface == nullptr) {
-        RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
-            node.GetScreenId());
-        rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
-        node.SetVirtualSurface(rsSurface);
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
     }
-#ifdef NEW_RENDER_CONTEXT
-    renderFrame_ = renderEngine_->RequestFrame(
-        std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-#else
-    renderFrame_ = renderEngine_->RequestFrame(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
 #endif
+    if (renderFrame_ == nullptr) {
+        auto rsSurface = node.GetVirtualSurface();
+        if (rsSurface == nullptr) {
+            RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
+                node.GetScreenId());
+            rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
+            node.SetVirtualSurface(rsSurface);
+        }
+#ifdef NEW_RENDER_CONTEXT
+        renderFrame_ = renderEngine_->RequestFrame(
+            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+#else
+        renderFrame_ = renderEngine_->RequestFrame(
+            std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+#endif
+    }
     if (renderFrame_ == nullptr) {
         return false;
     }
