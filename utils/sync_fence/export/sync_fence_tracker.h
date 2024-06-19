@@ -49,7 +49,7 @@ private:
     bool CheckGpuSubhealthEventLimit();
     void ReportEventGpuSubhealth(int32_t duration);
     inline void UpdateFrameQueue(int32_t startTime);
-    inline int32_t GetFrameRate();
+    int32_t GetFrameRate();
 };
 }
 #endif // UTILS_INCLUDE_SYNC_FENCE_TRACKER_H
