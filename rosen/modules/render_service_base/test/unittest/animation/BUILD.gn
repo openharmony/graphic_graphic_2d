@@ -52,7 +52,9 @@ ohos_unittest("RSRenderAnimationTest") {
 
   external_deps = [
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
   ]
 
   subsystem_name = "graphic"

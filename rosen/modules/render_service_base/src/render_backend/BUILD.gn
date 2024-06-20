@@ -53,11 +53,6 @@ ohos_static_library("librender_backend") {
     "rs_surface_factory.cpp",
   ]
 
-  public_external_deps = [
-    "graphic_surface:surface",
-    "graphic_surface:sync_fence",
-  ]
-
   if (rs_enable_gpu) {
     include_dirs += [
       "//third_party/openssl/include",
@@ -79,11 +74,7 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     ]
-
-    public_external_deps = [ "openssl:libcrypto_shared" ]
   }
-
-  public_external_deps = [ "skia:skia_canvaskit" ]
 
   external_deps = [
     "c_utils:utils",
@@ -95,6 +86,7 @@ ohos_static_library("librender_backend") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
 
   part_name = "graphic_2d"
