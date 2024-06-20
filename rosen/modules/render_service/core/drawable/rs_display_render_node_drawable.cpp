@@ -1252,8 +1252,8 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
         return;
     }
 
-    auto hwcNodesNum = params->GetHardwareEnabledNodes().size();
-    auto hwcTopNodesNum = params->GetHardwareEnabledTopNodes().size();
+    int hwcNodesNum = params->GetHardwareEnabledNodes().size();
+    int hwcTopNodesNum = params->GetHardwareEnabledTopNodes().size();
 
     RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
         process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) \
