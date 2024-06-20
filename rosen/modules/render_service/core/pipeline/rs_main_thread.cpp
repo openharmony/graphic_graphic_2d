@@ -1705,8 +1705,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
             idleTimerExpiredFlag_, info);
     }
 
-    if (rsVSyncDistributor_ -> IsDVsyncOn()) {
-        auto& hgmCore = OHOS::Rosen::HgmCore::instance();
+    if (rsVSyncDistributor_->IsDVsyncOn()) {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
         if (pendingRefreshRate != nullptr) {
             hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
