@@ -192,7 +192,7 @@ public:
         return RectT<T>(left_ + x, top_ + y, width_, height_);
     }
     template<typename P>
-    RectT<P> ConvertTo()
+    RectT<P> ConvertTo() const
     {
         return RectT<P>(static_cast<P>(left_), static_cast<P>(top_), static_cast<P>(width_), static_cast<P>(height_));
     }

@@ -1627,9 +1627,13 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         // clean subtree means childrenRect maps to parent already
         childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
-    // map before update parent
+    // map before update parent, if parent has clip property, use clipped children rect instead.
     RectI childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
     if (auto parentNode = parent_.lock()) {
+        const auto& parentProperties = parentNode->GetRenderProperties();
+        if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
+            childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
+        }
         parentNode->UpdateChildrenRect(childRectMapped);
         // check each child is inside of parent
         childRect = childRectMapped.ConvertTo<float>();
