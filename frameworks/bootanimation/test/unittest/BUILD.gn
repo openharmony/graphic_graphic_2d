@@ -59,6 +59,7 @@ ohos_unittest("bootanimation_test") {
     "cJSON:cjson_static",
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
     "zlib:libz",
   ]

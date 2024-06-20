@@ -69,6 +69,7 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
   ]
 
