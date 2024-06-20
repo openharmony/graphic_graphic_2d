@@ -146,7 +146,7 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
 {
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    if (pendingRefreshRate_ != nullptr && (!dvsyncInfo.isUiDvsyncOn || rsRate == *pendingRefreshRate_)) {
+    if (pendingRefreshRate_ != nullptr) {
         hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
