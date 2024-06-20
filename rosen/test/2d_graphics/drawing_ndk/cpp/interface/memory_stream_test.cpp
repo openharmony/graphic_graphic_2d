@@ -36,12 +36,7 @@
 
 void MemoryStreamCreate::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_);
-    float r = l + rand.nextULessThan(bitmapWidth_);
-    float b = t + rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     unsigned char data[] = { 0x01, 0x02, 0x03, 0x04, 0x05 };
     size_t length = sizeof(data);
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
