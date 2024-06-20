@@ -3944,6 +3944,9 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
+    if (!fullChildrenList_) {
+        return;
+    }
     auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),
