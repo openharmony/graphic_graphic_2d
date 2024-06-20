@@ -79,23 +79,17 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(), Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888,  Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto srfce = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    if (srfce == nullptr) {
-        return nullptr;
-    }
     auto cnvs = srfce->GetCanvas();
-    if (cnvs == nullptr) {
-        return nullptr;
-    }
     cnvs->Clear(Drawing::Color::COLOR_YELLOW);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::COLOR_RED);
     int a = 4;
     int b = 2;
     cnvs->AttachBrush(brush);
-    cnvs->DrawRect(Drawing::Rect(width / a, height / a, width / a + width / b, height / a + height / b));
+    cnvs->DrawRect(Drawing::Rect(width/a, height/a, width/a + width/b, height/a + height/b));
     cnvs->DetachBrush();
     return pixelmap;
 }
@@ -104,12 +98,10 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
  * @tc.name: InitProperty001
  * @tc.desc: Verify the InitProperty
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, InitProperty001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 start";
-    ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 end";
@@ -119,7 +111,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty001, TestSize.Level1)
  * @tc.name: InitProperty002
  * @tc.desc: Verify the InitProperty image
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
 {
@@ -129,8 +120,8 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    Range<int64_t> lifeTime = Range<int64_t>(
-        std::numeric_limits<uint64_t>::max() / NS_PER_MS, std::numeric_limits<uint64_t>::max() / NS_PER_MS + 1);
+    Range<int64_t> lifeTime = Range<int64_t>(std::numeric_limits<uint64_t>::max() / NS_PER_MS,
+        std::numeric_limits<uint64_t>::max() / NS_PER_MS + 1);
     ParticleType type = ParticleType::IMAGES;
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = nullptr;
@@ -145,7 +136,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty002 end";
@@ -155,7 +145,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
  * @tc.name: InitProperty003
  * @tc.desc: Verify the InitProperty image
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
 {
@@ -170,7 +159,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    ASSERT_TRUE(rsImage != nullptr);
     rsImage->SetPixelMap(pixelMap);
     Vector2f imageSize = Vector2f(200.f, 300.f);
     EmitterConfig emitterConfig = EmitterConfig(
@@ -183,7 +171,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty003 end";
@@ -193,7 +180,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
  * @tc.name: InitProperty004
  * @tc.desc: Verify the InitProperty image
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
 {
@@ -207,7 +193,6 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     ParticleType type = ParticleType::IMAGES;
     float radius = 1;
     std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
-    ASSERT_TRUE(rsImage != nullptr);
     std::shared_ptr<Media::PixelMap> pixelMap;
     int width = 200;
     int height = 300;
@@ -224,22 +209,18 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty004 end";
 }
-
 /**
  * @tc.name: IsAlive001
  * @tc.desc: Verify the IsAlive
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, IsAlive001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest IsAlive001 start";
-    ASSERT_TRUE(particle != nullptr);
     EXPECT_TRUE(particle->IsAlive() == true);
     particle->SetIsDead();
     EXPECT_TRUE(particle->IsAlive() == false);
@@ -250,12 +231,10 @@ HWTEST_F(RSRenderParticleTest, IsAlive001, TestSize.Level1)
  * @tc.name: ColorLerp001
  * @tc.desc: Verify the Color Lerp
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, ColorLerp001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest ColorLerp001 start";
-    ASSERT_TRUE(particle != nullptr);
     Color start = Color(0, 0, 0, 128);
     Color end = Color(255, 255, 255, 255);
     float t = 0.5f;

@@ -33,13 +33,9 @@ public:
     bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
     void UpdateEmitter(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
-    const std::vector<std::shared_ptr<RSRenderParticleEmitter>>& GetParticleEmitter() const
+    const std::vector<std::shared_ptr<RSRenderParticleEmitter>>& GetParticleEmitter()
     {
         return emitters_;
-    }
-    const std::shared_ptr<ParticleNoiseFields>& GetParticleNoiseFields() const
-    {
-        return particleNoiseFields_;
     }
 
 private:
