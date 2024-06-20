@@ -215,6 +215,15 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer/export"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
             "header": {
               "header_files": [
