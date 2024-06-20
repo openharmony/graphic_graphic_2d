@@ -192,7 +192,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 bool RSCanvasDrawingRenderNode::IsNeedProcess() const
 {
     if (!renderDrawable_ || !(renderDrawable_->GetRenderParams())) {
-        return;
+        return false;
     }
     return renderDrawable_->GetRenderParams()->IsNeedProcess();
 }
