@@ -732,17 +732,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetUIFirstForceEnabled
- * @tc.desc: GetUIFirstForceEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetUIFirstForceEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetUIFirstForceEnabled());
-}
-
-/**
  * @tc.name: GetDebugTraceEnabled
  * @tc.desc: GetDebugTraceEnabled Test
  * @tc.type:FUNC

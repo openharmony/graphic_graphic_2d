@@ -3531,11 +3531,6 @@ void RSMainThread::UpdateUIFirstSwitch()
 {
     RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
         deviceType_ == DeviceType::PHONE);
-    if (RSSystemProperties::GetUIFirstForceEnabled()) {
-        isUiFirstOn_ = true;
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
 
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
