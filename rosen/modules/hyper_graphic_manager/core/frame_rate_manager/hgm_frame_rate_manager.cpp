@@ -156,7 +156,7 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
         dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
-        hgm_core.SetPendingScreenRefreshRate(rsRate);
+        hgmCore.SetPendingScreenRefreshRate(rsRate);
     }
 }
 
