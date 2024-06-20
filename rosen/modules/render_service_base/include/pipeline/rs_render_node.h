@@ -767,6 +767,7 @@ protected:
     bool lastFrameSynced_ = true;
     bool clipAbsDrawRectChange_ = false;
     bool isUifirstNode_ = true;
+    bool lastFrameHasAnimation_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,

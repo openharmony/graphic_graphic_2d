@@ -947,14 +947,19 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     }
     if (node.IsLeashWindow()) {
         if (RSUifirstManager::Instance().IsRecentTaskScene()) {
-            isNeedAssignToSubThread = node.IsScale() && LeashWindowContainMainWindow(node);
+            isNeedAssignToSubThread = (node.IsScale() || animation) && LeashWindowContainMainWindow(node);
         } else {
             isNeedAssignToSubThread = animation || node.IsNodeToBeCaptured();
         }
-
         // 1: Planning: support multi appwindows
-        isNeedAssignToSubThread = (isNeedAssignToSubThread || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
-            node.GetForceUIFirst()) && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
+        if (node.lastFrameHasAnimation_ && !animation) {
+            isNeedAssignToSubThread = true;
+            node.lastFrameHasAnimation_ = false;
+        } else {
+            isNeedAssignToSubThread = (isNeedAssignToSubThread || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
+                node.GetForceUIFirst()) && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
+            node.lastFrameHasAnimation_ = animation;
+        }
     }
 
     std::string surfaceName = node.GetName();
