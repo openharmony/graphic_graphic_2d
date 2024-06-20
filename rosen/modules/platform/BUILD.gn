@@ -16,11 +16,7 @@ import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
 # ace_skia {{{
 group("ace_skia") {
-  if (is_arkui_x) {
-    public_deps = [ "//third_party/skia:skia_$platform" ]
-  } else {
-    public_external_deps = [ "skia:skia_canvaskit" ]
-  }
+  public_external_deps = [ "skia:skia_canvaskit" ]
 }
 
 # ace_skia }}}
@@ -60,10 +56,6 @@ ohos_source_set("impl_eventhandler") {
     "hilog:libhilog",
     "libuv:uv",
   ]
-
-  if (is_arkui_x) {
-    defines += [ "CROSSPLATFORM" ]
-  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
