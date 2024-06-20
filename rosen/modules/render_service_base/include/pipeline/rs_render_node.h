@@ -675,6 +675,7 @@ public:
     bool IsEffectNodeNeedTakeSnapShot() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+    void RemoveChildFromFulllist(NodeId nodeId);
 
 protected:
     virtual void OnApplyModifiers() {}
