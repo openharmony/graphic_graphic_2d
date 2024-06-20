@@ -34,6 +34,7 @@
 #include "utils/vertices.h"
 
 #include "brush_napi/js_brush.h"
+#include "matrix_napi/js_matrix.h"
 #include "pen_napi/js_pen.h"
 #include "path_napi/js_path.h"
 #include "region_napi/js_region.h"
@@ -350,6 +351,7 @@ bool JsCanvas::DeclareFuncAndCreateConstructor(napi_env env)
         DECLARE_NAPI_FUNCTION("scale", JsCanvas::Scale),
         DECLARE_NAPI_FUNCTION("clipPath", JsCanvas::ClipPath),
         DECLARE_NAPI_FUNCTION("clipRect", JsCanvas::ClipRect),
+        DECLARE_NAPI_FUNCTION("setMatrix", JsCanvas::SetMatrix),
         DECLARE_NAPI_FUNCTION("translate", JsCanvas::Translate),
     };
 
@@ -1175,6 +1177,34 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
     GET_BOOLEAN_PARAM(ARGC_TWO, doAntiAlias);
 
     m_canvas->ClipRect(drawingRect, static_cast<ClipOp>(clipOpInt), doAntiAlias);
+    return nullptr;
+}
+
+napi_value JsCanvas::SetMatrix(napi_env env, napi_callback_info info)
+{
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnSetMatrix(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnSetMatrix(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnSetMatrix canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsMatrix* jsMatrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+    if (jsMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnConcatMatrix matrix is nullptr");
+        return nullptr;
+    }
+
+    JS_CALL_DRAWING_FUNC(m_canvas->SetMatrix(*jsMatrix->GetMatrix()));
     return nullptr;
 }
 
