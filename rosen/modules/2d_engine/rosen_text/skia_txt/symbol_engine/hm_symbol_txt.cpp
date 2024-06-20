@@ -18,21 +18,23 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-bool HMSymbolTxt::operator ==(HMSymbolTxt const &sym) const
+static const float MINLOSE = 1E-6;
+
+bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
 {
-    if (colorList_.size() != sym.colorList_.size()) {
+    if (colorList_.size() != symbol.colorList_.size()) {
+        return false;
+    }
+    if (renderMode_ != symbol.renderMode_ || effectStrategy_ != symbol.effectStrategy_) {
         return false;
     }
     for (size_t i = 0; i < colorList_.size(); i++) {
-        if (colorList_[i].a != sym.colorList_[i].a ||
-            colorList_[i].r != sym.colorList_[i].r ||
-            colorList_[i].g != sym.colorList_[i].g ||
-            colorList_[i].b != sym.colorList_[i].b) {
-                return false;
-            }
-    }
-    if (renderMode_ != sym.renderMode_ || effectStrategy_ != sym.effectStrategy_) {
-        return false;
+        if (abs(colorList_[i].a - symbol.colorList_[i].a) > MINLOSE ||
+            colorList_[i].r != symbol.colorList_[i].r ||
+            colorList_[i].g != symbol.colorList_[i].g ||
+            colorList_[i].b != symbol.colorList_[i].b) {
+            return false;
+        }
     }
     return true;
 }

@@ -187,7 +187,7 @@ void SkiaStaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::v
     return SkiaTextBlob::GetDrawingPointsForTextBlob(blob, points);
 }
 
-DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
 {
     return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
 }

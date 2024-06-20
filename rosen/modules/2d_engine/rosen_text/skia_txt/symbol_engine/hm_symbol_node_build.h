@@ -32,8 +32,8 @@ namespace SPText {
 
 class SymbolNodeBuild {
 public:
-    SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
-    const RSEffectStrategy effectStrategy, const std::pair<double, double> offset);
+    SymbolNodeBuild(const RSAnimationSetting &animationSetting, const RSHMSymbolData &symbolData,
+    const RSEffectStrategy &effectStrategy, const std::pair<float, float> &offset);
 
     void AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
@@ -51,22 +51,22 @@ public:
         animationFunc_ = animationFunc;
     }
 
-    void SetSymbolId(const uint64_t& symbolSpanId)
+    void SetSymbolId(uint64_t symbolSpanId)
     {
         symblSpanId_ = symbolSpanId;
     }
 
-    void SetAnimationMode(const uint16_t animationMode)
+    void SetAnimationMode(uint16_t animationMode)
     {
         animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
     }
 
-    void SetRepeatCount(const int repeatCount)
+    void SetRepeatCount(int repeatCount)
     {
         repeatCount_ = repeatCount;
     }
 
-    void SetAnimationStart(const bool animationStart)
+    void SetAnimationStart(bool animationStart)
     {
         animationStart_ = animationStart;
     }
@@ -80,8 +80,8 @@ private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
-    double offsetX_;
-    double offsetY_;
+    float offsetX_;
+    float offsetY_;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = false;

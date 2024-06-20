@@ -178,11 +178,10 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolRunTest, ClearSymbolAnimation001, TestSize.Level1)
 {
-    uint16_t glyphid = 3; // 3 is an existing GlyphID
     std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.ClearSymbolAnimation(symbol, glyphid, offset);
+    hmSymbolRun.ClearSymbolAnimation(symbol, offset);
 }
 
 /*

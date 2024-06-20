@@ -36,6 +36,7 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
 
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
 {
+    colorList_.clear();
     colorList_ = colorList;
 }
 
@@ -50,12 +51,14 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 
 void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 {
+    colorList_.clear();
     Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
     colorList_ = {colorIt};
 }
 
 void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 {
+    colorList_.clear();
     colorList_ = {colorList};
 }
 

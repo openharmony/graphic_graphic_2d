@@ -78,9 +78,9 @@ static bool IsMaskLayer(RSPath& multPath, const std::vector<RSGroupInfo>& groupI
     return true;
 }
 
-SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
-    const RSEffectStrategy effectStrategy,
-    const std::pair<double, double> offset) : animationSetting_(animationSetting),
+SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting &animationSetting, const RSHMSymbolData &symbolData,
+    const RSEffectStrategy &effectStrategy,
+    const std::pair<float, float> &offset) : animationSetting_(animationSetting),
     symbolData_(symbolData), effectStrategy_(effectStrategy),
     offsetX_(offset.first), offsetY_(offset.second) {}
 
@@ -171,8 +171,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
-    animationFunc_(symbolAnimationConfig);
-    return true;
+    return animationFunc_(symbolAnimationConfig);
 }
 }
 }

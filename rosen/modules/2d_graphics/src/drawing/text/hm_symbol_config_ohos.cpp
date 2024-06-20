@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-DrawingSymbolLayersGroups HmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups HmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t glyphId)
 {
     return StaticFactory::GetSymbolLayersGroups(glyphId);
 }

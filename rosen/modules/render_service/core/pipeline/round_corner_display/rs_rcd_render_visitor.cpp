@@ -70,7 +70,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
     }
 
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (!resourceChanged && buffer != nullptr) {
+    if (buffer != nullptr) {
         uniProcessor_->ProcessRcdSurface(node);
         return;
     }
