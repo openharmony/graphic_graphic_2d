@@ -46,6 +46,10 @@ EGLConfig EglManager::GetConfig(int version, EGLDisplay eglDisplay)
 void EglManager::Init()
 {
     if (initialized_) {
+        if (!IsEGLContextInCurrentThread(EGLDisplay_, EGLContext_)) {
+            LOGW("retry eglMakeCurrent.");
+            eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
+        }
         return;
     }
     initialized_ = true;
@@ -114,6 +118,20 @@ void EglManager::Init()
         LOGE("EglManager Init eglCreateContext error %x", error);
     }
     eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
+}
+
+EGLBoolean EglManager::IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context)
+{
+    EGLBoolean isContextInCurrent = EGL_FALSE;
+    EGLint isContextLost = 0;
+
+    eglQueryContext(display, context, EGL_CONTEXT_LOST, &isContextLost);
+
+    if (!isContextLost && eglGetCurrentContext() == context) {
+        isContextInCurrent = EGL_TRUE;
+    }
+ 
+    return isContextInCurrent;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -301,9 +301,9 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& 
     return true;
 }
 
-void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node) const
+void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const
 {
-    const auto& opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
+    const auto& opaqueRegionRects = surfaceParams.GetOpaqueRegion().GetRegionRects();
     for (const auto& subRect : opaqueRegionRects) {
         DrawDirtyRectForDFX(subRect.ToRectI(), Drawing::Color::COLOR_GREEN, RSPaintStyle::FILL, DFXFillAlpha, 0);
     }
@@ -325,12 +325,15 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
 {
-    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
-    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode->IsMainWindowType()) {
-            DrawSurfaceOpaqueRegionForDFX(*surfaceNode);
+    if (!displayParams_) {
+        RS_LOGE("RSDirtyRectsDfx: displayParams is null ptr.");
+        return;
+    }
+    auto& curAllSurfacesDrawables = displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfacesDrawables.rbegin(); it != curAllSurfacesDrawables.rend(); ++it) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>((*it)->GetRenderParams().get());
+        if (surfaceParams && surfaceParams->IsMainWindowType()) {
+            DrawSurfaceOpaqueRegionForDFX(*surfaceParams);
         }
     }
 }
@@ -367,15 +370,17 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
 {
-    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
-    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+    if (!displayParams_) {
+        RS_LOGE("RSDirtyRectsDfx: displayParams is null ptr.");
+        return;
+    }
+    auto& curAllSurfacesDrawables = displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfacesDrawables.rbegin(); it != curAllSurfacesDrawables.rend(); ++it) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>((*it)->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
             continue;
         }
-        if (CheckIfSurfaceTargetedForDFX(surfaceNode->GetName())) {
-            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (CheckIfSurfaceTargetedForDFX(surfaceParams->GetName())) {
             const auto& visibleRegions = surfaceParams->GetVisibleRegion().GetRegionRects();
             std::vector<RectI> rects;
             for (auto& rect : visibleRegions) {

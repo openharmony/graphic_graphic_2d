@@ -210,6 +210,8 @@ protected:
 
     virtual void UpdateAnimateVelocity(float frameInterval) {}
 
+    virtual void ProcessAnimateVelocityUnderAngleRotation(float frameInterval) {}
+
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;

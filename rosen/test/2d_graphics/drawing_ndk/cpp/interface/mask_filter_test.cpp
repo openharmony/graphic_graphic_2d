@@ -40,13 +40,7 @@
 
 void MaskFilterCreateBlur::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    // 性能测试:10000次15ms
-    TestRend rand;
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_);
-    float r = l + rand.nextULessThan(bitmapWidth_);
-    float b = t + rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100); // 0, 0, 100, 100 创建矩形
     // 创建画刷brush对象
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_BrushSetAntiAlias(brush, true);

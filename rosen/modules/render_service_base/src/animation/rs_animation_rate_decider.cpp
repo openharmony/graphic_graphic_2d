@@ -20,6 +20,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "modifier/rs_render_property.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -102,7 +103,7 @@ int32_t RSAnimationRateDecider::CalculatePreferredRate(const PropertyValue& prop
         case RSRenderPropertyType::PROPERTY_VECTOR2F:
             return ProcessVector2f(property, func);
         case RSRenderPropertyType::PROPERTY_FLOAT:
-            return func(property->GetPropertyUnit(), property->ToFloat());
+            return ProcessFloat(property, func);
         default:
             return 0;
     }
@@ -138,6 +139,22 @@ int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, c
         velocity = property->ToFloat();
     }
     return func(property->GetPropertyUnit(), velocity);
+}
+
+int32_t RSAnimationRateDecider::ProcessFloat(const PropertyValue& property, const FrameRateGetFunc& func)
+{
+    auto propertyUnit = property->GetPropertyUnit();
+    float propertyValue = property->ToFloat();
+    if (propertyUnit == RSPropertyUnit::ANGLE_ROTATION) {
+        // get the longest from height and width, record as H.
+        float height = ROSEN_GE(scaleHeight_, scaleWidth_) ? scaleHeight_ : scaleWidth_;
+        // V = W * R = W * (H / 2) = w * (2 * pi) * (H / 2) / 360 = w * pi * H / 360
+        // let w = propertyValue => w *= H * FLOAT_PI / 360
+        // 360 means 360 angle, relative to 2 * pi radian.
+        propertyValue *= height * FLOAT_PI / 360;
+        ROSEN_LOGD("%{public}s, ANGLE_ROTATION scene, propertyValue: %{public}f", __func__, propertyValue);
+    }
+    return func(propertyUnit, propertyValue);
 }
 } // namespace Rosen
 } // namespace OHOS

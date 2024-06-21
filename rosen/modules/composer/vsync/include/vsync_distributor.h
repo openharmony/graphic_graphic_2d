@@ -137,7 +137,7 @@ private:
         int64_t vsyncCount; // used for LTPS
         int64_t period;
         int64_t vsyncPulseCount; // used for LTPO
-        int32_t refreshRate;
+        uint32_t refreshRate;
     };
     void ThreadMain();
     void EnableVSync();

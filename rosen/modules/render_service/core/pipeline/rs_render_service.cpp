@@ -17,7 +17,9 @@
 
 #include <iservice_registry.h>
 #include <malloc.h>
+#include <parameters.h>
 #include <platform/common/rs_log.h>
+#include "platform/common/rs_system_properties.h"
 #include <string>
 #include <system_ability_definition.h>
 #include <unistd.h>
@@ -44,6 +46,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
+const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
 }
 RSRenderService::RSRenderService() {}
 
@@ -121,6 +124,12 @@ bool RSRenderService::Init()
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
     RS_PROFILER_INIT(this);
+
+    if (!system::GetBoolParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), false)) {
+        system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
+        RS_LOGI("set boot render service started true");
+    }
+
     return true;
 }
 

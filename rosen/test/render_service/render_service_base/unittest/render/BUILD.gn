@@ -68,6 +68,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/utils/log",
   ]
 
   deps = [
@@ -76,6 +77,9 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
     "init:libbegetutil",
     "skia:skia_canvaskit",
   ]

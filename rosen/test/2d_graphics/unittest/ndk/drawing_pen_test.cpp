@@ -26,6 +26,9 @@
 
 #include "effect/color_filter.h"
 #include "effect/filter.h"
+#include "drawing_path.h"
+#include "drawing_rect.h"
+#include "drawing_matrix.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -255,6 +258,48 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer011, TestSi
     OH_Drawing_PenSetShadowLayer(pen, shadowLayer);
     OH_Drawing_ShadowLayerDestroy(shadowLayer);
     OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenCopy012
+ * @tc.desc: test for creates an <b>OH_Drawing_Pen</b> copy object.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenCopy012, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(OH_Drawing_PenCopy(pen), nullptr);
+    pen = nullptr;
+    EXPECT_EQ(OH_Drawing_PenCopy(pen), nullptr);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: NativeDrawingPenTest_PenGetFillPath013
+ * @tc.desc: test for gets the filled equivalent of the src path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFillPath013, TestSize.Level1)
+{
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetWidth(pen, 10); // 10: width of pen
+    OH_Drawing_Path *dst = OH_Drawing_PathCreate();
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(10, 10, 20, 20); // rect left[10], top[10], right[20], bottom[20]
+    OH_Drawing_Matrix *matrix = OH_Drawing_MatrixCreate();
+    EXPECT_FALSE(OH_Drawing_PenGetFillPath(pen, nullptr, dst, rect, matrix));
+
+    OH_Drawing_Path *src = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(src, 10, 10); // 10: point's x, 10 point's y
+    OH_Drawing_PathLineTo(src, 20, 20); // 20: point's x, 20 point's y
+    EXPECT_TRUE(OH_Drawing_PenGetFillPath(pen, src, dst, rect, matrix));
+
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_PathDestroy(src);
+    OH_Drawing_PathDestroy(dst);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_MatrixDestroy(matrix);
 }
 
 /*

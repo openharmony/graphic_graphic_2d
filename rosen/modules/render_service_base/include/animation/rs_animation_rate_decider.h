@@ -44,6 +44,7 @@ private:
     int32_t CalculatePreferredRate(const PropertyValue& property, const FrameRateGetFunc& func);
     int32_t ProcessVector4f(const PropertyValue& property, const FrameRateGetFunc& func);
     int32_t ProcessVector2f(const PropertyValue& property, const FrameRateGetFunc& func);
+    int32_t ProcessFloat(const PropertyValue& property, const FrameRateGetFunc& func);
 
     bool isEnabled_ = true;
     float scaleWidth_ = 0.0f;

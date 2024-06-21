@@ -152,7 +152,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetSingleFrameComposerEnabled();
     RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled();
     RSSystemProperties::GetSubSurfaceEnabled();
-    RSSystemProperties::GetAceDebugBoundaryEnabled();
     RSSystemProperties::GetSecurityPermissionCheckEnabled();
     RSSystemProperties::GetParallelUploadTexture();
     RSSystemProperties::GetEffectMergeEnabled();

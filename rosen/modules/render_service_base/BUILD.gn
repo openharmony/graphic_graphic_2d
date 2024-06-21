@@ -413,10 +413,6 @@ ohos_source_set("render_service_base_src") {
   public_configs = [ ":export_config" ]
   public_deps = [ "src/platform:platform" ]
 
-  if (defined(use_new_render_context) && use_new_render_context) {
-    public_deps += [ "src/render_backend:librender_backend" ]
-  }
-
   if (enable_export_macro) {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
@@ -464,6 +460,10 @@ ohos_source_set("render_service_base_src") {
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
+
+  if (rosen_is_ohos) {
+    external_deps += [ "image_framework:image_native" ]
+  }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
@@ -610,6 +610,18 @@ ohos_shared_library("librender_service_base") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
+  public_external_deps = []
+  if (rosen_is_ohos) {
+    public_external_deps += [
+      "graphic_surface:sync_fence",
+      "image_framework:image_native",
+    ]
+  }
+
+  if (rs_enable_gpu) {
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -635,6 +647,18 @@ ohos_source_set("librender_service_base_static") {
 
   if (defined(use_new_render_context) && use_new_render_context) {
     public_deps += [ "src/render_backend:librender_backend" ]
+  }
+
+  public_external_deps = []
+  if (rosen_is_ohos) {
+    public_external_deps += [
+      "graphic_surface:sync_fence",
+      "image_framework:image_native",
+    ]
+  }
+
+  if (rs_enable_gpu) {
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   part_name = "graphic_2d"

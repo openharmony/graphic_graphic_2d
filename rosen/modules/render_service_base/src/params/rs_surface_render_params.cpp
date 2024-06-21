@@ -361,6 +361,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
+    targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     RSRenderParams::OnSync(target);
 }
@@ -391,5 +392,15 @@ bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfac
         return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;
+}
+
+void RSSurfaceRenderParams::SetOpaqueRegion(const Occlusion::Region& opaqueRegion)
+{
+    opaqueRegion_ = opaqueRegion;
+}
+
+const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
+{
+    return opaqueRegion_;
 }
 } // namespace OHOS::Rosen

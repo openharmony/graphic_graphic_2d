@@ -44,7 +44,7 @@ public:
     void Draw();
 
     void SetFrameRateGetFunc(const FrameRateGetFunc& func);
-    const FrameRateRange& GetFrameRateRange() const;
+    const FrameRateRange GetFrameRateRange() const;
 
     // spring animation related
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);

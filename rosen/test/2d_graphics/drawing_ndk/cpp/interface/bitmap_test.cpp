@@ -34,24 +34,17 @@
 
 void ImageBuildFromBitmap::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
-    uint32_t width = rand.nextULessThan(bitmapWidth_);
-    uint32_t height = rand.nextULessThan(bitmapHeight_);
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_);
-    float r = rand.nextULessThan(bitmapWidth_);
-    float b = rand.nextULessThan(bitmapHeight_);
     OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
     OH_Drawing_Image* image = OH_Drawing_ImageCreate();
     OH_Drawing_BitmapFormat format = { COLOR_FORMAT_ALPHA_8, ALPHA_FORMAT_OPAQUE };
-    OH_Drawing_BitmapBuild(bm, width, height, &format);
+    OH_Drawing_BitmapBuild(bm, 256, 256, &format); // 256, 256 宽高
     OH_Drawing_SamplingOptions* samplingOptions =
         OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR, MIPMAP_MODE_NEAREST);
 
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_ImageBuildFromBitmap(image, bm);
     }
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 256, 256); // 0, 0, 256, 256 创建矩形
     OH_Drawing_CanvasDrawImageRect(canvas, image, rect, samplingOptions);
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_ImageDestroy(image);

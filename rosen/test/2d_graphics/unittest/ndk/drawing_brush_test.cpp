@@ -200,6 +200,22 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushSetShadowLayer006, 
     OH_Drawing_ShadowLayerDestroy(shadowLayer);
     OH_Drawing_BrushDestroy(brush);
 }
+
+/*
+ @tc.name: NativeDrawingBrushTest_brushCopy007
+ * @tc.desc: test for creates an copy object.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushCopy007, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_EQ(brush == nullptr, false);
+    OH_Drawing_Brush* brush_copy = OH_Drawing_BrushCopy(brush);
+    EXPECT_EQ(brush_copy == nullptr, false);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_BrushDestroy(brush_copy);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -51,7 +51,7 @@ public:
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
     bool CheckPidValid(pid_t pid);
 
-    std::string GetAppStrategyConfigName(const std::string& pkgName) const;
+    std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
     const std::unordered_map<std::string, std::pair<pid_t, int32_t>>& GetPidAppType() const
     {

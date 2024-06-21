@@ -205,8 +205,12 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
             Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
             surfaceNodeDrawable->SetAlignedVisibleDirtyRegion(alignedRegion);
             allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceParams->GetId(),
+                surfaceNodeDrawable->GetName(), alignedRegion.GetRegionRectIs());
         } else {
             allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceParams->GetId(),
+                surfaceNodeDrawable->GetName(), surfaceVisibleDirtyRegion.GetRegionRectIs());
         }
     }
     return allSurfaceVisibleDirtyRegion;
@@ -750,10 +754,13 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
 
 bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
 {
-    return !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.f) ||
-        matrix.Get(Drawing::Matrix::Index::SCALE_X) < 0 ||
-        !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.f) ||
-        matrix.Get(Drawing::Matrix::Index::SCALE_Y) < 0;
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    int rotateX = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_1],
+        value[Drawing::Matrix::Index::SCALE_Y]) * (180 / PI)));
+    int rotateY = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_0],
+        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
+    return (rotateX != 0) || (rotateY != 0);
 }
 
 

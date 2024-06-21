@@ -38,17 +38,52 @@ void RSOcclusionDataTest::SetUp() {}
 void RSOcclusionDataTest::TearDown() {}
 
 /**
- * @tc.name: UnmarshallingTest
+ * @tc.name: UnmarshallingTest001
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSOcclusionDataTest, UnmarshallingTest, TestSize.Level1)
+HWTEST_F(RSOcclusionDataTest, UnmarshallingTest001, TestSize.Level1)
 {
     Parcel parcel;
     RSOcclusionData rsOcclusionData;
     RSOcclusionData* rsOcclusionDataPtr = rsOcclusionData.Unmarshalling(parcel);
-    ASSERT_NE(rsOcclusionDataPtr,nullptr);
+    ASSERT_NE(rsOcclusionDataPtr, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionDataTest, UnmarshallingTest002, TestSize.Level1)
+{
+    Parcel parcel;
+    RSOcclusionData rsOcclusionData;
+    parcel.WriteUint32(5); // for test size
+    RSOcclusionData* rsOcclusionDataPtr = rsOcclusionData.Unmarshalling(parcel);
+    ASSERT_NE(rsOcclusionDataPtr, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionDataTest, UnmarshallingTest003, TestSize.Level1)
+{
+    Parcel parcel;
+    RSOcclusionData rsOcclusionData;
+    uint64_t id = 2;
+    uint32_t visibelLevel = 3;
+    rsOcclusionData.visibleData_.emplace_back(std::make_pair(id, (WINDOW_LAYER_INFO_TYPE)visibelLevel));
+    parcel.WriteUint32(1); // for test size
+    parcel.WriteUint64(2); // for test data.first
+    parcel.WriteUint32(3); // for test data.second
+    RSOcclusionData* rsOcclusionDataPtr = rsOcclusionData.Unmarshalling(parcel);
+    ASSERT_NE(rsOcclusionDataPtr, nullptr);
 }
 
 /**
@@ -61,6 +96,9 @@ HWTEST_F(RSOcclusionDataTest, MarshallingTest, TestSize.Level1)
 {
     Parcel parcel;
     RSOcclusionData rsOcclusionData;
+    uint64_t id = 2;
+    uint32_t visibelLevel = 3;
+    rsOcclusionData.visibleData_.emplace_back(std::make_pair(id, (WINDOW_LAYER_INFO_TYPE)visibelLevel));
     bool marshalling = rsOcclusionData.Marshalling(parcel);
     ASSERT_TRUE(marshalling);
 }

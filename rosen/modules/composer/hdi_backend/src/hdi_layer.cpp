@@ -246,12 +246,12 @@ int32_t HdiLayer::SetLayerDirtyRegion()
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
-bool HdiLayer::CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
+bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index,
                                               std::vector<uint32_t>& deletingList)
 {
     uint32_t bufferCacheSize = (uint32_t)bufferCache_.size();
     for (uint32_t i = 0; i < bufferCacheSize; i++) {
-        if (bufferCache_[i] == buffer) {
+        if (bufferCache_[i] == sequence) {
             index = i;
             return true;
         }
@@ -264,7 +264,7 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32
         bufferCache_.clear();
     }
     index = (uint32_t)bufferCache_.size();
-    bufferCache_.push_back(buffer);
+    bufferCache_.push_back(sequence);
     return false;
 }
 
@@ -290,7 +290,7 @@ int32_t HdiLayer::SetLayerBuffer()
         bufferCache_.clear();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
-        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer, index, deletingList);
+        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
     }
 
     GraphicLayerBuffer layerBuffer;

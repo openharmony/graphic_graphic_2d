@@ -296,7 +296,7 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceR
                 surfaceNode->SetUIFirstIsPurge(false);
                 return true;
             }
-            auto surfaceDirtyRect = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
+            auto surfaceDirtyRect = surfaceNode->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
             Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
                 surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
             Occlusion::Region surfaceDirtyRegion { dirtyRect };

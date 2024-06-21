@@ -172,13 +172,13 @@ bool HgmMultiAppStrategy::CheckPidValid(pid_t pid)
     return !backgroundPid_.Existed(pid);
 }
 
-std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName) const
+std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName)
 {
     auto &appConfigMap = GetScreenSetting().appList;
     if (appConfigMap.find(pkgName) != appConfigMap.end()) {
         return appConfigMap.at(pkgName);
     }
-
+    std::lock_guard<std::mutex> lock(pidAppTypeMutex_);
     if (pidAppTypeMap_.find(pkgName) != pidAppTypeMap_.end()) {
         auto &appType = pidAppTypeMap_.at(pkgName).second;
         auto &appTypes = GetScreenSetting().appTypes;

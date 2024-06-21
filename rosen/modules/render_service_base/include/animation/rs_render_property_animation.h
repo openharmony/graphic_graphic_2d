@@ -66,6 +66,8 @@ protected:
 
     void UpdateAnimateVelocity(float frameInterval) override;
 
+    void ProcessAnimateVelocityUnderAngleRotation(float frameInterval) override;
+
     virtual void InitValueEstimator() {}
 
 protected:

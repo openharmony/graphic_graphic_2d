@@ -93,7 +93,7 @@ private:
     HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 
-    std::vector<sptr<SurfaceBuffer> > bufferCache_;
+    std::vector<uint32_t> bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
@@ -122,7 +122,7 @@ private:
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);
     int32_t SetLayerMaskInfo();
-    bool CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
+    bool CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index,
                                         std::vector<uint32_t>& deletingList);
 
     int32_t SetPerFrameParameters();

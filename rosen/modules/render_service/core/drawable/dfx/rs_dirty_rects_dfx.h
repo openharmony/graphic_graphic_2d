@@ -21,7 +21,9 @@
 #include "system/rs_system_parameters.h"
 
 #include "common/rs_occlusion_region.h"
+#include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -30,7 +32,8 @@ namespace OHOS::Rosen {
 
 class RSDirtyRectsDfx {
 public:
-    explicit RSDirtyRectsDfx(std::shared_ptr<RSDisplayRenderNode> targetNode) : targetNode_(targetNode) {}
+    explicit RSDirtyRectsDfx(std::shared_ptr<RSDisplayRenderNode> targetNode, RSDisplayRenderParams* displayParams)
+        : targetNode_(targetNode), displayParams_(displayParams) {}
     ~RSDirtyRectsDfx() = default;
 
     enum class RSPaintStyle { FILL, STROKE };
@@ -53,12 +56,13 @@ private:
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDisplayRenderNode> targetNode_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
+    RSDisplayRenderParams* displayParams_ = nullptr;
 
     void DrawCurrentRefreshRate();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color, const RSPaintStyle fillType,
         float alpha, int edgeWidth = 6) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node) const;
-    void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node) const;
+    void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const;
 
     void DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects) const;
     void DrawAllSurfaceDirtyRegionForDFX() const;

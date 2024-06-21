@@ -24,6 +24,7 @@
 #include "drawing_filter.h"
 #include "drawing_font.h"
 #include "drawing_image.h"
+#include "drawing_image_filter.h"
 #include "drawing_mask_filter.h"
 #include "drawing_matrix.h"
 #include "drawing_path.h"
@@ -1567,6 +1568,89 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob047, TestS
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_TextBlobBuilderDestroy(builder);
     OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateBlur041
+ * @tc.desc: test for Creates an OH_Drawing_ImageFilter object that blurs its input by the separate x and y sigmas.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+*/
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateBlur041, TestSize.Level1)
+{
+    float sifmaX = 0.f;
+    float sigmaY = 0.f;
+    OH_Drawing_ImageFilter *imagefilter = nullptr;
+    imagefilter = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_NE(imagefilter, nullptr);
+    OH_Drawing_ImageFilterDestroy(imagefilter);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateFromColorFilter042
+ * @tc.desc: test for Creates an OH_Drawing_ImageFilter object that applies the color filter to the input.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateFromColorFilter042, TestSize.Level1)
+{
+    float sifmaX = 0.f;
+    float sigmaY = 0.f;
+    OH_Drawing_ImageFilter *imagefilter = nullptr;
+    imagefilter = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_NE(imagefilter, nullptr);
+    EXPECT_EQ(OH_Drawing_BrushGetColor(brush_), 0xFFFF0000);
+    OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateBlendMode(0xFF0000FF,
+        OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    EXPECT_NE(colorFilter, nullptr);
+    OH_Drawing_ColorFilter* colorFilterTmp = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
+    EXPECT_NE(colorFilterTmp, nullptr);
+    OH_Drawing_ImageFilter *imagefiltercreatefromc = nullptr;
+    imagefiltercreatefromc = OH_Drawing_ImageFilterCreateFromColorFilter(nullptr, nullptr);
+    EXPECT_EQ(imagefiltercreatefromc, nullptr);
+    imagefiltercreatefromc = OH_Drawing_ImageFilterCreateFromColorFilter(colorFilterTmp, imagefilter);
+    EXPECT_NE(imagefiltercreatefromc, nullptr);
+    OH_Drawing_ColorFilterDestroy(colorFilter);
+    OH_Drawing_ColorFilterDestroy(colorFilterTmp);
+    OH_Drawing_ImageFilterDestroy(imagefiltercreatefromc);
+    OH_Drawing_ImageFilterDestroy(imagefilter);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterDestroy043
+ * @tc.desc: test for Destroys an OH_Drawing_ImageFilter object and reclaims the memory occupied by the object.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterDestroy043, TestSize.Level1)
+{
+    float sifmaX = 0.f;
+    float sigmaY = 0.f;
+    OH_Drawing_ImageFilter *imagefilter = nullptr;
+    imagefilter = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_NE(imagefilter, nullptr);
+    OH_Drawing_ImageFilterDestroy(nullptr);
+    OH_Drawing_ImageFilterDestroy(imagefilter);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_FilterSetImageFilter044
+ * @tc.desc: test for Sets an OH_Drawing_ImageFilter object for an OH_Drawing_Filter object.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_FilterSetImageFilter044, TestSize.Level1)
+{
+    float sifmaX = 0.f;
+    float sigmaY = 0.f;
+    OH_Drawing_ImageFilter *imagefilter = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_NE(imagefilter, nullptr);
+    OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
+    OH_Drawing_FilterSetImageFilter(nullptr, imagefilter);
+    OH_Drawing_FilterSetImageFilter(filter, nullptr);
+    OH_Drawing_FilterSetImageFilter(filter, imagefilter);
+    OH_Drawing_FilterDestroy(filter);
+    OH_Drawing_ImageFilterDestroy(imagefilter);
 }
 } // namespace Drawing
 } // namespace Rosen

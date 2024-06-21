@@ -140,7 +140,26 @@ HWTEST_F(RSNodeMapTest, GetNodeInstanceId001, TestSize.Level1)
     EXPECT_EQ(res, 1);
 
     res = RSNodeMap::MutableInstance().GetNodeInstanceId(0);
-    EXPECT_NE(res, 0);
+    EXPECT_EQ(res, -1);
+}
+
+/**
+ * @tc.name: GetInstanceIdForReleasedNodeTest
+ * @tc.desc: test results of GetInstanceIdForReleasedNode
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSNodeMapTest, GetInstanceIdForReleasedNodeTest, TestSize.Level1)
+{
+    AnimationId animationId = 1;
+    NodeId nodeId = 1;
+    RSNodeMap::MutableInstance().animationNodeIdInstanceIdMap_.insert(
+        std::make_pair(animationId, std::make_pair(nodeId, 1)));
+    int32_t res = RSNodeMap::MutableInstance().GetInstanceIdForReleasedNode(1);
+    EXPECT_EQ(res, 1);
+
+    res = RSNodeMap::MutableInstance().GetInstanceIdForReleasedNode(0);
+    EXPECT_EQ(res, -1);
 }
 
 /**

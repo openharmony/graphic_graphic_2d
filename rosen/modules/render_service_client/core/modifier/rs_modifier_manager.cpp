@@ -141,7 +141,7 @@ void RSModifierManager::SetFrameRateGetFunc(const FrameRateGetFunc& func)
     frameRateGetFunc_ = func;
 }
 
-const FrameRateRange& RSModifierManager::GetFrameRateRange() const
+const FrameRateRange RSModifierManager::GetFrameRateRange() const
 {
     auto frameRateRange = rateDecider_.GetFrameRateRange();
     frameRateRange.type_ = UI_ANIMATION_FRAME_RATE_TYPE;

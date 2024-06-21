@@ -172,6 +172,8 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
         targetManager->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
         targetManager->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
     }
+    // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
+    Clear();
 }
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const

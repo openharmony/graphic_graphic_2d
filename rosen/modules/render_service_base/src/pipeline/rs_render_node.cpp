@@ -1627,9 +1627,13 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         // clean subtree means childrenRect maps to parent already
         childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
-    // map before update parent
+    // map before update parent, if parent has clip property, use clipped children rect instead.
     RectI childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
     if (auto parentNode = parent_.lock()) {
+        const auto& parentProperties = parentNode->GetRenderProperties();
+        if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
+            childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
+        }
         parentNode->UpdateChildrenRect(childRectMapped);
         // check each child is inside of parent
         childRect = childRectMapped.ConvertTo<float>();
@@ -2973,7 +2977,11 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         }
         SetDirty();
     }
+    if (nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE) && !isNodeGroup) {
+        needClearSurface_ = true;
+    }
     nodeGroupIncludeProperty_ = includeProperty;
+    AddToPendingSyncList();
 }
 
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
@@ -3782,6 +3790,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
+    stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
@@ -3889,7 +3898,8 @@ bool RSRenderNode::ShouldClearSurface()
 {
     bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
     bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
-    return (renderGroupFlag || freezeFlag) && clearSurfaceTask_ && needClearSurface_;
+    return (renderGroupFlag || freezeFlag || nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE)) &&
+        clearSurfaceTask_ && needClearSurface_;
 }
 
 void RSRenderNode::ValidateLightResources()
@@ -3938,6 +3948,9 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
+    if (!fullChildrenList_) {
+        return;
+    }
     auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),

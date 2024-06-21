@@ -48,6 +48,8 @@ ohos_unittest("RSRenderServiceBaseOffscreenRenderTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "init:libbegetutil",
     "skia:skia_canvaskit",
   ]

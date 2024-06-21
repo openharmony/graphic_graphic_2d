@@ -203,8 +203,6 @@ template("render_service_client_source_set") {
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]
 
-      public_external_deps = [ "graphic_surface:surface" ]
-
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
@@ -233,9 +231,9 @@ template("render_service_client_source_set") {
     } else {
       external_deps = [ "hilog:libhilog" ]
     }
-    if (!defined(public_external_deps)) {
-      public_external_deps = [ "graphic_surface:surface_headers" ]
-    }
+
+    external_deps += [ "graphic_surface:surface_headers" ]
+
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]
     }
@@ -315,6 +313,13 @@ ohos_shared_library("librender_service_client") {
     configs = [ ":render_service_client_link_config" ]
   }
 
+  public_external_deps = []
+  if (rosen_is_ohos) {
+    public_external_deps += [ "graphic_surface:surface" ]
+  } else if (rosen_preview) {
+    public_external_deps += [ "graphic_surface:surface_headers" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -329,6 +334,14 @@ ohos_source_set("librender_service_client_static") {
   }
   public_deps = [ ":render_service_client_src_static" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
+
+  public_external_deps = []
+  if (rosen_is_ohos) {
+    public_external_deps += [ "graphic_surface:surface" ]
+  } else if (rosen_preview) {
+    public_external_deps += [ "graphic_surface:surface_headers" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

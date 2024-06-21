@@ -89,11 +89,10 @@ void ShaderEffectCreateRadialGradient::OnTestPerformance(OH_Drawing_Canvas* canv
 
 void ShaderEffectCreateImageShader::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_SamplingOptions* option = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NONE);
 
     OH_Drawing_Image* image = OH_Drawing_ImageCreate();
-    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreateTranslation(rand.nextF(), rand.nextF());
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreateTranslation(100, 100); // 100 平移
     OH_Drawing_ShaderEffect* ShaderEffect;
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(NUM_20, NUM_50, NUM_300, NUM_300);

@@ -118,8 +118,23 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         return;
     }
 
+    {
+        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        if (cachedSurface_ == nullptr) {
+            // Remove node id in update time map to avoid update time exceeds DRAWING_CACHE_MAX_UPDATE_TIME
+            // (If cache disabled for node not on the tree, we clear cache in OnSync func, but we can't clear node
+            // id in drawingCacheUpdateTimeMap_ [drawable will not be visited in RT].
+            // If this node is marked node group by arkui again, we should first clear update time here, otherwise
+            // update time will accumulate.)
+            std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
+            drawingCacheUpdateTimeMap_.erase(nodeId_);
+        }
+    }
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
     bool needUpdateCache = CheckIfNeedUpdateCache(params);
+    // reset drawing cache changed false for render param if drawable is visited this frame
+    // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
+    params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !params.OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
@@ -506,7 +521,8 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
     }
 
     if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
-        updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        (updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME ||
+            (params.NeedFilter() && params.GetDrawingCacheIncludeProperty()))) {
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;
@@ -518,7 +534,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
     }
 
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
-        params.SetDrawingCacheChanged(false, true);
         return true;
     }
     return false;

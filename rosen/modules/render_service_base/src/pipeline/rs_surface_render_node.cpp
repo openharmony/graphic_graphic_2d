@@ -2552,6 +2552,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->absDrawRect_ = GetAbsDrawRect();
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
+    surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
 }
 
 void RSSurfaceRenderNode::InitRenderParams()

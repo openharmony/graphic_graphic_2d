@@ -55,9 +55,14 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
     arg.WriteInterfaceToken(GetDescriptor());
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_GET_RECEIVE_FD, arg, ret, opt);
     if (res != NO_ERROR) {
+        VLOGE("GetReceiveFd Failed, res = %{public}d", res);
         return VSYNC_ERROR_BINDER_ERROR;
     }
     fd = ret.ReadFileDescriptor();
+    if (fd <= 0) {
+        VLOGE("GetReceiveFd Invalid fd:%{public}d", fd);
+        return VSYNC_ERROR_API_FAILED;
+    }
     return VSYNC_ERROR_OK;
 }
 

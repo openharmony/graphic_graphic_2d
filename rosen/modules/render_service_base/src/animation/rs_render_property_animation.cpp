@@ -190,10 +190,49 @@ void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
         !lastAnimateValue_ || !property_ || ROSEN_EQ<float>(frameInterval, 0)) {
         return;
     }
+
+    if (property_->GetPropertyUnit() == RSPropertyUnit::ANGLE_ROTATION) {
+        ProcessAnimateVelocityUnderAngleRotation(frameInterval);
+        return;
+    }
+
     if (property_->GetPropertyUnit() > RSPropertyUnit::UNKNOWN) {
         auto currAnimateValue = property_->Clone();
         animateVelocity_ = (currAnimateValue - lastAnimateValue_) * (1 / frameInterval);
+        ROSEN_LOGD("%{public}s, currAnimateValue: %{public}f, lastAnimateValue: %{public}f, "
+            "animateVelocity: %{public}f", __func__, currAnimateValue->ToFloat(),
+            lastAnimateValue_->ToFloat(), animateVelocity_->ToFloat());
     }
+}
+
+void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float frameInterval)
+{
+    auto currAnimateValue = property_->Clone();
+    float currAnimateFloatValue = currAnimateValue->ToFloat();
+    auto diffValue = currAnimateValue - lastAnimateValue_;
+    auto diffFloatValue = currAnimateFloatValue - lastAnimateValue_->ToFloat();
+    // 150 means 150 angle.
+    // The angle of the representation varies greatly between two frames.
+    int32_t factor = std::abs(diffFloatValue) / 150;
+    if (factor > 0) {
+        if (ROSEN_EQ<float>(currAnimateFloatValue, 0)) {
+            ROSEN_LOGE("%{public}s, currAnimateFloatValue is 0", __func__);
+            return;
+        }
+        // 180 means 180 angle, relative to pi radian.
+        auto circleValue = currAnimateValue * (180 * factor / currAnimateFloatValue);
+        diffValue = diffFloatValue < 0 ? (currAnimateValue + circleValue) - lastAnimateValue_
+                    : currAnimateValue - (lastAnimateValue_ + circleValue);
+    }
+    if (ROSEN_EQ<float>(frameInterval, 0)) {
+        ROSEN_LOGE("%{public}s, frameInterval is 0", __func__);
+        return;
+    }
+    animateVelocity_ = diffValue * (1 / frameInterval);
+    ROSEN_LOGD("%{public}s, currAnimateValue: %{public}f, lastAnimateValue: %{public}f, "
+        "diffFloatValue: %{public}f, factor: %{public}d, animateVelocity: %{public}f",
+        __func__, currAnimateValue->ToFloat(), lastAnimateValue_->ToFloat(), diffFloatValue,
+        factor, animateVelocity_->ToFloat());
 }
 } // namespace Rosen
 } // namespace OHOS

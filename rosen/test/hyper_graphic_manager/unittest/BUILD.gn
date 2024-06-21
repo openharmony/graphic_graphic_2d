@@ -60,6 +60,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
