@@ -147,6 +147,15 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_ENUM_PARAM(argc, value, lo, hi)                                                                            \
+    do {                                                                                                               \
+        GET_INT32_PARAM(argc, value);                                                                                  \
+        if (value < lo || value > hi) {                                                                                \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " range.");           \
+        }                                                                                                              \
+    } while (0)
+
 namespace Drawing {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
