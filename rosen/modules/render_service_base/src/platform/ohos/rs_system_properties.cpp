@@ -853,7 +853,7 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool GetPreAllocateTextureBetweenFramesEnabled()
+bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
 {
     static bool preAllocateTextureBetweenFramesEnabled =
         (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
