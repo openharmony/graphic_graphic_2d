@@ -30,13 +30,7 @@
 namespace txt {
 FontCollection::FontCollection() : enableFontFallback_(true) {}
 
-FontCollection::~FontCollection()
-{
-    std::unique_lock lock(collectionMutex_);
-    if (sktFontCollection_) {
-        sktFontCollection_->clearCaches();
-    }
-}
+FontCollection::~FontCollection() {}
 
 size_t FontCollection::GetFontManagersCount() const
 {
