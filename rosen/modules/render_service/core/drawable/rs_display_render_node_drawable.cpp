@@ -953,7 +953,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
             RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
             damageRegionRects.emplace_back(mappedRect);
         }
-        if (!(lastMatrix_ == canvasMatrix) || uniParam->GetForceMirrorScreenDirty()) {
+        if (!(lastMatrix_ == canvasMatrix)) {
             displayNodeSp->GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
             lastMatrix_ = canvasMatrix;
         }
@@ -963,7 +963,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
             damageRegionRects.emplace_back(extraDirty);
         }
         if (!uniParam->IsVirtualDirtyDfxEnabled()) {
-            renderFrame->SetDirtyInfo(damageRegionRects);
+            renderFrame->SetDamageRegion(damageRegionRects);
         }
     }
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, curScreenInfo);
