@@ -103,6 +103,10 @@ MARSHALLING_AND_UNMARSHALLING(double, Double)
 namespace {
 bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
 {
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::MarshallingExtendObjectFromDrawCmdList failed with null CmdList");
+        return false;
+    }
     std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
     uint32_t objectSize = val->GetAllExtendObject(objectVec);
     if (!parcel.WriteUint32(objectSize)) {
@@ -125,6 +129,10 @@ bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_pt
 
 bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
 {
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingExtendObjectToDrawCmdList failed with null CmdList");
+        return false;
+    }
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
         return true;
@@ -150,26 +158,37 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        return parcel.WriteUint32(UINT32_MAX);
     }
 
-    bool ret = parcel.WriteInt32(val->GetSize());
-    if (val->GetSize() == 0) {
+    uint32_t size = val->GetSize();
+    if (size == UINT32_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling Data failed with max limit");
+        return false;
+    }
+
+    if (size == 0) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Data size is 0");
-        return ret;
+        return parcel.WriteUint32(0);
     }
 
-    ret = ret && RSMarshallingHelper::WriteToParcel(parcel, val->GetData(), val->GetSize());
-    if (!ret) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Data");
+    const void* data = val->GetData();
+    if (!data) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling Data failed with max nullptr");
+        return false;
     }
-    return ret;
+
+    if (!parcel.WriteUint32(size) || !RSMarshallingHelper::WriteToParcel(parcel, data, size)) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Data");
+        return false;
+    }
+    return true;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val)
 {
-    int32_t size = parcel.ReadInt32();
-    if (size == -1) {
+    uint32_t size = parcel.ReadUint32();
+    if (size == UINT32_MAX) {
         val = nullptr;
         return true;
     }
@@ -183,16 +202,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool isMalloc = false;
     const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data");
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data failed with read data");
         return false;
     }
 
+    bool ret = false;
     if (!isMalloc) {
-        val->BuildWithoutCopy(data, size);
+        ret = val->BuildWithoutCopy(data, size);
     } else {
-        val->BuildFromMalloc(data, size);
+        ret = val->BuildFromMalloc(data, size);
     }
-    return true;
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data failed with Build Data");
+    }
+    return ret;
 }
 
 bool RSMarshallingHelper::SkipData(Parcel& parcel)
@@ -207,10 +230,8 @@ bool RSMarshallingHelper::SkipData(Parcel& parcel)
 bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val)
 {
     bool success = Unmarshalling(parcel, val);
-    if (success) {
-        if (val && val->GetSize() < MIN_DATA_SIZE) {
-            val->BuildWithCopy(val->GetData(), val->GetSize());
-        }
+    if (success && val && val->GetSize() < MIN_DATA_SIZE) {
+        val->BuildWithCopy(val->GetData(), val->GetSize());
     }
     return success;
 }
@@ -222,13 +243,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Bitmap& val
     Marshalling(parcel, bitmapFormat);
 
     std::shared_ptr<Drawing::Data> data = val.Serialize();
-
     if (!data) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Bitmap is nullptr");
         return false;
     }
     Marshalling(parcel, data);
-
     return true;
 }
 
@@ -290,7 +309,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Typeface Deserialize");
         return false;
     }
-
     return true;
 }
 
@@ -319,7 +337,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         int width = pixmap.GetWidth();
         int height = pixmap.GetHeight();
         const void* addr = pixmap.GetAddr();
-        size_t size = rb * static_cast<size_t>(height);
+        size_t size = bitmap.ComputeByteSize();
 
         parcel.WriteUint32(size);
         if (!WriteToParcel(parcel, addr, size)) {
