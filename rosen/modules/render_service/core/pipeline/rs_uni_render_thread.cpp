@@ -54,7 +54,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* TEXTURE_PRE_ALLOCATION_BETWEEN_FRAMES = "TexturePreAllocationBetweenFrame";
+constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
@@ -611,25 +611,24 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::TexturePreAllocationBetweenFrame()
+void RSUniRenderThread::PreAllocateTextureBetweenFrames()
 {
     PostTask(
         [this]() {
-            RS_TRACE_NAME_FMT("TexturePreAllocationBetweenFrame");
-            GrDirectContext::TexturePreAllocationBetweenFrame();
-            RemoveTask(TEXTURE_PRE_ALLOCATION_BETWEEN_FRAMES);
+            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
+            GrDirectContext::preAllocateTextureBetweenFrames();
+            RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
         },
-        TEXTURE_PRE_ALLOCATION_BETWEEN_FRAMES,
+        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
         0,
         AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
 {
-    if (!RSSystemProperties::GetReleaseResourceEnabled()) {
-        return;
+    if (!RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
+        PreAllocateTextureBetweenFrames();
     }
-    TexturePreAllocationBetweenFrame();
 }
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const

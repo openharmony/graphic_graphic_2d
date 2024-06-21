@@ -866,6 +866,13 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
+static bool GetPreAllocateTextureBetweenFramesEnabled()
+{
+    static bool PreAllocateTextureBetweenFramesEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1").c_str()) != 0);
+    return PreAllocateTextureBetweenFramesEnabled;
+}
+
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =

@@ -71,7 +71,7 @@ public:
     void DefaultClearMemoryCache();
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     void MemoryManagementBetweenFrames();
-    void TexturePreAllocationBetweenFrame();
+    void PreAllocateTextureBetweenFrames();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
