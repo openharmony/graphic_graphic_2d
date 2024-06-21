@@ -25,6 +25,8 @@ namespace OHOS::Rosen {
 enum TouchEvent : int32_t {
     DOWN_EVENT,
     UP_EVENT,
+    UP_TIMEOUT_EVENT,
+    RS_IDLE_TIMEOUT_EVENT,
 };
 
 enum TouchState : int32_t {

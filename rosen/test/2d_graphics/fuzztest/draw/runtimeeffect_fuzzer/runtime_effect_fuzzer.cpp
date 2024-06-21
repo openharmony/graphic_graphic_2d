@@ -14,14 +14,17 @@
  */
 
 #include "runtime_effect_fuzzer.h"
+
 #include <cstddef>
 #include <cstdint>
+
 #include "get_object.h"
+#include "recording/recording_canvas.h"
+
+#include "effect/runtime_blender_builder.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include "effect/runtime_blender_builder.h"
 #include "image/image.h"
-#include "recording/recording_canvas.h"
 
 namespace OHOS {
 namespace Rosen {

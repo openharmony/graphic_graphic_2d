@@ -61,6 +61,9 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
         return;
     }
 
+    RS_OPTIONAL_TRACE_NAME_FMT("RSMotionBlurFilter: radius:%f, lastRect:%s, curRect:%s", motionBlurPara_->radius,
+        lastRect_.ToString().c_str(), curRect_.ToString().c_str());
+
     if (!RectValid(lastRect_, curRect_)) {
         lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
         OutputOriginalImage(canvas, image, src, dst);
@@ -118,7 +121,7 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
 
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSMotionBlurFilter::MakeMotionBlurShader(
     std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
-    Vector2f& rectOffset, float radius)
+    Vector2f& rectOffset, float radius) const
 {
     static const char* MotionBlurProg = R"(
         uniform shader srcImageShader;
@@ -199,7 +202,7 @@ void RSMotionBlurFilter::CaculateRect(Vector2f& rectOffset, Vector2f& scaleSize,
     lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
 }
 
-bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2)
+bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2) const
 {
     if (rect1.GetWidth() < 1 || rect1.GetHeight() < 1 || rect2.GetWidth() < 1 || rect2.GetHeight() < 1) {
         return false;
@@ -213,7 +216,7 @@ bool RSMotionBlurFilter::RectValid(const Drawing::Rect& rect1, const Drawing::Re
 }
 
 void RSMotionBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::Rect& src, const Drawing::Rect& dst)
+    const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
         ROSEN_LOGE("RSMotionBlurFilter::OutputOriginalImage image error");

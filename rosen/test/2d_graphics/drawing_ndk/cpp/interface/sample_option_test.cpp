@@ -34,18 +34,13 @@
 
 void SamplingOptionsCreate::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    TestRend rand;
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
-    OH_Drawing_BitmapBuild(bitmap, 200, 200, &cFormat); // 200, 200 创建位图大小
+    OH_Drawing_BitmapBuild(bitmap, 256, 256, &cFormat); // 256, 256 创建位图大小
     OH_Drawing_Canvas* bitmapCanvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(bitmapCanvas, bitmap);
     OH_Drawing_CanvasClear(bitmapCanvas, OH_Drawing_ColorSetArgb(0xff, 0x00, 0xff, 0x00));
-    float l = rand.nextULessThan(bitmapWidth_);
-    float t = rand.nextULessThan(bitmapHeight_);
-    float r = l + rand.nextULessThan(bitmapWidth_);
-    float b = t + rand.nextULessThan(bitmapHeight_);
-    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(0, 0, 256, 256); // 0, 0, 256, 256 创建矩形
     OH_Drawing_SamplingOptions* sampling = nullptr;
     for (int i = 0; i < testCount_; i++) {
         sampling = OH_Drawing_SamplingOptionsCreate(filterMode, mipmapMode);

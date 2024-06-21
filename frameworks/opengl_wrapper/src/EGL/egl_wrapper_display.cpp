@@ -53,7 +53,6 @@ static constexpr const char *EXTENSION_VALUE =
     "EGL_EXT_create_context_robustness "
     "EGL_EXT_image_gl_colorspace "
     "EGL_EXT_platform_base "
-    "EGL_EXT_swap_buffers_with_damage "
     "EGL_ANDROID_presentation_time "
     "EGL_ANDROID_get_native_client_buffer "
     "EGL_ANDROID_native_fence_sync "

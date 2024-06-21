@@ -117,6 +117,11 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     }
     sendFd_ = socketPair[0];
     receiveFd_ = socketPair[1];
+    if ((sendFd_ <= 0) || (receiveFd_ <= 0)) {
+        LOGE("%{public}s socketpair invalid fd, sendFd_:%{public}d, receiveFd_:%{public}d",
+            __func__, sendFd_, receiveFd_);
+        return -1;
+    }
     LOGD("%{public}s create socketpair success, receiveFd_ : %{public}d, sendFd_ : %{public}d", __func__, receiveFd_,
         sendFd_);
     g_fdCnt++;

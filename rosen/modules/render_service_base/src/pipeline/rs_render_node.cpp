@@ -1627,9 +1627,13 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         // clean subtree means childrenRect maps to parent already
         childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
-    // map before update parent
+    // map before update parent, if parent has clip property, use clipped children rect instead.
     RectI childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
     if (auto parentNode = parent_.lock()) {
+        const auto& parentProperties = parentNode->GetRenderProperties();
+        if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
+            childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
+        }
         parentNode->UpdateChildrenRect(childRectMapped);
         // check each child is inside of parent
         childRect = childRectMapped.ConvertTo<float>();
@@ -3944,6 +3948,9 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
+    if (!fullChildrenList_) {
+        return;
+    }
     auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),

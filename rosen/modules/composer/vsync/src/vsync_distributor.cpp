@@ -140,6 +140,10 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
         return VSYNC_ERROR_API_FAILED;
     }
     fd = socketPair_->GetReceiveDataFd();
+    if (fd <= 0) {
+        VLOGE("%{public}s socketPair invalid fd:%{public}d.", __func__, fd);
+        return VSYNC_ERROR_API_FAILED;
+    }
     return VSYNC_ERROR_OK;
 }
 
@@ -347,7 +351,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 #if defined(RS_ENABLE_DVSYNC)
     dvsync_->RNVNotify();
     if (!isRs_ && IsDVsyncOn()) {
-        con_.wait_for(locker, std::chrono::nanoseconds(dvsync_->WaitTime()), [this] {return dvsync_->WaitCond(); });
+        con_.wait_for(locker, std::chrono::nanoseconds(dvsync_->WaitTime()), [this] {return dvsync_->WaitCond();});
     } else {
         con_.wait(locker);
     }
