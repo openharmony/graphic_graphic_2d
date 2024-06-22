@@ -1256,14 +1256,15 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
         return;
     }
 
-    int hwcNodesNum = params->GetHardwareEnabledNodes().size();
-    int hwcTopNodesNum = params->GetHardwareEnabledTopNodes().size();
+    auto hwcNodesNum = params->GetHardwareEnabledNodes().size();
+    auto hwcTopNodesNum = params->GetHardwareEnabledTopNodes().size();
 
     RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
         process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) \
-        using UniRender buffer with hwcNodes(%{public}d, %{public}d)",
+        using UniRender buffer with hwcNodes(%{public}u, %{public}u)",
         params->GetId(), hwcNodesNum, hwcTopNodesNum);
-    RS_TRACE_NAME_FMT("Process RSDisplayRenderNodeDrawable[%" PRIu64 "] using UniRender buffer with hwcNodes(%d, %d)",
+    RS_TRACE_NAME_FMT("Process RSDisplayRenderNodeDrawable[%" PRIu64 "] \
+        using UniRender buffer with hwcNodes(%u, %u)",
         params->GetScreenId(), hwcNodesNum, hwcTopNodesNum);
 
     if (hwcNodesNum > 0) {
