@@ -936,7 +936,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
     }
     curCanvas_->Save();
     ScaleAndRotateMirrorForWiredScreen(*displayNodeSp, *mirroredNode);
-    RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp, params);
+    RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp, &params);
     std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(
         *displayNodeSp, renderFrame, params, curCanvas_->GetTotalMatrix());
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
