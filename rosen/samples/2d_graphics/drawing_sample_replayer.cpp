@@ -44,7 +44,7 @@ bool DrawingSampleReplayer::ReadCmds(const std::string path)
         std::cout << "PathToRealPath fails on: " << path;
         return false;
     }
-    UniqueFd fd(open(path.c_str(), O_RDONLY));
+    UniqueFd fd(open(realPath.c_str(), O_RDONLY));
     if (fd <= 0) {
         return false;
     }
