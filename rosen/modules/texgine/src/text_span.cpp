@@ -181,7 +181,11 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     if (xs.background.has_value()) {
         auto rect = TexgineRect::MakeXYWH(offsetX, offsetY + *tmetrics_->fAscent_, width_,
             *tmetrics_->fDescent_ - *tmetrics_->fAscent_);
+#ifdef CROSS_PLATFORM
+        canvas.DrawRect(rect, xs.background.__get());
+#else
         canvas.DrawRect(rect, xs.background.value());
+#endif
     }
 
     if (xs.backgroundRect.color != 0) {
@@ -209,7 +213,11 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     paint.SetAntiAlias(true);
     paint.SetColor(xs.color);
     if (xs.foreground.has_value()) {
+#ifdef CROSS_PLATFORM
+        paint = xs.foreground.__get();
+#else
         paint = xs.foreground.value();
+#endif
     }
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
