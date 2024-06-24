@@ -102,18 +102,7 @@
         ],
         "third_party": [
           "flutter",
-          "libuv",
-          "libxml2",
-          "icu",
-          "libpng",
-          "zlib",
-          "skia",
-          "cJSON",
-          "jsoncpp",
-          "egl",
-          "opengles",
-          "vulkan-headers",
-          "vulkan-loader"
+          "skia"
         ]
       },
       "build": {

@@ -27,7 +27,8 @@ ohos_fuzztest("SwapchainLayerFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  public_deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
+  public_external_deps = [ "vulkan-headers:vulkan_headers" ]
+
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",

@@ -30,7 +30,6 @@ ohos_fuzztest("RSExtendedModifierFuzzTest") {
     "../../../../../modules/render_service:librender_service",
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_client:librender_service_client",
-    "//third_party/zlib:libz",
   ]
   cflags = [
     "-g",
@@ -45,6 +44,7 @@ ohos_fuzztest("RSExtendedModifierFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "zlib:libz",
   ]
 }
 

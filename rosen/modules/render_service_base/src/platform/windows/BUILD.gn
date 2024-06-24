@@ -57,7 +57,6 @@ ohos_source_set("windows") {
     "$rosen_root/modules/platform:ace_skia",
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
-    "//third_party/EGL:libEGL",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -66,6 +65,7 @@ ohos_source_set("windows") {
   }
 
   external_deps = [
+    "egl:libEGL",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
