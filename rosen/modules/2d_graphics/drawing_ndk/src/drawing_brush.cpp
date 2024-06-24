@@ -192,6 +192,10 @@ void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
+    if (cBlendMode < BLEND_MODE_CLEAR || cBlendMode > BLEND_MODE_LUMINOSITY) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
 }
 

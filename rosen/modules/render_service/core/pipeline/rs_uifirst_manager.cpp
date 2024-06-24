@@ -960,12 +960,13 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     std::string surfaceName = node.GetName();
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
+        RS_TRACE_NAME_FMT("IsLeashWindowCache: needFilterSCB [%d]", needFilterSCB);
         return false;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
-        " filter:%d animation:%d forceUIFirst:%d isNeedAssign:%d",
-        node.GetName().c_str(), node.GetId(),
-        node.HasFilter(), animation, node.GetForceUIFirst(), isNeedAssignToSubThread);
+    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] IsScale[%d]"
+        " filter:[%d] rotate[%d]",
+        isNeedAssignToSubThread, node.IsScale(),
+        node.HasFilter(), RSUifirstManager::Instance().rotationChanged_);
     return isNeedAssignToSubThread;
 }
 
@@ -994,6 +995,9 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d]",
+        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag());
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return;
@@ -1010,8 +1014,6 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         UifirstStateChange(node, MultiThreadCacheType::ARKTS_CARD);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] cacheType",
-        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 

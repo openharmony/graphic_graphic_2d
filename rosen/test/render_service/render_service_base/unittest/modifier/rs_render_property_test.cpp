@@ -299,4 +299,111 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
     EXPECT_FALSE(propertyVector4Color.IsNearEqual(value, 1.f));
     ASSERT_FALSE(propertyRect.IsNearEqual(value, 1.f));
 }
+
+/**
+ * @tc.name: OnChange001
+ * @tc.desc: Test OnChange
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, OnChange001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderPropertyBase>();
+    Parcel parcel;
+    std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
+    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(
+        RSRenderPropertyType::PROPERTY_FLOAT));
+    
+    const std::shared_ptr<RSRenderPropertyBase> val = nullptr;
+    bool ret = base->Marshalling(parcel, val);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: OnChange002
+ * @tc.desc: Test OnChange
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, OnChange002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderPropertyBase>();
+    Parcel parcel;
+    std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
+    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(
+        RSRenderPropertyType::PROPERTY_RRECT));
+    for (auto& prop : props) {
+        MessageParcel parcel;
+        ASSERT_FALSE(RSRenderPropertyBase::Marshalling(parcel, prop));
+        ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel, prop));
+    }
+}
+
+/**
+ * @tc.name: IsNearEqual001
+ * @tc.desc: Test IsNearEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property1;
+    RSRenderAnimatableProperty<Vector2f> property2;
+    RSRenderAnimatableProperty<Quaternion> property3;
+    RSRenderAnimatableProperty<Vector4f> property4;
+    RSRenderAnimatableProperty<Matrix3f> property5;
+    RSRenderAnimatableProperty<Color> property6;
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7;
+    RSRenderAnimatableProperty<Vector4<Color>> property8;
+    RSRenderAnimatableProperty<RRect> property9;
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property10;
+    const std::shared_ptr<RSRenderPropertyBase> value = nullptr;
+    float zeroThreshold = 0.0;
+    ASSERT_TRUE(property1.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property2.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property3.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property4.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property5.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property6.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property7.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property8.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property9.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property10.IsEqual(value));
+}
+
+/**
+ * @tc.name: IsNearEqual002
+ * @tc.desc: Test IsNearEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property1;
+    RSRenderAnimatableProperty<Vector2f> property2;
+    RSRenderAnimatableProperty<Quaternion> property3;
+    RSRenderAnimatableProperty<Vector4f> property4;
+    RSRenderAnimatableProperty<Matrix3f> property5;
+    RSRenderAnimatableProperty<Color> property6;
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7;
+    RSRenderAnimatableProperty<Vector4<Color>> property8;
+    RSRenderAnimatableProperty<RRect> property9;
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property10;
+    const std::shared_ptr<RSRenderPropertyBase> value = std::make_shared<RSRenderPropertyBase>();
+    const int* filter = nullptr;
+    const PropertyId id = 0;
+    RSRenderProperty test(filter, id);
+    test.Set(nullptr);
+    float zeroThreshold = 0.0;
+    ASSERT_TRUE(property1.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property2.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property3.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property4.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property5.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property6.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property7.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property8.IsNearEqual(value, zeroThreshold));
+    ASSERT_FALSE(property9.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property10.IsEqual(value));
+}
 }

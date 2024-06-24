@@ -154,35 +154,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 }
 
 /**
- * @tc.name: RotateMirrorCanvasIfNeed
- * @tc.desc: RotateMirrorCanvasIfNeed Test
- * @tc.type: FUNC
- * @tc.require: issueI992VW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, RotateMirrorCanvasIfNeed, TestSize.Level2)
-{
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(nullptr, drawingCanvas);
-    virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(nullptr, virtualProcessor->canvas_);
-    rsDisplayRenderNode.screenRotation_ = ScreenRotation::ROTATION_0;
-    virtualProcessor->RotateMirrorCanvasIfNeed(rsDisplayRenderNode, true);
-    rsDisplayRenderNode.screenRotation_ = ScreenRotation::ROTATION_90;
-    virtualProcessor->RotateMirrorCanvasIfNeed(rsDisplayRenderNode, true);
-    rsDisplayRenderNode.screenRotation_ = ScreenRotation::ROTATION_180;
-    virtualProcessor->RotateMirrorCanvasIfNeed(rsDisplayRenderNode, true);
-    rsDisplayRenderNode.screenRotation_ = ScreenRotation::ROTATION_270;
-    virtualProcessor->RotateMirrorCanvasIfNeed(rsDisplayRenderNode, true);
-}
-
-/**
  * @tc.name: ScaleMirrorIfNeed
  * @tc.desc: ScaleMirrorIfNeed Test
  * @tc.type: FUNC
@@ -202,63 +173,16 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeed, TestSize.Level2)
     virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
     ASSERT_NE(nullptr, virtualProcessor->canvas_);
     virtualProcessor->scaleMode_ = ScreenScaleMode::FILL_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode);
+    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
 
     virtualProcessor->mainWidth_ = DEFAULT_CANVAS_WIDTH;
     virtualProcessor->mainHeight_ = DEFAULT_CANVAS_HEIGHT;
     virtualProcessor->mirrorWidth_ = DEFAULT_CANVAS_WIDTH / 2;
     virtualProcessor->mirrorHeight_ = DEFAULT_CANVAS_HEIGHT / 2;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode);
+    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
 
     virtualProcessor->scaleMode_ = ScreenScaleMode::UNISCALE_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode);
-}
-
-/**
- * @tc.name: JudgeResolution
- * @tc.desc: JudgeResolution Test
- * @tc.type: FUNC
- * @tc.require: issueI992VW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, JudgeResolution, TestSize.Level2)
-{
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    rsDisplayRenderNode.SetOriginScreenRotation(ScreenRotation::ROTATION_90);
-    virtualProcessor->JudgeResolution(rsDisplayRenderNode);
-    rsDisplayRenderNode.SetOriginScreenRotation(ScreenRotation::ROTATION_270);
-    virtualProcessor->JudgeResolution(rsDisplayRenderNode);
-}
-
-/**
- * @tc.name: CanvasAdjustment
- * @tc.desc: CanvasAdjustment Test
- * @tc.type: FUNC
- * @tc.require: issueI992VW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasAdjustment, TestSize.Level2)
-{
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(nullptr, drawingCanvas);
-    virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(nullptr, virtualProcessor->canvas_);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    virtualProcessor->CanvasAdjustment(rsDisplayRenderNode, false);
-    auto geometry = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_NE(nullptr, geometry);
-    rsDisplayRenderNode.renderContent_->renderProperties_.boundsGeo_ = geometry;
-    virtualProcessor->CanvasAdjustment(rsDisplayRenderNode, true);
+    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
 }
 
 /**

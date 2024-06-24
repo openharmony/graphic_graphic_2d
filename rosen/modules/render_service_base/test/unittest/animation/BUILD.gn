@@ -28,6 +28,8 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_property_trace_test.cpp",
     "rs_render_animation_test.cpp",
     "rs_render_curve_animation_test.cpp",
+    "rs_render_interactive_implict_animator_map_test.cpp",
+    "rs_render_interactive_implict_animator_test.cpp",
     "rs_render_interpolating_spring_animation_test.cpp",
     "rs_render_keyframe_animation_test.cpp",
     "rs_render_particle_animation_test.cpp",

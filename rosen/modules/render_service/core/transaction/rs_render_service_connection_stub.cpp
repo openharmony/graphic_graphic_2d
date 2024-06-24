@@ -546,7 +546,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            uint32_t pid = data.ReadInt32();
+            auto pid = data.ReadInt32();
             RS_PROFILER_PATCH_PID(data, pid);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {

@@ -54,8 +54,10 @@ ohos_static_library("vulkan_loader_test_common") {
     "../../../../rosen/modules/render_service_client:librender_service_client",
     "../../../../utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
-    "//third_party/vulkan-headers:vulkan_headers",
-    "//third_party/zlib:libz",
+  ]
+  public_external_deps = [
+    "vulkan-headers:vulkan_headers",
+    "zlib:libz",
   ]
   external_deps = [
     "c_utils:utils",

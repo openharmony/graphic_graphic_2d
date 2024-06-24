@@ -23,6 +23,12 @@ namespace OHOS {
 namespace Rosen {
 class RSPhysicalScreenProcessor : public RSProcessor {
 public:
+    static inline constexpr RSProcessorType Type = RSProcessorType::PHYSICAL_SCREEN_PROCESSOR;
+    RSProcessorType GetType() const override
+    {
+        return Type;
+    }
+    
     RSPhysicalScreenProcessor();
     ~RSPhysicalScreenProcessor() noexcept override;
 

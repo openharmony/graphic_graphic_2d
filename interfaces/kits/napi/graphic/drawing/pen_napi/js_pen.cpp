@@ -151,7 +151,7 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
         GET_COLOR_PARAM(ARGC_THREE, blue);
         drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
     pen->SetColor(drawingColor);
     return nullptr;
@@ -220,7 +220,7 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     int32_t alpha = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     pen->SetAlpha(alpha);
@@ -235,7 +235,7 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
-        ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
+        ROSEN_LOGE("JsPen::SetBlendMode pen is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -243,7 +243,7 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     int32_t mode = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, mode);
+    GET_ENUM_PARAM(ARGC_ZERO, mode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     pen->SetBlendMode(static_cast<BlendMode>(mode));
     return nullptr;
@@ -257,7 +257,7 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
     }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
-        ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
+        ROSEN_LOGE("JsPen::SetColorFilter pen is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -325,7 +325,7 @@ napi_value JsPen::SetJoinStyle(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     int32_t joinStyle = 0;
-    GET_INT32_PARAM(ARGC_ZERO, joinStyle);
+    GET_ENUM_PARAM(ARGC_ZERO, joinStyle, 0, static_cast<int32_t>(Pen::JoinStyle::BEVEL_JOIN));
 
     pen->SetJoinStyle(static_cast<Pen::JoinStyle>(joinStyle));
     return nullptr;
@@ -401,7 +401,7 @@ napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     int32_t capStyle = 0;
-    GET_INT32_PARAM(ARGC_ZERO, capStyle);
+    GET_ENUM_PARAM(ARGC_ZERO, capStyle, 0, static_cast<int32_t>(Pen::CapStyle::SQUARE_CAP));
 
     pen->SetCapStyle(TsCapCastToCap(capStyle));
     return nullptr;

@@ -175,7 +175,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
     if (UNLIKELY(skipType_ != SkipType::NONE)) {
         auto skipIndex_ = GetSkipIndex();
-        if (start <= skipIndex_ || end > skipIndex_) {
+        if (start <= skipIndex_ && end > skipIndex_) {
             // skip index is in the range
             for (auto i = start; i < skipIndex_; i++) {
                 drawCmdList_[i](&canvas, &rect);

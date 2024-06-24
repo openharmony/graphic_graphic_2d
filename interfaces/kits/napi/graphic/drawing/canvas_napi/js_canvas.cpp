@@ -345,6 +345,7 @@ bool JsCanvas::DeclareFuncAndCreateConstructor(napi_env env)
         DECLARE_NAPI_FUNCTION("rotate", JsCanvas::Rotate),
         DECLARE_NAPI_FUNCTION("getSaveCount", JsCanvas::GetSaveCount),
         DECLARE_NAPI_FUNCTION("save", JsCanvas::Save),
+        DECLARE_NAPI_FUNCTION("saveLayer", JsCanvas::SaveLayer),
         DECLARE_NAPI_FUNCTION("restore", JsCanvas::Restore),
         DECLARE_NAPI_FUNCTION("restoreToCount", JsCanvas::RestoreToCount),
         DECLARE_NAPI_FUNCTION("scale", JsCanvas::Scale),
@@ -1094,6 +1095,77 @@ napi_value JsCanvas::OnSave(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     return CreateJsNumber(env, m_canvas->Save());
+}
+
+napi_value JsCanvas::SaveLayer(napi_env env, napi_callback_info info)
+{
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnSaveLayer(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnSaveLayer canvas is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ZERO, ARGC_TWO);
+
+    uint32_t ret = 0;
+    if (argc == ARGC_ZERO) {
+        ret = m_canvas->GetSaveCount();
+        m_canvas->SaveLayer(SaveLayerOps());
+        return CreateJsNumber(env, ret);
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnSaveLayer parameter0 type.");
+    }
+    Drawing::Rect* drawingRectPtr = nullptr;
+    double ltrb[ARGC_FOUR] = {0};
+    if (valueType == napi_object) {
+        if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+        }
+        drawingRectPtr = new Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+    }
+
+    if (argc == ARGC_ONE) {
+        ret = m_canvas->GetSaveCount();
+        m_canvas->SaveLayer(SaveLayerOps(drawingRectPtr, nullptr));
+        if (drawingRectPtr != nullptr) {
+            delete drawingRectPtr;
+        }
+        return CreateJsNumber(env, ret);
+    }
+
+    if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        if (drawingRectPtr != nullptr) {
+            delete drawingRectPtr;
+        }
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnSaveLayer parameter1 type.");
+    }
+    Drawing::Brush* drawingBrushPtr = nullptr;
+    if (valueType == napi_object) {
+        JsBrush* jsBrush = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ONE, jsBrush);
+        if (jsBrush != nullptr) {
+            drawingBrushPtr = jsBrush->GetBrush();
+        }
+    }
+    ret = m_canvas->GetSaveCount();
+    SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);
+    m_canvas->SaveLayer(saveLayerOps);
+    if (drawingRectPtr != nullptr) {
+        delete drawingRectPtr;
+    }
+    return CreateJsNumber(env, ret);
 }
 
 napi_value JsCanvas::RestoreToCount(napi_env env, napi_callback_info info)

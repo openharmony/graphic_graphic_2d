@@ -351,7 +351,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 #if defined(RS_ENABLE_DVSYNC)
     dvsync_->RNVNotify();
     if (!isRs_ && IsDVsyncOn()) {
-        con_.wait(locker, [this] {return dvsync_->WaitCond();});
+        con_.wait_for(locker, std::chrono::nanoseconds(dvsync_->WaitTime()), [this] {return dvsync_->WaitCond();});
     } else {
         con_.wait(locker);
     }

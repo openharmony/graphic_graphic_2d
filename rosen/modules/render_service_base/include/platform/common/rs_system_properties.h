@@ -196,6 +196,7 @@ public:
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
+    static bool GetPreAllocateTextureBetweenFramesEnabled();
 
     static bool GetAnimationCacheEnabled();
 
@@ -203,7 +204,6 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
-    static bool GetUIFirstForceEnabled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);

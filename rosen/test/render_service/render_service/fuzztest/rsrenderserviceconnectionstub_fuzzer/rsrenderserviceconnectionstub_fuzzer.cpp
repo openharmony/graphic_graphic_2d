@@ -65,6 +65,38 @@ T GetData()
     return object;
 }
 
+bool DoOnRemoteRequest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code = GetData<uint32_t>();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint8_t subData = GetData<uint8_t>();
+    std::vector<uint8_t> subDataVec;
+    subDataVec.push_back(subData);
+    dataParcel.WriteBuffer(subDataVec.data(), subDataVec.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoCommitTransaction(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

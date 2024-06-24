@@ -78,6 +78,16 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_DRAWING_NODE = 0x2081u,
 };
 
+// types for Processor
+enum class RSProcessorType : uint32_t {
+    UNKNOW                          = 0x0000u,
+    RS_PROCESSOR                    = 0x0001u,
+    PHYSICAL_SCREEN_PROCESSOR       = 0x0011u,
+    VIRTUAL_SCREEN_PROCESSOR        = 0x0021u,
+    UNIRENDER_PROCESSOR             = 0x0041u,
+    UNIRENDER_VIRTUAL_PROCESSOR     = 0x0081u,
+};
+
 enum RSRenderParamsDirtyType {
     NO_DIRTY = 0,
     MATRIX_DIRTY,

@@ -23,6 +23,12 @@ namespace OHOS {
 namespace Rosen {
 class RSVirtualScreenProcessor : public RSProcessor {
 public:
+    static inline constexpr RSProcessorType Type = RSProcessorType::VIRTUAL_SCREEN_PROCESSOR;
+    RSProcessorType GetType() const override
+    {
+        return Type;
+    }
+    
     RSVirtualScreenProcessor();
     ~RSVirtualScreenProcessor() noexcept override;
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,

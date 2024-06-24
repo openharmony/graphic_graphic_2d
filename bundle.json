@@ -102,18 +102,7 @@
         ],
         "third_party": [
           "flutter",
-          "libuv",
-          "libxml2",
-          "icu",
-          "libpng",
-          "zlib",
-          "skia",
-          "cJSON",
-          "jsoncpp",
-          "egl",
-          "opengles",
-          "vulkan-headers",
-          "vulkan-loader"
+          "skia"
         ]
       },
       "build": {
@@ -237,16 +226,6 @@
                 "rs_window_animation_target.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
-            "header": {
-              "header_files": [
-                "sync_fence.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/utils/sync_fence/export"
             }
           },
           {

@@ -62,13 +62,13 @@ public:
 private:
     void DrawMotionBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const;
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeMotionBlurShader(
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeMotionBlurShader(
         std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
-        Vector2f& rectOffset, float radius);
-    static bool RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2);
+        Vector2f& rectOffset, float radius) const;
+    bool RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2) const;
     void CaculateRect(Vector2f& rectOffset, Vector2f& scaleSize, Vector2f& scaleAnchorCoord) const;
-    static void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-        const Drawing::Rect& src, const Drawing::Rect& dst);
+    void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst) const;
 
     friend class RSMarshallingHelper;
     mutable Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
