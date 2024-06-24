@@ -21,13 +21,14 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+constexpr NodeId DEFAULT_ID = 0xFFFF;
 class RSRenderNodeDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline NodeId id;
+    static inline NodeId id = DEFAULT_ID;
     static std::shared_ptr<RSRenderNodeDrawable> CreateDrawable();
 };
 
@@ -39,7 +40,8 @@ void RSRenderNodeDrawableTest::TearDown() {}
 std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
 {
     auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
+    auto drawable = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
     return drawable;
 }
 
@@ -49,7 +51,7 @@ std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
 {
     NodeId id = 1;
     auto renderNode = std::make_shared<RSRenderNode>(id);
@@ -63,7 +65,7 @@ HWTEST(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, OpincCalculateBefore, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, OpincCalculateBefore, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -83,7 +85,7 @@ HWTEST(RSRenderNodeDrawableTest, OpincCalculateBefore, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, OpincCalculateAfter, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, OpincCalculateAfter, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -101,7 +103,7 @@ HWTEST(RSRenderNodeDrawableTest, OpincCalculateAfter, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, PreDrawableCacheState, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, PreDrawableCacheState, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -123,7 +125,7 @@ HWTEST(RSRenderNodeDrawableTest, PreDrawableCacheState, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, OpincCanvasUnionTranslate, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, OpincCanvasUnionTranslate, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -142,7 +144,7 @@ HWTEST(RSRenderNodeDrawableTest, OpincCanvasUnionTranslate, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, ResumeOpincCanvasTranslate, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, ResumeOpincCanvasTranslate, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -161,7 +163,7 @@ HWTEST(RSRenderNodeDrawableTest, ResumeOpincCanvasTranslate, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, DrawableCacheStateReset, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, DrawableCacheStateReset, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
@@ -181,7 +183,7 @@ HWTEST(RSRenderNodeDrawableTest, DrawableCacheStateReset, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, IsOpListDrawAreaEnable, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, IsOpListDrawAreaEnable, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     ASSERT_FALSE(drawable->IsOpListDrawAreaEnable());
@@ -199,7 +201,7 @@ HWTEST(RSRenderNodeDrawableTest, IsOpListDrawAreaEnable, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, IsTranslate, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, IsTranslate, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -219,7 +221,7 @@ HWTEST(RSRenderNodeDrawableTest, IsTranslate, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, NodeCacheStateDisable, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, NodeCacheStateDisable, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -242,7 +244,7 @@ HWTEST(RSRenderNodeDrawableTest, NodeCacheStateDisable, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, BeforeDrawCacheProcessChildNode, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheProcessChildNode, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -267,7 +269,7 @@ HWTEST(RSRenderNodeDrawableTest, BeforeDrawCacheProcessChildNode, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -289,7 +291,7 @@ HWTEST(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -311,7 +313,7 @@ HWTEST(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -334,7 +336,7 @@ HWTEST(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -374,7 +376,7 @@ HWTEST(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
@@ -385,5 +387,203 @@ HWTEST(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->DrawAutoCacheDfx(paintFilterCanvas, autoCacheRenderNodeInfos);
+}
+
+/**
+ * @tc.name: GenerateCacheIfNeed
+ * @tc.desc: Test If GenerateCacheIfNeed Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.freezeFlag_ = true;
+    drawable->GenerateCacheIfNeed(canvas, params);
+    ASSERT_EQ(params.GetRSFreezeFlag(), true);
+}
+
+/**
+ * @tc.name: CheckCacheTypeAndDraw
+ * @tc.desc: Test If CheckCacheTypeAndDraw Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.childHasVisibleFilter_ = true;
+    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
+    params.foregroundFilterCache_ = nullptr;
+    drawable->CheckCacheTypeAndDraw(canvas, params);
+    ASSERT_EQ(drawable->drawBlurForCache_, false);
+}
+
+/**
+ * @tc.name: UpdateCacheInfoForDfx
+ * @tc.desc: Test If UpdateCacheInfoForDfx Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    drawable->isDrawingCacheDfxEnabled_ = true;
+    drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
+    ASSERT_EQ(drawable->isDrawingCacheDfxEnabled_, true);
+}
+
+/**
+ * @tc.name: DrawDfxForCacheInfo
+ * @tc.desc: Test If DrawDfxForCacheInfo Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawDfxForCacheInfoTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->isDrawingCacheEnabled_ = true;
+    drawable->isDrawingCacheDfxEnabled_ = true;
+    drawable->DrawDfxForCacheInfo(paintFilterCanvas);
+    ASSERT_EQ(drawable->isDrawingCacheDfxEnabled_, true);
+
+    drawable->isDrawingCacheDfxEnabled_ = false;
+    drawable->DrawDfxForCacheInfo(paintFilterCanvas);
+    ASSERT_EQ(drawable->isDrawingCacheDfxEnabled_, false);
+}
+
+/**
+ * @tc.name: InitCachedSurface
+ * @tc.desc: Test If InitCachedSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    ASSERT_EQ(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: NeedInitCachedSurface
+ * @tc.desc: Test If NeedInitCachedSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, NeedInitCachedSurfaceTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
+    drawable->cachedSurface_ = nullptr;
+    auto result = drawable->NeedInitCachedSurface(params.GetCacheSize());
+    ASSERT_EQ(result, true);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    drawable->isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
+    result = drawable->NeedInitCachedSurface(params.GetCacheSize());
+}
+
+/**
+ * @tc.name: GetCachedImage
+ * @tc.desc: Test If GetCachedImage Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetCachedImageTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->cachedSurface_ = nullptr;
+    auto result =drawable->GetCachedImage(paintFilterCanvas);
+    ASSERT_EQ(result, nullptr);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    result = drawable->GetCachedImage(paintFilterCanvas);
+    ASSERT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawCachedImage
+ * @tc.desc: Test If DrawCachedImage Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize());
+    drawable->ClearCachedSurface();
+}
+
+/**
+ * @tc.name: CheckIfNeedUpdateCache
+ * @tc.desc: Test If CheckIfNeedUpdateCache Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    params.freezeFlag_ = true;
+    drawable->CheckIfNeedUpdateCache(params);
+
+    params.freezeFlag_ = false;
+    params.isDrawingCacheChanged_ = true;
+    auto result = drawable->CheckIfNeedUpdateCache(params);
+    ASSERT_EQ(result, true);
+    
+    params.isDrawingCacheChanged_ = false;
+    result = drawable->CheckIfNeedUpdateCache(params);
+}
+
+/**
+ * @tc.name: UpdateCacheSurface
+ * @tc.desc: Test If UpdateCacheSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    const RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    drawable->UpdateCacheSurface(canvas, params);
+    ASSERT_EQ(drawable->cachedImage_, nullptr);
 }
 }
