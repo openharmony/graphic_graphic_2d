@@ -934,8 +934,7 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    if (RSUifirstManager::Instance().GetUseDmaBuffer() &&
-        node.GetName().find("ScreenShotWindow") != std::string::npos) {
+    if (RSUifirstManager::Instance().GetUseDmaBuffer(node.GetName())) {
         return true;
     }
     bool isNeedAssignToSubThread = false;
@@ -1019,7 +1018,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
 
 void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects)
 {
-    if (node.GetLastFrameUifirstFlag() != MultiThreadCacheType::LEASH_WINDOW || !GetUseDmaBuffer()) {
+    if (!GetUseDmaBuffer(node.GetName())) {
         return;
     }
     bool intersect = false;
@@ -1104,7 +1103,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
     if (!useDmaBuffer_) {
         return;
     }
-    for (auto iter : pendingPostNodes_) {
+    for (auto& iter : pendingPostNodes_) {
         if (!iter.second) {
             continue;
         }
@@ -1141,9 +1140,9 @@ void RSUifirstManager::SetUseDmaBuffer(bool val)
     useDmaBuffer_ = val;
 }
 
-bool RSUifirstManager::GetUseDmaBuffer() const
+bool RSUifirstManager::GetUseDmaBuffer(const std::string& name) const
 {
-    return useDmaBuffer_;
+    return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
 } // namespace Rosen
 } // namespace OHOS

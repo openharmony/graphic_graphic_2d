@@ -1765,7 +1765,8 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         if (!(node.GetName().find("touch window") != std::string::npos ||
             node.GetName().find("knuckle window") != std::string::npos ||
             node.GetName().find("knuckle dynamic window") != std::string::npos ||
-            node.GetName().find("SCBGestureBack") != std::string::npos)) {
+            node.GetName().find("SCBGestureBack") != std::string::npos) &&
+            node.GetFirstLevelNodeId() == node.GetNodeId()) {
             auto rectF = node.GetRenderProperties().GetBoundsRect();
             RectI rectI = RectI{rectF.GetLeft(), rectF.GetTop(), rectF.GetWidth(), rectF.GetHeight()};
             globalSurfaceBounds_.emplace_back(rectI);
