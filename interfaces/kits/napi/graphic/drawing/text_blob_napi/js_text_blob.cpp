@@ -33,6 +33,8 @@ napi_value JsTextBlob::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("bounds", JsTextBlob::Bounds),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromString", JsTextBlob::MakeFromString),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRunBuffer", JsTextBlob::MakeFromRunBuffer),
+        DECLARE_NAPI_STATIC_FUNCTION("makeFromPosText", JsTextBlob::MakeFromPosText),
+        DECLARE_NAPI_FUNCTION("uniqueID", JsTextBlob::UniqueID),
     };
 
     napi_value constructor = nullptr;
@@ -227,6 +229,94 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     napi_value jsTextBlob = JsTextBlob::CreateJsTextBlob(env, textBlob);
     if (jsTextBlob == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromString jsTextBlob is nullptr");
+        return nullptr;
+    }
+    return jsTextBlob;
+}
+
+napi_value JsTextBlob::UniqueID(napi_env env, napi_callback_info info)
+{
+    JsTextBlob* me = CheckParamsAndGetThis<JsTextBlob>(env, info);
+    return (me != nullptr) ? me->OnUniqueID(env, info) : nullptr;
+}
+
+napi_value JsTextBlob::OnUniqueID(napi_env env, napi_callback_info info)
+{
+    if (m_textBlob == nullptr) {
+        ROSEN_LOGE("JsTextBlob::OnUniqueID textBlob is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    return CreateJsNumber(env, m_textBlob->UniqueID());
+}
+
+static bool MakePoints(napi_env& env, Point* point, uint32_t size, napi_value& array)
+{
+    for (uint32_t i = 0; i < size; i++) {
+        napi_value tempNumber = nullptr;
+        napi_get_element(env, array, i, &tempNumber);
+        napi_value tempValue = nullptr;
+        double pointX = 0.0;
+        double pointY = 0.0;
+        napi_get_named_property(env, tempNumber, "x", &tempValue);
+        bool isPointXOk = ConvertFromJsValue(env, tempValue, pointX);
+        napi_get_named_property(env, tempNumber, "y", &tempValue);
+        bool isPointYOk = ConvertFromJsValue(env, tempValue, pointY);
+        if (!(isPointXOk && isPointYOk)) {
+            return false;
+        }
+        point[i] = Point(pointX, pointY);
+    }
+    return true;
+}
+
+napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_FOUR;
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_THREE, ARGC_FOUR);
+
+    napi_value array = argv[ARGC_ONE];
+    uint32_t size = 0;
+    napi_get_array_length(env, array, &size);
+
+    Point points[size];
+    if (size == 0 || !MakePoints(env, points, size, array)){
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText Argv[1] is invalid");
+        return nullptr;
+    }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_TWO, jsFont);
+
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText font is nullptr");
+        return nullptr;
+    }
+
+    // Chinese characters need to be encoded with UTF16
+    size_t len = 0;
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText Argv[0] is invalid");
+        return nullptr;
+    }
+    char16_t buffer[len + 1];
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer, len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromPosText(buffer, CHAR16_SIZE * len, points, *font, TextEncoding::UTF16);
+
+    if (textBlob == nullptr) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText textBlob is nullptr");
+        return nullptr;
+    }
+    napi_value jsTextBlob = JsTextBlob::CreateJsTextBlob(env, textBlob);
+    if (jsTextBlob == nullptr) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText jsTextBlob is nullptr");
         return nullptr;
     }
     return jsTextBlob;
