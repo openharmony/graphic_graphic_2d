@@ -370,7 +370,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                                                                         uint64_t id,
                                                                         NodeId windowNodeId)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), windowNodeId);
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
         auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
         auto& context = mainThread_->GetContext();
