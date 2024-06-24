@@ -44,7 +44,9 @@ template("drawing_ndk_source_set") {
     sanitize = {
       cfi = true
       cfi_cross_dso = true
+      cfi_vcall_icall_only = true
       debug = false
+      blocklist = "./drawingndk_blocklist.txt"
     }
 
     public_deps = [
@@ -199,6 +201,7 @@ if (!is_arkui_x) {
     sanitize = {
       cfi = true
       cfi_cross_dso = true
+      cfi_vcall_icall_only = true
       debug = false
     }
     platform = current_os
