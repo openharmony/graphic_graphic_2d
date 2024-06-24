@@ -72,9 +72,20 @@ public:
     {
         recordingState_ = flag;
     }
+
+    virtual void SetOffscreen(bool isOffscreen)
+    {
+        isOffscreen_ = isOffscreen;
+    }
+
+    virtual bool GetOffscreen() const
+    {
+        return isOffscreen_;
+    }
 protected:
     std::vector<Canvas*> pCanvasList_;
     bool recordingState_ = false;
+    bool isOffscreen_ = false;
 };
 
 class DRAWING_API OverDrawCanvas : public Canvas {

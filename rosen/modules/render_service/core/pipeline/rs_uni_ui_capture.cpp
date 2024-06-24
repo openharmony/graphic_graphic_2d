@@ -79,6 +79,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
         return nullptr;
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    canvas->SetOffscreen(true);
     RS_LOGD("RSUniUICapture::TakeLocalCapture: drawCallList size is %{public}zu", drawCallList->GetOpItemSize());
     const auto& property = node->GetRenderProperties();
     Drawing::Rect rect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
