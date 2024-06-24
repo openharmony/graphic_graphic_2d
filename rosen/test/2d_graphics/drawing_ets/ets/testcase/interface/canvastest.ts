@@ -605,13 +605,11 @@ export class CanvasDrawColor extends TestBase {
 
 }
 
-
 export class CanvasSetColor extends TestBase {
 
   public constructor() {
     // 根据需求，如果与默认值不一样，请继承重写
     super();
-    
   }
 
   public OnTestFunction(canvas: drawing.Canvas) {

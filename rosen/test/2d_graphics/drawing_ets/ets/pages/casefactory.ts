@@ -16,12 +16,14 @@
 import {TestBase, StyleType} from './testbase';
 import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, CanvasDrawImage, CanvasDrawCircle, CanvasDrawTextBlob,
   CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor } from '../testcase/interface/canvastest';
-import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset } from '../testcase/interface/pathtest';
-import { MakeFromRunBuffer } from '../testcase/interface/textblobtest'
-import { MakeFromString } from '../testcase/interface/textblobtest'
-import { TextBlobBounds } from '../testcase/interface/textblobtest'
+import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString } from '../testcase/interface/pathtest';
+import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
+import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
 import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanvasDrawLine, PerformanceCanvasDrawTextBlob, PerformanceCanvasDrawPath,
   PerformanceCanvasPoint} from '../testcase/interface/performancetest';
+import { PenGetFillPath } from '../testcase/interface/pentest'
+import { ColorFilterCreateMatrix } from '../testcase/interface/colorfiltertests';
+import { JoinRect } from '../testcase/interface/utilstests';
 
 const TAG = '[DrawingTest]';
 
@@ -37,6 +39,32 @@ export class CaseFactory {
       ['canvasdrawtextblob', () => { return new CanvasDrawTextBlob(); }],
       ['canvasdrawimage', () => { return new CanvasDrawImage(); }],
       ['canvassetcolor', () => { return new CanvasSetColor(); }],
+      ['textblob_createfrom_postext', () => { return new MakeFromPosText(StyleType.DRAW_STYLE_COMPLEX); }],
+
+      ['pathisclosed', () => { return new PathIsClosed(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['pathgetPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['pathgetmatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['pathbuildfromsvgstring', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
+
+      ['matrixgetvalue', () => { return new MatrixGetValue(); }],
+      ['matrixgetall', () => { return new MatrixGetAll(); }],
+      ['matrixpostrotate', () => { return new MatrixPostRotate(); }],
+      ['matrixposttranslate', () => { return new MatrixPostTranslate(); }],
+      ['matrixreset', () => { return new MatrixReset(); }],
+      ['matrix_setpolytopoly', () => { return new MatrixSetPolyToPoly(); }],
+      ['matrix_setrecttorect', () => { return new MatrixSetRectToRect(); }],
+      ['matrix_prescale', () => { return new MatrixPreScale(); }],
+      ['matrix_pretranslate', () => { return new MatrixPreTranslate(); }],
+      ['matrix_prerotate', () => { return new MatrixPreRotate(); }],
+      ['matrix_postscale', () => { return new MatrixPostScale(); }],
+      ['textblob_unique_id', () => { return new MakeUniqueId(); }],
+      ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['pengetfillpath', () => { return new PenGetFillPath(); }],
+      ['matrix_maprect', () => { return new MatrixMapRect(); }],
+      ['matrixmappoints', () => { return new MatrixMapPoints(); }],
+      ['colorfilter_creatematrix', () => { return new ColorFilterCreateMatrix(); }],
+
+      ['joinRect', () => { return new JoinRect(); }],
     ]
   );
   static PerformanceMap: Map<string, Function> = new Map(
@@ -55,16 +83,38 @@ export class CaseFactory {
       ['path_cubicto', () => { return new PathCubicTo(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时174ms
       ['path_close', () => { return new PathClose(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时625ms
       ['path_reset', () => { return new PathReset(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时816ms
+      ['path_isClosed', () => { return new PathIsClosed(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['path_getPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['path_getMatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['path_buildFromSVGString', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['textblob_createbuilder', () => { return new MakeFromRunBuffer(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时339ms
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时261ms
       ['textblob_getbounds', () => { return new TextBlobBounds(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时365ms
-
+      ['textblob_createfrom_postext', () => { return new MakeFromPosText(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时271ms
+      ['textblob_unique_id', () => { return new MakeUniqueId(); }],
+      ['performance_pengetfillpath', () => { return new PenGetFillPath(); }],
       ['performance_canvas_drawRect', () => { return new PerformanceCanvasDrawRect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_canvas_drawCircle', () => { return new PerformanceCanvasDrawCircle(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_canvas_drawLine', () => { return new PerformanceCanvasDrawLine(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_canvas_drawTextBlob', () => { return new PerformanceCanvasDrawTextBlob(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_canvas_drawPoint', () => { return new PerformanceCanvasPoint(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_canvas_drawPath', () => { return new PerformanceCanvasDrawPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['matrix_getvalue', () => { return new MatrixGetValue(); }],
+      ['matrix_getall', () => { return new MatrixGetAll(); }],
+      ['matrix_postrotate', () => { return new MatrixPostRotate(); }],
+      ['matrix_posttranslate', () => { return new MatrixPostTranslate(); }],
+      ['matrix_reset', () => { return new MatrixReset(); }],
+      ['matrix_setpolytopoly', () => { return new MatrixSetPolyToPoly(); }],
+      ['matrix_setrecttorect', () => { return new MatrixSetRectToRect(); }],
+      ['matrix_prescale', () => { return new MatrixPreScale(); }],
+      ['matrix_pretranslate', () => { return new MatrixPreTranslate(); }],
+      ['matrix_prerotate', () => { return new MatrixPreRotate(); }],
+      ['matrix_postscale', () => { return new MatrixPostScale(); }],
+      ['matrix_maprect', () => { return new MatrixMapRect(); }],
+      ['matrix_mappoints', () => { return new MatrixMapPoints(); }],
+      ['color_filter_create_matrix', () => { return new ColorFilterCreateMatrix(); }],
+
+      ['join_Rect', () => { return new JoinRect(); }],
     ]
   );
 

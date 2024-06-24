@@ -267,7 +267,6 @@ struct Index {
           await this.sleep(500);
         }
       }
-      this.LogMsg('TestFunctionalGpu All end');
     } else {
       this.TestSingleFunctionGpu(str);
     }

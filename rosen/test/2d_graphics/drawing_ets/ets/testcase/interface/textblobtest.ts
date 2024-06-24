@@ -20,6 +20,13 @@ import { N, OHRandom } from '../../utils/OHRandom';
 
 const TAG = '[BezierBench]';
 
+function displayTestResult(canvas: drawing.Canvas, isPassed : Boolean) {
+  let testResult : string = isPassed ? "PASSED" : "FAILED. Please check the console logs";
+  let font : drawing.Font = new drawing.Font();
+  font.setSize(50);
+  let blob : drawing.TextBlob = drawing.TextBlob.makeFromString(testResult, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+  canvas.drawTextBlob(blob, 10, 100);
+}
 
 export class MakeFromRunBuffer extends TestBase {
 
@@ -54,20 +61,28 @@ export class MakeFromRunBuffer extends TestBase {
 }
 
 export class MakeFromString extends TestBase {
+  private rand_: OHRandom = new OHRandom();
+  private text_: string = 'TextBlobCreateFromString';
+  private font_: drawing.Font = new drawing.Font();
 
   public constructor(styleType: number) {
     super();
     this.styleType_ = styleType;
+    this.font_.setSize(80);
   }
+
   public OnTestPerformance(canvas: drawing.Canvas) {
-    let rand: OHRandom = new OHRandom();
-    const text: string = 'TextBlobCreateFromString';
-    const font: drawing.Font = new drawing.Font();
+    let textBlob: drawing.TextBlob;
     for (let i = 0; i < this.testCount_; i++) {
-      const textBlob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
-      canvas.drawTextBlob(textBlob, rand.nextULessThan(this.width_),rand.nextULessThan(this.height_));
+      textBlob = drawing.TextBlob.makeFromString(this.text_, this.font_, drawing.TextEncoding.TEXT_ENCODING_UTF8);    
     }
+    canvas.drawTextBlob(textBlob, this.rand_.nextULessThan(this.width_),this.rand_.nextULessThan(this.height_));
   }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    const textBlob: drawing.TextBlob = drawing.TextBlob.makeFromString(this.text_, this.font_, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+    canvas.drawTextBlob(textBlob, 10, 100);
+  }  
 }
 
 export class TextBlobBounds extends TestBase {
@@ -86,4 +101,78 @@ export class TextBlobBounds extends TestBase {
       let bounds:common2D.Rect = textBlob.bounds();
     }
   }
+}
+
+export class MakeFromPosText extends TestBase {
+  private rand_: OHRandom = new OHRandom();
+  private points_: common2D.Point[] = [];
+  private text_: string = 'TextBlobCreateFromPosText';
+  private font_: drawing.Font = new drawing.Font();
+
+  public constructor(styleType: number) {
+    super();
+    this.styleType_ = styleType;
+    for (let i = 0; i !== this.text_.length; ++i) {
+      this.points_.push({ x: i * 35, y: i * 35 });
+    }
+  }
+
+  private getTextBlob() {
+    return drawing.TextBlob.makeFromPosText(this.text_, this.points_.length, this.points_, this.font_);
+  }
+  public OnTestFunction(canvas: drawing.Canvas) {
+    this.font_.setSize(50);
+    canvas.drawTextBlob(this.getTextBlob(), 100, 100);
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.drawTextBlob(this.getTextBlob(), this.rand_.nextULessThan(this.width_), this.rand_.nextULessThan(this.height_));
+    }
+  }
+}
+
+export class MakeUniqueId extends TestBase {
+  private rand_: OHRandom = new OHRandom();
+  private points_: common2D.Point[] = [];
+  private text_: string = 'TextBlobUniqueId';
+  private font_: drawing.Font = new drawing.Font();
+  private textBlob_: drawing.TextBlob;
+
+  public constructor() {
+    super();
+    this.font_.setSize(100);
+    this.textBlob_ = drawing.TextBlob.makeFromString(this.text_, this.font_, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      this.textBlob_.uniqueID();
+    }
+    canvas.drawTextBlob(this.textBlob_, 10, 100);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let result1: boolean = false;
+    let id = this.textBlob_.uniqueID();
+    {
+      let same_id = this.textBlob_.uniqueID();
+      if (id == same_id) {
+        result1 = true;
+      } else { 
+        console.log(TAG, "The 1st uniqueID: " + id + ", the 2nd uniqueID for the same text blob: " + same_id);
+      }
+    }
+
+    let result2: boolean = false;
+    {
+      let text: string = 'TextBlobUniqueIdNext';
+      const textBlobNext: drawing.TextBlob = drawing.TextBlob.makeFromString(text, this.font_, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      let next_id = textBlobNext.uniqueID();
+      if (id != next_id) {
+        result2 = true;
+      } else {
+        console.log(TAG, "The 1st uniqueID: " + id + ", the 2nd uniqueID for the same text blob: " + next_id);
+      }
+    }
+    displayTestResult(canvas, result1 && result2);
+  } 
 }
