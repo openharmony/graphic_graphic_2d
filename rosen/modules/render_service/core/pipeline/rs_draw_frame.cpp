@@ -54,6 +54,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
+    RSMainThread::Instance()->ProcessUiCaptureTasks();
     const bool doJankStats = IsUniRenderAndOnVsync();
     JankStatsRenderFrameAfterSync(doJankStats);
     RSUifirstManager::Instance().PostUifistSubTasks();

@@ -56,6 +56,7 @@ namespace OHOS::Rosen {
 class AccessibilityObserver;
 #endif
 class HgmFrameRateManager;
+class RSUniRenderVisitor;
 struct FrameRateRangeData;
 namespace Detail {
 template<typename Task>
@@ -187,6 +188,9 @@ public:
 
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
+
+    void AddUiCaptureTask(NodeId id, std::function<void()> task);
+    void ProcessUiCaptureTasks();
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -448,6 +452,8 @@ private:
     void UpdateLuminance();
     void DvsyncCheckRequestNextVsync();
 
+    void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -618,6 +624,10 @@ private:
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
     uint32_t leashWindowCount_ = 0;
+
+    // for ui captures
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
+    std::vector<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;

@@ -1323,6 +1323,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.OpincSetInAppStateEnd(unchangeMarkInApp_);
         return;
     }
+
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager is nullptr",
+            node.GetName().c_str());
+        return;
+    }
+
     // 1. Update matrix and collect dirty region
     auto dirtyFlag = dirtyFlag_;
     auto prepareClipRect = prepareClipRect_;
@@ -3210,7 +3217,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         if (auto directParent = node.GetParent().lock()) {
             directParent->SetChildHasVisibleFilter(true);
         }
-        if (curSurfaceDirtyManager_->IsTargetForDfx()) {
+        if (curSurfaceDirtyManager_ && curSurfaceDirtyManager_->IsTargetForDfx()) {
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }

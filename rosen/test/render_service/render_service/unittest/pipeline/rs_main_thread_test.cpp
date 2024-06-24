@@ -3338,4 +3338,36 @@ HWTEST_F(RSMainThreadTest, UpdateFocusNodeId003, TestSize.Level2)
     mainThread->UpdateFocusNodeId(newFocusNode->GetId());
     ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
+
+/**
+ * @tc.name: UiCaptureTasks
+ * @tc.desc: test UiCaptureTasks processing
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+ */
+HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node1 = RSTestUtil::CreateSurfaceNode();
+    auto node2 = RSTestUtil::CreateSurfaceNode();
+    auto task = []() {};
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node1);
+    mainThread->AddUiCaptureTask(node1->GetId(), task);
+    mainThread->AddUiCaptureTask(node2->GetId(), task);
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
+
+    mainThread->ProcessUiCaptureTasks();
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+
+    mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
+}
 } // namespace OHOS::Rosen
