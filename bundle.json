@@ -241,16 +241,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
-            "header": {
-              "header_files": [
-                "sync_fence.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/utils/sync_fence/export"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
             "header": {
               "header_files": [
