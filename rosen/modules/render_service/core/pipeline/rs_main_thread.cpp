@@ -1374,6 +1374,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                         "rs debug: name %s, id %llu, isLastFrameHwcEnabled not enabled and buffer consumed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 } else {
+                    if (surfaceNode->GetAncoForceDoDirect()) {
+                        surfaceNode->SetContentDirty();
+                    }
                     surfaceNode->SetHwcDelayDirtyFlag(true);
                 }
             } else { // hwc -> hwc
