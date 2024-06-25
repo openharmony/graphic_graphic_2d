@@ -30,6 +30,8 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "rs_surface_ohos_raster_test.cpp",
   ]
 
+  sources += [ "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend/rs_surface_frame_ohos_vulkan.cpp" ]
+
   if (graphic_2d_feature_enable_vulkan) {
     sources += [
       "native_buffer_utils_test.cpp",

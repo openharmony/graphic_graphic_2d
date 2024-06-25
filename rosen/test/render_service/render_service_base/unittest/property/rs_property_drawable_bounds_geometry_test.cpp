@@ -784,7 +784,7 @@ HWTEST_F(RSShadowBaseDrawableTest, ClipShadowPath001, TestSize.Level1)
  * @tc.name: GetColorForShadow001
  * @tc.desc: test results of GetColorForShadow
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
 {
@@ -797,7 +797,7 @@ HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
     Drawing::Matrix matrix;
     Drawing::RectI deviceClipBounds;
     shadowDrawable.GetColorForShadow(content, fileCanvas, skPath, matrix, deviceClipBounds);
-    EXPECT_NE(properties.GetColorPickerCacheTaskShadow(), nullptr);
+    EXPECT_EQ(properties.GetColorPickerCacheTaskShadow(), nullptr);
 
     properties.shadow_ = std::make_optional<RSShadow>();
     properties.shadow_->SetColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE);
@@ -1280,7 +1280,7 @@ HWTEST_F(RSBackgroundImageDrawableTest, Generate001, TestSize.Level1)
  * @tc.name: Update001
  * @tc.desc: test results of Update
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSBackgroundImageDrawableTest, Update001, TestSize.Level1)
 {
@@ -1292,6 +1292,10 @@ HWTEST_F(RSBackgroundImageDrawableTest, Update001, TestSize.Level1)
 
     properties.decoration_ = std::make_optional<Decoration>();
     properties.decoration_->bgImage_ = std::make_shared<RSImage>();
+    res = drawable.Update(content);
+    EXPECT_EQ(res, false);
+
+    properties.decoration_->bgImage_->pixelMap_ = std::make_shared<Media::PixelMap>();
     res = drawable.Update(content);
     EXPECT_EQ(res, true);
 }

@@ -13,25 +13,11 @@
  * limitations under the License.
  */
 
-#include <memory>
-
-#include "ge_render.h"
-#include "ge_visual_effect.h"
 #include "gtest/gtest.h"
-#include "src/core/SkOpts.h"
 
-#include "common/rs_optional_trace.h"
-#include "draw/blend_mode.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#include "property/rs_properties_painter.h"
-#include "render/rs_aibar_shader_filter.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_grey_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
-
 using namespace testing;
 using namespace testing::ext;
 

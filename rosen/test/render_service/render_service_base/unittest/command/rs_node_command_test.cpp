@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -151,7 +151,7 @@ HWTEST_F(RSNodeCommandTest, RemoveModifier001, TestSize.Level1)
  * @tc.name: SetFreeze001
  * @tc.desc: test results of SetFreeze
  * @tc.type: FUNC
- * @tc.require: issueI9P2KH
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
@@ -161,6 +161,13 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
     EXPECT_EQ(1, nodeId);
 
     nodeId = 0;
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
+    EXPECT_NE(renderNode, nullptr);
+
+    renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
+    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(0, nodeId);
 }

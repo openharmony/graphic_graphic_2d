@@ -119,7 +119,7 @@ HWTEST_F(RSPropertyDrawableTest, OnGenerateAndOnUpdateTest003, TestSize.Level1)
  * @tc.name: OnUpdateTest004
  * @tc.desc: class RSClipToBoundsDrawable OnUpdate test
  * @tc.type:FUNC
- * @tc.require: issueI9VSPU
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSPropertyDrawableTest, OnUpdateTest004, TestSize.Level1)
 {
@@ -128,7 +128,22 @@ HWTEST_F(RSPropertyDrawableTest, OnUpdateTest004, TestSize.Level1)
     EXPECT_NE(clipToBoundsDrawable, nullptr);
 
     RSRenderNode nodeTest1(0);
+    nodeTest1.renderContent_->renderProperties_.clipPath_ = std::make_shared<RSPath>();
+    EXPECT_NE(nodeTest1.renderContent_->renderProperties_.clipPath_, nullptr);
     EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest1));
+
+    RSRenderNode nodeTest2(0);
+    RectT<float> rect(1.0f, 1.0f, 1.0f, 1.0f);
+    RRectT<float> rectt(rect, 1.0f, 1.0f);
+    nodeTest2.renderContent_->renderProperties_.clipRRect_ = rectt;
+    EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest2));
+
+    RSRenderNode nodeTest3(0);
+    nodeTest3.renderContent_->renderProperties_.cornerRadius_ = 1.0f;
+    EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest3));
+
+    RSRenderNode nodeTest4(0);
+    EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest4));
 }
 
 /**
@@ -242,7 +257,7 @@ HWTEST_F(RSPropertyDrawableTest, ClearCacheIfNeededTest007, TestSize.Level1)
  * @tc.name: RecordFilterInfosTest008
  * @tc.desc: class RSFilterDrawable RecordFilterInfos ClearFilterCache UpdateFlags test
  * @tc.type:FUNC
- * @tc.require: issueI9VSPU
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
 {
@@ -265,12 +280,37 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->UpdateFlags(FilterCacheType::NONE, false);
     EXPECT_FALSE(filterDrawable->pendingPurge_);
     filterDrawable->filterInteractWithDirty_ = true;
-    filterDrawable->cacheUpdateInterval_ = 2;
+    filterDrawable->cacheUpdateInterval_ = 3;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
-    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 2);
     filterDrawable->filterInteractWithDirty_ = false;
     filterDrawable->rotationChanged_ = true;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
+    filterDrawable->rotationChanged_ = false;
+    filterDrawable->filterType_ = RSFilter::AIBAR;
+    filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
+}
+
+/**
+ * @tc.name: IsAIBarCacheValidTest009
+ * @tc.desc: class RSFilterDrawable IsAIBarCacheValid test
+ * @tc.type:FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+
+    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
+    filterDrawable->filterType_ = RSFilter::AIBAR;
+    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
+    filterDrawable->cacheUpdateInterval_ = 1;
+    filterDrawable->forceClearCacheWithLastFrame_ = true;
+    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
+    filterDrawable->forceClearCacheWithLastFrame_ = false;
+    EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
 }
 } // namespace OHOS::Rosen

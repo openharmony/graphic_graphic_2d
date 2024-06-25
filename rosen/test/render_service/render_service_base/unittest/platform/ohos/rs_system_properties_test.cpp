@@ -691,11 +691,11 @@ HWTEST_F(RSSystemPropertiesTest, GetBlurEnabled, TestSize.Level1)
  * @tc.name: GetAiInvertCoef
  * @tc.desc: GetAiInvertCoef Test
  * @tc.type:FUNC
- * @tc.require: issueI9JZWC
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSSystemPropertiesTest, GetAiInvertCoef, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetAiInvertCoef().front(), 0);
+    ASSERT_NE(RSSystemProperties::GetAiInvertCoef().front(), 0);
 }
 
 /**

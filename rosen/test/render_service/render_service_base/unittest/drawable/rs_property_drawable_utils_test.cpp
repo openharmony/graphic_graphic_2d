@@ -14,15 +14,11 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "drawable/rs_property_drawable_utils.h"
 #include "draw/surface.h"
-#include "common/rs_optional_trace.h"
-#include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_material_filter.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"

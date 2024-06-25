@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -327,5 +327,48 @@ HWTEST_F(RSRenderThreadTest, PostPreTask, TestSize.Level1)
     RSRenderThread::Instance().handler_ = std::make_shared<AppExecFwk::EventHandler>();
     RSRenderThread::Instance().PostPreTask();
     EXPECT_TRUE(RSRenderThread::Instance().handler_ != nullptr);
+}
+
+/**
+ * @tc.name: StartTest
+ * @tc.desc: test results of Start
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSRenderThreadTest, StartTest, TestSize.Level1)
+{
+    RSRenderThread::Instance().thread_ = nullptr;
+    std::thread wakeUpThread([&]() {
+        RSRenderThread::Instance().Start();
+    });
+    wakeUpThread.join();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
+
+    std::thread wakeUpThreadStart([&]() {
+        RSRenderThread::Instance().Start();
+    });
+    wakeUpThreadStart.join();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
+}
+
+/**
+ * @tc.name: CreateAndInitRenderContextIfNeedTest
+ * @tc.desc: test results of CreateAndInitRenderContextIfNeed
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest, TestSize.Level1)
+{
+    RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
+
+    RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
+
+    RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
+
+    RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
+    EXPECT_TRUE(RSRenderThread::Instance().thread_);
 }
 } // namespace OHOS::Rosen

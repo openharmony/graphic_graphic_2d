@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -328,38 +329,53 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
  * @tc.name: AttachToDisplay001
  * @tc.desc: AttachToDisplay test.
  * @tc.type: FUNC
- * @tc.require:SR000HSUII
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 {
-    NodeId id = 10;
     RSContext context;
-    NodeId id2 = static_cast<NodeId>(-1);
-    SurfaceNodeCommandHelper::Create(context, id);
-    SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
-    SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
-    SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
-    SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
-    SurfaceNodeCommandHelper::AttachToDisplay(context, id2, 0);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, -1, 0);
+
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(renderNode, nullptr);
+    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
+    context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
+
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSDisplayRenderNode> displayNodeTest2 = std::make_shared<RSDisplayRenderNode>(0, config);
+    displayNodeTest2->screenId_ = 0;
+    context.nodeMap.displayNodeMap_.at(0) = displayNodeTest2;
+    EXPECT_NE(displayNodeTest2, nullptr);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 0);
 }
 
 /**
  * @tc.name: DetachToDisplay001
  * @tc.desc: DetachToDisplay test.
  * @tc.type: FUNC
- * @tc.require:SR000HSUII
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
 {
-    NodeId id = 10;
-    NodeId id2 = static_cast<NodeId>(-1);
     RSContext context;
-    SurfaceNodeCommandHelper::Create(context, id);
-    SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
-    SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
-    SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
-    SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
-    SurfaceNodeCommandHelper::DetachToDisplay(context, id2, 0);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, -1, 0);
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(renderNode, nullptr);
+    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
+    context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
+
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSDisplayRenderNode> displayNodeTest2 = std::make_shared<RSDisplayRenderNode>(0, config);
+    displayNodeTest2->screenId_ = 0;
+    context.nodeMap.displayNodeMap_.at(0) = displayNodeTest2;
+    EXPECT_NE(displayNodeTest2, nullptr);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 0);
 }
 
 /**

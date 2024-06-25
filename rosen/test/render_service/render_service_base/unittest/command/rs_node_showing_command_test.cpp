@@ -228,4 +228,87 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
     animation.Process(context);
     EXPECT_TRUE(renderProperty != nullptr);
 }
+
+/**
+ * @tc.name: Process002
+ * @tc.desc: test results of Process
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process002, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    RSContext context;
+    context.nodeMap.renderNodeMap_.clear();
+
+    std::shared_ptr<RSBaseRenderNode> renderNodeTest1 = std::make_shared<RSBaseRenderNode>(0);
+    EXPECT_NE(renderNodeTest1, nullptr);
+    renderNodeTest1->modifiers_[0] = nullptr;
+    context.nodeMap.renderNodeMap_.emplace(0, renderNodeTest1);
+
+    std::shared_ptr<RSBaseRenderNode> renderNodeTest2 = std::make_shared<RSBaseRenderNode>(1);
+    EXPECT_NE(renderNodeTest2, nullptr);
+    auto propertyTest2 = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
+    EXPECT_NE(propertyTest2, nullptr);
+    auto modifierTest2 = std::make_shared<RSGeometryTransRenderModifier>(propertyTest2);
+    EXPECT_NE(modifierTest2, nullptr);
+    modifierTest2->property_ = nullptr;
+    renderNodeTest2->modifiers_[1] = modifierTest2;
+    context.nodeMap.renderNodeMap_.emplace(1, renderNodeTest2);
+
+    std::shared_ptr<RSBaseRenderNode> renderNodeTest3 = std::make_shared<RSBaseRenderNode>(2);
+    EXPECT_NE(renderNodeTest3, nullptr);
+    auto propertyTest3 = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
+    EXPECT_NE(propertyTest3, nullptr);
+    auto modifierTest3 = std::make_shared<RSGeometryTransRenderModifier>(propertyTest3);
+    EXPECT_NE(modifierTest3, nullptr);
+    renderNodeTest3->modifiers_[2] = modifierTest3;
+    context.nodeMap.renderNodeMap_.emplace(2, renderNodeTest3);
+
+    auto renderPropertyTest1 = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_NE(renderPropertyTest1, nullptr);
+    auto renderPropertyTest2 = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_NE(renderPropertyTest2, nullptr);
+    auto renderPropertyTest3 = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_NE(renderPropertyTest3, nullptr);
+    auto renderPropertyTest4 = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_NE(renderPropertyTest4, nullptr);
+    std::vector<AnimationId> animationIdsTest1 = { 0 };
+    std::vector<AnimationId> animationIdsTest2 = { 0 };
+    std::vector<AnimationId> animationIdsTest3 = { 0 };
+    std::vector<AnimationId> animationIdsTest4 = { 0 };
+    animation.propertiesMap_.emplace(std::make_pair(0, 0), std::make_pair(renderPropertyTest1, animationIdsTest1));
+    animation.propertiesMap_.emplace(std::make_pair(1, 1), std::make_pair(renderPropertyTest1, animationIdsTest1));
+    animation.propertiesMap_.emplace(std::make_pair(2, 2), std::make_pair(renderPropertyTest1, animationIdsTest1));
+    animation.propertiesMap_.emplace(std::make_pair(3, 3), std::make_pair(renderPropertyTest1, animationIdsTest1));
+    animation.Process(context);
+}
+
+/**
+ * @tc.name: Process003
+ * @tc.desc: test results of Process
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process003, TestSize.Level1)
+{
+    RSContext context;
+    RSNodeGetAnimationsValueFraction animation(0);
+    animation.nodeId_ = 0;
+    animation.animationId_ = 0;
+    animation.Process(context);
+
+    std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
+    EXPECT_NE(renderNode, nullptr);
+    renderNode->animationManager_.animations_.clear();
+    std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimation>(0);
+    EXPECT_NE(animationTest, nullptr);
+    renderNode->animationManager_.animations_.emplace(0, animationTest);
+    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    animation.Process(context);
+
+    animation.nodeId_ = 1;
+    animation.Process(context);
+}
 } // namespace OHOS::Rosen

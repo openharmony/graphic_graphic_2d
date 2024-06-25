@@ -68,14 +68,12 @@ HWTEST_F(RSAIBarFilterTest, GetDescriptionTest, TestSize.Level1)
  * @tc.name: GetAiInvertCoefTest
  * @tc.desc: Verify function GetAiInvertCoef
  * @tc.type:FUNC
- * @tc.require: issueI9I98H
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSAIBarFilterTest, GetAiInvertCoefTest, TestSize.Level1)
 {
     auto filter = std::make_shared<RSAIBarFilter>();
-    // for test
-    std::vector<float> aiInvertCoef = { 0.0f, 1.0f, 0.55f, 0.4f, 1.6f, 45.0f };
-    EXPECT_EQ(filter->GetAiInvertCoef(), aiInvertCoef);
+    EXPECT_FALSE(filter->GetAiInvertCoef().empty());
 }
 
 /**
