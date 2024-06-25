@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
 #include "string_utils.h"
 #include "common/rs_optional_trace.h"
@@ -126,6 +127,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
     isSuggestOpincNode_ = isOpincNode;
     isNeedCalculate_ = isNeedCalculate;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark suggest opinc node", GetId());
     SetDirty();
 }
 
@@ -178,6 +180,7 @@ void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
         SetCacheStateByRetrytime();
         isOpincRootFlag_ = false;
     }
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, reset cache state", GetId());
     SetDirty();
     stagingRenderParams_->OpincSetCacheChangeFlag(true);
     isOpincRootFlag_ = false;

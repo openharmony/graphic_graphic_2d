@@ -104,6 +104,7 @@ void RSRenderServiceListener::OnGoBackground()
         node->CleanCache();
         node->UpdateBufferInfo(nullptr, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, go background", node->GetId());
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();
     });
@@ -119,6 +120,7 @@ void RSRenderServiceListener::OnTransformChange()
             return;
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, transform changed", node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
     });
