@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.cpp"
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
 
 using namespace testing;

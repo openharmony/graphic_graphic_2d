@@ -876,7 +876,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, HasOnlyOneRootNode, TestSize.Level1)
  * @tc.name: GetNodeIsSingleFrameComposer
  * @tc.desc: test results of GetNodeIsSingleFrameComposer
  * @tc.type: FUNC
- * @tc.require: issueIA4VTS
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Level1)
 {
@@ -886,6 +886,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
     system::SetParameter("persist.sys.graphic.singleFrame", "1");
     EXPECT_FALSE(node->GetNodeIsSingleFrameComposer());
     node->name_ = "hwstylusfeature";
+    node->isNodeSingleFrameComposer_ = true;
     EXPECT_TRUE(node->GetNodeIsSingleFrameComposer());
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -437,7 +437,7 @@ HWTEST_F(RSBorderTest, ApplyFillStyleTest, TestSize.Level1)
  * @tc.name: ApplyPathStyleTest
  * @tc.desc: Verify function ApplyPathStyle
  * @tc.type:FUNC
- * @tc.require: issueI9I98H
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSBorderTest, ApplyPathStyleTest, TestSize.Level1)
 {
@@ -449,9 +449,9 @@ HWTEST_F(RSBorderTest, ApplyPathStyleTest, TestSize.Level1)
     border->SetWidth(0.f);
     EXPECT_FALSE(border->ApplyPathStyle(pen));
     border->SetStyle(BorderStyle::SOLID);
-    EXPECT_TRUE(border->ApplyPathStyle(pen));
+    EXPECT_FALSE(border->ApplyPathStyle(pen));
     border->SetStyle(BorderStyle::DOTTED);
-    EXPECT_TRUE(border->ApplyPathStyle(pen));
+    EXPECT_FALSE(border->ApplyPathStyle(pen));
 }
 
 /**

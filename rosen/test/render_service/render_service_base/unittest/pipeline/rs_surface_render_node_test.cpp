@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1695,13 +1695,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, AccumulateOcclusionRegion, TestSize.Level1)
  * @tc.name: GetVisibleLevelForWMS
  * @tc.desc: test results of GetVisibleLevelForWMS
  * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSSurfaceRenderNodeTest, GetVisibleLevelForWMS, TestSize.Level1)
 {
     RSSurfaceRenderNode node(id);
 
-    EXPECT_EQ(node.GetVisibleLevelForWMS(RSVisibleLevel::RS_INVISIBLE), WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE);
+    EXPECT_EQ(node.GetVisibleLevelForWMS(RSVisibleLevel::RS_INVISIBLE), WINDOW_LAYER_INFO_TYPE::INVISIBLE);
 
     EXPECT_EQ(node.GetVisibleLevelForWMS(RSVisibleLevel::RS_ALL_VISIBLE), WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE);
 

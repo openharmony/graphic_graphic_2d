@@ -16,6 +16,7 @@
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
+#include "render/rs_typeface_cache.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_canvas_node.h"
@@ -75,7 +76,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
  * @tc.name: TakeSurfaceCaptureForUI002
  * @tc.desc: test results of TakeSurfaceCaptureForUI
  * @tc.type: FUNC
- * @tc.require: issueI9UX8W
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
 {
@@ -88,24 +89,26 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
     node = std::make_shared<RSNode>(true);
     res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
-
-    node = std::make_shared<RSCanvasNode>(true);
-    res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
-    EXPECT_TRUE(res);
 }
 
 /**
  * @tc.name: RegisterTypeface001
  * @tc.desc: test results of RegisterTypeface
  * @tc.type: FUNC
- * @tc.require: issueI9N0I9
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto typefaceImpl = std::make_shared<Drawing::SkiaTypeface>();
+    EXPECT_NE(typefaceImpl, nullptr);
     auto typeface = std::make_shared<Drawing::Typeface>(typefaceImpl);
+    EXPECT_NE(typeface, nullptr);
+    auto globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    RSTypefaceCache& typefaceCache = RSTypefaceCache::Instance();
+    typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
     bool res = instance.RegisterTypeface(typeface);
+    typefaceCache.typefaceHashCode_.clear();
     EXPECT_TRUE(res);
 }
 

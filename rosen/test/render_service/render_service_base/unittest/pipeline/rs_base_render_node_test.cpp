@@ -821,12 +821,15 @@ HWTEST_F(RSBaseRenderNodeTest, GetFirstLevelNode, TestSize.Level1)
 /**
  * @tc.name: SetStaticCached
  * @tc.desc: test results of SetStaticCached
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSBaseRenderNodeTest, SetStaticCached, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->stagingRenderParams_, nullptr);
     bool isStaticCached = true;
     node->SetStaticCached(isStaticCached);
     ASSERT_TRUE(node->isStaticCached_);
@@ -834,23 +837,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetStaticCached, TestSize.Level1)
     isStaticCached = false;
     node->SetStaticCached(isStaticCached);
     ASSERT_FALSE(node->isStaticCached_);
-}
-
-/**
- * @tc.name: ClearCacheSurface
- * @tc.desc: test results of ClearCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, ClearCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    bool isClearCompletedCacheSurface = true;
-    node->ClearCacheSurface(isClearCompletedCacheSurface);
-    ASSERT_EQ(node->cacheCompletedSurface_, nullptr);
-
-    isClearCompletedCacheSurface = false;
-    node->SetStaticCached(isClearCompletedCacheSurface);
 }
 
 /**

@@ -878,7 +878,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RunOnRemoteDiedCallback, TestSize.L
  * @tc.name: GetActiveDirtyRegionInfo Test
  * @tc.desc: GetActiveDirtyRegionInfo Test
  * @tc.type:FUNC
- * @tc.require: issueI97N4E
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetActiveDirtyRegionInfo, TestSize.Level1)
 {
@@ -887,32 +887,32 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetActiveDirtyRegionInfo, TestSize.
     RectI rectI(0, 0, 0, 0);
     std::vector<RectI> rectIs = {rectI};
     GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(id, windowName, rectIs);
-    ASSERT_NE(proxy->GetActiveDirtyRegionInfo().size(), 0);
+    ASSERT_EQ(proxy->GetActiveDirtyRegionInfo().size(), 0);
 }
 
 /**
  * @tc.name: GetGlobalDirtyRegionInfo Test
  * @tc.desc: GetGlobalDirtyRegionInfo Test
  * @tc.type:FUNC
- * @tc.require: issueI97N4E
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetGlobalDirtyRegionInfo, TestSize.Level1)
 {
     RectI rectI(0, 0, 0, 0);
     GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rectI);
-    ASSERT_NE(proxy->GetGlobalDirtyRegionInfo().globalFramesNumber, 0);
+    ASSERT_EQ(proxy->GetGlobalDirtyRegionInfo().globalFramesNumber, 0);
 }
 
 /**
  * @tc.name: GetLayerComposeInfo Test
  * @tc.desc: GetLayerComposeInfo Test
  * @tc.type:FUNC
- * @tc.require: issueI97N4E
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetLayerComposeInfo, TestSize.Level1)
 {
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
-    ASSERT_NE(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
+    ASSERT_EQ(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

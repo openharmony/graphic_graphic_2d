@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -238,5 +238,45 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
     oldScbPids.push_back(1);
     oldScbPids.push_back(2);
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+}
+
+/**
+ * @tc.name: SetRogSize
+ * @tc.desc: SetRogSize test.
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetRogSize, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    int32_t offsetX = static_cast<int32_t>(1);
+    int32_t offsetY = static_cast<int32_t>(1);
+    DisplayNodeCommandHelper::SetRogSize(context, id, offsetX, offsetY);
+
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetRogSize(context, id, offsetX, offsetY);
+}
+
+/**
+ * @tc.name: SetScbNodePid001
+ * @tc.desc: SetScbNodePid test.
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    std::vector<int32_t> oldScbPids = {};
+    int32_t currentScbPid = -1;
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+
+    oldScbPids.push_back(1);
+    oldScbPids.push_back(2);
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+    DisplayNodeCommandHelper::SetScbNodePid(context, 5, oldScbPids, currentScbPid);
 }
 } // namespace OHOS::Rosen

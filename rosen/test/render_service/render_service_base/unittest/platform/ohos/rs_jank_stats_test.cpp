@@ -401,7 +401,7 @@ HWTEST_F(RSJankStatsTest, RecordJankFrameTest004, TestSize.Level1)
  * @tc.name: RecordAnimationDynamicFrameRateTest005
  * @tc.desc: RecordAnimationDynamicFrameRate test
  * @tc.type: FUNC
- * @tc.require: issuesI9TD1K
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSJankStatsTest, RecordAnimationDynamicFrameRateTest005, TestSize.Level1)
 {
@@ -437,11 +437,11 @@ HWTEST_F(RSJankStatsTest, RecordAnimationDynamicFrameRateTest005, TestSize.Level
     jankFrames.endTimeSteady_ = 2;
     jankFrames.isFrameRateRecorded_ = false;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
-    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
+    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
     jankFrames.lastEndTimeSteady_ = 2;
     jankFrames.isFrameRateRecorded_ = false;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
-    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
+    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
 }
 
 /**

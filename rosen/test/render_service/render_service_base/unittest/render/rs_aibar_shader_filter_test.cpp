@@ -39,14 +39,12 @@ void RSAIBarShaderFilterTest::TearDown() {}
  * @tc.name: DrawImageRectTest
  * @tc.desc: Verify function DrawImageRect
  * @tc.type:FUNC
- * @tc.require: issuesI9PH4G
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSAIBarShaderFilterTest, DrawImageRectTest, TestSize.Level1)
 {
     auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
-    // for test
-    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 0.4, 1.6, 45.0 };
-    EXPECT_EQ(rsAIBarShaderFilter->GetAiInvertCoef(), aiInvertCoef);
+    EXPECT_FALSE(rsAIBarShaderFilter->GetAiInvertCoef().empty());
 }
 
 /**

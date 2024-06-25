@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -125,6 +125,55 @@ HWTEST_F(RSMessageProcessorTest, GetTransaction001, TestSize.Level1)
     RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
     EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
     EXPECT_EQ(RSMessageProcessor::Instance().transactionMap_, RSMessageProcessor::Instance().GetAllTransactions());
+}
+
+/**
+ * @tc.name: AddUIMessageLvalueReferenceTest
+ * @tc.desc: test results of AddUIMessage lvalue reference
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSMessageProcessorTest, AddUIMessageLvalueReferenceTest, TestSize.Level1)
+{
+    uint32_t pid = 1;
+    std::unique_ptr<RSCommand> command = nullptr;
+    RSMessageProcessor::Instance().transactionMap_.clear();
+    RSMessageProcessor::Instance().AddUIMessage(pid, command);
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+    EXPECT_EQ(nullptr, RSMessageProcessor::Instance().GetTransaction(0));
+
+    pid = 0;
+    auto transactionData = std::make_shared<RSTransactionData>();
+    RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
+    RSMessageProcessor::Instance().AddUIMessage(pid, command);
+    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+}
+
+/**
+ * @tc.name: GinstanceValidIsfalseTest
+ * @tc.desc: test results of g_instanceValid is false
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSMessageProcessorTest, GinstanceValidIsfalseTest, TestSize.Level1)
+{
+    uint32_t pid = 1;
+    std::unique_ptr<RSCommand> command = nullptr;
+    RSMessageProcessor* messageProcessorTest1 = new RSMessageProcessor();
+    RSMessageProcessor* messageProcessorTest2 = new RSMessageProcessor();
+    delete messageProcessorTest1;
+    messageProcessorTest1 = nullptr;
+
+    messageProcessorTest2->AddUIMessage(pid, command);
+    messageProcessorTest2->AddUIMessage(pid, std::move(command));
+    EXPECT_FALSE(messageProcessorTest2->HasTransaction());
+    EXPECT_FALSE(messageProcessorTest2->HasTransaction(0));
+    messageProcessorTest2->ReInitializeMovedMap();
+    EXPECT_EQ(messageProcessorTest2->GetTransaction(0), nullptr);
+    messageProcessorTest2->GetAllTransactions();
+
+    delete messageProcessorTest2;
+    messageProcessorTest2 = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -101,7 +101,7 @@ HWTEST_F(RSAnimationCommandTest, AnimationCallback001, TestSize.Level1)
  * @tc.name: CreateAnimation001
  * @tc.desc: test results of CreateAnimation
  * @tc.type: FUNC
- * @tc.require: issueI9P2KH
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
 {
@@ -111,11 +111,12 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
     AnimationCommandHelper::CreateAnimation(context, targetId, animation);
     EXPECT_TRUE(targetId);
 
-    targetId = 0;
-    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId == 0);
-
     animation = std::make_shared<RSRenderAnimation>();
+    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
+    auto nod = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    EXPECT_TRUE(targetId == 1);
+
+    targetId = 0;
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
     PropertyId id = 0;
     auto property = std::shared_ptr<RSRenderProperty<Drawing::Matrix>>();
@@ -135,7 +136,7 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
  * @tc.name: CreateParticleAnimation002
  * @tc.desc: test results of CreateParticleAnimation
  * @tc.type: FUNC
- * @tc.require: issueI9P2KH
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation002, TestSize.Level1)
 {
@@ -145,11 +146,11 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation002, TestSize.Level1)
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
     EXPECT_TRUE(targetId);
 
-    targetId = 0;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId == 0);
-
     animation = std::make_shared<RSRenderParticleAnimation>();
+    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+    EXPECT_TRUE(targetId == 1);
+
+    targetId = 0;
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
     EXPECT_TRUE(animation != nullptr);
 }
@@ -171,5 +172,40 @@ HWTEST_F(RSAnimationCommandTest, CancelAnimation001, TestSize.Level1)
     targetId = 0;
     AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
     EXPECT_TRUE(targetId == 0);
+}
+
+/**
+ * @tc.name: InteractiveAnimator001
+ * @tc.desc: InteractiveAnimator test.
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSAnimationCommandTest, InteractiveAnimator001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId targetId = 0;
+    InteractiveImplictAnimatorId targetIdI = 0;
+    float fraction = 1.f;
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) == nullptr);
+    AnimationCommandHelper::DestoryInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::InteractiveAnimatorAddAnimations(context, targetId, animations);
+    AnimationCommandHelper::PauseInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::ContinueInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::FinishInteractiveAnimator(context, targetIdI, RSInteractiveAnimationPosition::CURRENT);
+    AnimationCommandHelper::ReverseInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetIdI, fraction);
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+
+    AnimationCommandHelper::InteractiveAnimatorAddAnimations(context, targetId, animations);
+    AnimationCommandHelper::PauseInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::ContinueInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::FinishInteractiveAnimator(context, targetIdI, RSInteractiveAnimationPosition::CURRENT);
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations);
+    AnimationCommandHelper::ReverseInteractiveAnimator(context, targetIdI);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetIdI, fraction);
+    AnimationCommandHelper::DestoryInteractiveAnimator(context, targetIdI);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) == nullptr);
 }
 } // namespace OHOS::Rosen

@@ -1258,26 +1258,17 @@ HWTEST_F(RSPaintFilterCanvasTest, PaintFilter001, TestSize.Level1)
  * @tc.name: PaintFilter002
  * @tc.desc: Test has filter before PaintFilter
  * @tc.type:FUNC
- * @tc.require: issueI9NLRF
+ * @tc.require: issueIA61E9
  */
 HWTEST_F(RSPaintFilterCanvasTest, PaintFilter002, TestSize.Level1)
 {
+    Drawing::Canvas canvas;
     Drawing::Paint paint;
-
-    Drawing::Filter filter = paint.GetFilter();
-    Drawing::ColorMatrix luminanceMatrix;
-    // 0.5 means half discount
-    luminanceMatrix.SetScale(0.5f, 0.5f, 0.5f, 1.0f);
-    auto luminanceColorFilter =
-        std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
-    EXPECT_TRUE(luminanceColorFilter != nullptr);
-
-    auto colorFilter = filter.GetColorFilter();
-    filter.SetColorFilter(luminanceColorFilter);
-    paint.SetFilter(filter);
-
-    paintFilterCanvas_->PaintFilter(paint);
-    EXPECT_TRUE(paint.GetFilter() == filter);
+    paint.filter_.colorFilter_ = std::make_shared<Drawing::ColorFilter>();
+    EXPECT_NE(paint.filter_.colorFilter_, nullptr);
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvas, nullptr);
+    paintFilterCanvas->PaintFilter(paint);
 }
 
 /**

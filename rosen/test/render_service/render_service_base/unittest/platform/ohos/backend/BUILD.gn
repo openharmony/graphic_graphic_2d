@@ -30,6 +30,8 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "rs_surface_ohos_raster_test.cpp",
   ]
 
+  sources += [ "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend/rs_surface_frame_ohos_vulkan.cpp" ]
+
   if (graphic_2d_feature_enable_vulkan) {
     sources += [
       "native_buffer_utils_test.cpp",
@@ -55,7 +57,6 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
-    "//third_party/vulkan-headers/include",
   ]
 
   deps = [
@@ -69,7 +70,9 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
+    "vulkan-headers:vulkan_headers",
   ]
 
   subsystem_name = "graphic"
