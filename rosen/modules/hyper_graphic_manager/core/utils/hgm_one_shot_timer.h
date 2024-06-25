@@ -19,6 +19,8 @@
 #include <condition_variable>
 #include <thread>
 
+#include "event_handler.h"
+
 namespace OHOS::Rosen {
 class ChronoSteadyClock {
 public:
@@ -62,13 +64,12 @@ private:
     void Loop();
     HgmTimerState CheckForResetAndStop(HgmTimerState state);
     bool CheckTimerExpired(std::chrono::steady_clock::time_point expireTime) const;
-    void OnExpiredCallback();
 
-    std::thread thread_;
-    std::condition_variable startCond_;
-    bool threadAlive_ = true;
-    std::mutex loopMutex_;
     std::unique_ptr<ChronoSteadyClock> clock_;
+
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    std::mutex startMutex_;
 
     sem_t semaphone_;
     std::string name_;
@@ -79,8 +80,7 @@ private:
 
     std::atomic<bool> resetFlag_ = false;
     std::atomic<bool> stopFlag_ = false;
-    std::atomic<bool> stoppingFlag_ = false;
 };
-} //namespace OHOS::Rosen
+} // namespace OHOS::Rosen
 
-#endif //HGM_ONE_SHOT_TIME_H
+#endif // HGM_ONE_SHOT_TIME_H

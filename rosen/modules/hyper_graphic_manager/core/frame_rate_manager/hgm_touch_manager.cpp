@@ -27,6 +27,7 @@ namespace {
 }
 
 HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(TouchState::IDLE_STATE),
+    runner_(AppExecFwk::EventRunner::Create("TouchMachine")),
     upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
         OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
     }),
@@ -34,6 +35,7 @@ HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(Tou
         OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
     })
 {
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {
         ChangeState(TouchState::UP_STATE);
     });
@@ -99,8 +101,8 @@ bool HgmTouchManager::CheckChangeStateValid(TouchState lastState, TouchState new
 
 void HgmTouchManager::ExecuteCallback(const std::function<void()>& callback)
 {
-    if (callback != nullptr) {
-        HgmTaskHandleThread::Instance().PostSyncTask(callback);
+    if (callback != nullptr && handler_ != nullptr) {
+        handler_->PostTask(callback);
     }
 }
 } // OHOS::Rosen

@@ -52,6 +52,8 @@ protected:
     void ExecuteCallback(const std::function<void()>& callback) override;
 private:
     std::string pkgName_;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HgmOneShotTimer upTimeoutTimer_;
     HgmOneShotTimer rsIdleTimeoutTimer_;
 };
