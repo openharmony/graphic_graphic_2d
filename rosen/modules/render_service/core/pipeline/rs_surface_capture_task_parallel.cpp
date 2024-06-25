@@ -206,87 +206,12 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
-        Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
-        if (!backendTexture.IsValid()) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");
+        auto copytask = CreateSurfaceCopyTaskWithDMA(surface, std::move(pixelMap_),
+            nodeId_, callback, angle, useDma_);
+        if (!copytask) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::Run: create capture task failed!");
             return false;
         }
-        auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
-        std::get<0>(*wrapper) = std::move(pixelMap_);
-        auto id = nodeId_;
-        auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
-        std::get<0>(*wrapperSf) = std::move(surface);
-        auto useDma = useDma_;
-        std::function<void()> copytask = [wrapper, callback, backendTexture, wrapperSf, id, angle, useDma]() -> void {
-            RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
-            if (!backendTexture.IsValid()) {
-                RS_LOGE("RSSurfaceCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-            auto pixelmap = std::move(std::get<0>(*wrapper));
-            if (pixelmap == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTaskParallel: pixelmap == nullptr");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-
-            Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
-                Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-            Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
-            Drawing::BitmapFormat bitmapFormat =
-                Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-            std::shared_ptr<Drawing::Surface> surface;
-#ifdef RS_ENABLE_VK
-            DmaMem dmaMem;
-            if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-                sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
-                surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer);
-                if (surface == nullptr) {
-                    RS_LOGE("RSSurfaceCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
-                    dmaMem.ReleaseDmaMemory();
-                    callback->OnSurfaceCapture(id, nullptr);
-                    RSUniRenderUtil::ClearNodeCacheSurface(
-                        std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                    return;
-                }
-                auto tmpImg = std::make_shared<Drawing::Image>();
-                DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
-            } else {
-#else
-            {
-#endif
-                auto grContext = RSBackgroundThread::Instance().GetShareGPUContext().get();
-                auto tmpImg = std::make_shared<Drawing::Image>();
-                tmpImg->BuildFromTexture(*grContext, backendTexture.GetTextureInfo(),
-                    textureOrigin, bitmapFormat, nullptr);
-                if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
-                    RS_LOGE("RSSurfaceCaptureTaskParallel: CopyDataToPixelMap failed");
-                    callback->OnSurfaceCapture(id, nullptr);
-                    RSUniRenderUtil::ClearNodeCacheSurface(
-                        std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                    return;
-                }
-            }
-            if (angle) {
-                pixelmap->rotate(angle);
-            }
-            // To get dump image
-            // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
-            RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
-            callback->OnSurfaceCapture(id, pixelmap.get());
-            RSBackgroundThread::Instance().CleanGrResource();
-#ifdef RS_ENABLE_VK
-            dmaMem.ReleaseDmaMemory();
-#endif
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-        };
         RSBackgroundThread::Instance().PostTask(copytask);
         if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
             RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
@@ -418,6 +343,97 @@ int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
         " screenCorrection:%{public}d", screenRotation, screenCorrection);
     return rotation;
 }
+
+#ifdef RS_ENABLE_UNI_RENDER
+std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceCopyTaskWithDMA(std::shared_ptr<Drawing::Surface> surface,
+    std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    int32_t rotation, bool useDma)
+{
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+    auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
+
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
+    Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");
+        return {};
+    }
+    auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
+    std::get<0>(*wrapper) = std::move(pixelMap);
+    auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
+    std::get<0>(*wrapperSf) = std::move(surface);
+    std::function<void()> copytask = [wrapper, callback, backendTexture, wrapperSf, id, rotation, useDma]() -> void {
+        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
+        if (!backendTexture.IsValid()) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
+            callback->OnSurfaceCapture(id, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            return;
+        }
+        auto pixelmap = std::move(std::get<0>(*wrapper));
+        if (pixelmap == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel: pixelmap == nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            return;
+        }
+
+        Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+        Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat bitmapFormat =
+            Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+        std::shared_ptr<Drawing::Surface> surface;
+#ifdef RS_ENABLE_VK
+        DmaMem dmaMem;
+        if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+            sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
+            surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer);
+            if (surface == nullptr) {
+                RS_LOGE("RSSurfaceCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
+                dmaMem.ReleaseDmaMemory();
+                callback->OnSurfaceCapture(id, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                return;
+            }
+            auto tmpImg = std::make_shared<Drawing::Image>();
+            DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
+        } else {
+#else
+        {
+#endif
+            auto grContext = RSBackgroundThread::Instance().GetShareGPUContext().get();
+            auto tmpImg = std::make_shared<Drawing::Image>();
+            tmpImg->BuildFromTexture(*grContext, backendTexture.GetTextureInfo(),
+                textureOrigin, bitmapFormat, nullptr);
+            if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
+                RS_LOGE("RSSurfaceCaptureTaskParallel: CopyDataToPixelMap failed");
+                callback->OnSurfaceCapture(id, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                return;
+            }
+        }
+        if (rotation) {
+            pixelmap->rotate(rotation);
+        }
+        // To get dump image
+        // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
+        RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
+        callback->OnSurfaceCapture(id, pixelmap.get());
+        RSBackgroundThread::Instance().CleanGrResource();
+#ifdef RS_ENABLE_VK
+        dmaMem.ReleaseDmaMemory();
+#endif
+        RSUniRenderUtil::ClearNodeCacheSurface(
+            std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+    };
+    return copytask;
+}
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void DmaMem::ReleaseDmaMemory()

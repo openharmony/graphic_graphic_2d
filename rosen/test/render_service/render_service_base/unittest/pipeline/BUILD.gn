@@ -86,6 +86,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
   ]

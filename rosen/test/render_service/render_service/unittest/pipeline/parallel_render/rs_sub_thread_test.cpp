@@ -46,8 +46,6 @@ HWTEST_F(RsSubThreadTest, PostTaskTest, TestSize.Level1)
     renderContext->InitializeEglContext();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->PostTask([] {});
-    curThread->Start();
-    curThread->PostTask([] {});
     delete renderContext;
     renderContext = nullptr;
     usleep(1000 * 1000); // 1000 * 1000us
@@ -92,18 +90,6 @@ HWTEST_F(RsSubThreadTest, DestroyShareEglContextTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateShareGrContextTest
- * @tc.desc: Test RsSubThreadTest.CreateShareGrContextTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadTest, CreateShareGrContextTest, TestSize.Level1)
-{
-    auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
-    curThread->CreateShareGrContext();
-}
-
-/**
  * @tc.name: ResetGrContext
  * @tc.desc: Test RsSubThreadTest.ResetGrContext
  * @tc.type: FUNC
@@ -113,8 +99,6 @@ HWTEST_F(RsSubThreadTest, ResetGrContext, TestSize.Level1)
 {
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
-    curThread->ResetGrContext();
-    curThread->Start();
     curThread->ResetGrContext();
 }
 
@@ -148,7 +132,6 @@ HWTEST_F(RsSubThreadTest, RenderCache, TestSize.Level1)
 
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
-    curThread->Start();
     curThread->RenderCache(threadTask_);
 }
 

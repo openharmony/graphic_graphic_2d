@@ -23,6 +23,7 @@ namespace fs = std::filesystem;
 #include <sys/types.h>
 #include <unistd.h>
 #include <unique_fd.h>
+#include "directory_ex.h"
 
 #include "window.h"
 
@@ -38,7 +39,12 @@ DrawingSampleReplayer::~DrawingSampleReplayer()
 
 bool DrawingSampleReplayer::ReadCmds(const std::string path)
 {
-    UniqueFd fd(open(path.c_str(), O_RDONLY));
+    std::string realPath;
+    if (!PathToRealPath(path, realPath)) {
+        std::cout << "PathToRealPath fails on: " << path;
+        return false;
+    }
+    UniqueFd fd(open(realPath.c_str(), O_RDONLY));
     if (fd <= 0) {
         return false;
     }
@@ -181,8 +187,8 @@ bool DrawingSampleReplayer::PrepareNativeEGLSetup()
     renderContext_->InitializeEglContext();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
-    width_ = defaultDisplay->GetWidth();
-    height_ = defaultDisplay->GetHeight();
+    width_ = static_cast<uint32_t>(defaultDisplay->GetWidth());
+    height_ = static_cast<uint32_t>(defaultDisplay->GetHeight());
 
     std::cout << "Width: " << width_ << "  -  Height: " << height_ << std::endl;
 

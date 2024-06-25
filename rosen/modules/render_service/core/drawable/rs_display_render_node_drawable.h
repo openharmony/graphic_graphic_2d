@@ -58,19 +58,18 @@ private:
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNode& node, RSDisplayRenderNode& mirroredNode);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
     void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
-    void RotateMirrorCanvasOnExFoldScreen(RSDisplayRenderParams& params, ScreenRotation& rotation, float mainWidth,
-        float mainHeight);
+
     void DrawMirrorScreen(std::shared_ptr<RSDisplayRenderNode>& displayNode, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
     std::vector<RectI> CalculateVirtualDirty(RSDisplayRenderNode& displayNode,
-        std::shared_ptr<RSProcessor> processor, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
+        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
+        RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     using DrawFuncPtr = void(RSDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
     void DrawMirror(std::shared_ptr<RSDisplayRenderNode>& displayNode, RSDisplayRenderParams& params,
-        std::shared_ptr<RSProcessor> processor, DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
+        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, DrawFuncPtr drawFunc,
+        RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
-    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, std::shared_ptr<RSProcessor> processor);
-    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
@@ -94,12 +93,10 @@ private:
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
     std::shared_ptr<Drawing::Surface> offscreenSurface_; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
-    bool canvasRotation_ = false;
     std::unordered_set<NodeId> virtualScreenBlackList_ = {};
     std::unordered_set<NodeId> castScreenBlackList_ = {};
     bool castScreenEnableSkipWindow_ = false;
     bool hasSpecialLayer_ = false;
-    bool exFoldScreen_ = false; // Expanded state of folding screen
     bool isLastFrameHasSecSurface_ = false;
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;

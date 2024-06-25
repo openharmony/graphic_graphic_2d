@@ -483,7 +483,8 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     if (uniParam->IsOcclusionEnabled() && surfaceNode->IsMainWindowType() &&
-        surfaceParams->GetVisibleRegionInVirtual().IsEmpty()) {
+        surfaceParams->GetVisibleRegionInVirtual().IsEmpty() &&
+        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
         RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
             surfaceParams->GetAbsDrawRect().ToString());
         return;

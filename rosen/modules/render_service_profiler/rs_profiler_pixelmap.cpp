@@ -234,7 +234,7 @@ void ImageSource::CacheImage(
     image.data = data;
 
     if (bufferHandle) {
-        image.dmaSize = bufferHandle->size;
+        image.dmaSize = static_cast<size_t>(bufferHandle->size);
         image.dmaWidth = bufferHandle->width;
         image.dmaHeight = bufferHandle->height;
         image.dmaStride = bufferHandle->stride;
@@ -284,7 +284,7 @@ bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
     context.rowPitch = static_cast<size_t>(context.parcel.ReadInt32());
     context.size = static_cast<size_t>(context.parcel.ReadInt32());
 
-    const size_t rawSize = context.rowPitch * context.info.size.height;
+    const size_t rawSize = static_cast<size_t>(context.rowPitch * context.info.size.height);
     return (isAstc || (context.size == rawSize));
 }
 

@@ -62,6 +62,7 @@ if (current_os != "ohos") {
     sources = [
       "src/EGL/egl.cpp",
       "src/EGL/egl_blob_cache.cpp",
+      "src/EGL/egl_bundle_mgr_helper.cpp",
       "src/EGL/egl_core.cpp",
       "src/EGL/egl_system_layers_manager.cpp",
       "src/EGL/egl_wrapper_context.cpp",
@@ -90,11 +91,15 @@ if (current_os != "ohos") {
       "opengles:libGLES",
     ]
     external_deps = [
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
       "c_utils:utils",
       "graphic_surface:surface",
       "hilog:libhilog",
       "init:libbeget_proxy",
       "init:libbegetutil",
+      "ipc:ipc_core",
+      "samgr:samgr_proxy",
     ]
 
     if (graphic_2d_feature_use_aps_igameservice_func) {

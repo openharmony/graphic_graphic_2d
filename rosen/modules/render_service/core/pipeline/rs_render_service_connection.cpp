@@ -38,6 +38,7 @@
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
+#include "pipeline/rs_ui_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uifirst_manager.h"
@@ -369,7 +370,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                                                                         uint64_t id,
                                                                         NodeId windowNodeId)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), windowNodeId);
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
         auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
         auto& context = mainThread_->GetContext();
@@ -673,7 +674,33 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             mainThread_->PostTask(captureTask);
         }
     } else {
-        TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
+        if (RSUniRenderJudgement::IsUniRender()) {
+            RSMainThread::Instance()->PostTask([id, callback, scaleX, scaleY, isSync]() {
+                    TakeSurfaceCaptureForUiParallel(id, callback, scaleX, scaleY, isSync);
+                }, "UiCapture", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
+        }
+    }
+}
+
+void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+{
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+    if (!node) {
+        RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
+        callback->OnSurfaceCapture(id, nullptr);
+        return;
+    }
+
+    std::function<void()> captureTask = [id, callback, scaleX, scaleY]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, scaleX, scaleY);
+    };
+    if (!isSync && node->IsOnTheTree() && !node->IsDirty()) {
+        RSUniRenderThread::Instance().PostTask(captureTask);
+    } else {
+        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
     }
 }
 

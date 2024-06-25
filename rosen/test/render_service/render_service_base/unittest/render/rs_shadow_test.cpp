@@ -36,7 +36,7 @@ void RSShadowTest::TearDown() {}
 /**
  * @tc.name: SetColorTest001
  * @tc.desc: Verify function SetColor
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetColorTest001, TestSize.Level1)
 {
@@ -48,7 +48,7 @@ HWTEST_F(RSShadowTest, SetColorTest001, TestSize.Level1)
 /**
  * @tc.name: SetOffsetXTest001
  * @tc.desc: Verify function SetOffsetX
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetOffsetXTest001, TestSize.Level1)
 {
@@ -60,7 +60,7 @@ HWTEST_F(RSShadowTest, SetOffsetXTest001, TestSize.Level1)
 /**
  * @tc.name: SetOffsetYTest001
  * @tc.desc: Verify function SetOffsetY
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetOffsetYTest001, TestSize.Level1)
 {
@@ -72,7 +72,7 @@ HWTEST_F(RSShadowTest, SetOffsetYTest001, TestSize.Level1)
 /**
  * @tc.name: SetAlphaTest001
  * @tc.desc: Verify function SetAlpha
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetAlphaTest001, TestSize.Level1)
 {
@@ -84,7 +84,7 @@ HWTEST_F(RSShadowTest, SetAlphaTest001, TestSize.Level1)
 /**
  * @tc.name: LifeCycle001
  * @tc.desc:
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, LifeCycle001, TestSize.Level1)
 {
@@ -112,7 +112,7 @@ HWTEST_F(RSShadowTest, TestRSShadow001, TestSize.Level1)
 /**
  * @tc.name: SetPathTest001
  * @tc.desc: Verify function SetPath
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetPathTest001, TestSize.Level1)
 {
@@ -125,7 +125,7 @@ HWTEST_F(RSShadowTest, SetPathTest001, TestSize.Level1)
 /**
  * @tc.name: SetMaskTest001
  * @tc.desc: Verify function SetMask
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetMaskTest001, TestSize.Level1)
 {
@@ -137,7 +137,7 @@ HWTEST_F(RSShadowTest, SetMaskTest001, TestSize.Level1)
 /**
  * @tc.name: SetIsFilledTest001
  * @tc.desc: Verify function SetIsFilled
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetIsFilledTest001, TestSize.Level1)
 {
@@ -149,7 +149,7 @@ HWTEST_F(RSShadowTest, SetIsFilledTest001, TestSize.Level1)
 /**
  * @tc.name: SetColorStrategyTest001
  * @tc.desc: Verify function SetColorStrategy
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, SetColorStrategyTest001, TestSize.Level1)
 {
@@ -161,7 +161,7 @@ HWTEST_F(RSShadowTest, SetColorStrategyTest001, TestSize.Level1)
 /**
  * @tc.name: GetColorTest001
  * @tc.desc: Verify function GetColor
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetColorTest001, TestSize.Level1)
 {
@@ -172,7 +172,7 @@ HWTEST_F(RSShadowTest, GetColorTest001, TestSize.Level1)
 /**
  * @tc.name: GetOffsetXTest001
  * @tc.desc: Verify function GetOffsetX
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetOffsetXTest001, TestSize.Level1)
 {
@@ -183,7 +183,7 @@ HWTEST_F(RSShadowTest, GetOffsetXTest001, TestSize.Level1)
 /**
  * @tc.name: GetOffsetYTest001
  * @tc.desc: Verify function GetOffsetY
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetOffsetYTest001, TestSize.Level1)
 {
@@ -194,7 +194,7 @@ HWTEST_F(RSShadowTest, GetOffsetYTest001, TestSize.Level1)
 /**
  * @tc.name: GetAlphaTest001
  * @tc.desc: Verify function GetAlpha
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetAlphaTest001, TestSize.Level1)
 {
@@ -205,7 +205,7 @@ HWTEST_F(RSShadowTest, GetAlphaTest001, TestSize.Level1)
 /**
  * @tc.name: GetElevationTest001
  * @tc.desc: Verify function GetElevation
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetElevationTest001, TestSize.Level1)
 {
@@ -216,7 +216,7 @@ HWTEST_F(RSShadowTest, GetElevationTest001, TestSize.Level1)
 /**
  * @tc.name: GetRadiusTest001
  * @tc.desc: Verify function GetRadius
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetRadiusTest001, TestSize.Level1)
 {
@@ -227,7 +227,7 @@ HWTEST_F(RSShadowTest, GetRadiusTest001, TestSize.Level1)
 /**
  * @tc.name: GetPathTest001
  * @tc.desc: Verify function GetPath
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetPathTest001, TestSize.Level1)
 {
@@ -238,7 +238,7 @@ HWTEST_F(RSShadowTest, GetPathTest001, TestSize.Level1)
 /**
  * @tc.name: GetMaskTest001
  * @tc.desc: Verify function GetMask
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetMaskTest001, TestSize.Level1)
 {
@@ -249,7 +249,7 @@ HWTEST_F(RSShadowTest, GetMaskTest001, TestSize.Level1)
 /**
  * @tc.name: GetIsFilledTest001
  * @tc.desc: Verify function GetIsFilled
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetIsFilledTest001, TestSize.Level1)
 {
@@ -260,7 +260,7 @@ HWTEST_F(RSShadowTest, GetIsFilledTest001, TestSize.Level1)
 /**
  * @tc.name: GetColorStrategyTest001
  * @tc.desc: Verify function GetColorStrategy
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetColorStrategyTest001, TestSize.Level1)
 {
@@ -295,7 +295,7 @@ HWTEST_F(RSShadowTest, TestRSShadow003, TestSize.Level1)
 /**
  * @tc.name: GetColorPickerCacheTask001
  * @tc.desc: Verify function GetColorPickerCacheTask001
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShadowTest, GetColorPickerCacheTask001, TestSize.Level1)
 {

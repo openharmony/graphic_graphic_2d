@@ -433,11 +433,6 @@ bool RSSystemProperties::GetRenderParallelEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetUIFirstForceEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::IsForceClient()
 {
     return false;

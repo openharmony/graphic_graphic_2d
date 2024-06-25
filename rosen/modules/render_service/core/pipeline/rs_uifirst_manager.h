@@ -130,7 +130,7 @@ public:
     }
 
     void SetUseDmaBuffer(bool val);
-    bool GetUseDmaBuffer() const;
+    bool GetUseDmaBuffer(const std::string& name) const;
     bool IsScreenshotAnimation();
 
     void PostReleaseCacheSurfaceSubTasks();

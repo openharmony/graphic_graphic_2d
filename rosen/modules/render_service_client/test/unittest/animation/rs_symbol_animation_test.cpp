@@ -37,13 +37,14 @@ HWTEST_F(RSSymbolAnimationTest, InitSupportAnimationTableTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest InitSupportAnimationTable start";
     auto symbolAnimation = RSSymbolAnimation();
-    symbolAnimation.InitSupportAnimationTable();
+    symbolAnimation.InitSupportAnimationTable(); // init data
+    symbolAnimation.InitSupportAnimationTable(); // if data exists, data will not init again
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest InitSupportAnimationTable end";
 }
 
 /**
  * @tc.name: ReplaceAnimationTest001
- * @tc.desc: Verify the basic ability, ReplaceAnimation of ReplaceAnimationTest001
+ * @tc.desc: Verify the basic ability, ReplaceAnimation of RSSymbolAnimationTest
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, ReplaceAnimationTest001, TestSize.Level1)
@@ -60,9 +61,8 @@ HWTEST_F(RSSymbolAnimationTest, ReplaceAnimationTest001, TestSize.Level1)
     std::shared_ptr<RSCanvasNode> appearCanvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
-    
     /**
-     * @tc.steps: step2. start BounceAnimation test
+     * @tc.steps: step2. start ReplaceAnimation test
      */
     symbolAnimation.AppearAnimation(canvasNode, disappearGroupParas);
     symbolAnimation.AppearAnimation(canvasNode, appearGroupParas);
@@ -113,6 +113,49 @@ HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BounceAnimationTest002
+ * @tc.desc: Verify the basic ability, BounceAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest002 start";
+    /**
+     * @tc.steps: step1. if node is nullptr
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {BOUNCE_FIRST_PHASE_PARAS,
+                                                                     BOUNCE_SECOND_PHASE_PARAS};
+    /**
+     * @tc.steps: step2. start BounceAnimation test, no animation
+     */
+    symbolAnimation.BounceAnimation(nullptr, oneGroupParas);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest002 end";
+}
+
+/**
+ * @tc.name: BounceAnimationTest003
+ * @tc.desc: Verify the basic ability, BounceAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest003 start";
+    /**
+     * @tc.steps: step1. if parameters.size() < animationStageNum
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {BOUNCE_FIRST_PHASE_PARAS};
+    /**
+     * @tc.steps: step2. start BounceAnimation test, no animation
+     */
+    symbolAnimation.BounceAnimation(canvasNode, oneGroupParas);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest003 end";
+}
+
+/**
  * @tc.name: ScaleAnimationBase001
  * @tc.desc: Verify the basic ability, ScaleAnimationBase of RSSymbolAnimationTest
  * @tc.type: FUNC
@@ -129,7 +172,7 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase001, TestSize.Level1)
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
     symbolAnimation.AddScaleBaseModifier(canvasNode, bounceSecondPhaseParas, scaleProperty);
     symbolAnimation.ScaleAnimationBase(scaleProperty, bounceSecondPhaseParas, groupAnimation);
-        /**
+    /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
     EXPECT_FALSE(groupAnimation.empty());
@@ -157,7 +200,7 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase002, TestSize.Level1)
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
     symbolAnimation.AddScaleBaseModifier(canvasNode, testParas, scaleProperty);
     symbolAnimation.ScaleAnimationBase(scaleProperty, testParas, groupAnimation);
-        /**
+    /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
     EXPECT_TRUE(groupAnimation.empty());
@@ -185,6 +228,49 @@ HWTEST_F(RSSymbolAnimationTest, AppearAnimation001, TestSize.Level1)
     symbolAnimation.AppearAnimation(canvasNode, oneGroupParas);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation001 end";
+}
+
+/**
+ * @tc.name: AppearAnimation002
+ * @tc.desc: Verify the basic ability, AppearAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, AppearAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation002 start";
+    /**
+     * @tc.steps: step1. if node is nullptr
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {APPEAR_FIRST_PHASE_PARAS,
+                                                                     APPEAR_SECOND_PHASE_PARAS};
+    /**
+     * @tc.steps: step2. start AppearAnimation test, no animation
+     */
+    symbolAnimation.AppearAnimation(nullptr, oneGroupParas);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation002 end";
+}
+
+/**
+ * @tc.name: AppearAnimation003
+ * @tc.desc: Verify the basic ability, AppearAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, AppearAnimation003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation003 start";
+    /**
+     * @tc.steps: step1. if parameters.size() < animationStageNum
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {APPEAR_FIRST_PHASE_PARAS};
+    /**
+     * @tc.steps: step2. start AppearAnimation test, no animation
+     */
+    symbolAnimation.AppearAnimation(canvasNode, oneGroupParas);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation003 end";
 }
 
 /**
@@ -370,7 +456,6 @@ HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation007, TestSize.Level1
      * @tc.steps: step2. start KeyframeAlphaSymbolAnimation test
      */
     EXPECT_FALSE(getParasFlag == false);
-    EXPECT_FALSE(timePercents.size() == 0);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation007 end";
 }
@@ -401,29 +486,93 @@ HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation008, TestSize.Level1
 }
 
 /**
- * @tc.name: ScaleSymbolAnimationTest001
- * @tc.desc: Verify the basic ability, ScaleSymbolAnimation of RSSymbolAnimationTest
+ * @tc.name: KeyframeAlphaSymbolAnimation009
+ * @tc.desc: A Part of Get Paras, KeyframeAlphaSymbolAnimation of RSSymbolAnimationTest
  * @tc.type: FUNC
  */
-HWTEST_F(RSSymbolAnimationTest, ScaleSymbolAnimationTest001, TestSize.Level1)
+HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation009, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest ScaleSymbolAnimationTest001 start";
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation009 start";
     /**
-     * @tc.steps: step1. init data
+     * @tc.steps: step1. if interval < 0
      */
     auto symbolAnimation = RSSymbolAnimation();
-    symbolAnimation.scaleProperty_ = std::make_shared<RSAnimatableProperty<Vector2f>>(ANIMATION_NORMAL_SCALE);
-    auto scaleModifier = std::make_shared<RSScaleModifier>(symbolAnimation.scaleProperty_);
-    canvasNode->AddModifier(scaleModifier);
-    auto animation = symbolAnimation.ScaleSymbolAnimation(canvasNode, APPEAR_FIRST_PHASE_PARAS, ANIMATION_DOUBLE_SCALE);
+    std::vector<float> timePercents;
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {VARIABLECOLOR_FIRST_PHASE_PARAS,
+                                                                     VARIABLECOLOR_FIRST_PHASE_PARAS};
+    auto getParasFlag = symbolAnimation.CalcTimePercents(timePercents, ANIMATION_DURATION, oneGroupParas);
     /**
-     * @tc.steps: step2. start ScaleSymbolAnimation test
+     * @tc.steps: step2. start KeyframeAlphaSymbolAnimation test
      */
-    EXPECT_FALSE(animation == nullptr);
-    animation->Start(canvasNode);
-    EXPECT_TRUE(animation->IsRunning());
+    EXPECT_TRUE(getParasFlag == false);
+    EXPECT_TRUE(timePercents.size() == 2);
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest ScaleSymbolAnimationTest001 end";
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation009 end";
+}
+
+/**
+ * @tc.name: KeyframeAlphaSymbolAnimation0010
+ * @tc.desc: SetKeyframeAlphaAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation0010, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation0010 start";
+    /**
+     * @tc.steps: step1.1 init data if effectStrategy is variablecolor
+     */
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>(VARIABLE_COLOR_CONFIG);
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {VARIABLECOLOR_FIRST_PHASE_PARAS,
+                                                                     VARIABLECOLOR_SECOND_PHASE_PARAS};
+    auto flag1 = symbolAnimation.SetKeyframeAlphaAnimation(canvasNode, oneGroupParas, symbolAnimationConfig);
+    /**
+     * @tc.steps: step1.2 if node is nullptr
+     */
+    auto flag2 = symbolAnimation.SetKeyframeAlphaAnimation(nullptr, oneGroupParas, symbolAnimationConfig);
+    /**
+     * @tc.steps: step1.3 if symbolAnimationConfig is nullptr
+     */
+    auto flag3 = symbolAnimation.SetKeyframeAlphaAnimation(canvasNode, oneGroupParas, nullptr);
+    /**
+     * @tc.steps: step1.4 if parameters is empty
+     */
+    std::vector<Drawing::DrawingPiecewiseParameter> emptyParameters = {};
+    auto flag4 = symbolAnimation.SetKeyframeAlphaAnimation(canvasNode, emptyParameters, symbolAnimationConfig);
+    /**
+     * @tc.steps: step2 start KeyframeAlphaSymbolAnimation test
+     */
+    EXPECT_TRUE(flag1 == true);
+    EXPECT_TRUE(flag2 == false);
+    EXPECT_TRUE(flag3 == false);
+    EXPECT_TRUE(flag4 == false);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation0010 end";
+}
+
+/**
+ * @tc.name: KeyframeAlphaSymbolAnimation0011
+ * @tc.desc: SetKeyframeAlphaAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation0011, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation0011 start";
+    /**
+     * @tc.steps: step1 init data if effectStrategy is pulse
+     */
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>(PULSE_CONFIG);
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {VARIABLECOLOR_FIRST_PHASE_PARAS,
+                                                                     VARIABLECOLOR_SECOND_PHASE_PARAS};
+    auto flag = symbolAnimation.SetKeyframeAlphaAnimation(canvasNode, oneGroupParas, symbolAnimationConfig);
+
+    /**
+     * @tc.steps: step2 start KeyframeAlphaSymbolAnimation test
+     */
+    EXPECT_TRUE(flag == true);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation0011 end";
 }
 
 /**

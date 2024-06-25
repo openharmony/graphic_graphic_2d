@@ -48,7 +48,7 @@ HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
 /**
  * @tc.name: CreateRSShaderTest002
  * @tc.desc: Verify function CreateRSShader
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShaderTest, CreateRSShaderTest002, TestSize.Level1)
 {
@@ -71,7 +71,7 @@ HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
 /**
  * @tc.name: CreateRSShaderTest001
  * @tc.desc: Verify function CreateRSShader
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSShaderTest, CreateRSShaderTest001, TestSize.Level1)
 {

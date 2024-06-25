@@ -42,6 +42,7 @@ ohos_fuzztest("RSSurfaceFrameOhosVulkanFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
   ]
   sources = [ "rssurfaceframeohosvulkan_fuzzer.cpp" ]
 }

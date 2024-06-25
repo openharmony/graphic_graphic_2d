@@ -33,7 +33,6 @@ ohos_fuzztest("RSBaseCommonFuzzTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/zlib:libz",
   ]
   cflags = [
     "-g",
@@ -46,6 +45,7 @@ ohos_fuzztest("RSBaseCommonFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "zlib:libz",
   ]
 }
 

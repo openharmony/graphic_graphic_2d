@@ -1323,6 +1323,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.OpincSetInAppStateEnd(unchangeMarkInApp_);
         return;
     }
+
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager is nullptr",
+            node.GetName().c_str());
+        return;
+    }
+
     // 1. Update matrix and collect dirty region
     auto dirtyFlag = dirtyFlag_;
     auto prepareClipRect = prepareClipRect_;
@@ -1765,7 +1772,8 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         if (!(node.GetName().find("touch window") != std::string::npos ||
             node.GetName().find("knuckle window") != std::string::npos ||
             node.GetName().find("knuckle dynamic window") != std::string::npos ||
-            node.GetName().find("SCBGestureBack") != std::string::npos)) {
+            node.GetName().find("SCBGestureBack") != std::string::npos) &&
+            node.GetFirstLevelNodeId() == node.GetNodeId()) {
             auto rectF = node.GetRenderProperties().GetBoundsRect();
             RectI rectI = RectI{rectF.GetLeft(), rectF.GetTop(), rectF.GetWidth(), rectF.GetHeight()};
             globalSurfaceBounds_.emplace_back(rectI);
@@ -2145,7 +2153,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     ResetDisplayDirtyRegion();
-    CheckMergeDebugRectforRefreshRate();
+    CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 
@@ -3209,7 +3217,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         if (auto directParent = node.GetParent().lock()) {
             directParent->SetChildHasVisibleFilter(true);
         }
-        if (curSurfaceDirtyManager_->IsTargetForDfx()) {
+        if (curSurfaceDirtyManager_ && curSurfaceDirtyManager_->IsTargetForDfx()) {
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
@@ -6437,14 +6445,29 @@ bool RSUniRenderVisitor::CheckColorFilterChange() const
     return true;
 }
 
-void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate()
+void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRenderNode::SharedPtr>& surfaces)
 {
     // Debug dirtyregion of show current refreshRation
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
-        auto& geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
-        tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true：debugRect for dislplayNode skip
+        bool surfaceNodeSet = false;
+        std::for_each(surfaces.begin(), surfaces.end(),
+            [this, &tempRect, &surfaceNodeSet](RSBaseRenderNode::SharedPtr& nodePtr) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
+            if (surfaceNode->IsMainWindowType()) {
+                // refresh rate rect for mainwindow
+                auto& geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
+                surfaceNodeSet = true;
+                return;
+            }
+        });
+        if (!surfaceNodeSet) {
+            auto &geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
+            tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
+        }
     }
 }
 

@@ -484,9 +484,11 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
         std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
         ASSERT_TRUE(director != nullptr);
-        director->isUniRenderEnabled_ = true;
-        director->StartTextureExport();
-        EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+            director->isUniRenderEnabled_ = true;
+            director->StartTextureExport();
+            EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+        }
     }
 }
 

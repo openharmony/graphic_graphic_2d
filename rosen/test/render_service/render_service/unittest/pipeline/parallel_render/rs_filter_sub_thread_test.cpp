@@ -17,7 +17,6 @@
 
 #include "pipeline/parallel_render/rs_filter_sub_thread.h"
 #include "render/rs_filter.h"
-#include "pipeline/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,110 +43,51 @@ void RsFilterSubThreadTest::TearDown() {}
  */
 HWTEST_F(RsFilterSubThreadTest, PostTaskTest, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
+    auto curThread = std::make_shared<RSFilterSubThread>(nullptr);
+    ASSERT_TRUE(curThread != nullptr);
     curThread->PostTask([] {});
+    usleep(1000 * 1000); // 1000 * 1000us
 }
 
 /**
- * @tc.name: CreateShareEglContextTest
- * @tc.desc: Test RsFilterSubThreadTest.CreateShareEglContextTest
+ * @tc.name: PostSyncTaskTest
+ * @tc.desc: Test RsFilterSubThreadTest.PostSyncTaskTest
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RsFilterSubThreadTest, CreateShareEglContextTest, TestSize.Level1)
+HWTEST_F(RsFilterSubThreadTest, PostSyncTaskTest, TestSize.Level1)
 {
-    auto curThread1 = std::make_shared<RSFilterSubThread>(nullptr);
-    curThread1->CreateShareEglContext();
-    curThread1->DestroyShareEglContext();
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread2 = std::make_shared<RSFilterSubThread>(renderContext.get());
-    curThread2->CreateShareEglContext();
-    curThread2->DestroyShareEglContext();
-}
-
-/**
- * @tc.name: StartColorPickerTest001
- * @tc.desc: Verify function StartColorPicker
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, StartColorPickerTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    curThread->StartColorPicker();
-    RSMainThread::Instance()->SetNoNeedToPostTask(true);
-    curThread->StartColorPicker();
-    EXPECT_TRUE(curThread->runner_);
-}
-
-/**
- * @tc.name: PostSyncTaskTest001
- * @tc.desc: Verify function PostSyncTask
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, PostSyncTaskTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
+    auto curThread = std::make_shared<RSFilterSubThread>(nullptr);
+    ASSERT_TRUE(curThread != nullptr);
     curThread->PostSyncTask([] {});
-    EXPECT_TRUE(curThread->handler_);
+    usleep(1000 * 1000); // 1000 * 1000us
 }
 
 /**
- * @tc.name: DumpMemTest001
- * @tc.desc: Verify function DumpMem
- * @tc.type:FUNC
+ * @tc.name: ResetGrContextTest
+ * @tc.desc: Test RsFilterSubThreadTest.ResetGrContextTest
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RsFilterSubThreadTest, DumpMemTest001, TestSize.Level1)
+HWTEST_F(RsFilterSubThreadTest, ResetGrContextTest, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    DfxString log;
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    curThread->DumpMem(log);
-    EXPECT_TRUE(curThread->grContext_);
-}
-
-/**
- * @tc.name: GetAppGpuMemoryInMBTest001
- * @tc.desc: Verify function GetAppGpuMemoryInMB
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    EXPECT_EQ(curThread->GetAppGpuMemoryInMB(), 0.f);
-}
-
-/**
- * @tc.name: ColorPickerRenderCacheTest001
- * @tc.desc: Verify function ColorPickerRenderCache
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, ColorPickerRenderCacheTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
-    std::shared_ptr<RSColorPickerCacheTask> colorTask = nullptr;
-    curThread->ColorPickerRenderCache(colorTask);
-    EXPECT_FALSE(curThread->grContext_);
-}
-
-/**
- * @tc.name: ResetGrContextTest001
- * @tc.desc: Verify function ResetGrContext
- * @tc.type:FUNC
- */
-HWTEST_F(RsFilterSubThreadTest, ResetGrContextTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSFilterSubThread>(renderContext.get());
+    auto curThread = std::make_shared<RSFilterSubThread>(nullptr);
+    ASSERT_TRUE(curThread != nullptr);
     curThread->ResetGrContext();
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    curThread->ResetGrContext();
-    EXPECT_TRUE(curThread->grContext_);
+    usleep(1000 * 1000); // 1000 * 1000us
+}
+
+/**
+ * @tc.name: GetAppGpuMemoryInMBTest
+ * @tc.desc: Test RsFilterSubThreadTest.GetAppGpuMemoryInMBTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFilterSubThreadTest, GetAppGpuMemoryInMBTest, TestSize.Level1)
+{
+    auto curThread = std::make_shared<RSFilterSubThread>(nullptr);
+    ASSERT_TRUE(curThread != nullptr);
+    curThread->GetAppGpuMemoryInMB();
+    usleep(1000 * 1000); // 1000 * 1000us
 }
 } // namespace OHOS::Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,48 +79,106 @@ const std::string SUCCESS_STRING = "success";
 constexpr bool SUCCESS_BOOL = true;
 
 const Drawing::DrawingPiecewiseParameter BOUNCE_FIRST_PHASE_PARAS = {
-    // 16: duration, 0: delay, 1 and 1.01: scale
-    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 16, 0, {{"sx", {1, 1.01}}, {"sy", {1, 1.01}}}
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    16, 0,                         // 16 is animation duration, 0 is animation delay
+    {
+        {"sx", {1.01, 1}},          // scale of x-axis is from 1.01 to 1
+        {"sy", {1.01, 1}}           // scale of y-axis is from 1.01 to 1
+    }
 };
 const Drawing::DrawingPiecewiseParameter BOUNCE_SECOND_PHASE_PARAS = {
-    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
-    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
-    {{"velocity", -300}, {"mass", 1}, {"stiffness", 328}, {"damping", 16}},
-    0, 16, {{"sx", {1.01, 1}}, {"sy", {1.01, 1}}} // 16: duration, 0: delay, 1 and 1.01: scale
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING, // animation curve type
+    {
+        {"velocity", 0},           // 0 is velocity of animation curve
+        {"mass", 1},               // 1 is mass of animation curve
+        {"stiffness", 228},        // 228 is stiffness of animation curve
+        {"damping", 22}            // 22 is damping of animation curve
+    },
+    16, 0,                         // 16 is animation duration, 0 is animation delay
+    {
+        {"sx", {1.01, 1}},          // scale of x-axis is from 1.01 to 1
+        {"sy", {1.01, 1}}           // scale of y-axis is from 1.01 to 1
+    }
 };
 const Drawing::DrawingPiecewiseParameter APPEAR_FIRST_PHASE_PARAS = {
-    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
-    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
-    {{"velocity", 0}, {"mass", 1}, {"stiffness", 228}, {"damping", 22}},
-    16, 0, {{"sx", {0.9, 1}}, {"sy", {0.9, 1}}} // 16: duration, 0: delay, 1.01: scale
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING, // animation curve type
+    {
+        {"velocity", 0},           // 0 is velocity of animation curve
+        {"mass", 1},               // 1 is mass of animation curve
+        {"stiffness", 228},        // 228 is stiffness of animation curve
+        {"damping", 22}            // 22 is damping of animation curve
+    },
+    16, 0,                         // 16 is animation duration, 0 is animation delay
+    {
+        {"sx", {0.9, 1}},          // scale of x-axis is from 0.9 to 1
+        {"sy", {0.9, 1}}           // scale of y-axis is from 0.9 to 1
+    }
 };
 const Drawing::DrawingPiecewiseParameter APPEAR_SECOND_PHASE_PARAS = {
-    // 100: duration, 0: delay, 0.0 and 1: alpha
-    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 100, 0, {{"alpha", {0.0, 1}}}
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    100, 0,                        // 100 is animation duration, 0 is animation delay
+    {{"alpha", {0.0, 1}}}          // alpha is from 0 to 1
 };
 const std::vector<float> TIME_PERCENTS = {0.0, 0.35, 0.35, 1.0};
 const std::vector<float> ALPHA_VALUES = {0.4, 1.0, 1.0, 0.4};
 const Drawing::DrawingPiecewiseParameter VARIABLECOLOR_FIRST_PHASE_PARAS = {
-    // 250: duration, 0: delay, 0.4 and 1: alpha
-    OHOS::Rosen::Drawing::DrawingCurveType::SHARP,
-    {{"ctrlX1", 0.33}, {"ctrlY1", 0}, {"ctrlX2", 0.67}, {"ctrlY2", 1}},
-    250, 0, {{"alpha", {0.4, 1}}}
+    OHOS::Rosen::Drawing::DrawingCurveType::SHARP, // animation curve type
+    {
+        {"ctrlX1", 0.33},          // 0.33 is x coord of the first control point
+        {"ctrlY1", 0},             // 0 is y coord of the first control point
+        {"ctrlX2", 0.67},          // 0.67 is x coord of the second control point
+        {"ctrlY2", 1}              // 1 is y coord of the second control point
+    },
+    250, 0,                        // 250 is animation duration, 0 is animation delay
+    {{"alpha", {0.4, 1}}}          // alpha is from 0.4 to 1
 };
 const Drawing::DrawingPiecewiseParameter VARIABLECOLOR_SECOND_PHASE_PARAS = {
-    // 250: duration, 0: delay, 0.4 and 1: alpha
-    OHOS::Rosen::Drawing::DrawingCurveType::SHARP,
-    {{"ctrlX1", 0.33}, {"ctrlY1", 0}, {"ctrlX2", 0.67}, {"ctrlY2", 1}},
-    450, 250, {{"alpha", {1, 0.4}}}
+    OHOS::Rosen::Drawing::DrawingCurveType::SHARP, // animation curve type
+    {
+        {"ctrlX1", 0.33},          // 0.33 is x coord of the first control point
+        {"ctrlY1", 0},             // 0 is y coord of the first control point
+        {"ctrlX2", 0.67},          // 0.67 is x coord of the second control point
+        {"ctrlY2", 1}              // 1 is y coord of the second control point
+    },
+    450, 250,                      // 450 is animation duration, 250 is animation delay
+    {{"alpha", {1, 0.4}}}          // alpha is from 1 to 0.4
 };
 const Drawing::DrawingPiecewiseParameter DISAPPEAR_FIRST_PHASE_PARAS = {
-    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
-    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
-    {{"velocity", 0}, {"mass", 1}, {"stiffness", 228}, {"damping", 22}},
-    16, 0, {{"sx", {1, 0.3}}, {"sy", {1, 0.3}}} // 16: duration, 0: delay, 1.01: scale
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING, // animation curve type
+    {
+        {"velocity", 0},           // 0 is velocity of animation curve
+        {"mass", 1},               // 1 is mass of animation curve
+        {"stiffness", 228},        // 228 is stiffness of animation curve
+        {"damping", 22}            // 22 is damping of animation curve
+    },
+    16, 0,                         // 16 is animation duration, 0 is animation delay
+    {
+        {"sx", {1, 0.3}},          // scale of x-axis is from 1 to 0.3
+        {"sy", {1, 0.3}}           // scale of y-axis is from 1 to 0.3
+    }
 };
 const Drawing::DrawingPiecewiseParameter DISAPPEAR_SECOND_PHASE_PARAS = {
-    // 100: duration, 0: delay, 0.0 and 1: alpha
-    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 100, 0, {{"alpha", {1.0, 0.0}}}
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    100, 0,                        // 100 is animation duration, 0 is animation delay
+    {{"alpha", {1.0, 0.0}}}        // alpha is from 1 to 0
+};
+
+const TextEngine::SymbolAnimationConfig VARIABLE_COLOR_CONFIG = {
+    {}, 0, // symbolNodes is {}; numNodes is 0;
+    Drawing::DrawingEffectStrategy::VARIABLE_COLOR, // effectStrategy is VARIABLE_COLOR;
+    9999, 0, // symbolSpanId is 9999, which is a random value; animationMode is 0, which means iterative mode;
+    1, true, Drawing::DrawingCommonSubType::DOWN // repeatCount is 1; animationStart is true；move direction is
+
+};
+
+const TextEngine::SymbolAnimationConfig PULSE_CONFIG = {
+    {}, 0, // symbolNodes is {}; numNodes is 0;
+    Drawing::DrawingEffectStrategy::PULSE, // effectStrategy is PULSE;
+    8888, 0, // symbolSpanId is 8888, which is a random value; animationMode is 0, which means hierarchical mode;
+    1, true, Drawing::DrawingCommonSubType::DOWN // repeatCount is 1; animationStart is true；move direction is downward
 };
 } // ANIMATIONTEST
 } // namespace Rosen

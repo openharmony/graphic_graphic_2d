@@ -63,7 +63,8 @@ declare_args() {
 
 if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "pc" ||
-    graphic_2d_feature_product == "tablet") {
+    graphic_2d_feature_product == "tablet" ||
+    graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
@@ -306,6 +307,8 @@ fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
 arkui_root = "//foundation/arkui"
 ace_root = "//foundation/arkui/ace_engine"
+bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
+bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

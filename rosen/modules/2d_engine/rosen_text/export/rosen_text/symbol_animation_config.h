@@ -25,19 +25,6 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 
-
-enum SymbolAnimationEffectStrategy {
-    SYMBOL_NONE = 0,
-    SYMBOL_SCALE = 1,
-    SYMBOL_VARIABLE_COLOR = 2,
-    SYMBOL_APPEAR = 3,
-    SYMBOL_DISAPPEAR = 4,
-    SYMBOL_BOUNCE = 5,
-    SYMBOL_PULSE = 6,
-    SYMBOL_REPLACE_APPEAR = 7,
-    SYMBOL_REPLACE_DISAPPEAR = 8
-};
-
 struct SymbolNode {
     Drawing::Path path;
     Drawing::DrawingSColor color;
@@ -47,9 +34,9 @@ struct SymbolNode {
     bool isMask = false;
 };
 struct SymbolAnimationConfig {
-    std::vector<SymbolNode> SymbolNodes;
+    std::vector<SymbolNode> symbolNodes;
     uint32_t numNodes = 0;
-    SymbolAnimationEffectStrategy effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     uint64_t symbolSpanId = 0;
     uint16_t animationMode = 0;
     int repeatCount = 1;

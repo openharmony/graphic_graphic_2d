@@ -59,6 +59,7 @@ public:
     void DumpMergedResult(std::string &result);  // used for uni render layer
     void ClearDump();
 
+    void SetReleaseFence(const sptr<SyncFence> &layerReleaseFence);
     sptr<SyncFence> GetReleaseFence() const;
     void SavePrevLayerInfo();
     void DumpByName(std::string windowName, std::string &result);
@@ -74,7 +75,6 @@ private:
         virtual ~LayerBufferInfo() = default;
 
         sptr<SurfaceBuffer> sbuffer_ = nullptr;
-        sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
@@ -85,8 +85,8 @@ private:
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
     bool isInUsing_ = false;
-    sptr<LayerBufferInfo> currSbuffer_ = nullptr;
-    sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
+    sptr<LayerBufferInfo> currBufferInfo_ = nullptr;
+    sptr<SurfaceBuffer> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
     LayerInfoPtr prevLayerInfo_ = nullptr;
     GraphicPresentTimestampType supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;

@@ -36,6 +36,12 @@ public:
     static void Capture(NodeId id,
         sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    static std::function<void()> CreateSurfaceCopyTaskWithDMA(std::shared_ptr<Drawing::Surface> surface,
+        std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        int32_t rotation = 0, bool useDma = false);
+#endif
+
     bool CreateResources();
     
     bool Run(sptr<RSISurfaceCaptureCallback> callback);

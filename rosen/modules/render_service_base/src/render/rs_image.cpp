@@ -113,7 +113,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
-        frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
+        if (!canvas.GetOffscreen()) {
+            frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
+        }
         if (!isBackground) {
             ApplyImageFit();
             ApplyCanvasClip(canvas);
@@ -242,6 +244,22 @@ void RSImage::ApplyImageFit()
 ImageFit RSImage::GetImageFit()
 {
     return imageFit_;
+}
+
+Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(const Drawing::Rect& frameRect) const
+{
+    Drawing::AdaptiveImageInfo imageInfo = {
+        .fitNum = static_cast<int32_t>(imageFit_),
+        .repeatNum = static_cast<int32_t>(imageRepeat_),
+        .radius = { radius_[0], radius_[1], radius_[2], radius_[3] },
+        .scale = scale_,
+        .uniqueId = 0,
+        .width = 0,
+        .height = 0,
+        .dynamicRangeMode = dynamicRangeMode_,
+        .frameRect = frameRect
+    };
+    return imageInfo;
 }
 
 RectF RSImage::GetDstRect()

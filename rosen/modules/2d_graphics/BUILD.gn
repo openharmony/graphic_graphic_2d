@@ -69,6 +69,7 @@ template("graphics2d_source_set") {
 
     public_deps = []
     external_deps = [ "napi:ace_napi" ]
+    public_external_deps = []
     sources = [
       "$drawing_core_src_dir/draw/OpListHandle.cpp",
       "$drawing_core_src_dir/draw/brush.cpp",
@@ -256,8 +257,7 @@ template("graphics2d_source_set") {
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
-      include_dirs += [ "//third_party/vulkan-headers/include" ]
-      public_deps += [ "//third_party/vulkan-headers:vulkan_headers" ]
+      public_external_deps += [ "vulkan-headers:vulkan_headers" ]
     }
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [
@@ -331,7 +331,7 @@ template("graphics2d_source_set") {
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       ]
       external_deps += [ "c_utils:utils" ]
-      public_external_deps = [ "graphic_surface:surface" ]
+      public_external_deps += [ "graphic_surface:surface" ]
     }
 
     part_name = "graphic_2d"
@@ -377,7 +377,9 @@ if (!is_arkui_x) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    deps = [ ":2d_graphics_source_$platform" ]
+    if (!(host_os == "linux" && host_cpu == "arm64")) {
+      deps = [ ":2d_graphics_source_$platform" ]
+    }
     external_deps = [ "hilog:libhilog" ]
     public_configs = [ ":export_config" ]
 
@@ -393,9 +395,14 @@ if (!is_arkui_x) {
     platform = current_os
 
     deps = [ ":2d_graphics_source_$platform" ]
-    deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+
+    if (is_arkui_x) {
+      include_dirs = [ "//third_party/bounds_checking_function/include" ]
+      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+    } else {
+      external_deps += [ "bounds_checking_function:libsec_static" ]
+    }
     public_configs = [ ":export_config" ]
-    include_dirs = [ "//third_party/bounds_checking_function/include" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -407,10 +414,10 @@ if (enable_text_gine) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    deps = [
-      ":2d_graphics_source_$platform",
-      "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
-    ]
+    deps = [ "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing" ]
+    if (!(host_os == "linux" && host_cpu == "arm64")) {
+      deps += [ ":2d_graphics_source_$platform" ]
+    }
     external_deps = [ "hilog:libhilog" ]
     public_external_deps = [ "bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]

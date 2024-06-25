@@ -181,10 +181,9 @@ bool RSSystemParameters::GetHideNotchStatus()
 
 bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dma.enabled", "0");
-    int changed = 0;
-    const char *dmaEnable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(dmaEnable, 0) != 0;
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.ui.first.dma.enabled", "1")).c_str()) != 0;
+    return enable;
 }
 } // namespace Rosen
 } // namespace OHOS

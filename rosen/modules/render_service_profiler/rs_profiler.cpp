@@ -1246,7 +1246,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     std::thread thread([]() {
         while (IsPlaying()) {
-            const uint64_t timestamp = RawNowNano();
+            const int64_t timestamp = static_cast<int64_t>(RawNowNano());
 
             PlaybackUpdate();
             if (g_playbackStartTime >= 0) {
@@ -1254,7 +1254,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
             }
 
             constexpr int64_t timeoutLimit = 8000000;
-            const int64_t timeout = timeoutLimit - RawNowNano() + timestamp;
+            const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
             }

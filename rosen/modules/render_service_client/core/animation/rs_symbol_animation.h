@@ -42,17 +42,17 @@ public:
     {
         rsNode_ = rsNode;
     }
-    bool SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
 
     // set symbol animation manager
     bool SetSymbolAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
 private:
+    bool SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
     // SetPublicAnimation is interface for animation that can be spliced by atomizated animations
     bool SetPublicAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
-        TextEngine::SymbolAnimationEffectStrategy& effectStrategy);
+        Drawing::DrawingEffectStrategy& effectStrategy);
     // choose the animation is a public animation or special animation
     bool ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
@@ -60,8 +60,6 @@ private:
     bool SetKeyframeAlphaAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-    bool SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode,
-        std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
 
     void InitSupportAnimationTable();
 
@@ -75,7 +73,7 @@ private:
     // splice atomizated animation construct
     void SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
-        const TextEngine::SymbolAnimationEffectStrategy& effectStrategy);
+        const Drawing::DrawingEffectStrategy& effectStrategy);
 
     void BounceAnimation(
         const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
@@ -106,12 +104,6 @@ private:
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     bool CalcTimePercents(std::vector<float>& timePercents, const uint32_t totalDuration,
         const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
-
-    std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
-        const Vector2f& scaleValueEnd = Vector2f { 0.f, 0.f });
-    bool GetScaleUnitAnimationParas(
-        Drawing::DrawingPiecewiseParameter& scaleUnitParas, Vector2f& scaleValueBegin, Vector2f& scaleValueEnd);
 
     std::shared_ptr<RSAnimation> KeyframeAlphaSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
         const Drawing::DrawingPiecewiseParameter& oneStageParas,
@@ -144,9 +136,9 @@ private:
     std::vector<std::shared_ptr<RSAnimatableProperty<float>>> alphaPropertyStages_;
 
     // animation support splice base animation
-    std::vector<TextEngine::SymbolAnimationEffectStrategy> publicSupportAnimations_ = {};
+    std::vector<Drawing::DrawingEffectStrategy> publicSupportAnimations_ = {};
     // animation support up&down interface
-    std::vector<TextEngine::SymbolAnimationEffectStrategy> upAndDownSupportAnimations_ = {};
+    std::vector<Drawing::DrawingEffectStrategy> upAndDownSupportAnimations_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

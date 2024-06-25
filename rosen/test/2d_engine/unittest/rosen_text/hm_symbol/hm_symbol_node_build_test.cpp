@@ -99,7 +99,7 @@ bool OHHmSymbolNodeBuildTest::SetSymbolAnimationOne(
     }
 
     // check the size is 1 of nodes config
-    if (symbolAnimationConfig->numNodes == 1 && symbolAnimationConfig->SymbolNodes.size() == 1) {
+    if (symbolAnimationConfig->numNodes == 1 && symbolAnimationConfig->symbolNodes.size() == 1) {
         return true;
     }
     return false;
@@ -113,7 +113,7 @@ bool OHHmSymbolNodeBuildTest::SetSymbolAnimationTwo(
     }
 
     // check the size is 2 of nodes config
-    if (symbolAnimationConfig->numNodes == 2 && symbolAnimationConfig->SymbolNodes.size() == 2) {
+    if (symbolAnimationConfig->numNodes == 2 && symbolAnimationConfig->symbolNodes.size() == 2) {
         return true;
     }
     return false;

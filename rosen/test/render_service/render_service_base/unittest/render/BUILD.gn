@@ -79,6 +79,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "hitrace:hitrace_meter",
     "image_framework:image_native",
     "init:libbegetutil",
     "skia:skia_canvaskit",

@@ -37,13 +37,8 @@
 namespace OHOS::Rosen::DrawableV2 {
 bool RSSurfaceRenderNodeDrawable::UseDmaBuffer()
 {
-    bool useDmaBuffer = (RSUifirstManager::Instance().GetUseDmaBuffer() &&
-        RSUifirstManager::Instance().IsScreenshotAnimation()) || GetBuffer();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
-    if (!surfaceParams) {
-        return useDmaBuffer;
-    }
-    return useDmaBuffer && surfaceParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW;
+    bool useDmaBuffer = RSUifirstManager::Instance().GetUseDmaBuffer(name_);
+    return useDmaBuffer;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

@@ -934,8 +934,7 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    if (RSUifirstManager::Instance().GetUseDmaBuffer() &&
-        node.GetName().find("ScreenShotWindow") != std::string::npos) {
+    if (RSUifirstManager::Instance().GetUseDmaBuffer(node.GetName())) {
         return true;
     }
     bool isNeedAssignToSubThread = false;
@@ -960,12 +959,13 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     std::string surfaceName = node.GetName();
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
     if (needFilterSCB || node.IsSelfDrawingType()) {
+        RS_TRACE_NAME_FMT("IsLeashWindowCache: needFilterSCB [%d]", needFilterSCB);
         return false;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
-        " filter:%d animation:%d forceUIFirst:%d isNeedAssign:%d",
-        node.GetName().c_str(), node.GetId(),
-        node.HasFilter(), animation, node.GetForceUIFirst(), isNeedAssignToSubThread);
+    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] IsScale[%d]"
+        " filter:[%d] rotate[%d]",
+        isNeedAssignToSubThread, node.IsScale(),
+        node.HasFilter(), RSUifirstManager::Instance().rotationChanged_);
     return isNeedAssignToSubThread;
 }
 
@@ -994,6 +994,9 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d]",
+        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag());
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return;
@@ -1010,14 +1013,12 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         UifirstStateChange(node, MultiThreadCacheType::ARKTS_CARD);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] cacheType",
-        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 
 void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects)
 {
-    if (node.GetLastFrameUifirstFlag() != MultiThreadCacheType::LEASH_WINDOW || !GetUseDmaBuffer()) {
+    if (!GetUseDmaBuffer(node.GetName())) {
         return;
     }
     bool intersect = false;
@@ -1102,7 +1103,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
     if (!useDmaBuffer_) {
         return;
     }
-    for (auto iter : pendingPostNodes_) {
+    for (auto& iter : pendingPostNodes_) {
         if (!iter.second) {
             continue;
         }
@@ -1139,9 +1140,9 @@ void RSUifirstManager::SetUseDmaBuffer(bool val)
     useDmaBuffer_ = val;
 }
 
-bool RSUifirstManager::GetUseDmaBuffer() const
+bool RSUifirstManager::GetUseDmaBuffer(const std::string& name) const
 {
-    return useDmaBuffer_;
+    return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
 } // namespace Rosen
 } // namespace OHOS

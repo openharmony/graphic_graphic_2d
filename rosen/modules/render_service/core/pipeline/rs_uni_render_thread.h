@@ -70,6 +70,8 @@ public:
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
+    void MemoryManagementBetweenFrames();
+    void PreAllocateTextureBetweenFrames();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);

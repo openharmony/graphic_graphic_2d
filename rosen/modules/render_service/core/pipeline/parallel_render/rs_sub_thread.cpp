@@ -341,10 +341,12 @@ void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawab
         RS_LOGE("RSSubThread::DrawableCacheWithSkImage canvas is nullptr");
         return;
     }
-
+    SetHighContrastIfEnabled(*rscanvas);
     rscanvas->SetIsParallelCanvas(true);
     rscanvas->SetDisableFilterCache(true);
     rscanvas->SetParallelThreadIdx(threadIndex_);
+    rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
+    rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
@@ -378,10 +380,12 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
         RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
         return;
     }
-
+    SetHighContrastIfEnabled(*rsCanvas);
     rsCanvas->SetIsParallelCanvas(true);
     rsCanvas->SetDisableFilterCache(true);
     rsCanvas->SetParallelThreadIdx(threadIndex_);
+    rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
+    rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     nodeDrawable->SubDraw(*rsCanvas);
@@ -389,9 +393,11 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
     RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get());
     renderFrame->Flush();
     RS_TRACE_END();
-    // uifirst_debug dump img
-    std::string pidstring = nodeDrawable->GetDebugInfo();
-    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(drSurface, pidstring);
+    // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
+    // 1. hdc shell mount -o rw,remount /
+    // 2. hdc shell setenforce 0 # close selinux temporarily
+    // 3. hdc shell chmod 0777 /data
+    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(drSurface, nodeDrawable->GetName());
 }
 
 void RSSubThread::ResetGrContext()

@@ -39,7 +39,7 @@ public:
         VSyncCallbackWithId callbackWithId_;
     };
     VSyncCallBackListener()
-        : period_(0), timeStamp_(0), vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr), userData_(nullptr)
+        : vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr), userData_(nullptr)
     {}
 
     ~VSyncCallBackListener()
@@ -57,10 +57,6 @@ public:
         std::lock_guard<std::mutex> locker(mtx_);
         name_ = name;
     }
-    int64_t period_;
-    int64_t timeStamp_;
-    thread_local static inline int64_t periodShared_ = 0;
-    thread_local static inline int64_t timeStampShared_ = 0;
     void SetRNVFlag(bool RNVFlag)
     {
         std::lock_guard<std::mutex> locker(mtx_);
@@ -72,6 +68,30 @@ public:
         return RNVFlag_;
     }
 
+    int64_t GetPeriod()
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        return period_;
+    }
+
+    int64_t GetTimeStamp()
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        return timeStamp_;
+    }
+
+    int64_t GetPeriodShared()
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        return periodShared_;
+    }
+
+    int64_t GetTimeStampShared()
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        return timeStampShared_;
+    }
+
 private:
     void OnReadable(int32_t fileDescriptor) override;
     VSyncCallback vsyncCallbacks_;
@@ -80,6 +100,10 @@ private:
     std::mutex mtx_;
     std::string name_;
     bool RNVFlag_ = false;
+    int64_t period_ = 0;
+    int64_t timeStamp_ = 0;
+    thread_local static inline int64_t periodShared_ = 0;
+    thread_local static inline int64_t timeStampShared_ = 0;
 };
 
 #ifdef __OHOS__

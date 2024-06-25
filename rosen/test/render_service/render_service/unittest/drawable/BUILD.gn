@@ -22,12 +22,15 @@ group("unittest") {
   deps = [
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
+    ":RSDirtyRectsDFXTest",
     ":RSDisplayRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
+    ":RSSkpCaptureDFXTest",
     ":RSSurfaceRenderNodeDrawableTest",
+    ":RSUIFirstSurfaceRenderNodeDrawableTest",
   ]
 }
 
@@ -129,6 +132,48 @@ ohos_unittest("RSRootRenderNodeDrawableTest") {
 ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_surface_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSUIFirstSurfaceRenderNodeDrawableTest
+ohos_unittest("RSUIFirstSurfaceRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_ui_first_surface_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSDirtyRectsDFXTest
+ohos_unittest("RSDirtyRectsDFXTest") {
+  module_out_path = module_output_path
+  sources = [ "dfx/rs_dirty_rects_dfx_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSSkpCaptureDFXTest
+ohos_unittest("RSSkpCaptureDFXTest") {
+  module_out_path = module_output_path
+  sources = [ "dfx/rs_skp_capture_dfx_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

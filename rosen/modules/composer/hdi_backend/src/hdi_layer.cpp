@@ -61,8 +61,7 @@ std::shared_ptr<HdiLayer> HdiLayer::CreateHdiLayer(uint32_t screenId)
 
 HdiLayer::HdiLayer(uint32_t screenId) : screenId_(screenId)
 {
-    prevSbuffer_ = new LayerBufferInfo();
-    currSbuffer_ = new LayerBufferInfo();
+    currBufferInfo_ = new LayerBufferInfo();
 }
 
 HdiLayer::~HdiLayer()
@@ -597,24 +596,29 @@ void HdiLayer::UpdateLayerInfo(const LayerInfoPtr &layerInfo)
     isInUsing_ = true;
     layerInfo_ = layerInfo;
 
-    prevSbuffer_->sbuffer_ = currSbuffer_->sbuffer_;
-    prevSbuffer_->acquireFence_ = currSbuffer_->acquireFence_;
+    prevSbuffer_ = currBufferInfo_->sbuffer_;
+    currBufferInfo_->sbuffer_ = layerInfo_->GetBuffer();
+}
 
-    currSbuffer_->sbuffer_ = layerInfo_->GetBuffer();
-    currSbuffer_->acquireFence_ = layerInfo_->GetAcquireFence();
+void HdiLayer::SetReleaseFence(const sptr<SyncFence> &layerReleaseFence)
+{
+    if (currBufferInfo_ == nullptr || layerReleaseFence == nullptr) {
+        return;
+    }
+    currBufferInfo_->releaseFence_ = layerReleaseFence;
 }
 
 sptr<SyncFence> HdiLayer::GetReleaseFence() const
 {
-    if (currSbuffer_ == nullptr) {
+    if (currBufferInfo_ == nullptr) {
         return SyncFence::INVALID_FENCE;
     }
-    return currSbuffer_->releaseFence_;
+    return currBufferInfo_->releaseFence_;
 }
 
 bool HdiLayer::RecordPresentTime(int64_t timestamp)
 {
-    if (currSbuffer_->sbuffer_ != prevSbuffer_->sbuffer_) {
+    if (currBufferInfo_->sbuffer_ != prevSbuffer_) {
         presentTimeRecords[count].presentTime = timestamp;
         presentTimeRecords[count].windowsName = layerInfo_->GetWindowsName();
         count = (count + 1) % FRAME_RECORDS_NUM;
@@ -663,16 +667,18 @@ void HdiLayer::RecordMergedPresentTime(int64_t timestamp)
 
 void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
 {
-    if (fbAcquireFence != nullptr) {
-        currSbuffer_->releaseFence_ = Merge(currSbuffer_->releaseFence_, fbAcquireFence);
+    if (currBufferInfo_ == nullptr || fbAcquireFence == nullptr) {
+        return;
     }
+    currBufferInfo_->releaseFence_ = Merge(currBufferInfo_->releaseFence_, fbAcquireFence);
 }
 
 void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
 {
-    if (layerReleaseFence != nullptr) {
-        currSbuffer_->releaseFence_ = Merge(currSbuffer_->releaseFence_, layerReleaseFence);
+    if (currBufferInfo_ == nullptr || layerReleaseFence == nullptr) {
+        return;
     }
+    currBufferInfo_->releaseFence_ = Merge(currBufferInfo_->releaseFence_, layerReleaseFence);
 }
 
 void HdiLayer::UpdateCompositionType(GraphicCompositionType type)

@@ -155,12 +155,17 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
 {
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    if (pendingRefreshRate_ != nullptr && (!dvsyncInfo.isUiDvsyncOn || rsRate == *pendingRefreshRate_)) {
+    if (pendingRefreshRate_ != nullptr) {
         hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
         pendingRefreshRate_.reset();
         pendingConstraintRelativeTime_ = 0;
+    }
+    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
+        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
+        hgmCore.SetPendingScreenRefreshRate(rsRate);
     }
 }
 
@@ -240,13 +245,13 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     }
 }
 
-void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired, pid_t pid)
+void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired)
 {
     if (finalRange.IsValid()) {
         ResetScreenTimer(curScreenId_);
         CalcRefreshRate(curScreenId_, finalRange);
         DeliverRefreshRateVote(
-            {"VOTER_LTPO", currRefreshRate_, currRefreshRate_, pid, finalRange.GetExtInfo()}, ADD_VOTE);
+            {"VOTER_LTPO", currRefreshRate_, currRefreshRate_, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else if (idleTimerExpired) {
         // idle in ltpo
         HandleIdleEvent(ADD_VOTE);
@@ -272,18 +277,15 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     FrameRateRange finalRange;
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         finalRange = rsFrameRateLinker->GetExpectedRange();
-        pid_t pid = DEFAULT_PID;
         bool needCheckAceAnimatorStatus = true;
         for (auto linker : appFrameRateLinkers) {
             if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
                 continue;
             }
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
-            if (finalRange.Merge(linker.second->GetExpectedRange())) {
-                pid = ExtractPid(linker.first);
-            }
+            finalRange.Merge(linker.second->GetExpectedRange());
         }
-        ProcessLtpoVote(finalRange, idleTimerExpired, pid);
+        ProcessLtpoVote(finalRange, idleTimerExpired);
     }
 
     UpdateGuaranteedPlanVote(timestamp);

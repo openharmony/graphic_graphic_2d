@@ -38,19 +38,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-struct AdaptiveImageInfo {
-    int32_t fitNum = 0;
-    int32_t repeatNum = 0;
-    Point radius[4];
-    double scale = 0.0;
-    uint32_t uniqueId = 0;
-    int32_t width = 0;
-    int32_t height = 0;
-    uint32_t dynamicRangeMode = 0;
-};
-}
-
 #ifdef ROSEN_OHOS
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;

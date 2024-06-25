@@ -1374,6 +1374,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                         "rs debug: name %s, id %llu, isLastFrameHwcEnabled not enabled and buffer consumed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 } else {
+                    if (surfaceNode->GetAncoForceDoDirect()) {
+                        surfaceNode->SetContentDirty();
+                    }
                     surfaceNode->SetHwcDelayDirtyFlag(true);
                 }
             } else { // hwc -> hwc
@@ -1743,6 +1746,52 @@ void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
     }
 }
 
+void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
+{
+    pendingUiCaptureTasks_.emplace_back(id, task);
+    if (!IsRequestedNextVSync()) {
+        RequestNextVSync();
+    }
+}
+
+void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor)
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto [id, captureTask]: pendingUiCaptureTasks_) {
+        auto node = nodeMap.GetRenderNode(id);
+        if (!node) {
+            RS_LOGE("RSMainThread::PrepareUiCaptureTasks node is nullptr");
+            continue;
+        }
+
+        if (!node->IsOnTheTree() || node->IsDirty()) {
+            node->QuickPrepare(uniVisitor);
+            node->PrepareSelfNodeForApplyModifiers();
+        }
+    }
+
+    if (!uiCaptureTasks_.empty()) {
+        RS_LOGD("RSMainThread::PrepareUiCaptureTasks uiCaptureTasks_ not empty");
+        uiCaptureTasks_.clear();
+    }
+    std::swap(pendingUiCaptureTasks_, uiCaptureTasks_);
+}
+
+void RSMainThread::ProcessUiCaptureTasks()
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto [id, captureTask]: uiCaptureTasks_) {
+        auto node = nodeMap.GetRenderNode(id);
+        if (!node) {
+            RS_LOGE("RSMainThread::ProcessUiCaptureTasks node is nullptr");
+            continue;
+        }
+
+        captureTask();
+    }
+    uiCaptureTasks_.clear();
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     if (isAccessibilityConfigChanged_) {
@@ -1775,6 +1824,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSMainThread::Instance()->SetDirtyFlag();
             RequestNextVSync();
             return;
+        } else if (!pendingUiCaptureTasks_.empty()) {
+            RS_LOGD("RSMainThread::Render pendingUiCaptureTasks_ not empty");
         } else {
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
@@ -1840,6 +1891,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
+    PrepareUiCaptureTasks(uniVisitor);
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     idleTimerExpiredFlag_ = false;
@@ -3531,11 +3583,6 @@ void RSMainThread::UpdateUIFirstSwitch()
 {
     RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
         deviceType_ == DeviceType::PHONE);
-    if (RSSystemProperties::GetUIFirstForceEnabled()) {
-        isUiFirstOn_ = true;
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
 
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {

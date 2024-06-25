@@ -44,88 +44,6 @@ static Typeface* CastToTypeface(OH_Drawing_Typeface* cTypeface)
     return reinterpret_cast<Typeface*>(cTypeface);
 }
 
-static OH_Drawing_FontEdging EdgingCastToCEdging(FontEdging edging)
-{
-    OH_Drawing_FontEdging cEdging = FONT_EDGING_ALIAS;
-    switch (edging) {
-        case FontEdging::ALIAS:
-            cEdging = FONT_EDGING_ALIAS;
-            break;
-        case FontEdging::ANTI_ALIAS:
-            cEdging = FONT_EDGING_ANTI_ALIAS;
-            break;
-        case FontEdging::SUBPIXEL_ANTI_ALIAS:
-            cEdging = FONT_EDGING_SUBPIXEL_ANTI_ALIAS;
-            break;
-        default:
-            break;
-    }
-    return cEdging;
-}
-
-static FontEdging CEdgingCastToEdging(OH_Drawing_FontEdging cEdging)
-{
-    FontEdging edging = FontEdging::ALIAS;
-    switch (cEdging) {
-        case FONT_EDGING_ALIAS:
-            edging = FontEdging::ALIAS;
-            break;
-        case FONT_EDGING_ANTI_ALIAS:
-            edging = FontEdging::ANTI_ALIAS;
-            break;
-        case FONT_EDGING_SUBPIXEL_ANTI_ALIAS:
-            edging = FontEdging::SUBPIXEL_ANTI_ALIAS;
-            break;
-        default:
-            break;
-    }
-    return edging;
-}
-
-static OH_Drawing_FontHinting HintingCastToCHinting(FontHinting hinting)
-{
-    OH_Drawing_FontHinting cHinting = FONT_HINTING_NONE;
-    switch (hinting) {
-        case FontHinting::NONE:
-            cHinting = FONT_HINTING_NONE;
-            break;
-        case FontHinting::SLIGHT:
-            cHinting = FONT_HINTING_SLIGHT;
-            break;
-        case FontHinting::NORMAL:
-            cHinting = FONT_HINTING_NORMAL;
-            break;
-        case FontHinting::FULL:
-            cHinting = FONT_HINTING_FULL;
-            break;
-        default:
-            break;
-    }
-    return cHinting;
-}
-
-static FontHinting CHintingCastToHinting(OH_Drawing_FontHinting cHinting)
-{
-    FontHinting hinting = FontHinting::NONE;
-    switch (cHinting) {
-        case FONT_HINTING_NONE:
-            hinting = FontHinting::NONE;
-            break;
-        case FONT_HINTING_SLIGHT:
-            hinting = FontHinting::SLIGHT;
-            break;
-        case FONT_HINTING_NORMAL:
-            hinting = FontHinting::NORMAL;
-            break;
-        case FONT_HINTING_FULL:
-            hinting = FontHinting::FULL;
-            break;
-        default:
-            break;
-    }
-    return hinting;
-}
-
 void OH_Drawing_FontSetEdging(OH_Drawing_Font* cFont, OH_Drawing_FontEdging cEdging)
 {
     Font* font = CastToFont(cFont);
@@ -133,7 +51,11 @@ void OH_Drawing_FontSetEdging(OH_Drawing_Font* cFont, OH_Drawing_FontEdging cEdg
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    font->SetEdging(CEdgingCastToEdging(cEdging));
+    if (cEdging < FONT_EDGING_ALIAS || cEdging > FONT_EDGING_SUBPIXEL_ANTI_ALIAS) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
+    font->SetEdging(static_cast<FontEdging>(cEdging));
 }
 
 OH_Drawing_FontEdging OH_Drawing_FontGetEdging(const OH_Drawing_Font* cFont)
@@ -143,7 +65,7 @@ OH_Drawing_FontEdging OH_Drawing_FontGetEdging(const OH_Drawing_Font* cFont)
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return FONT_EDGING_ALIAS;
     }
-    return EdgingCastToCEdging(font->GetEdging());
+    return static_cast<OH_Drawing_FontEdging>(font->GetEdging());
 }
 
 void OH_Drawing_FontSetHinting(OH_Drawing_Font* cFont, OH_Drawing_FontHinting cHinting)
@@ -153,7 +75,11 @@ void OH_Drawing_FontSetHinting(OH_Drawing_Font* cFont, OH_Drawing_FontHinting cH
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    font->SetHinting(CHintingCastToHinting(cHinting));
+    if (cHinting < FONT_HINTING_NONE || cHinting > FONT_HINTING_FULL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
+    font->SetHinting(static_cast<FontHinting>(cHinting));
 }
 
 OH_Drawing_FontHinting OH_Drawing_FontGetHinting(const OH_Drawing_Font* cFont)
@@ -163,7 +89,7 @@ OH_Drawing_FontHinting OH_Drawing_FontGetHinting(const OH_Drawing_Font* cFont)
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return FONT_HINTING_NONE;
     }
-    return HintingCastToCHinting(font->GetHinting());
+    return static_cast<OH_Drawing_FontHinting>(font->GetHinting());
 }
 
 void OH_Drawing_FontSetForceAutoHinting(OH_Drawing_Font* cFont, bool isForceAutoHinting)
