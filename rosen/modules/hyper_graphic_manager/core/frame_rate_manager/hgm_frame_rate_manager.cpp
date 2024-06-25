@@ -592,7 +592,7 @@ int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, flo
         case RSPropertyUnit::RATIO_SCALE:
             return GetPreferredFps("scale", PixelToMM(velocity));
         case RSPropertyUnit::ANGLE_ROTATION:
-            return GetPreferredFps("rotation", velocity);
+            return GetPreferredFps("rotation", PixelToMM(velocity));
         default:
             return 0;
     }
