@@ -208,8 +208,8 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         period = periodNotShared;
         timeStamp = timeStampNotShared;
     } else {
-        thread_local static int64_t periodShared = listener_->GetPeriodShared();
-        thread_local static int64_t timeStampShared = listener_->GetTimeStampShared();
+        int64_t periodShared = listener_->GetPeriodShared();
+        int64_t timeStampShared = listener_->GetTimeStampShared();
         if (periodShared == 0 || timeStampShared == 0) {
             VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_UNKOWN;
