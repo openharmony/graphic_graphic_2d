@@ -55,7 +55,7 @@ ohos_static_library("pixel_map_test_common") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   public_configs = [ ":pixel_map_test_common_public_config" ]
