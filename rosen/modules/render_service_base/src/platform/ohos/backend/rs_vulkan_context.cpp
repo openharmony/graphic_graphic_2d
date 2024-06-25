@@ -343,8 +343,7 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
-
-    HMS_XEG_SetFreqAdjustEnable = AcquireProc("HMS_XEG_SetFreqAdjustEnable", device_);
+    ACQUIRE_PROC(SetFreqAdjustEnable, device_);
 
     return true;
 }

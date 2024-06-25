@@ -141,11 +141,8 @@ public:
     DEFINE_FUNC(QueueSignalReleaseImageOHOS);
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
+    DEFINE_FUNC(SetFreqAdjustEnable);
 #undef DEFINE_FUNC
-
-#define DEFINE_XEG_FUNC(name) Func<PFN_##name> (name)
-    DEFINE_XEG_FUNC(HMS_XEG_SetFreqAdjustEnable);
-#undef DEFINE_XEG_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
     {

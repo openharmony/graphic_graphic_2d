@@ -470,8 +470,8 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
 #ifdef RS_ENABLE_VK
 bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 {
-    if (RsVulkanContext::GetSingleton().GetRsVulkanInterface().HMS_XEG_SetFreqAdjustEnable != nullptr) {
-        RsVulkanContext::GetSingleton().GetRsVulkanInterface().HMS_XEG_SetFreqAdjustEnable(enable);
+    if (RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable != nullptr) {
+        RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable(enable);
     }
     return true;
 }
