@@ -38,7 +38,7 @@ using namespace Drawing;
 auto rsMarshallingHelper = std::make_shared<RSMarshallingHelper>();
 
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* DATA = nullptr;
 constexpr uint32_t MAX_ARRAY_SIZE = 5000;
 constexpr size_t FUNCTYPE_SIZE = 4;
 constexpr size_t MATRIXTYPE_SIZE = 5;
@@ -52,10 +52,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -70,7 +70,7 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -100,14 +100,14 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     float start = GetData<float>();
     float end = GetData<float>();
     Range<float> value(start, end);
-    Range<float> random(start, end);
+    Range<float> randomValue(start, end);
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
     parcel.WriteInt16(1);
     parcel.WriteUint64(1);
     std::shared_ptr<RSInterpolator> interpolator = RSInterpolator::Unmarshalling(parcel);
     auto changeInOverLife = std::make_shared<ChangeInOverLife<float>>(0.f, 0.f, 0, 0, interpolator);
     valChangeOverLife.push_back(changeInOverLife);
-    RenderParticleParaType<float> val2(value, ParticleUpdator::RANDOM, random, std::move(valChangeOverLife));
+    RenderParticleParaType<float> val2(value, ParticleUpdator::RANDOM, randomValue, std::move(valChangeOverLife));
 
     filter = RSFilter::CreateBlurFilter(start, end);
     filter->type_ = RSFilter::BLUR;
@@ -147,7 +147,7 @@ bool DoMarshallingHelper001(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -173,7 +173,7 @@ bool DoMarshallingHelper002(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -202,7 +202,7 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -233,7 +233,7 @@ bool DoMarshallingHelper004(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -255,7 +255,7 @@ bool DoMarshallingHelper005(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -276,7 +276,7 @@ bool DoMarshallingHelper006(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -301,7 +301,7 @@ bool DoMarshallingHelper007(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -325,7 +325,7 @@ bool DoMarshallingHelper008(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -350,7 +350,7 @@ bool DoMarshallingHelper009(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -370,7 +370,7 @@ bool DoMarshallingHelper010(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -397,7 +397,7 @@ bool DoMarshallingHelper011(const uint8_t* data, size_t size)
         return false;
     }
 
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -428,7 +428,7 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -480,7 +480,7 @@ bool DoMarshallingHelper013(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
