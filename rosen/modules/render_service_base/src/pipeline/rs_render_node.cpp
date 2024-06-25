@@ -366,6 +366,20 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
             childrenRect_ = childrenRect_.JoinRect(subRect);
         }
     }
+
+    if (lastFrameSubTreeSkipped_) {
+        return;
+    }
+
+    if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+        absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
+    }
+
+    if (GetRenderProperties().GetClipBounds() || GetRenderProperties().GetClipToFrame()) {
+        subTreeDirtyRegion_ = absChildrenRect_.IntersectRect(GetAbsDrawRect());
+    } else {
+        subTreeDirtyRegion_ = absChildrenRect_;
+    }
 }
 
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
