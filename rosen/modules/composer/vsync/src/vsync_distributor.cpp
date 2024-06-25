@@ -529,12 +529,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     if (dvsync_->NeedSkipDVsyncPrerenderedFrame()) {
         return;
     }
-    if (!IsDVsyncOn() && now < (lastDVsyncTS + DVSYNC_ON_PERIOD - MAX_PERIOD_BIAS) &&
-        dvsync_->GetMaxPreexecutePeriod()) {
-        ScopedBytrace func("skip DVSync prerendered frame, now: " + std::to_string(now) +
-            ",lastDVsyncTS: " + std::to_string(lastDVsyncTS));
-        return;
-    }
 
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
         event_.timestamp = now;
