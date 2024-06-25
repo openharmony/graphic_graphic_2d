@@ -179,7 +179,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed, TestSize.Level1)
  * @tc.name: CalculateVirtualDirtyForWiredScreen001
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, without mirrorNode
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen001, TestSize.Level1)
 {
@@ -200,7 +200,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen001
  * @tc.name: CalculateVirtualDirtyForWiredScreen002
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, isVirtualDirtyEnabled_ false
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen002, TestSize.Level1)
 {
@@ -226,7 +226,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen002
  * @tc.name: CalculateVirtualDirtyForWiredScreen003
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, without syncDirtyManager
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen003, TestSize.Level1)
 {
@@ -254,7 +254,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen003
  * @tc.name: CalculateVirtualDirtyForWiredScreen004
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, canvasMatrix not equals to lastMatrix_
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen004, TestSize.Level1)
 {
@@ -283,7 +283,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen004
  * @tc.name: CalculateVirtualDirtyForWiredScreen005
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, extraDirty is not empty
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen005, TestSize.Level1)
 {
@@ -311,7 +311,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen005
  * @tc.name: CalculateVirtualDirtyForWiredScreen006
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, extraDirty is not empty
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IA76UC
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006, TestSize.Level1)
 {
