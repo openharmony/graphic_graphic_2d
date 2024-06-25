@@ -57,8 +57,8 @@ ohos_source_set("darwin") {
     "$rosen_root/modules/platform:ace_skia",
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
-    "//third_party/EGL:libEGL",
   ]
+  public_external_deps = [ "egl:libEGL" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
