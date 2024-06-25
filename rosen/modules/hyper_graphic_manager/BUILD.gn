@@ -48,6 +48,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   public_configs = [ ":libhyper_graphic_manager_config" ]

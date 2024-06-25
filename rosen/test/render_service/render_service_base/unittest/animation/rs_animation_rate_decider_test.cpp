@@ -232,4 +232,28 @@ HWTEST_F(RSAnimationRateDeciderTest, ProcessVector2f, TestSize.Level1)
     res = rsAnimationRateDecider.ProcessVector2f(property, frameRateGetFunc);
     EXPECT_EQ(res, 0);
 }
+
+/**
+ * @tc.name: ProcessFloat
+ * @tc.desc: Test ProcessFloat
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationRateDeciderTest, ProcessFloat, TestSize.Level1)
+{
+    RSAnimationRateDecider rsAnimationRateDecider;
+    PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
+        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+    auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t{
+        return 0;
+    };
+    RSPropertyUnit unit = RSPropertyUnit::ANGLE_ROTATION;
+    property->SetPropertyUnit(unit);
+    int32_t res = rsAnimationRateDecider.ProcessFloat(property, frameRateGetFunc);
+    EXPECT_EQ(res, 0);
+
+    unit = RSPropertyUnit::PIXEL_SIZE;
+    property->SetPropertyUnit(unit);
+    res = rsAnimationRateDecider.ProcessFloat(property, frameRateGetFunc);
+    EXPECT_EQ(res, 0);
+}
 } // namespace OHOS::Rosen

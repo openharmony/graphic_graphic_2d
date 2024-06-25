@@ -153,6 +153,7 @@ public:
 
 private:
     RSDisplaySoloistManager() = default;
+    ~RSDisplaySoloistManager() noexcept;
     RSDisplaySoloistManager(const RSDisplaySoloistManager&) = delete;
     RSDisplaySoloistManager(const RSDisplaySoloistManager&&) = delete;
     RSDisplaySoloistManager& operator=(const RSDisplaySoloistManager&) = delete;
