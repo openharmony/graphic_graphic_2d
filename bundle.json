@@ -62,6 +62,7 @@
           "hisysevent",
           "hitrace",
           "ability_runtime",
+          "bundle_framework",
           "drivers_interface_display",
           "c_utils",
           "access_token",

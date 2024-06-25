@@ -20,6 +20,8 @@
 #include <parameters.h>
 #include <sstream>
 
+#include "directory_ex.h"
+#include "egl_bundle_mgr_helper.h"
 #include "wrapper_log.h"
 
 namespace OHOS {
@@ -34,10 +36,13 @@ constexpr const char *DEBUG_LAYERS_SUFFIX = ".so";
 constexpr const char *DEBUG_LAYERS_DELIMITER = ":";
 constexpr const char *DEBUG_LAYER_INIT_FUNC = "DebugLayerInitialize";
 constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
-constexpr const char *DEBUG_LAYER_NAME = "debug_layer";
+constexpr const char *DEBUG_LAYER_NAME = "debug.graphic.debug_layer";
+constexpr const char *DEBUG_HAP_NAME = "debug.graphic.debug_hap";
+constexpr const char *DEBUG_SANDBOX_DIR = "/data/storage/el1/bundle/";
 }
 
 static std::string g_strLayers;
+static AppExecFwk::BundleInfo g_bundleInfo;
 
 static void GetWrapperDebugLayers(const char *key, const char *value, void *context)
 {
@@ -135,6 +140,18 @@ static std::vector<std::string> GetDebugLayers(void)
     return layers;
 }
 
+static std::vector<std::string> GetDebugLayerPaths()
+{
+    WLOGD("GetDebugLayerPaths");
+    std::vector<std::string> layerPaths = {std::string(DEBUG_LAYERS_LIB_DIR)};
+    std::string pathStr(DEBUG_SANDBOX_DIR);
+    layerPaths.push_back(pathStr + g_bundleInfo.applicationInfo.nativeLibraryPath + "/");
+    for (auto hapModuleInfo: g_bundleInfo.hapModuleInfos) {
+        layerPaths.push_back(hapModuleInfo.nativeLibraryPath + "/");
+    }
+    return layerPaths;
+}
+
 EglWrapperLayer& EglWrapperLayer::GetInstance()
 {
     static EglWrapperLayer layer;
@@ -159,6 +176,11 @@ bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
         return false;
     }
 
+    if (!InitBundleInfo()) {
+        WLOGE("Get BundleInfo failed.");
+        return false;
+    }
+
     if (!LoadLayers()) {
         WLOGE("LoadLayers failed.");
         return false;
@@ -168,6 +190,29 @@ bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
 
     initialized_ = true;
     return true;
+}
+
+bool EglWrapperLayer::InitBundleInfo()
+{
+    auto eglBundleMgrHelper = DelayedSingleton<AppExecFwk::EGLBundleMgrHelper>::GetInstance();
+    if (eglBundleMgrHelper == nullptr) {
+        WLOGE("eglBundleMgrHelper is null!");
+        return false;
+    }
+
+    if (eglBundleMgrHelper->GetBundleInfoForSelf(
+        AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION, g_bundleInfo) == ERR_OK) {
+        std::string debugHap = system::GetParameter(DEBUG_HAP_NAME, "");
+        if (g_bundleInfo.name == debugHap) {
+            return true;
+        } else {
+            WLOGD("this hap is %{public}s, the debug hap is %{public}s",
+                g_bundleInfo.name.c_str(), debugHap.c_str());
+        }
+    } else {
+        WLOGE("Call GetBundleInfoForSelf func failed!");
+    }
+    return false;
 }
 
 void EglWrapperLayer::SetupLayerFuncTbl(EglWrapperDispatchTable *table)
@@ -236,29 +281,42 @@ bool EglWrapperLayer::LoadLayers()
 
     for (int32_t i = layers.size() - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
-        std::string layerPath = std::string(DEBUG_LAYERS_LIB_DIR) + layerLib;
-        WLOGD("layerPath = %{public}s", layerPath.c_str());
-
-        void *dlhandle = dlopen(layerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (dlhandle == nullptr) {
-            WLOGE("dlopen failed. error: %{public}s.", dlerror());
-            return false;
+        std::vector<std::string> allLayerPaths = GetDebugLayerPaths();
+        for (std::string layerPath: allLayerPaths) {
+            layerPath += layerLib;
+            std::string realLayerPath;
+            if (!PathToRealPath(layerPath, realLayerPath)) {
+                continue;
+            }
+            if (!LoadLayerFuncs(realLayerPath)) {
+                return false;
+            }
         }
-
-        LayerInitFunc initFunc = (LayerInitFunc)dlsym(dlhandle, DEBUG_LAYER_INIT_FUNC);
-        if (initFunc == nullptr) {
-            WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_INIT_FUNC);
-            return false;
-        }
-        layerInit_.push_back(initFunc);
-
-        LayerSetupFunc setupFunc = (LayerSetupFunc)dlsym(dlhandle, DEBUG_LAYER_GET_PROC_ADDR_FUNC);
-        if (setupFunc == nullptr) {
-            WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_GET_PROC_ADDR_FUNC);
-            return false;
-        }
-        layerSetup_.push_back(setupFunc);
     }
+    return true;
+}
+
+bool EglWrapperLayer::LoadLayerFuncs(std::string realLayerPath)
+{
+    void *dlhandle = dlopen(realLayerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (dlhandle == nullptr) {
+        WLOGE("dlopen failed. error: %{public}s.", dlerror());
+        return false;
+    }
+
+    LayerInitFunc initFunc = (LayerInitFunc)dlsym(dlhandle, DEBUG_LAYER_INIT_FUNC);
+    if (initFunc == nullptr) {
+        WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_INIT_FUNC);
+        return false;
+    }
+    layerInit_.push_back(initFunc);
+
+    LayerSetupFunc setupFunc = (LayerSetupFunc)dlsym(dlhandle, DEBUG_LAYER_GET_PROC_ADDR_FUNC);
+    if (setupFunc == nullptr) {
+        WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_GET_PROC_ADDR_FUNC);
+        return false;
+    }
+    layerSetup_.push_back(setupFunc);
     return true;
 }
 

@@ -34,10 +34,12 @@ public:
 #if USE_IGRAPHICS_EXTENDS_HOOKS
     bool GetIGraphicsLogicStatus() { return iGraphicsLogic; }
 #endif
+    bool InitBundleInfo();
 
 private:
     EglWrapperLayer() : initialized_(false) {};
     bool LoadLayers(void);
+    bool LoadLayerFuncs(std::string realLayerPath);
     void InitLayers(EglWrapperDispatchTable *table);
     void SetupLayerFuncTbl(EglWrapperDispatchTable *table);
 

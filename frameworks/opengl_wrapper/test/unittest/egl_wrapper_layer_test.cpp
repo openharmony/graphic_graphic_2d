@@ -97,4 +97,17 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
     ASSERT_TRUE(result);
 }
+
+/**
+ * @tc.name: InitBundleInfo001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLayerTest, InitBundleInfo001, Level1)
+{
+    EglWrapperDispatchTable dispatchTable;
+
+    bool result = EglWrapperLayer::GetInstance().InitBundleInfo();
+    ASSERT_TRUE(result);
+}
 } // OHOS::Rosen
