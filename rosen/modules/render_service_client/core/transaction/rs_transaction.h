@@ -54,7 +54,7 @@ public:
         parentPid_ = parentPid;
     }
 
-    int32_t GetParentPid()
+    int32_t GetParentPid() const
     {
         return parentPid_;
     }
@@ -64,19 +64,29 @@ public:
         childPid_ = childPid;
     }
 
-    int32_t GetChildPid()
+    int32_t GetChildPid() const
     {
         return childPid_;
     }
 
-    bool IsOpenSyncTransaction()
+    bool IsOpenSyncTransaction() const
     {
         return isOpenSyncTransaction_;
     }
 
-    uint64_t GetSyncId()
+    uint64_t GetSyncId() const
     {
         return syncId_;
+    }
+
+    int32_t GetExtensionCount() const
+    {
+        return extensionCount_;
+    }
+
+    void SetExtensionCount(int32_t count)
+    {
+        extensionCount_ = count;
     }
 
 private:
@@ -91,6 +101,7 @@ private:
     int32_t parentPid_ { -1 };
     int32_t childPid_ { -1 };
     bool isOpenSyncTransaction_ = false;
+    int32_t extensionCount_ { 0 };
 
     friend class RSSyncTransactionController;
 };

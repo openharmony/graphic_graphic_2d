@@ -1082,7 +1082,9 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
 
 void RSMainThread::ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
 {
-    ROSEN_LOGD("RSMainThread::ProcessEmptySyncTransactionCount syncId:%{public}" PRIu64 " parentPid:%{public}d "
+    RS_TRACE_NAME_FMT("RSMainThread::ProcessEmptySyncTransactionCount syncId: %lu parentPid: %d childPid: %d", syncId,
+        parentPid, childPid);
+    ROSEN_LOGI("RSMainThread::ProcessEmptySyncTransactionCount syncId:%{public}" PRIu64 " parentPid:%{public}d "
         "childPid:%{public}d", syncId, parentPid, childPid);
     if ((parentPid == -1 && childPid == -1) || ExtractPid(syncId) == childPid) {
         syncTransactionCount_ -= 1;
@@ -1160,12 +1162,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         return;
     }
 
-    if (syncTransactionData_.empty()) {
-        StartSyncTransactionFallbackTask(rsTransactionData);
-    }
     if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
         (syncTransactionData_.begin()->second.front()->GetSyncId() != rsTransactionData->GetSyncId())) {
         ProcessAllSyncTransactionData();
+    }
+    if (syncTransactionData_.empty()) {
         StartSyncTransactionFallbackTask(rsTransactionData);
     }
     if (syncTransactionData_.count(pid) == 0) {

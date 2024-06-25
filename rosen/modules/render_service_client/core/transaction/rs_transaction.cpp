@@ -47,7 +47,8 @@ void RSTransaction::CloseSyncTransaction()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
+        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d extensionCount %d", syncId_,
+            transactionCount_, extensionCount_);
         ROSEN_LOGD(
             "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
         isOpenSyncTransaction_ = false;
@@ -73,8 +74,8 @@ void RSTransaction::Commit()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT(
-            "CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_, transactionCount_, parentPid_);
+        RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d childPid %d extensionCount %d",
+            syncId_, transactionCount_, parentPid_, childPid_, extensionCount_);
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->SetParentAndChildPid(parentPid_, childPid_);
@@ -110,6 +111,7 @@ void RSTransaction::ResetSyncTransactionInfo()
     parentPid_ = -1;
     childPid_ = -1;
     isOpenSyncTransaction_ = false;
+    extensionCount_ = 0;
 }
 
 RSTransaction* RSTransaction::Unmarshalling(Parcel& parcel)
