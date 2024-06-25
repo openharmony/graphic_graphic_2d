@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,9 @@
 #include <cstdint>
 #include "get_object.h"
 #include "draw/brush.h"
+#include "effect/blender.h"
+#include "effect/shader_effect.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,6 +49,7 @@ void BrushFuzzTestInner01(Brush& brush)
     brush.GetAlpha();
     scalar scalarG = GetObject<scalar>();
     brush.SetAlphaF(scalarG);
+    brush.GetAlphaF();
     brush.GetBlendMode();
 }
 
@@ -60,6 +64,62 @@ void BrushFuzzTestInner02(Brush& brush)
     bool isAntiAlias = GetObject<bool>();
     brush.SetAntiAlias(isAntiAlias);
     brush.Reset();
+}
+
+void BrushFuzzTestInner03(Brush& brush)
+{
+    Brush brushOne = Brush(brush);
+    Color color;
+    Brush brushTwo = Brush(color);
+    ColorQuad colorQuad = GetObject<ColorQuad>();
+    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(colorQuad);
+    brushTwo.SetShaderEffect(shaderEffect);
+    brushTwo.GetShaderEffect();
+    Brush brushThree = Brush(shaderEffect);
+    int rgba = GetObject<int>();
+    Brush brushFour = Brush(rgba);
+    if (brushOne == brushTwo) {}
+    if (brushOne != brushTwo) {}
+}
+
+void BrushFuzzTestInner04(Brush& brush)
+{
+    brush.HasFilter();
+    BlendMode mode = GetObject<BlendMode>();
+    std::shared_ptr<Blender> blender = Blender::CreateWithBlendMode(mode);
+    brush.SetBlender(blender);
+    brush.GetBlender();
+    brush.CanComputeFastBounds();
+    float left = GetObject<float>();
+    float top = GetObject<float>();
+    float right = GetObject<float>();
+    float bottom = GetObject<float>();
+    RectF rect {
+        left,
+        top,
+        right,
+        bottom,
+    };
+    brush.ComputeFastBounds(rect, &rect);
+}
+
+void BrushFuzzTestInner05(Brush& brush)
+{
+    brush.AsBlendMode();
+    bool disableBrightnessRatio = GetObject<bool>();
+    brush.SetForceBrightnessDisable(disableBrightnessRatio);
+    brush.IsForceBrightnessDisable();
+    brush.Reset();
+    float blurRadius = GetObject<float>();
+    float dx = GetObject<float>();
+    float dy = GetObject<float>();
+    Color color;
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
+    brush.SetLooper(blurDrawLooper);
+    brush.GetLooper();
+    bool isHdr = GetObject<bool>();
+    brush.SetHdr(isHdr);
+    brush.IsHdr();
 }
 
 bool BrushFuzzTest(const uint8_t* data, size_t size)
@@ -86,8 +146,10 @@ bool BrushFuzzTest(const uint8_t* data, size_t size)
     brush.SetARGB(red, gree, blue, alpha);
 
     BrushFuzzTestInner01(brush);
-
     BrushFuzzTestInner02(brush);
+    BrushFuzzTestInner03(brush);
+    BrushFuzzTestInner04(brush);
+    BrushFuzzTestInner05(brush);
 
     return true;
 }
