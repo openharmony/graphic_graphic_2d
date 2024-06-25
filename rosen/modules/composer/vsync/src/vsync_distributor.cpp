@@ -520,7 +520,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
         ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
     }
     event_.period = period;
-
     dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
 
