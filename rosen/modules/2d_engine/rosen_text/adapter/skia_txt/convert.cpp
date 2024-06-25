@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace AdapterTxt {
+const std::string WGHT_AXIS = "wght";
+constexpr float FONT_WEIGHT_MULTIPLE = 100.0;
+
 std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> Convert(
     const std::shared_ptr<OHOS::Rosen::FontCollection>& fontCollection)
 {
@@ -151,6 +154,9 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
         for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
             textStyle.fontVariations.SetAxisValue(axis, value);
         }
+    } else {
+        textStyle.fontVariations.SetAxisValue(WGHT_AXIS,
+            (static_cast<float>(style.fontWeight) + 1.0) * FONT_WEIGHT_MULTIPLE);
     }
 }
 
