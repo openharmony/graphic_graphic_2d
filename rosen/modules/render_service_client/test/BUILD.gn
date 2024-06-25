@@ -83,6 +83,7 @@ ohos_executable("render_service_client_app_demo") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "safwk:system_ability_fwk",
     "window_manager:libwm",
     "window_manager:sms",
   ]
