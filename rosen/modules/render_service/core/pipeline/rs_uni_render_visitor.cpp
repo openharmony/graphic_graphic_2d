@@ -1760,6 +1760,9 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     }
     UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
     node.UpdatePositionZ();
+    if (node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_) {
+        curSurfaceNode_->SetNeedCollectHwcNode(true);
+    }
     UpdateSurfaceRenderNodeScale(node);
     UpdateSurfaceRenderNodeRotate(node);
     if (node.IsMainWindowType() || node.IsLeashWindow()) {

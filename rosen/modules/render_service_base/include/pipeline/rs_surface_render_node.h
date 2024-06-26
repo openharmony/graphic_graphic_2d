@@ -280,6 +280,11 @@ public:
         return needCollectHwcNode_;
     }
 
+    void SetNeedCollectHwcNode(bool needCollect)
+    {
+        needCollectHwcNode_ = needCollect;
+    }
+
     void ResetNeedCollectHwcNode()
     {
         needCollectHwcNode_ = false;
