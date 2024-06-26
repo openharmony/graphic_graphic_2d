@@ -940,15 +940,73 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
     }
     curCanvas_->Save();
     ScaleAndRotateMirrorForWiredScreen(*displayNodeSp, *mirroredNode);
+    RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp, &params);
+    std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(
+        *displayNodeSp, renderFrame, params, curCanvas_->GetTotalMatrix());
+    rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
     bool forceCPU = false;
     auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*mirroredNode, forceCPU);
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     drawParams.isMirror = true;
     renderEngine->DrawDisplayNodeWithParams(*curCanvas_, *mirroredNode, drawParams);
     curCanvas_->Restore();
+    rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
     renderFrame->Flush();
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess();
+}
+
+std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen(RSDisplayRenderNode& displayNode,
+    std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix)
+{
+    std::vector<RectI> damageRegionRects;
+    auto mirroredNode = params.GetMirrorSource().lock();
+    if (!mirroredNode) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen mirroredNode is null");
+        return damageRegionRects;
+    }
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (uniParam == nullptr || !uniParam->IsVirtualDirtyEnabled()) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen invalid uniparam");
+        return damageRegionRects;
+    }
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen screenManager is null");
+        return damageRegionRects;
+    }
+    int32_t bufferAge = renderFrame->GetBufferAge();
+    auto curScreenInfo = params.GetScreenInfo();
+    int32_t actualAge = curScreenInfo.skipFrameInterval ?
+        static_cast<int32_t>(curScreenInfo.skipFrameInterval) * bufferAge : bufferAge;
+    ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirroredNode->GetScreenId());
+    std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
+    // merge history dirty and map to mirrored wired screen by matrix
+    auto tempDamageRegionRects = MergeDirtyHistoryInVirtual(*mirroredNode, actualAge, mainScreenInfo);
+    for (auto& rect : tempDamageRegionRects) {
+        RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
+        damageRegionRects.emplace_back(mappedRect);
+    }
+
+    auto syncDirtyManager = displayNode.GetSyncDirtyManager();
+    if (syncDirtyManager == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen syncDirtyManager is null");
+        return damageRegionRects;
+    }
+    // reset dirty rect as mirrored wired screen size when first time connection or matrix changed
+    if (!(lastMatrix_ == canvasMatrix)) {
+        syncDirtyManager->ResetDirtyAsSurfaceSize();
+        lastMatrix_ = canvasMatrix;
+    }
+    displayNode.UpdateDisplayDirtyManager(bufferAge, false, true);
+    auto extraDirty = syncDirtyManager->GetDirtyRegion();
+    if (!extraDirty.IsEmpty()) {
+        damageRegionRects.emplace_back(extraDirty);
+    }
+    if (!uniParam->IsVirtualDirtyDfxEnabled()) {
+        renderFrame->SetDamageRegion(damageRegionRects);
+    }
+    return damageRegionRects;
 }
 
 void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNode& node,
