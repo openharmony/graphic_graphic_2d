@@ -1423,8 +1423,6 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
                 std::swap(mainWidth, mainHeight);
             }
         }
-        Drawing::SaveLayerOps slr(nullptr, nullptr, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
-        canvas.SaveLayer(slr); // avoid abnormal dsicard
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
         Drawing::Brush rectBrush;
@@ -1432,7 +1430,6 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
-        canvas.Restore();
     }
 }
 

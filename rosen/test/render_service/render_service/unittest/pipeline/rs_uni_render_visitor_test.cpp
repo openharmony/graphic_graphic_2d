@@ -1013,6 +1013,19 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode004, TestSize.Level
     rsUniRenderVisitor->CalcDirtyRegionForFilterNode(rect, surfaceNode, node);
 }
 
+/*
+ * @tc.name: IsFirstOrLastFrameOfWatermark
+ * @tc.desc: Test RSUniRenderVisitorTest.IsFirstOrLastFrameOfWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issuesI9V0N7
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsFirstOrLastFrameOfWatermark, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->IsFirstOrLastFrameOfWatermark();
+}
+
 /**
  * @tc.name: CalcDirtyFilterRegion001
  * @tc.desc: Test RSUniRenderVisitorTest.CalcDirtyFilterRegion when disPlayNode or disPlayNode.dirtyManager_ is null

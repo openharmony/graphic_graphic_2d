@@ -227,6 +227,12 @@ public:
     }
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
+
+    bool IsFirstOrLastFrameOfWatermark() const
+    {
+        return lastWatermarkFlag_ != watermarkFlag_;
+    }
+
     uint64_t GetFrameCount() const
     {
         return frameCount_;
@@ -579,6 +585,7 @@ private:
     std::mutex watermarkMutex_;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     bool watermarkFlag_ = false;
+    bool lastWatermarkFlag_ = false;
     bool doParallelComposition_ = false;
     bool hasProtectedLayer_ = false;
 

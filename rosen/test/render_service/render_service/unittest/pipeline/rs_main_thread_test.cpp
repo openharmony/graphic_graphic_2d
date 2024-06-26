@@ -841,6 +841,18 @@ HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsFirstOrLastFrameOfWatermark
+ * @tc.desc: IsFirstOrLastFrameOfWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, IsFirstOrLastFrameOfWatermark, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->IsFirstOrLastFrameOfWatermark();
+}
+
+/**
  * @tc.name: DoParallelComposition
  * @tc.desc: DoParallelComposition test
  * @tc.type: FUNC

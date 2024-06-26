@@ -1212,7 +1212,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         return;
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
-        CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender();
+        CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender() ||
+        IsFirstOrLastFrameOfWatermark();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1244,6 +1245,16 @@ bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
     }
     RS_LOGD("FirstFrameOfPartialRender");
     return true;
+}
+
+bool RSUniRenderVisitor::IsFirstOrLastFrameOfWatermark() const
+{
+    if (RSMainThread::Instance()->IsFirstOrLastFrameOfWatermark()) {
+        RS_LOGD("FirstOrLastFrameOfWatermark");
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)

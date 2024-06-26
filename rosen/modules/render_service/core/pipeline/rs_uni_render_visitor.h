@@ -235,6 +235,7 @@ private:
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
+    bool IsFirstOrLastFrameOfWatermark() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;

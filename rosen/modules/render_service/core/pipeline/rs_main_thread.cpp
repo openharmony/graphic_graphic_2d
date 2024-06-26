@@ -1885,6 +1885,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_, deviceType_);
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
+        lastWatermarkFlag_ = watermarkFlag_;
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
         // set params used in render thread
