@@ -220,7 +220,8 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     int32_t alpha = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The alpha range must be [0, 255].");
     }
 
     pen->SetAlpha(alpha);
