@@ -212,6 +212,7 @@ public:
 
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
+    bool IsHardwareEnabled();
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
@@ -289,6 +290,7 @@ private:
     RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
     std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
     int maxRenderSize_ = 0;
+    std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

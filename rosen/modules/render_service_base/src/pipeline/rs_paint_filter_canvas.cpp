@@ -1258,6 +1258,10 @@ void RSPaintFilterCanvas::PushDirtyRegion(Drawing::Region& resultRegion)
 
 void RSPaintFilterCanvas::PopDirtyRegion()
 {
+    if (dirtyRegionStack_.empty()) {
+        RS_LOGW("PopDirtyRegion dirtyRegionStack_ is empty");
+        return;
+    }
     dirtyRegionStack_.pop();
 }
 

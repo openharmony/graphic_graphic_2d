@@ -338,7 +338,7 @@ public:
 
     bool GetNeedOffscreen() const
     {
-        return needOffscreen_;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
     }
 
 protected:
