@@ -236,13 +236,9 @@ bool RSSymbolAnimation::SetReplaceDisappear(
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[config.symbolNode.animationIndex];
-        if (oneGroupParas.empty()) {
-            ROSEN_LOGD("[%{public}s] invalid oneGroupParas \n", __func__);
-            continue;
-        }
         auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
-        SpliceAnimation(canvasNode, oneGroupParas, Drawing::DrawingEffectStrategy::DISAPPEAR);
+        SpliceAnimation(canvasNode, parameters[config.symbolNode.animationIndex],
+            Drawing::DrawingEffectStrategy::DISAPPEAR);
     }
     {
         std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
@@ -295,12 +291,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[symbolNode.animationIndex];
-        if (oneGroupParas.empty()) {
-            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
-            continue;
-        }
-        SpliceAnimation(canvasNode, oneGroupParas, Drawing::DrawingEffectStrategy::APPEAR);
+        SpliceAnimation(canvasNode, parameters[symbolNode.animationIndex], Drawing::DrawingEffectStrategy::APPEAR);
     }
     return true;
 }
@@ -424,12 +415,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[symbolNode.animationIndex];
-        if (oneGroupParas.empty()) {
-            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
-            continue;
-        }
-        ChooseAnimation(canvasNode, oneGroupParas, symbolAnimationConfig);
+        ChooseAnimation(canvasNode, parameters[symbolNode.animationIndex], symbolAnimationConfig);
     }
     return true;
 }
@@ -562,7 +548,6 @@ void RSSymbolAnimation::DrawSymbolOnCanvas(
     }
     Drawing::Brush brush;
     Drawing::Pen pen;
-    SetIconProperty(brush, pen, symbolNode);
     Drawing::Point offsetLocal = Drawing::Point { offsets[2], offsets[3] }; // index 2 offsetX 3 offsetY
     recordingCanvas->AttachBrush(brush);
     recordingCanvas->AttachPen(pen);
@@ -585,13 +570,15 @@ void RSSymbolAnimation::DrawPathOnCanvas(
         brush.SetBlendMode(Drawing::BlendMode::CLEAR);
         pen.SetBlendMode(Drawing::BlendMode::CLEAR);
     }
-    SetIconProperty(brush, pen, symbolNode);
-    symbolNode.path.Offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
-    recordingCanvas->AttachBrush(brush);
-    recordingCanvas->AttachPen(pen);
-    recordingCanvas->DrawPath(symbolNode.path);
-    recordingCanvas->DetachBrush();
-    recordingCanvas->DetachPen();
+    for (auto& pathInfo: symbolNode.pathsInfo) {
+        SetIconProperty(brush, pen, pathInfo.color);
+        pathInfo.path.Offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
+        recordingCanvas->AttachBrush(brush);
+        recordingCanvas->AttachPen(pen);
+        recordingCanvas->DrawPath(pathInfo.path);
+        recordingCanvas->DetachBrush();
+        recordingCanvas->DetachPen();
+    }
 }
 
 bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds)
@@ -715,14 +702,14 @@ bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const
     return true;
 }
 
-void RSSymbolAnimation::SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode)
+void RSSymbolAnimation::SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, Drawing::DrawingSColor& color)
 {
-    brush.SetColor(Drawing::Color::ColorQuadSetARGB(0xFF, symbolNode.color.r, symbolNode.color.g, symbolNode.color.b));
-    brush.SetAlphaF(symbolNode.color.a);
+    brush.SetColor(Drawing::Color::ColorQuadSetARGB(0xFF, color.r, color.g, color.b));
+    brush.SetAlphaF(color.a);
     brush.SetAntiAlias(true);
 
-    pen.SetColor(Drawing::Color::ColorQuadSetARGB(0xFF, symbolNode.color.r, symbolNode.color.g, symbolNode.color.b));
-    pen.SetAlphaF(symbolNode.color.a);
+    pen.SetColor(Drawing::Color::ColorQuadSetARGB(0xFF, color.r, color.g, color.b));
+    pen.SetAlphaF(color.a);
     pen.SetAntiAlias(true);
     return;
 }

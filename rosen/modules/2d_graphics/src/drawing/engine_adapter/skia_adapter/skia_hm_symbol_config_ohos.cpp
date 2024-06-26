@@ -29,9 +29,9 @@ DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t
     drawingGroups.symbolGlyphId = groups.symbolGlyphId;
     drawingGroups.layers = groups.layers;
     std::vector<DrawingAnimationSetting> drawingSettings;
-    auto& settings = groups.animationSettings;
+    const auto& settings = groups.animationSettings;
     std::map<DrawingSymbolRenderingStrategy, std::vector<DrawingRenderGroup>> drawingRenderModeGroups;
-    auto& renderModeGroups = groups.renderModeGroups;
+    const auto& renderModeGroups = groups.renderModeGroups;
     for (size_t i = 0; i < settings.size(); i++) {
         drawingSettings.push_back(ConvertToDrawingAnimationSetting(settings.at(i)));
     }
