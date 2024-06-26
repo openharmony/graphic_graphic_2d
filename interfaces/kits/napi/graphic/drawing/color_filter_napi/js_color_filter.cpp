@@ -119,7 +119,7 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
     }
 
     int32_t jsMode = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+    GET_ENUM_PARAM(ARGC_ONE, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateBlendModeColorFilter(color, BlendMode(jsMode));
