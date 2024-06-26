@@ -458,6 +458,7 @@ public:
     {
         return UIFirstIsPurge_;
     }
+    void SetUifirstUseStarting(NodeId id); // only cache app window, first frame not wait
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();

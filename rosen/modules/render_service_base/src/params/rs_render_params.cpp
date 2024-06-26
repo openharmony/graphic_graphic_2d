@@ -442,6 +442,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
     needSync_ = false;
 }

@@ -199,6 +199,20 @@ public:
         needSync_ = true;
     }
 
+    void SetUifirstUseStarting(NodeId id)
+    {
+        if (uifirstUseStarting_ == id) {
+            return;
+        }
+        uifirstUseStarting_ = id;
+        needSync_ = true;
+    }
+
+    NodeId GetUifirstUseStarting() const
+    {
+        return uifirstUseStarting_;
+    }
+
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
     {
         childrenDirtyRect_ = rect;
@@ -351,6 +365,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 

@@ -736,6 +736,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
         out += ", SecurityLayer: " + std::to_string(surfaceNode->GetSecurityLayer());
         out += ", skipLayer: " + std::to_string(surfaceNode->GetSkipLayer());
+        out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -989,7 +990,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
 {
-    if (IsUifirstArkTsCardNode()) {
+    if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
@@ -3151,6 +3152,9 @@ void RSRenderNode::UpdateFullScreenFilterCacheRect(
 
 void RSRenderNode::OnTreeStateChanged()
 {
+    if (!isOnTheTree_) {
+        startingWindowFlag_ = false;
+    }
     if (isOnTheTree_) {
         // Set dirty and force add to active node list, re-generate children list if needed
         SetDirty(true);
@@ -3945,6 +3949,22 @@ void RSRenderNode::AddToPendingSyncList()
     } else {
         ROSEN_LOGE("RSRenderNode::AddToPendingSyncList context is null");
         OnSync();
+    }
+}
+
+void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
+{
+    if (startingFlag) {
+        UpdateDrawingCacheInfoAfterChildren();
+    }
+    if (startingWindowFlag_ == startingFlag) {
+        return;
+    }
+    startingWindowFlag_ = startingFlag;
+    auto stagingParams = stagingRenderParams_.get();
+    if (stagingParams) {
+        stagingParams->SetStartingWindowFlag(startingFlag);
+        AddToPendingSyncList();
     }
 }
 

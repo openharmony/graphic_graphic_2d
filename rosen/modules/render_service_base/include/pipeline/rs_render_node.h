@@ -697,6 +697,11 @@ public:
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
     void RemoveChildFromFulllist(NodeId nodeId);
+    void SetStartingWindowFlag(bool startingFlag);
+    bool GetStartingWindowFlag() const
+    {
+        return startingWindowFlag_;
+    }
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -766,6 +771,7 @@ protected:
     bool childHasSharedTransition_ = false;
     bool lastFrameSynced_ = true;
     bool clipAbsDrawRectChange_ = false;
+    bool startingWindowFlag_ = false;
     bool isUifirstNode_ = true;
     bool lastFrameHasAnimation_ = false;
 
