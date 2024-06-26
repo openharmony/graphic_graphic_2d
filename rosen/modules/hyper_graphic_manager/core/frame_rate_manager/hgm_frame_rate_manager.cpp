@@ -589,7 +589,7 @@ int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, flo
         case RSPropertyUnit::RATIO_SCALE:
             return GetPreferredFps("scale", PixelToMM(velocity));
         case RSPropertyUnit::ANGLE_ROTATION:
-            return GetPreferredFps("rotation", velocity);
+            return GetPreferredFps("rotation", PixelToMM(velocity));
         default:
             return 0;
     }
@@ -599,6 +599,9 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
 {
     auto &configData = HgmCore::Instance().GetPolicyConfigData();
     if (!configData) {
+        return 0;
+    }
+    if (ROSEN_EQ(velocity, 0.f)) {
         return 0;
     }
     const std::string settingMode = std::to_string(curRefreshRateMode_);
