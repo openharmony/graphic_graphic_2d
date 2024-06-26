@@ -49,6 +49,11 @@ float RSAttractionEffectFilter::GetAttractionFraction() const
     return attractionFraction_;
 }
 
+RectI RSAttractionEffectFilter::GetAttractionDirtyRegion() const
+{
+    return attractionDirtyRegion_;
+}
+
 bool RSAttractionEffectFilter::IsWithinThreshold(const float left, const float right, const float threshold)
 {
     return (std::abs(left - right) <= threshold);
@@ -321,6 +326,35 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
     Drawing::Point bottomVelSecond = { 0.20f, 1.0f };
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelSecond, bottomVelSecond};
     return velocityCtrlPoint;
+}
+
+void RSAttractionEffectFilter::UpdateDirtyRegion(float leftPoint, float topPonit)
+{
+    float dirtyRegionMinX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMaxX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMinY_ = windowStatusPoints_[0].GetY();
+    float dirtyRegionMaxY_ = windowStatusPoints_[0].GetY();
+
+    int pointNum = 12;
+    for(int i = 1; i < pointNum; ++i)
+    {
+        float x = windowStatusPoints_[i].GetX();
+        float y = windowStatusPoints_[i].GetY();
+        dirtyRegionMinX_ = std::min(dirtyRegionMinX_, x);
+        dirtyRegionMaxX_ = std::min(dirtyRegionMaxX_, x);
+        dirtyRegionMinY_ = std::min(dirtyRegionMinY_, y);
+        dirtyRegionMaxY_ = std::min(dirtyRegionMaxY_, y);
+    }
+
+    int dirtyRegionLeftCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionTopCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
+    int dirtyRegionRightCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionBottomCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
+
+    attractionDirtyRegion_.left_ = dirtyRegionLeftCurrent;
+    attractionDirtyRegion_.top_ = dirtyRegionTopCurrent;
+    attractionDirtyRegion_.width_ = dirtyRegionRightCurrent - dirtyRegionLeftCurrent;
+    attractionDirtyRegion_.height_ = dirtyRegionBottomCurrent - dirtyRegionTopCurrent;
 }
 
 void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float canvasHeight, Vector2f destinationPoint)

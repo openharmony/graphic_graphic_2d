@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "common/rs_rect.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
 #include "render/rs_skia_filter.h"
@@ -38,6 +39,8 @@ public:
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
     void PostProcess(Drawing::Canvas& canvas) override {};
     float GetAttractionFraction() const;
+    void UpdateDirtyRegion(float leftPoint, float topPonit);
+    RectI GetAttractionDirtyRegion() const;
 
     std::shared_ptr<RSDrawingFilterOriginal> Compose(
         const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
@@ -80,6 +83,7 @@ private:
     };;
     float canvasWidth_ = 0.0f;
     float canvasHeight_ = 0.0f;
+    RectI attractionDirtyRegion_ = {0, 0, 0, 0};
 
     friend class RSMarshallingHelper;
 };

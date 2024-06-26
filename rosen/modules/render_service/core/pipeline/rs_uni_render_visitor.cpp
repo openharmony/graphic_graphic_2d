@@ -2248,6 +2248,11 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceChangedRect);
         }
     }
+
+    if (surfaceNode->GetRenderProperties().IsAttractionValid()) {
+        auto attractionDirtyRect_ = surfaceNode->GetRenderProperties().GetAttractionEffectCurrentDirtyRegion();
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect_);
+    }
 }
 
 void RSUniRenderVisitor::CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const

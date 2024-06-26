@@ -452,6 +452,7 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
+    RectI GetAttractionEffectCurrentDirtyRegion() const;
 
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
@@ -637,6 +638,7 @@ private:
     float attractFraction_ = 0.f;
     Vector2f attractDstPoint_ = {0.f, 0.f};
     bool isAttractionValid_ = false;
+    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
 
     // filter property
     float backgroundBlurRadius_ = 0.f;

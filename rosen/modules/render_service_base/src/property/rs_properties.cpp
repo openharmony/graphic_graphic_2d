@@ -2323,13 +2323,18 @@ void RSProperties::CreateAttractionEffectFilter()
     float canvasWidth = GetBoundsRect().GetWidth();
     float canvasHeight = GetBoundsRect().GetHeight();
     Vector2f destinationPoint = GetAttractionDstPoint();
+    float windowLeftPoint = GetFramePositionX();
+    float windowTopPoint = GetFramePositionY();
     auto attractionEffectFilter = std::make_shared<RSAttractionEffectFilter>(attractFraction_);
     attractionEffectFilter->CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
-    if (IS_UNI_RENDER) {
-        foregroundFilterCache_ = attractionEffectFilter;
-    } else {
-        foregroundFilter_ = attractionEffectFilter;
-    }
+    attractionEffectFilter->UpdateDirtyRegion(windowLeftPoint, windowTopPoint);
+    attractionEffectCurrentDirtyRegion_ = attractionEffectFilter->GetAttractionDirtyRegion();
+    foregroundFilter_ = attractionEffectFilter;
+}
+
+RectI RSProperties::GetAttractionEffectCurrentDirtyRegion() const
+{
+    return attractionEffectCurrentDirtyRegion_;
 }
 
 float RSProperties::GetAttractionFraction() const
