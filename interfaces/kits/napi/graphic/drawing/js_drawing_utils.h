@@ -27,6 +27,7 @@
 #include "text/font_metrics.h"
 #include "text/font_types.h"
 #include "utils/rect.h"
+#include "image/image_info.h"
 
 namespace OHOS::Rosen {
 
@@ -354,6 +355,9 @@ inline napi_value GetStringAndConvertToJsValue(napi_env env, std::string str)
 }
 
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics);
+
+bool ConvertFromJsImageInfo(napi_env env, napi_value jsValue, Drawing::ImageInfo& out);
+napi_value GetImageInfoAndConvertToJsValue(napi_env env, const Drawing::ImageInfo& info);
 
 inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect> rect)
 {

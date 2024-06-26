@@ -53,9 +53,11 @@ public:
     static napi_value AttachPen(napi_env env, napi_callback_info info);
     static napi_value Clear(napi_env env, napi_callback_info info);
     static napi_value ClipPath(napi_env env, napi_callback_info info);
+    static napi_value ClipRegion(napi_env env, napi_callback_info info);
     static napi_value ClipRect(napi_env env, napi_callback_info info);
     static napi_value ConcatMatrix(napi_env env, napi_callback_info info);
     static napi_value DrawArc(napi_env env, napi_callback_info info);
+    static napi_value ClipRoundRect(napi_env env, napi_callback_info info);
     static napi_value DrawCircle(napi_env env, napi_callback_info info);
     static napi_value DrawColor(napi_env env, napi_callback_info info);
     static napi_value DrawImage(napi_env env, napi_callback_info info);
@@ -71,9 +73,11 @@ public:
     static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DetachBrush(napi_env env, napi_callback_info info);
     static napi_value DetachPen(napi_env env, napi_callback_info info);
+    static napi_value GetImageInfo(napi_env env, napi_callback_info info);
     static napi_value GetSaveCount(napi_env env, napi_callback_info info);
     static napi_value GetWidth(napi_env env, napi_callback_info info);
     static napi_value GetHeight(napi_env env, napi_callback_info info);
+    static napi_value IsClipEmpty(napi_env env, napi_callback_info info);
     static napi_value Rotate(napi_env env, napi_callback_info info);
     static napi_value RestoreToCount(napi_env env, napi_callback_info info);
     static napi_value Restore(napi_env env, napi_callback_info info);
@@ -83,6 +87,9 @@ public:
     static napi_value Scale(napi_env env, napi_callback_info info);
     static napi_value SetMatrix(napi_env env, napi_callback_info info);
     static napi_value Translate(napi_env env, napi_callback_info info);
+    static napi_value DrawImageRect(napi_env env, napi_callback_info info);
+    static napi_value ReadPixels(napi_env env, napi_callback_info info);
+    static napi_value ResetMatrix(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
@@ -93,9 +100,11 @@ public:
 private:
     napi_value OnClear(napi_env env, napi_callback_info info);
     napi_value OnClipPath(napi_env env, napi_callback_info info);
+    napi_value OnClipRegion(napi_env env, napi_callback_info info);
     napi_value OnClipRect(napi_env env, napi_callback_info info);
     napi_value OnConcatMatrix(napi_env env, napi_callback_info info);
     napi_value OnDrawArc(napi_env env, napi_callback_info info);
+    napi_value OnClipRoundRect(napi_env env, napi_callback_info info);
     napi_value OnDrawCircle(napi_env env, napi_callback_info info);
     napi_value OnDrawColor(napi_env env, napi_callback_info info);
     napi_value OnDrawImage(napi_env env, napi_callback_info info);
@@ -109,9 +118,11 @@ private:
     napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
+    napi_value OnGetImageInfo(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnGetWidth(napi_env env, napi_callback_info info);
     napi_value OnGetHeight(napi_env env, napi_callback_info info);
+    napi_value OnIsClipEmpty(napi_env env, napi_callback_info info);
     napi_value OnRotate(napi_env env, napi_callback_info info);
     napi_value OnRestoreToCount(napi_env env, napi_callback_info info);
     napi_value OnRestore(napi_env env, napi_callback_info info);
@@ -121,6 +132,9 @@ private:
     napi_value OnScale(napi_env env, napi_callback_info info);
     napi_value OnSetMatrix(napi_env env, napi_callback_info info);
     napi_value OnTranslate(napi_env env, napi_callback_info info);
+    napi_value OnDrawImageRect(napi_env env, napi_callback_info info);
+    napi_value OnReadPixels(napi_env env, napi_callback_info info);
+    napi_value OnResetMatrix(napi_env env, napi_callback_info info);
 
     static bool DeclareFuncAndCreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;

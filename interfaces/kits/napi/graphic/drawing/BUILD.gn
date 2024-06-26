@@ -30,6 +30,7 @@ config("local_drawing_config") {
   include_dirs = [
     "../drawing",
     "../../../../../rosen/modules/2d_graphics/include",
+    "../../../../../rosen/modules/2d_graphics/src",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 }
@@ -78,6 +79,7 @@ ohos_shared_library("drawing_napi_impl") {
     "sampling_options_napi/js_sampling_options.cpp",
     "shadow_layer_napi/js_shadow_layer.cpp",
     "text_blob_napi/js_text_blob.cpp",
+    "round_rect_napi/js_roundrect.cpp",
   ]
 
   defines = []

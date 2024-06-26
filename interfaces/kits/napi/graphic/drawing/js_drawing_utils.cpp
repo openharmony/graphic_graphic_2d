@@ -88,6 +88,13 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 static const char* g_argbString[4] = {"alpha", "red", "green", "blue"};
 static const char* g_ltrbString[4] = {"left", "top", "right", "bottom"};
 
+#define IMAGEINFO_WIDTH_ID 0
+#define IMAGEINFO_HEIGHT_ID 1
+#define IMAGEINFO_CLRTYPE_ID 2
+#define IMAGEINFO_ALPHTYPE_ID 3
+#define IMAGEINFO_FIELDS_COUNT 4
+static const char* g_whcaString[IMAGEINFO_FIELDS_COUNT] = {"width", "height", "colorType", "alphaType"};
+
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
 {
     napi_value tempValue = nullptr;
@@ -156,5 +163,49 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
     }
     return objValue;
 }
+
+napi_value GetImageInfoAndConvertToJsValue(napi_env env, const Drawing::ImageInfo& info)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_WIDTH_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetWidth())));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_HEIGHT_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetHeight())));
+        Drawing::ColorType clrType = info.GetColorType();
+        if (clrType > Drawing::ColorType::COLORTYPE_BGRA_8888) {
+            clrType = Drawing::ColorType::COLORTYPE_UNKNOWN;
+        }
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_CLRTYPE_ID], CreateJsNumber(env, static_cast<int32_t>(clrType)));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_ALPHTYPE_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetAlphaType())));
+    }
+    return objValue;
+}
+
+bool ConvertFromJsImageInfo(napi_env env, napi_value jsValue, Drawing::ImageInfo& out)
+{
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    out = Drawing::ImageInfo();
+    napi_value tempValue = nullptr;
+    int32_t values[IMAGEINFO_FIELDS_COUNT] = {0};
+    for (size_t idx = 0; idx < IMAGEINFO_FIELDS_COUNT; idx++) {
+        int32_t* curVal = values + idx;
+        napi_get_named_property(env, jsValue, g_whcaString[idx], &tempValue);
+        if (napi_get_value_int32(env, tempValue, curVal) != napi_ok) {
+            return false;
+        }
+    }
+
+    out.SetWidth(static_cast<int>(values[IMAGEINFO_WIDTH_ID]));
+    out.SetHeight(static_cast<int>(values[IMAGEINFO_HEIGHT_ID]));
+    out.SetColorType(static_cast<Drawing::ColorType>(values[IMAGEINFO_CLRTYPE_ID]));
+    out.SetAlphaType(static_cast<Drawing::AlphaType>(values[IMAGEINFO_ALPHTYPE_ID]));
+
+    return true;
+}
+
 } // namespace Drawing
 } // namespace OHOS::Rosen

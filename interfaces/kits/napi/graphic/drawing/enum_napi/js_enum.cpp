@@ -24,6 +24,7 @@
 #include "draw/core_canvas.h"
 #include "draw/path.h"
 #include "draw/pen.h"
+#include "draw/color.h"
 #include "effect/mask_filter.h"
 #include "text/font_types.h"
 #include "utils/region.h"
@@ -171,6 +172,22 @@ static const std::vector<struct JsEnumInt> g_pathFillType = {
     { "INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
 };
 
+static const std::vector<struct JsEnumInt> g_alphaFormat = {
+    { "UNKNOWN", static_cast<int32_t>(Drawing::AlphaType::ALPHATYPE_UNKNOWN) },
+    { "OPAQUE", static_cast<int32_t>(Drawing::AlphaType::ALPHATYPE_OPAQUE) },
+    { "PREMUL", static_cast<int32_t>(Drawing::AlphaType::ALPHATYPE_PREMUL) },
+    { "UNPREMUL", static_cast<int32_t>(Drawing::AlphaType::ALPHATYPE_UNPREMUL) },
+};
+
+static const std::vector<struct JsEnumInt> g_colorType = {
+    { "UNKNOWN", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_UNKNOWN) },
+    { "ALPHA_8", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_ALPHA_8) },
+    { "RGB_565", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_RGB_565) },
+    { "ARGB_4444", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_ARGB_4444) },
+    { "RGBA_8888", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_RGBA_8888) },
+    { "BGRA_8888", static_cast<int32_t>(Drawing::ColorType::COLORTYPE_BGRA_8888) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -187,6 +204,8 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
     { "PathFillType", g_pathFillType },
+    { "AlphaFormat", g_alphaFormat },
+    { "ColorFormat", g_colorType },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
