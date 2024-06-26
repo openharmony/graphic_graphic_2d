@@ -325,11 +325,11 @@ void StaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vecto
     return EngineStaticFactory::GetDrawingPointsForTextBlob(blob, points);
 }
 
-DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetSymbolLayersGroups(glyphId);
+        return DDGRStaticFactory::GetSymbolLayersGroups(static_cast<uint32>(glyphId));
     }
 #endif
     return EngineStaticFactory::GetSymbolLayersGroups(glyphId);

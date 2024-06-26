@@ -52,17 +52,17 @@ bool ElementInMap(const std::string& curElement, const std::map<std::string, T>&
     return (element != curMap.end());
 }
 
-float CurveArgsInMap(const std::string& curElement, const std::map<std::string, double>& curMap)
+float CurveArgsInMap(const std::string& curElement, const std::map<std::string, float>& curMap)
 {
     auto element = curMap.find(curElement);
     if (element == curMap.end()) {
         return 0.0f;
     }
-    return static_cast<float>(element->second);
+    return element->second;
 }
 
 void CreateAnimationTimingCurve(const OHOS::Rosen::Drawing::DrawingCurveType type,
-    const std::map<std::string, double>& curveArgs, RSAnimationTimingCurve& curve)
+    const std::map<std::string, float>& curveArgs, RSAnimationTimingCurve& curve)
 {
     curve = RSAnimationTimingCurve();
     if (type == OHOS::Rosen::Drawing::DrawingCurveType::LINEAR) {
@@ -413,11 +413,6 @@ bool RSSymbolAnimation::SetPublicAnimation(
         }
         rsNode_->AddChild(canvasNode, -1);
 
-        // if there is mask layer, set the blendmode on the original node rsNode_
-        if (symbolNode.isMask) {
-            rsNode_->SetColorBlendMode(RSColorBlendMode::SRC_OVER);
-            rsNode_->SetColorBlendApplyType(RSColorBlendApplyType::SAVE_LAYER);
-        }
         GroupDrawing(canvasNode, symbolNode, offsets, nodeNum > 1);
 
         if (!res || (symbolNode.animationIndex < 0)) {
@@ -542,6 +537,12 @@ Vector4f RSSymbolAnimation::CalculateOffset(const Drawing::Path& path, const flo
 void RSSymbolAnimation::GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode,
     TextEngine::SymbolNode& symbolNode, const Vector4f& offsets, bool isMultiLayer)
 {
+    // if there is mask layer, set the blendmode on the original node rsNode_
+    if (symbolNode.isMask) {
+        rsNode_->SetColorBlendMode(RSColorBlendMode::SRC_OVER);
+        rsNode_->SetColorBlendApplyType(RSColorBlendApplyType::SAVE_LAYER);
+    }
+
     // drawing a symbol or a path group
     auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[NODE_WIDTH],
                                                       symbolNode.nodeBoundary[NODE_HEIGHT]);
@@ -578,6 +579,8 @@ void RSSymbolAnimation::DrawPathOnCanvas(
     }
     Drawing::Brush brush;
     Drawing::Pen pen;
+    brush.SetAntiAlias(true);
+    pen.SetAntiAlias(true);
     if (symbolNode.isMask) {
         brush.SetBlendMode(Drawing::BlendMode::CLEAR);
         pen.SetBlendMode(Drawing::BlendMode::CLEAR);

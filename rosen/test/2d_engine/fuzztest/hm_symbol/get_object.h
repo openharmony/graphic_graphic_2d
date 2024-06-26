@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GET_OBJECT_H
-#define GET_OBJECT_H
+#ifndef TEST_FUZZTEST_HM_SYMBOL_GET_OBJECT_H
+#define TEST_FUZZTEST_HM_SYMBOL_GET_OBJECT_H
 
 #include <securec.h>
 

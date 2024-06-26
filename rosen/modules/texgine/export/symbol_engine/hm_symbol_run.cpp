@@ -26,8 +26,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 {
     RSSymbolLayers symbolInfo;
     symbolInfo.symbolGlyphId = glyphId;
-    uint32_t symbolId = static_cast<uint32_t>(glyphId);
-    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
+    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
         return symbolInfo;
     }
@@ -152,7 +151,7 @@ void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32
     symbolNode.ClearAnimation();
 }
 
-bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
+bool HMSymbolRun::GetAnimationGroups(const uint16_t glyohId, const RSEffectStrategy effectStrategy,
     RSAnimationSetting& animationOut)
 {
     auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyohId);

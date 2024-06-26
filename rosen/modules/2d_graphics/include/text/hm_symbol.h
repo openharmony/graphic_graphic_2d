@@ -55,21 +55,21 @@ enum DrawingCommonSubType {
 
 struct DrawingPiecewiseParameter {
     DrawingCurveType curveType;
-    std::map<std::string, double> curveArgs;
+    std::map<std::string, float> curveArgs;
     uint32_t duration;
     int delay;
-    std::map<std::string, std::vector<double>> properties;
+    std::map<std::string, std::vector<float>> properties;
 };
 
 struct DrawingAnimationPara {
-    uint32_t animationMode = 0; // 0 is default value, is byLayer effect
+    uint16_t animationMode = 0; // 0 is default value, is byLayer effect
     DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN;
     std::vector<std::vector<DrawingPiecewiseParameter>> groupParameters;
 };
 
 struct DrawingAnimationInfo {
     DrawingAnimationType animationType;
-    std::vector<DrawingAnimationPara> animationParas;
+    std::map<uint32_t, DrawingAnimationPara> animationParas;
 };
 
 struct DrawingSColor {
@@ -112,7 +112,7 @@ enum DrawingEffectStrategy {
 };
 
 struct DrawingSymbolLayers {
-    uint32_t symbolGlyphId;
+    uint16_t symbolGlyphId;
     std::vector<std::vector<size_t>> layers;
     std::vector<DrawingRenderGroup> renderGroups;
 };
@@ -124,7 +124,7 @@ enum DrawingSymbolRenderingStrategy {
 };
 
 struct DrawingSymbolLayersGroups {
-    uint32_t symbolGlyphId;
+    uint16_t symbolGlyphId;
     std::vector<std::vector<size_t>> layers;
     std::map<DrawingSymbolRenderingStrategy, std::vector<DrawingRenderGroup>> renderModeGroups;
     std::vector<DrawingAnimationSetting> animationSettings;

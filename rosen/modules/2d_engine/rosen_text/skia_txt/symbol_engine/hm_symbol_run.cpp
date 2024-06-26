@@ -24,12 +24,11 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
     RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR};
 
-RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText)
+RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText)
 {
     RSSymbolLayers symbolInfo;
     symbolInfo.symbolGlyphId = glyphId;
-    uint32_t symbolId = static_cast<uint32_t>(glyphId);
-    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
+    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
         return symbolInfo;
     }
@@ -77,8 +76,8 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
             break;
         // MULTIPLE_COLOR: Supports mutiple color setting
         case RSSymbolRenderingStrategy::MULTIPLE_COLOR:
-            for (size_t i = 0, j = 0; i < symbolInfo.renderGroups.size() && j < colors.size(); ++i, ++j) {
-                symbolInfo.renderGroups[i].color = colors[j];
+            for (size_t i = 0; i < symbolInfo.renderGroups.size() && i < colors.size(); ++i) {
+                symbolInfo.renderGroups[i].color = colors[i];
             }
             break;
         default:
@@ -86,7 +85,7 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
     }
 }
 
-void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt &symbolTxt)
+void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt& symbolTxt)
 {
     if (canvas == nullptr || blob == nullptr) {
         return;
@@ -106,15 +105,14 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
         symbolData.path_ = path;
         symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
         RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
-        uint32_t symbolId = static_cast<uint32_t>(glyphId);
-        std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
+        std::pair<float, float> offsetXY(offset.GetX(), offset.GetY());
         if (symbolEffect > 0 && symbolTxt.GetAnimationStart()) { // 0 > has animation
-            if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt)) {
-                ClearSymbolAnimation(symbolData, symbolId, offsetXY);
+            if (!SymbolAnimation(symbolData, glyphId, offsetXY, symbolTxt)) {
+                ClearSymbolAnimation(symbolData, offsetXY);
                 canvas->DrawSymbol(symbolData, offset);
             }
         } else {
-            ClearSymbolAnimation(symbolData, symbolId, offsetXY);
+            ClearSymbolAnimation(symbolData, offsetXY);
             canvas->DrawSymbol(symbolData, offset);
         }
     } else {
@@ -122,8 +120,8 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
     }
 }
 
-bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
-    const std::pair<double, double> offset, const HMSymbolTxt& symbolTxt)
+bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphid,
+    const std::pair<float, float>& offset, const HMSymbolTxt& symbolTxt)
 {
     RSEffectStrategy effectMode = symbolTxt.GetEffectStrategy();
     uint16_t animationMode = symbolTxt.GetAnimationMode();
@@ -136,8 +134,8 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
             return false;
         }
 
-        if (std::count(COMMON_ANIMATION_TYPES.begin(), COMMON_ANIMATION_TYPES.end(), effectMode) != 0 &&
-            animationSetting.groupSettings.size() == 1) {
+        if (std::find(COMMON_ANIMATION_TYPES.begin(), COMMON_ANIMATION_TYPES.end(), effectMode) !=
+            COMMON_ANIMATION_TYPES.end() && animationSetting.groupSettings.size() == 1) {
             animationMode = 1; // the 1 is wholeSymbol effect
         }
     }
@@ -148,14 +146,10 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
     symbolNode.SetRepeatCount(symbolTxt.GetRepeatCount());
     symbolNode.SetAnimationStart(symbolTxt.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt.GetCommonSubType());
-    if (!symbolNode.DecomposeSymbolAndDraw()) {
-        return false;
-    }
-    return true;
+    return symbolNode.DecomposeSymbolAndDraw();
 }
 
-void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
-        const std::pair<double, double> offset)
+void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
 {
     auto effectMode = RSEffectStrategy::NONE;
     RSAnimationSetting animationSetting;
@@ -166,20 +160,19 @@ void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32
     symbolNode.ClearAnimation();
 }
 
-bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const RSEffectStrategy effectStrategy,
+bool HMSymbolRun::GetAnimationGroups(uint16_t glyphid, const RSEffectStrategy effectStrategy,
     RSAnimationSetting& animationOut)
 {
     auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphid);
-    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin.animationSettings;
     RSAnimationType animationType = static_cast<RSAnimationType>(effectStrategy);
 
-    for (size_t i = 0; i < animationSettings.size(); i++) {
-        if (std::find(animationSettings[i].animationTypes.begin(), animationSettings[i].animationTypes.end(),
-            animationType) == animationSettings[i].animationTypes.end()) {
+    for (auto& animationSetting: symbolInfoOrigin.animationSettings) {
+        if (std::find(animationSetting.animationTypes.begin(), animationSetting.animationTypes.end(),
+            animationType) == animationSetting.animationTypes.end()) {
             continue;
         }
-        if (animationSettings[i].groupSettings.size() > 0) {
-            animationOut = animationSettings[i];
+        if (!animationSetting.groupSettings.empty()) {
+            animationOut = animationSetting;
             return true;
         }
     }

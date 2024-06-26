@@ -26,7 +26,7 @@ namespace Drawing {
 
 class SkiaHmSymbolConfigOhos {
 public:
-    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint32_t glyphId);
+    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint16_t glyphId);
 
     static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,

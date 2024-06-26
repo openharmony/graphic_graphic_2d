@@ -61,7 +61,6 @@ bool RSRcdRenderManager::IsRcdProcessInfoValid(const RcdProcessInfo& info)
 
 void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
 {
-    RS_LOGD("RCD: Start Do Rcd Render process");
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");
     if (!IsRcdProcessInfoValid(info)) {
         RS_LOGE("RCD: RcdProcessInfo is incorrect");
@@ -73,12 +72,10 @@ void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
     visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode_, info.bottomLayer, info.resourceChanged);
     visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode_, info.topLayer, info.resourceChanged);
     RS_TRACE_END();
-    RS_LOGD("RCD: Finish Do Rcd Render process");
 }
 
 void RSRcdRenderManager::DoProcessRenderMainThreadTask(const RcdProcessInfo& info)
 {
-    RS_LOGD("RCD: Start Do Rcd Render process in MainThread");
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessMainThreadTask");
     if (!IsRcdProcessInfoValid(info)) {
         RS_LOGE("RCD: RcdProcessInfo in MainThread is incorrect");
@@ -90,7 +87,6 @@ void RSRcdRenderManager::DoProcessRenderMainThreadTask(const RcdProcessInfo& inf
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*bottomSurfaceNode_, info.resourceChanged);
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode_, info.resourceChanged);
     RS_TRACE_END();
-    RS_LOGD("RCD: Finish Do Rcd Render process in MainThread");
 }
 
 void RSRcdRenderManager::Reset()
