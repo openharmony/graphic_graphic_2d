@@ -141,7 +141,7 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
         GET_COLOR_PARAM(ARGC_THREE, blue);
         drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
     brush->SetColor(drawingColor);
     return nullptr;
@@ -260,7 +260,7 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     int32_t mode = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, mode);
+    GET_ENUM_PARAM(ARGC_ZERO, mode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     brush->SetBlendMode(static_cast<BlendMode>(mode));
     return nullptr;
@@ -270,7 +270,7 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
     if (jsBrush == nullptr) {
-        ROSEN_LOGE("JsBrush::SetMaskFilter jsBrush is nullptr");
+        ROSEN_LOGE("JsBrush::SetShadowLayer jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     Brush* brush = jsBrush->GetBrush();
