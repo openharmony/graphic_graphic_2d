@@ -15,6 +15,8 @@
 #ifndef GRAPHICS_EFFECT_GE_MAGNIFIER_SHADER_FILTER_H
 #define GRAPHICS_EFFECT_GE_MAGNIFIER_SHADER_FILTER_H
 
+#include <cstdint>
+
 #include "ge_shader_filter.h"
 #include "ge_visual_effect.h"
 
@@ -28,6 +30,9 @@ namespace Rosen {
 
 class GEMagnifierParams {
 public:
+    explicit GEMagnifierParams() {}
+    ~GEMagnifierParams() = default;
+
     float factor_ = 0.f;
     float width_ = 0.f;
     float height_ = 0.f;
@@ -44,15 +49,11 @@ public:
     uint32_t gradientMaskColor2_ = 0x00000000;
     uint32_t outerContourColor1_ = 0x00000000;
     uint32_t outerContourColor2_ = 0x00000000;
-    
-    explicit GEMagnifierParams() {}
-
-    ~GEMagnifierParams() = default;
 };
 
 class GEMagnifierShaderFilter : public GEShaderFilter {
 public:
-    GEMagnifierShaderFilter(const Drawing::GEMagnifierShaderFilterParams& params);
+    GEMagnifierShaderFilter();
     GEMagnifierShaderFilter(const GEMagnifierShaderFilter&) = delete;
     GEMagnifierShaderFilter operator=(const GEMagnifierShaderFilter&) = delete;
     ~GEMagnifierShaderFilter() override = default;
@@ -66,7 +67,7 @@ private:
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeMagnifierShader(
         std::shared_ptr<Drawing::ShaderEffect> imageShader, float imageWidth, float imageHeight);
     bool InitMagnifierEffect();
-    void ConvertToRgba(uint32_t rgba, float* color);
+    void ConvertToRgba(uint32_t rgba, float* color, int tupleSize);
 
     std::shared_ptr<GEMagnifierParams> magnifierPara_ = nullptr;
     static std::shared_ptr<Drawing::RuntimeEffect> magnifierShaderEffect_;

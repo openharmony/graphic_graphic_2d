@@ -5380,6 +5380,26 @@ HWTEST_F(RSNodeTest, SetMotionBlurPara, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetMagnifierParams
+ * @tc.desc: test results of SetMagnifierParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f para = { 1.f, 1.f }; // for test
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetMagnifierParams(para);
+
+    auto iter = rsNode->propertyModifiers_.find(RSModifierType::MAGNIFIER_PARA);
+    ASSERT_TRUE(iter != rsNode->propertyModifiers_.end());
+    auto property = std::static_pointer_cast<RSProperty<Vector2f>>(iter->second->GetProperty());
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->Get(), para);
+}
+
+/**
  * @tc.name: SetDynamicLightUpRate
  * @tc.desc: test results of SetDynamicLightUpRate
  * @tc.type: FUNC
