@@ -13,42 +13,37 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_JS_BRUSH_H
-#define OHOS_ROSEN_JS_BRUSH_H
+#ifndef OHOS_ROSEN_JS_IMAGE_FILTER_H
+#define OHOS_ROSEN_JS_IMAGE_FILTER_H
 
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 
-#include "draw/brush.h"
+#include "color_filter_napi/js_color_filter.h"
+#include "effect/image_filter.h"
+#include "effect/shader_effect.h"
+
 
 namespace OHOS::Rosen {
 namespace Drawing {
-class JsBrush final {
+class JsImageFilter final {
 public:
-    JsBrush();
-    ~JsBrush();
+    explicit JsImageFilter(std::shared_ptr<ImageFilter> imageFilter = nullptr) : m_ImageFilter(imageFilter) {}
+    ~JsImageFilter();
 
     static napi_value Init(napi_env env, napi_value exportObj);
+    static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value Constructor(napi_env env, napi_callback_info info);
-    static void Destructor(napi_env env, void* nativeObject, void* finalize);
-
-    static napi_value SetColor(napi_env env, napi_callback_info info);
-    static napi_value SetAntiAlias(napi_env env, napi_callback_info info);
-    static napi_value SetAlpha(napi_env env, napi_callback_info info);
-    static napi_value SetColorFilter(napi_env env, napi_callback_info info);
-    static napi_value GetColorFilter(napi_env env, napi_callback_info info);
-    static napi_value SetImageFilter(napi_env env, napi_callback_info info);
-    static napi_value SetMaskFilter(napi_env env, napi_callback_info info);
-    static napi_value SetBlendMode(napi_env env, napi_callback_info info);
-    static napi_value SetShadowLayer(napi_env env, napi_callback_info info);
-
-    Brush* GetBrush();
+    static void Destructor(napi_env env, void *nativeObject, void *finalize);
+    static napi_value CreateBlurImageFilter(napi_env env, napi_callback_info info);
+    static napi_value CreateFromColorFilter(napi_env env, napi_callback_info info);
+    static napi_value Create(napi_env env, const std::shared_ptr<ImageFilter> imageFilter);
+    DRAWING_API std::shared_ptr<ImageFilter> GetImageFilter();
 
 private:
+    std::shared_ptr<ImageFilter> m_ImageFilter = nullptr;
     static thread_local napi_ref constructor_;
-
-    Brush* brush_;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_JS_BRUSH_H
+#endif // OHOS_ROSEN_JS_IMAGE_FILTER_H

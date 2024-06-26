@@ -18,6 +18,7 @@
 #include <cstdint>
 
 #include "color_filter_napi/js_color_filter.h"
+#include "image_filter_napi/js_image_filter.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
 #include "matrix_napi/js_matrix.h"
@@ -39,6 +40,8 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getCapStyle", GetCapStyle),
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
+        DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
+        DECLARE_NAPI_FUNCTION("setImageFilter", SetImageFilter),
         DECLARE_NAPI_FUNCTION("setDither", SetDither),
         DECLARE_NAPI_FUNCTION("setJoinStyle", SetJoinStyle),
         DECLARE_NAPI_FUNCTION("getJoinStyle", GetJoinStyle),
@@ -273,6 +276,49 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
 
     Filter filter = pen->GetFilter();
     filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
+    pen->SetFilter(filter);
+    return nullptr;
+}
+
+napi_value JsPen::GetColorFilter(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColorFilter jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColorFilter pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    if (pen->HasFilter()) {
+        return JsColorFilter::Create(env, pen->GetFilter().GetColorFilter());
+    }
+    return nullptr;
+}
+
+napi_value JsPen::SetImageFilter(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::SetImageFilter jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::SetImageFilter pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsImageFilter* jsImageFilter = nullptr;
+    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsImageFilter));
+
+    Filter filter = pen->GetFilter();
+    filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);
     pen->SetFilter(filter);
     return nullptr;
 }
