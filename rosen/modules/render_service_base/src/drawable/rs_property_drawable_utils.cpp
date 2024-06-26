@@ -771,7 +771,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         }
         half4 main(half4 src, half4 dst) {
             half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
-            half3 color = gray(dst.rgb * (1.0 / dst.a), coeff); // restore alpha-premul first
+            half3 color = gray(dst.rgb / (dst.a + 0.000001), coeff); // restore alpha-premul first
             half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
             half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
             color = sat(color, ubo_baseSat, pos, neg);
