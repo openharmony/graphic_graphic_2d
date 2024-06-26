@@ -2843,4 +2843,35 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest103, TestSize.Level
     OH_Drawing_PathDestroy(cPath);
     OH_Drawing_CanvasDestroy(cCanvas);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest105
+ * @tc.desc: test for the text box
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest105, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TextBox* textBox = OH_Drawing_TypographyGetRectsForPlaceholders(typography);
+    OH_Drawing_GetLeftFromTextBox(textBox, 0);
+    OH_Drawing_GetRightFromTextBox(textBox, 0);
+    OH_Drawing_GetTopFromTextBox(textBox, 0);
+    OH_Drawing_GetBottomFromTextBox(textBox, 0);
+    EXPECT_EQ(OH_Drawing_GetTextDirectionFromTextBox(textBox, 0), 0);
+    EXPECT_EQ(OH_Drawing_GetSizeOfTextBox(textBox), 0);
+
+    OH_Drawing_PositionAndAffinity* positionAndAffinity =
+        OH_Drawing_TypographyGetGlyphPositionAtCoordinate(typography, 1, 0);
+    OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
+    OH_Drawing_GetAffinityFromPositionAndAffinity(positionAndAffinity);
+
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetWordBoundary(typography, 1);
+    OH_Drawing_GetStartFromRange(range);
+    OH_Drawing_GetEndFromRange(range);
+    OH_Drawing_TypographyGetLineHeight(typography, 1);
+    OH_Drawing_TypographyGetLineWidth(typography, 1);
+}
 }
