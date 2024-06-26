@@ -381,24 +381,6 @@ void RSDisplayRenderNodeDrawable::CreateUIFirstLayer(std::shared_ptr<RSProcessor
     }
 }
 
-void RSDisplayRenderNodeDrawable::RemoveClearMemoryTask() const
-{
-    auto& unirenderThread = RSUniRenderThread::Instance();
-    if (!unirenderThread.GetClearMemoryFinished()) {
-        unirenderThread.RemoveTask(CLEAR_GPU_CACHE);
-    }
-    unirenderThread.RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
-}
-
-void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
-{
-    auto& unirenderThread = RSUniRenderThread::Instance();
-    if (!unirenderThread.GetClearMemoryFinished()) {
-        unirenderThread.ClearMemoryCache(unirenderThread.GetClearMoment(), unirenderThread.GetClearMemDeeply());
-    }
-    unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
-}
-
 void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag)
 {
     isDisplayNodeSkipStatusChanged_ = (isDisplayNodeSkip_ != flag);
@@ -426,10 +408,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw params is null!");
         return;
     }
-
-    // if start process DisplayRenderNode, restart the delaytime of clearMemoryTask
-    RemoveClearMemoryTask();
-    PostClearMemoryTask();
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
