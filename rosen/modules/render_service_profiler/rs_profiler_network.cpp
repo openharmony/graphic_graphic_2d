@@ -237,7 +237,7 @@ void Network::SendCaptureData(const RSCaptureData& data)
     const_cast<RSCaptureData&>(data).Serialize(out);
 
     if (!out.empty()) {
-        const char headerType = 3; // TYPE: GFX METRICS
+        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_GFX_METRICS);
         out.insert(out.begin(), headerType);
         SendBinary(out);
     }

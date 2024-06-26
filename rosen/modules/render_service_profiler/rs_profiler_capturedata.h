@@ -25,6 +25,7 @@ namespace OHOS::Rosen {
 class RSCaptureData final {
 public:
     // every rs update
+    inline static const std::string KEY_RS_FRAME_NUMBER = "rs_frame_number";
     inline static const std::string KEY_RS_FRAME_LEN = "rs_frame_len";
     inline static const std::string KEY_RS_CMD_COUNT = "rs_cmd_count";
     inline static const std::string KEY_RS_CMD_EXECUTE_COUNT = "rs_cmd_execute_count";
@@ -32,6 +33,10 @@ public:
     inline static const std::string KEY_RS_PIXEL_IMAGE_ADDED = "rs_pixelimage_added";
     inline static const std::string KEY_RS_DIRTY_REGION = "rs_dirty_region";
     inline static const std::string KEY_RS_CPU_ID = "rs_cpu_id";
+
+    // every frame rendered
+    inline static const std::string KEY_RENDER_FRAME_NUMBER = "render_frame_number";
+    inline static const std::string KEY_RENDER_FRAME_LEN = "render_frame_len";
 
     // every 8ms
     inline static const std::string KEY_CPU_TEMP = "cpu_temp";
