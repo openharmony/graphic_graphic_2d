@@ -132,6 +132,7 @@ template("sendablecolorspacemanager_napi_source_set") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
 
