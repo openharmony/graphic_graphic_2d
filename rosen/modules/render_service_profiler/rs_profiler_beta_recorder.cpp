@@ -96,14 +96,14 @@ void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string path)
         return;
     }
     
-    std::thread thread([fileData, path]() {
+    std::thread thread([fileDataCopy{std::move(fileData)}, path]() {
         const std::lock_guard<std::mutex> fileSavingMutex(g_fileSavingMutex);
 
         FILE* fileCopy = Utils::FileOpen(path, "wbe");
         if (!Utils::IsFileValid(fileCopy)) {
             return;
         }
-        Utils::FileWrite(fileCopy, fileData.data(), fileData.size());
+        Utils::FileWrite(fileCopy, fileDataCopy.data(), fileDataCopy.size());
         Utils::FileClose(fileCopy);
     });
     thread.detach();

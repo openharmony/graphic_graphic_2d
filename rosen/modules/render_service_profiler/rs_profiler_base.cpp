@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "sys_binder.h"
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
@@ -504,6 +505,26 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     const size_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
     data.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
+
+    // Remove all file descriptors
+    binder_size_t* object = reinterpret_cast<binder_size_t*>(parcel.GetObjectOffsets());
+    size_t objectNum = parcel.GetOffsetsSize();
+    uintptr_t parcelData = parcel.GetData();
+
+    const size_t maxObjectNum = INT_MAX;
+    if (!object || (objectNum > maxObjectNum)) {
+        return;
+    }
+
+    for (size_t i = 0; i < objectNum; i++) {
+        const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(parcelData + object[i]);
+        if (!flat) {
+            return;
+        }
+        if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
+            ::close(flat->handle);
+        }
+    }
 }
 
 void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data)

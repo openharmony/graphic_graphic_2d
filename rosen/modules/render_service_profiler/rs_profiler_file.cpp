@@ -458,6 +458,13 @@ bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
     if (fileSize == 0) {
         return false;
     }
+
+    // File size threshold is set to ensure that the file is valid
+    const size_t maxFileSize = 300000000;
+    if (fileSize > maxFileSize) {
+        return false;
+    }
+
     data.clear();
     data.resize(fileSize);
 

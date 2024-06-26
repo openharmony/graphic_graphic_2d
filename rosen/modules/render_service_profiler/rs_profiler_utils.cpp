@@ -443,6 +443,10 @@ size_t Utils::FileSize(FILE* file)
         const int64_t position = g_recordInMemory.tellg();
         g_recordInMemory.seekg(0, std::ios_base::end);
         const int64_t size = g_recordInMemory.tellg();
+        if (size == -1) {
+            g_recordInMemory.seekg(0, std::ios_base::beg);
+            return 0;
+        }
         g_recordInMemory.seekg(position, std::ios_base::beg);
         return size;
     }
