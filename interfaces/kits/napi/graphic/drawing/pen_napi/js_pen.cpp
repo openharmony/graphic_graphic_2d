@@ -22,6 +22,8 @@
 #include "mask_filter_napi/js_mask_filter.h"
 #include "path_effect_napi/js_path_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
+#include "path_napi/js_path.h"
+#include "matrix_napi/js_matrix.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -44,6 +46,7 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("setPathEffect", SetPathEffect),
         DECLARE_NAPI_FUNCTION("setStrokeWidth", SetStrokeWidth),
         DECLARE_NAPI_FUNCTION("setShadowLayer", SetShadowLayer),
+        DECLARE_NAPI_FUNCTION("getFillPath", GetFillPath),
     };
 
     napi_value constructor = nullptr;
@@ -467,6 +470,57 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
 
     pen->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
+}
+
+napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetJoinStyle jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetJoinStyle pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+    
+    
+    JsPath* src = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, src);
+    if (src->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath src jsPath is nullptr");
+        return nullptr;
+    }
+
+    JsPath* dst = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, dst);
+    if (dst->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath dst jsPath is nullptr");
+        return nullptr;
+    }
+
+
+    Rect* rect = nullptr;
+    napi_valuetype isRectNullptr;
+    napi_typeof(env, argv[ARGC_TWO], &isRectNullptr);
+    if (isRectNullptr != napi_null) {
+        // TODO simplify it when JsRect class will be developed
+        double ltrb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Incorrect parameter type. The type of left, top, right and bottom must be number.");
+        }
+        *rect = Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+    }
+    
+    JsMatrix* matrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_THREE, matrix);
+    return CreateJsValue(env, pen->GetFillPath(*src->GetPath(),
+        *dst->GetPath(), rect, matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
+    
 }
 
 Pen* JsPen::GetPen()

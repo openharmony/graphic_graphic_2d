@@ -46,7 +46,8 @@ public:
     static napi_value GetCapStyle(napi_env env, napi_callback_info info);
     static napi_value SetPathEffect(napi_env env, napi_callback_info info);
     static napi_value SetShadowLayer(napi_env env, napi_callback_info info);
-
+    static napi_value GetFillPath(napi_env env, napi_callback_info info);
+    
     Pen* GetPen();
 
 private:
