@@ -103,7 +103,7 @@ napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info i
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     int32_t blurType = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, blurType);
+    GET_ENUM_PARAM(ARGC_ZERO, blurType, 0, static_cast<int32_t>(BlurType::INNER));
 
     double sigma = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, sigma);
