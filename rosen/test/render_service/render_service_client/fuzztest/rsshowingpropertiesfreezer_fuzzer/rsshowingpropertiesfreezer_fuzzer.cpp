@@ -831,7 +831,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetShadowElevation(data, size);
     OHOS::Rosen::DoGetShadowRadius(data, size);
     OHOS::Rosen::DoGetSpherizeDegree(data, size);
-    OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
+    OHOS::Rosen::DoGetAttractionFractionValue(data, size);
     OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
     OHOS::Rosen::DoGetLightUpEffectDegree(data, size);
     OHOS::Rosen::DoGetDynamicDimDegree(data, size);
