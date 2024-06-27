@@ -20,10 +20,10 @@
 #include "color_filter_napi/js_color_filter.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
-#include "path_effect_napi/js_path_effect.h"
-#include "shadow_layer_napi/js_shadow_layer.h"
-#include "path_napi/js_path.h"
 #include "matrix_napi/js_matrix.h"
+#include "path_effect_napi/js_path_effect.h"
+#include "path_napi/js_path.h"
+#include "shadow_layer_napi/js_shadow_layer.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -476,12 +476,12 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
     if (jsPen == nullptr) {
-        ROSEN_LOGE("JsPen::GetJoinStyle jsPen is nullptr");
+        ROSEN_LOGE("JsPen::GetFillPath jsPen is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
-        ROSEN_LOGE("JsPen::GetJoinStyle pen is nullptr");
+        ROSEN_LOGE("JsPen::GetFillPath pen is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -507,7 +507,7 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
     napi_valuetype isRectNullptr;
     napi_typeof(env, argv[ARGC_TWO], &isRectNullptr);
     if (isRectNullptr != napi_null) {
-        // TODO simplify it when JsRect class will be developed
+        // Need to simplify it when JsRect class will be developed
         double ltrb[ARGC_FOUR] = {0};
         if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -518,6 +518,7 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
     
     JsMatrix* matrix = nullptr;
     GET_UNWRAP_PARAM(ARGC_THREE, matrix);
+    
     return CreateJsValue(env, pen->GetFillPath(*src->GetPath(),
         *dst->GetPath(), rect, matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
     
