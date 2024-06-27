@@ -39,7 +39,7 @@ class HgmFrameRateManager;
 class HgmTouchManager final : public HgmStateMachine<TouchState, TouchEvent> {
 public:
     HgmTouchManager();
-    ~HgmTouchManager() override = default;
+    ~HgmTouchManager() override;
 
     void HandleTouchEvent(TouchEvent event, const std::string& pkgName = "");
     void HandleRsFrame();
@@ -52,7 +52,6 @@ protected:
     void ExecuteCallback(const std::function<void()>& callback) override;
 private:
     std::string pkgName_;
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HgmOneShotTimer upTimeoutTimer_;
     HgmOneShotTimer rsIdleTimeoutTimer_;
