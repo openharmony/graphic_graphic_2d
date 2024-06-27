@@ -100,6 +100,7 @@ group("test") {
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",
+    "render_service_base/unittest/params:unittest",
     "render_service_base/unittest/pipeline:unittest",
     "render_service_base/unittest/platform/ohos:unittest",
     "render_service_base/unittest/platform/ohos/backend:unittest",
