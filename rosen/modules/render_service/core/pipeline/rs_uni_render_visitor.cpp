@@ -1718,12 +1718,8 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
-    // only need collect first level node's security & skip layer info
-    // and update it's uifirst gravity
-    if (node.GetId() == node.GetFirstLevelNodeId()) {
-        UpdateSecuritySkipAndProtectedLayersRecord(node);
-        node.UpdateUIFirstFrameGravity();
-    }
+    UpdateSecuritySkipAndProtectedLayersRecord(node);
+    node.UpdateUIFirstFrameGravity();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_, curSurfaceNode_ != nullptr);
