@@ -37,7 +37,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& name, uint64_t timest
     if (name.empty()) {
         return;
     }
-    std::lock_guard<std::mutex> lock(frameTimeMapMutex_);
+
     auto temp = name;
     if (name.size() > MAX_BUFFER_LENGTH) {
         temp = name.substr(0, MAX_BUFFER_LENGTH);
@@ -79,7 +79,7 @@ bool HgmIdleDetector::GetSupportSurface()
 	}
 	if (std::find(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACEANIMATO_NAME)
 		== appBufferBlackList_.end() && !aceAnimatorIdleState_) { return true; }
-	
+
 	if (frameTimeMap_.empty()) {
 		return false;
 	}

@@ -258,7 +258,7 @@ void XMLParser::ParseAppBufferList(xmlNode &node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        auto name = ExtractPropertyValue("name", *currNode);   
+        auto name = ExtractPropertyValue("name", *currNode);
         mParsedData_->appBufferList_.push_back(name);
     }
 }
