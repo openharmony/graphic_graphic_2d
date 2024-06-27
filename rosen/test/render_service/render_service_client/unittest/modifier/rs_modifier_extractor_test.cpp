@@ -194,7 +194,7 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1)
 {
     auto extractor = std::make_shared<RSModifierExtractor>();
-    float attractionDstPoint = extractor->GetAttractionDstPointValue();
+    Vector2f attractionDstPoint = extractor->GetAttractionDstPointValue();
     EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
 }
 
