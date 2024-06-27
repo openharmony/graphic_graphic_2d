@@ -3475,3 +3475,14 @@ void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox* textBox)
     delete textRectArr;
     textRectArr = nullptr;
 }
+
+void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const char* axis, const float value)
+{
+    if (style == nullptr || axis == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle) {
+        convertStyle->fontVariations.SetAxisValue(axis, value);
+    }
+}
