@@ -455,6 +455,11 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         canvas.DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
         return;
     }
+
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        return;
+    }
+
     if (!backendTexture_.IsValid()) {
         return;
     }
