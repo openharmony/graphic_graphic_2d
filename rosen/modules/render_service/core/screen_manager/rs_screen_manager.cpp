@@ -886,6 +886,14 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<uint
         return SCREEN_NOT_FOUND;
     }
     screens_.at(id)->SetBlackList(screenBlackList);
+    ScreenId mainId = GetDefaultScreenId();
+    if (mainId != id) {
+        if (screens_.find(mainId) == screens_.end()) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for main id %{public}" PRIu64 ".", __func__, mainId);
+            return SCREEN_NOT_FOUND;
+        }
+        screens_.at(mainId)->SetBlackList(screenBlackList);
+    }
     return SUCCESS;
 }
 

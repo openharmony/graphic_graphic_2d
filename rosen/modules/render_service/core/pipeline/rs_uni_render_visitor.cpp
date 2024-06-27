@@ -1427,7 +1427,9 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     // check current surface Participate In Occlusion
     if (node.CheckParticipateInOcclusion()) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
-        if (IsValidInVirtualScreen(node)) {
+        auto blackList = screenManager_->GetVirtualScreenBlackList(curDisplayNode_->GetScreenId());
+        bool hasBlackList = !blackList.empty() && (blackList.find(node.GetId()) != blackList.end());
+        if (IsValidInVirtualScreen(node) && !hasBlackList) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
         }
     }

@@ -415,7 +415,7 @@ private:
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {
-        return !node.GetSkipLayer() && (screenInfo_.filteredAppSet.empty() ||
+        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.filteredAppSet.empty() ||
             screenInfo_.filteredAppSet.find(node.GetId()) != screenInfo_.filteredAppSet.end());
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
