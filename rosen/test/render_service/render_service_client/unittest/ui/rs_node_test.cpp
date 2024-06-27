@@ -6931,4 +6931,26 @@ HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
     rsNode->SetInstanceId(1);
     ASSERT_EQ(rsNode->GetInstanceId(), 1);
 }
+
+/**
+ * @tc.name: SetWaterRippleParams
+ * @tc.desc: test results of SetWaterRippleParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
+{
+    float waveCount = 2.0f;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    float progress = 0.5f;
+    RSWaterRipplePara rs_water_ripple_param = {
+        waveCount,
+        rippleCenterX,
+        rippleCenterY
+    };
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
+    EXPECT_EQ(waveCount, 2.0f);
+}
 } // namespace OHOS::Rosen

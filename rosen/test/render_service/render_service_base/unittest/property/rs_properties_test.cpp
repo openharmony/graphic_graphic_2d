@@ -2437,6 +2437,19 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     properties.systemBarEffect_ = true;
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.systemBarEffect_);
+
+    properties.waterRippleProgress_ = 0.1f;
+    float waveCount = 2.0f;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    RSWaterRipplePara rs_water_ripple_param = {
+        waveCount,
+        rippleCenterX,
+        rippleCenterY
+    };
+    properties.waterRippleParams_ =  std::optional<RSWaterRipplePara>(rs_water_ripple_param);
+    properties.GenerateBackgroundFilter();
+    EXPECT_TRUE(properties.IsWaterRippleValid());
 }
 
 /**
@@ -3089,6 +3102,68 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchTileMode001, TestSize.Level1)
     properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::DECAL));
     mode = properties.GetPixelStretchTileMode();
     ASSERT_EQ(static_cast<int>(Drawing::TileMode::DECAL), mode);
+}
+
+/**
+ * @tc.name: SetNGetWaterRippleParams001
+ * @tc.desc: test results of SetNGetWaterRippleParams001
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams001, TestSize.Level1)
+{
+    RSProperties properties;
+    RSWaterRipplePara para;
+    std::optional<RSWaterRipplePara> params;
+    properties.SetWaterRippleParams(params);
+    EXPECT_EQ(params.has_value(), false);
+
+    params = para;
+    properties.SetWaterRippleParams(params);
+    EXPECT_EQ(params.has_value(), true);
+}
+
+/**
+ * @tc.name: SetNGetWaterRippleParams002
+ * @tc.desc: test results of SetNGetWaterRippleParams002
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams002, TestSize.Level1)
+{
+    RSProperties properties;
+    float waveCount = 2.0f;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    float progress = 0.5f;
+    RSWaterRipplePara rs_water_ripple_param = {
+        waveCount,
+        rippleCenterX,
+        rippleCenterY
+    };
+    properties.SetWaterRippleParams(rs_water_ripple_param);
+    properties.SetWaterRippleProgress(progress);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetWaterRippleParams();
+    EXPECT_EQ(valueGet.has_value(), true);
+    EXPECT_EQ(properties.IsWaterRippleValid(), true);
+}
+
+/**
+ * @tc.name: SetNGetWaterRippleProgress001
+ * @tc.desc: test results of SetNGetWaterRippleProgress001
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetNGetWaterRippleProgress001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetWaterRippleProgress(0.5f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    auto valueGet = properties.GetWaterRippleProgress();
+    EXPECT_EQ(valueGet, 0.5f);
 }
 } // namespace Rosen
 } // namespace OHOS

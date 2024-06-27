@@ -32,10 +32,14 @@ public:
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
  
 private:
-    inline static float progress_ = 0.0f;
-    inline static float waveCount_ = 0.0f;
-    inline static float rippleCenterX_ = 0.0f;
-    inline static float rippleCenterY_ = 0.0f;
+    static constexpr char RS_FILTER_WATER_RIPPLE_PROGRESS[] = "PROGRESS";
+    static constexpr char RS_FILTER_WATER_RIPPLE_WAVE_NUM[] = "WAVE_NUM";
+    static constexpr char RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X[] = "RIPPLE_CENTER_X";
+    static constexpr char RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y[] = "RIPPLE_CENTER_Y";
+    float progress_ = 0.0f;
+    float waveCount_ = 0.0f;
+    float rippleCenterX_ = 0.0f;
+    float rippleCenterY_ = 0.0f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

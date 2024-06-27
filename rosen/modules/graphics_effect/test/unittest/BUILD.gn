@@ -31,6 +31,7 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_visual_effect_container_test.cpp",
     "ge_visual_effect_impl_test.cpp",
     "ge_visual_effect_test.cpp",
+    "ge_water_ripple_filter_test.cpp",
   ]
 
   include_dirs = [

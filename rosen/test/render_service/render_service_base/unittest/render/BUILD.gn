@@ -50,6 +50,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_skia_filter_test.cpp",
     "rs_spherize_effect_filter_test.cpp",
     "rs_typeface_cache_test.cpp",
+    "rs_water_ripple_shader_filter_test.cpp",
   ]
 
   cflags = [
