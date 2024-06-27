@@ -117,8 +117,11 @@ void NativeShaderEffectTest002(const uint8_t* data, size_t size)
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(startPoint,
         endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(nullptr,
+        endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(shaderEffectThree);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectFour);
 
     if (colors != nullptr) {
         delete[] colors;
@@ -167,7 +170,11 @@ void NativeShaderEffectTest003(const uint8_t* data, size_t size)
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(x, y);
     OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius,
         colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
+    OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradient(nullptr, radius,
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
     OH_Drawing_ShaderEffect* shaderEffectSix = OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, colors,
+        pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
+    OH_Drawing_ShaderEffect* shaderEffectSeven = OH_Drawing_ShaderEffectCreateSweepGradient(nullptr, colors,
         pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
     if (colors != nullptr) {
         delete[] colors;
@@ -180,7 +187,9 @@ void NativeShaderEffectTest003(const uint8_t* data, size_t size)
     OH_Drawing_PointDestroy(centerPt);
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(shaderEffectFour);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectFive);
     OH_Drawing_ShaderEffectDestroy(shaderEffectSix);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectSeven);
 }
 
 void NativeShaderEffectTest004(const uint8_t* data, size_t size)
@@ -210,6 +219,8 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(centerPoint,
         radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    OH_Drawing_ShaderEffect* shaderEffectSix = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(nullptr,
+        radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_Image* image = OH_Drawing_ImageCreate();
     uint32_t filterMode = GetObject<uint32_t>();
     uint32_t mipmapMode = GetObject<uint32_t>();
@@ -219,6 +230,12 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* shaderEffectSeven = OH_Drawing_ShaderEffectCreateImageShader(image,
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+    OH_Drawing_ShaderEffect* shaderEffectEight = OH_Drawing_ShaderEffectCreateImageShader(nullptr,
+        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+    OH_Drawing_ShaderEffect* shaderEffectNine = OH_Drawing_ShaderEffectCreateImageShader(image,
+        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, nullptr);
     if (centerPoint != nullptr) {
         delete[] centerPoint;
         centerPoint = nullptr;
@@ -235,7 +252,10 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     OH_Drawing_ImageDestroy(image);
     OH_Drawing_SamplingOptionsDestroy(samplingOptions);
     OH_Drawing_ShaderEffectDestroy(shaderEffectFive);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectSix);
     OH_Drawing_ShaderEffectDestroy(shaderEffectSeven);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectEight);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectNine);
 }
 
 void NativeShaderEffectTest005(const uint8_t* data, size_t size)
@@ -271,6 +291,9 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* ShaderEffectEight = OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(startPoint,
         startRadius, endPoint, endRadius, colors, pos, format,
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    OH_Drawing_ShaderEffect* ShaderEffectNine = OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(nullptr,
+        startRadius, endPoint, endRadius, colors, pos, format,
+        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
 
     if (colors != nullptr) {
         delete[] colors;
@@ -291,6 +314,7 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
 
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(ShaderEffectEight);
+    OH_Drawing_ShaderEffectDestroy(ShaderEffectNine);
 }
 
 } // namespace Drawing

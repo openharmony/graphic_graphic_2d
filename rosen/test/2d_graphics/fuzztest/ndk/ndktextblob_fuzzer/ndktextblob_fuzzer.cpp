@@ -47,6 +47,7 @@ void NativeDrawingTextBlobTest001(const uint8_t* data, size_t size)
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_TextBlobBuilder* textBlobBuilder = OH_Drawing_TextBlobBuilderCreate();
     OH_Drawing_TextBlob* textBlob = OH_Drawing_TextBlobBuilderMake(textBlobBuilder);
+    OH_Drawing_TextBlob* textBlobTwo = OH_Drawing_TextBlobBuilderMake(nullptr);
 
     float left = GetObject<float>();
     float top = GetObject<float>();
@@ -54,12 +55,14 @@ void NativeDrawingTextBlobTest001(const uint8_t* data, size_t size)
     float bottom = GetObject<float>();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
     OH_Drawing_TextBlobGetBounds(nullptr, rect);
+    OH_Drawing_TextBlobGetBounds(textBlob, nullptr);
     OH_Drawing_TextBlobGetBounds(textBlob, rect);
 
     OH_Drawing_TextBlobUniqueID(nullptr);
     OH_Drawing_TextBlobUniqueID(textBlob);
 
     OH_Drawing_TextBlobDestroy(textBlob);
+    OH_Drawing_TextBlobDestroy(textBlobTwo);
     OH_Drawing_TextBlobBuilderDestroy(textBlobBuilder);
     OH_Drawing_FontDestroy(font);
     OH_Drawing_RectDestroy(rect);
