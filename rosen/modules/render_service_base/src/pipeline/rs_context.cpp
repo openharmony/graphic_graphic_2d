@@ -53,7 +53,7 @@ bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
     return activeNodesInRoot_[rootNodeId].count(node->GetId()) > 0;
 }
 
-void RSContext::AddPendingSyncNode(const std::shared_ptr<RSRenderNode> &node)
+void RSContext::AddPendingSyncNode(const std::shared_ptr<RSRenderNode> node)
 {
     if (node == nullptr || node->GetId() == INVALID_NODEID) {
         return;
