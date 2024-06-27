@@ -491,6 +491,47 @@ HWTEST_F(RSBorderTest, ApplyLineStyleTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ApplySimpleBorderTest
+ * @tc.desc: Verify function ApplySimpleBorder
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBorderTest, ApplySimpleBorderTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    border->colors_.clear();
+    border->widths_.clear();
+    border->styles_.clear();
+    RRect rect;
+    EXPECT_FALSE(border->ApplySimpleBorder(rect));
+    {
+        Color color = { 0, 0, 0, 0 };
+        border->colors_.push_back(color);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+        border->widths_.push_back(1);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+        border->styles_.push_back(BorderStyle::SOLID);
+        EXPECT_TRUE(border->ApplySimpleBorder(rect));
+
+    }
+
+    {
+        border->styles_.push_back(BorderStyle::DASHED);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+        Color color = { 0, 0, 0, 0 };
+        border->colors_.push_back(color);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+    }
+
+    {
+        border->widths_.push_back(1);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+        border->styles_.push_back(BorderStyle::SOLID);
+        EXPECT_FALSE(border->ApplySimpleBorder(rect));
+    }
+}
+
+/**
  * @tc.name: PaintFourLineTest
  * @tc.desc: Verify function PaintFourLine
  * @tc.type:FUNC

@@ -5632,18 +5632,31 @@ HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetClipRRect
+ * @tc.name: SetClipRRect001
  * @tc.desc: test results of SetClipRRect
  * @tc.type: FUNC
  * @tc.require: issueI9KAZH
  */
-HWTEST_F(RSNodeTest, SetClipRRect, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetClipRRect001, TestSize.Level1)
 {
     Vector4f clipRect = { 1.f, 1.f, 1.f, 1.f }; // for test
     auto rsNode = RSCanvasNode::Create();
     Vector4f clipRadius = { 0.f, 1.f, 0.f, 1.f }; // for test
     rsNode->SetClipRRect(clipRect, clipRadius);
     EXPECT_EQ(clipRect[0], 1.f);
+}
+
+/**
+ * @tc.name: SetClipRRect002
+ * @tc.desc: test results of SetClipRRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetClipRRect002, TestSize.Level1)
+{
+    auto rect = std::make_shared<RRect>();
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipRRect(rect);
 }
 
 /**
