@@ -293,6 +293,7 @@ public:
     void SetBrightnessRatio(float brightnessRatio);
     template <typename T>
     void PaintFilter(T& paint);
+    void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
 
 protected:
     using Env = struct {

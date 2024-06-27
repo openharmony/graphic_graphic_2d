@@ -178,6 +178,8 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
 
     offscreenCanvas_ = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
 
+    // copy HDR properties into offscreen canvas
+    offscreenCanvas_->CopyHDRConfiguration(*curCanvas_);
     // copy current canvas properties into offscreen canvas
     offscreenCanvas_->CopyConfiguration(*curCanvas_);
 
@@ -199,6 +201,7 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
+    paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
     auto image = offscreenSurface_->GetImageSnapshot();
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
