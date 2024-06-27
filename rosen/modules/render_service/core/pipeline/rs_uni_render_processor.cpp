@@ -56,7 +56,7 @@ void RSUniRenderProcessor::PostProcess()
 {
     uniComposerAdapter_->CommitLayers(layers_);
     if (!isPhone_) {
-        MultiLayersPerf(layerNum);
+        MultiLayersPerf(layerNum_);
     }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
@@ -182,13 +182,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    for (auto surface : node.GetCurAllSurfaces()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || !surfaceNode->GetOcclusionVisible() || surfaceNode->IsLeashWindow()) {
-            continue;
-        }
-        layerNum++;
-    }
+    layerNum_ = node.GetSurfaceCountForMultiLayersPerf();
     RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
 }
 
