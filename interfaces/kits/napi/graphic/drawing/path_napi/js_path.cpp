@@ -19,6 +19,9 @@
 
 #include "js_drawing_utils.h"
 
+//#include "matrix_napi/js_matrix.h"
+#include "utils/matrix.h"
+
 namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsPath::constructor_ = nullptr;
@@ -34,6 +37,9 @@ napi_value JsPath::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("close", JsPath::Close),
         DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
         DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
+        DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
+        DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
+        DECLARE_NAPI_FUNCTION("buildFromSVGString", JsPath::BuildFromSVGString),
     };
 
     napi_value constructor = nullptr;
@@ -150,6 +156,24 @@ napi_value JsPath::GetLength(napi_env env, napi_callback_info info)
     ROSEN_LOGE("liyan JsPath::GetLength");
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnGetLength(env, info) : nullptr;
+}
+
+napi_value JsPath::GetPositionAndTangent(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetPositionAndTangent(env, info) : nullptr;
+}
+
+napi_value JsPath::GetMatrix(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetMatrix(env, info) : nullptr;
+}
+
+napi_value JsPath::BuildFromSVGString(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnBuildFromSVGString(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -309,6 +333,96 @@ napi_value JsPath::OnGetLength(napi_env env, napi_callback_info info)
     }
     double len = m_path->GetLength(forceClosed);
     return CreateJsNumber(env, len);
+}
+
+napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetPositionAndTangent path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_SIX] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SIX);
+
+    double distance = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, distance);
+
+    double px1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, px1);
+        double py1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, py1);
+    Point position = { px1, py1 };
+
+    double tg1 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, tg1);
+    double tg2 = 0.0;
+    GET_DOUBLE_PARAM(ARGC_FOUR, tg2);
+    Point tangent = { tg1, tg2 };
+
+    bool forceClosed = false;
+    GET_BOOLEAN_PARAM(ARGC_FIVE, forceClosed);
+
+    bool result = m_path->GetPositionAndTangent(distance, position, tangent, forceClosed);
+    return CreateJsNumber(env, result);
+}
+
+napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetMatrix path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    size_t argc = ARGC_FOUR;
+        napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_THREE, ARGC_FOUR);
+
+    bool forceClosed = false;
+    GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
+
+    double distance = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, distance);
+
+    Matrix* matrix = nullptr;
+    if (!(ConvertFromJsValue(env, argv[ARGC_TWO], matrix))) {
+        ROSEN_LOGE("JsPath::OnGetMatrix Argv is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    //JsMatrix* matrix = nullptr;
+    //GET_UNWRAP_PARAM(ARGC_TWO, matrix);
+
+    PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX;
+    if (argc == ARGC_FOUR) {
+        if (!(ConvertFromJsValue(env, argv[ARGC_THREE], flags))) {
+            ROSEN_LOGE("JsPath::OnGetMatrix Argv is invalid");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        }
+    }
+
+    bool result = m_path->GetMatrix(forceClosed, distance, matrix, flags);
+    return CreateJsNumber(env, result);
+}
+
+napi_value JsPath::OnBuildFromSVGString(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnBuildFromSVGString path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    
+
+    std::string str;
+    if (!(ConvertFromJsValue(env, argv[ARGC_ZERO], str))) {
+        ROSEN_LOGE("JsPath::OnBuildFromSVGString Argv is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->BuildFromSVGString(str);
+    return CreateJsNumber(env, result);
 }
 
 Path* JsPath::GetPath()
