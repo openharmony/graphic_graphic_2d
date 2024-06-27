@@ -53,7 +53,7 @@ ohos_shared_library("text_napi") {
   deps = [ ":text_napi_impl" ]
 
   external_deps = [
-    "hilog::libhilog",
+    "hilog:libhilog",
     "napi:ace_napi",
   ]
 
