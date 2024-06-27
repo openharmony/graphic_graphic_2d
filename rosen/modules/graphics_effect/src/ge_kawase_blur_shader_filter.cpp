@@ -285,7 +285,7 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const st
             LOGE("GEKawaseBlurShaderFilter::CheckInputImage invalid image");
             return;
         }
-        if (resizedImage->BuildSubset(image, srcRect, *gpu)) {
+        if (resizedImage->BuildSubset(image, srcRect, *gpuCtx)) {
             checkedImage = resizedImage;
             LOGD("GEKawaseBlurShaderFilter::resize image success");
         } else {
