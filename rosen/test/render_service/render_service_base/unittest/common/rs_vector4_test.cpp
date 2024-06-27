@@ -178,6 +178,18 @@ HWTEST_F(Vector4Test, SetZero001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Size001
+ * @tc.desc: test results of Size
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(Vector4Test, Size001, TestSize.Level1)
+{
+    Vector4 vector(1.f, 0.f, 0.f, 0.f); // for test
+    EXPECT_EQ(vector.Size(), 4);
+}
+
+/**
  * @tc.name: Minus001
  * @tc.desc: test results of operator-
  * @tc.type: FUNC

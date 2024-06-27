@@ -776,6 +776,21 @@ HWTEST_F(CanvasTest, CanvasAttachAndDetachBrushTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetOffscreenTest001
+ * @tc.desc: Test for SetOffscreen functions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, SetOffscreenTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetOffscreen(true);
+    bool state = canvas->GetOffscreen();
+    ASSERT_TRUE(state);
+}
+
+/**
  * @tc.name: GetRecordingStateTest001
  * @tc.desc: Test for GetRecordingState functions.
  * @tc.type: FUNC

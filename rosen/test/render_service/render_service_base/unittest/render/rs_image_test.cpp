@@ -185,6 +185,20 @@ HWTEST_F(RSImageTest, ApplyImageFitTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAdaptiveImageInfoWithFrameRectTest001
+ * @tc.desc: Verify function GetAdaptiveImageInfoWithFrameRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetAdaptiveImageInfoWithFrameRectTest001, TestSize.Level1)
+{
+    Drawing::Rect frameRect;
+    auto image = std::make_shared<RSImage>();
+    image->imageFit_ = ImageFit::COVER;
+    EXPECT_EQ(
+        image->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect).fitNum, static_cast<int32_t>(ImageFit::COVER));
+}
+
+/**
  * @tc.name: ApplyCanvasClipTest001
  * @tc.desc: Verify function ApplyCanvasClip
  * @tc.type:FUNC
