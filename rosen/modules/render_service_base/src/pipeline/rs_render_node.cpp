@@ -1354,24 +1354,33 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
         return;
     }
-    // update OVERLAY_RECT
+    // update dirty region information that depends on geoPtr.
     auto& properties = GetRenderProperties();
-    if (auto drawRegion = properties.GetDrawRegion()) {
-        if (auto& geoPtr = properties.GetBoundsGeometry()) {
+    if (auto& geoPtr = properties.GetBoundsGeometry()) {
+        // drawRegion can be nullptr if not set.
+        if (auto drawRegion = properties.GetDrawRegion()) {
             dirtyManager.UpdateDirtyRegionInfoForDfx(
                 GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, geoPtr->MapAbsRect(*drawRegion));
         }
-    } else {
         dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, RectI());
+            GetId(), GetType(), DirtyRegionType::SHADOW_RECT, geoPtr->MapAbsRect(localShadowRect_.ConvertTo<float>()));
+        dirtyManager.UpdateDirtyRegionInfoForDfx(GetId(),
+            GetType(), DirtyRegionType::OUTLINE_RECT, geoPtr->MapAbsRect(localOutlineRect_.ConvertTo<float>()));
     }
-    // update UPDATE_DIRTY_REGION
+
+    // update dirty region information in abs Coords.
     dirtyManager.UpdateDirtyRegionInfoForDfx(
         GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
-    DirtyRegionInfoForDFX dirtyRegionInfo;
-    dirtyRegionInfo.oldDirty = oldDirty_;
-    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
-    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::FILTER_RECT, filterRegion_);
+    if (LastFrameSubTreeSkipped()) {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, subTreeDirtyRegion_);
+    }
+    if (properties.GetClipToBounds() || properties.GetClipToFrame()) {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, GetAbsDrawRect());
+    }
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
