@@ -480,8 +480,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderEngine is null!");
             return;
         }
+        bool isRenderThread = true;
         if (!processor->Init(*displayNodeSp, params->GetDisplayOffsetX(), params->GetDisplayOffsetY(),
-            mirroredNode ? mirroredNode->GetScreenId() : INVALID_SCREEN_ID, renderEngine)) {
+            mirroredNode ? mirroredNode->GetScreenId() : INVALID_SCREEN_ID, renderEngine, isRenderThread)) {
             RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
