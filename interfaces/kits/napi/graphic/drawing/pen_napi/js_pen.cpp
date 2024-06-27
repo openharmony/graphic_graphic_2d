@@ -487,7 +487,6 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
     
-    
     JsPath* src = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, src);
     if (src->GetPath() == nullptr) {
