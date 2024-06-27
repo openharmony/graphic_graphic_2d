@@ -573,6 +573,7 @@ public:
 
     void MarkNonGeometryChanged();
 
+    void ApplyModifier(RSModifierContext& context, std::shared_ptr<RSRenderModifier> modifier);
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
