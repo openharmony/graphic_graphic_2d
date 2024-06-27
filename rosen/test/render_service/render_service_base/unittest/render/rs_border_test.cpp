@@ -512,7 +512,6 @@ HWTEST_F(RSBorderTest, ApplySimpleBorderTest, TestSize.Level1)
         EXPECT_FALSE(border->ApplySimpleBorder(rect));
         border->styles_.push_back(BorderStyle::SOLID);
         EXPECT_TRUE(border->ApplySimpleBorder(rect));
-
     }
 
     {
