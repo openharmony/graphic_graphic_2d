@@ -280,7 +280,6 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const st
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
-
         auto gpuCtx = canvas.GetGPUContext();
         if (gpuCtx == nullptr || !(image->isValid(gpuCtx.get())) {
             LOGE("GEKawaseBlurShaderFilter::CheckInputImage invalid image");
