@@ -541,7 +541,8 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("RSScreenManager %{public}s The screen for id %{public}" PRIu64 " connected.", __func__, id);
 
-    if (screens_.count(id) == 1) {
+    auto it = screens_.find(id);
+    if (it != screens_.end() && it->second != nullptr) {
         RS_LOGW("RSScreenManager %{public}s The screen for id %{public}" PRIu64 " already existed.", __func__, id);
 
         // [PLANNING]: should we erase it and create a new one?
