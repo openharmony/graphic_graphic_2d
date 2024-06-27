@@ -69,14 +69,14 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     return EXEC_SUCCESS;
 }
 
-void HgmMultiAppStrategy::HandleTouchInfo(const std::string& pkgName, TouchState touchState)
+void HgmMultiAppStrategy::HandleTouchInfo(TouchInfo& touchInfo)
 {
-    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d", pkgName.c_str(), touchState);
-    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d", pkgName.c_str(), touchState);
-    touchInfo_ = { pkgName, touchState };
-    if (pkgName == "" && !pkgs_.empty()) {
+    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d", touchInfo.pkgName.c_str(), touchInfo.touchState);
+    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d", touchInfo.pkgName.c_str(), touchInfo.touchState);
+    touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
+    if (touchInfo.pkgName == "" && !pkgs_.empty()) {
         auto [focusPkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
-        touchInfo_.first = focusPkgName;
+        touchInfo_.pakName = focusPkgName;
         HGM_LOGD("auto change touch pkgName to focusPkgName:%{public}s", focusPkgName.c_str());
     }
     CalcVote();
@@ -269,7 +269,7 @@ void HgmMultiAppStrategy::UseStrategyNum()
         voteRes_.first = EXEC_SUCCESS;
         voteRes_.second = strategyConfigs.at(strategyName);
         OnLightFactor(voteRes_.second);
-        UpdateStrategyByTouch(voteRes_.second, touchInfo_.first);
+        UpdateStrategyByTouch(voteRes_.second, touchInfo_.pakName);
     }
 }
 
@@ -391,20 +391,25 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
         }
 
         auto touchInfo = std::move(uniqueTouchInfo_);
-        if (touchInfo->second != TouchState::IDLE_STATE) {
+        if (touchInfo->touchState == TouchState::DOWN_STATE) {
             RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] state:%d, downFps:%d force update",
-                touchInfo->second, strategy.down);
+                touchInfo->touchState, strategy.down);
             strategy.min = settingStrategy.down;
             strategy.max = settingStrategy.down;
+        } else if (touchInfo->touchState = TouchState::UP_STATE && touchInfo->upExpectFps > 0) {
+            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] state:%d, upExpectFps:%d force update",
+                touchInfo->touchState, touchInfo->upExpectFps);
+            strategy.min = touchInfo->upExpectFps;
+            strategy.max = touchInfo->upExpectFps;
         }
     } else {
-        if (pkgName != uniqueTouchInfo_->first) {
+        if (pkgName != uniqueTouchInfo_->pakName) {
             return;
         }
         auto touchInfo = std::move(uniqueTouchInfo_);
-        if (touchInfo->second != TouchState::IDLE_STATE) {
+        if (touchInfo->touchState != TouchState::IDLE_STATE) {
             RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
-                pkgName.c_str(), touchInfo->second, strategy.down);
+                pkgName.c_str(), touchInfo->touchState, strategy.down);
             strategy.min = strategy.down;
             strategy.max = strategy.down;
             voteRes_.first = EXEC_SUCCESS;

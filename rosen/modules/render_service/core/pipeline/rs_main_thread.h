@@ -359,6 +359,7 @@ private:
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
     void ProcessCommand();
+    void GetTextureFlutterIdleState();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();

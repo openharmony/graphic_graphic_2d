@@ -63,6 +63,22 @@ public:
 
     void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
     bool GetSurFaceIdleState(uint64_t timestamp);
+	uint32_t GetSurfaceUpExpectFps();
+	bool GetSupportSurface();
+	void ClearAppBufferList { appBufferList_.clear(); }
+	void ClearAppBufferBlackList{ appBufferBlackList_.clear(); }
+	void UpdateAppBufferList(std::vector<std::pair<std::string, uint32_t> &appBufferList)
+	{
+		appBufferList_ = appBufferList;
+	}
+	void UpdateAppBufferBlackList(std::vector<std::string> &appBufferBlackList)
+	{
+		appBufferBlackList_ = appBufferBlackList;
+	}
+	void UpdateSupportAppBufferList(std::vector<std::string> &supportAppBufferList)
+	{
+		supportAppBufferList_ = supportAppBufferList;
+	}
  
 private:
     bool appSupported_ = false;
@@ -71,7 +87,10 @@ private:
     std::mutex appSupportedMutex_;
     std::mutex touchUpTimeMutex_;
     // FORMAT: <buffername, time>
+	std::vector<std::string> supportAppBufferList_;
     std::unordered_map<std::string, uint64_t> frameTimeMap_;
+	std::vector<std::pair<std::string, uint32_t> appBufferList_;
+	std::vector<std::string> appBufferBlackList_;
 };
 } // namespace Rosen
 } // namespace OHOS

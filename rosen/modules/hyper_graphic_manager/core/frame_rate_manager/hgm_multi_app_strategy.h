@@ -36,13 +36,18 @@ constexpr int32_t DEFAULT_APP_TYPE = -1;
 class HgmMultiAppStrategy final {
 public:
     using StrategyChangeCallback = std::function<void(const PolicyConfigData::StrategyConfig&)>;
-    using TouchInfo = std::pair<std::string, TouchState>;
 
     HgmMultiAppStrategy();
     ~HgmMultiAppStrategy() = default;
 
+    struct TouchInfo {
+        std::string pkgName;
+        TouchState touchState;
+        uin32_t upExpectFps;
+    };
+
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
-    void HandleTouchInfo(const std::string& pkgName, TouchState touchState);
+    void HandleTouchInfo(TouchInfo& touchInfo);
     void HandleLightFactorStatus(bool isSafe);
 
     void CalcVote();
@@ -93,7 +98,7 @@ private:
         .drawMax = OledRefreshRate::OLED_120_HZ,
         .down = OledRefreshRate::OLED_120_HZ,
     }};
-    TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE }; // pkgName, touchState
+    TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE, OLED_120_HZ }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
     bool lightFactorStatus_ = false;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
