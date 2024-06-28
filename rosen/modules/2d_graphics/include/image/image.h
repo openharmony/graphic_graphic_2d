@@ -17,6 +17,7 @@
 #define IMAGE_H
 
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
+#include "image/gpu_context.h"
 #include "include/core/SkImage.h"
 #include "utils/drawing_macros.h"
 #ifdef RS_ENABLE_VK
