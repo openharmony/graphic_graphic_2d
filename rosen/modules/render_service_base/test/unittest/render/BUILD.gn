@@ -26,8 +26,8 @@ ohos_unittest("RSRenderTest") {
 
     deps = [
         "../../../../render_service_base:render_service_base_src",
-        "//foundation/window/window_manager/wm:libwm",
-        "//third_party/googletest:gtest_main",
+        "../../../../../../../../../foundation/window/window_manager/wm:libwm",
+        "../../../../../../../../../third_party/googletest:gtest_main",
     ]
 
     external_deps = [
@@ -43,8 +43,8 @@ ohos_unittest("RSRenderTest") {
 config("rs_render_test_config") {
     visibility = [ ":*" ]
     include_dirs = [
-        "//foundation/window/window_manager/interfaces/innerkits",
-        "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+        "../../../../../../../../../foundation/window/window_manager/interfaces/innerkits",
+        "../../../../../../../../../foundation/graphic/graphic_2d/rosen/modules/render_service_base",
     ]
 
     cflags = [
