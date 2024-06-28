@@ -105,7 +105,8 @@ void AnimationCommandHelper::CancelAnimation(RSContext& context, NodeId targetId
 }
 
 void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,
-    InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations)
+    InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
+    bool startImmediately)
 {
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
@@ -113,6 +114,9 @@ void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,
         context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
     }
     animator->AddAnimations(animations);
+    if (startImmediately) {
+        animator->ContinueAnimator();
+    }
 }
 
 void AnimationCommandHelper::DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
