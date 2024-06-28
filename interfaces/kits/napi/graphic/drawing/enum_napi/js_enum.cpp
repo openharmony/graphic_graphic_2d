@@ -176,6 +176,17 @@ static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
     { "FAST", static_cast<int32_t>(Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT) },
 };
 
+static const std::vector<struct JsEnumInt> g_cornerPos = {
+    { "TOP_LEFT_POS", static_cast<int32_t>(
+        Drawing::RoundRect::CornerPos::TOP_LEFT_POS) },
+    { "TOP_RIGHT_POS", static_cast<int32_t>(
+        Drawing::RoundRect::CornerPos::TOP_RIGHT_POS) },
+    { "BOTTOM_RIGHT_POS", static_cast<int32_t>(
+        Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS) },
+    { "BOTTOM_LEFT_POS", static_cast<int32_t>(
+        Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS) },
+};
+
 static const std::vector<struct JsEnumInt> g_scaleToFit = {
     { "FILL_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
     { "START_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
@@ -201,6 +212,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PathFillType", g_pathFillType },
     { "SrcRectConstraint", g_srcRectConstraint },
     { "ScaleToFit", g_scaleToFit },
+    { "CornerPos", g_cornerPos },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

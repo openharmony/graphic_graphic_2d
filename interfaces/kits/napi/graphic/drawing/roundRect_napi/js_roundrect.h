@@ -34,8 +34,16 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
+    static napi_value SetCorner(napi_env env, napi_callback_info info);
+    static napi_value GetCorner(napi_env env, napi_callback_info info);
+    static napi_value Offset(napi_env env, napi_callback_info info);
+
     const RoundRect& GetRoundRect();
 private:
+    napi_value OnSetCorner(napi_env env, napi_callback_info info);
+    napi_value OnGetCorner(napi_env env, napi_callback_info info);
+    napi_value OnOffset(napi_env env, napi_callback_info info);
+
     static thread_local napi_ref constructor_;
 
     RoundRect m_roundRect;
