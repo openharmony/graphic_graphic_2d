@@ -1010,7 +1010,7 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
