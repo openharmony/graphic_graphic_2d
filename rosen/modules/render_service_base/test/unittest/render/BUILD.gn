@@ -12,8 +12,6 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import(
-"//foundation/graphic/graphic_2d/rosen/modules/render_service_client/render_service_client.gni")
 
 module_output_path = "graphic_2d/rosen/modules/render_service_base"
 
