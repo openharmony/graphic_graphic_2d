@@ -124,7 +124,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 #endif
-    const std::set<uint32_t> descriptorCheckList = {
+    static const std::set<uint32_t> descriptorCheckList = {
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
