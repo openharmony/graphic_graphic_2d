@@ -280,7 +280,7 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     napi_get_array_length(env, array, &size);
 
     Point points[size];
-    if (size == 0 || !MakePoints(env, points, size, array)){
+    if (size == 0 || !MakePoints(env, points, size, array)) {
         ROSEN_LOGE("JsTextBlob::MakeFromPosText Argv[1] is invalid");
         return nullptr;
     }
@@ -308,7 +308,8 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
 
-    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromPosText(buffer, CHAR16_SIZE * len, points, *font, TextEncoding::UTF16);
+    std::shared_ptr<TextBlob> textBlob =
+        TextBlob::MakeFromPosText(buffer, CHAR16_SIZE * len, points, *font, TextEncoding::UTF16);
 
     if (textBlob == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromPosText textBlob is nullptr");
