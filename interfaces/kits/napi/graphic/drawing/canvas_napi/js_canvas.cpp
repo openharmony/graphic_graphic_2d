@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <cstdio>
 #include "js_canvas.h"
 
 #include <mutex>
@@ -1769,26 +1768,51 @@ napi_value JsCanvas::DrawImageRect(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnDrawImageRect(env, info) : nullptr;
 }
 
-napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
-{
 #ifdef ROSEN_OHOS
-    if (m_canvas == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawImageRect canvas is nullptr");
+static napi_value DrawingImageRect(napi_env env, Canvas* canvas, napi_value* argv, size_t argc,
+    const Image& image, const Rect& dst, const SamplingOptions& sampling)
+{
+    if (canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::DrawingImageRect canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    if (argc == ARGC_THREE) {
+        JS_CALL_DRAWING_FUNC(canvas->DrawImageRect(image, dst, sampling));
+    } else {
+        double ltrb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Incorrect rect src parameter type. The type of left, top, right and bottom must be number.");
+        }
+        Drawing::Rect srcRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+
+        if (argc == ARGC_FIVE) {
+            int32_t jsConstraint = 0;
+            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_FOUR, jsConstraint);
+            JS_CALL_DRAWING_FUNC(canvas->DrawImageRect(image, srcRect, dst, sampling,
+                SrcRectConstraint(jsConstraint)));
+        } else {
+            JS_CALL_DRAWING_FUNC(canvas->DrawImageRect(image, srcRect, dst, sampling));
+        }
+    }
+    return nullptr;
+}
+#endif
+
+napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
+{
+#ifdef ROSEN_OHOS
     size_t argc = ARGC_FIVE;
     napi_value argv[ARGC_FIVE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_FIVE);
 
     PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
-
     if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect pixelmap GetPixelNapiInner is nullptr");
         return nullptr;
     }
-
     std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
     if (image == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect image is nullptr");
@@ -1803,35 +1827,17 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     JsSamplingOptions* jsSamplingOptions = nullptr;
-
     GET_UNWRAP_PARAM((argc == ARGC_THREE) ? ARGC_TWO : ARGC_THREE, jsSamplingOptions);
-
     std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
     if (samplingOptions == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect get samplingOptions is nullptr");
         return nullptr;
     }
 
-    if (argc == ARGC_THREE) {
-        JS_CALL_DRAWING_FUNC(m_canvas->DrawImageRect(*image, dstRect, *samplingOptions.get()));
-    } else {
-        double ltrb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect rect src parameter type. The type of left, top, right and bottom must be number.");
-        }
-        Drawing::Rect srcRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
-
-        if (argc == ARGC_FIVE) {
-            int32_t jsConstraint = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_FOUR, jsConstraint);
-            JS_CALL_DRAWING_FUNC(m_canvas->DrawImageRect(*image, srcRect, dstRect, *samplingOptions.get(), SrcRectConstraint(jsConstraint)));
-        } else {
-            JS_CALL_DRAWING_FUNC(m_canvas->DrawImageRect(*image, srcRect, dstRect, *samplingOptions.get()));
-        }
-    }
-#endif
+    return DrawingImageRect(env, m_canvas, argv, argc, *image, dstRect, *samplingOptions.get());
+#else
     return nullptr;
+#endif
 }
 
 napi_value JsCanvas::ReadPixels(napi_env env, napi_callback_info info)
@@ -1853,15 +1859,16 @@ napi_value JsCanvas::OnReadPixels(napi_env env, napi_callback_info info)
     Drawing::ImageInfo imageInfo;
     if (!ConvertFromJsImageInfo(env, argv[ARGC_ZERO], imageInfo)) {
         ROSEN_LOGE("JsCanvas::OnReadPixels argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid [0] param.");;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid [0] param.");
     }
 
     napi_value dstPixels = argv[ARGC_ONE];
 
-    uint32_t size = 0;
-    GET_UINT32_PARAM(ARGC_TWO, size);
-    if (size == 0) {
-        ROSEN_LOGE("JsCanvas::OnReadPixels size of dstPixels is 0");
+    uint32_t dstRowBytes = 0;
+    GET_UINT32_PARAM(ARGC_TWO, dstRowBytes);
+    const uint32_t bufferSize = dstRowBytes * imageInfo.GetHeight();
+    if (dstRowBytes == 0 || bufferSize == 0) {
+        ROSEN_LOGE("JsCanvas::OnReadPixels dstRowBytes or height is 0");
         return nullptr;
     }
 
@@ -1870,11 +1877,11 @@ napi_value JsCanvas::OnReadPixels(napi_env env, napi_callback_info info)
     int srcY = 0;
     GET_INT32_PARAM(ARGC_FOUR, srcY);
 
-    std::vector<uint8_t> buffer(size);
-    const bool res = m_canvas->ReadPixels(imageInfo, buffer.data(), size, srcX, srcY);
+    std::vector<uint8_t> buffer(bufferSize);
+    const bool res = m_canvas->ReadPixels(imageInfo, buffer.data(), dstRowBytes, srcX, srcY);
     if (!res) {
         ROSEN_LOGE("JsCanvas::OnReadPixels m_canvas->ReadPixels returns false");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "ReadPixels returns false.");;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "ReadPixels returns false.");
     }
 
     uint32_t i = 0;

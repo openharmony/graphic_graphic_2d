@@ -170,14 +170,18 @@ napi_value GetImageInfoAndConvertToJsValue(napi_env env, const Drawing::ImageInf
     napi_create_object(env, &objValue);
 
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_WIDTH_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetWidth())));
-        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_HEIGHT_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetHeight())));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_WIDTH_ID],
+            CreateJsNumber(env, static_cast<int32_t>(info.GetWidth())));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_HEIGHT_ID],
+            CreateJsNumber(env, static_cast<int32_t>(info.GetHeight())));
         Drawing::ColorType clrType = info.GetColorType();
         if (clrType > Drawing::ColorType::COLORTYPE_BGRA_8888) {
             clrType = Drawing::ColorType::COLORTYPE_UNKNOWN;
         }
-        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_CLRTYPE_ID], CreateJsNumber(env, static_cast<int32_t>(clrType)));
-        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_ALPHTYPE_ID], CreateJsNumber(env, static_cast<int32_t>(info.GetAlphaType())));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_CLRTYPE_ID],
+            CreateJsNumber(env, static_cast<int32_t>(clrType)));
+        napi_set_named_property(env, objValue, g_whcaString[IMAGEINFO_ALPHTYPE_ID],
+            CreateJsNumber(env, static_cast<int32_t>(info.GetAlphaType())));
     }
     return objValue;
 }
