@@ -288,9 +288,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto bundleName = data.ReadString();
             bool isTextureExportNode = data.ReadBool();
             bool isSync = data.ReadBool();
+            auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
             RSSurfaceRenderNodeConfig config = {
                 .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
-                .isTextureExportNode = isTextureExportNode, .isSync = isSync};
+                .isTextureExportNode = isTextureExportNode, .isSync = isSync,
+                .surfaceWindowType = surfaceWindowType};
             sptr<Surface> surface = CreateNodeAndSurface(config);
             if (surface == nullptr) {
                 ret = ERR_NULL_OBJECT;
