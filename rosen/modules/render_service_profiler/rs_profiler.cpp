@@ -175,7 +175,9 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
-    static std::thread const THREAD(Network::Run);
+    if (!IsBetaRecordEnabled()) {
+        static std::thread const THREAD(Network::Run);
+    }
 }
 
 void RSProfiler::OnCreateConnection(pid_t pid)
@@ -1184,6 +1186,10 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_recordStartTime = Now();
     g_frameNumber = 0;
 
+    if (IsBetaRecordStarted()) {
+        return;
+    }
+
     std::thread thread([]() {
         while (IsRecording()) {
             if (g_recordStartTime >= 0) {
@@ -1286,7 +1292,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     g_playbackShouldBeTerminated = false;
 
-    std::thread thread([]() {
+    const auto timeoutLimit = args.Int64();
+    std::thread thread([timeoutLimit]() {
         while (IsPlaying()) {
             const int64_t timestamp = static_cast<int64_t>(RawNowNano());
 
@@ -1295,7 +1302,6 @@ void RSProfiler::PlaybackStart(const ArgList& args)
                 SendTelemetry(Now() - g_playbackStartTime);
             }
 
-            constexpr int64_t timeoutLimit = 8000000;
             const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));

@@ -24,6 +24,7 @@
 
 namespace OHOS::Rosen {
 
+class Packet;
 class Socket;
 class RSCaptureData;
 enum class PackageID;
@@ -68,6 +69,7 @@ private:
     static void ProcessIncoming(Socket& socket);
     static void ProcessOutgoing(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);
+    static void SendPacket(const Packet& packet);
 
 private:
     static bool isRunning_;
