@@ -165,7 +165,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char *OH_FLUTTER = "oh_flutter";
+constexpr const char* OH_FLUTTER = "oh_flutter";
 constexpr const int MAX_NODE_NAME_LEN = 10;
 };
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)

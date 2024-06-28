@@ -27,7 +27,7 @@ namespace {
     const std::string bufferName = "frameBuffer";
     const std::string aceAnimato = "AceAnimato";
     const std::string rosenWeb = "RosenWeb";
-    const std::string ohFlutter = "oh_Flutter";
+    const std::string ohFlutter = "oh_flutter";
     const std::string otherSurface = "Other_SF";
     constexpr uint64_t  currTime = 100000000;
     constexpr uint64_t  lastTime = 200000000;
@@ -170,15 +170,15 @@ HWTEST_F(HgmIdleDetectorTest, GetSupportSurface, Function | SmallTest | Level1)
             STEP_ASSERT_EQ(ret, true);
 
             idledetector->appBufferBlackList_.push_back(aceAnimato);
-            bool ret = idledetector->GetSupportSurface();
+            ret = idledetector->GetSupportSurface();
             STEP_ASSERT_EQ(ret, false);
 
             idledetector->frameTimeMap_[bufferName] = currTime;
-            bool ret = idledetector->GetSupportSurface();
+            ret = idledetector->GetSupportSurface();
             STEP_ASSERT_EQ(ret, true);
 
             idledetector->appBufferBlackList_.push_back(bufferName);
-            bool ret = idledetector->GetSupportSurface();
+            ret = idledetector->GetSupportSurface();
             STEP_ASSERT_EQ(ret, false);
         }
     }
@@ -224,7 +224,6 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps001, Function | SmallTest | L
             idledetector->frameTimeMap_[rosenWeb] = currTime;
             ret = idledetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
-
         }
     }
 }
@@ -243,7 +242,7 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps002, Function | SmallTest | L
         STEP("1. get an idledetector") {
             STEP_ASSERT_NE(idledetector, nullptr);
         }
-        STEP("2. get idledetector up expect fps") {
+        STEP("2. get surface up expect fps") {
             idledetector->SetAppSupportStatus(true);
 
             idledetector->frameTimeMap_[rosenWeb] = currTime;

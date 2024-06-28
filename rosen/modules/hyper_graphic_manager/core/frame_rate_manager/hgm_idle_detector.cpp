@@ -46,7 +46,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& name, uint64_t timest
     auto it = std::find(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE);
     if (it == supportAppBufferList_.end()) {
         auto name = std::find(supportAppBufferList_.begin(), supportAppBufferList_.end(), temp);
-            if (name == supportAppBufferList_.end()) { return; }
+        if (name == supportAppBufferList_.end()) { return; }
     }
 
     frameTimeMap_[temp] = timestamp;

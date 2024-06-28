@@ -223,6 +223,7 @@ void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrame
 void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 {
     static int32_t lastUpExpectFps = 0;
+
     if (!idleDetector_.GetAppSupportStatus()) {
         return;
     }

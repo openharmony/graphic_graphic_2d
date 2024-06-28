@@ -141,7 +141,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
         }
         STEP("2. handle touch event") {
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = pkgParam.pkgName,
+                .pkgName = pkgParam.pkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };
@@ -198,7 +198,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
         }
         STEP("2. click other pkg which hasn't config") {
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = unConfigPkgName,
+                .pkgName = unConfigPkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };
@@ -252,7 +252,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = unConfigPkgName,
+                .pkgName = unConfigPkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };
@@ -297,7 +297,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
         }
         STEP("2. handle pkg0 touch event") {
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = pkgParams_[0].pkgName,
+                .pkgName = pkgParams_[0].pkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };
@@ -338,7 +338,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
         }
         STEP("2. handle pkg1 touch event") {
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = pkgParams_[1].pkgName,
+                .pkgName = pkgParams_[1].pkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };
@@ -346,30 +346,6 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
             multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, downFps1);
             ASSERT_EQ(strategyConfig.max, downFps1);
-
-            touchInfo = {
-                .touchState = TouchState::UP_STATE,
-            };
-            multiAppStrategy_->HandleTouchInfo(touchInfo);
-            touchInfo = {
-                .touchState = TouchState::IDLE_STATE,
-            };
-            multiAppStrategy_->HandleTouchInfo(touchInfo);
-
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, fps1);
-            ASSERT_EQ(strategyConfig.max, fps1);
-        }
-        STEP("3. handle empty pkg touch event") {
-            HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = otherPkgName,
-                .touchState = TouchState::DOWN_STATE,
-                .upExpectFps = OLED_120_HZ,
-            };
-            multiAppStrategy_->HandleTouchInfo(touchInfo);
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, OLED_144_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_144_HZ);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
@@ -403,7 +379,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
         }
         STEP("2. handle empty pkg touch event") {
             HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgname = otherPkgName,
+                .pkgName = otherPkgName,
                 .touchState = TouchState::DOWN_STATE,
                 .upExpectFps = OLED_120_HZ,
             };

@@ -79,7 +79,6 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
- 
 private:
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
