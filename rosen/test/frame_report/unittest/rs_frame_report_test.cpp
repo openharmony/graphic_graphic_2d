@@ -44,8 +44,14 @@ void RsFrameReportTest::TearDown() {}
  */
 HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().LoadLibrary();
-    RsFrameReport::GetInstance().GetEnable();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.LoadLibrary();
+    fr.CloseLibrary();
+    fr.GetEnable();
+    fr.LoadLibrary();
+    fr.GetEnable();
+    fr.GetEnable();
+    fr.CloseLibrary();
 }
 
 /**
@@ -56,7 +62,13 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, ProcessCommandsStart001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().ProcessCommandsStart();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.LoadLibrary();
+    EXPECT_TRUE(fr.frameSchedSoLoaded_);
+    EXPECT_EQ(fr.processCommandsStartFun_, nullptr);
+    fr.ProcessCommandsStart();
+    EXPECT_NE(fr.processCommandsStartFun_, nullptr);
+    fr.ProcessCommandsStart();
 }
 
 /**
@@ -67,7 +79,11 @@ HWTEST_F(RsFrameReportTest, ProcessCommandsStart001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().AnimateStart();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.animateStartFunc_, nullptr);
+    fr.AnimateStart();
+    EXPECT_NE(fr.animateStartFunc_, nullptr);
+    fr.AnimateStart();
 }
 
 /**
@@ -78,10 +94,14 @@ HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
 {
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.renderStartFunc_, nullptr);
     uint64_t timestamp = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    RsFrameReport::GetInstance().RenderStart(timestamp);
+    fr.RenderStart(timestamp);
+    EXPECT_NE(fr.renderStartFunc_, nullptr);
+    fr.RenderStart(timestamp);
 }
 
 /**
@@ -92,7 +112,11 @@ HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().RSRenderStart();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.parallelRenderStartFunc_, nullptr);
+    fr.RSRenderStart();
+    EXPECT_NE(fr.parallelRenderStartFunc_, nullptr);
+    fr.RSRenderStart();
 }
 
 /**
@@ -103,7 +127,11 @@ HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().RenderEnd();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.renderEndFunc_, nullptr);
+    fr.RenderEnd();
+    EXPECT_NE(fr.renderEndFunc_, nullptr);
+    fr.RenderEnd();
 }
 
 /**
@@ -114,7 +142,11 @@ HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().RSRenderEnd();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.parallelRenderEndFunc_, nullptr);
+    fr.RSRenderEnd();
+    EXPECT_NE(fr.parallelRenderEndFunc_, nullptr);
+    fr.RSRenderEnd();
 }
 
 /**
@@ -125,7 +157,11 @@ HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, SendCommandsStart001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().SendCommandsStart();
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.sendCommandsStartFunc_, nullptr);
+    fr.SendCommandsStart();
+    EXPECT_NE(fr.sendCommandsStartFunc_, nullptr);
+    fr.SendCommandsStart();
 }
 
 /**
@@ -137,6 +173,7 @@ HWTEST_F(RsFrameReportTest, SendCommandsStart001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, SetFrameParam001, TestSize.Level1)
 {
     RsFrameReport::GetInstance().SetFrameParam(0, 0, 0, 0);
+    RsFrameReport::GetInstance().SetFrameParam(1, 1, 1, 1);
 }
 
 /**
@@ -150,6 +187,24 @@ HWTEST_F(RsFrameReportTest, LoadLibrary001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     fr.CloseLibrary();
     fr.LoadLibrary();
+    fr.CloseLibrary();
+}
+
+/**
+ * @tc.name: LoadSymbol001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, LoadSymbol001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.CloseLibrary();
+    EXPECT_FALSE(fr.frameSchedSoLoaded_);
+    fr.LoadSymbol("function");
+    fr.LoadLibrary();
+    EXPECT_TRUE(fr.frameSchedSoLoaded_);
+    fr.LoadSymbol("function");
     fr.CloseLibrary();
 }
 } // namespace Rosen
