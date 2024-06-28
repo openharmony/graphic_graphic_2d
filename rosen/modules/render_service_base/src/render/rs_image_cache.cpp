@@ -60,7 +60,7 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
     auto it = drawingImageCache_.find(uniqueId);
     if (it != drawingImageCache_.end()) {
         it->second.second--;
-        if (it->second.first == nullptr || it->second.second <= 0) {
+        if (it->second.first == nullptr || it->second.second == 0) {
             drawingImageCache_.erase(it);
         }
     }
@@ -102,7 +102,7 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
         auto it = pixelMapCache_.find(uniqueId);
         if (it != pixelMapCache_.end()) {
             it->second.second--;
-            if (it->second.first == nullptr || it->second.second <= 0) {
+            if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
                 pixelMapCache_.erase(it);
                 ReleaseDrawingImageCacheByPixelMapId(uniqueId);
