@@ -18,6 +18,8 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
+#include "params/rs_render_thread_params.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -358,21 +360,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfx, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSurfaceRenderNode
- * @tc.desc: Test GetSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: #IA940V
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSurfaceRenderNode, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    ASSERT_NE(surfaceDrawable_->GetSurfaceRenderNode(), nullptr);
-
-    surfaceDrawable_->renderNode_ = std::weak_ptr<const RSRenderNode>();
-    ASSERT_EQ(surfaceDrawable_->GetSurfaceRenderNode(), nullptr);
-}
-
-/**
  * @tc.name: GetVisibleDirtyRegion
  * @tc.desc: Test GetVisibleDirtyRegion
  * @tc.type: FUNC
@@ -500,5 +487,179 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSyncDirtyManager, TestSize.Level1)
     surfaceDrawable_->renderNode_ = std::weak_ptr<const RSRenderNode>();
     surfaceDrawable_->GetSyncDirtyManager();
     ASSERT_EQ(surfaceDrawable_->GetSurfaceRenderNode(), nullptr);
+}
+
+/**
+ * @tc.name: GetSyncDirtyManager
+ * @tc.desc: Test GetSyncDirtyManager
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSyncDirtyManagerTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    drawable->GetSyncDirtyManager();
+    renderNode = nullptr;
+    drawable->GetSyncDirtyManager();
+}
+
+/**
+ * @tc.name: SetDirtyRegionBelowCurrentLayer
+ * @tc.desc: Test SetDirtyRegionBelowCurrentLayer
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetDirtyRegionBelowCurrentLayerTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    Occlusion::Region VisibleDirtyRegion;
+    drawable->SetDirtyRegionBelowCurrentLayer(VisibleDirtyRegion);
+    renderNode = nullptr;
+    drawable->SetDirtyRegionBelowCurrentLayer(VisibleDirtyRegion);
+}
+
+/**
+ * @tc.name: SetDirtyRegionAlignedEnable
+ * @tc.desc: Test SetDirtyRegionAlignedEnable
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetDirtyRegionAlignedEnableTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    drawable->SetDirtyRegionAlignedEnable(true);
+    renderNode = nullptr;
+    drawable->SetDirtyRegionAlignedEnable(true);
+}
+
+/**
+ * @tc.name: SetGlobalDirtyRegion
+ * @tc.desc: Test SetGlobalDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetGlobalDirtyRegionTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    const RectI rect = RectI(0, 0, 100, 100);
+    drawable->SetGlobalDirtyRegion(rect);
+    renderNode = nullptr;
+    drawable->SetGlobalDirtyRegion(rect);
+}
+
+/**
+ * @tc.name: GetVisibleDirtyRegion
+ * @tc.desc: Test GetVisibleDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetVisibleDirtyRegionTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    drawable->GetVisibleDirtyRegion();
+    renderNode = nullptr;
+    drawable->GetVisibleDirtyRegion();
+}
+
+/**
+ * @tc.name: GetSurfaceRenderNode
+ * @tc.desc: Test GetSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSurfaceRenderNodeTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-1);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    drawable->GetSurfaceRenderNode();
+    renderNode = nullptr;
+    drawable->GetSurfaceRenderNode();
+}
+
+/**
+ * @tc.name: EnableGpuOverDrawDrawBufferOptimization
+ * @tc.desc: Test EnableGpuOverDrawDrawBufferOptimization
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, EnableGpuOverDrawDrawBufferOptimizationTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    surfaceDrawable_->EnableGpuOverDrawDrawBufferOptimization(drawingCanvas, surfaceParams);
+}
+
+/**
+ * @tc.name: DrawUIFirstDfx
+ * @tc.desc: Test DrawUIFirstDfx
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfxTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    MultiThreadCacheType enableType = MultiThreadCacheType::ARKTS_CARD;
+    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, true);
+
+    enableType = MultiThreadCacheType::LEASH_WINDOW;
+    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, true);
+    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, false);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto& rtThread = RSUniRenderThread::Instance();
+    rtThread.captureParam_ = CaptureParam();
+
+    surfaceParams->isHardwareEnabled_ = true;
+    const auto params01 = surfaceParams;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*renderNode_.get(), canvas, *params01);
+
+    rtThread.captureParam_.isInCaptureFlag_ = false;
+    surfaceParams->isHardwareEnabled_ = false;
+    const auto params02 = surfaceParams;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*renderNode_.get(), canvas, *params02);
 }
 }

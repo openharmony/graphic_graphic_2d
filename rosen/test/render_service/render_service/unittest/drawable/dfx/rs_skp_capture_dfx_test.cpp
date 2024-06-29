@@ -19,6 +19,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_thread.h"
 
 using namespace testing;
@@ -53,13 +54,29 @@ void RSSkpCaptureDFXTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSSkpCaptureDFXTest, capture, TestSize.Level1)
+HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
 {
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.renderThreadParams_) {
+        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    rtThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+
     auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     
     ASSERT_NE(canvas, nullptr);
     {
+        rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        RSSkpCaptureDfx capture(canvas);
+        ASSERT_EQ(capture.recordingCanvas_, nullptr);
+    }
+    {
+#if defined(NEW_RENDER_CONTEXT)
+        rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContextBase>();
+#else
+        rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContext>();
+#endif
         RSSkpCaptureDfx capture(canvas);
         ASSERT_EQ(capture.recordingCanvas_, nullptr);
     }
