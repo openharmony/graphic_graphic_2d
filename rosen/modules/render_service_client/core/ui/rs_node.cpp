@@ -1334,6 +1334,11 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
             SetForegroundBlurRadiusX(blurRadius);
             SetForegroundBlurRadiusY(blurRadius);
         }
+        if (filterPara->GetParaType() == FilterPara::PIXEL_STRETCH) {
+            auto pixelStretchPara = std::static_pointer_cast<PixelStretchPara>(filterPara);
+            auto stretchPercent = pixelStretchPara->GetStretchPercent();
+            SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
+        }
     }
 }
 
@@ -1346,11 +1351,6 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
             auto blurRadius = filterBlurPara->GetRadius();
             SetForegroundEffectRadius(blurRadius);
-        }
-        if (filterPara->GetParaType() == FilterPara::PIXEL_STRETCH) {
-            auto pixelStretchPara = std::static_pointer_cast<PixelStretchPara>(filterPara);
-            auto stretchPercent = pixelStretchPara->GetStretchPercent();
-            SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
         }
     }
 }
