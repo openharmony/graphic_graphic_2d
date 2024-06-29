@@ -329,7 +329,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 {
     // Cubic Bezier curve with two control points
     Drawing::Point topVelFirst = { 0.50f, 0.0f };
-    Drawing::Point bottomVelFirst = isBelowTarget_ ? { 0.20f, 0.0f } : { 0.0f, 0.0f };
+    Drawing::Point bottomVelFirst = isBelowTarget_ ? Drawing::Point(0.2f, 0.0f) : Drawing::Point(0.0f, 0.0f);
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelFirst, bottomVelFirst};
     return velocityCtrlPoint;
 }
@@ -338,7 +338,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 {
     // Cubic Bezier curve with two control points
     Drawing::Point topVelSecond = { 0.50f, 1.0f };
-    Drawing::Point bottomVelSecond = isBelowTarget_ ? { 0.20f, 1.0f } : { 0.0f, 1.0f };
+    Drawing::Point bottomVelSecond = isBelowTarget_ ? Drawing::Point(0.2f, 1.0f) : Drawing::Point(0.0f, 1.0f);
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelSecond, bottomVelSecond};
     return velocityCtrlPoint;
 }
