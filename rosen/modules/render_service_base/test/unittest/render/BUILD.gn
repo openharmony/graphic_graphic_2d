@@ -25,8 +25,8 @@ ohos_unittest("RSRenderTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "$window_base_path/wm:libwm",
     "$third_path/googletest:gtest_main",
+    "$window_base_path/wm:libwm",
   ]
 
   external_deps = [
