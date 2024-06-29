@@ -12,51 +12,48 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/render_service_base"
+third_party_path = "//third_party"
 
 ohos_unittest("RSRenderTest") {
-    module_out_path = module_output_path
+  sources = [ "rs_image_cache_test.cpp" ]
 
-    sources = [
-        "rs_image_cache_test.cpp",
-    ]
+  configs = [ ":rs_render_test_config" ]
 
-    configs = [ ":rs_render_test_config" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$window_base_path/wm:libwm",
+    "$third_party_path/googletest:gtest_main",
+  ]
 
-    deps = [
-        "../../../../render_service_base:render_service_base_src",
-        "../../../../../../../../../foundation/window/window_manager/wm:libwm",
-        "../../../../../../../../../third_party/googletest:gtest_main",
-    ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+  ]
 
-    external_deps = [
-        "eventhandler:libeventhandler",
-        "graphic_surface:surface",
-        "hilog:libhilog",
-        "image_framework:image_native",
-    ]
-
-    subsystem_name = "graphic"
+  subsystem_name = "graphic"
 }
 
 config("rs_render_test_config") {
-    visibility = [ ":*" ]
-    include_dirs = [
-        "../../../../../../../../../foundation/window/window_manager/interfaces/innerkits",
-        "../../../../../../../../../foundation/graphic/graphic_2d/rosen/modules/render_service_base",
-    ]
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$window_base_path/interfaces/innerkits",
+    "$graphic_2d_root/rosen/modules/render_service_base",
+  ]
 
-    cflags = [
-        "-Wall",
-        "-Werror",
-        "-g3",
-        "-Dprivate=public",
-        "-Dprotected=public",
-    ]
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 group("unittest") {
-    testonly = true
-    deps = [ ":RSRenderTest" ]
+  testonly = true
+  deps = [ ":RSRenderTest" ]
 }
