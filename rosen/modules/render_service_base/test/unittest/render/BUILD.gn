@@ -12,20 +12,19 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
+graphic_2d_root = "//foundation/graphic/graphic_2d"
 third_party_path = "//third_party"
+window_base_path = "//foundation/window/window_manager"
 
 ohos_unittest("RSRenderTest") {
-  third_path = third_party_path
-
   sources = [ "rs_image_cache_test.cpp" ]
 
   configs = [ ":rs_render_test_config" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "$third_path/googletest:gtest_main",
+    "$third_party_path/googletest:gtest_main",
     "$window_base_path/wm:libwm",
   ]
 
