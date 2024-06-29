@@ -110,6 +110,14 @@ private:
 
     void RemoveVirtualScreen(ScreenId id) override;
 
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
+ 
+    int32_t SetPointerColorInversionEnabled(bool enable) override;
+ 
+    int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) override;
+ 
+    int32_t UnRegisterPointerLuminanceChangeCallback() override;
+
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
