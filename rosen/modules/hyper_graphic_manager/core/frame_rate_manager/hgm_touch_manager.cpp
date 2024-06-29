@@ -27,7 +27,6 @@ namespace {
 }
 
 HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(TouchState::IDLE_STATE),
-    runner_(AppExecFwk::EventRunner::Create("TouchMachine")),
     upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
         OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
     }),
@@ -35,7 +34,10 @@ HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(Tou
         OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
     })
 {
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    const auto& runner = HgmTaskHandleThread::Instance().GetRunner();
+    if (runner != nullptr) {
+        handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    }
     RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {
         ChangeState(TouchState::UP_STATE);
     });
@@ -55,6 +57,13 @@ HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(Tou
         upTimeoutTimer_.Stop();
         rsIdleTimeoutTimer_.Stop();
     });
+}
+
+HgmTouchManager::~HgmTouchManager()
+{
+    if (handler_ != nullptr) {
+        handler_->RemoveAllEvents();
+    }
 }
 
 void HgmTouchManager::HandleTouchEvent(TouchEvent event, const std::string& pkgName)

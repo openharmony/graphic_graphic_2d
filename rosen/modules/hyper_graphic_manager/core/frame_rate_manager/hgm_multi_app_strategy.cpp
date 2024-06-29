@@ -204,13 +204,9 @@ HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyC
 
 HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes)
 {
-    if (pkgs_.empty()) {
-        return HGM_ERROR;
-    }
-
     auto &strategyConfigs = GetStrategyConfigs();
 
-    auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
+    auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     auto strategyName = GetAppStrategyConfigName(pkgName);
     if (strategyName != NULL_STRATEGY_CONFIG_NAME && strategyConfigs.find(strategyName) != strategyConfigs.end()) {
         strategyRes = strategyConfigs.at(strategyName);
@@ -275,13 +271,9 @@ void HgmMultiAppStrategy::UseStrategyNum()
 
 void HgmMultiAppStrategy::FollowFocus()
 {
-    if (pkgs_.empty()) {
-        return;
-    }
-
     auto &strategyConfigs = GetStrategyConfigs();
 
-    auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
+    auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     auto strategyName = GetAppStrategyConfigName(pkgName);
     RS_TRACE_NAME_FMT("[FollowFocus] strategyName:%s", strategyName.c_str());
     if (strategyName != NULL_STRATEGY_CONFIG_NAME && strategyConfigs.find(strategyName) != strategyConfigs.end()) {
