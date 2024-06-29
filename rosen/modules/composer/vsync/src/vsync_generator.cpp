@@ -788,8 +788,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
 
     PeriodCheckLocked(hardwareVsyncInterval);
 
-    if (rsVSyncDistributor_->IsDVsyncOn() ||
-        ((abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD) &&
+    if (((abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD) &&
         (abs(hardwareVsyncInterval - targetPeriod_) < PERIOD_CHECK_THRESHOLD || targetPeriod_ == 0))) {
         // framerate has changed
         frameRateChanging_ = false;
