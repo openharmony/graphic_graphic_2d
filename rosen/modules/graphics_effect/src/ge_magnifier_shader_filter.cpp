@@ -45,7 +45,7 @@ static std::shared_ptr<GEMagnifierParams> GetMagnifierParams()
 }
 } // namespace
 
-std::shared_ptr<Drawing::RuntimeEffect> GEMagnifierShaderFilter::magnifierShaderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> GEMagnifierShaderFilter::g_magnifierShaderEffect = nullptr;
 
 GEMagnifierShaderFilter::GEMagnifierShaderFilter() {}
 
@@ -76,7 +76,7 @@ std::shared_ptr<Drawing::Image> GEMagnifierShaderFilter::ProcessImage(Drawing::C
 std::shared_ptr<Drawing::RuntimeShaderBuilder> GEMagnifierShaderFilter::MakeMagnifierShader(
     std::shared_ptr<Drawing::ShaderEffect> imageShader, float imageWidth, float imageHeight)
 {
-    if (magnifierShaderEffect_ == nullptr) {
+    if (g_magnifierShaderEffect == nullptr) {
         if (!InitMagnifierEffect()) {
             LOGE("GEMagnifierShaderFilter::failed when initializing MagnifierEffect.");
             return nullptr;
@@ -88,7 +88,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> GEMagnifierShaderFilter::MakeMagn
         return nullptr;
     }
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(magnifierShaderEffect_);
+        std::make_shared<Drawing::RuntimeShaderBuilder>(g_magnifierShaderEffect);
     builder->SetChild("imageShader", imageShader);
     builder->SetUniform("iResolution", imageWidth, imageHeight);
 
@@ -119,7 +119,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> GEMagnifierShaderFilter::MakeMagn
 
 bool GEMagnifierShaderFilter::InitMagnifierEffect()
 {
-    if (magnifierShaderEffect_ == nullptr) {
+    if (g_magnifierShaderEffect == nullptr) {
         static constexpr char prog[] = R"(
             uniform shader imageShader;
             uniform float2 iResolution;
@@ -209,8 +209,8 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
             }
         )";
 
-        magnifierShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
-        if (magnifierShaderEffect_ == nullptr) {
+        g_magnifierShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
+        if (g_magnifierShaderEffect == nullptr) {
             LOGE("MakeMagnifierShader::RuntimeShader effect error\n");
             return false;
         }
