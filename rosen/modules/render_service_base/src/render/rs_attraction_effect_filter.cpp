@@ -387,7 +387,7 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
     // 1.0 indicates that the window is to the right of the target point,
     // and - 1.0 indicates that the window is to the left.
     float location = (windowBottomCenter.GetX() > pointDst[0].GetX()) ? 1.0f : -1.0f;
-    bool isBelowTarget_ = (windowBottomCenter.GetY() > pointDst[0].GetY()) ? true : false;
+    isBelowTarget_ = (windowBottomCenter.GetY() > pointDst[0].GetY()) ? true : false;
 
     float width = isBelowTarget_ ? canvasHeight_ : canvasWidth_;
     float height = isBelowTarget_ ? canvasWidth_ : canvasHeight_;
