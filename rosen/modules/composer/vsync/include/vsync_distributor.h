@@ -190,6 +190,7 @@ private:
     void UpdateVsyncPeriodAndRefreshRate();
 #endif
     bool isRs_ = false;
+    std::atomic<bool> hasVsync_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
