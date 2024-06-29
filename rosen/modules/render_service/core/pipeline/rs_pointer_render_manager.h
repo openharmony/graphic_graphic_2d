@@ -16,6 +16,7 @@
 #ifndef RS_POINTER_RENDER_MANAGER_H
 #define RS_POINTER_RENDER_MANAGER_H
 
+#include "ipc_callbacks/pointer_luminance_change_callback.h"
 #include "pipeline/rs_display_render_node.h"
 #include "rs_processor.h"
 #ifdef RS_ENABLE_VK
@@ -39,12 +40,18 @@ public:
 
     static RSPointerRenderManager& GetInstance();
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
+    void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
+    void SetPointerColorInversionEnabled(bool enable);
+    void RegisterPointerLuminanceChangeCallback(pid_t pid, sptr<RSIPointerLuminanceChangeCallback> callback);
+    void UnRegisterPointerLuminanceChangeCallback(pid_t pid);
     void SetCacheImgForPointer(std::shared_ptr<Drawing::Image> cacheImgForPointer)
     {
         cacheImgForPointer_ = cacheImgForPointer;
     }
 
 private:
+    void ExecutePointerLuminanceChangeCallback(int32_t brightness);
+    void CallPointerLuminanceChange(int32_t brightness);
     bool CheckColorPickerEnabled();
     bool CalculateTargetLayer(std::shared_ptr<RSProcessor> processor);
     void RunColorPickerTask();
@@ -77,6 +84,18 @@ private:
     std::atomic<bool> taskDoing_ = false;
     bool isEnableCursorInversion_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForPointer_ = nullptr;
+    std::mutex cursorInvertMutex_;
+    std::map<pid_t, sptr<RSIPointerLuminanceChangeCallback>> colorChangeListeners_;
+    enum class CursorBrightness {
+        NONE,
+        BRIGHT,
+        DARK
+    };
+    CursorBrightness brightness_ = CursorBrightness::NONE;
+    int64_t lastColorPickerTime_ = 0;
+    int64_t colorSamplingInterval_ = 50;
+    float darkBuffer_ = 0.55;
+    float brightBuffer_ = 0.35;
 };
 }
 #endif // RS_POINTER_RENDER_MANAGER_H
