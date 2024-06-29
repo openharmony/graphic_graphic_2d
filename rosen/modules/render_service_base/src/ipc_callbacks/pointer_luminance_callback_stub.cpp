@@ -20,9 +20,7 @@ namespace Rosen {
 int RSPointerLuminanceChangeCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    RSInterfaceCodeSecurityManager securityManager =
-        RSInterfaceCodeSecurityManager::CreateInstance<RSIPointerLuminanceChangeCallbackInterfaceCodeAccessVerifier>();
-    if (!securityManager.IsInterfaceCodeAccessible(code)) {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
         RS_LOGE("RSPointerLuminanceChangeCallbackStub::OnRemoteRequest no permission to access codeID=%{public}u",
             code);
         return ERR_INVALID_STATE;

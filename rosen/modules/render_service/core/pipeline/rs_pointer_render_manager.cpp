@@ -134,7 +134,7 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
     auto tmp = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch());
     auto time = tmp.count() - lastColorPickerTime_;
     if (time < colorSamplingInterval_) {
-        return;
+        return false;
     }
 
     bool exists = false;
