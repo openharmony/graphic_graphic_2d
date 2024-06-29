@@ -409,7 +409,8 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
     for (auto linker : appFrameRateLinkers) {
-        auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, linker.second->GetExpectedRange());
+        const auto& expectedRange = linker.second->GetExpectedRange();
+        auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
         if (touchManager_.GetState() != TouchState::IDLE_STATE) {
             appFrameRate = OLED_NULL_HZ;
         }
@@ -420,10 +421,13 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
+        if (expectedRange.min_ == OLED_NULL_HZ && expectedRange.max_ == OLED_144_HZ &&
+            expectedRange.preferred_ == OLED_NULL_HZ) {
+            continue;
+        }
         RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
             "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
-            appFrameRate, linker.second->GetExpectedRange().min_, linker.second->GetExpectedRange().max_,
-            linker.second->GetExpectedRange().preferred_);
+            appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
     }
     return frameRateChanged;
 }
@@ -765,7 +769,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
 void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
 {
     if (isIdle) {
-        HGM_LOGI("HandleIdleEvent status:%{public}u", isIdle);
+        HGM_LOGD("HandleIdleEvent status:%{public}u", isIdle);
         DeliverRefreshRateVote({"VOTER_IDLE", idleFps_, idleFps_}, ADD_VOTE);
     } else {
         DeliverRefreshRateVote({"VOTER_IDLE"}, REMOVE_VOTE);
