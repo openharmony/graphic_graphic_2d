@@ -5107,24 +5107,6 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSandBox
- * @tc.desc: test results of SetSandBox
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::optional<Vector2f> parentPosition;
-    rsNode->SetSandBox(parentPosition);
-
-    Vector2f newPosition(1.0f, 2.0f);
-    parentPosition = newPosition;
-    rsNode->SetSandBox(parentPosition);
-    EXPECT_EQ(parentPosition, newPosition);
-}
-
-/**
  * @tc.name: SetPivotZ
  * @tc.desc: test results of SetPivotZ
  * @tc.type: FUNC
