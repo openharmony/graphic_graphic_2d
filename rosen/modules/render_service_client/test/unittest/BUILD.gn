@@ -30,6 +30,9 @@ group("unittest") {
     ":RSTransactionsTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
+    "animation:RSAnimationTest1",
+    "animation:RSAnimationTest2",
+    "animation:RSAnimationTest3",
   ]
 }
 
