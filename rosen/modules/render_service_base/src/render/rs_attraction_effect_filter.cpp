@@ -347,25 +347,25 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 
 void RSAttractionEffectFilter::UpdateDirtyRegion(float leftPoint, float topPonit)
 {
-    float dirtyRegionMinX = windowStatusPoints_[0].GetX();
-    float dirtyRegionMaxX = windowStatusPoints_[0].GetX();
-    float dirtyRegionMinY = windowStatusPoints_[0].GetY();
-    float dirtyRegionMaxY = windowStatusPoints_[0].GetY();
+    float dirtyRegionMinX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMaxX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMinY_ = windowStatusPoints_[0].GetY();
+    float dirtyRegionMaxY_ = windowStatusPoints_[0].GetY();
 
     int pointNum = 12;
     for (int i = 1; i < pointNum; ++i) {
         float x = windowStatusPoints_[i].GetX();
         float y = windowStatusPoints_[i].GetY();
         dirtyRegionMinX_ = std::min(dirtyRegionMinX, x);
-        dirtyRegionMaxX_ = std::max(dirtyRegionMaxX, x);
+        dirtyRegionMaxX_ = std::min(dirtyRegionMaxX, x);
         dirtyRegionMinY_ = std::min(dirtyRegionMinY, y);
-        dirtyRegionMaxY_ = std::max(dirtyRegionMaxY, y);
+        dirtyRegionMaxY_ = std::min(dirtyRegionMaxY, y);
     }
 
-    int dirtyRegionLeftCurrent = static_cast<int>(dirtyRegionMinX + leftPoint);
-    int dirtyRegionTopCurrent = static_cast<int>(dirtyRegionMinY + topPonit);
-    int dirtyRegionRightCurrent = static_cast<int>(dirtyRegionMinX + leftPoint);
-    int dirtyRegionBottomCurrent = static_cast<int>(dirtyRegionMinY + topPonit);
+    int dirtyRegionLeftCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionTopCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
+    int dirtyRegionRightCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionBottomCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
 
     attractionDirtyRegion_.left_ = dirtyRegionLeftCurrent;
     attractionDirtyRegion_.top_ = dirtyRegionTopCurrent;
