@@ -73,6 +73,7 @@ void RSDrawFrame::RenderFrame()
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
+    unirenderInstance_.MemoryManagementBetweenFrames();
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
