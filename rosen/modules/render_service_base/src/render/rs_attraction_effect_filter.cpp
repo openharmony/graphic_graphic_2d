@@ -293,12 +293,12 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateUpperCtrlPointOfV
 {
     // Different regression parameters are used for different scenarios
     // Coordinates of the upper control point of the curve:(k1 * width + k2 * deltaX, k3 * height + k4 * deltaY)
-    Drawing::Point topLeft = { (0.016f * width - 0.08f * deltaX) * location, 0.464f * height + 0.40f * deltaY };
-    Drawing::Point bottomLeft = { (-0.15f * width - 0.075f * deltaX) * location, 0.0f * height + 0.2f * deltaY };
-    if (!isBelowTarget_) {
-        topLeft = { (-0.100f * width - 0.008f * deltaX) * location, 0.008f * height + 0.085f * deltaY };
-        bottomLeft = { (-0.008f * width - 0.008f * deltaX) * location, 0.0f * height - 0.008f * deltaY };
-    }
+    Drawing::Point topLeft = isBelowTarget_ ?
+        Drawing::Point((0.016f * width - 0.08f * deltaX) * location, 0.464f * height + 0.40f * deltaY) :
+        Drawing::Point((-0.100f * width - 0.008f * deltaX) * location, 0.008f * height + 0.085f * deltaY);
+    Drawing::Point bottomLeft = isBelowTarget_ ?
+        Drawing::Point((-0.15f * width - 0.075f * deltaX) * location, 0.0f * height + 0.2f * deltaY ) :
+        Drawing::Point((-0.008f * width - 0.008f * deltaX) * location, 0.0f * height - 0.008f * deltaY);
     Drawing::Point topRight = { (-1.147f * width - 0.016f * deltaX) * location, -0.187f * height + 0.30f * deltaY };
     Drawing::Point bottomRight = { (-0.848f * width - 0.2f * deltaX) * location, -0.859f * height - 0.2f * deltaY };
     std::vector<Drawing::Point> upperControlPoint = { topLeft, topRight, bottomLeft, bottomRight };
@@ -311,16 +311,18 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateLowerCtrlPointOfV
     float inverseWidth = (width >= 1.0f) ? (1.0f / width) : 1.0f;
     // Different regression parameters are used for different scenarios
     // Coordinates of the lower control point of the curve:(m1*(deltaX * height/width - width)), m2 * deltaY)
-    Drawing::Point topLeft = { (0.3f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY };
-    Drawing::Point topRight = { (0.45f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY };
-    Drawing::Point bottomLeft = { (0.15f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY };
-    Drawing::Point bottomRight = { (0.30f * (deltaX * height * inverseWidth - width)) * location, -0.112f * deltaY };
-    if (!isBelowTarget_) {
-        topLeft = { (0.131f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY };
-        topRight = { (0.147f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY };
-        bottomLeft = { (0.085f * (deltaX * height * inverseWidth - width)) * location, 0.008f * deltaY };
-        bottomRight = { (0.147f * (deltaX * height * inverseWidth - width)) * location, -0.069f * deltaY };
-    }
+    Drawing::Point topLeft = isBelowTarget_ ?
+        Drawing::Point((0.300f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY) :
+        Drawing::Point((0.131f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY);
+    Drawing::Point topRight = isBelowTarget_ ?
+        Drawing::Point((0.450f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY) :
+        Drawing::Point((0.147f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY);
+    Drawing::Point bottomLeft = isBelowTarget_ ?
+        Drawing::Point((0.150f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY) :
+        Drawing::Point((0.085f * (deltaX * height * inverseWidth - width)) * location, 0.008f * deltaY);
+    Drawing::Point bottomRight = isBelowTarget_ ?
+        Drawing::Point((0.300f * (deltaX * height * inverseWidth - width)) * location, -0.112f * deltaY) :
+        Drawing::Point((0.147f * (deltaX * height * inverseWidth - width)) * location, -0.069f * deltaY);
     std::vector<Drawing::Point> lowerControlPoint = { topLeft, topRight, bottomLeft, bottomRight };
     return lowerControlPoint;
 }

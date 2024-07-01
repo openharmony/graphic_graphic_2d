@@ -14,7 +14,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "render/rs_spherize_effect_filter.h"
+#include "render/rs_attraction_effect_filter.h"
 #include "draw/color.h"
 #include "image/image_info.h"
 #include "skia_image.h"
