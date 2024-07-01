@@ -386,6 +386,7 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
     rsCanvas->SetParallelThreadIdx(threadIndex_);
     rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     nodeDrawable->SubDraw(*rsCanvas);

@@ -177,6 +177,13 @@ void RSSurfaceRenderNodeDrawable::DrawDmaBufferWithGPU(RSPaintFilterCanvas& canv
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 }
 
+void RSSurfaceRenderNodeDrawable::ClipRoundRect(Drawing::Canvas& canvas)
+{
+    const auto& uifirstParams = static_cast<RSSurfaceRenderParams*>(GetUifirstRenderParams().get());
+    RRect rrect = uifirstParams ? uifirstParams->GetRRect() : RRect();
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
+}
+
 void RSSurfaceRenderNodeDrawable::ClearBufferQueue()
 {
     if (surface_ != nullptr) {

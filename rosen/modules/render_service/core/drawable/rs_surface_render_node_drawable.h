@@ -54,6 +54,7 @@ public:
     bool EnableRecordingOptimization(RSRenderParams& params);
 
     void SubDraw(Drawing::Canvas& canvas);
+    void ClipRoundRect(Drawing::Canvas& canvas);
 
     void UpdateCacheSurface();
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
