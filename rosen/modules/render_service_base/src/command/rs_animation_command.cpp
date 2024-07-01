@@ -21,6 +21,7 @@
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "modifier/rs_render_modifier.h"
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
@@ -56,6 +57,7 @@ void AnimationCommandHelper::CreateAnimation(
     if (node == nullptr) {
         return;
     }
+    RsCommonHook::Instance().OnStartNewAnimation();
     node->GetAnimationManager().AddAnimation(animation);
     auto modifier = node->GetModifier(animation->GetPropertyId());
     if (modifier != nullptr) {
@@ -79,6 +81,7 @@ void AnimationCommandHelper::CreateParticleAnimation(
     if (node == nullptr) {
         return;
     }
+    RsCommonHook::Instance().OnStartNewAnimation();
     auto propertyId = animation->GetPropertyId();
     node->GetAnimationManager().AddAnimation(animation);
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
