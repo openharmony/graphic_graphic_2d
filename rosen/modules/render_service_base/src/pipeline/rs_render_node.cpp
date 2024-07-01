@@ -2127,7 +2127,6 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
             [id](const auto& modifier) -> bool { return modifier == nullptr || modifier->GetPropertyId() == id; });
         if (found) {
             AddDirtyType(type);
-            return;
         }
     }
 }
