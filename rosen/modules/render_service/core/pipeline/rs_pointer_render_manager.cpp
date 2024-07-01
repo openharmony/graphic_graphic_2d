@@ -24,8 +24,8 @@ namespace Rosen {
 namespace {
 static const std::string DISPLAY_NODE = "DisplayNode";
 static const std::string POINTER_NODE = "pointer";
-static const float RGB = 255;
-static const float HALF = 0.5;
+static const float RGB = 255.f;
+static const float HALF = 0.5f;
 } // namespace
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
     std::make_unique<RSPointerRenderManager>();
@@ -55,6 +55,12 @@ void RSPointerRenderManager::InitInstance(const std::shared_ptr<RSEglImageManage
 }
 #endif
 
+int64_t RSPointerRenderManager::GetCurrentTime()
+{
+    auto timeNow = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
+    return std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch()).count();
+}
+
 void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
@@ -68,7 +74,7 @@ void RSPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
     isEnableCursorInversion_ = enable;
     if (!enable) {
-        brightness_ = CursorBrightness::NONE;
+        brightnessMode_ = CursorBrightness::NONE;
     }
 }
  
@@ -88,6 +94,7 @@ void RSPointerRenderManager::UnRegisterPointerLuminanceChangeCallback(pid_t pid)
 void RSPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brightness)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    lastColorPickerTime_ = RSPointerRenderManager::GetCurrentTime();
     for (auto it = colorChangeListeners_.begin(); it != colorChangeListeners_.end(); it++) {
         if (it->second) {
             it->second->OnPointerLuminanceChanged(brightness);
@@ -98,26 +105,20 @@ void RSPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brigh
 void RSPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
 {
     RS_LOGD("RSPointerRenderManager::CallPointerLuminanceChange luminance_:%{public}d.", luminance_);
-    auto timeNow = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
-    auto tmp = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch());
-    lastColorPickerTime_ = tmp.count();
-    if (brightness_ == CursorBrightness::NONE) {
-        if (brightness < RGB * HALF) {
-            brightness_ = CursorBrightness::DARK;
-        } else {
-            brightness_ = CursorBrightness::BRIGHT;
-        }
+    if (brightnessMode_ == CursorBrightness::NONE) {
+        brightnessMode_ = brightness < static_cast<int32_t>(RGB * HALF) ?
+            CursorBrightness::DARK : CursorBrightness::BRIGHT;
         ExecutePointerLuminanceChangeCallback(brightness);
-    } else if (brightness_ == CursorBrightness::DARK) {
-        // 暗光标 --> 亮光标 缓冲区
-        if (brightness > RGB * darkBuffer_) {
-            brightness_ = CursorBrightness::BRIGHT;
+    } else if (brightnessMode_ == CursorBrightness::DARK) {
+        // Dark cursor to light cursor buffer
+        if (brightness > static_cast<int32_t>(RGB * darkBuffer_)) {
+            brightnessMode_ = CursorBrightness::BRIGHT;
             ExecutePointerLuminanceChangeCallback(brightness);
         }
     } else {
-        // 亮光标 --> 暗光标 缓冲区
-        if (brightness < RGB * brightBuffer_) {
-            brightness_ = CursorBrightness::DARK;
+        // light cursor to Dark cursor buffer
+        if (brightness < static_cast<int32_t>(RGB * brightBuffer_)) {
+            brightnessMode_ = CursorBrightness::DARK;
             ExecutePointerLuminanceChangeCallback(brightness);
         }
     }
@@ -129,9 +130,7 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
         return false;
     }
 
-    auto timeNow = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
-    auto tmp = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch());
-    auto time = tmp.count() - lastColorPickerTime_;
+    auto time = RSPointerRenderManager::GetCurrentTime() - lastColorPickerTime_;
     if (time < colorSamplingInterval_) {
         return false;
     }
