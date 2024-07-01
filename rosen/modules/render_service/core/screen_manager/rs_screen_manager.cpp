@@ -998,6 +998,22 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     return SUCCESS;
 }
 
+bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+    if (virtualScreen->second != nullptr) {
+        return virtualScreen->second->GetAndResetVirtualSurfaceUpdateFlag();
+    } else {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+}
+
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(mutex_);

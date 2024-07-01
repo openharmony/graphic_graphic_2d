@@ -523,6 +523,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 if (!uniParam->IsVirtualDirtyDfxEnabled()) {
                     expandProcessor->SetDirtyInfo(damageRegionRects);
                 }
+            } else {
+                std::vector<RectI> emptyRects = {};
+                expandProcessor->SetRoiRegionToCodec(emptyRects);
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             DrawExpandScreen(*expandProcessor);
@@ -729,6 +732,9 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(std::shared_ptr<RSDisplayRend
             auto dirtyRects = CalculateVirtualDirty(
                 *displayNodeSp, virtualProcesser, params, virtualProcesser->GetCanvasMatrix());
             rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, params.GetScreenInfo());
+        } else {
+            std::vector<RectI> emptyRects = {};
+            virtualProcesser->SetRoiRegionToCodec(emptyRects);
         }
         processor->ProcessDisplaySurface(*mirroredNode);
         uniParam->SetOpDropped(isOpDropped);
@@ -848,6 +854,9 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
         matrix.PreConcat(curCanvas_->GetTotalMatrix());
         std::vector<RectI> dirtyRects = CalculateVirtualDirty(*displayNodeSp, virtualProcesser, params, matrix);
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, params.GetScreenInfo());
+    } else {
+        std::vector<RectI> emptyRects = {};
+        virtualProcesser->SetRoiRegionToCodec(emptyRects);
     }
 
     std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirroredNode);

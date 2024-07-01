@@ -82,6 +82,8 @@ public:
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
+    virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) = 0;
+
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
@@ -273,6 +275,8 @@ public:
     std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
+
+    bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 

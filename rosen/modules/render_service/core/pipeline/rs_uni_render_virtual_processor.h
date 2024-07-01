@@ -29,7 +29,7 @@ struct RoiRegionInfo {
 };
 
 struct RoiRegions {
-    uint32_t regionCnt;
+    uint32_t regionCnt = 0;
     RoiRegionInfo regions[ROI_REGIONS_MAX_CNT];
 };
 
@@ -73,12 +73,13 @@ public:
     {
         return canvasMatrix_;
     }
-    void SetDirtyInfo(std::vector<RectI>& damageRegion_);
+    void SetDirtyInfo(std::vector<RectI>& damageRegion);
     int32_t GetBufferAge() const;
+    // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
+    GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
 private:
     void CanvasInit(RSDisplayRenderNode& node);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
-    GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;

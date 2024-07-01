@@ -170,26 +170,28 @@ public:
     {
         return surface_;
     }
-    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface)
+    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
     {
         virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
     }
-    std::shared_ptr<RSRenderSurface> GetVirtualSurface()
+    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
     {
-        return virtualSurface_;
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
 #else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
     }
-    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface)
+    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
     {
         virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
     }
-    std::shared_ptr<RSSurface> GetVirtualSurface()
+    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
     {
-        return virtualSurface_;
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
 #endif
     // Use in vulkan parallel rendering
@@ -474,6 +476,7 @@ private:
     std::shared_ptr<RSSurface> surface_;
     std::shared_ptr<RSSurface> virtualSurface_;
 #endif
+    uint64_t virtualSurfaceUniqueId_ = 0;
     bool surfaceCreated_ { false };
     bool hasFingerprint_ = false;
 #ifndef ROSEN_CROSS_PLATFORM

@@ -77,12 +77,15 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
 #endif
     if (renderFrame_ == nullptr) {
-        auto rsSurface = node.GetVirtualSurface();
-        if (rsSurface == nullptr) {
+        uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
+        auto rsSurface = node.GetVirtualSurface(pSurfaceUniqueId);
+        if (rsSurface == nullptr || screenManager->GetAndResetVirtualSurfaceUpdateFlag(node.GetScreenId())) {
             RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
                 node.GetScreenId());
+            RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %" PRIu64 ")",
+                node.GetScreenId());
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
-            node.SetVirtualSurface(rsSurface);
+            node.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
 #ifdef NEW_RENDER_CONTEXT
         renderFrame_ = renderEngine_->RequestFrame(

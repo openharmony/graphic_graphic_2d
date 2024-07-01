@@ -425,6 +425,32 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetAndResetVirtualSurfaceUpdateFlag_001
+ * @tc.desc: Test get virtualSurface update flag correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIA9QG0
+ */
+HWTEST_F(RSScreenManagerTest, GetAndResetVirtualSurfaceUpdateFlag_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(screenManager->GetAndResetVirtualSurfaceUpdateFlag(id), false);
+}
+
+/*
  * @tc.name: ProcessScreenHotPlugEvents_001
  * @tc.desc: Test ProcessScreenHotPlugEvents
  * @tc.type: FUNC
