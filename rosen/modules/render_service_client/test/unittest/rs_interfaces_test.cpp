@@ -421,6 +421,65 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
 }
 
 /*
+* Function: SetPointerColorInversionConfig
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPointerColorInversionConfig
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, Function | SmallTest | Level2)
+{
+    float darkBuffer = 0.5;
+    float brightBuffer = 0.5;
+    int64_t interval = 50;
+    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: SetPointerColorInversionEnabled
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPointerColorInversionEnabled
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->SetPointerColorInversionEnabled(false);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: RegisterPointerLuminanceChangeCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterPointerLuminanceChangeCallback
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {});
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: UnRegisterPointerLuminanceChangeCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UnRegisterPointerLuminanceChangeCallback
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback, Function | SmallTest | Level2)
+{
+    int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
 * Function: SetScreenActiveMode
 * Type: Function
 * Rank: Important(2)

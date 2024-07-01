@@ -221,6 +221,42 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+ 
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return true;
+}
+
+bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    PointerLuminanceChangeCallback cb = [](int32_t brightness) {};
+    rsClient->RegisterPointerLuminanceChangeCallback(cb);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -743,6 +779,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
+    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);
