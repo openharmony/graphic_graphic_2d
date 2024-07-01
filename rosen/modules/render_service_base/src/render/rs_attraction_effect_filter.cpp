@@ -356,10 +356,10 @@ void RSAttractionEffectFilter::UpdateDirtyRegion(float leftPoint, float topPonit
     for (int i = 1; i < pointNum; ++i) {
         float x = windowStatusPoints_[i].GetX();
         float y = windowStatusPoints_[i].GetY();
-        dirtyRegionMinX_ = std::min(dirtyRegionMinX, x);
-        dirtyRegionMaxX_ = std::min(dirtyRegionMaxX, x);
-        dirtyRegionMinY_ = std::min(dirtyRegionMinY, y);
-        dirtyRegionMaxY_ = std::min(dirtyRegionMaxY, y);
+        dirtyRegionMinX_ = std::min(dirtyRegionMinX_, x);
+        dirtyRegionMaxX_ = std::min(dirtyRegionMaxX_, x);
+        dirtyRegionMinY_ = std::min(dirtyRegionMinY_, y);
+        dirtyRegionMaxY_ = std::min(dirtyRegionMaxY_, y);
     }
 
     int dirtyRegionLeftCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
