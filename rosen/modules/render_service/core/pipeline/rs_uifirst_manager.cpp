@@ -364,11 +364,11 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-        if (!surfaceParams) {
+        auto node = it->second;
+        if (!surfaceParams || !node) {
             ++it;
             continue;
         }
-        auto node = it->second;
         bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
             node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&

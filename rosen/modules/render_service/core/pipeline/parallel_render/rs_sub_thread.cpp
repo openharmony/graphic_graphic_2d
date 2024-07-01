@@ -152,9 +152,12 @@ void RSSubThread::DestroyShareEglContext()
 void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask)
 {
     RS_TRACE_NAME("RSSubThread::RenderCache");
-    if (threadTask == nullptr || threadTask->GetTaskSize() == 0) {
-        RS_LOGE("RSSubThread::RenderCache threadTask == nullptr %p || threadTask->GetTaskSize() == 0 %d",
-            threadTask.get(), int(threadTask->GetTaskSize()));
+    if (threadTask == nullptr) {
+        RS_LOGE("RSSubThread::RenderCache threadTask is nullptr");
+        return;
+    }
+    if (threadTask->GetTaskSize() == 0) {
+        RS_LOGE("RSSubThread::RenderCache no task");
         return;
     }
     if (grContext_ == nullptr) {
@@ -322,6 +325,10 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 
 void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
+    if (!nodeDrawable) {
+        RS_LOGE("RSSubThread::DrawableCacheWithSkImage nodeDrawable is nullptr");
+        return;
+    }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
@@ -362,6 +369,10 @@ void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawab
 void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
     RS_TRACE_NAME("DrawableCacheWithDma");
+    if (!nodeDrawable) {
+        RS_LOGE("RSSubThread::DrawableCache nodeDrawable is nullptr");
+        return;
+    }
     if (!nodeDrawable->IsSurfaceCreated()) {
         nodeDrawable->CreateSurface();
     }

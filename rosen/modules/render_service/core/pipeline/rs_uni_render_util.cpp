@@ -59,15 +59,10 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
     bool useAlignedDirtyRegion, bool renderParallel)
 {
     auto params = static_cast<RSDisplayRenderParams*>(node->GetRenderParams().get());
-    if (!params && renderParallel) {
-        RS_LOGE("RSUniRenderUtil::MergeDirtyHistory params is nullptr");
-        return;
-    }
-
-    if (!renderParallel) {
-        MergeDirtyHistoryForNode(node, bufferAge, params, useAlignedDirtyRegion);
-    } else {
+    if (renderParallel) {
         MergeDirtyHistoryForDrawable(node, bufferAge, params, useAlignedDirtyRegion);
+    } else {
+        MergeDirtyHistoryForNode(node, bufferAge, params, useAlignedDirtyRegion);
     }
 }
 
@@ -82,7 +77,8 @@ void RSUniRenderUtil::MergeDirtyHistoryForNode(std::shared_ptr<RSDisplayRenderNo
         if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceNode->GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
+            surfaceNode->GetId());
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
             ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
@@ -98,6 +94,10 @@ void RSUniRenderUtil::MergeDirtyHistoryForNode(std::shared_ptr<RSDisplayRenderNo
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     RSDisplayRenderParams* params, bool useAlignedDirtyRegion)
 {
+    if (!params) {
+        RS_LOGE("RSUniRenderUtil::MergeDirtyHistoryForDrawable params is nullptr");
+        return;
+    }
     auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
     // update all child surfacenode history
     for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
@@ -109,7 +109,8 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(std::shared_ptr<RSDisplayRend
         if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
             continue;
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceParams->GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
+            surfaceParams->GetId());
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
         if (!surfaceDirtyManager) {
             continue;
@@ -245,8 +246,9 @@ void RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(
 void RSUniRenderUtil::MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displayNode,
     int32_t bufferAge, bool renderParallel)
 {
+    (void)renderParallel;
     auto params = static_cast<RSDisplayRenderParams*>(displayNode.GetRenderParams().get());
-    if (!params && renderParallel) {
+    if (!params) {
         RS_LOGE("RSUniRenderUtil::MergeDirtyHistory params is nullptr");
         return;
     }
@@ -260,7 +262,8 @@ void RSUniRenderUtil::MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displayNod
         if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
             continue;
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %lu", surfaceParams->GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
+            surfaceParams->GetId());
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
         if (!surfaceDirtyManager) {
             continue;
@@ -810,7 +813,7 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     if (deviceType != DeviceType::PC && node->IsLeashWindow()) {
         isNeedAssignToSubThread = (node->IsScale() || node->IsScaleInPreFrame()
             || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) || node->GetForceUIFirst()) && !node->HasFilter();
-        RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
+        RS_TRACE_NAME_FMT("Assign info: name[%s] id[%" PRIu64"]"
             " status:%d filter:%d isScale:%d isScalePreFrame:%d forceUIFirst:%d isNeedAssign:%d",
             node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(), node->HasFilter(),
             node->IsScale(), node->IsScaleInPreFrame(), node->GetForceUIFirst(), isNeedAssignToSubThread);
@@ -900,8 +903,8 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     }
 
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %lu, [HasTransparentSurface: %d, ChildHasVisibleFilter: %d,"
-            "HasFilter: %d, QueryIfAllHwcChildrenForceDisabledByFilter: %d]",
+        RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %" PRIu64", [HasTransparentSurface: %d, "
+            "ChildHasVisibleFilter: %d, HasFilter: %d, QueryIfAllHwcChildrenForceDisabledByFilter: %d]",
             node->GetName().c_str(), node->GetId(), node->GetHasTransparentSurface(),
             node->ChildHasVisibleFilter(), node->HasFilter(),
             node->QueryIfAllHwcChildrenForceDisabledByFilter());
@@ -1628,7 +1631,6 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         semaphoreInfo.flags = 0;
         VkSemaphore semaphore;
         vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
-        RS_TRACE_NAME_FMT("VkSemaphore %p", semaphore);
         GrBackendSemaphore backendSemaphore;
         backendSemaphore.initVulkan(semaphore);
 

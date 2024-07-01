@@ -202,7 +202,7 @@ static std::vector<RectI> MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displa
 {
     auto params = static_cast<RSDisplayRenderParams*>(displayNode.GetRenderParams().get());
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (!renderThreadParams) {
+    if (!renderThreadParams || !params) {
         return {};
     }
     auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
@@ -1278,6 +1278,10 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
 void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SwitchColorFilter renderEngine is null");
+        return;
+    }
     ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
         colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
@@ -1307,7 +1311,9 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
 void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
+    if (renderEngine) {
+        canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
+    }
 }
 
 void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()

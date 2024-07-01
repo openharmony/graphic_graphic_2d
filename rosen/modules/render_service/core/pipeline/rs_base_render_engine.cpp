@@ -478,6 +478,7 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
 
 void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 {
+    std::lock_guard<std::mutex> lock(colorFilterMutex_);
     uint32_t uMode = static_cast<uint32_t>(mode);
     uint32_t uInvertMode = static_cast<uint32_t>(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
     uint32_t ucolorFilterMode = static_cast<uint32_t>(colorFilterMode_);
@@ -532,6 +533,7 @@ void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 
 ColorFilterMode RSBaseRenderEngine::GetColorFilterMode()
 {
+    std::lock_guard<std::mutex> lock(colorFilterMutex_);
     return colorFilterMode_;
 }
 

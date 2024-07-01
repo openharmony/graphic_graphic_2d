@@ -146,8 +146,8 @@ bool RSColorPickerCacheTask::GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> 
 
 bool RSColorPickerCacheTask::Render()
 {
-    RS_TRACE_NAME_FMT("RSColorPickerCacheTask::Render:%p", this);
-    ROSEN_LOGD("RSColorPickerCacheTask::Render:%{public}p", this);
+    RS_TRACE_NAME_FMT("RSColorPickerCacheTask::Render");
+    ROSEN_LOGD("RSColorPickerCacheTask::Render");
     if (cacheSurface_ == nullptr) {
         SetStatus(CacheProcessStatus::WAITING);
         ROSEN_LOGE("RSColorPickerCacheTask cacheSurface is null");
