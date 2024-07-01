@@ -39,6 +39,7 @@ public:
 #endif
 
     static RSPointerRenderManager& GetInstance();
+    static int64_t GetCurrentTime();
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
     void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
     void SetPointerColorInversionEnabled(bool enable);
@@ -91,11 +92,11 @@ private:
         BRIGHT,
         DARK
     };
-    CursorBrightness brightness_ = CursorBrightness::NONE;
+    CursorBrightness brightnessMode_ = CursorBrightness::NONE;
     int64_t lastColorPickerTime_ = 0;
     int64_t colorSamplingInterval_ = 50;
-    float darkBuffer_ = 0.55;
-    float brightBuffer_ = 0.35;
+    float darkBuffer_ = 0.55f;
+    float brightBuffer_ = 0.35f;
 };
 }
 #endif // RS_POINTER_RENDER_MANAGER_H
