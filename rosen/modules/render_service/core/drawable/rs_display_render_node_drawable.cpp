@@ -618,10 +618,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
             SetHighContrastIfEnabled(*curCanvas_);
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
-            DrawWatermarkIfNeed(*params, *curCanvas_);
             DrawCurtainScreen();
-            // switch color filtering
-            SwitchColorFilter(*curCanvas_);
             if (needOffscreen) {
                 if (canvasBackup_ != nullptr) {
                     Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
@@ -633,6 +630,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
                 }
             }
+            // watermark and color filter should be applied after offscreen render.
+            DrawWatermarkIfNeed(*params, *curCanvas_);
+            SwitchColorFilter(*curCanvas_);
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
         if (RSSystemProperties::IsFoldScreenFlag() && !params->IsRotationChanged()) {
@@ -1402,13 +1402,10 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         auto mainWidth = static_cast<float>(screenInfo.width);
         auto mainHeight = static_cast<float>(screenInfo.height);
 
-        // in certain cases (such as fold screen), the width and height must be swapped to fix the screen correction.
-        auto screenCorrection = screenManager->GetScreenCorrection(params.GetScreenId());
-        if (screenCorrection == ScreenRotation::ROTATION_90 || screenCorrection == ScreenRotation::ROTATION_270) {
-            auto screenRotation = params.GetScreenRotation();
-            if (screenRotation == ScreenRotation::ROTATION_0 || screenRotation == ScreenRotation::ROTATION_180) {
-                std::swap(mainWidth, mainHeight);
-            }
+        // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
+        int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas.GetTotalMatrix());
+        if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
+            std::swap(mainWidth, mainHeight);
         }
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
