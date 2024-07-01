@@ -737,6 +737,7 @@ bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
+    OHOS::Rosen::DoOnRemoteRequest(data, size);
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
