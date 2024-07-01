@@ -122,7 +122,7 @@ uint32_t HgmIdleDetector::GetSurfaceUpExpectFps()
     }
 
     for (auto &it : appBufferList_) {
-        if (it.first == ACE_ANIMATOR_NAME && !aceAnimatorIdleState_) {
+        if (it.first == ANIMATOR_NAME && !aceAnimatorIdleState_) {
             return it.second;
         }
         if (frameTimeMap_.count(it.first)) {
