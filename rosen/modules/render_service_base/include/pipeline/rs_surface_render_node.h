@@ -1181,6 +1181,16 @@ public:
         return brightnessRatio_;
     }
 
+    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
+    {
+        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
+    }
+
+    bool GetHardWareDisabledByReverse() const
+    {
+        return isHardWareDisabledByReverse_;
+    }
+
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
@@ -1404,6 +1414,7 @@ private:
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
+    bool isHardWareDisabledByReverse_ = false;
 
     uint32_t processZOrder_ = -1;
 

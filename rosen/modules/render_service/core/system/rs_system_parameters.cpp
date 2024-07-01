@@ -173,10 +173,10 @@ bool RSSystemParameters::GetControlBufferConsumeEnabled()
 
 bool RSSystemParameters::GetHideNotchStatus()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "false");
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (strcmp(enable, "true") == 0);
+    return (strcmp(enable, "2") == 0);
 }
 
 bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
