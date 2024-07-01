@@ -391,15 +391,25 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    int32_t flag = 0;
-    GET_ENUM_PARAM(ARGC_THREE, flag , 0, static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX));
+    if (argc == ARGC_THREE) {
+        bool result = m_path->GetMatrix(
+            forceClosed,
+            distance,
+            jsMatrix->GetMatrix().get());
+        return CreateJsNumber(env, result);
+    } else if (argc == ARGC_FOUR){
+        int32_t flag = 0;
+        GET_ENUM_PARAM(ARGC_THREE, flag, 0, static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX));
 
-    bool result = m_path->GetMatrix(
-        forceClosed, 
-        distance, 
-        jsMatrix->GetMatrix().get(), 
-        static_cast<PathMeasureMatrixFlags>(flag));
-    return CreateJsNumber(env, result);
+        bool result = m_path->GetMatrix(
+            forceClosed,
+            distance,
+            jsMatrix->GetMatrix().get(),
+            static_cast<PathMeasureMatrixFlags>(flag));
+        return CreateJsNumber(env, result);
+    } else {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
 }
 
 napi_value JsPath::OnBuildFromSVGString(napi_env env, napi_callback_info info)
@@ -413,7 +423,7 @@ napi_value JsPath::OnBuildFromSVGString(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     
 
-    std::string str;
+    std::string str = {""};
     if (!(ConvertFromJsValue(env, argv[ARGC_ZERO], str))) {
         ROSEN_LOGE("JsPath::OnBuildFromSVGString Argv is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
