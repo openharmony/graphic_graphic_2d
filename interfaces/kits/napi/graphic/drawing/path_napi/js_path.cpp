@@ -147,7 +147,6 @@ napi_value JsPath::Reset(napi_env env, napi_callback_info info)
 
 napi_value JsPath::GetLength(napi_env env, napi_callback_info info)
 {
-    ROSEN_LOGE("liyan JsPath::GetLength");
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnGetLength(env, info) : nullptr;
 }
@@ -295,18 +294,11 @@ napi_value JsPath::OnGetLength(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsPath::OnGetLength path is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    size_t argc = ARGC_ONE;
-    napi_value argv[ARGC_ONE] = { nullptr };
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("JsPath::OnGetLength Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
     bool forceClosed = false;
-    if (!(ConvertFromJsValue(env, argv[0], forceClosed))) {
-        ROSEN_LOGE("JsPath::OnGetLength Argv is invalid");
-        return NapiGetUndefined(env);
-    }
+    GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
     double len = m_path->GetLength(forceClosed);
     return CreateJsNumber(env, len);
 }
