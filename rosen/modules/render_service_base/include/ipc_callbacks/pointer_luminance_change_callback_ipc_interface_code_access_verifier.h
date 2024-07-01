@@ -32,7 +32,7 @@ public:
  
     /* specify constructor and destructor here */
     RSIPointerLuminanceChangeCallbackInterfaceCodeAccessVerifier();
-    ~RSIPointerLuminanceChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
+    virtual ~RSIPointerLuminanceChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
  
 protected:
     /* specify exclusive verification rules here */
