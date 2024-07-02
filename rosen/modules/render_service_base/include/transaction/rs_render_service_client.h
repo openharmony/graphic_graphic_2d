@@ -28,8 +28,8 @@
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
-#include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/pointer_luminance_change_callback.h"
+#include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
 #ifdef NEW_RENDER_CONTEXT

@@ -420,15 +420,13 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
     EXPECT_EQ(supportedScreenModes.size(), 0);
 }
 
-/*
-* Function: SetPointerColorInversionConfig
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetPointerColorInversionConfig
-*                  2. check
-*/
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, Function | SmallTest | Level2)
+/**
+ * @tc.name: SetPointerColorInversionConfig001
+ * @tc.desc: set pointer color inversion config function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
 {
     float darkBuffer = 0.5;
     float brightBuffer = 0.5;
@@ -437,29 +435,25 @@ HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, Function | SmallTe
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
-/*
-* Function: SetPointerColorInversionEnabled
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetPointerColorInversionEnabled
-*                  2. check
-*/
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, Function | SmallTest | Level2)
+/**
+ * @tc.name: SetPointerColorInversionEnabled001
+ * @tc.desc: set pointer color inversion enabled function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, TestSize.Level1)
 {
     int32_t ret = rsInterfaces->SetPointerColorInversionEnabled(false);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
-/*
-* Function: RegisterPointerLuminanceChangeCallback
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegisterPointerLuminanceChangeCallback
-*                  2. check
-*/
-HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, Function | SmallTest | Level2)
+/**
+ * @tc.name: RegisterPointerLuminanceChangeCallback001
+ * @tc.desc: set pointer color inversion enabled function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
 {
     int32_t ret = rsInterfaces->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {});
     EXPECT_EQ(ret, StatusCode::SUCCESS);

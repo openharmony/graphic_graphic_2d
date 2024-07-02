@@ -25,9 +25,9 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "ipc_callbacks/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
-#include "ipc_callbacks/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"

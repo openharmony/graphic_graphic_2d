@@ -30,8 +30,8 @@
 #include "message_parcel.h"
 #include "securec.h"
 
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/pointer_luminance_callback_stub.h"
+#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"

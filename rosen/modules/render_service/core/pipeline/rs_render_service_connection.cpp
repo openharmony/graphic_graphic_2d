@@ -31,6 +31,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_pointer_render_manager.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -44,7 +45,6 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
-#include "pipeline/rs_pointer_render_manager.h"
 #include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -481,14 +481,12 @@ bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
     return StatusCode::SUCCESS;
 }
  
 int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
     return StatusCode::SUCCESS;
 }
@@ -496,7 +494,6 @@ int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
 int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
     sptr<RSIPointerLuminanceChangeCallback> callback)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!callback) {
         RS_LOGE("RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
@@ -507,7 +504,6 @@ int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
  
 int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
     return StatusCode::SUCCESS;
 }
