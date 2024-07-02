@@ -30,6 +30,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t DATA_MIN_SIZE = 2;
+constexpr size_t ENCODING_SIZE = 4;
+constexpr size_t MAX_ARRAY_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
@@ -64,6 +66,66 @@ void NativeDrawingTextBlobTest001(const uint8_t* data, size_t size)
     OH_Drawing_FontDestroy(font);
     OH_Drawing_RectDestroy(rect);
 }
+
+void NativeDrawingTextBlobTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    OH_Drawing_Point2D* point = new OH_Drawing_Point2D[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+        point[i].x = GetObject<float>();
+        point[i].y = GetObject<float>();
+    }
+    str[count - 1] = '\0';
+
+    OH_Drawing_TextBlobCreateFromText(nullptr, strlen(str), nullptr, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlobCreateFromPosText(nullptr, strlen(str), nullptr, nullptr, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlobCreateFromString(nullptr, nullptr, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlobCreateFromString(str, font, static_cast<OH_Drawing_TextEncoding>(count + ENCODING_SIZE));
+    OH_Drawing_TextBlobCreateFromPosText(str, strlen(str), point,
+        font, static_cast<OH_Drawing_TextEncoding>(count + ENCODING_SIZE));
+    OH_Drawing_TextBlobCreateFromText(str, strlen(str), font,
+        static_cast<OH_Drawing_TextEncoding>(count + ENCODING_SIZE));
+    OH_Drawing_TextBlob* textBlob1 = OH_Drawing_TextBlobCreateFromText(str, strlen(str), font, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlob* textBlob2 =
+        OH_Drawing_TextBlobCreateFromPosText(str, strlen(str), point, font, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlob* textBlob3 = OH_Drawing_TextBlobCreateFromString(str, font, TEXT_ENCODING_UTF8);
+    OH_Drawing_TextBlobBuilderAllocRunPos(nullptr, nullptr, count, nullptr);
+
+    uint16_t glyphs[count];
+    OH_Drawing_TextBlobBuilder *builder = OH_Drawing_TextBlobBuilderCreate();
+    uint32_t glyphsCount =
+            OH_Drawing_FontTextToGlyphs(font, str, strlen(str), TEXT_ENCODING_UTF8, glyphs, count);
+    OH_Drawing_TextBlobBuilderAllocRunPos(nullptr, font, glyphsCount, nullptr);
+    OH_Drawing_TextBlobBuilderAllocRunPos(builder, nullptr, glyphsCount, nullptr);
+    OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, glyphsCount, nullptr);
+    OH_Drawing_TextBlob *textBlob4 = OH_Drawing_TextBlobBuilderMake(builder);
+
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+    if (point != nullptr) {
+        delete [] point;
+        point = nullptr;
+    }
+    OH_Drawing_TextBlobDestroy(textBlob1);
+    OH_Drawing_TextBlobDestroy(textBlob2);
+    OH_Drawing_TextBlobDestroy(textBlob3);
+    OH_Drawing_TextBlobDestroy(textBlob4);
+    OH_Drawing_TextBlobBuilderDestroy(builder);
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -73,5 +135,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingTextBlobTest001(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingTextBlobTest002(data, size);
     return 0;
 }

@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,42 +15,41 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-module_out_path = "graphic_2d/graphic_2d"
+module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NdkCanvasFuzzTest") {
-  module_out_path = module_out_path
+ohos_fuzztest("NdkSurfaceFuzzTest") {
+  module_out_path = module_output_path
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndkcanvas_fuzzer"
+      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndksurface_fuzzer"
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
+
   cflags = [
     "-g",
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+
   sources = [
-    "canvas_fuzzer.cpp",
     "get_object.h",
+    "surface_fuzzer.cpp",
   ]
 
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
 
-  external_deps = [
-    "image_framework:image_native",
-    "image_framework:pixelmap",
-    "image_framework:pixelmap_ndk",
-  ]
+  external_deps = [ "openssl:libcrypto_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -60,9 +59,10 @@ ohos_fuzztest("NdkCanvasFuzzTest") {
 group("fuzztest") {
   testonly = true
   deps = []
+
   deps += [
     # deps file
-    ":NdkCanvasFuzzTest",
+    ":NdkSurfaceFuzzTest",
   ]
 }
 ###############################################################################
