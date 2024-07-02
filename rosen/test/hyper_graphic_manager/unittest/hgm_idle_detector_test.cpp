@@ -27,7 +27,7 @@ namespace {
     const std::string bufferName = "frameBuffer";
     const std::string aceAnimator = "AceAnimato";
     const std::string rosenWeb = "RosenWeb";
-    const std::string ohFlutterBuffer = "oh_flutter";
+    const std::string FlutterBuffer = "oh_flutter";
     const std::string otherSurface = "Other_SF";
     constexpr uint64_t  currTime = 100000000;
     constexpr uint64_t  lastTime = 200000000;
@@ -216,8 +216,8 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps001, Function | SmallTest | L
             ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
 
-            idleDetector->frameTimeMap_[ohFlutterBuffer] = currTime;
-            idleDetector->appBufferList_.push_back(std::make_pair(ohFlutterBuffer, fps90HZ));
+            idleDetector->frameTimeMap_[FlutterBuffer] = currTime;
+            idleDetector->appBufferList_.push_back(std::make_pair(FlutterBuffer, fps90HZ));
             ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
 
@@ -246,13 +246,13 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps002, Function | SmallTest | L
             idleDetector->SetAppSupportStatus(true);
 
             idleDetector->frameTimeMap_[rosenWeb] = currTime;
-            idleDetector->frameTimeMap_[ohFlutterBuffer] = currTime;
+            idleDetector->frameTimeMap_[FlutterBuffer] = currTime;
             idleDetector->frameTimeMap_[bufferName] = currTime;
 
             idleDetector->ClearAppBufferList();
             idleDetector->appBufferList_.push_back(std::make_pair(bufferName, fps120HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(rosenWeb, fps90HZ));
-            idleDetector->appBufferList_.push_back(std::make_pair(ohFlutterBuffer, fps90HZ));
+            idleDetector->appBufferList_.push_back(std::make_pair(FlutterBuffer, fps90HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(aceAnimator, fps60HZ));
             uint32_t ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
@@ -261,7 +261,7 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps002, Function | SmallTest | L
             idleDetector->SetAceAnimatorIdleStatus(true);
             idleDetector->appBufferList_.push_back(std::make_pair(aceAnimator, fps120HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(rosenWeb, fps90HZ));
-            idleDetector->appBufferList_.push_back(std::make_pair(ohFlutterBuffer, fps90HZ));
+            idleDetector->appBufferList_.push_back(std::make_pair(FlutterBuffer, fps90HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(bufferName, fps60HZ));
             ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps90HZ);
@@ -270,7 +270,7 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps002, Function | SmallTest | L
             idleDetector->SetAceAnimatorIdleStatus(false);
             idleDetector->appBufferList_.push_back(std::make_pair(aceAnimator, fps120HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(rosenWeb, fps90HZ));
-            idleDetector->appBufferList_.push_back(std::make_pair(ohFlutterBuffer, fps90HZ));
+            idleDetector->appBufferList_.push_back(std::make_pair(FlutterBuffer, fps90HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(bufferName, fps60HZ));
             ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
