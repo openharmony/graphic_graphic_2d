@@ -425,7 +425,7 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
         
         multiAppStrategy_->HandlePkgsEvent({ pkgName1 + ":" + std::to_string(pid1) + ":" + std::to_string(gameType0) });
         foregroundPidAppMap = multiAppStrategy_->GetForegroundPidApp();
-        auto &backgroundPid = multiAppStrategy_->GetBackgroundPid();
+        auto backgroundPid = multiAppStrategy_->GetBackgroundPid();
         ASSERT_TRUE(foregroundPidAppMap.find(pid0) == foregroundPidAppMap.end());
         ASSERT_TRUE(foregroundPidAppMap.find(pid1) != foregroundPidAppMap.end());
         ASSERT_TRUE(backgroundPid.Existed(pid0));
