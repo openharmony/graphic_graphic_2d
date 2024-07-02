@@ -46,7 +46,7 @@ namespace {
     constexpr const float OFFSET_Y_PERCENT = 0.85f;
     constexpr const float HEIGHT_PERCENT = 0.05f;
     constexpr const int TEXT_BLOB_OFFSET = 5;
-    constexpr const int FONT_SIZE = 48;
+    constexpr const int FONT_SIZE = 40;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
     constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
