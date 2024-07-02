@@ -96,7 +96,7 @@ void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionAssuranceMode(bool isEnergy
 void HgmEnrtgyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
+    if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
         return;
     }
     lastAnimationTimestamp_ = timestamp;
@@ -105,7 +105,7 @@ void HgmEnrtgyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 void HgmEnrtgyConsumptionPolicy::StartNewAnimation()
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
+    if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
         return;
     }
     firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
@@ -115,7 +115,7 @@ void HgmEnrtgyConsumptionPolicy::StartNewAnimation()
 void HgmEnrtgyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
+    if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
         return;
     }
     if (lastAnimationTimestamp_ > firstAnimationTimestamp_ &&
