@@ -133,7 +133,7 @@ public:
 
     void OpincUpdateRootFlag(bool suggestFlag);
     bool OpincGetRootFlag() const;
-    void OpincSetCacheChangeFlag(bool state);
+    void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
     bool OpincGetCachedMark();
     void OpincSetCachedMark(bool mark);

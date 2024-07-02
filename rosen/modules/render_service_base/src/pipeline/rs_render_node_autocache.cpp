@@ -167,9 +167,6 @@ void RSRenderNode::SetCacheStateByRetrytime()
 
 void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
 {
-    if (nodeCacheState_ == nodeCacheState) {
-        return;
-    }
     nodeCacheState_ = nodeCacheState;
     unchangeCount_ = 0;
     isUnchangeMarkInApp_ = false;
@@ -178,8 +175,7 @@ void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
         SetCacheStateByRetrytime();
         isOpincRootFlag_ = false;
     }
-    SetDirty();
-    stagingRenderParams_->OpincSetCacheChangeFlag(true);
+    stagingRenderParams_->OpincSetCacheChangeFlag(true, lastFrameSynced_);
     isOpincRootFlag_ = false;
     stagingRenderParams_->OpincUpdateRootFlag(false);
 }
