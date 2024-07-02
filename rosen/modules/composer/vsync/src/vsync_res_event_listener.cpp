@@ -27,7 +27,7 @@ sptr<VSyncResEventListener> VSyncResEventListener::instance_ = nullptr;
 sptr<VSyncResEventListener> VSyncResEventListener::GetInstance() noexcept
 {
     std::call_once(createFlag_, []() {
-        instance_ = new VsyncResEventListener();
+        instance_ = new VSyncResEventListener();
     });
 }
 
@@ -43,7 +43,7 @@ void VSyncResEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventVal
     }
 }
 
-void VSyncResEventListener::GetIsNeedReport()
+bool VSyncResEventListener::GetIsNeedReport()
 {
     return isNeedReport_.load();
 }
