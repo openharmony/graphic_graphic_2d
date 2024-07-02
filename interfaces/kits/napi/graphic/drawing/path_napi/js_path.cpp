@@ -397,7 +397,7 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
             distance,
             jsMatrix->GetMatrix().get());
         return CreateJsNumber(env, result);
-    } else if (argc == ARGC_FOUR){
+    } else if (argc == ARGC_FOUR) {
         int32_t flag = 0;
         GET_ENUM_PARAM(ARGC_THREE, flag, 0, static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX));
 
@@ -421,7 +421,6 @@ napi_value JsPath::OnBuildFromSVGString(napi_env env, napi_callback_info info)
 
     napi_value argv[ARGC_ONE] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-    
 
     std::string str = {""};
     if (!(ConvertFromJsValue(env, argv[ARGC_ZERO], str))) {
