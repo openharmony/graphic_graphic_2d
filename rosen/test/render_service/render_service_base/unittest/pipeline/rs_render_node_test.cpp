@@ -42,6 +42,8 @@ const std::string OUT_STR2 =
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
     "Children list needs update, current count: 0 expected count: 0+1\n";
+const int DEFAULT_BOUNDS_SIZE = 10;
+const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawableAdapterBoy(std::shared_ptr<const RSRenderNode> node)
@@ -2526,5 +2528,39 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
     node.ProcessTransitionAfterChildren(*canvas_);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDFX001
+ * @tc.desc: test if subTreeDirtyRegion can be correctly collected.
+ * @tc.type: FUNC
+ * @tc.require: issueA7UVD
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
+{
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    canvasNode->lastFrameSubTreeSkipped_ = true;
+    canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
+    canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
+    ASSERT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDFX002
+ * @tc.desc: test if absDrawRect can be correctly collected when clip property is true.
+ * @tc.type: FUNC
+ * @tc.require: issueA7UVD
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
+{
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    auto& properties = canvasNode->GetMutableRenderProperties();
+    properties.clipToBounds_ = true;
+    canvasNode->absDrawRect_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
+    canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
+    ASSERT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+}
+
 } // namespace Rosen
 } // namespace OHOS
