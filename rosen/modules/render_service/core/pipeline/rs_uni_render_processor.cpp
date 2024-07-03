@@ -83,6 +83,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
     layers_.emplace_back(layer);
+    params.SetLayerCreated(true);
 }
 
 void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
