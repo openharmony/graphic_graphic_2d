@@ -35,6 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
+constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 }
 
 RSImage::~RSImage()
@@ -162,6 +163,38 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
     switch (imageFit_) {
         case ImageFit::TOP_LEFT:
             tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::TOP:
+            tempRectF.SetAll((imageParameter.dstW - imageParameter.srcW) / CENTER_ALIGNED_FACTOR, 0.f,
+                imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::TOP_RIGHT:
+            tempRectF.SetAll(imageParameter.dstW - imageParameter.srcW, 0.f, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::LEFT:
+            tempRectF.SetAll(0.f, (imageParameter.dstH - imageParameter.srcH) / CENTER_ALIGNED_FACTOR,
+                imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::CENTER:
+            tempRectF.SetAll((imageParameter.dstW - imageParameter.srcW) / CENTER_ALIGNED_FACTOR,
+                (imageParameter.dstH - imageParameter.srcH) / CENTER_ALIGNED_FACTOR,
+                imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::RIGHT:
+            tempRectF.SetAll(imageParameter.dstW - imageParameter.srcW,
+                (imageParameter.dstH - imageParameter.srcH) / CENTER_ALIGNED_FACTOR,
+                imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::BOTTOM_LEFT:
+            tempRectF.SetAll(0.f, imageParameter.dstH - imageParameter.srcH, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::BOTTOM:
+            tempRectF.SetAll((imageParameter.dstW - imageParameter.srcW) / CENTER_ALIGNED_FACTOR,
+                imageParameter.dstH - imageParameter.srcH, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
+        case ImageFit::BOTTOM_RIGHT:
+            tempRectF.SetAll(imageParameter.dstW - imageParameter.srcW, imageParameter.dstH - imageParameter.srcH,
+                imageParameter.srcW, imageParameter.srcH);
             return tempRectF;
         case ImageFit::FILL:
             break;
