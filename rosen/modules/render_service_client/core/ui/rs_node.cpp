@@ -1298,6 +1298,10 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 {
+    if (backgroundFilter == nullptr) {
+        ROSEN_LOGE("Failed to set backgroundFilter, backgroundFilter is null!");
+        return;
+    }
     // To do: generate composed filter here. Now we just set background blur in v1.0.
     auto filterParas = backgroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
@@ -1325,6 +1329,10 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 
 void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
 {
+    if (compositingFilter == nullptr) {
+        ROSEN_LOGE("Failed to set compositingFilter, compositingFilter is null!");
+        return;
+    }
     // To do: generate composed filter here. Now we just set compositing blur in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
@@ -1344,6 +1352,10 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
 
 void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
 {
+    if (foregroundFilter == nullptr) {
+        ROSEN_LOGE("Failed to set foregroundFilter, foregroundFilter is null!");
+        return;
+    }
     // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
     auto filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
@@ -1357,6 +1369,10 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
 
 void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
 {
+    if (visualEffect == nullptr) {
+        ROSEN_LOGE("Failed to set visualEffect, visualEffect is null!");
+        return;
+    }
     // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {
