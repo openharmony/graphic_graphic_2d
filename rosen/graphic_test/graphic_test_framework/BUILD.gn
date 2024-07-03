@@ -14,8 +14,7 @@
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
+import("../../modules/render_service_base/config.gni")
 
 config("rs_graphic_test_config") {
   include_dirs = [
