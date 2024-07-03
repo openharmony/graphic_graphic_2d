@@ -180,6 +180,7 @@ void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
         SetCacheStateByRetrytime();
         isOpincRootFlag_ = false;
     }
+    SetDirty();
     stagingRenderParams_->OpincSetCacheChangeFlag(true);
     isOpincRootFlag_ = false;
     stagingRenderParams_->OpincUpdateRootFlag(false);
