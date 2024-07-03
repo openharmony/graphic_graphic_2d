@@ -100,7 +100,8 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(const u
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_POWER_STATUS);
     verifier.IsExclusiveVerificationPassed(code);
 #ifdef RS_ENABLE_VK
-    code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_2D_RENDER_CTRL);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_2D_RENDER_CTRL);
     verifier.IsExclusiveVerificationPassed(code);
 #endif
 #ifdef ENABLE_IPC_SECURITY

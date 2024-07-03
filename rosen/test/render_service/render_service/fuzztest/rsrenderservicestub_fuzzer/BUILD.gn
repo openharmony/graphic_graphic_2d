@@ -65,6 +65,7 @@ ohos_fuzztest("RSRenderServiceStubFuzzTest") {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
+
 ###############################################################################
 group("fuzztest") {
   testonly = true
