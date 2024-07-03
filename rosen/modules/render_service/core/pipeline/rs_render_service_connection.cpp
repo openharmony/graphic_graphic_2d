@@ -1351,13 +1351,14 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
 }
 
-void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName,
+    uint32_t pid, int32_t touchCnt)
 {
     if (mainThread_->GetFrameRateMgr() == nullptr) {
         RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
         return;
     }
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, pkgName, pid, touchCnt);
 }
 
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)

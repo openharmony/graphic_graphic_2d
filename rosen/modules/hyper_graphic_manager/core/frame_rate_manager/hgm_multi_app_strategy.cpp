@@ -190,6 +190,17 @@ std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkg
     return GetScreenSetting().strategy;
 }
 
+HgmErrCode HgmMultiAppStrategy::GetAppStrategyConfig(const std::string& pkgName,
+    PolicyConfigData::StrategyConfig& strategyRes)
+{
+    auto strategyName = GetAppStrategyConfigName(pkgName);
+    if (strategyConfigMapCache_.find(strategyName) != strategyConfigMapCache_.end()) {
+        strategyRes = strategyConfigMapCache_.at(strategyName);
+        return EXEC_SUCCESS;
+    }
+    return HGM_ERROR;
+}
+
 HgmErrCode HgmMultiAppStrategy::GetScreenSettingMode(PolicyConfigData::StrategyConfig& strategyRes) const
 {
     auto& strategyConfigs = GetStrategyConfigs();
@@ -362,9 +373,6 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
 void HgmMultiAppStrategy::UpdateStrategyByTouch(
     PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate)
 {
-    if (strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
-        return;
-    }
     if (uniqueTouchInfo_ == nullptr) {
         return;
     }
@@ -389,6 +397,8 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
             strategy.min = settingStrategy.down;
             strategy.max = settingStrategy.down;
         }
+    }  else if (strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
+        return;
     } else {
         if (pkgName != uniqueTouchInfo_->first) {
             return;

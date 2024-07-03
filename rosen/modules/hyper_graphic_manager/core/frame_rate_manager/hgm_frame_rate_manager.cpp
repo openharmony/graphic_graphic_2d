@@ -732,22 +732,23 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
+void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus, const std::string& pkgName,
+    uint32_t pid, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
-    if (pid != DEFAULT_PID) {
+    if (remotePid != DEFAULT_PID) {
         std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
-        cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
+        cleanPidCallback_[remotePid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
 
     static std::mutex hgmTouchEventMutex;
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
-        HGM_LOGI("[touch manager] down");
+        HGM_LOGI("[touch manager] down %{public}s", pkgName.c_str());
         PolicyConfigData::StrategyConfig strategyRes;
-        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(pkgName, strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
-            touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
+            touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, pkgName);
         }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
         if (touchCnt != LAST_TOUCH_CNT) {
@@ -759,8 +760,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
             return;
         }
         if (touchCnt == LAST_TOUCH_CNT) {
-            HGM_LOGI("[touch manager] up");
-            touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
+            HGM_LOGI("[touch manager] up %{public}s", pkgName.c_str());
+            touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, pkgName);
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
@@ -1199,7 +1200,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                         HandlePackageEvent(DEFAULT_PID, 0, {}); // handle empty pkg
                         break;
                     case CleanPidCallbackType::TOUCH_EVENT:
-                        HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT);
+                        HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, "", DEFAULT_PID, LAST_TOUCH_CNT);
                         break;
                     case CleanPidCallbackType::GAMES:
                         DeliverRefreshRateVote({"VOTER_GAMES"}, false);
