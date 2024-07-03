@@ -49,7 +49,7 @@ HWTEST_F(RSForegroundEffectFilterTest, MakeForegroundEffectTest, TestSize.Level1
 {
     auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(1.0f);
     rsForegroundEffectFilter->MakeForegroundEffect();
-    EXPECT_NE(rsForegroundEffectFilter->blurEffect_, nullptr);
+    EXPECT_NE(rsForegroundEffectFilter->blurBuilder_, nullptr);
 }
 
 /**

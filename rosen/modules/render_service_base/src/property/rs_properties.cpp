@@ -214,6 +214,7 @@ const bool RSProperties::FilterCacheEnabled = false;
 #endif
 
 const bool RSProperties::IS_UNI_RENDER = RSUniRenderJudgement::IsUniRender();
+const bool RSProperties::FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 RSProperties::RSProperties()
 {
@@ -4115,7 +4116,9 @@ void RSProperties::UpdateFilter()
         filter_.reset();
     }
 
-    UpdateForegroundFilter();
+    if (FOREGROUND_FILTER_ENABLED) {
+        UpdateForegroundFilter();
+    }
 
     needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
