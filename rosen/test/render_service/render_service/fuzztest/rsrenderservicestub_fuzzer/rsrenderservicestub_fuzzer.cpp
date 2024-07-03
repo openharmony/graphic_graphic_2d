@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
+#include <iservice_registry.h>
 #include <message_option.h>
 #include <message_parcel.h>
 #include <system_ability_definition.h>
@@ -26,7 +27,6 @@
 
 #include "platform/ohos/rs_irender_service.h"
 #include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
 #include "platform/ohos/rs_render_service_proxy.h"
 #include "pipeline/rs_render_service.h"
 #include "transaction/rs_render_service_stub.h"
