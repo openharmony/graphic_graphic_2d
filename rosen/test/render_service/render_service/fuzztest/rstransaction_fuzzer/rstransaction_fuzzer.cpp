@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
 #include "transaction/rs_render_service_connection_stub.h"
 
 namespace OHOS {
@@ -46,7 +46,7 @@ T GetData()
     return object;
 }
 
-bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest(const uint8_t* data, size_t size)
+bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -69,6 +69,52 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest(const uint
     return true;
 }
 
+bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+    
+    // get data
+    RSIRenderServiceConnectionInterfaceCodeAccessVerifier verifier;
+    uint32_t code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE);
+    verifier.IsExclusiveVerificationPassed(code);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED);
+    verifier.IsExclusiveVerificationPassed(code);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED);
+    verifier.IsExclusiveVerificationPassed(code);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE);
+    verifier.IsExclusiveVerificationPassed(code);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS);
+    verifier.IsExclusiveVerificationPassed(code);
+    code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_POWER_STATUS);
+    verifier.IsExclusiveVerificationPassed(code);
+#ifdef RS_ENABLE_VK
+    code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_2D_RENDER_CTRL);
+    verifier.IsExclusiveVerificationPassed(code);
+#endif
+#ifdef ENABLE_IPC_SECURITY
+    uint32_t times = GetData<uint32_t>();
+    PermissionType permission = PermissionType::CAPTURE_SCREEN;
+    verifier.permissionRSIRenderServiceInterfaceMappings_.emplace(code, permission);
+    verifier.permissionRSIRenderServiceInterfaceMappings_.emplace(code + 1, "unknown");
+    verifier.AddRSIRenderServiceConnectionInterfaceCodePermission();
+    verifier.accessRSIRenderServiceInterfaceTimesRestrictions_.emplace(code, code);
+    verifier.IsAccessTimesVerificationPassed(code, times);
+#endif
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -76,6 +122,7 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest(const uint
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest(data, size);
+    OHOS::Rosen::RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest001(data, size);
+    OHOS::Rosen::RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(data, size);
     return 0;
 }

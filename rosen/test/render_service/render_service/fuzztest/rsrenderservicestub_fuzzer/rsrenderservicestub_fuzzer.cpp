@@ -17,13 +17,17 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <message_option.h>
 #include <message_parcel.h>
+#include <system_ability_definition.h>
 #include <securec.h>
 
 #include "platform/ohos/rs_irender_service.h"
 #include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/rs_render_service_connect_hub.cpp"
+#include "platform/ohos/rs_render_service_proxy.h"
 #include "pipeline/rs_render_service.h"
 #include "transaction/rs_render_service_stub.h"
 
@@ -87,6 +91,7 @@ bool RSRenderServiceStubFuzztest002(const uint8_t* data, size_t size)
     MessageParcel data1;
     MessageParcel reply;
     MessageOption option;
+    data1.WriteInterfaceToken(RSIRenderService::GetDescriptor());
     stub->OnRemoteRequest(code, data1, reply, option);
     return true;
 }
@@ -102,12 +107,40 @@ bool RSRenderServiceStubFuzztest003(const uint8_t* data, size_t size)
     g_pos = 0;
     
     // get data
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    uint32_t code = GetData<uint32_t>();
     sptr<RSRenderServiceStub> stub = new RSRenderService();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     MessageParcel data1;
     MessageParcel reply;
     MessageOption option;
     data1.WriteInterfaceToken(RSIRenderService::GetDescriptor());
+    data1.WriteRemoteObject(token->AsObject());
+    stub->OnRemoteRequest(code, data1, reply, option);
+    return true;
+}
+
+bool RSRenderServiceStubFuzztest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+    
+    // get data
+    uint32_t code = GetData<uint32_t>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIRenderService> renderService = iface_cast<RSRenderServiceProxy>(remoteObject);
+    sptr<RSRenderServiceStub> stub = new RSRenderService();
+    sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
+    MessageOption option;
+    MessageParcel data1;
+    MessageParcel reply;
+    data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     stub->OnRemoteRequest(code, data1, reply, option);
     return true;
 }
@@ -121,5 +154,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSRenderServiceStubFuzztest001(data, size);
     OHOS::Rosen::RSRenderServiceStubFuzztest002(data, size);
     OHOS::Rosen::RSRenderServiceStubFuzztest003(data, size);
+    OHOS::Rosen::RSRenderServiceStubFuzztest004(data, size);
     return 0;
 }

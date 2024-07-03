@@ -65,7 +65,9 @@ bool RSIRenderServiceInterfaceCodeAccessVerifierFuzztest(const uint8_t* data, si
     uint32_t times = GetData<uint32_t>();
     PermissionType permission = PermissionType::CAPTURE_SCREEN;
     verifier.permissionRSIRenderServiceInterfaceMappings_.emplace(code, permission);
+    verifier.permissionRSIRenderServiceInterfaceMappings_.emplace(code + 1, "unknown");
     verifier.AddRSIRenderServiceConnectionInterfaceCodePermission();
+    verifier.accessRSIRenderServiceInterfaceTimesRestrictions_.emplace(code, code);
     verifier.IsAccessTimesVerificationPassed(code, times);
 #endif
     return true;
