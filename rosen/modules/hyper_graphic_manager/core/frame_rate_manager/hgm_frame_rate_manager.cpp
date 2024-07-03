@@ -72,7 +72,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     auto& hgmCore = HgmCore::Instance();
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
     multiAppStrategy_.UpdateXmlConfigCache();
-    HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
         multiAppStrategy_.GetScreenSetting().animationPowerConfig);
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
@@ -90,7 +90,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
-        HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
             multiAppStrategy_.GetScreenSetting().animationPowerConfig);
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -752,7 +752,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         HGM_LOGI("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
         HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
-        HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(false);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(false);
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
             touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
@@ -768,7 +768,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up");
-            auto task = []() { HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(true); };
+            auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(true); };
             HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
@@ -797,7 +797,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     curRefreshRateMode_ = refreshRateMode;
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
-    HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
         multiAppStrategy_.GetScreenSetting().animationPowerConfig);
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
@@ -842,7 +842,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
         multiAppStrategy_.UpdateXmlConfigCache();
-        HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
             multiAppStrategy_.GetScreenSetting().animationPowerConfig);
     }
 

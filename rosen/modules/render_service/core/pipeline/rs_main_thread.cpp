@@ -1697,7 +1697,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     RS_TRACE_FUNC();
     if (rsFrameRateLinker_ != nullptr) {
         rsCurrRange_.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
-        HgmEnrtgyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange_);
+        HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange_);
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }
@@ -2742,7 +2742,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
-        HgmEnrtgyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
+        HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
         if (!rsVSyncDistributor_->IsDVsyncOn()) {
             RequestNextVSync("animate", timestamp_);
         } else {

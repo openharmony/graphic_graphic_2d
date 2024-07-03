@@ -27,7 +27,7 @@ namespace Rosen {
 constexpr int DEFAULT_MAX_FPS = 120;
 constexpr int IDLE_FPS = 60;
 
-class HgmEnrtgyConsumptionPolicyTest : public testing::Test {
+class HgmEnergyConsumptionPolicyTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -37,16 +37,16 @@ public:
     void SetIdleStateEnable(bool isIdle);
 };
 
-void HgmEnrtgyConsumptionPolicyTest::SetConfigEnable(std::string isEnable)
+void HgmEnergyConsumptionPolicyTest::SetConfigEnable(std::string isEnable)
 {
     std::unordered_map<std::string, std::string> animationPowerConfig = { { "animation_ltpo_power_enable", isEnable },
         { "animation_idle_fps", "60" }, { "animation_idle_duration", "2000" } };
-    HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(animationPowerConfig);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(animationPowerConfig);
 }
 
-void HgmEnrtgyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)
+void HgmEnergyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)
 {
-    HgmEnrtgyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(isIdle);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(isIdle);
 }
 
 /**
@@ -55,7 +55,7 @@ void HgmEnrtgyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionConfigTest1, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest1, TestSize.Level1)
 {
     SetConfigEnable("true");
 }
@@ -66,7 +66,7 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionConfigTest1, TestSi
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionConfigTest2, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest2, TestSize.Level1)
 {
     SetConfigEnable("false");
 }
@@ -77,7 +77,7 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionConfigTest2, TestSi
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest1, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest1, TestSize.Level1)
 {
     SetConfigEnable("true");
     SetIdleStateEnable(true);
@@ -90,7 +90,7 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest1,
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest2, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest2, TestSize.Level1)
 {
     SetConfigEnable("true");
     SetIdleStateEnable(true);
@@ -103,7 +103,7 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest2,
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3, TestSize.Level1)
 {
     SetConfigEnable("false");
     SetIdleStateEnable(false);
@@ -116,12 +116,12 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3,
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.Level1)
 {
     SetConfigEnable("false");
     SetIdleStateEnable(false);
     uint64_t currentTime = 1719544264071;
-    HgmEnrtgyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
 }
 
 /**
@@ -130,12 +130,12 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.Level1)
 {
     SetConfigEnable("true");
     SetIdleStateEnable(false);
     uint64_t currentTime = 1719544264071;
-    HgmEnrtgyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
 }
 
 /**
@@ -144,12 +144,12 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.Level1)
 {
     SetConfigEnable("true");
     SetIdleStateEnable(true);
     uint64_t currentTime = 1719544264071;
-    HgmEnrtgyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
 }
 
 /**
@@ -158,10 +158,10 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level1)
 {
     SetConfigEnable("true");
-    HgmEnrtgyConsumptionPolicy::Instance().StartNewAnimation();
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation();
 }
 
 /**
@@ -170,7 +170,7 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1)
 {
     SetConfigEnable("true");
     RsCommonHook::Instance().OnStartNewAnimation();
@@ -182,11 +182,11 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, GetAnimationIdleFpsTest1, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAnimationIdleFpsTest1, TestSize.Level1)
 {
     SetConfigEnable("false");
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS };
-    HgmEnrtgyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
+    HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
@@ -198,13 +198,13 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, GetAnimationIdleFpsTest1, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, GetAnimationIdleFpsTest2, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAnimationIdleFpsTest2, TestSize.Level1)
 {
     SetConfigEnable("true");
-    HgmEnrtgyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 1719544264071;
-    HgmEnrtgyConsumptionPolicy::Instance().firstAnimationTimestamp_ = 1719544263071;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 1719544264071;
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = 1719544263071;
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS };
-    HgmEnrtgyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
+    HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
@@ -216,13 +216,13 @@ HWTEST_F(HgmEnrtgyConsumptionPolicyTest, GetAnimationIdleFpsTest2, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
-HWTEST_F(HgmEnrtgyConsumptionPolicyTest, GetAnimationIdleFpsTest3, TestSize.Level1)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAnimationIdleFpsTest3, TestSize.Level1)
 {
     SetConfigEnable("true");
-    HgmEnrtgyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 1719544264071;
-    HgmEnrtgyConsumptionPolicy::Instance().firstAnimationTimestamp_ = 1719544261071;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 1719544264071;
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = 1719544261071;
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS };
-    HgmEnrtgyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
+    HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsRange);
     ASSERT_EQ(rsRange.max_, IDLE_FPS);
     ASSERT_EQ(rsRange.min_, IDLE_FPS);
     ASSERT_EQ(rsRange.preferred_, IDLE_FPS);

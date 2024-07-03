@@ -21,9 +21,9 @@
 
 #include "animation/rs_frame_rate_range.h"
 namespace OHOS::Rosen {
-class HgmEnrtgyConsumptionPolicy {
+class HgmEnergyConsumptionPolicy {
 public:
-    static HgmEnrtgyConsumptionPolicy& Instance();
+    static HgmEnergyConsumptionPolicy& Instance();
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void StatisticAnimationTime(uint64_t timestamp);
@@ -40,12 +40,12 @@ private:
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
 
-    HgmEnrtgyConsumptionPolicy();
-    ~HgmEnrtgyConsumptionPolicy() = default;
-    HgmEnrtgyConsumptionPolicy(const HgmEnrtgyConsumptionPolicy&) = delete;
-    HgmEnrtgyConsumptionPolicy(const HgmEnrtgyConsumptionPolicy&&) = delete;
-    HgmEnrtgyConsumptionPolicy& operator=(const HgmEnrtgyConsumptionPolicy&) = delete;
-    HgmEnrtgyConsumptionPolicy& operator=(const HgmEnrtgyConsumptionPolicy&&) = delete;
+    HgmEnergyConsumptionPolicy();
+    ~HgmEnergyConsumptionPolicy() = default;
+    HgmEnergyConsumptionPolicy(const HgmEnergyConsumptionPolicy&) = delete;
+    HgmEnergyConsumptionPolicy(const HgmEnergyConsumptionPolicy&&) = delete;
+    HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&) = delete;
+    HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
 };
 } // namespace OHOS::Rosen

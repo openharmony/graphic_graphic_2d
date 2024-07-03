@@ -31,19 +31,19 @@ static const std::string ANIMATION_IDLE_DURATION = "animation_idle_duration";
 constexpr int DEFAULT_ANIMATION_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
 
-HgmEnrtgyConsumptionPolicy::HgmEnrtgyConsumptionPolicy()
+HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener(
-        std::bind(&HgmEnrtgyConsumptionPolicy::StartNewAnimation, this));
+        std::bind(&HgmEnergyConsumptionPolicy::StartNewAnimation, this));
 }
 
-HgmEnrtgyConsumptionPolicy& HgmEnrtgyConsumptionPolicy::Instance()
+HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
 {
-    static HgmEnrtgyConsumptionPolicy hlpp;
+    static HgmEnergyConsumptionPolicy hlpp;
     return hlpp;
 }
 
-void HgmEnrtgyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue)
+void HgmEnergyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue)
 {
     if (!XMLParser::IsNumber(sourceStr)) {
         targetNum = defaultValue;
@@ -52,7 +52,7 @@ void HgmEnrtgyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sour
     targetNum = std::stoi(sourceStr.c_str());
 }
 
-void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionConfig(
+void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> animationPowerConfig)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -63,7 +63,7 @@ void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionConfig(
             animationPowerConfig[IS_ANIMATION_ENERGY_ASSURANCE_ENABLE] == "true" ? true : false;
     }
     if (!isAnimationEnergyAssuranceEnable_) {
-        HGM_LOGD("HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionConfig isAnimationLtpoPowerEnable is false");
+        HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig isAnimationLtpoPowerEnable is false");
         return;
     }
 
@@ -79,10 +79,10 @@ void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionConfig(
         ConverStrToInt(
             animationIdleDuration_, animationPowerConfig[ANIMATION_IDLE_DURATION], DEFAULT_ANIMATION_IDLE_DURATION);
     }
-    HGM_LOGD("HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionConfig update config success");
+    HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig update config success");
 }
 
-void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
+void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || isEnergyConsumptionAssuranceMode_ == isEnergyConsumptionAssuranceMode) {
@@ -93,7 +93,7 @@ void HgmEnrtgyConsumptionPolicy::SetEnergyConsumptionAssuranceMode(bool isEnergy
     lastAnimationTimestamp_ = firstAnimationTimestamp_;
 }
 
-void HgmEnrtgyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
+void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
@@ -102,7 +102,7 @@ void HgmEnrtgyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
     lastAnimationTimestamp_ = timestamp;
 }
 
-void HgmEnrtgyConsumptionPolicy::StartNewAnimation()
+void HgmEnergyConsumptionPolicy::StartNewAnimation()
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
@@ -112,7 +112,7 @@ void HgmEnrtgyConsumptionPolicy::StartNewAnimation()
     lastAnimationTimestamp_ = firstAnimationTimestamp_;
 }
 
-void HgmEnrtgyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
+void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isEnergyConsumptionAssuranceMode_) {
