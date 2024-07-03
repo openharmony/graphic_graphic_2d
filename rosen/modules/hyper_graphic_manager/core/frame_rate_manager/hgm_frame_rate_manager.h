@@ -224,6 +224,7 @@ private:
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
+    std::mutex frameRateVoteInfoMutex_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 

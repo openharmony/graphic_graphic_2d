@@ -316,6 +316,7 @@ void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
     if (frameRateVoteInfo.voterName.empty()) {
         return;
     }
+    std::lock_guard<std::mutex> locker(frameRateVoteInfoMutex_);
     bool needAdd = frameRateVoteInfoVec_.empty() || frameRateVoteInfoVec_.back().second != frameRateVoteInfo;
     if (frameRateVoteInfoVec_.size() >= REPORT_VOTER_INFO_LIMIT) {
         std::string msg;
@@ -817,7 +818,11 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     auto& hgmCore = HgmCore::Instance();
     auto screenList = hgmCore.GetScreenIds();
     auto screenPos = find(screenList.begin(), screenList.end(), id);
+    auto lastCurScreenId = curScreenId_;
     curScreenId_ = (screenPos == screenList.end()) ? 0 : id;
+    if (lastCurScreenId == curScreenId_) {
+        return;
+    }
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d", static_cast<int>(curScreenId_));
     isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
