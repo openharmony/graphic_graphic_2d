@@ -48,7 +48,7 @@ private:
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
-    size_t layerNum = 0;
+    size_t layerNum_ = 0;
     bool isPhone_ = false;
 };
 } // namespace Rosen

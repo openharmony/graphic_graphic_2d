@@ -408,6 +408,12 @@ public:
         return iter->second;
     }
 
+    // Use in MultiLayersPerf
+    int GetSurfaceCountForMultiLayersPerf() const
+    {
+        return surfaceCountForMultiLayersPerf_;
+    }
+
     const std::vector<NodeId>& GetLastSurfaceIds() const {
         return lastSurfaceIds_;
     }
@@ -451,6 +457,7 @@ private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
+    void HandleCurMainAndLeashSurfaceNodes();
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
@@ -502,6 +509,9 @@ private:
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
+
+    // Use in MultiLayersPerf
+    int surfaceCountForMultiLayersPerf_ = 0;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 
