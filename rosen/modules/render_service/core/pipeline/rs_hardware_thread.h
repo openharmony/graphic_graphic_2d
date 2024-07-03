@@ -80,7 +80,7 @@ private:
     void SubScribeSystemAbility();
     void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-    reportCount_ = 0;
+    uint32_t reportCount_ = 0;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
