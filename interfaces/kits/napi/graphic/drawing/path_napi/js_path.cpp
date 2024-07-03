@@ -388,7 +388,7 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsPath::OnGetMatrix jsMatrix is nullptr");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     if (argc == ARGC_THREE) {
@@ -407,9 +407,8 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
             jsMatrix->GetMatrix().get(),
             static_cast<PathMeasureMatrixFlags>(flag));
         return CreateJsNumber(env, result);
-    } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
 }
 
 napi_value JsPath::OnBuildFromSVGString(napi_env env, napi_callback_info info)
