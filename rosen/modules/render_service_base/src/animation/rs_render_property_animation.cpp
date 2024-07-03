@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_property_animation.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
@@ -233,6 +234,12 @@ void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float f
         "diffFloatValue: %{public}f, factor: %{public}d, animateVelocity: %{public}f",
         __func__, currAnimateValue->ToFloat(), lastAnimateValue_->ToFloat(), diffFloatValue,
         factor, animateVelocity_->ToFloat());
+}
+
+void RSRenderPropertyAnimation::DumpFraction(float fraction, int64_t time)
+{
+    RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
+        GetTargetId(), GetTargetName(), GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time);
 }
 } // namespace Rosen
 } // namespace OHOS

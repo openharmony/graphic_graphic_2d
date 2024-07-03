@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "command/rs_message_processor.h"
 #include "hyper_graphic_manager/core/utils/hgm_command.h"
 #include "modifier/rs_modifier_manager.h"
@@ -404,6 +405,8 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
 {
+    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+        "Animation FinishCallback Processor", nodeId, animId, false);
     // try find the node by nodeId
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
         if (!nodePtr->AnimationCallback(animId, event)) {

@@ -173,12 +173,6 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
     }
 }
 
-void RSRenderSpringAnimation::DumpFraction(float fraction, int64_t time)
-{
-    RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-        GetTargetId(), GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time);
-}
-
 void RSRenderSpringAnimation::OnAttach()
 {
     auto target = GetTarget();

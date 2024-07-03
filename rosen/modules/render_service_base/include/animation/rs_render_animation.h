@@ -170,6 +170,7 @@ public:
     RSRenderNode* GetTarget() const;
 
     NodeId GetTargetId() const;
+    const std::string& GetTargetName() const;
 
     virtual PropertyId GetPropertyId() const;
 
@@ -242,6 +243,7 @@ private:
 
     AnimationId id_ = 0;
     NodeId targetId_ = 0;
+    std::string targetName_ = "";
     AnimationState state_ { AnimationState::INITIALIZED };
     bool needUpdateStartTime_ { true };
     bool needInitialize_ { true };
