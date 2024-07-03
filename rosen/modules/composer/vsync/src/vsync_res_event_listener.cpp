@@ -29,6 +29,7 @@ sptr<VSyncResEventListener> VSyncResEventListener::GetInstance() noexcept
     std::call_once(createFlag_, []() {
         instance_ = new VSyncResEventListener();
     });
+    return instance_;
 }
 
 void VSyncResEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventValue,
