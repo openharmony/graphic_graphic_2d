@@ -583,12 +583,16 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
     auto node2 = std::make_shared<RSRenderNode>(nodeId++);
     auto appWindowDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
     auto appWindowDrawableParam = new RSSurfaceRenderParams(node->id_);
-    appWindowDrawableParam->SetWindowInfo(false, false, true);
+    appWindowDrawableParam->isMainWindowType_ = false;
+    appWindowDrawableParam->isLeashWindow_ = false;
+    appWindowDrawableParam->isAppWindow_ = true;
     appWindowDrawable->renderParams_.reset(appWindowDrawableParam);
     auto nullParamDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node1);
     auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node2);
     auto drawableParam = new RSSurfaceRenderParams(node2->id_);
-    drawableParam->SetWindowInfo(false, false, false);
+    drawableParam->isMainWindowType_ = false;
+    drawableParam->isLeashWindow_ = false;
+    drawableParam->isAppWindow_ = false;
     drawable->renderParams_.reset(drawableParam);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(appWindowDrawable);
