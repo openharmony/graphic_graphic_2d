@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/graphic_test/graphic_test"
+module_output_path = "graphic_2d/rosen/graphic_test/graphic_test"
 
 group("unittest") {
   testonly = true
