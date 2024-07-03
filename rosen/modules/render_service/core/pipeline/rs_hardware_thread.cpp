@@ -231,11 +231,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 void RSHardwareThread::ReportFrameToRSS()
 {
     if (VsyncResEventListener::GetInstance()->GetIsNeedReport()) {
-        if (reportCount_ % SAMPLE_FREQUENCY == 0) {
+        if (VsyncResEventListener::GetInstance()->GetIsFirstReport() ||reportCount_ % SAMPLE_FREQUENCY == 0) {
             uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
             int64_t value = 0;
             std::unordered_map<std::string, std::string> mapPayload;
             OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+            VsyncResEventListener::GetInstance()->SetIsFirstReport(false);
         }
         reportCount_ ++;
         if (reportCount_ > SAMPLE_FREQUENCY) {

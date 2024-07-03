@@ -37,15 +37,27 @@ void VSyncResEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventVal
     if (eventType == ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT &&
         eventValue == ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START) {
         isNeedReport_ = true;
+        isFirstReport_ = true;
     } else if (eventType == ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT &&
         eventValue == ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP) {
         isNeedReport_ = false;
+        isFirstReport_ = false;
     }
 }
 
 bool VSyncResEventListener::GetIsNeedReport()
 {
     return isNeedReport_.load();
+}
+
+bool VSyncResEventListener::GetIsFirstReport()
+{
+    return isFirstReport_.load();
+}
+
+void VSyncResEventListener::SetIsFirstReport(bool value)
+{
+    isFirstReport_ = value;
 }
 } // namespace Rosen
 } // namespace OHOS

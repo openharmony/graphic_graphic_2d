@@ -29,10 +29,13 @@ public:
     void OnReceiveEvent(uint32_t eventType, uint32_t eventValue,
         std::unordered_map<std::string, std::string> extInfo) override;
     bool GetIsNeedReport();
+    bool GetIsFirstReport();
+    void SetIsFirstReport(bool value);
 private:
     static std::once_flag createFlag_;
     static sptr<VSyncResEventListener> instance_;
     std::atomic<bool> isNeedReport_ = {false};
+    std::atomic<bool> isFirstReport_ = {false};
 };
 } // namespace Rosen
 } // namespace OHOS
