@@ -29,6 +29,7 @@
 #include "benchmarks/file_utils.h"
 #include "delegate/rs_functional_delegate.h"
 #include "hgm_core.h"
+#include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
@@ -1696,6 +1697,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     RS_TRACE_FUNC();
     if (rsFrameRateLinker_ != nullptr) {
         rsCurrRange_.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
+        HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange_);
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }
@@ -2740,6 +2742,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
+        HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
         if (!rsVSyncDistributor_->IsDVsyncOn()) {
             RequestNextVSync("animate", timestamp_);
         } else {

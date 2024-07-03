@@ -283,6 +283,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseAppTypes(*thresholdNode, screenSetting.appTypes);
     } else if (name == "additional_touch_rate_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
+    } else if (name == "rs_animation_power_config") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.animationPowerConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }

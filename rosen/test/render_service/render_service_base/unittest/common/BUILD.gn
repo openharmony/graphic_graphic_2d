@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_background_thread_test.cpp",
     "rs_color_test.cpp",
     "rs_common_def_test.cpp",
+    "rs_common_hook_test.cpp",
     "rs_common_tools_test.cpp",
     "rs_obj_abs_geometry_test.cpp",
     "rs_occlusion_region_test.cpp",
@@ -59,6 +60,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
   deps = [
+    "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]

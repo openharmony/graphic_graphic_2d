@@ -41,4 +41,18 @@ bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
     }
     return false;
 }
+
+void HgmTaskHandleThread::PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, eventId, delayTime);
+    }
+}
+
+void HgmTaskHandleThread::RemoveEvent(std::string eventId)
+{
+    if (handler_) {
+        handler_->RemoveTask(eventId);
+    }
+}
 }
