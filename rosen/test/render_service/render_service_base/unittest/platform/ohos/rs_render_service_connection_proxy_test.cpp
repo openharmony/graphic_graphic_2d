@@ -261,8 +261,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreen, TestSize.Level
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetPointerColorInversionConfig, TestSize.Level1)
 {
-    float darkBuffer = 0.5;
-    float brightBuffer = 0.5;
+    float darkBuffer = 0.5f;
+    float brightBuffer = 0.5f;
     int64_t interval = 50;
     proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
     ASSERT_TRUE(true);
