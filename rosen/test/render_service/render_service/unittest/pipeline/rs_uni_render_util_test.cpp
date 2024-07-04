@@ -577,45 +577,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    NodeId nodeId = 0;
-//  isAppWindow_为true的node
-    auto node = std::make_shared<RSRenderNode>(nodeId++);
-//  param为nullptr的node
-    auto node1 = std::make_shared<RSRenderNode>(nodeId++);
-//  isAppWindow_为false的node
-    auto node2 = std::make_shared<RSRenderNode>(nodeId++);
-    auto appWindowDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    auto appWindowDrawableParam = new RSSurfaceRenderParams(node->id_);
-    appWindowDrawableParam->isMainWindowType_ = false;
-    appWindowDrawableParam->isLeashWindow_ = false;
-    appWindowDrawableParam->isAppWindow_ = true;
-    appWindowDrawable->renderParams_.reset(appWindowDrawableParam);
-    auto nullParamDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node1);
-    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node2);
-    auto drawableParam = new RSSurfaceRenderParams(node2->id_);
-    drawableParam->isMainWindowType_ = false;
-    drawableParam->isLeashWindow_ = false;
-    drawableParam->isAppWindow_ = false;
-    drawable->renderParams_.reset(drawableParam);
-    allSurfaceNodeDrawables.push_back(nullptr);
-    allSurfaceNodeDrawables.push_back(appWindowDrawable);
-    allSurfaceNodeDrawables.push_back(nullParamDrawable);
-    allSurfaceNodeDrawables.push_back(drawable);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
-    ASSERT_TRUE(appWindowDrawable->renderParams_);
-}
-
-/**
- * @tc.name: MergeVisibleDirtyRegionTest001
- * @tc.desc: Verify function MergeVisibleDirtyRegion
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTest | Level2)
-{
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
-    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
     auto node = std::make_shared<RSRenderNode>(0);
     auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
