@@ -611,6 +611,23 @@ HWTEST_F(RSSystemPropertiesTest, GetKawaseEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceHpsBlurDisabled
+ * @tc.desc: SetForceHpsBlurDisabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAAI9H
+ */
+HWTEST_F(RSSystemPropertiesTest, SetForceHpsBlurDisabled, TestSize.Level1)
+{
+    bool origin = RSSystemProperties::forceHpsBlurDisabled_;
+    RSSystemProperties::SetForceHpsBlurDisabled(true);
+    ASSERT_TRUE(RSSystemProperties::forceHpsBlurDisabled_);
+    ASSERT_TRUE(!RSSystemProperties::GetHpsBlurEnabled());
+    RSSystemProperties::SetForceHpsBlurDisabled(false);
+    ASSERT_TRUE(!RSSystemProperties::forceHpsBlurDisabled_);
+    RSSystemProperties::SetForceHpsBlurDisabled(origin);
+}
+
+/**
  * @tc.name: GetHpsBlurEnabled
  * @tc.desc: GetHpsBlurEnabled Test
  * @tc.type:FUNC

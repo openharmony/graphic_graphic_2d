@@ -64,9 +64,11 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
     }
 
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
+        RSSystemProperties::SetForceHpsBlurDisabled(true);
         if (!captureHandle->Run(callback)) {
             callback->OnSurfaceCapture(id, nullptr);
         }
+        RSSystemProperties::SetForceHpsBlurDisabled(false);
     };
     RSUniRenderThread::Instance().PostTask(captureTask);
 }
