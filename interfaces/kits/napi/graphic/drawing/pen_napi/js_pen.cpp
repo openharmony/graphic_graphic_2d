@@ -517,7 +517,8 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
     JsMatrix* matrix = nullptr;
     GET_UNWRAP_PARAM(ARGC_THREE, matrix);
     return CreateJsValue(env, pen->GetFillPath(*src->GetPath(),
-        *dst->GetPath(), rect, matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
+        *dst->GetPath(), isRectNullptr != napi_null ? &rect : nullptr,
+        matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
 }
 
 Pen* JsPen::GetPen()
