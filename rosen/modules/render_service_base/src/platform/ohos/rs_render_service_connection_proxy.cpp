@@ -2240,7 +2240,8 @@ void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eve
     }
 }
 
-void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid,
+    int32_t touchCnt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2248,10 +2249,16 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    if (!data.WriteUint32(touchStatus)) {
+    if (!data.WriteInt32(touchStatus)) {
         return;
     }
-    if (!data.WriteUint32(touchCnt)) {
+    if (!data.WriteString(pkgName)) {
+        return;
+    }
+    if (!data.WriteUint32(pid)) {
+        return;
+    }
+    if (!data.WriteInt32(touchCnt)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
