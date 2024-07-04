@@ -63,6 +63,9 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
+
+    UIFirstCache_ = std::make_shared<RSUIFirstCacheImage>();
+    UIFirstCompletedCache_ = std::make_shared<RSUIFirstCacheImage>();
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetConsumer();
 #endif

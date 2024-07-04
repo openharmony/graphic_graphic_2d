@@ -295,15 +295,21 @@ private:
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
-    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+
+    struct RSUIFirstCacheImage {
+        std::shared_ptr<Drawing::Image> image_ = nullptr;
+        std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cacheBackendTexture_;
-    Drawing::BackendTexture cacheCompletedBackendTexture_;
+        Drawing::BackendTexture cacheBackendTexture_;
 #ifdef RS_ENABLE_VK
-    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
-    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
+        NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
 #endif
+#endif
+    };
+    std::shared_ptr<RSUIFirstCacheImage> UIFirstCache_;
+    std::shared_ptr<RSUIFirstCacheImage> UIFirstCompletedCache_;
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
 #endif
     std::atomic<bool> isTextureValid_ = false;
