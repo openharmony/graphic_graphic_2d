@@ -1112,7 +1112,7 @@ int64_t VSyncDistributor::GetUiCommandDelayTime()
 
 void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
 {
-#if define(RS_ENABLE_DVSYNC)
+#if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         dvsync_->UpdatePendingReferenceTime(timeStamp);
     }
@@ -1121,7 +1121,7 @@ void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
 
 void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
 {
-#if define(RS_ENABLE_DVSYNC)
+#if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         dvsync_->SetHardwareTaskNum(num);
     }
