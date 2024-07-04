@@ -1033,14 +1033,15 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
     auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
     auto rotation = mirroredNode.GetScreenRotation();
-    auto exFoldScreen = (RSSystemProperties::IsFoldScreenFlag() && mirroredNode.GetScreenId() == 0);
-    std::string lemScreen = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    if (lemScreen[0] == '2') { // Small folding screen
-        exFoldScreen = false;
-    }
-    if (exFoldScreen) {
-        // 1 means extra 90 degrees for fold screen
-        rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + 1) % SCREEN_ROTATION_NUM);
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager) {
+        auto screenCorrection = screenManager->GetScreenCorrection(mirroredParams->GetScreenId());
+        if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
+            screenCorrection != ScreenRotation::ROTATION_0) {
+            // Recaculate rotation if mirrored screen has additional rotation angle
+            rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
+                - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
+        }
     }
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(mainWidth, mainHeight);
