@@ -501,7 +501,7 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    Rect* rect = nullptr;
+    Drawing::Rect rect;
     napi_valuetype isRectNullptr;
     napi_typeof(env, argv[ARGC_TWO], &isRectNullptr);
     if (isRectNullptr != napi_null) {
@@ -511,12 +511,11 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Incorrect parameter type. The type of left, top, right and bottom must be number.");
         }
-        *rect = Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+        rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
     }
     
     JsMatrix* matrix = nullptr;
     GET_UNWRAP_PARAM(ARGC_THREE, matrix);
-    
     return CreateJsValue(env, pen->GetFillPath(*src->GetPath(),
         *dst->GetPath(), rect, matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
 }
