@@ -117,47 +117,6 @@ void RSRenderServiceConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
 }
 
-void RSRenderServiceConnection::MoveRenderNodeMap(
-    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
-{
-    auto& context = mainThread_->GetContext();
-    auto& nodeMap = context.GetMutableNodeMap();
-
-    nodeMap.MoveRenderNodeMap(subRenderNodeMap, remotePid_);
-}
-
-void RSRenderServiceConnection::RemoveRenderNodeMap(
-    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
-{
-    // temp solution to address the dma leak
-    for (auto& [_, node] : *subRenderNodeMap) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        if (surfaceNode && surfaceNode->GetName().find("ShellAssistantAnco") != std::string::npos) {
-            auto task = [surfaceNode = surfaceNode] {
-                surfaceNode->CleanCache();
-                surfaceNode->ResetRenderParams();
-                surfaceNode->SetConsumer(nullptr);
-            };
-            RSMainThread::Instance()->PostTask(task, "ResetBuffer", TASK_DELAY_TIME_MS);
-        }
-    }
-    auto iter = subRenderNodeMap->begin();
-    for (; iter != subRenderNodeMap->end();) {
-        iter = subRenderNodeMap->erase(iter);
-    }
-}
-
-void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
-{
-    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
-    MoveRenderNodeMap(subRenderNodeMap);
-    RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
-    if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
-        RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
-        RSRenderNodeGC::Instance().ReleaseNodeMemory();
-    }
-}
-
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
 {
     auto& context = mainThread_->GetContext();
@@ -185,7 +144,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
             CleanRenderNodes();
             CleanFrameRateLinkers();
-            CleanRenderNodeMap();
         }).wait();
     mainThread_->ScheduleTask(
         [this]() {
