@@ -53,6 +53,22 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_COLOR_INVERSION_CONFIG): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_COLOR_INVERSION_CONFIG");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_COLOR_INVERSION_ENABLED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_COLOR_INVERSION_ENABLED");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_POINTER_LUMINANCE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_POINTER_LUMINANCE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_POINTER_LUMINANCE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_POINTER_LUMINANCE_CALLBACK");
+            break;
+        }
 #ifdef RS_ENABLE_VK
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_2D_RENDER_CTRL): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_2D_RENDER_CTRL");
