@@ -346,6 +346,10 @@ void OH_Drawing_PenGetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 
 void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen* cPen, OH_Drawing_BlendMode cBlendMode)
 {
+    if (cBlendMode < BLEND_MODE_CLEAR || cBlendMode > BLEND_MODE_LUMINOSITY) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;

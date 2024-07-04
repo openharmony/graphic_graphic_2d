@@ -176,6 +176,10 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penSetBlendMode008, TestSize
     OH_Drawing_PenSetBlendMode(pen8, OH_Drawing_BlendMode::BLEND_MODE_SRC);
     OH_Drawing_PenSetBlendMode(nullptr, OH_Drawing_BlendMode::BLEND_MODE_SRC);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PenSetBlendMode(pen8, (OH_Drawing_BlendMode)(BLEND_MODE_LUMINOSITY + 1));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_PenSetBlendMode(pen8, (OH_Drawing_BlendMode)(BLEND_MODE_CLEAR - 1));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     OH_Drawing_PenDestroy(pen8);
 }
 
