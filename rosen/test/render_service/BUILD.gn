@@ -73,6 +73,7 @@ group("test") {
     "render_service_base/fuzztest/rsrendernodemap_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnecthub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrootrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreencapability_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreenhdrcapability_fuzzer:fuzztest",

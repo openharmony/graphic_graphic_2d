@@ -143,6 +143,29 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 
     return true;
 }
+
+#ifdef TP_FEATURE_ENABLE
+bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    int32_t tpFeature = GetData<int32_t>();
+    std::string tpConfig = GetData<std::string>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig);
+    return true;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -151,5 +174,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
+#ifdef TP_FEATURE_ENABLE
+    OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
+#endif
     return 0;
 }
