@@ -652,13 +652,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
-        RS_LOGI("Drawing Performance Flush start %{public}llu", Drawing::PerformanceCaculate::GetUpTime(false));
+        RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
     RS_TRACE_END();
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
-        RS_LOGI("Drawing Performance Flush end %{public}llu", Drawing::PerformanceCaculate::GetUpTime(false));
+        RS_LOGI("Drawing Performance Flush end %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
         Drawing::PerformanceCaculate::ResetCaculateTimeCount();
     }
 
