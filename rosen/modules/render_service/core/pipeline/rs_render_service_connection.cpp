@@ -658,9 +658,9 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    const RSSurfaceCaptureConfig& captureConfig)
 {
-    if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
+    if (captureConfig.captureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         if (RSSystemParameters::GetRsSurfaceCaptureType() ==
             RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
             RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
@@ -672,11 +672,11 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             }
             auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
                 !node->IsOnTheTree() : false;
-            std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
+            std::function<void()> captureTask = [id, callback, captureConfig, isProcOnBgThread]() -> void {
                 RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]",
                     id);
                 ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
+                RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
                 if (!task.Run(callback)) {
                     callback->OnSurfaceCapture(id, nullptr);
                 }
@@ -688,24 +688,25 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 mainThread_->PostTask(captureTask);
             }
         } else {
-            std::function<void()> captureTask = [id, callback, scaleX, scaleY, useDma]() -> void {
-                RSSurfaceCaptureTaskParallel::CheckModifiers(id, callback, scaleX, scaleY, useDma);
+            std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
+                RSSurfaceCaptureTaskParallel::CheckModifiers(id);
+                RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
             };
             mainThread_->PostTask(captureTask);
         }
     } else {
         if (RSUniRenderJudgement::IsUniRender()) {
-            RSMainThread::Instance()->PostTask([id, callback, scaleX, scaleY, isSync]() {
-                    TakeSurfaceCaptureForUiParallel(id, callback, scaleX, scaleY, isSync);
+            RSMainThread::Instance()->PostTask([id, callback, captureConfig]() {
+                    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
                 }, "UiCapture", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
-            TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
+            TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
         }
     }
 }
 
 void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (!node) {
@@ -714,10 +715,10 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
         return;
     }
 
-    std::function<void()> captureTask = [id, callback, scaleX, scaleY]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, scaleX, scaleY);
+    std::function<void()> captureTask = [id, callback, captureConfig]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
-    if (!isSync && node->IsOnTheTree() && !node->IsDirty()) {
+    if (!captureConfig.isSync && node->IsOnTheTree() && !node->IsDirty()) {
         RSUniRenderThread::Instance().PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
@@ -725,18 +726,18 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
 }
 
 void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, bool isSync)
+    const RSSurfaceCaptureConfig& captureConfig)
 {
-    std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id]() -> void {
+    std::function<void()> offscreenRenderTask = [id, callback, captureConfig]() -> void {
         RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
             " nodeId:[%{public}" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCaptureForUIWithUni");
-        std::shared_ptr<RSUniUICapture> rsUniUICapture = std::make_shared<RSUniUICapture>(id, scaleX, scaleY);
+        std::shared_ptr<RSUniUICapture> rsUniUICapture = std::make_shared<RSUniUICapture>(id, captureConfig);
         std::shared_ptr<Media::PixelMap> pixelmap = rsUniUICapture->TakeLocalCapture();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     };
-    if (!isSync) {
+    if (!captureConfig.isSync) {
         RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
     } else {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);

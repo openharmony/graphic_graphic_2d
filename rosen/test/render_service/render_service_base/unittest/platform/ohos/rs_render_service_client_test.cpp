@@ -82,9 +82,11 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, false); // test a notfound number: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test a notfound number: 123
     ASSERT_EQ(ret, true);
-    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, true); // test number: 123 twice
+    captureConfig.useDma = true;
+    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test number: 123 twice
     ASSERT_EQ(ret, true);
 }
 
@@ -97,7 +99,8 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false); // NodeId: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig); // NodeId: 123
     ASSERT_NE(ret, true);
 }
 
@@ -110,8 +113,9 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false,
-        SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSync = true;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig);
     ASSERT_NE(ret, true);
 }
 

@@ -188,6 +188,15 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+struct RSSurfaceCaptureConfig {
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    bool useDma = false;
+    bool useCurWindow = true;
+    SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    bool isSync = false;
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,

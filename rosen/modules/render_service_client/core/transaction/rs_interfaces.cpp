@@ -115,29 +115,29 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(id, callback, captureConfig);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -205,12 +205,16 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUI unsupported node type return");
         return false;
     }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = scaleX;
+    captureConfig.scaleY = scaleY;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = isSync;
     if (RSSystemProperties::GetUniRenderEnabled()) {
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            false, SurfaceCaptureType::UICAPTURE, isSync);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

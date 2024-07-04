@@ -27,6 +27,22 @@ size_t g_size = 0;
 size_t g_pos;
 } // namespace
 
+class SurfaceCaptureFuture : public SurfaceCaptureCallback {
+    public:
+         SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {};
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+        {
+            pixelMap_ = pixelmap;
+        }
+        std::shared_ptr<Media::PixelMap> GetPixelMap()
+        {
+            return pixelMap_;
+        }
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+};
+
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
  * tips: only support basic type
@@ -107,6 +123,21 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+
+    auto callback1 = std::make_shared<SurfaceCaptureFuture>();
+    rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
+
+    auto callback2 = std::make_shared<SurfaceCaptureFuture>();
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
+    rsInterfaces.TakeSurfaceCapture(displayNode, callback2);
+
+    auto callback3 = std::make_shared<SurfaceCaptureFuture>();
+    RSSurfaceNodeConfig surfaceConfig;
+    surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
+    auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
 
     sleep(1);
 
