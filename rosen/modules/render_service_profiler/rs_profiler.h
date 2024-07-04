@@ -51,7 +51,7 @@
 #define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
-#define RS_PROFILER_SHOULD_BLOCK_HWC() RSProfiler::ShouldBlockHWC()
+#define RS_PROFILER_SHOULD_BLOCK_HWCNODE() RSProfiler::ShouldBlockHWCNode()
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -167,7 +167,7 @@ public:
     RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
 
     RSB_EXPORT static uint32_t GetFrameNumber();
-    RSB_EXPORT static bool ShouldBlockHWC();
+    RSB_EXPORT static bool ShouldBlockHWCNode();
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);

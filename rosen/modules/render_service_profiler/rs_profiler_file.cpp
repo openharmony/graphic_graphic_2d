@@ -87,11 +87,9 @@ bool RSFile::Open(const std::string& fname)
     Utils::FileRead(&headerId, sizeof(headerId), 1, file_);
     if (headerId == 'ROHR') {
         Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
-    }
-    else if (headerId == 'RPLY') {
+    } else if (headerId == 'RPLY') {
         versionId_ = 0;
-    }
-    else {
+    } else {
         Utils::FileClose(file_);
         file_ = nullptr;
         return false;

@@ -2571,7 +2571,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
 
 void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
 {
-    if (RS_PROFILER_SHOULD_BLOCK_HWC()) {
+    if (RS_PROFILER_SHOULD_BLOCK_HWCNODE()) {
         return;
     }
     

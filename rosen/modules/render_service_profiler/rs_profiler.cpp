@@ -369,8 +369,8 @@ void RSProfiler::OnParallelRenderBegin()
         constexpr uint32_t spamCount = 10'000;
         std::vector<int> data;
         data.resize(spamCount);
-        for(uint32_t i = 0; i < spamCount; i++) {
-            for(uint32_t j = i + 1; j < spamCount; j++) {
+        for (uint32_t i = 0; i < spamCount; i++) {
+            for (uint32_t j = i + 1; j < spamCount; j++) {
                 std::swap(data[i], data[j]);
             }
         }
@@ -379,8 +379,8 @@ void RSProfiler::OnParallelRenderBegin()
         constexpr uint32_t newCount = spamCount * trashCashStep;
         constexpr int trashNum = 0x7F;
         data.resize(newCount);
-        for(uint32_t i = 0; i < spamCount; i++) {
-           data[i * trashCashStep] = trashNum;
+        for (uint32_t i = 0; i < spamCount; i++) {
+            data[i * trashCashStep] = trashNum;
         }
     }
 
@@ -414,10 +414,9 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
     }
-
 }
 
-bool RSProfiler::ShouldBlockHWC()
+bool RSProfiler::ShouldBlockHWCNode()
 {
     return GetMode() == Mode::READ;
 }
@@ -581,9 +580,6 @@ void RSProfiler::AwakeRenderServiceThreadResetCaches()
             node->SetSubTreeDirty(true);
             node->SetContentDirty();
             node->SetDirty();
-            //node->ClearCacheSurface();
-            //node->SetCacheType(CacheType::NONE);
-            //node->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         });
 
         nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
