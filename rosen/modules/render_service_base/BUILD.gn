@@ -284,6 +284,7 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
+    "src/transaction/rs_uiextension_data.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",

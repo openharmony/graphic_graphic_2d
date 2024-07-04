@@ -243,6 +243,7 @@ enum class RSSurfaceNodeType : uint8_t {
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
+    UI_EXTENSION_NODE,        // uiextension node that requires info callback
 };
 
 enum class MultiThreadCacheType : uint8_t {
