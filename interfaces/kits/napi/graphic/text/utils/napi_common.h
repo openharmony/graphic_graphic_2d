@@ -517,5 +517,8 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle);
+
+napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics* metrics);
+
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H
