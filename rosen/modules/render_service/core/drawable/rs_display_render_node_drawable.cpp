@@ -849,6 +849,15 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     virtualProcesser->ScaleMirrorIfNeed(*displayNodeSp, *curCanvas_);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredNode);
+
+    auto mirroredNodeDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(std::move(mirroredNode)));
+    // set mirror screen capture param
+    // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
+    // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
+    // the main display that's why no need additional scale.
+    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, 1.0f, 1.0f));
+
     curCanvas_->Save();
     Drawing::Region clipRegion;
     clipRegion.Clone(uniParam.GetClipRegion());
@@ -870,15 +879,10 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     if (cacheImageProcessed && !hasSpecialLayer_) {
         RS_LOGD("RSDisplayRenderNodeDrawable::DrawMirrorScreen, Enable recording optimization.");
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
+        mirroredNodeDrawable->DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
         ProcessCacheImage(*cacheImageProcessed);
     }
     curCanvas_->Restore();
-    auto mirroredNodeDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(std::move(mirroredNode)));
-    // set mirror screen capture param
-    float mirrorScaleX = virtualProcesser->GetMirrorScaleX();
-    float mirrorScaleY = virtualProcesser->GetMirrorScaleY();
-    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, mirrorScaleX, mirrorScaleY));
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
     if (uniParam.IsOpDropped() && cacheImageProcessed && !hasSpecialLayer_) {
         ClipRegion(*curCanvas_, clipRegion, false);
@@ -1288,6 +1292,21 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
 
     Drawing::AutoCanvasRestore acr(canvas, true);
     DrawHardwareEnabledNodes(canvas, displayNodeSp, params);
+}
+
+void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas)
+{
+    auto params = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
+    if (!params) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodesMissedInCacheImage params is null!");
+        return;
+    }
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    FindHardwareEnabledNodes();
+    if (params->GetHardwareEnabledNodes().size() != 0) {
+        AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas, *params);
+    }
 }
 
 void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const

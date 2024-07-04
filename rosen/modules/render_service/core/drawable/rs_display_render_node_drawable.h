@@ -40,6 +40,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas,
         std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams* params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
