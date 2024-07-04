@@ -17,6 +17,8 @@
 
 #include "impl_factory.h"
 #include "impl_interface/font_impl.h"
+#include "text/font_mgr.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,6 +27,8 @@ Font::Font() : fontImpl_(ImplFactory::CreateFontImpl()) {}
 
 Font::Font(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX)
     : fontImpl_(ImplFactory::CreateFontImpl(typeface, size, scaleX, skewX)) {}
+
+Font::Font(const Font& font) : fontImpl_(ImplFactory::CreateFontImpl(font)) {}
 
 void Font::SetEdging(FontEdging edging)
 {
@@ -106,7 +110,7 @@ scalar Font::GetSize() const
     return fontImpl_->GetSize();
 }
 
-std::shared_ptr<Typeface> Font::GetTypeface()
+std::shared_ptr<Typeface> Font::GetTypeface() const
 {
     return fontImpl_->GetTypeface();
 }
@@ -175,6 +179,52 @@ int Font::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encodin
 scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const
 {
     return fontImpl_->MeasureText(text, byteLength, encoding, bounds);
+}
+
+scalar Font::MeasureSingleCharacter(int32_t unicode) const
+{
+    scalar textWidth = 0.0f;
+    uint16_t glyph = UnicharToGlyph(unicode);
+    if (glyph != 0) {
+        textWidth = MeasureText(&glyph, sizeof(uint16_t), TextEncoding::GLYPH_ID);
+    } else {
+        std::shared_ptr<Font> fallbackFont = GetFallbackFont(unicode);
+        if (fallbackFont) {
+            uint16_t fallbackGlyph = fallbackFont->UnicharToGlyph(unicode);
+            textWidth = fallbackFont->MeasureText(&fallbackGlyph, sizeof(uint16_t), TextEncoding::GLYPH_ID);
+        }
+    }
+    return textWidth;
+}
+
+std::shared_ptr<Font> Font::GetFallbackFont(int32_t unicode) const
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    if (fontMgr == nullptr) {
+        LOGE("Font::GetFallbackFont, default fontMgr is nullptr.");
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> currentTypeface = GetTypeface();
+    std::shared_ptr<Typeface> fallbackTypeface = nullptr;
+    if (currentTypeface) {
+        fallbackTypeface = std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyleCharacter(nullptr,
+            currentTypeface->GetFontStyle(), nullptr, 0, unicode < 0 ? 0xFFFD : unicode));
+    } else {
+        std::shared_ptr<Typeface> defaultTypeface = Typeface::MakeDefault();
+        fallbackTypeface = std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyleCharacter(nullptr, defaultTypeface
+            ? defaultTypeface->GetFontStyle() : FontStyle(), nullptr, 0, unicode < 0 ? 0xFFFD : unicode));
+    }
+    if (fallbackTypeface == nullptr) {
+        LOGE("Font::GetFallbackFont, fallback typeface is nullptr.");
+        return nullptr;
+    }
+    std::shared_ptr<Font> fallbackFont = std::make_shared<Font>(*this);
+    if (fallbackFont == nullptr) {
+        LOGE("Font::GetFallbackFont, fallback font is nullptr.");
+        return nullptr;
+    }
+    fallbackFont->SetTypeface(fallbackTypeface);
+    return fallbackFont;
 }
 
 int Font::CountText(const void* text, size_t byteLength, TextEncoding encoding) const

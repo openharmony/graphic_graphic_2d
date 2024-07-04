@@ -229,6 +229,11 @@ std::unique_ptr<FontImpl> SkiaImplFactory::CreateFont(std::shared_ptr<Typeface> 
     return std::make_unique<SkiaFont>(typeface, size, scaleX, skewX);
 }
 
+std::unique_ptr<FontImpl> SkiaImplFactory::CreateFont(const Font& font)
+{
+    return std::make_unique<SkiaFont>(font);
+}
+
 std::unique_ptr<TextBlobBuilderImpl> SkiaImplFactory::CreateTextBlobBuilder()
 {
     return std::make_unique<SkiaTextBlobBuilder>();

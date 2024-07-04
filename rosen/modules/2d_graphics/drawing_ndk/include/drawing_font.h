@@ -241,6 +241,23 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font*, const void* text, u
 void OH_Drawing_FontGetWidths(const OH_Drawing_Font*, const uint16_t* glyphs, int count, float* widths);
 
 /**
+ * @brief Measures the width of a single character.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param str Indicates the single character encoded in UTF-8.
+ * @param textWidth Indicates the width of the single character.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, str
+ *                 and textWidth is nullptr or strlen(str) is 0.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font* font, const char* str,
+    float* textWidth);
+
+/**
  * @brief Measures the width of text.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

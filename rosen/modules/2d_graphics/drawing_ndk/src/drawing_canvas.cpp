@@ -14,6 +14,9 @@
  */
 
 #include "drawing_canvas.h"
+
+#include "src/utils/SkUTF.h"
+
 #include "drawing_canvas_utils.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
@@ -98,6 +101,11 @@ static const Image& CastToImage(const OH_Drawing_Image& cImage)
 static const SamplingOptions& CastToSamplingOptions(const OH_Drawing_SamplingOptions& cSamplingOptions)
 {
     return reinterpret_cast<const SamplingOptions&>(cSamplingOptions);
+}
+
+static const Font& CastToFont(const OH_Drawing_Font& cFont)
+{
+    return reinterpret_cast<const Font&>(cFont);
 }
 
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
@@ -483,6 +491,26 @@ void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing
         return;
     }
     canvas->DrawRoundRect(CastToRoundRect(*cRoundRect));
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCanvas, const char* str,
+    const OH_Drawing_Font* cFont, float x, float y)
+{
+    if (str == nullptr || cFont == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    canvas->DrawSingleCharacter(unicode, CastToFont(*cFont), x, y);
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_TextBlob* cTextBlob, float x, float y)

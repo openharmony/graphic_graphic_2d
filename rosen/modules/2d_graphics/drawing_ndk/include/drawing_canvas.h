@@ -407,6 +407,25 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas*, const OH_Drawing_Rect*, float 
 void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas*, const OH_Drawing_RoundRect*);
 
 /**
+ * @brief Draws a single character.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param str Indicates the single character encoded in UTF-8.
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param x Indicates the horizontal offset applied to the single character.
+ * @param y Indicates the vertical offset applied to the single character.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, str
+ *                 and font is nullptr or strlen(str) is 0.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* canvas, const char* str,
+    const OH_Drawing_Font* font, float x, float y);
+
+/**
  * @brief Draws a textblob.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
