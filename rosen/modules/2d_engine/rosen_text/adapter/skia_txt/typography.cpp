@@ -107,6 +107,8 @@ float Typography::DetectIndents(size_t index)
 void Typography::Layout(double width)
 {
     std::unique_lock lock(g_layoutMutex);
+    lineMetrics_.reset();
+    lineMetricsStyles_.clear();
     return paragraph_->Layout(width);
 }
 
@@ -304,43 +306,45 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
 
 std::vector<LineMetrics> Typography::GetLineMetrics()
 {
-    std::vector<LineMetrics> lineMetrics;
-    if (paragraph_ != nullptr) {
-        auto metrics = paragraph_->GetLineMetrics();
-        lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
-            [](const int a, const skia::textlayout::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
+    if (lineMetrics_) {
+        if (paragraph_ != nullptr) {
+            lineMetrics_.emplace();
+            auto metrics = paragraph_->GetLineMetrics();
+            lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
+                [](const int a, const skia::textlayout::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
 
-        for (const skt::LineMetrics& skLineMetrics : metrics) {
-            LineMetrics& line = lineMetrics.emplace_back();
-            if (!skLineMetrics.fLineMetrics.empty()) {
-                const auto &skmFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
-                line.firstCharMetrics = skmFontMetrics;
-                line.capHeight = skmFontMetrics.fCapHeight;
-                line.xHeight = skmFontMetrics.fXHeight;
-            } else {
-                line.capHeight = 0.0;
-                line.xHeight = 0.0;
-            }
-            line.lineNumber = skLineMetrics.fLineNumber;
-            line.baseline = skLineMetrics.fBaseline;
-            line.ascender = skLineMetrics.fAscent;
-            line.descender = skLineMetrics.fDescent;
-            line.width = skLineMetrics.fWidth;
-            line.height = skLineMetrics.fHeight;
-            line.x = skLineMetrics.fLeft;
-            line.y = skLineMetrics.fTopHeight;
-            line.startIndex = skLineMetrics.fStartIndex;
-            line.endIndex = skLineMetrics.fEndIndex;
-            for (const auto& [index, styleMtrics] : skLineMetrics.fLineMetrics) {
-                SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMtrics.text_style);
-                lineMetricsStyles_.emplace_back(Convert(spTextStyle));
+            for (const skt::LineMetrics& skLineMetrics : metrics) {
+                LineMetrics& line = lineMetrics_->emplace_back();
+                if (!skLineMetrics.fLineMetrics.empty()) {
+                    const auto &skmFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
+                    line.firstCharMetrics = skmFontMetrics;
+                    line.capHeight = skmFontMetrics.fCapHeight;
+                    line.xHeight = skmFontMetrics.fXHeight;
+                } else {
+                    line.capHeight = 0.0;
+                    line.xHeight = 0.0;
+                }
+                line.lineNumber = skLineMetrics.fLineNumber;
+                line.baseline = skLineMetrics.fBaseline;
+                line.ascender = skLineMetrics.fAscent;
+                line.descender = skLineMetrics.fDescent;
+                line.width = skLineMetrics.fWidth;
+                line.height = skLineMetrics.fHeight;
+                line.x = skLineMetrics.fLeft;
+                line.y = skLineMetrics.fTopHeight;
+                line.startIndex = skLineMetrics.fStartIndex;
+                line.endIndex = skLineMetrics.fEndIndex;
+                for (const auto& [index, styleMtrics] : skLineMetrics.fLineMetrics) {
+                    SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMtrics.text_style);
+                    lineMetricsStyles_.emplace_back(Convert(spTextStyle));
 
-                line.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
-                    std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
+                    line.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
+                        std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
+                }
             }
         }
     }
-    return lineMetrics;
+    return lineMetrics_.value();
 }
 
 bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
