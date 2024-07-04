@@ -543,11 +543,16 @@ bool RSSystemProperties::GetKawaseEnabled()
     return kawaseBlurEnabled;
 }
 
+void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
+{
+    forceHpsBlurDisabled = flag;
+}
+
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     static bool hpsBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.HpsBlurEnable", "1")).c_str()) != 0;
-    return hpsBlurEnabled;
+    return hpsBlurEnabled && !forceHpsBlurDisabled;
 }
 
 float RSSystemProperties::GetKawaseRandomColorFactor()
