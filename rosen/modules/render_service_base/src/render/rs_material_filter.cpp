@@ -78,6 +78,7 @@ static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> KAWASE_MATER
 } // namespace
 
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+const bool HPS_BLUR_ENABLED = RSSystemProperties::GetHpsBlurEnabled();
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
     : RSDrawingFilterOriginal(nullptr), colorMode_(mode)
@@ -353,8 +354,7 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
         return;
     }
     // if hps blur failed, use kawase blur
-    bool hpsBlurEnabled = RSSystemProperties::GetHpsBlurEnabled();
-    if (hpsBlurEnabled &&
+    if (HPS_BLUR_ENABLED &&
         canvas.DrawBlurImage(*greyImage, Drawing::HpsBlurParameter(src, dst, GetRadius(), saturation_, brightness_))) {
         RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(GetRadius()));
         return;

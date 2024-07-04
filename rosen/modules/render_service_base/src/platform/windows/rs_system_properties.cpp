@@ -279,7 +279,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled = flag;
+    forceHpsBlurDisabled_ = flag;
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()
