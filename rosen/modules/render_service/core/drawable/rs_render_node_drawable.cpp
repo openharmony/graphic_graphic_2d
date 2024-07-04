@@ -648,4 +648,19 @@ void RSRenderNodeDrawable::ClearTotalProcessedNodeCount()
 {
     totalProcessedNodeCount_ = 0;
 }
+
+int RSRenderNodeDrawable::GetProcessedNodeCount()
+{
+    return processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ProcessedNodeCountInc()
+{
+    ++processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ClearProcessedNodeCount()
+{
+    processedNodeCount_ = 0;
+}
 } // namespace OHOS::Rosen::DrawableV2

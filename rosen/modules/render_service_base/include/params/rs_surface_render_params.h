@@ -341,6 +341,16 @@ public:
         return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
     }
 
+    void SetLayerCreated(bool layerCreated)
+    {
+        layerCreated_ = layerCreated;
+    }
+
+    bool GetLayerCreated() const
+    {
+        return layerCreated_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -404,6 +414,7 @@ private:
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
+    bool layerCreated_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

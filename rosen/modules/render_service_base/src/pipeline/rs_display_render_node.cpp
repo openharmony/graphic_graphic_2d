@@ -184,6 +184,19 @@ void RSDisplayRenderNode::OnSync()
     dirtyManager_->OnSync(syncDirtyManager_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
+    HandleCurMainAndLeashSurfaceNodes();
+}
+
+void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
+{
+    surfaceCountForMultiLayersPerf_ = 0;
+    for (const auto surface : curMainAndLeashSurfaceNodes_) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
+        if (!surfaceNode || surfaceNode->IsLeashWindow()) {
+            continue;
+        }
+        surfaceCountForMultiLayersPerf_++;
+    }
     curMainAndLeashSurfaceNodes_.clear();
 }
 

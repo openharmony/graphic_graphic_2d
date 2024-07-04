@@ -161,6 +161,7 @@ protected:
     bool rotationChanged_ = false;
     bool clearFilteredCacheAfterDrawing_ = false;
     bool forceClearCacheWithLastFrame_ = false;
+    bool isAIBarInteractWithHWC_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
     bool stagingClearFilteredCacheAfterDrawing_ = false;

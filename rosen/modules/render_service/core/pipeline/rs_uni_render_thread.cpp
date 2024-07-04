@@ -294,10 +294,11 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (!params->GetHardwareEnabled() && params->GetLastFrameHardwareEnabled()) {
+        bool needRelease = !params->GetHardwareEnabled() || !params->GetLayerCreated();
+        if (needRelease && params->GetLastFrameHardwareEnabled()) {
             params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
-        if (!params->GetHardwareEnabled()) {
+        if (needRelease) {
             auto& preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
                 if (params->releaseInHardwareThreadTaskNum_ > 0) {
