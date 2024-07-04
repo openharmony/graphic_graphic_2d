@@ -683,6 +683,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
         return;
     }
     contextMatrix_ = matrix;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, context matrix changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::SCALE);
     AddDirtyType(RSModifierType::SKEW);
@@ -702,6 +703,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
         return;
     }
     contextAlpha_ = alpha;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, node context alpha changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::ALPHA);
     if (!sendMsg) {
@@ -718,6 +720,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
         return;
     }
     contextClipRect_ = clipRegion;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, node context clip region changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::BOUNDS);
     if (!sendMsg) {
@@ -772,6 +775,7 @@ void RSSurfaceRenderNode::SetForceHardware(bool flag)
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set security layer", GetId());
     SetDirty();
     if (isSecurityLayer) {
         securityLayerIds_.insert(GetId());
@@ -784,6 +788,7 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 {
     isSkipLayer_ = isSkipLayer;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set skip layer", GetId());
     SetDirty();
     if (isSkipLayer) {
         skipLayerIds_.insert(GetId());
@@ -796,6 +801,7 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
 {
     isProtectedLayer_ = isProtectedLayer;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set protected layer", GetId());
     SetDirty();
     if (isProtectedLayer) {
         protectedLayerIds_.insert(GetId());
@@ -868,6 +874,8 @@ void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         // firstLevelNode is the nearest app window / leash node
         if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+            ROSEN_LOGD("Node id %{public}" PRIu64
+                " set dirty, first level node of protected info to be synced", firstLevelNode->GetId());
             firstLevelNode->SetDirty();
             // should always sync protectedLayerIds_ to firstLevelNode
             if (isProtectedLayer_ && IsOnTheTree()) {
@@ -1097,6 +1105,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
         RSRTRefreshCallback::Instance().ExecuteRefresh();
     }
     if (isTextureExportNode) {
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, texture export node notify buffer available", GetId());
         SetContentDirty();
     }
 
@@ -1180,6 +1189,7 @@ void RSSurfaceRenderNode::SetStartAnimationFinished()
 bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
 {
     if (isCurrentFrameBufferConsumed_) {
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, frame buffer consumed", GetId());
         SetContentDirty();
         return true;
     }
@@ -2682,6 +2692,7 @@ void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
 void RSSurfaceRenderNode::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, skip draw", GetId());
     SetDirty();
 }
 
