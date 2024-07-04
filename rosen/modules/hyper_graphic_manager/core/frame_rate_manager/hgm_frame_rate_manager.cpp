@@ -755,9 +755,9 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus,
         PolicyConfigData::StrategyConfig strategyRes;
         HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(false);
-        if (multiAppStrategy_.GetAppStrategyConfig(pkgName, strategyRes) == EXEC_SUCCESS &&
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
-                touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, pkgName);
+                touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
         }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
         if (touchCnt != LAST_TOUCH_CNT) {
@@ -772,7 +772,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus,
             HGM_LOGI("[touch manager] up %{public}s", pkgName.c_str());
             auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(true); };
             HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
-            touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, pkgName);
+            touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
