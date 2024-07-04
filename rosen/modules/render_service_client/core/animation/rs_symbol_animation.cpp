@@ -686,7 +686,7 @@ bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const
     uint32_t duration = 0;
     timePercents.push_back(0); // the first property of timePercent
     for (int i = 0; i < static_cast<int>(oneGroupParas.size()) - 1; i++) {
-        int interval = 0;
+        int interval = 0; // Interval between two animations
         duration = duration + oneGroupParas[i].duration;
         SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
         interval = oneGroupParas[i + 1].delay -
