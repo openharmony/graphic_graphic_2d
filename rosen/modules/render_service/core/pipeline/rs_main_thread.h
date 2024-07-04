@@ -345,6 +345,7 @@ public:
     }
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
+    void SetHardwareTaskNum(uint32_t num);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

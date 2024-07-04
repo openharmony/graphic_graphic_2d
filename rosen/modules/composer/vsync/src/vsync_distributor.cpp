@@ -1103,5 +1103,23 @@ int64_t VSyncDistributor::GetUiCommandDelayTime()
     return 0;
 #endif
 }
+
+void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->UpdatePendingReferenceTime(timeStamp);
+    }
+#endif
+}
+
+void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->SetHardwareTaskNum(num);
+    }
+#endif
+}
 }
 }

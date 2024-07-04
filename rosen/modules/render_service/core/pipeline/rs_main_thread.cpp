@@ -3825,5 +3825,10 @@ void RSMainThread::UpdateLuminance()
         RequestNextVSync();
     }
 }
+
+void RSMainThread::SetHardwareTaskNum(uint32_t num)
+{
+    rsVSyncDistributor_->SetHardwareTaskNum(num);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -199,7 +199,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
     };
     unExecuteTaskNum_++;
-
+    RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);

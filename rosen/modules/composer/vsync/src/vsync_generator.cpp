@@ -874,6 +874,7 @@ void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
     pendingReferenceTime_ = timestamp;
+    rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
 }
 
 void VSyncGenerator::Dump(std::string &result)
