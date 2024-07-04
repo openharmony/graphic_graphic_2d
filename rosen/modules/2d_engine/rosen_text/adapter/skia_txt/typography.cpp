@@ -306,7 +306,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
 
 std::vector<LineMetrics> Typography::GetLineMetrics()
 {
-    if (lineMetrics_) {
+    if (!lineMetrics_) {
         if (paragraph_ != nullptr) {
             lineMetrics_.emplace();
             auto metrics = paragraph_->GetLineMetrics();
