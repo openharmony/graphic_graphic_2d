@@ -195,14 +195,14 @@ HWTEST_F(RSAnimationCommandTest, InteractiveAnimator001, TestSize.Level1)
     AnimationCommandHelper::FinishInteractiveAnimator(context, targetIdI, RSInteractiveAnimationPosition::CURRENT);
     AnimationCommandHelper::ReverseInteractiveAnimator(context, targetIdI);
     AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetIdI, fraction);
-    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations);
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
     EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
 
     AnimationCommandHelper::InteractiveAnimatorAddAnimations(context, targetId, animations);
     AnimationCommandHelper::PauseInteractiveAnimator(context, targetIdI);
     AnimationCommandHelper::ContinueInteractiveAnimator(context, targetIdI);
     AnimationCommandHelper::FinishInteractiveAnimator(context, targetIdI, RSInteractiveAnimationPosition::CURRENT);
-    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations);
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, true);
     AnimationCommandHelper::ReverseInteractiveAnimator(context, targetIdI);
     AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetIdI, fraction);
     AnimationCommandHelper::DestoryInteractiveAnimator(context, targetIdI);

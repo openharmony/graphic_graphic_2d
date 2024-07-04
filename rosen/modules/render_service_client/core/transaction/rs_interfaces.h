@@ -136,6 +136,8 @@ public:
 
     void SetShowRefreshRateEnabled(bool enable);
 
+    std::string GetRefreshInfo(pid_t pid);
+
 #ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 

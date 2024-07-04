@@ -55,6 +55,9 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
     OH_Drawing_TypefaceCreateFromFile(nullptr, 0);
     OH_Drawing_Typeface* typefaceOne = OH_Drawing_TypefaceCreateFromFile(path, index);
 
+    char pathTwo[] = "system/fonts/NotoSansBengaliUI-Bold.ttf";
+    OH_Drawing_Typeface* typefaceTwo = OH_Drawing_TypefaceCreateFromFile(pathTwo, index);
+
     bool copyData = GetObject<bool>();
     uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
     char* str = new char[str_size];
@@ -72,8 +75,10 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
         delete [] str;
         str = nullptr;
     }
+
     OH_Drawing_TypefaceDestroy(typeface);
     OH_Drawing_TypefaceDestroy(typefaceOne);
+    OH_Drawing_TypefaceDestroy(typefaceTwo);
     OH_Drawing_MemoryStreamDestroy(memoryStream);
 }
 void NativeDrawingTypefaceTest002(const uint8_t* data, size_t size)

@@ -353,7 +353,10 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     if (!isRs_ && IsDVsyncOn()) {
         con_.wait_for(locker, std::chrono::nanoseconds(dvsync_->WaitTime()), [this] {return dvsync_->WaitCond();});
     } else {
-        con_.wait(locker);
+        if (!(hasVsync_.load() && isRs_)) {
+            con_.wait(locker);
+        }
+        hasVsync_.store(false);
     }
     if (pendingRNVInVsync_) {
         return;
@@ -511,10 +514,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     vsyncMode_ = vsyncMode;
     dvsync_->RuntimeSwitch();
     if (IsDVsyncOn()) {
-        if (isRs_ && event_.period != 0 && event_.refreshRate != 0) {
-            period = event_.period;
-            refreshRate = event_.refreshRate;
-        }
         ScopedBytrace func("VSyncD onVSyncEvent, now:" + std::to_string(now));
     } else {
         ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
@@ -741,16 +740,6 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
     }
 }
 
-#if defined(RS_ENABLE_DVSYNC)
-void VSyncDistributor::UpdateVsyncPeriodAndRefreshRate()
-{
-    std::unique_lock<std::mutex> locker(mutex_);
-    event_.refreshRate = dvsync_->GetImmediateRefreshRate();
-    event_.period = dvsync_->GetImmediatePeriod();
-    dvsync_->UpdateVsyncPeriodAndRefreshRate(event_.period, event_.refreshRate);
-}
-#endif
-
 void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -761,18 +750,13 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
 #endif
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
     CountTrace(HITRACE_TAG_GRAPHIC_AGP, "DVSync-" + name_, countTraceValue_);
-
+    hasVsync_.store(false);
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t period = event_.period;
         if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
             (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
             period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
         }
-#if defined(RS_ENABLE_DVSYNC)
-        if (isRs_) {
-            UpdateVsyncPeriodAndRefreshRate();
-        }
-#endif
         int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name_.c_str(), ret);
@@ -829,6 +813,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     }
     connection->triggerThisTime_ = true;
 #if defined(RS_ENABLE_DVSYNC)
+    hasVsync_.store(true);
     if (dvsync_->IsFeatureEnabled()) {
         con_.notify_all();
     } else

@@ -27,6 +27,8 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+int g_two = 2;
+int g_five = 5;
 } // namespace
 
 /*
@@ -85,6 +87,74 @@ bool DoDisplayNode(const uint8_t* data, size_t size)
     DisplayNodeCommandHelper::SetRogSize(*context, id, rogWidth, rogHeight);
     return true;
 }
+bool DoSetDisplayMode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    config.isMirrored = true;
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    NodeId mirrorNodeId = static_cast<NodeId>(2);
+    config.mirrorNodeId = mirrorNodeId;
+    DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+    return true;
+}
+bool DoSetBootAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
+    DisplayNodeCommandHelper::SetBootAnimation(context, g_five, true);
+    return true;
+}
+bool DoSetScbNodePid(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    std::vector<int32_t> oldScbPids = {};
+    int32_t currentScbPid = -1;
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+    oldScbPids.push_back(1);
+    oldScbPids.push_back(g_two);
+    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -93,6 +163,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoDisplayNode(data, size);
+    OHOS::Rosen::DoSetDisplayMode(data, size);
+    OHOS::Rosen::DoSetBootAnimation(data, size);
+    OHOS::Rosen::DoSetScbNodePid(data, size);
     return 0;
 }
-

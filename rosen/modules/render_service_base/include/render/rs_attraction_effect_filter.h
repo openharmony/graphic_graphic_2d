@@ -53,15 +53,15 @@ public:
     void CalculateDeltaXAndDeltaY(const Drawing::Point windowCtrlPoints[], const Drawing::Point &pointDst,
         float &deltaX, float &deltaY, int location);
     void CalculateBezierVelList(const std::vector<Drawing::Point> &velocityList,
-        std::vector<Drawing::Point> &velocityCtrl, float location, bool isBelowTarget);
+        std::vector<Drawing::Point> &velocityCtrl, float location);
     float CalculateCubic(float p1, float p2, float t);
     bool IsWithinThreshold(const float left, const float right, const float threshold);
     float BinarySearch(float targetX, const Drawing::Point &p1, const Drawing::Point &p2);
 
     std::vector<Drawing::Point> CalculateCubicsCtrlPointOffset(const std::vector<Drawing::Point> controlPointOfVertex);
-    std::vector<int> CreateIndexSequence(bool isBelowTarget, float location);
+    std::vector<int> CreateIndexSequence(float location);
     std::vector<Drawing::Point> CalculateCubicsCtrlPoint(std::vector<Drawing::Point> controlPointOfVertex,
-        const Drawing::Point points[], float location, bool isBelowTarget, bool isFirstCtrl);
+        const Drawing::Point points[], float location, bool isFirstCtrl);
 
     Drawing::Point LerpPoint(const Drawing::Point& firstPoint, const Drawing::Point& secondPoint,
         float firstFactor, float secondFactor);
@@ -84,6 +84,7 @@ private:
     float canvasWidth_ = 0.0f;
     float canvasHeight_ = 0.0f;
     RectI attractionDirtyRegion_ = {0, 0, 0, 0};
+    bool isBelowTarget_ = false;
 
     friend class RSMarshallingHelper;
 };

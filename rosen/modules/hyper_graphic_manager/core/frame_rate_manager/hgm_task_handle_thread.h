@@ -22,8 +22,11 @@ namespace OHOS::Rosen {
 class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
+    const std::shared_ptr<AppExecFwk::EventRunner>& GetRunner() const { return runner_; }
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
     bool PostSyncTask(const std::function<void()>& task);
+    void PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime = 0);
+    void RemoveEvent(std::string eventId);
 
 private:
     HgmTaskHandleThread();

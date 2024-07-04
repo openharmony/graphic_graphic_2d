@@ -30,12 +30,14 @@ void RSRenderParticleSystem::CreateEmitter()
     size_t index = 0;
     for (size_t iter = 0; iter < particlesRenderParams_.size(); iter++) {
         auto& particleRenderParams = particlesRenderParams_[iter];
-        if (particleRenderParams->GetParticleType() == ParticleType::IMAGES) {
-            particleRenderParams->SetImageIndex(index++);
-            auto& image = particleRenderParams->GetParticleImage();
-            imageVector_.push_back(image);
+        if (particleRenderParams != nullptr) {
+            if (particleRenderParams->GetParticleType() == ParticleType::IMAGES) {
+                particleRenderParams->SetImageIndex(index++);
+                auto& image = particleRenderParams->GetParticleImage();
+                imageVector_.push_back(image);
+            }
+            emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
         }
-        emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
     }
 }
 

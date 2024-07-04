@@ -179,6 +179,8 @@ public:
 
     void SetShowRefreshRateEnabled(bool enable);
 
+    std::string GetRefreshInfo(pid_t pid);
+
 #ifndef ROSEN_ARKUI_X
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 

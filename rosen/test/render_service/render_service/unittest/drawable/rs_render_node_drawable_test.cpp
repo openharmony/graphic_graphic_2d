@@ -108,12 +108,12 @@ HWTEST_F(RSRenderNodeDrawableTest, PreDrawableCacheState, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
     RSRenderParams params(RSRenderNodeDrawableTest::id);
-    params.OpincSetCacheChangeFlag(true);
+    params.OpincSetCacheChangeFlag(true, true);
     drawable->isOpincRootNode_ = true;
     bool isOpincDropNodeExt = true;
     ASSERT_TRUE(drawable->PreDrawableCacheState(params, isOpincDropNodeExt));
 
-    params.OpincSetCacheChangeFlag(false);
+    params.OpincSetCacheChangeFlag(false, true);
     drawable->isOpincRootNode_ = false;
     isOpincDropNodeExt = false;
     ASSERT_FALSE(drawable->PreDrawableCacheState(params, isOpincDropNodeExt));

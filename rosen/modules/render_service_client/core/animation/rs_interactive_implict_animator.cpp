@@ -184,7 +184,7 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         auto animation = item.lock();
         auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
-            animation->StartInner(target);
+            animation->InteractiveContinue();
             if (!animation->IsUiAnimation()) {
                 renderAnimations.emplace_back(nodeId, animation->GetId());
             }
@@ -197,11 +197,11 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         ROSEN_LOGE("RSTransactionProxy is nullptr");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_PROXY);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
     transactionProxy->AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote =
-            std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations);
+            std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
         transactionProxy->AddCommand(commandForRemote, true);
     }
     return static_cast<int32_t>(StartAnimationErrorCode::SUCCESS);

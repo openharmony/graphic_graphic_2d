@@ -211,8 +211,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        auto para = tmpFilter->GetMagnifierShaderFilterPara();
-        snapshotIBounds.Offset(para->offsetX_, para->offsetY_);
+        snapshotIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
     }
 
     // Take a screenshot.

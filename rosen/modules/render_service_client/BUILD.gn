@@ -198,7 +198,7 @@ template("render_service_client_source_set") {
       }
     }
     if (rosen_is_ohos) {
-      public_deps += [
+      deps += [
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]

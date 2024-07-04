@@ -76,6 +76,10 @@ void RSDirtyRectsDFXTest::SetUp()
     if (drawingCanvas_) {
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
     }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.renderThreadParams_) {
+        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
 }
 void RSDirtyRectsDFXTest::TearDown() {}
 
@@ -89,7 +93,6 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     rsDirtyRectsDfx_->OnDraw(canvas_);
-    ASSERT_EQ(rsDirtyRectsDfx_->canvas_, nullptr);
 }
 
 /**
@@ -116,19 +119,6 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRegionInVirtual, TestSize.Level1)
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     rsDirtyRectsDfx_->DrawDirtyRegionInVirtual();
     ASSERT_EQ(rsDirtyRectsDfx_->canvas_, nullptr);
-}
-
-/**
- * @tc.name: DrawCurrentRefreshRate
- * @tc.desc: Test If DrawCurrentRefreshRate Can Run
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDirtyRectsDFXTest, DrawCurrentRefreshRate, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate();
-    ASSERT_NE(rsDirtyRectsDfx_->canvas_, nullptr);
 }
 
 /**

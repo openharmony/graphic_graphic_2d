@@ -85,10 +85,6 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     ASSERT_NE(nullptr, rsHardwareProcessor);
     ASSERT_EQ(uniRenderThread.uniRenderEngine_, renderEngine);
     ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
-    RSUniRenderThread::Instance().InitGrContext();
-    renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(nullptr, renderEngine);
-    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
 
 /**

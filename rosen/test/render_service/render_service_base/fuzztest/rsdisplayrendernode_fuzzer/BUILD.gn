@@ -27,6 +27,7 @@ ohos_fuzztest("RSDisplayRenderNodeFuzzTest") {
   ]
   deps = [
     "../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../modules/frame_analyzer:libframe_analyzer",
     "../../../../../modules/render_service:librender_service",
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_client:librender_service_client",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ namespace OHOS {
 
 namespace {
 
-const std::string defaultJsonConfig = R"__(
+const std::string DEFAULT_JSON_CONFIG = R"__(
 {
     "enableAppMode" : true,
     "appMode" : {
@@ -93,8 +93,8 @@ bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
     }
     const std::unique_ptr<Json::CharReader> reader(charReader);
     JSONCPP_STRING errs;
-    bool ret = reader->parse(defaultJsonConfig.c_str(),
-        defaultJsonConfig.c_str() + static_cast<int>(defaultJsonConfig.length()), &configData, &errs);
+    bool ret = reader->parse(DEFAULT_JSON_CONFIG.c_str(),
+        DEFAULT_JSON_CONFIG.c_str() + static_cast<int>(DEFAULT_JSON_CONFIG.length()), &configData, &errs);
     if (!ret) {
         WLOGE("json parse error: %{private}s", errs.c_str());
         return false;

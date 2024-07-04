@@ -587,6 +587,26 @@ void RSRenderServiceConnection::SetShowRefreshRateEnabled(bool enable)
     return RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
 }
 
+std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
+{
+    auto& context = mainThread_->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::string surfaceName = nodeMap.GetSelfDrawSurfaceNameByPid(pid);
+    if (surfaceName.empty()) {
+        return "";
+    }
+    std::string dumpString;
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+    }
+    return dumpString;
+}
+
 int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();

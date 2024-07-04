@@ -25,6 +25,7 @@ ohos_shared_library("hdr_capability_utils") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
 
@@ -57,6 +58,7 @@ ohos_shared_library("hdrcapability_napi") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
 

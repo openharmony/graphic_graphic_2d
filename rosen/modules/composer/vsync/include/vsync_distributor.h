@@ -187,9 +187,9 @@ private:
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
-    void UpdateVsyncPeriodAndRefreshRate();
 #endif
     bool isRs_ = false;
+    std::atomic<bool> hasVsync_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

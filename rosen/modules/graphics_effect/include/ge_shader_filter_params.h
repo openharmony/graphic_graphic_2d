@@ -98,37 +98,6 @@ struct GELinearGradientBlurShaderFilterParams {
 };
 
 constexpr char GE_FILTER_MAGNIFIER[] = "MAGNIFIER";
-constexpr char GE_FILTER_MAGNIFIER_FACTOR[] = "FACTOR";
-constexpr char GE_FILTER_MAGNIFIER_WIDTH[] = "WIDTH";
-constexpr char GE_FILTER_MAGNIFIER_HEIGHT[] = "HEIGHT";
-constexpr char GE_FILTER_MAGNIFIER_BORDER_WIDTH[] = "BORDERWIDTH";
-constexpr char GE_FILTER_MAGNIFIER_CORNER_RADIUS[] = "CORNERRADIUS";
-constexpr char GE_FILTER_MAGNIFIER_SHADOW_OFFSET_X[] = "SHADOWOFFSETX";
-constexpr char GE_FILTER_MAGNIFIER_SHADOW_OFFSET_Y[] = "SHADOWOFFSETY";
-constexpr char GE_FILTER_MAGNIFIER_SHADOW_SIZE[] = "SHADOWSIZE";
-constexpr char GE_FILTER_MAGNIFIER_SHADOW_STRENGTH[] = "SHADOWSTRENGTH";
-constexpr char GE_FILTER_MAGNIFIER_GRADIENT_MASK_COLOR_1[] = "GRADIENTMASKCOLOR1";
-constexpr char GE_FILTER_MAGNIFIER_GRADIENT_MASK_COLOR_2[] = "GRADIENTMASKCOLOR2";
-constexpr char GE_FILTER_MAGNIFIER_OUTER_CONTOUR_COLOR_1[] = "OUTERCONTOURCOLOR1";
-constexpr char GE_FILTER_MAGNIFIER_OUTER_CONTOUR_COLOR_2[] = "OUTERCONTOURCOLOR2";
-struct GEMagnifierShaderFilterParams {
-    float factor;
-    float width;
-    float height;
-    float borderWidth;
-    float cornerRadius;
-
-    float shadowOffsetX;
-    float shadowOffsetY;
-    float shadowSize;
-    float shadowStrength;
-
-    // rgba
-    uint32_t gradientMaskColor1;
-    uint32_t gradientMaskColor2;
-    uint32_t outerContourColor1;
-    uint32_t outerContourColor2;
-};
 
 } // namespace Drawing
 } // namespace Rosen

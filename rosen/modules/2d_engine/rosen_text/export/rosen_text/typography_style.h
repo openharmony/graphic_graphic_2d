@@ -105,7 +105,6 @@ struct TypographyStyle {
     bool customTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
-    bool ellipsizedForNDK = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -272,12 +272,17 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     nodeDrawable->SetCacheSurfaceNeedUpdated(true);
 
-    RSSubThreadManager::Instance()->NodeTaskNotify(param->GetId());
+    if (!param) {
+        RS_LOGE("RSSubThread::DrawableCache param is null");
+        return;
+    }
+    NodeId nodeId = param->GetId();
+    RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
 
     RSMainThread::Instance()->RequestNextVSync("subthread");
 
     // mark nodedrawable can release
-    RSUifirstManager::Instance().AddProcessDoneNode(param->GetId());
+    RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
     doingCacheProcessNum--;
 }
 
@@ -386,6 +391,7 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
     rsCanvas->SetParallelThreadIdx(threadIndex_);
     rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     nodeDrawable->SubDraw(*rsCanvas);

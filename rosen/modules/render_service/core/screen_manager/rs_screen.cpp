@@ -419,6 +419,16 @@ sptr<Surface> RSScreen::GetProducerSurface() const
 void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
     producerSurface_ = producerSurface;
+    isVirtualSurfaceUpdateFlag_ = true;
+}
+
+bool RSScreen::GetAndResetVirtualSurfaceUpdateFlag()
+{
+    if (isVirtualSurfaceUpdateFlag_) {
+        isVirtualSurfaceUpdateFlag_ = false;
+        return true;
+    }
+    return false;
 }
 
 void RSScreen::ModeInfoDump(std::string& dumpString)

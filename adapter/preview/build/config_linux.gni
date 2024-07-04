@@ -12,6 +12,9 @@
 # limitations under the License.
 
 # linux platform defines and configs
+
+import("preview_common.gni")
+
 defines = [
   "LINUX_PLATFORM",
   "GPU_DISABLED",

@@ -153,6 +153,9 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_proxy.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
@@ -588,6 +591,8 @@ ohos_shared_library("librender_service_base") {
       blocklist = "./rs_base_blocklist.txt"
     }
   }
+
+  sources = [ "src/common/rs_common_hook.cpp" ]
 
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 

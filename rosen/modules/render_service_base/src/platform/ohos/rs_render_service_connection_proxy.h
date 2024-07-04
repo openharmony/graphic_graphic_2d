@@ -99,6 +99,8 @@ public:
 
     void SetShowRefreshRateEnabled(bool enable) override;
 
+    std::string GetRefreshInfo(pid_t pid) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;

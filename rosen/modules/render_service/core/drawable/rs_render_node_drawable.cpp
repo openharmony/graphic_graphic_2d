@@ -413,17 +413,37 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     if (cachedImage_->IsValid(canvas.GetGPUContext().get())) {
         return cachedImage_;
     }
+#ifdef RS_ENABLE_GL
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
+        SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
+        cachedImage_ = std::make_shared<Drawing::Image>();
+        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+            origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
+        if (!ret) {
+            RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
+            return nullptr;
+        }
+    }
+#endif
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    Drawing::BitmapFormat info = Drawing::BitmapFormat { cachedImage_->GetColorType(), cachedImage_->GetAlphaType() };
-    SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
-    cachedImage_ = std::make_shared<Drawing::Image>();
-    bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
-        origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
-    if (!ret) {
-        RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
-        return nullptr;
+#ifdef RS_ENABLE_VK
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        if (vulkanCleanupHelper_ == nullptr) {
+            return nullptr;
+        }
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
+        cachedImage_ = std::make_shared<Drawing::Image>();
+        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+            origin, info, nullptr, NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_->Ref());
+        if (!ret) {
+            RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
+            return nullptr;
+        }
     }
 #endif
     return cachedImage_;

@@ -125,7 +125,8 @@ public:
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 
     static void CreateInteractiveAnimator(RSContext& context,
-        InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations);
+        InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
+        bool startImmediately);
     static void DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
     static void InteractiveAnimatorAddAnimations(RSContext& context,
         InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations);
@@ -193,7 +194,7 @@ ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
 // interactive implict animator operation
 ADD_COMMAND(RSInteractiveAnimatorCreate, ARG(ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
     AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
-    std::vector<std::pair<NodeId, AnimationId>>))
+    std::vector<std::pair<NodeId, AnimationId>>, bool))
 ADD_COMMAND(RSInteractiveAnimatorDestory, ARG(ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
     AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))
 ADD_COMMAND(RSInteractiveAnimatorPause, ARG(ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,

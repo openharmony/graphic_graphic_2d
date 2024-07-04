@@ -1275,6 +1275,14 @@ bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
     return dirtyRegionStack_.empty();
 }
 
+void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
+{
+    hasHdrPresent_ = other.hasHdrPresent_;
+    brightnessRatio_ = other.brightnessRatio_;
+    screenId_ = other.screenId_;
+    targetColorGamut_ = other.targetColorGamut_;
+}
+
 void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
 {
     // Note:
@@ -1294,10 +1302,6 @@ void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
     isParallelCanvas_ = other.isParallelCanvas_;
     disableFilterCache_ = other.disableFilterCache_;
     threadIndex_ = other.threadIndex_;
-    hasHdrPresent_ = other.hasHdrPresent_;
-    brightnessRatio_ = other.brightnessRatio_;
-    screenId_ = other.screenId_;
-    targetColorGamut_ = other.targetColorGamut_;
 }
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)

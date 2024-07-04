@@ -166,6 +166,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
+    auto canvasDrawingPtr = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(shared_from_this());
     {
         // check params, if params is invalid, do not post the task
         std::lock_guard<std::mutex> lockTask(taskMutex_);
@@ -174,31 +175,18 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         }
     }
 
-    auto nodeId = nodeId_;
-    auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
     auto rect = GetRenderParams()->GetBounds();
-    auto task = [this, rect, nodeId, ctx]() {
+    auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(GetRenderParams().get());
+    auto task = [this, canvasDrawingPtr, canvasDrawingParams, rect]() {
         std::lock_guard<std::mutex> lockTask(taskMutex_);
         if (!surface_ || !canvas_) {
             return;
         }
-        auto renderNode = renderNode_.lock();
-        if (renderNode == nullptr) {
-            return;
-        }
-        auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-        auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
-        if (canvasDrawingNode == nullptr) {
-            return;
-        }
-        auto canvasDrawingParams =
-            static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
         if (canvasDrawingParams->GetCanvasDrawingSurfaceChanged()) {
             return;
         }
         DrawContent(*canvas_, rect);
         canvasDrawingParams->SetNeedProcess(false);
-        canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
@@ -455,6 +443,11 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         canvas.DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
         return;
     }
+
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        return;
+    }
+
     if (!backendTexture_.IsValid()) {
         return;
     }

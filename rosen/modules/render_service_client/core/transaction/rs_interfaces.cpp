@@ -186,6 +186,11 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
 }
 
+std::string RSInterfaces::GetRefreshInfo(pid_t pid)
+{
+    return renderServiceClient_->GetRefreshInfo(pid);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {

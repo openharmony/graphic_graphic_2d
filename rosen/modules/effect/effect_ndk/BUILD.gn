@@ -27,11 +27,12 @@ template("effect_ndk_source_set") {
 
   ohos_source_set(target_name) {
     defines += invoker.defines
-    cflags_cc += invoker.cflags_cc
+    cflags_cc = []
 
     sanitize = {
       cfi = true
       cfi_cross_dso = true
+      cfi_vcall_icall_only = true
       debug = false
     }
 
@@ -76,6 +77,8 @@ template("effect_ndk_source_set") {
         "image_framework:pixelmap_ndk",
       ]
       deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+      cflags = [ "-fstack-protector-strong" ]
+      cflags_cc += [ "-fstack-protector-strong" ]
     } else {
       deps = []
       cflags = [ "-std=c++17" ]
@@ -92,13 +95,13 @@ template("effect_ndk_source_set") {
 effect_ndk_source_set("effect_ndk_source_ohos") {
   platform = "ohos"
   defines = []
-  cflags_cc = []
 }
 
 ohos_shared_library("native_effect_ndk") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   platform = current_os

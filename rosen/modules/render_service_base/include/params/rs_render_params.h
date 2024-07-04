@@ -133,7 +133,7 @@ public:
 
     void OpincUpdateRootFlag(bool suggestFlag);
     bool OpincGetRootFlag() const;
-    void OpincSetCacheChangeFlag(bool state);
+    void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
     bool OpincGetCachedMark();
     void OpincSetCachedMark(bool mark);
@@ -145,9 +145,6 @@ public:
     bool GetRSFreezeFlag() const;
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
-
-    void SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo);
-    DirtyRegionInfoForDFX GetDirtyRegionInfoForDFX() const;
 
     // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);

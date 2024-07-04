@@ -1696,6 +1696,34 @@ HWTEST_F(RSPropertiesTest, SetMotionBlurPara001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetMagnifierParams001
+ * @tc.desc: test results of SetMagnifierParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<Vector2f> para({1.f, 1.f});
+    properties.SetMagnifierParams(para);
+    ASSERT_TRUE(properties.GetMagnifierPara().has_value());
+    EXPECT_EQ(properties.GetMagnifierPara().value(), para.value());
+}
+
+/**
+ * @tc.name: SetMagnifierParams002
+ * @tc.desc: test results of SetMagnifierParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetMagnifierParams002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetMagnifierParams(std::nullopt);
+    EXPECT_EQ(properties.GetMagnifierPara(), std::nullopt);
+}
+
+/**
  * @tc.name: SetForegroundFilter001
  * @tc.desc: test results of SetForegroundFilter
  * @tc.type: FUNC
@@ -2581,6 +2609,20 @@ HWTEST_F(RSPropertiesTest, SetNGetSpherize001, TestSize.Level1)
     float spherizeDegree{1.f};
     properties.SetSpherize(spherizeDegree);
     EXPECT_EQ(properties.GetSpherize(), spherizeDegree);
+}
+
+/**
+ * @tc.name: SetNGetAttractionDstPoint001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionDstPoint001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector2f attractionDstPoint = Vector2f(1.f, 1.f);
+    properties.SetAttractionDstPoint(attractionDstPoint);
+    EXPECT_EQ(properties.GetAttractionDstPoint(), attractionDstPoint);
 }
 
 /**

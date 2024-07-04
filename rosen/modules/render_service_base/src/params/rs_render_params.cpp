@@ -282,10 +282,15 @@ bool RSRenderParams::OpincGetRootFlag() const
     return isOpincRootFlag_;
 }
 
-void RSRenderParams::OpincSetCacheChangeFlag(bool state)
+void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
 {
-    isOpincStateChanged_ = state;
-    needSync_ = true;
+    if (lastFrameSynced) {
+        isOpincStateChanged_ = state;
+        needSync_ = true;
+    } else {
+        needSync_ = needSync_ || (isOpincStateChanged_ || (isOpincStateChanged_ != state));
+        isOpincStateChanged_ = isOpincStateChanged_ || state;
+    }
 }
 
 bool RSRenderParams::OpincGetCacheChangeState()
@@ -317,20 +322,6 @@ void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 Drawing::Rect RSRenderParams::GetShadowRect() const
 {
     return shadowRect_;
-}
-
-void RSRenderParams::SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo)
-{
-    if (dirtyRegionInfoForDFX_ == dirtyRegionInfo) {
-        return;
-    }
-    dirtyRegionInfoForDFX_ = dirtyRegionInfo;
-    needSync_ = true;
-}
-
-DirtyRegionInfoForDFX RSRenderParams::GetDirtyRegionInfoForDFX() const
-{
-    return dirtyRegionInfoForDFX_;
 }
 
 void RSRenderParams::SetNeedSync(bool needSync)

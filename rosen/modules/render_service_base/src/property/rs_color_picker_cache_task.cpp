@@ -60,6 +60,8 @@ bool RSColorPickerCacheTask::InitTask(const std::shared_ptr<Drawing::Image> imag
     }
     if (imageSnapshotCache_) {
         cacheBackendTexture_ = imageSnapshotCache_->GetBackendTexture(false, nullptr);
+        cacheBitmapFormat_ = Drawing::BitmapFormat { imageSnapshotCache_->GetColorType(),
+            imageSnapshotCache_->GetAlphaType() };
         return true;
     }
     ROSEN_LOGD("RSColorPickerCacheTask InitTask:%{public}p", this);
@@ -159,8 +161,6 @@ bool RSColorPickerCacheTask::Render()
         return false;
     }
     auto threadImage = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
-        Drawing::ALPHATYPE_PREMUL };
     {
         std::unique_lock<std::mutex> lock(*grBackendTextureMutex_);
         if (cacheCanvas == nullptr || !cacheBackendTexture_.IsValid()) {
@@ -170,7 +170,7 @@ bool RSColorPickerCacheTask::Render()
         }
         SharedTextureContext* sharedContext = new SharedTextureContext(imageSnapshotCache_);
         if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr,
+            Drawing::TextureOrigin::BOTTOM_LEFT, cacheBitmapFormat_, nullptr,
             SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");

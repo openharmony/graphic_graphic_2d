@@ -153,6 +153,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Lev
             testThread.join();
         }
     }
+    sleep(1); // wait for handler task finished
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -446,8 +446,9 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         AddAnimationInner(animation);
     }
 
-    if (isStartAnimation) {
-        animation->StartInner(shared_from_this());
+    animation->StartInner(shared_from_this());
+    if (!isStartAnimation) {
+        animation->Pause();
     }
 }
 
@@ -479,10 +480,9 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
+void RSNode::SetMagnifierParams(const Vector2f& para)
 {
-    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
-        RSModifierType::MAGNIFIER_PARA, para);
+    SetProperty<RSMagnifierParamsModifier, RSProperty<Vector2f>>(RSModifierType::MAGNIFIER_PARA, para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -1007,8 +1007,14 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
 
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
+    if (property == nullptr) {
+        return;
+    }
     auto propertyId = property->GetId();
     auto uiAnimation = std::make_shared<RSAnimationGroup>();
+    if (uiAnimation == nullptr) {
+        return;
+    }
     auto animationId = uiAnimation->GetId();
     AddAnimation(uiAnimation);
     if (finishCallback != nullptr) {

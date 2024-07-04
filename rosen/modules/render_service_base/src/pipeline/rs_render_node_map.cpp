@@ -312,5 +312,18 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     }
     return itr->second;
 }
+
+const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
+{
+    for (auto &t : surfaceNodeMap_) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType()) {
+            return t.second->GetName();
+        }
+    }
+    ROSEN_LOGD("RSRenderNodeMap::GetSurfaceNameByPid no self drawing nodes belong to pid %{public}d",
+        static_cast<int32_t>(nodePid));
+    return "";
+}
+
 } // namespace Rosen
 } // namespace OHOS

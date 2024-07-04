@@ -132,6 +132,22 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_001, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetAndResetVirtualSurfaceUpdateFlag_001
+ * @tc.desc: Test get virtualSurface update flag correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIA9QG0
+ */
+HWTEST_F(RSScreenTest, GetAndResetVirtualSurfaceUpdateFlag_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    virtualScreen->isVirtualSurfaceUpdateFlag_ = true;
+    ASSERT_EQ(virtualScreen->GetAndResetVirtualSurfaceUpdateFlag(), true);
+    virtualScreen->isVirtualSurfaceUpdateFlag_ = false;
+    ASSERT_EQ(virtualScreen->GetAndResetVirtualSurfaceUpdateFlag(), false);
+}
+
+/*
  * @tc.name: GetScreenSupportedColorGamuts_001
  * @tc.desc: GetScreenSupportedColorGamuts Test
  * @tc.type: FUNC

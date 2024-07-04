@@ -204,6 +204,9 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
     if (!data.WriteBool(config.isSync)) {
         return nullptr;
     }
+    if (!data.WriteUint8(static_cast<uint8_t>(config.surfaceWindowType))) {
+        return nullptr;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -774,6 +777,27 @@ void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enable)
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
     }
+}
+
+std::string RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return "";
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteInt32(pid);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
+    }
+    std::string enable = reply.ReadString();
+    return enable;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)

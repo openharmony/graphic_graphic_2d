@@ -54,6 +54,7 @@ public:
     bool EnableRecordingOptimization(RSRenderParams& params);
 
     void SubDraw(Drawing::Canvas& canvas);
+    void ClipRoundRect(Drawing::Canvas& canvas);
 
     void UpdateCacheSurface();
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
@@ -248,6 +249,8 @@ private:
     // DMA Buffer
     bool DrawUIFirstCacheWithDma(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
+    void DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
+        const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif

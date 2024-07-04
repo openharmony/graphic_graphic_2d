@@ -110,7 +110,7 @@ int32_t HgmScreen::AddScreenModeInfo(int32_t width, int32_t height, uint32_t rat
 
 void HgmScreen::SetActiveModeId(int32_t modeId)
 {
-    HGM_LOGI("HgmScreen setting activeModeId to %{public}d", modeId);
+    HGM_LOGD("HgmScreen setting activeModeId to %{public}d", modeId);
     activeModeId_ = modeId;
 }
 
@@ -143,7 +143,7 @@ bool HgmScreen::IfSwitchToRate(int32_t sceneId, uint32_t rate) const
     }
 
     ifSwitch = true;
-    HGM_LOGI("HgmScreen Set framerate to %{public}u is accepted", rate);
+    HGM_LOGD("HgmScreen Set framerate to %{public}u is accepted", rate);
     return ifSwitch;
 }
 
@@ -162,7 +162,7 @@ int32_t HgmScreen::GetModeIdViaRate(uint32_t rate) const
         return HGM_ERROR;
     }
 
-    HGM_LOGI("HgmScreen getting a new mode with the resolution of current mode : %{public}d", activeModeId_);
+    HGM_LOGD("HgmScreen getting a new mode with the resolution of current mode : %{public}d", activeModeId_);
     int32_t mode = GetModeIdViaResolutionAndRate(profilePtr->GetWidth(), profilePtr->GetHeight(), rate);
     return mode;
 }
@@ -175,7 +175,7 @@ int32_t HgmScreen::GetModeIdViaResolutionAndRate(int32_t width, int32_t height, 
             continue;
         }
         int32_t modeIdFound = mode->GetModeId();
-        HGM_LOGI("HgmScreen mode : %{public}d is found for w : %{public}d, h : %{public}d, rate : %{public}u",
+        HGM_LOGD("HgmScreen mode : %{public}d is found for w : %{public}d, h : %{public}d, rate : %{public}u",
             modeIdFound, width, height, rate);
         return modeIdFound;
     }

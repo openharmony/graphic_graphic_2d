@@ -866,14 +866,6 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
-{
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
-}
-
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
@@ -1018,7 +1010,7 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;

@@ -455,7 +455,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
         return;
     }
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
-        RS_TRACE_NAME_FMT("doning%lld", it->first);
+        RS_OPTIONAL_TRACE_NAME_FMT("doning%lld", it->first);
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(it->first);
         if (!node) {
             continue;
@@ -721,9 +721,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
         currentFrameCacheType == MultiThreadCacheType::NONFOCUS_WINDOW) {
-        if (isRecentTaskScene_.load() && !node->IsNodeToBeCaptured()) {
-            node->SetIsNodeToBeCaptured(true);
-        }
         // delete card node in leashwindow tree
         for (auto it = pendingPostCardNodes_.begin(); it != pendingPostCardNodes_.end();) {
             auto surfaceNode = it->second;
@@ -1018,7 +1015,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         if (RSUifirstManager::Instance().IsRecentTaskScene()) {
             isNeedAssignToSubThread = (node.IsScale() || animation) && LeashWindowContainMainWindow(node);
         } else {
-            isNeedAssignToSubThread = animation || node.IsNodeToBeCaptured();
+            isNeedAssignToSubThread = animation;
         }
         // 1: Planning: support multi appwindows
         if (node.lastFrameHasAnimation_ && !animation) {
@@ -1122,7 +1119,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
     if (lastFrameCacheType == MultiThreadCacheType::NONE) { // likely branch: last is disable
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // switch: disable -> enable
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
-            RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lld", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lld", node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
@@ -1136,16 +1133,16 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType); // clear pending reset status
             AddCardNodes(node.GetId(), currentFrameCacheType);
         } else { // keep disable
-            RS_TRACE_NAME_FMT("UIFirst_keep disable  %lld", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %lld", node.GetId());
         }
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
-            RS_TRACE_NAME_FMT("UIFirst_keep enable  %lld", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %lld", node.GetId());
             MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
-            RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lld", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lld", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
             RemoveCardNodes(node.GetId());
@@ -1194,7 +1191,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
     // Planning: do not clear complete image for card
-    if (node.IsOnTheTree() || node.IsNodeToBeCaptured()) {
+    if (node.IsOnTheTree()) {
         return;
     }
     RSUifirstManager::Instance().DisableUifirstNode(node);

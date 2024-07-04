@@ -95,7 +95,7 @@ private:
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
         const Vector4f& offsets, bool isMultiLayer);
 
-    void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode);
+    void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, Drawing::DrawingSColor& color);
 
     Vector4f CalculateOffset(const Drawing::Path& path, const float offsetX, const float offsetY);
     void DrawSymbolOnCanvas(

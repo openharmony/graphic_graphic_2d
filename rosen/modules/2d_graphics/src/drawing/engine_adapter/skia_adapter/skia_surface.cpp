@@ -59,6 +59,37 @@ SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
 
 SkiaSurface::SkiaSurface() {}
 
+void SkiaSurface::PostSkSurfaceToTargetThread()
+{
+    auto canvas = GetCanvas();
+    if (canvas == nullptr) {
+        return;
+    }
+    auto ctx = canvas->GetGPUContext();
+    if (ctx == nullptr) {
+        return;
+    }
+    auto skctx = ctx->GetImpl<SkiaGPUContext>();
+    if (skctx == nullptr) {
+        return;
+    }
+    auto grctx = skctx->GetGrContext();
+    if (grctx == nullptr) {
+        return;
+    }
+    auto func = SkiaGPUContext::GetPostFunc(grctx);
+    if (func) {
+        auto skSurface = skSurface_;
+        auto skImage = skImage_;
+        func([skSurface, skImage]() {});
+    }
+}
+
+SkiaSurface::~SkiaSurface()
+{
+    PostSkSurfaceToTargetThread();
+}
+
 bool SkiaSurface::Bind(const Bitmap& bitmap)
 {
     const auto &skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();

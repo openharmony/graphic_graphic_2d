@@ -124,7 +124,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 #endif
-    const std::set<uint32_t> descriptorCheckList = {
+    static const std::set<uint32_t> descriptorCheckList = {
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
@@ -288,9 +288,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto bundleName = data.ReadString();
             bool isTextureExportNode = data.ReadBool();
             bool isSync = data.ReadBool();
+            auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
             RSSurfaceRenderNodeConfig config = {
                 .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
-                .isTextureExportNode = isTextureExportNode, .isSync = isSync};
+                .isTextureExportNode = isTextureExportNode, .isSync = isSync,
+                .surfaceWindowType = surfaceWindowType};
             sptr<Surface> surface = CreateNodeAndSurface(config);
             if (surface == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -487,6 +489,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             bool enable = data.ReadBool();
             SetShowRefreshRateEnabled(enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            pid_t pid = data.ReadInt32();
+            std::string ret = GetRefreshInfo(pid);
+            reply.WriteString(ret);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
