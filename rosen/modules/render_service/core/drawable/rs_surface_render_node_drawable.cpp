@@ -51,7 +51,9 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
-
+namespace {
+constexpr int32_t CORNER_SIZE = 4;
+}
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
@@ -693,7 +695,7 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode&
 {
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
+    if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) && HasCornerRadius(surfaceParams) &&
         (bgColor != RgbPalette::Transparent())) {
         auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0, std::round(surfaceParams.GetBounds().GetWidth()),
             std::round(surfaceParams.GetBounds().GetHeight()) });
@@ -709,6 +711,17 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode&
     } else {
         renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
     }
+}
+
+bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const
+{
+    auto rrect = surfaceParams.GetRRect();
+    for (auto index = 0; index < CORNER_SIZE; ++index) {
+        if (!ROSEN_EQ(rrect.radius_[index].x_, 0.f) || !ROSEN_EQ(rrect.radius_[index].y_, 0.f)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode,

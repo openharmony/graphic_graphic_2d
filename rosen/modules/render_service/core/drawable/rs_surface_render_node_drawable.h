@@ -231,6 +231,7 @@ private:
     Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
         RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
         bool isOffscreen) const;
+    bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
