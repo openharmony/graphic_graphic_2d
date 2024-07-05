@@ -468,6 +468,21 @@ public:
     */
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y);
 
+    /**
+     * @brief blob contains glyphs, their positions, and paint attributes specific to text:
+     * Typeface, text size, text scale x, text skew x, anti-alias, fake bold,
+     * font embedded bitmaps, pen/brush full hinting spacing, LCD text, linear text,
+     * and subpixel text. TextEncoding must be set to TextEncoding::GLYPH_ID.
+     * Elements of pen/brush: anti-alias, BlendMode, color including alpha,
+     * ColorFilter, MaskFilter, PathEffect, Shader, and Brush::Style; apply to blob.
+     * If attach pen to draw text, set Pen::Cap, Pen::Join, and stroke width;
+     * apply to Path created from blob.
+     * @param blob glyphs, positions, and their paints' text size, typeface, and so on
+     * @param x    horizontal offset applied to blob
+     * @param y    vertical offset applied to blob
+    */
+    void DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y);
+
     // symbol
     virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
 

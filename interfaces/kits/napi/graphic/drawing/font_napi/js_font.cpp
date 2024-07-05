@@ -15,6 +15,8 @@
 
 #include "js_font.h"
 
+#include "src/utils/SkUTF.h"
+
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
@@ -35,6 +37,7 @@ napi_value JsFont::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getTypeface", JsFont::GetTypeface),
         DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
         DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
+        DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
         DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
         DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
         DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
@@ -180,6 +183,12 @@ napi_value JsFont::GetMetrics(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnGetMetrics(env, info) : nullptr;
+}
+
+napi_value JsFont::MeasureSingleCharacter(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnMeasureSingleCharacter(env, info) : nullptr;
 }
 
 napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
@@ -334,6 +343,39 @@ napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
 
     std::shared_ptr<Typeface> typeface = m_font->GetTypeface();
     return JsTypeface::CreateJsTypeface(env, typeface);
+}
+
+napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnMeasureSingleCharacter font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+    char str[len + 1];
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], str, len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    size_t byteLen = currentStr - str;
+    if (byteLen != len) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+    return GetDoubleAndConvertToJsValue(env, m_font->MeasureSingleCharacter(unicode));
 }
 
 napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)

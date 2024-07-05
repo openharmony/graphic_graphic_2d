@@ -17,6 +17,8 @@
 
 #include <mutex>
 
+#include "src/utils/SkUTF.h"
+
 #ifdef ROSEN_OHOS
 #include "pixel_map.h"
 #include "pixel_map_napi.h"
@@ -34,6 +36,7 @@
 #include "utils/vertices.h"
 
 #include "brush_napi/js_brush.h"
+#include "font_napi/js_font.h"
 #include "matrix_napi/js_matrix.h"
 #include "pen_napi/js_pen.h"
 #include "path_napi/js_path.h"
@@ -342,6 +345,7 @@ bool JsCanvas::DeclareFuncAndCreateConstructor(napi_env env)
         DECLARE_NAPI_FUNCTION("drawPath", JsCanvas::DrawPath),
         DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
         DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
+        DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
         DECLARE_NAPI_FUNCTION("drawPixelMapMesh", JsCanvas::DrawPixelMapMesh),
         DECLARE_NAPI_FUNCTION("drawRegion", JsCanvas::DrawRegion),
         DECLARE_NAPI_FUNCTION("attachPen", JsCanvas::AttachPen),
@@ -904,6 +908,60 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawTextBlob(jsTextBlob->GetTextBlob().get(), x, y);
+    return nullptr;
+}
+
+napi_value JsCanvas::DrawSingleCharacter(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnDrawSingleCharacter(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter canvas is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+    char str[len + 1];
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], str, len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, x);
+    double y = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, y);
+
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter font is nullptr");
+        return nullptr;
+    }
+
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    size_t byteLen = currentStr - str;
+    if (byteLen != len) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+    m_canvas->DrawSingleCharacter(unicode, *font, x, y);
     return nullptr;
 }
 

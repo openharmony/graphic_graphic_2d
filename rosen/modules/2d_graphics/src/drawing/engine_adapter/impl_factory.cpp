@@ -371,6 +371,16 @@ std::unique_ptr<FontImpl> ImplFactory::CreateFontImpl(std::shared_ptr<Typeface> 
     return EngineImplFactory::CreateFont(typeface, size, scaleX, skewX);
 }
 
+std::unique_ptr<FontImpl> ImplFactory::CreateFontImpl(const Font& font)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateFont(font);
+    }
+#endif
+    return EngineImplFactory::CreateFont(font);
+}
+
 std::unique_ptr<TextBlobBuilderImpl> ImplFactory::CreateTextBlobBuilderImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
