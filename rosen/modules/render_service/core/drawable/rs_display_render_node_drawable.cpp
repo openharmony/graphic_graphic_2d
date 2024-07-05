@@ -778,6 +778,16 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty mirroredNode is nullptr.");
         return mappedDamageRegionRects;
     }
+    auto mirroredNodeDrawable = GetDrawableById(params.GetMirrorSourceId());
+    if (!mirroredNodeDrawable) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty mirroredNodeDrawable is nullptr");
+        return mappedDamageRegionRects;
+    }
+    auto mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredNodeDrawable->GetRenderParams().get());
+    if (!mirroredParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty mirroredParams is nullptr");
+        return mappedDamageRegionRects;
+    }
 
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -796,9 +806,11 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
         mappedDamageRegionRects.emplace_back(mappedRect);
     }
-    if (!(lastMatrix_ == canvasMatrix) || isLastFrameHasSecSurface_ || uniParam->GetForceMirrorScreenDirty()) {
+    if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirroredParams->GetMatrix()) ||
+        isLastFrameHasSecSurface_ || uniParam->GetForceMirrorScreenDirty()) {
         displayNode.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
+        lastMirrorMatrix_ = mirroredParams->GetMatrix();
         isLastFrameHasSecSurface_ = false;
     }
     RectI hwcRect = mirroredNode->GetSyncDirtyManager()->GetHwcDirtyRegion();
@@ -847,6 +859,17 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     }
     curCanvas_->Save();
     virtualProcesser->ScaleMirrorIfNeed(*displayNodeSp, *curCanvas_);
+
+    RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp, &params);
+    if (uniParam.IsVirtualDirtyEnabled()) {
+        Drawing::Matrix matrix = curCanvas_->GetTotalMatrix();
+        std::vector<RectI> dirtyRects = CalculateVirtualDirty(*displayNodeSp, virtualProcesser, params, matrix);
+        rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, params.GetScreenInfo());
+    } else {
+        std::vector<RectI> emptyRects = {};
+        virtualProcesser->SetRoiRegionToCodec(emptyRects);
+    }
+
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredNode);
 
@@ -862,17 +885,6 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     Drawing::Region clipRegion;
     clipRegion.Clone(uniParam.GetClipRegion());
     ResetRotateIfNeed(*mirroredNode, *virtualProcesser, clipRegion);
-
-    RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp, &params);
-    if (uniParam.IsVirtualDirtyEnabled()) {
-        Drawing::Matrix matrix = canvasBackup_->GetTotalMatrix();
-        matrix.PreConcat(curCanvas_->GetTotalMatrix());
-        std::vector<RectI> dirtyRects = CalculateVirtualDirty(*displayNodeSp, virtualProcesser, params, matrix);
-        rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, params.GetScreenInfo());
-    } else {
-        std::vector<RectI> emptyRects = {};
-        virtualProcesser->SetRoiRegionToCodec(emptyRects);
-    }
 
     std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirroredNode);
     mirroredNode->SetCacheImgForCapture(nullptr);

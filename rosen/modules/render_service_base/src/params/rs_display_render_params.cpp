@@ -140,6 +140,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSource_ = mirrorSource_;
+    targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->needOffscreen_ = needOffscreen_;
