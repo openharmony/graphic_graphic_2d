@@ -1283,8 +1283,7 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
-    uint32_t pid = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus, "", pid, touchCnt);
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
