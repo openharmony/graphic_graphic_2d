@@ -498,6 +498,8 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
     }
     const auto &capability = screen->GetCapability();
     ScreenSize screenSize = {screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight};
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager add screen: w * h: [%{public}u * %{public}u], capability w * h: "
+        "[%{public}u * %{public}u]", screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight);
     if (hgmCore.AddScreen(thisId, initModeId, screenSize)) {
         RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
         return;
@@ -526,6 +528,7 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
     RS_LOGI("RSScreenManager RemoveScreenFromHgm");
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId id = ToScreenId(output->GetScreenId());
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager remove screen, id: %{public}" PRIu64 "", id);
     if (hgmCore.RemoveScreen(id)) {
         RS_LOGW("RSScreenManager failed to remove screen : %{public}" PRIu64 "", id);
     }
@@ -614,6 +617,7 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager process screen disconnected, id: %{public}" PRIu64 "", id);
     auto screensIt = screens_.find(id);
     if (screensIt == screens_.end()) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64, __func__, id);

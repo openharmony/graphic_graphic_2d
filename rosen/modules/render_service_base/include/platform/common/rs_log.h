@@ -28,6 +28,7 @@ namespace Rosen {
 // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL_RS = { LOG_CORE, 0xD001400, "OHOS::RS" };
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = { LOG_CORE, 0xD001400, "OHOS::ROSEN" };
+constexpr const char* DEBUG_GRAPHIC_LOG_FLAG = "debug.graphic.logflag";
 
 class RSB_EXPORT RSLog {
 public:
@@ -37,6 +38,63 @@ public:
 };
 
 void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
+
+enum RSLogFlag {
+    // screen
+    FLAG_DEBUG_SCREEN = 0x00000001,
+
+    // node
+    FLAG_DEBUG_NODE = 0x00000002,
+
+    // effect
+    FLAG_DEBUG_EFFECT = 0x00000004,
+
+    // pipeline
+    FLAG_DEBUG_PIPELINE = 0x00000008,
+
+    // modifier
+    FLAG_DEBUG_MODIFIER = 0x00000010,
+
+    // buffer
+    FLAG_DEBUG_BUFFER = 0x00000020,
+
+    // layer
+    FLAG_DEBUG_LAYER = 0x00000040,
+
+    // composer
+    FLAG_DEBUG_COMPOSER = 0x00000080,
+
+    // vsync
+    FLAG_DEBUG_VSYNC = 0x00000100,
+
+    // drawing
+    FLAG_DEBUG_DRAWING = 0x00000200,
+};
+
+class RSLogManager {
+public:
+    RSLogManager();
+    ~RSLogManager() = default;
+
+    static RSLogManager& GetInstance();
+    bool SetRSLogFlag(std::string& flag);
+    inline bool IsRSLogFlagEnabled(RSLogFlag flag)
+    {
+        return logFlag_ & flag;
+    }
+
+private:
+    uint32_t logFlag_;
+
+    bool IsFlagValid(std::string& flag);
+
+    static constexpr uint32_t INPUT_FLAG_MIN_LENGTH = 2;
+
+    static constexpr uint32_t INPUT_FLAG_MAX_LENGTH = 10;
+
+    static constexpr uint32_t NUMERICAL_BASE = 16;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -67,5 +125,82 @@ void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* form
     HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) \
     HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
+
+#ifndef RS_LOGD_IF
+#define RS_LOGD_IF(cond, format, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
+
+#ifndef RS_LOGI_IF
+#define RS_LOGI_IF(cond, format, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
+
+#ifndef RS_LOGW_IF
+#define RS_LOGW_IF(cond, format, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
+
+#ifndef RS_LOGE_IF
+#define RS_LOGE_IF(cond, format, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
+
+#ifndef RS_LOGF_IF
+#define RS_LOGF_IF(cond, format, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
+
+#ifndef ROSEN_LOGD_IF
+#define ROSEN_LOGD_IF RS_LOGD_IF
+#endif
+
+#ifndef ROSEN_LOGI_IF
+#define ROSEN_LOGI_IF RS_LOGI_IF
+#endif
+
+#ifndef ROSEN_LOGW_IF
+#define ROSEN_LOGW_IF RS_LOGW_IF
+#endif
+
+#ifndef ROSEN_LOGE_IF
+#define ROSEN_LOGE_IF RS_LOGE_IF
+#endif
+
+#ifndef ROSEN_LOGF_IF
+#define ROSEN_LOGF_IF RS_LOGF_IF
+#endif
+
+#define RS_LOG_ENABLE(flag) (RSLogManager::GetInstance().IsRSLogFlagEnabled(flag))
+
+#define DEBUG_SCREEN RS_LOG_ENABLE(FLAG_DEBUG_SCREEN)
+
+#define DEBUG_NODE RS_LOG_ENABLE(FLAG_DEBUG_NODE)
+
+#define DEBUG_MODIFIER RS_LOG_ENABLE(FLAG_DEBUG_MODIFIER)
+
+#define DEBUG_BUFFER RS_LOG_ENABLE(FLAG_DEBUG_BUFFER)
+
+#define DEBUG_LAYER RS_LOG_ENABLE(FLAG_DEBUG_LAYER)
+
+#define DEBUG_COMPOSER RS_LOG_ENABLE(FLAG_DEBUG_COMPOSER)
+
+#define DEBUG_PIPELINE RS_LOG_ENABLE(FLAG_DEBUG_PIPELINE)
+
+#define DEBUG_VSYNC RS_LOG_ENABLE(FLAG_DEBUG_VSYNC)
+
+#define DEBUG_DRAWING RS_LOG_ENABLE(FLAG_DEBUG_DRAWING)
 
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H
