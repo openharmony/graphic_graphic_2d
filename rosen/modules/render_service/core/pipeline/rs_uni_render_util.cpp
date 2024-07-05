@@ -637,12 +637,14 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         return params;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            SrcRectScaleDown(params, buffer, surface, localBounds);
-        } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-            SrcRectScaleFit(params, buffer, surface, localBounds);
-        }
+    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) != GSERROR_OK) {
+        scalingMode = layer->GetScalingMode();
+    }
+
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        SrcRectScaleDown(params, buffer, surface, localBounds);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        SrcRectScaleFit(params, buffer, surface, localBounds);
     }
     return params;
 }

@@ -402,6 +402,16 @@ public:
         return brightnessRatio_ = brightnessRatio;
     }
 
+    void SetScalingMode(ScalingMode scalingMode)
+    {
+        scalingMode_ = scalingMode;
+    }
+
+    ScalingMode GetScalingMode() const
+    {
+        return scalingMode_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -430,6 +440,7 @@ public:
         preMulti_ = layerInfo->IsPreMulti();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
+        scalingMode_ = layerInfo->GetScalingMode();
     }
 
     void Dump(std::string &result) const
@@ -534,6 +545,7 @@ private:
     mutable std::mutex mutex_;
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    ScalingMode scalingMode_;
 };
 } // namespace Rosen
 } // namespace OHOS
