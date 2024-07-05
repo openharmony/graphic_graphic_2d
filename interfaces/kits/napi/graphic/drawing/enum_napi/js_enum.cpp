@@ -20,8 +20,8 @@
 
 #include "native_value.h"
 #include "draw/blend_mode.h"
-#include "draw/core_canvas.h"
 #include "draw/clip.h"
+#include "draw/core_canvas.h"
 #include "draw/path.h"
 #include "draw/pen.h"
 #include "effect/mask_filter.h"
@@ -121,6 +121,12 @@ static const std::vector<struct JsEnumInt> g_blurType = {
     { "INNER", static_cast<int32_t>(BlurType::INNER) },
 };
 
+static const std::vector<struct JsEnumInt> g_rectType = {
+    { "DEFAULT", static_cast<int32_t>(Lattice::RectType::DEFAULT) },
+    { "TRANSPARENT", static_cast<int32_t>(Lattice::RectType::TRANSPARENT) },
+    { "FIXEDCOLOR", static_cast<int32_t>(Lattice::RectType::FIXEDCOLOR) },
+};
+
 static const std::vector<struct JsEnumInt> g_fontMetricsFlags = {
     { "UNDERLINE_THICKNESS_VALID", static_cast<int32_t>(
         Drawing::FontMetrics::FontMetricsFlags::UNDERLINE_THICKNESS_IS_VALID_FLAG) },
@@ -173,6 +179,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "JoinStyle", g_joinStyle },
     { "CapStyle", g_capStyle },
     { "BlurType", g_blurType },
+    { "RectType", g_rectType },
     { "FontMetricsFlags", g_fontMetricsFlags },
     { "FontEdging", g_fontEdging },
     { "FontHinting", g_fontHinting },

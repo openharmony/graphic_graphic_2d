@@ -67,6 +67,7 @@ ohos_shared_library("drawing_napi_impl") {
     "js_common.cpp",
     "js_drawing_init.cpp",
     "js_drawing_utils.cpp",
+    "lattice_napi/js_lattice.cpp",
     "mask_filter_napi/js_mask_filter.cpp",
     "matrix_napi/js_matrix.cpp",
     "path_effect_napi/js_path_effect.cpp",

@@ -332,6 +332,8 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
+bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t size);
+
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
     return napi_get_value_int32(env, jsValue, &value) == napi_ok && value >= lo && value <= hi;

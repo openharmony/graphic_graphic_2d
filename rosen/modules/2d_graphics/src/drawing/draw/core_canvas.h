@@ -61,7 +61,6 @@ enum class QuadAAFlags {
     ALL_QUADAAFLAGS = 15,
 };
 
-const int DIVES_SIZE = 2;
 #undef TRANSPARENT
 struct Lattice {
     enum RectType : uint8_t {
@@ -69,13 +68,13 @@ struct Lattice {
         TRANSPARENT,
         FIXEDCOLOR,
     };
-    int fXDivs[DIVES_SIZE];
-    int fYDivs[DIVES_SIZE];
-    RectType fRectTypes = RectType::DEFAULT;
+    int* fXDivs = nullptr;
+    int* fYDivs = nullptr;
+    RectType* fRectTypes = nullptr;
     int fXCount;
     int fYCount;
-    RectI fBounds;
-    Color fColors;
+    RectI* fBounds = nullptr;
+    Color* fColors = nullptr;
 };
 
 enum CacheType : uint8_t {
