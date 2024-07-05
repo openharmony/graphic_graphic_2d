@@ -420,8 +420,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     if (frameBufferSurfaceOhos_ == nullptr) {
         frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
     }
+    FrameContextConfig frameContextConfig = {isProtected, true};
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos_, renderFrameConfig,
-        forceCPU, true, isProtected);
+        forceCPU, true, frameContextConfig);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");
         return;

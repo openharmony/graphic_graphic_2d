@@ -315,7 +315,8 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(
+            RSMainThread::Instance()->GetDeviceType() == DeviceType::PC), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }

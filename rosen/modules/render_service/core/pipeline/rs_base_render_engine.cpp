@@ -272,16 +272,20 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #ifdef NEW_RENDER_CONTEXT
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
+    const FrameContextConfig& frameContextConfig)
 #else
-std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
+std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
+    const std::shared_ptr<RSSurfaceOhos>& rsSurface,
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
+    const FrameContextConfig& frameContextConfig)
 #endif
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(
+            frameContextConfig.independentContext);
         if (renderContext_ == nullptr) {
             return nullptr;
         }
@@ -307,7 +311,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #else
     bufferUsage |= BUFFER_USAGE_CPU_WRITE;
 #endif
-    if (isProtected) {
+    if (frameContextConfig.isProtected) {
         bufferUsage |= BUFFER_USAGE_PROTECTED;
     }
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
@@ -345,7 +349,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     }
 #endif
 #endif
-    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC, isProtected);
+    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC,
+        frameContextConfig.isProtected);
     RS_OPTIONAL_TRACE_END();
     if (surfaceFrame == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
@@ -359,7 +364,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 }
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
+    const FrameContextConfig& frameContextConfig)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -394,7 +400,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 #endif
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC, isProtected);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
 }
 
 #ifdef NEW_RENDER_CONTEXT
