@@ -751,6 +751,10 @@ void RSMainThread::SubScribeSystemAbility()
     std::string strTid = std::to_string(gettid());
 
     saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    if (saStatusChangeListener_ == nullptr) {
+        RS_LOGE("RSMainThread::SubScribeSystemAbility new VSyncSystemAbilityListener failed");
+        return;
+    }
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
         RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
@@ -1250,7 +1254,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 RS_OPTIONAL_TRACE_NAME_FMT(
-                    "rs debug: name %s, id %llu, buffer consumed and not HardwareEnabledType",
+                    "rs debug: name %s, id %" PRIu64", buffer consumed and not HardwareEnabledType",
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
             if (isUniRender_ && surfaceNode->IsCurrentFrameBufferConsumed()) {
@@ -1258,7 +1262,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetPreBuffer().buffer);
                 if (surfaceNode->GetBufferSizeChanged()) {
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %llu, surfaceNode buffer size changed",
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode buffer size changed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
             }
@@ -1270,7 +1274,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %llu, pc uifirst on",
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", pc uifirst on",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
         }
@@ -1306,6 +1310,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
 {
     for (auto& node : subThreadNodes_) {
+        if (node == nullptr) {
+            continue;
+        }
         if (node->GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
             continue;
         }
@@ -1340,7 +1347,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
 
             if (!surfaceNode->GetDoDirectComposition()) {
                 doDirectComposition_ = false;
-                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %llu, node GetDoDirectComposition is false",
+                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", node GetDoDirectComposition is false",
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 surfaceNode->SetDoDirectComposition(true);
             }
@@ -1349,8 +1356,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 if (surfaceNode->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %llu, node not on the tree and buffer consumed",
-                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", node not on the tree "
+                        "and buffer consumed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
                 return;
             }
@@ -1390,7 +1397,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT(
-                        "rs debug: name %s, id %llu, isLastFrameHwcEnabled not enabled and buffer consumed",
+                        "rs debug: name %s, id %" PRIu64", isLastFrameHwcEnabled not enabled and buffer consumed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 } else {
                     if (surfaceNode->GetAncoForceDoDirect()) {
@@ -1406,7 +1413,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %llu, HwcDelayDirtyFlag is true",
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", HwcDelayDirtyFlag is true",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
             }
@@ -1420,6 +1427,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
 bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
 {
     for (auto& node : subThreadNodes_) {
+        if (node == nullptr) {
+            continue;
+        }
         if (node->IsAppWindow()) {
             if (node->GetId() == appNodeId) {
                 return true;
@@ -1442,7 +1452,11 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    bool isMultiDisplay = rootNode && rootNode->GetChildrenCount() > 1;
+    if (rootNode == nullptr) {
+        RS_LOGE("RSMainThread::CheckIfHardwareForcedDisabled rootNode is nullptr");
+        return;
+    }
+    bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
 
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE
@@ -1598,7 +1612,7 @@ bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (node.GetConsumer()->QueryIfBufferAvailable()) {
+    if (node.GetConsumer() != nullptr && node.GetConsumer()->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
@@ -1710,7 +1724,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
     }
-    if (!frameRateMgr_) {
+    if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
     DvsyncInfo info;
@@ -1737,8 +1751,10 @@ bool RSMainThread::GetParallelCompositionEnabled()
 
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
-    markRenderFlag_ = true;
-    rsVSyncDistributor_->SetFrameIsRender(isRender);
+    if (rsVSyncDistributor_ != nullptr) {
+        markRenderFlag_ = true;
+        rsVSyncDistributor_->SetFrameIsRender(isRender);
+    }
 }
 
 void RSMainThread::ColorPickerRequestVsyncIfNeed()
@@ -1934,6 +1950,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSMainThread::DoDirectComposition screenManager is nullptr");
+        return false;
+    }
     auto screenInfo = screenManager->QueryScreenInfo(displayNode->GetScreenId());
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("RSMainThread::DoDirectComposition: ScreenState error!");
@@ -3576,11 +3596,15 @@ void RSMainThread::UpdateRogSizeIfNeeded()
     auto child = rootNode->GetFirstChild();
     if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
         auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (displayNode) {
-            auto screenManager_ = CreateOrGetScreenManager();
-            screenManager_->SetRogScreenResolution(
-                displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
+        if (displayNode == nullptr) {
+            return;
         }
+        auto screenManager_ = CreateOrGetScreenManager();
+        if (screenManager_ == nullptr) {
+            return;
+        }
+        screenManager_->SetRogScreenResolution(
+            displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
     }
 }
 
@@ -3624,6 +3648,10 @@ void RSMainThread::UpdateUIFirstSwitch()
         return;
     }
     auto screenManager_ = CreateOrGetScreenManager();
+    if (!screenManager_) {
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
+        return;
+    }
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ != DeviceType::PC) {
         if (hasProtectedLayer_) {

@@ -1318,8 +1318,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // currently CheckAndUpdateGeoTrans without dirty check
         auto& geoPtr = properties.boundsGeo_;
         // selfdrawing node's geo may not dirty when its dirty region changes
-        if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ || isSelfDrawingNode_ ||
-            selfDrawRectChanged) {
+        if (geoPtr && (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
+            isSelfDrawingNode_ || selfDrawRectChanged)) {
             absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);

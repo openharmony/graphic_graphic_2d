@@ -46,6 +46,10 @@ NativeVkImageRes::~NativeVkImageRes()
 
 std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuffer> buffer)
 {
+    if (buffer == nullptr) {
+        ROSEN_LOGE("NativeVkImageRes::Create buffer is nullptr");
+        return nullptr;
+    }
     auto width = buffer->GetSurfaceBufferWidth();
     auto height = buffer->GetSurfaceBufferHeight();
     NativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
@@ -69,6 +73,10 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     const sptr<SyncFence>& acquireFence,
     pid_t threadIndex)
 {
+    if (buffer == nullptr) {
+        ROSEN_LOGE("RSVkImageManager::MapVkImageFromSurfaceBuffer buffer is nullptr");
+        return nullptr;
+    }
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
