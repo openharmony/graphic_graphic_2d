@@ -583,12 +583,12 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
     param->isMainWindowType_ = false;
     param->isLeashWindow_ = false;
     param->isAppWindow_ = true;
-    drawble->renderParams_ = std::move(param);
+    drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
-    ASSERT_TRUE(drawble->renderParams_);
+    ASSERT_TRUE(drawable->renderParams_);
 }
 
 /**
@@ -606,7 +606,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest002, Function | SmallTe
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
-    ASSERT_FALSE(drawble->renderParams_);
+    ASSERT_FALSE(drawable->renderParams_);
 }
 
 /**
@@ -625,11 +625,11 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTe
     param->isMainWindowType_ = false;
     param->isLeashWindow_ = false;
     param->isAppWindow_ = false;
-    drawble->renderParams_ = std::move(param);
+    drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
-    ASSERT_TRUE(drawble->renderParams_);
+    ASSERT_TRUE(drawable->renderParams_);
 }
 
 /**
