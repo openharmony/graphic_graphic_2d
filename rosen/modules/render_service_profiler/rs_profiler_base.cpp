@@ -1020,7 +1020,7 @@ const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMall
 uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)
 {
     uint32_t depth = 0;
-    for(auto curNode = node; curNode != nullptr; depth++) {
+    for (auto curNode = node; curNode != nullptr; depth++) {
         curNode = curNode ? curNode->GetParent().lock() : nullptr;
     }
     return depth;
