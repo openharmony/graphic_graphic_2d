@@ -388,7 +388,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
     rsTransactionData->SetSyncId(1);
-    mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
@@ -408,7 +407,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     rsTransactionData->MarkNeedSync();
     rsTransactionData->MarkNeedCloseSync();
     rsTransactionData->SetSyncTransactionNum(1);
-    mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
@@ -424,22 +422,15 @@ HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     auto rsTransactionData = std::make_unique<RSTransactionData>();
 
-    mainThread->syncTransactionCount_ = 1;
     rsTransactionData->SetParentPid(-1);
-    rsTransactionData->SetChildPid(-1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     auto parentPid = rsTransactionData->GetParentPid();
-    auto childPid = rsTransactionData->GetChildPid();
     ASSERT_EQ(parentPid, -1);
-    ASSERT_EQ(childPid, -1);
 
-    mainThread->syncTransactionCount_ = 1;
     rsTransactionData->SetSyncTransactionNum(1);
-    rsTransactionData->SetParentPid(1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     ASSERT_EQ(rsTransactionData->GetSyncTransactionNum(), 1);
 
-    mainThread->syncTransactionCount_ = 0;
     rsTransactionData->MarkNeedCloseSync();
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     mainThread->ProcessEmptySyncTransactionCount(0, 0, 0);

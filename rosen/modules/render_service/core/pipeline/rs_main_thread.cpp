@@ -1096,14 +1096,12 @@ void RSMainThread::ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t par
         parentPid, childPid);
     ROSEN_LOGI("RSMainThread::ProcessEmptySyncTransactionCount syncId:%{public}" PRIu64 " parentPid:%{public}d "
         "childPid:%{public}d", syncId, parentPid, childPid);
-    if ((parentPid == -1 && childPid == -1) || ExtractPid(syncId) == childPid) {
-        syncTransactionCount_ -= 1;
-    } else {
-        auto count = subSyncTransactionCounts_[childPid];
-        count--;
-        count == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = count;
+    subSyncTransactionCounts_[parentPid]--;
+    if (subSyncTransactionCounts_[parentPid] == 0) {
+        subSyncTransactionCounts_.erase(parentPid);
     }
-    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
+    if (subSyncTransactionCounts_.empty()) {
+        ROSEN_LOGD("SyncTransaction sucess");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1126,35 +1124,22 @@ void RSMainThread::StartSyncTransactionFallbackTask(std::unique_ptr<RSTransactio
 
 void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
+    auto sendingPid = rsTransactionData->GetSendingPid();
     auto parentPid = rsTransactionData->GetParentPid();
-    auto childPid = rsTransactionData->GetChildPid();
-    auto syncNum = rsTransactionData->GetSyncTransactionNum();
-    auto isFromSCB = ((parentPid == -1 && childPid == -1) || ExtractPid(rsTransactionData->GetSyncId()) == childPid);
-
-    if (isNeedCloseSync) {
-        syncTransactionCount_ += syncNum;
-    } else if (isFromSCB && syncNum == 0) {
-        // Synchronous commands initiated directly from the SCB and the subprocess does not contain UiExtension.
-        syncTransactionCount_ -= 1;
-    } else {
-        // Synchronous command initiated by uiextension host or the subprocess contain UiExtension.
-        auto parentNum = subSyncTransactionCounts_[parentPid];
-        auto childNum = subSyncTransactionCounts_[childPid];
-        if (syncNum > 0) {
-            parentPid == -1 ? syncTransactionCount_ -= 1 : parentNum -= 1;
-            childNum += syncNum;
-        } else {
-            childNum -= 1;
+    subSyncTransactionCounts_[sendingPid] += rsTransactionData->GetSyncTransactionNum();
+    if (subSyncTransactionCounts_[sendingPid] == 0) {
+        subSyncTransactionCounts_.erase(sendingPid);
+    }
+    if (!rsTransactionData->IsNeedCloseSync()) {
+        subSyncTransactionCounts_[parentPid]--;
+        if (subSyncTransactionCounts_[parentPid] == 0) {
+            subSyncTransactionCounts_.erase(parentPid);
         }
-        parentNum == 0 ? subSyncTransactionCounts_.erase(parentPid) : subSyncTransactionCounts_[parentPid] = parentNum;
-        childNum == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = childNum;
     }
     ROSEN_LOGD("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
-               " parentPid:%{public}d childPid:%{public}d syncNum:%{public}d  syncTransactionCount_:%{public}d "
-               "subSyncTransactionCounts_.size:%{public}zd",
-        isNeedCloseSync, rsTransactionData->GetSyncId(), parentPid, childPid, syncNum, syncTransactionCount_,
-        subSyncTransactionCounts_.size());
+               " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
+        rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
+        rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
@@ -1184,7 +1169,8 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
     ProcessSyncTransactionCount(rsTransactionData);
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
+    if (subSyncTransactionCounts_.empty()) {
+        ROSEN_LOGD("SyncTransaction sucess");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1200,7 +1186,6 @@ void RSMainThread::ProcessAllSyncTransactionData()
         }
     }
     syncTransactionData_.clear();
-    syncTransactionCount_ = 0;
     subSyncTransactionCounts_.clear();
     RequestNextVSync();
 }
