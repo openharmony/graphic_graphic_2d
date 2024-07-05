@@ -87,6 +87,8 @@ public:
 #endif
 
     virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
+
+    virtual void VmaDefragment() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

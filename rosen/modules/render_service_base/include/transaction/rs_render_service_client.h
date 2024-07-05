@@ -336,6 +336,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
 
+    void SetVmaCacheStatus(bool flag);
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
 #ifdef TP_FEATURE_ENABLE
