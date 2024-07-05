@@ -582,7 +582,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
     param->isMainWindowType_ = false;
     param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
+    param->isAppWindow_ = true;
     drawble->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
