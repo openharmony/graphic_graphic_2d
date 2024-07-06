@@ -87,7 +87,18 @@ public:
     {
         return;
     };
-
+    void SetTranslate(float dx, float dy) override
+    {
+        return;
+    };
+    float GetTranslateX() const override
+    {
+        return 0.0f;
+    };
+    float GetTranslateY() const override
+    {
+        return 0.0f;
+    };
     int GetParaNum() const override
     {
         return 0;
