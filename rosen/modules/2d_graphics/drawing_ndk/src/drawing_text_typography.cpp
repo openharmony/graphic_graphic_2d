@@ -2874,7 +2874,7 @@ static bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInf
     if (!fallbackInfo.font.empty() && !CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
         return false;
     }
-    if (!fallbackInfo.familyName.empty() && !CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
+    if(!fallbackInfo.familyName.empty() && !CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)){
         return false;
     }
     return true;
