@@ -1711,7 +1711,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
             break;
         default:
-            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenState unsupported");
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenState unsupported");
             return false;
     }
 

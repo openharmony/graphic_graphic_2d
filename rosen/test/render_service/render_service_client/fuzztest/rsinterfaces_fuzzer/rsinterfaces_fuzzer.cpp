@@ -138,6 +138,22 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
     auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
     rsInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
+    bool enable = GetData<bool>();
+    rsInterfaces.SetCastScreenEnableSkipWindow(static_cast<ScreenId>(id), enable);
+    rsInterfaces.RemoveVirtualScreen(static_cast<ScreenId>(id));
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    bool callbacked = false;
+    ScreenChangeCallback callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+        screenId = id;
+        screenEvent = event;
+        callbacked = true;
+    };
+    rsInterfaces.SetScreenChangeCallback(callback);
+    uint32_t screenRotation = GetData<uint32_t>();
+    rsInterfaces.SetScreenCorrection(static_cast<ScreenId>(id), static_cast<ScreenRotation>(screenRotation));
+    uint32_t systemAnimatedScenes = GetData<uint32_t>();
+    rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
     sleep(1);
 

@@ -1327,7 +1327,7 @@ bool RSScreenManager::GetCanvasRotation(ScreenId id) const
 
     auto screensIt = screens_.find(id);
     if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager::GetCanvasRotation: There is no screen for id %{public}" PRIu64 ".", id);
+        RS_LOGD("RSScreenManager::GetCanvasRotation: There is no screen for id %{public}" PRIu64 ".", id);
         return false;
     }
     return screensIt->second->GetCanvasRotation();
@@ -1339,7 +1339,7 @@ ScreenScaleMode RSScreenManager::GetScaleMode(ScreenId id) const
 
     auto screensIt = screens_.find(id);
     if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager::GetScaleMode: There is no screen for id %{public}" PRIu64 ".", id);
+        RS_LOGD("RSScreenManager::GetScaleMode: There is no screen for id %{public}" PRIu64 ".", id);
         return ScreenScaleMode::INVALID_MODE;
     }
     auto scaleModeDFX = static_cast<ScreenScaleMode>(
@@ -1357,7 +1357,7 @@ sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const
 
     auto screensIt = screens_.find(id);
     if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager::GetProducerSurface: There is no screen for id %{public}" PRIu64 ".", id);
+        RS_LOGD("RSScreenManager::GetProducerSurface: There is no screen for id %{public}" PRIu64 ".", id);
         return nullptr;
     }
     return screensIt->second->GetProducerSurface();
