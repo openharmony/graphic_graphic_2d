@@ -27,8 +27,9 @@ namespace Rosen {
 #define PROPERTY_HIGPU_VERSION "const.gpu.vendor"
 #define PROPERTY_DEBUG_SUPPORT_AF "persist.sys.graphic.supports_af"
 #define PROPERTY_BLUR_EXTRA_FILTER "persist.sys.graphic.blurExtraFilter"
-namespace {
+#define PROPERTY_KAWASE_ORIGINAL_IMAGE "persist.sys.graphic.kawaseOriginalEnable"
 
+namespace {
 constexpr uint32_t BLUR_SAMPLE_COUNT = 5;
 constexpr float BASE_BLUR_SCALE = 0.5f;        // base downSample radio
 constexpr int32_t MAX_PASSES_LARGE_RADIUS = 7; // Maximum number of render passes
@@ -56,7 +57,6 @@ static bool IsAdvancedFilterUsable()
     // If persist.sys.graphic.supports_af=0
     // we will not use it
     return GESystemProperties::GetBoolSystemProperty(PROPERTY_DEBUG_SUPPORT_AF, false);
-    return false;
 }
 
 static bool GetBlurExtraFilterEnabled()
@@ -64,6 +64,17 @@ static bool GetBlurExtraFilterEnabled()
     static bool blurExtraFilterEnabled =
         (std::atoi(GESystemProperties::GetEventProperty(PROPERTY_BLUR_EXTRA_FILTER).c_str()) != 0);
     return blurExtraFilterEnabled;
+}
+
+static bool GetKawaseOriginalEnabled()
+{
+#ifdef GE_OHOS
+    static bool kawaseOriginalEnabled =
+        (std::atoi(GESystemProperties::GetEventProperty(PROPERTY_KAWASE_ORIGINAL_IMAGE).c_str()) != 0);
+    return kawaseOriginalEnabled;
+#else
+    return false;
+#endif
 }
 
 static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const OffsetInfo& offsetInfo)
@@ -223,6 +234,10 @@ bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas& canvas, const std::
     }
     if (radius_ <= 0) {
         LOGD("GEKawaseBlurShaderFilter::input invalid radius : %{public}d", radius_);
+        OutputOriginalImage(canvas, image, src, dst);
+        return false;
+    }
+    if (GetKawaseOriginalEnabled()) {
         OutputOriginalImage(canvas, image, src, dst);
         return false;
     }
