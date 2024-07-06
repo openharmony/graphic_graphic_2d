@@ -16,7 +16,7 @@
 #define DFXSTRING_H
 #include <stdarg.h>
 #include <string>
-#include <securec.h>
+#include "third_party/bounds_checking_function/include/securec.h"
 
 namespace OHOS::Rosen {
 constexpr int STRING_BUF_SIZE = 4096;
