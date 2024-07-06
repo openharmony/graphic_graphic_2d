@@ -1029,7 +1029,6 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
-    friend class RSRenderNodeGC;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
