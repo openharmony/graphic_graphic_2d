@@ -59,15 +59,17 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     if (!RSSystemProperties::GetHDRImageEnable()) {
         return false;
     }
-    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
-        RS_LOGE("bhdr GetDrawingType() != Drawing::DrawingType::PAINT_FILTER");
-        return false;
-    }
+
     if (pixelMap_ == nullptr || image_ == nullptr) {
         RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
         return false;
     }
     if (!pixelMap_->IsHdr()) {
+        return false;
+    }
+
+    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
+        RS_LOGE("bhdr GetDrawingType() != Drawing::DrawingType::PAINT_FILTER");
         return false;
     }
 

@@ -314,6 +314,8 @@ void RSUifirstManager::SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawab
     if (isHdrOn) {
         // 0 means defalut brightnessRatio
         drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
+        drawable->SetScreenId(id);
+        drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
         drawable->GetBrightnessRatio());
@@ -989,6 +991,19 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
 {
+    auto baseNode = node.GetAncestorDisplayNode().lock();
+    if (!baseNode) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
+        return false;
+    }
+    auto curDisplayNode = baseNode->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (curDisplayNode == nullptr) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
+        return false;
+    }
+    if (RSLuminanceControl::Get().IsHdrOn(curDisplayNode->GetScreenId())) {
+        return false;
+    }
     bool flag = ((RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) &&
         (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) &&
         RSUifirstManager::Instance().NodeIsInCardWhiteList(node) &&

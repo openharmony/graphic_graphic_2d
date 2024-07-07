@@ -360,6 +360,8 @@ void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawab
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    rscanvas->SetScreenId(nodeDrawable->GetScreenId());
+    rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
@@ -403,6 +405,8 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
     rsCanvas->SetParallelThreadIdx(threadIndex_);
     rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    rsCanvas->SetScreenId(nodeDrawable->GetScreenId());
+    rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
