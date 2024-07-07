@@ -32,6 +32,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -1345,6 +1346,34 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     if (renderService != nullptr) {
         renderService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
+}
+
+class CustomUIExtensionCallback : public RSUIExtensionCallbackStub
+{
+public:
+    explicit CustomUIExtensionCallback(const UIExtensionCallback &callback) : cb_(callback) {}
+    ~CustomUIExtensionCallback() override {};
+
+    void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override
+    {
+        if (cb_ != nullptr) {
+            cb_(uiExtensionData, userId);
+        }
+    }
+
+private:
+    UIExtensionCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterUIExtensionCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomUIExtensionCallback> cb = new CustomUIExtensionCallback(callback);
+    return renderService->RegisterUIExtensionCallback(userId, cb);
 }
 } // namespace Rosen
 } // namespace OHOS

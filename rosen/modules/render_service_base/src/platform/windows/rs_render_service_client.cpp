@@ -536,5 +536,10 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
 void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
 }
+
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    return {};
+}
 } // namespace Rosen
 } // namespace OHOS

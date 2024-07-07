@@ -13,34 +13,34 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_RS_IRENDER_SURFACE_OCCLUSION_CHANGE_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
-#define ROSEN_RENDER_SERVICE_BASE_RS_IRENDER_SURFACE_OCCLUSION_CHANGE_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RS_IUIEXTENSION_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
+#define ROSEN_RENDER_SERVICE_BASE_RS_IUIEXTENSION_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
 
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
-#include "ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_iuiextension_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier : public RSInterfaceCodeAccessVerifierBase {
+class RSIUIExtensionCallbackInterfaceCodeAccessVerifier : public RSInterfaceCodeAccessVerifierBase {
 public:
     /*
      * specify the enum class of the associated interface code (i.e. CodeEnumType) here
      * note that term **CodeEnumType** should not be changed
      */
-    using CodeEnumType = RSISurfaceOcclusionChangeCallbackInterfaceCode;
-    static inline const std::string codeEnumTypeName_{"RSISurfaceOcclusionChangeCallbackInterfaceCode"};
+    using CodeEnumType = RSIUIExtensionCallbackInterfaceCode;
+    static inline const std::string codeEnumTypeName_{"RSIUIExtensionCallbackInterfaceCode"};
 
     /* specify constructor and destructor here */
-    RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier();
-    virtual ~RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
+    RSIUIExtensionCallbackInterfaceCodeAccessVerifier();
+    ~RSIUIExtensionCallbackInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
     /* specify exclusive verification rules here */
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    DISALLOW_COPY_AND_MOVE(RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier);
+    DISALLOW_COPY_AND_MOVE(RSIUIExtensionCallbackInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_RENDER_SERVICE_BASE_RS_IRENDER_SURFACE_OCCLUSION_CHANGE_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RS_IUIEXTENSION_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H

@@ -40,6 +40,7 @@
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "vsync_iconnection_token.h"
 
 namespace OHOS {
@@ -267,6 +268,8 @@ public:
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
 
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
+
+    virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

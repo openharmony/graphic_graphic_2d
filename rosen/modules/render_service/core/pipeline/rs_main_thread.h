@@ -37,6 +37,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "memory/rs_app_state_listener.h"
 #include "memory/rs_memory_graphic.h"
 #include "params/rs_render_thread_params.h"
@@ -46,6 +47,7 @@
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
+#include "transaction/rs_uiextension_data.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
@@ -346,7 +348,9 @@ public:
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
-
+    void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
+    void UnRegisterUIExtensionCallback(pid_t pid);
+    void UIExtensionCallback();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -668,6 +672,13 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
+
+    // uiextension
+    std::mutex uiExtensionMutex_;
+    UIExtensionCallbackData uiExtensionCallbackData_;
+    bool lastFrameUIExtensionDataEmpty_ = true;
+    // <pid, <uid, callback>>
+    std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

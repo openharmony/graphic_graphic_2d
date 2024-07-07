@@ -648,6 +648,11 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
+int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
+}
+
 #ifdef RS_ENABLE_VK
 extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
 {

@@ -217,7 +217,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW)
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK)
     };
     if (descriptorCheckList.find(code) != descriptorCheckList.cend()) {
         auto token = data.ReadInterfaceToken();
@@ -1256,6 +1257,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS) : {
             auto isCurtainScreenOn = data.ReadBool();
             SetCurtainScreenUsingStatus(isCurtainScreenOn);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission REGISTER_UIEXTENSION_CALLBACK");
+                return ERR_INVALID_STATE;
+            }
+            uint64_t userId = data.ReadUint64();
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIUIExtensionCallback> callback = iface_cast<RSIUIExtensionCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            int32_t status = RegisterUIExtensionCallback(userId, callback);
+            reply.WriteInt32(status);
             break;
         }
         default: {

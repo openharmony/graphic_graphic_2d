@@ -3854,6 +3854,37 @@ void RSMainThread::UpdateLuminance()
     }
 }
 
+void RSMainThread::RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(uiExtensionMutex_);
+    RS_LOGI("RSMainThread::RegisterUIExtensionCallback for User: %{public}" PRIu64 " PID: %{public}d.", userId, pid);
+    uiExtensionListenners_[pid] = std::pair<uint64_t, sptr<RSIUIExtensionCallback>>(userId, callback);
+}
+
+void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(uiExtensionMutex_);
+    RS_LOGI("RSMainThread::UnRegisterUIExtensionCallback for PID: %{public}d.", pid);
+    uiExtensionListenners_.erase(pid);
+}
+
+void RSMainThread::UIExtensionCallback()
+{
+    std::lock_guard<std::mutex> lock(uiExtensionMutex_);
+    if (uiExtensionCallbackData_.empty() && !lastFrameUIExtensionDataEmpty_) {
+        return;
+    }
+    for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
+        auto userId = iter->second.first;
+        auto callback = iter->second.second;
+        if (callback) {
+            callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
+        }
+    }
+    lastFrameUIExtensionDataEmpty_ = uiExtensionCallbackData_.empty();
+    uiExtensionCallbackData_.clear();
+}
+
 void RSMainThread::SetHardwareTaskNum(uint32_t num)
 {
     rsVSyncDistributor_->SetHardwareTaskNum(num);

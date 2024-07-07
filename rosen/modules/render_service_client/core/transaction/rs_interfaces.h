@@ -265,6 +265,8 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

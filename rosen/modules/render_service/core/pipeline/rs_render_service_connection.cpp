@@ -161,6 +161,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
             mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
+            mainThread_->UnRegisterUIExtensionCallback(remotePid_);
         }).wait();
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
@@ -1433,6 +1434,17 @@ void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreen
         mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     };
     mainThread_->PostTask(task);
+}
+
+int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGE("RSRenderServiceConnection::RegisterUIExtensionCallback register null callback, failed.");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
+    return StatusCode::SUCCESS;
 }
 } // namespace Rosen
 } // namespace OHOS

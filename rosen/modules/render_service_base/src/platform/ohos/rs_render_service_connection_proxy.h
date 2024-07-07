@@ -237,6 +237,8 @@ public:
 
     LayerComposeInfo GetLayerComposeInfo() override;
 
+    int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
