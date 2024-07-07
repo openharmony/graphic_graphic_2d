@@ -322,7 +322,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SyncFrameRateRange, TestSize.Level1
 {
     FrameRateLinkerId id = 1;
     FrameRateRange range;
-    proxy->SyncFrameRateRange(id, range, false);
+    proxy->SyncFrameRateRange(id, range, 0);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 

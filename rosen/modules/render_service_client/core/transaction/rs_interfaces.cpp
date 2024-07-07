@@ -156,9 +156,10 @@ void RSInterfaces::SetRefreshRateMode(int32_t refreshRateMode)
     renderServiceClient_->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped)
+void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+    int32_t animatorExpectedFrameRate)
 {
-    renderServiceClient_->SyncFrameRateRange(id, range, isAnimatorStopped);
+    renderServiceClient_->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
 uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)

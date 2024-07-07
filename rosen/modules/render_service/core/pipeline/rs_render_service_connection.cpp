@@ -544,7 +544,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 }
 
 void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
-    const FrameRateRange& range, bool isAnimatorStopped)
+    const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
     mainThread_->ScheduleTask([=]() {
         auto& context = mainThread_->GetContext();
@@ -555,7 +555,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             return;
         }
         linker->SetExpectedRange(range);
-        linker->SetAnimationIdle(isAnimatorStopped);
+        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     }).wait();
 }
 

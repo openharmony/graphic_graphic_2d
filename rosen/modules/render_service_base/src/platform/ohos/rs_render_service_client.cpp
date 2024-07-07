@@ -441,7 +441,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 }
 
 void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
-    const FrameRateRange& range, bool isAnimatorStopped)
+    const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -449,7 +449,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
         return;
     }
 
-    return renderService->SyncFrameRateRange(id, range, isAnimatorStopped);
+    return renderService->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
