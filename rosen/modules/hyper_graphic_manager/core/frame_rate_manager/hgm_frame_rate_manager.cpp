@@ -47,7 +47,9 @@ namespace {
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
+    constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
+    const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -73,7 +75,15 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
     multiAppStrategy_.UpdateXmlConfigCache();
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+        multiAppStrategy_.GetScreenSetting().animationPowerConfig, RS_ANIMATION_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().uiAnimationPowerConfig, UI_ANIMATION_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().displaySyncPowerConfig, DISPLAY_SYNC_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().aceComponentPowerConfig, ACE_COMPONENT_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().displaySoloistPowerConfig, DISPLAY_SOLOIST_FRAME_RATE_TYPE);
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
@@ -91,7 +101,15 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-            multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+            multiAppStrategy_.GetScreenSetting().animationPowerConfig, RS_ANIMATION_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().uiAnimationPowerConfig, UI_ANIMATION_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().displaySyncPowerConfig, DISPLAY_SYNC_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().aceComponentPowerConfig, ACE_COMPONENT_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().displaySoloistPowerConfig, DISPLAY_SOLOIST_FRAME_RATE_TYPE);
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
     }
@@ -284,7 +302,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                 continue;
             }
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
-            finalRange.Merge(linker.second->GetExpectedRange());
+            auto expectedRange = linker.second->GetExpectedRange();
+            HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
+            finalRange.Merge(expectedRange);
         }
         ProcessLtpoVote(finalRange, idleTimerExpired);
     }
@@ -740,7 +760,9 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         HGM_LOGI("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
         HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
-        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(false);
+        HgmTaskHandleThread::Instance().RemoveEvent(UI_ENERGY_ASSURANCE_TASK_ID);
+        HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
+        HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(false);
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
             touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
@@ -757,8 +779,10 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up");
-            auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(true); };
+            auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true); };
             HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
+            auto uiTask = []() { HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(true); };
+            HgmTaskHandleThread::Instance().PostEvent(UI_ENERGY_ASSURANCE_TASK_ID, uiTask, UI_ENERGY_ASSURANCE_TASK_DELAY_TIME);
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
     } else {
@@ -787,7 +811,15 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+        multiAppStrategy_.GetScreenSetting().animationPowerConfig, RS_ANIMATION_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().uiAnimationPowerConfig, UI_ANIMATION_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().displaySyncPowerConfig, DISPLAY_SYNC_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().aceComponentPowerConfig, ACE_COMPONENT_FRAME_RATE_TYPE);
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().displaySoloistPowerConfig, DISPLAY_SOLOIST_FRAME_RATE_TYPE);
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     schedulePreferredFpsChange_ = true;
@@ -836,7 +868,15 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-            multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+            multiAppStrategy_.GetScreenSetting().animationPowerConfig, RS_ANIMATION_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().uiAnimationPowerConfig, UI_ANIMATION_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().displaySyncPowerConfig, DISPLAY_SYNC_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().aceComponentPowerConfig, ACE_COMPONENT_FRAME_RATE_TYPE);
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+            multiAppStrategy_.GetScreenSetting().displaySoloistPowerConfig, DISPLAY_SOLOIST_FRAME_RATE_TYPE);
     }
 
     multiAppStrategy_.CalcVote();

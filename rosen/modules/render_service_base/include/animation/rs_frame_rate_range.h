@@ -25,6 +25,7 @@ constexpr int32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
 constexpr int32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
 constexpr int32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
 constexpr int32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
+constexpr int32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
 
 class FrameRateRange {
 public:
@@ -94,6 +95,8 @@ public:
                 return "DISPLAY_SYNC";
             case ACE_COMPONENT_FRAME_RATE_TYPE:
                 return "ACE_COMPONENT";
+            case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
+                return "DISPLAY_SOLOIST"
             default:
                 return "";
         }

@@ -26,21 +26,32 @@ namespace OHOS::Rosen {
 class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
-    void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
-    void SetEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> powerConfig, int32_t type);
+    void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    void SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void StatisticAnimationTime(uint64_t timestamp);
     void StartNewAnimation();
     void GetAnimationIdleFps(FrameRateRange& rsRange);
+    void GetUiIdleFps(FrameRateRange& rsRange);
 
 private:
     std::recursive_mutex mutex_;
     bool isAnimationEnergyAssuranceEnable_ = false;
-    bool isEnergyConsumptionAssuranceMode_ = false;
+    bool isUiAnimationEnergyAssuranceEnable_ = false;
+    bool isDisplaySyncEnergyAssuranceEnable_ = false;
+    bool isAceComponentEnergyAssuranceEnable_ = false;
+    bool isDisplaySoloistEnergyAssuranceEnable_ = false;
+    bool isAnimationEnergyConsumptionAssuranceMode_ = false;
+    bool isUiEnergyConsumptionAssuranceMode_ = false;
     uint64_t firstAnimationTimestamp_ = 0;
     uint64_t lastAnimationTimestamp_ = 0;
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
+    int uiAnimationIdleFps_ = 60;
+    int displaySyncIdleFps_ = 60;
+    int aceComponentIdleFps_ = 60;
+    int displaySoloistIdleFps_ = 60;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -49,6 +60,7 @@ private:
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&) = delete;
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
+    void SetFrameRateRange(FrameRateRange& rsRange, int idleFps);
 };
 } // namespace OHOS::Rosen
 
