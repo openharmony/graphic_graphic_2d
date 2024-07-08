@@ -75,7 +75,7 @@ void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
     RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d",
         touchInfo.pkgName.c_str(), touchInfo.touchState);
     HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d",
-        ouchInfo.pkgName.c_str(), touchInfo.touchState);
+        touchInfo.pkgName.c_str(), touchInfo.touchState);
     {
         std::lock_guard<std::mutex> lock(touchInfoMutex_);
         touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
