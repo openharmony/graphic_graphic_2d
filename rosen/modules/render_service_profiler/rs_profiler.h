@@ -48,6 +48,9 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
+#define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
+#define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -71,6 +74,9 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
+#define RS_PROFILER_GET_FRAME_NUMBER() 0
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
+#define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -117,6 +123,8 @@ public:
     static void OnFrameEnd();
     static void OnRenderBegin();
     static void OnRenderEnd();
+    static void OnParallelRenderBegin();
+    static void OnParallelRenderEnd(uint32_t frameNumber);
     static void OnProcessCommand();
 
     // see RSRenderService::CreateConnection
@@ -155,6 +163,8 @@ public:
 
     RSB_EXPORT static void WriteParcelData(Parcel& parcel);
     RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
+
+    RSB_EXPORT static uint32_t GetFrameNumber();
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);

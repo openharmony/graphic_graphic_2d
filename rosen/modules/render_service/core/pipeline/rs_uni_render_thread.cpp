@@ -41,7 +41,6 @@
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
-#include "include/gpu/GrDirectContext.h"
 #include <iservice_registry.h>
 #endif
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -54,7 +53,6 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
@@ -296,10 +294,11 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (!params->GetHardwareEnabled() && params->GetLastFrameHardwareEnabled()) {
+        bool needRelease = !params->GetHardwareEnabled() || !params->GetLayerCreated();
+        if (needRelease && params->GetLastFrameHardwareEnabled()) {
             params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
-        if (!params->GetHardwareEnabled()) {
+        if (needRelease) {
             auto& preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
                 if (params->releaseInHardwareThreadTaskNum_ > 0) {
@@ -420,6 +419,7 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 bool RSUniRenderThread::GetClearMemoryFinished() const
 {
+    std::lock_guard<std::mutex> lock(clearMemoryMutex_);
     return clearMemoryFinished_;
 }
 
@@ -591,6 +591,16 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
+void RSUniRenderThread::ResetClearMemoryTask()
+{
+    if (!GetClearMemoryFinished()) {
+        RemoveTask(CLEAR_GPU_CACHE);
+        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+    }
+    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+    DefaultClearMemoryCache();
+}
+
 void RSUniRenderThread::PurgeCacheBetweenFrames()
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
@@ -609,26 +619,6 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
             RemoveTask(PURGE_CACHE_BETWEEN_FRAMES);
         },
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
-}
-
-void RSUniRenderThread::PreAllocateTextureBetweenFrames()
-{
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
-            GrDirectContext::preAllocateTextureBetweenFrames();
-            RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
-        },
-        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
-        0,
-        AppExecFwk::EventQueue::Priority::LOW);
-}
-
-void RSUniRenderThread::MemoryManagementBetweenFrames()
-{
-    if (!RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
-        PreAllocateTextureBetweenFrames();
-    }
 }
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const

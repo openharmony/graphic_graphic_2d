@@ -190,7 +190,9 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
         GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
-    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_);
+    // case 3: the state of freeze changed to false, and the last cache maybe wrong.
+    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
+        (preStaticStatus_ != isStaticCached_ && isStaticCached_ == false);
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)

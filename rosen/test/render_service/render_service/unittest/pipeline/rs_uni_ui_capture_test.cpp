@@ -47,9 +47,10 @@ void RSUniUiCaptureTest::TearDown() {}
 HWTEST_F(RSUniUiCaptureTest, TakeLocalCapture001, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     EXPECT_EQ(nullptr, rsUniUICapture.TakeLocalCapture());
 }
 
@@ -63,9 +64,11 @@ HWTEST_F(RSUniUiCaptureTest, TakeLocalCapture001, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
     rsUniUICaptureVisitor.SetCanvas(canvas);
 }
@@ -80,10 +83,11 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessRootRenderNode(node);
 }
@@ -98,10 +102,11 @@ HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNodeTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, ProcessCanvasRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessCanvasRenderNode(node);
 }
@@ -116,10 +121,11 @@ HWTEST_F(RSUniUiCaptureTest, ProcessCanvasRenderNodeTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessSurfaceRenderNode(node);
 }
@@ -132,11 +138,13 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeTest, TestSize.Level1)
  */
 HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
 {
-    NodeId id = 0;
-    RSEffectRenderNode node(id);
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    NodeId nodeId = 0;
+    RSEffectRenderNode node(nodeId);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    std::weak_ptr<RSContext> context;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     rsUniUICaptureVisitor.ProcessEffectRenderNode(node);
 }
 
@@ -149,10 +157,11 @@ HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareCanvasRenderNode(node);
 }
@@ -166,10 +175,11 @@ HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, PrepareSurfaceRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareSurfaceRenderNode(node);
 }
@@ -183,10 +193,11 @@ HWTEST_F(RSUniUiCaptureTest, PrepareSurfaceRenderNodeTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, PrepareRootRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareRootRenderNode(node);
 }
@@ -199,11 +210,12 @@ HWTEST_F(RSUniUiCaptureTest, PrepareRootRenderNodeTest, TestSize.Level1)
  */
 HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
 {
-    NodeId id = 0;
-    RSEffectRenderNode node(id);
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    NodeId nodeId = 0;
+    RSEffectRenderNode node(nodeId);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     rsUniUICaptureVisitor.PrepareEffectRenderNode(node);
 }
 
@@ -217,9 +229,10 @@ HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
 
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelmap));
@@ -243,12 +256,13 @@ HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, PostTaskToRSRecord, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
     std::shared_ptr<RSRenderNode> node = nullptr;
-    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
-        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
     EXPECT_NE(rsUniUICaptureVisitor, nullptr);
     
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
@@ -265,12 +279,13 @@ HWTEST_F(RSUniUiCaptureTest, PostTaskToRSRecord, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, SetPaintFilterCanvas, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
 
-    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
-        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
 
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
@@ -291,9 +306,10 @@ HWTEST_F(RSUniUiCaptureTest, SetPaintFilterCanvas, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNode, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
 
     constexpr NodeId nodeId1 = TestSrc::limitNumber::Uint64[1];
     constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[2];
@@ -313,12 +329,13 @@ HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNode, TestSize.Level1)
 HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    float scaleX = 0.0;
-    float scaleY = 0.0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
 
-    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
-        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
 
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());

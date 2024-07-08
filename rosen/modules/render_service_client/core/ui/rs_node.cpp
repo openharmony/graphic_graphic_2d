@@ -446,8 +446,9 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         AddAnimationInner(animation);
     }
 
-    if (isStartAnimation) {
-        animation->StartInner(shared_from_this());
+    animation->StartInner(shared_from_this());
+    if (!isStartAnimation) {
+        animation->Pause();
     }
 }
 
@@ -479,10 +480,9 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
+void RSNode::SetMagnifierParams(const Vector2f& para)
 {
-    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
-        RSModifierType::MAGNIFIER_PARA, para);
+    SetProperty<RSMagnifierParamsModifier, RSProperty<Vector2f>>(RSModifierType::MAGNIFIER_PARA, para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -1007,8 +1007,14 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
 
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
+    if (property == nullptr) {
+        return;
+    }
     auto propertyId = property->GetId();
     auto uiAnimation = std::make_shared<RSAnimationGroup>();
+    if (uiAnimation == nullptr) {
+        return;
+    }
     auto animationId = uiAnimation->GetId();
     AddAnimation(uiAnimation);
     if (finishCallback != nullptr) {
@@ -1298,6 +1304,10 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 {
+    if (backgroundFilter == nullptr) {
+        ROSEN_LOGE("Failed to set backgroundFilter, backgroundFilter is null!");
+        return;
+    }
     // To do: generate composed filter here. Now we just set background blur in v1.0.
     auto filterParas = backgroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
@@ -1325,6 +1335,10 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
 
 void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
 {
+    if (compositingFilter == nullptr) {
+        ROSEN_LOGE("Failed to set compositingFilter, compositingFilter is null!");
+        return;
+    }
     // To do: generate composed filter here. Now we just set compositing blur in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
@@ -1334,19 +1348,6 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
             SetForegroundBlurRadiusX(blurRadius);
             SetForegroundBlurRadiusY(blurRadius);
         }
-    }
-}
-
-void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
-{
-    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
-    auto filterParas = foregroundFilter->GetAllPara();
-    for (const auto& filterPara : filterParas) {
-        if (filterPara->GetParaType() == FilterPara::BLUR) {
-            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
-            auto blurRadius = filterBlurPara->GetRadius();
-            SetForegroundEffectRadius(blurRadius);
-        }
         if (filterPara->GetParaType() == FilterPara::PIXEL_STRETCH) {
             auto pixelStretchPara = std::static_pointer_cast<PixelStretchPara>(filterPara);
             auto stretchPercent = pixelStretchPara->GetStretchPercent();
@@ -1355,8 +1356,29 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     }
 }
 
+void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
+{
+    if (foregroundFilter == nullptr) {
+        ROSEN_LOGE("Failed to set foregroundFilter, foregroundFilter is null!");
+        return;
+    }
+    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
+    auto filterParas = foregroundFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara->GetParaType() == FilterPara::BLUR) {
+            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+            auto blurRadius = filterBlurPara->GetRadius();
+            SetForegroundEffectRadius(blurRadius);
+        }
+    }
+}
+
 void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
 {
+    if (visualEffect == nullptr) {
+        ROSEN_LOGE("Failed to set visualEffect, visualEffect is null!");
+        return;
+    }
     // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {

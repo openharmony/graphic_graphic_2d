@@ -21,6 +21,7 @@
 #include "include/core/SkFont.h"
 
 #include "impl_interface/font_impl.h"
+#include "text/font.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +32,7 @@ public:
 
     SkiaFont() noexcept = default;
     SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX) noexcept;
+    explicit SkiaFont(const Font& font) noexcept;
     ~SkiaFont() override = default;
 
     AdapterType GetType() const override
@@ -55,7 +57,7 @@ public:
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[]) const override;
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const override;
     scalar GetSize() const override;
-    std::shared_ptr<Typeface> GetTypeface() override;
+    std::shared_ptr<Typeface> GetTypeface() const override;
 
     FontEdging GetEdging() const override;
     FontHinting GetHinting() const override;

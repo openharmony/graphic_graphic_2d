@@ -53,7 +53,7 @@ struct FilterAsyncContext {
 
     // param
     FilterNapi* filterNapi = nullptr;
-    bool forceCPU = false;
+    bool forceCPU = true;
     std::shared_ptr<Media::PixelMap> dstPixelMap_;
 };
 
@@ -385,7 +385,6 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
             EFFECT_LOG_I("FilterNapi: GetPixelMapAsync parse forceCPU failed");
         }
     }
-    ctx->forceCPU = false;
 
     if (argc >= NUM_1) {
         if (Media::ImageNapiUtils::getType(env, argv[argc - 1]) == napi_function) {

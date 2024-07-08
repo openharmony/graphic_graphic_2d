@@ -222,6 +222,16 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
+    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
+        if (ExtractPid(pair.first) != pid) {
+            return false;
+        }
+        // update node flag to avoid animation fallback
+        pair.second->fallbackAnimationOnDestroy_ = false;
+        // remove node from tree
+        pair.second->RemoveFromTree(false);
+        return true;
+    });
 
     EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
@@ -312,5 +322,18 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     }
     return itr->second;
 }
+
+const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
+{
+    for (auto &t : surfaceNodeMap_) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType()) {
+            return t.second->GetName();
+        }
+    }
+    ROSEN_LOGD("RSRenderNodeMap::GetSurfaceNameByPid no self drawing nodes belong to pid %{public}d",
+        static_cast<int32_t>(nodePid));
+    return "";
+}
+
 } // namespace Rosen
 } // namespace OHOS

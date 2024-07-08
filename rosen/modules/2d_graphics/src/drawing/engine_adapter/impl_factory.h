@@ -93,6 +93,7 @@ public:
     static std::unique_ptr<FontImpl> CreateFontImpl();
     static std::unique_ptr<FontImpl> CreateFontImpl(std::shared_ptr<Typeface> typeface,
         scalar size, scalar scaleX, scalar skewX);
+    static std::unique_ptr<FontImpl> CreateFontImpl(const Font& font);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilderImpl();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgrImpl();
 #ifndef USE_TEXGINE

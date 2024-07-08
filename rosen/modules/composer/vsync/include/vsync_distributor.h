@@ -128,6 +128,8 @@ public:
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
     int64_t GetUiCommandDelayTime();
+    void UpdatePendingReferenceTime(int64_t &timeStamp);
+    void SetHardwareTaskNum(uint32_t num);
 
 private:
 
@@ -187,9 +189,9 @@ private:
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
-    void UpdateVsyncPeriodAndRefreshRate();
 #endif
     bool isRs_ = false;
+    std::atomic<bool> hasVsync_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

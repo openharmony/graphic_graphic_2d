@@ -276,6 +276,14 @@ public:
     float GetSpinStartValue();
     float GetSpinEndValue();
     const ParticleUpdator& GetSpinUpdator();
+
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceValChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceAngChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetOpacityChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetScaleChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetSpinChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& GetColorChangeOverLife();
+
     float GetSpinRandomStart() const;
     float GetSpinRandomEnd() const;
     size_t GetImageIndex() const;
@@ -347,19 +355,6 @@ public:
     const ParticleType& GetParticleType();
     int64_t GetActiveTime();
     const std::shared_ptr<ParticleRenderParams>& GetParticleRenderParams();
-
-    const ParticleUpdator& GetAccelerationValueUpdator();
-    const ParticleUpdator& GetAccelerationAngleUpdator();
-    const ParticleUpdator& GetColorUpdator();
-    const ParticleUpdator& GetOpacityUpdator();
-    const ParticleUpdator& GetScaleUpdator();
-    const ParticleUpdator& GetSpinUpdator();
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceValChangeOverLife();
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceAngChangeOverLife();
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetOpacityChangeOverLife();
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetScaleChangeOverLife();
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetSpinChangeOverLife();
-    const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& GetColorChangeOverLife();
 
     size_t GetImageIndex() const;
 

@@ -26,6 +26,7 @@
 
 #include "hgm_core.h"
 #include "parameter.h"
+#include <parameters.h>
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
@@ -512,6 +513,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg15(u"fpsCount");
     std::u16string arg16(u"clearFpsCount");
     std::u16string arg17(u"hitchs");
+    std::u16string arg18(u"rsLogFlag");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -568,6 +570,18 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
     WindowHitchsDump(argSets, dumpString, arg17);
+    if (auto iter = argSets.find(arg18) != argSets.end()) {
+        argSets.erase(arg18);
+        if (!argSets.empty()) {
+            std::string logFlag = std::wstring_convert<
+                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin());
+            if (RSLogManager::GetInstance().SetRSLogFlag(logFlag)) {
+                dumpString.append("Successed to set flag: " + logFlag + "\n");
+            } else {
+                dumpString.append("Failed to set flag: " + logFlag + "\n");
+            }
+        }
+    }
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();

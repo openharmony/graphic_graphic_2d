@@ -156,12 +156,13 @@ public:
 
     VkQueue GetQueue() const
     {
-        return queue_;
+        return backendContext_.fQueue;
     }
 
-    inline const GrVkBackendContext& GetGrVkBackendContext() const noexcept
+    inline const GrVkBackendContext& GetGrVkBackendContext(
+        bool useHBackendContext = false) const noexcept
     {
-        return backendContext_;
+        return useHBackendContext ? hbackendContext_ : backendContext_;
     }
 
     inline const std::string GetVulkanVersion() const
@@ -187,6 +188,7 @@ friend class RsVulkanContext;
 private:
     std::mutex vkMutex_;
     std::mutex graphicsQueueMutex_;
+    std::mutex hGraphicsQueueMutex_;
     void* handle_ = nullptr;
     bool acquiredMandatoryProcAddresses_ = false;
     VkInstance instance_ = VK_NULL_HANDLE;
@@ -270,9 +272,10 @@ public:
         return GetRsVulkanInterface().GetQueue();
     }
 
-    inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
+    inline const GrVkBackendContext& GetGrVkBackendContext(
+        bool useHBackendContext = false) noexcept
     {
-        return GetRsVulkanInterface().GetGrVkBackendContext();
+        return GetRsVulkanInterface().GetGrVkBackendContext(useHBackendContext);
     }
 
     inline const std::string GetVulkanVersion()

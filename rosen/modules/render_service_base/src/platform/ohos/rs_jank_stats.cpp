@@ -199,7 +199,7 @@ void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshR
         return;
     }
     if (rsJankStats_[type] == USHRT_MAX) {
-        ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
+        ROSEN_LOGD("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
         return;
     }
     if (type == JANK_FRAME_6_FREQ) {

@@ -33,11 +33,11 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE,
-    DISPLAY_DIRTY,
+    EGL_DAMAGE, // all dirty region infomation, includes detailed app dirty region and global dirty.
+    DISPLAY_DIRTY, // detailed global dirty (before merge rect).
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
-    UPDATE_DIRTY_REGION,
-    OVERLAY_RECT,
+    UPDATE_DIRTY_REGION, // dirty region for each node.
+    OVERLAY_RECT,   // drawRegion
     FILTER_RECT,
     SHADOW_RECT,
     PREPARE_CLIP_RECT,
@@ -45,6 +45,7 @@ enum class DirtyRegionDebugType {
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
     OUTLINE_RECT,
+    SUBTREE_SKIP_RECT, // dirty region of the subtree if subtree is skipped in preparation.
 };
 
 enum class SurfaceRegionDebugType {
@@ -179,6 +180,7 @@ public:
     static bool GetMagnifierEnabled();
     static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
+    static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
@@ -196,7 +198,6 @@ public:
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetPreAllocateTextureBetweenFramesEnabled();
 
     static bool GetAnimationCacheEnabled();
 
@@ -204,6 +205,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
+    static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
@@ -267,6 +269,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

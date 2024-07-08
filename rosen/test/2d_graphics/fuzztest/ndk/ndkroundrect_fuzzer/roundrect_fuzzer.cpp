@@ -46,6 +46,8 @@ void NativeDrawingRoundRectTest001(const uint8_t* data, size_t size)
     float bottom = GetObject<float>();
     float xRad = GetObject<float>();
     float yRad = GetObject<float>();
+    float dx = GetObject<float>();
+    float dy = GetObject<float>();
     uint32_t cornerPos = GetObject<uint32_t>();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
 
@@ -57,11 +59,16 @@ void NativeDrawingRoundRectTest001(const uint8_t* data, size_t size)
         static_cast<OH_Drawing_CornerPos>(cornerPos % ROUND_RECT_CORNER_POS_ENUM_SIZE), radiusXY);
     OH_Drawing_RoundRectSetCorner(roundRect,
         static_cast<OH_Drawing_CornerPos>(cornerPos % ROUND_RECT_CORNER_POS_ENUM_SIZE), radiusXY);
+    OH_Drawing_RoundRectSetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(cornerPos), radiusXY);
 
     OH_Drawing_RoundRectGetCorner(nullptr,
         static_cast<OH_Drawing_CornerPos>(cornerPos % ROUND_RECT_CORNER_POS_ENUM_SIZE));
     OH_Drawing_RoundRectGetCorner(roundRect,
         static_cast<OH_Drawing_CornerPos>(cornerPos % ROUND_RECT_CORNER_POS_ENUM_SIZE));
+    OH_Drawing_RoundRectGetCorner(roundRect, static_cast<OH_Drawing_CornerPos>(cornerPos));
+
+    OH_Drawing_RoundRectOffset(roundRect, dx, dy);
+    OH_Drawing_RoundRectOffset(nullptr, dx, dy);
 
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RoundRectDestroy(roundRect);

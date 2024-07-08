@@ -481,6 +481,8 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
 
 void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle);
 
+void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyle);
+
 size_t GetParamLen(napi_env env, napi_value param);
 
 bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetrics& fontMetrics);

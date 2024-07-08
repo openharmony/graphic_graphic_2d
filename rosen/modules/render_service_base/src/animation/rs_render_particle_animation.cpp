@@ -113,7 +113,9 @@ void RSRenderParticleAnimation::UpdateNoiseField(const std::shared_ptr<ParticleN
         return;
     }
     particleNoiseFields_ = particleNoiseFields;
-    particleSystem_->UpdateNoiseField(particleNoiseFields);
+    if (particleSystem_) {
+        particleSystem_->UpdateNoiseField(particleNoiseFields);
+    }
 }
 
 void RSRenderParticleAnimation::OnAttach()

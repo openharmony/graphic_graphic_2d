@@ -284,6 +284,19 @@ HWTEST_F(RSMaskTest, GetMaskPathTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetMaskPenTest001
+ * @tc.desc: Verify function SetMaskPen
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, SetMaskPenTest001, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSMask>();
+    Drawing::Pen pen;
+    mask->SetMaskPen(pen);
+    EXPECT_EQ(mask->GetMaskPen(), pen);
+}
+
+/**
  * @tc.name: GetMaskPenTest001
  * @tc.desc: Verify function GetMaskPen
  * @tc.type:FUNC

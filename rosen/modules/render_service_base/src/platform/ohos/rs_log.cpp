@@ -19,6 +19,9 @@
 #include <cstdio>
 #include <securec.h>
 #include <hilog/log.h>
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+#include <parameters.h>
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -56,5 +59,45 @@ void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...)
     }
     va_end(args);
 }
+
+RSLogManager::RSLogManager()
+{
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+    std::string flag = OHOS::system::GetParameter(DEBUG_GRAPHIC_LOG_FLAG, "0X0");
+    if (IsFlagValid(flag)) {
+        logFlag_ = static_cast<uint32_t>(std::stoul(flag.substr(INPUT_FLAG_MIN_LENGTH), nullptr, NUMERICAL_BASE));
+        RS_LOGI("RSLogManager init log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);
+    }
+#endif
+}
+
+RSLogManager& RSLogManager::GetInstance()
+{
+    static RSLogManager rsLogManager;
+    return rsLogManager;
+}
+
+bool RSLogManager::SetRSLogFlag(std::string& flag)
+{
+    if (IsFlagValid(flag)) {
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+        OHOS::system::SetParameter(DEBUG_GRAPHIC_LOG_FLAG, flag);
+#endif
+        logFlag_ = static_cast<uint32_t>(std::stoul(flag.substr(INPUT_FLAG_MIN_LENGTH), nullptr, NUMERICAL_BASE));
+        RS_LOGI("RSLogManager set log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);
+        return true;
+    }
+    return false;
+}
+
+bool RSLogManager::IsFlagValid(std::string& flag)
+{
+    if ((flag.length() > INPUT_FLAG_MIN_LENGTH) && (flag.length() <= INPUT_FLAG_MAX_LENGTH)
+        && (flag.substr(0, INPUT_FLAG_MIN_LENGTH) == "0x" || flag.substr(0, INPUT_FLAG_MIN_LENGTH) == "0X")) {
+        return true;
+    }
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

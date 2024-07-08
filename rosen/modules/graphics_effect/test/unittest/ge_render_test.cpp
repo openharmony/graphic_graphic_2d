@@ -342,5 +342,28 @@ HWTEST_F(GERenderTest, GenerateShaderFilter004, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter003 end";
 }
+
+/**
+ * @tc.name: GenerateShaderFilter005
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter005 start";
+ 
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_WATER_RIPPLE);
+    visualEffect->SetParam("PROGRESS", 0.5f);
+    visualEffect->SetParam("WAVE_NUM", 1.0f);
+    visualEffect->SetParam("RIPPLE_CENTER_X", 0.5f);
+    visualEffect->SetParam("RIPPLE_CENTER_Y", 0.5f);
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_NE(shaderFilters[0], nullptr);
+ 
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter005 end";
+}
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

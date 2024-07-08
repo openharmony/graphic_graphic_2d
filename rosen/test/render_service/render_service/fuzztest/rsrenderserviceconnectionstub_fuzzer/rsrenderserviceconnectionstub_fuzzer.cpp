@@ -221,6 +221,42 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+ 
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return true;
+}
+
+bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    PointerLuminanceChangeCallback cb = [](int32_t brightness) {};
+    rsClient->RegisterPointerLuminanceChangeCallback(cb);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -329,12 +365,17 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto nodeId = GetData<NodeId>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
 
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY, useDma);
+    rsClient->TakeSurfaceCapture(nodeId, cb, captureConfig);
     return true;
 }
 
@@ -737,12 +778,15 @@ bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
+    OHOS::Rosen::DoOnRemoteRequest(data, size);
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
+    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);

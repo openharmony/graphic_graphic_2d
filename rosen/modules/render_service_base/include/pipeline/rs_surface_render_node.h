@@ -280,6 +280,11 @@ public:
         return needCollectHwcNode_;
     }
 
+    void SetNeedCollectHwcNode(bool needCollect)
+    {
+        needCollectHwcNode_ = needCollect;
+    }
+
     void ResetNeedCollectHwcNode()
     {
         needCollectHwcNode_ = false;
@@ -458,6 +463,7 @@ public:
     {
         return UIFirstIsPurge_;
     }
+    void SetUifirstUseStarting(NodeId id); // only cache app window, first frame not wait
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
@@ -1175,6 +1181,16 @@ public:
         return brightnessRatio_;
     }
 
+    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
+    {
+        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
+    }
+
+    bool GetHardWareDisabledByReverse() const
+    {
+        return isHardWareDisabledByReverse_;
+    }
+
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
@@ -1398,6 +1414,7 @@ private:
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
+    bool isHardWareDisabledByReverse_ = false;
 
     uint32_t processZOrder_ = -1;
 

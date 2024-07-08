@@ -178,7 +178,6 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
 
 napi_value JsParagraph::PaintOnPath(napi_env env, napi_callback_info info)
 {
-    ROSEN_LOGE("liyan JsParagraph::PaintOnPath");
     JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
     return (me != nullptr) ? me->OnPaintOnPath(env, info) : nullptr;
 }

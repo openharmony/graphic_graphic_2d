@@ -28,6 +28,7 @@
 #include "drawing_matrix.h"
 #include "drawing_path.h"
 #include "drawing_pen.h"
+#include "drawing_pixel_map.h"
 #include "drawing_point.h"
 #include "drawing_rect.h"
 #include "drawing_region.h"
@@ -35,6 +36,7 @@
 #include "drawing_sampling_options.h"
 #include "drawing_types.h"
 #include "drawing_text_blob.h"
+#include "image/pixelmap_native.h"
 
 constexpr uint32_t MAX_ARRAY_MAX = 5000;
 constexpr uint32_t ENUM_RANGE_ONE = 1;
@@ -481,6 +483,62 @@ void CanvasFuzzTest001(const uint8_t* data, size_t size)
 
     OH_Drawing_CanvasDestroy(canvas);
 }
+
+void CanvasFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    size_t width = GetObject<size_t>() % MAX_ARRAY_MAX;
+    size_t height = GetObject<size_t>() % MAX_ARRAY_MAX;
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, WIDTH_FACTOR);
+    OH_PixelmapInitializationOptions_SetAlphaType(options, ENUM_RANGE_TWO);
+    size_t dataLength = width * height * WIDTH_FACTOR;
+    uint8_t* colorData = new uint8_t[dataLength];
+    for (size_t i = 0; i < width * height; i++) {
+        colorData[i] = GetObject<uint8_t>();
+    }
+    
+    OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    OH_Drawing_Rect* srcRect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_Rect* dstRect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO),
+        static_cast<OH_Drawing_MipmapMode>(GetObject<uint32_t>() % ENUM_RANGE_THREE));
+    OH_Drawing_CanvasDrawPixelMapRect(canvas, drPixelMap, srcRect, dstRect, samplingOptions);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas, drPixelMap, srcRect, dstRect, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas, drPixelMap, srcRect, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas, drPixelMap, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(canvas, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawPixelMapRect(nullptr, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+
+    if (colorData != nullptr) {
+        delete[] colorData;
+        colorData = nullptr;
+    }
+
+    OH_Drawing_CanvasDestroy(canvas);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -498,5 +556,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest007(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest008(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest010(data, size);
     return 0;
 }

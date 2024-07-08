@@ -166,6 +166,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
+    auto canvasDrawingPtr = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(shared_from_this());
     {
         // check params, if params is invalid, do not post the task
         std::lock_guard<std::mutex> lockTask(taskMutex_);
@@ -174,31 +175,18 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         }
     }
 
-    auto nodeId = nodeId_;
-    auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
     auto rect = GetRenderParams()->GetBounds();
-    auto task = [this, rect, nodeId, ctx]() {
+    auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(GetRenderParams().get());
+    auto task = [this, canvasDrawingPtr, canvasDrawingParams, rect]() {
         std::lock_guard<std::mutex> lockTask(taskMutex_);
         if (!surface_ || !canvas_) {
             return;
         }
-        auto renderNode = renderNode_.lock();
-        if (renderNode == nullptr) {
-            return;
-        }
-        auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-        auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
-        if (canvasDrawingNode == nullptr) {
-            return;
-        }
-        auto canvasDrawingParams =
-            static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
         if (canvasDrawingParams->GetCanvasDrawingSurfaceChanged()) {
             return;
         }
         DrawContent(*canvas_, rect);
         canvasDrawingParams->SetNeedProcess(false);
-        canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
@@ -303,6 +291,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
             }
             ctx->PostTask([ctx, nodeId]() {
                 if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
                     node->SetDirty();
                     ctx->RequestVsync();
                 }
@@ -455,6 +444,11 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         canvas.DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
         return;
     }
+
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        return;
+    }
+
     if (!backendTexture_.IsValid()) {
         return;
     }
@@ -524,6 +518,8 @@ inline void RSCanvasDrawingRenderNodeDrawable::ClearPreSurface(std::shared_ptr<D
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
     auto preMatrix = canvas_->GetTotalMatrix();
+    auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
+    auto preSaveCount = canvas_->GetSaveCount();
     auto preSurface = surface_;
     if (!ResetSurface(width, height, canvas)) {
         ClearPreSurface(preSurface);
@@ -557,6 +553,10 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         preThreadInfo_.second(std::move(preSurface));
     }
     preThreadInfo_ = curThreadInfo_;
+    if (preSaveCount > 1) {
+        canvas_->Save();
+    }
+    canvas_->ClipIRect(preDeviceClipBounds);
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
     std::lock_guard<std::mutex> lock(imageMutex_);

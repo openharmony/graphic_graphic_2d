@@ -71,6 +71,14 @@ enum class ImageFit {
     NONE,
     SCALE_DOWN,
     TOP_LEFT,
+    TOP,
+    TOP_RIGHT,
+    LEFT,
+    CENTER,
+    RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM,
+    BOTTOM_RIGHT,
     COVER_TOP_LEFT,
 };
 

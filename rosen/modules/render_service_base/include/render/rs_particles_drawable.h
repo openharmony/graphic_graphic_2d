@@ -37,6 +37,8 @@ private:
         const std::shared_ptr<RSRenderParticle>& particle, Vector2f position, float opacity, float scale);
     void CaculateImageAtlsArry(Drawing::Canvas& canvas, const std::shared_ptr<RSRenderParticle>& particle,
         Vector2f position, float opacity, float scale);
+    void DrawImageFill(Drawing::Canvas& canvas, const std::shared_ptr<RSRenderParticle>& particle,
+        Vector2f position, float opacity, float scale);
     void DrawParticles(Drawing::Canvas& canvas);
     void DrawCircle(Drawing::Canvas& canvas);
     void DrawImages(Drawing::Canvas& canvas);

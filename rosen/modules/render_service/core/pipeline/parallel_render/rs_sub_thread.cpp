@@ -152,9 +152,12 @@ void RSSubThread::DestroyShareEglContext()
 void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask)
 {
     RS_TRACE_NAME("RSSubThread::RenderCache");
-    if (threadTask == nullptr || threadTask->GetTaskSize() == 0) {
-        RS_LOGE("RSSubThread::RenderCache threadTask == nullptr %p || threadTask->GetTaskSize() == 0 %d",
-            threadTask.get(), int(threadTask->GetTaskSize()));
+    if (threadTask == nullptr) {
+        RS_LOGE("RSSubThread::RenderCache threadTask is nullptr");
+        return;
+    }
+    if (threadTask->GetTaskSize() == 0) {
+        RS_LOGE("RSSubThread::RenderCache no task");
         return;
     }
     if (grContext_ == nullptr) {
@@ -272,12 +275,17 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     nodeDrawable->SetCacheSurfaceNeedUpdated(true);
 
-    RSSubThreadManager::Instance()->NodeTaskNotify(param->GetId());
+    if (!param) {
+        RS_LOGE("RSSubThread::DrawableCache param is null");
+        return;
+    }
+    NodeId nodeId = param->GetId();
+    RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
 
     RSMainThread::Instance()->RequestNextVSync("subthread");
 
     // mark nodedrawable can release
-    RSUifirstManager::Instance().AddProcessDoneNode(param->GetId());
+    RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
     doingCacheProcessNum--;
 }
 
@@ -310,7 +318,8 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(
+            RSMainThread::Instance()->GetDeviceType() == DeviceType::PC), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
@@ -322,6 +331,10 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 
 void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
+    if (!nodeDrawable) {
+        RS_LOGE("RSSubThread::DrawableCacheWithSkImage nodeDrawable is nullptr");
+        return;
+    }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
@@ -347,6 +360,8 @@ void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawab
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    rscanvas->SetScreenId(nodeDrawable->GetScreenId());
+    rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
@@ -362,6 +377,10 @@ void RSSubThread::DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawab
 void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
     RS_TRACE_NAME("DrawableCacheWithDma");
+    if (!nodeDrawable) {
+        RS_LOGE("RSSubThread::DrawableCache nodeDrawable is nullptr");
+        return;
+    }
     if (!nodeDrawable->IsSurfaceCreated()) {
         nodeDrawable->CreateSurface();
     }
@@ -386,6 +405,9 @@ void RSSubThread::DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* 
     rsCanvas->SetParallelThreadIdx(threadIndex_);
     rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
     rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
+    rsCanvas->SetScreenId(nodeDrawable->GetScreenId());
+    rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
+    nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     nodeDrawable->SubDraw(*rsCanvas);

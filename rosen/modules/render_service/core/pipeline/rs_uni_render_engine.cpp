@@ -51,6 +51,9 @@ GraphicColorGamut RSUniRenderEngine::ComputeTargetColorGamut(const std::vector<L
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSUniRenderEngine::ComputeTargetColorGamut The buffer of layer is nullptr");

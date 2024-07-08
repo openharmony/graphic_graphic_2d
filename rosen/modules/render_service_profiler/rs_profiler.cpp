@@ -26,6 +26,7 @@
 #include "rs_profiler_settings.h"
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_packet.h"
 
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_main_thread.h"
@@ -40,6 +41,7 @@ static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static RSMainThread* g_mainThread = nullptr;
 static RSContext* g_context = nullptr;
 static uint64_t g_frameBeginTimestamp = 0u;
+static uint64_t g_frameRenderBeginTimestamp = 0u;
 static double g_dirtyRegionPercentage = 0.0;
 static bool g_rdcSent = true;
 
@@ -47,6 +49,7 @@ static std::atomic<uint32_t> g_lastCacheImageCount = 0;
 
 static RSFile g_recordFile {};
 static double g_recordStartTime = 0.0;
+static uint32_t g_frameNumber = 0;
 
 static RSFile g_playbackFile {};
 static double g_playbackStartTime = 0.0;
@@ -172,7 +175,9 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
-    static std::thread const THREAD(Network::Run);
+    if (!IsBetaRecordEnabled()) {
+        static std::thread const THREAD(Network::Run);
+    }
 }
 
 void RSProfiler::OnCreateConnection(pid_t pid)
@@ -350,6 +355,42 @@ void RSProfiler::OnRenderEnd()
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
+void RSProfiler::OnParallelRenderBegin()
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    g_frameRenderBeginTimestamp = RawNowNano();
+}
+
+void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
+{
+    if (!IsRecording() || (g_recordStartTime <= 0.0)) {
+        return;
+    }
+
+    const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
+
+    const double currentTime = static_cast<double>(g_frameRenderBeginTimestamp) * 1e-9;
+    const double timeSinceRecordStart = currentTime - g_recordStartTime;
+
+    if (timeSinceRecordStart > 0.0) {
+        RSCaptureData captureData;
+        captureData.SetTime(timeSinceRecordStart);
+        captureData.SetProperty(RSCaptureData::KEY_RENDER_FRAME_NUMBER, frameNumber);
+        captureData.SetProperty(RSCaptureData::KEY_RENDER_FRAME_LEN, frameLengthNanosecs);
+
+        std::vector<char> out;
+        captureData.Serialize(out);
+
+        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RENDER_METRICS);
+        out.insert(out.begin(), headerType);
+
+        Network::SendBinary(out.data(), out.size());
+        g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
+    }
+}
+
 void RSProfiler::OnFrameBegin()
 {
     if (!IsEnabled()) {
@@ -358,6 +399,7 @@ void RSProfiler::OnFrameBegin()
 
     g_frameBeginTimestamp = RawNowNano();
     g_renderServiceCpuId = Utils::GetCpuId();
+    g_frameNumber++;
 
     StartBetaRecord();
 }
@@ -382,7 +424,7 @@ void RSProfiler::OnFrameEnd()
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd()
 {
-    if (g_calcPerfNode == 0) {
+    if (g_calcPerfNode == 0 || g_calcPerfNodeTry < 0 || g_calcPerfNodeTry > CALC_PERF_NODE_TIME_COUNT) {
         return;
     }
 
@@ -680,6 +722,7 @@ void RSProfiler::RecordUpdate()
     if (timeSinceRecordStart > 0.0) {
         RSCaptureData captureData;
         captureData.SetTime(timeSinceRecordStart);
+        captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_NUMBER, g_frameNumber);
         captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_LEN, frameLengthNanosecs);
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_COUNT, GetCommandCount());
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_EXECUTE_COUNT, GetCommandExecuteCount());
@@ -691,7 +734,7 @@ void RSProfiler::RecordUpdate()
         std::vector<char> out;
         captureData.Serialize(out);
 
-        const char headerType = 2; // TYPE: RS METRICS
+        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RS_METRICS);
         out.insert(out.begin(), headerType);
 
         Network::SendBinary(out.data(), out.size());
@@ -1141,6 +1184,11 @@ void RSProfiler::RecordStart(const ArgList& args)
     SetMode(Mode::WRITE);
 
     g_recordStartTime = Now();
+    g_frameNumber = 0;
+
+    if (IsBetaRecordStarted()) {
+        return;
+    }
 
     std::thread thread([]() {
         while (IsRecording()) {
@@ -1244,7 +1292,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     g_playbackShouldBeTerminated = false;
 
-    std::thread thread([]() {
+    const auto timeoutLimit = args.Int64();
+    std::thread thread([timeoutLimit]() {
         while (IsPlaying()) {
             const int64_t timestamp = static_cast<int64_t>(RawNowNano());
 
@@ -1253,7 +1302,6 @@ void RSProfiler::PlaybackStart(const ArgList& args)
                 SendTelemetry(Now() - g_playbackStartTime);
             }
 
-            constexpr int64_t timeoutLimit = 8000000;
             const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
@@ -1470,6 +1518,11 @@ void RSProfiler::ProcessCommands()
     } else if (!command.empty()) {
         Respond("Command has not been found: " + command);
     }
+}
+
+uint32_t RSProfiler::GetFrameNumber()
+{
+    return g_frameNumber;
 }
 
 } // namespace OHOS::Rosen

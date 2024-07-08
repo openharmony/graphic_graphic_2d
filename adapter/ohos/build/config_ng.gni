@@ -11,9 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("common.gni")
+
 form_components_support = false
 plugin_components_support = false
-use_external_icu = "shared"
 
 defines = [ "NG_BUILD" ]
 

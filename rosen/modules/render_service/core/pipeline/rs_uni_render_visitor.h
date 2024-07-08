@@ -235,6 +235,7 @@ private:
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
+    bool IsFirstOrLastFrameOfWatermark() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
@@ -242,8 +243,10 @@ private:
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
         RSSurfaceRenderNode& hwcNodePtr);
-    void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect);
-    void CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect);
+    void UpdateHwcNodeEnableByFilterRect(
+        std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect, bool isReverseOrder = false);
+    void CalcHwcNodeEnableByFilterRect(
+        std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect, bool isReverseOrder = false);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
@@ -414,7 +417,7 @@ private:
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {
-        return !node.GetSkipLayer() && (screenInfo_.filteredAppSet.empty() ||
+        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.filteredAppSet.empty() ||
             screenInfo_.filteredAppSet.find(node.GetId()) != screenInfo_.filteredAppSet.end());
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);

@@ -21,6 +21,7 @@ config("export_config") {
   cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
+  defines += gpu_defines
 }
 
 if (!is_mingw && !is_mac && !is_cross_platform) {
@@ -153,16 +154,22 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_proxy.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/rs_iuiextension_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
+    "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
@@ -281,6 +288,7 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
+    "src/transaction/rs_uiextension_data.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",
@@ -588,6 +596,8 @@ ohos_shared_library("librender_service_base") {
       blocklist = "./rs_base_blocklist.txt"
     }
   }
+
+  sources = [ "src/common/rs_common_hook.cpp" ]
 
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 

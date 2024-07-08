@@ -120,6 +120,7 @@ private:
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::shared_ptr<std::atomic<bool>> waitRelease_ = std::make_shared<std::atomic<bool>>(false);
     std::shared_ptr<Drawing::Image> imageSnapshotCache_ = nullptr;
+    Drawing::BitmapFormat cacheBitmapFormat_;
     RSColor color_;
     std::vector<RSColor> colorArray_;
     std::vector<bool> colorArrayValid_;

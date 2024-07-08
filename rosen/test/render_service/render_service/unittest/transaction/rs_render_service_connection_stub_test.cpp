@@ -164,6 +164,9 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003
     code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
     res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
     code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
     res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);

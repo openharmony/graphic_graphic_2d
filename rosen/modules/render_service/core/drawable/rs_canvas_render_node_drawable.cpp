@@ -49,6 +49,11 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (params && params->GetStartingWindowFlag()) { // do not draw startingwindows in sudthread
+        if (paintFilterCanvas->GetIsParallelCanvas()) {
+            return;
+        }
+    }
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
@@ -67,6 +72,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+    RSRenderNodeDrawable::ProcessedNodeCountInc();
 }
 
 /*

@@ -78,7 +78,6 @@ struct TypographyStyle {
      * @brief Returns the default TextStyle.
      */
     TextStyle ConvertToTextStyle() const;
-    bool ellipsizedForNDK = false;
 };
 } // namespace TextEngine
 } // namespace Rosen

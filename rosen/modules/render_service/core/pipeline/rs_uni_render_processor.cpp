@@ -56,7 +56,7 @@ void RSUniRenderProcessor::PostProcess()
 {
     uniComposerAdapter_->CommitLayers(layers_);
     if (!isPhone_) {
-        MultiLayersPerf(layerNum);
+        MultiLayersPerf(layerNum_);
     }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
@@ -74,6 +74,10 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto& preBuffer = params.GetPreBuffer();
+    ScalingMode scalingMode = params.GetPreScalingMode();
+    if (node.GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        params.SetPreScalingMode(scalingMode);
+    }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, node.GetConsumer(), params.GetAcquireFence());
     if (layer != nullptr) {
@@ -83,6 +87,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
     layers_.emplace_back(layer);
+    params.SetLayerCreated(true);
 }
 
 void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
@@ -152,6 +157,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
+    layer->SetScalingMode(params.GetPreScalingMode());
     return layer;
 }
 
@@ -182,13 +188,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    for (auto surface : node.GetCurAllSurfaces()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || !surfaceNode->GetOcclusionVisible() || surfaceNode->IsLeashWindow()) {
-            continue;
-        }
-        layerNum++;
-    }
+    layerNum_ = node.GetSurfaceCountForMultiLayersPerf();
     RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
 }
 
@@ -203,5 +203,9 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     layers_.emplace_back(layer);
 }
 
+std::vector<LayerInfoPtr> RSUniRenderProcessor::GetLayers() const
+{
+    return layers_;
+}
 } // namespace Rosen
 } // namespace OHOS

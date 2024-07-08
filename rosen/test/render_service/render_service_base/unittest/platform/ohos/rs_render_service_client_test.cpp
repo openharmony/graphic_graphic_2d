@@ -82,9 +82,11 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, false); // test a notfound number: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test a notfound number: 123
     ASSERT_EQ(ret, true);
-    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, true); // test number: 123 twice
+    captureConfig.useDma = true;
+    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test number: 123 twice
     ASSERT_EQ(ret, true);
 }
 
@@ -97,7 +99,8 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false); // NodeId: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig); // NodeId: 123
     ASSERT_NE(ret, true);
 }
 
@@ -110,8 +113,9 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false,
-        SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSync = true;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig);
     ASSERT_NE(ret, true);
 }
 
@@ -435,6 +439,54 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
     };
     int32_t status = rsClient->SetScreenChangeCallback(callback);
     EXPECT_EQ(status, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionConfig Test
+ * @tc.desc: SetPointerColorInversionConfig Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, SetPointerColorInversionConfig001, TestSize.Level1)
+{
+    float darkBuffer = 0.5f;
+    float brightBuffer = 0.5f;
+    int64_t interval = 50;
+    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionEnabled Test
+ * @tc.desc: SetPointerColorInversionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, SetPointerColorInversionEnabled001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->SetPointerColorInversionEnabled(false), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterPointerLuminanceChangeCallback Test
+ * @tc.desc: RegisterPointerLuminanceChangeCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {}),
+        StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: UnRegisterPointerLuminanceChangeCallback Test
+ * @tc.desc: UnRegisterPointerLuminanceChangeCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->UnRegisterPointerLuminanceChangeCallback(), StatusCode::SUCCESS);
 }
 
 /**

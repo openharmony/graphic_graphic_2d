@@ -115,7 +115,7 @@ public:
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
-    void AddPendingSyncNode(const std::shared_ptr<RSRenderNode>& node);
+    void AddPendingSyncNode(const std::shared_ptr<RSRenderNode> node);
 
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 

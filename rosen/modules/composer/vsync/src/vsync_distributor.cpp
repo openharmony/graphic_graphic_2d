@@ -26,6 +26,8 @@
 #include "vsync_log.h"
 #include "vsync_type.h"
 #include "vsync_generator.h"
+#include <rs_trace.h>
+#include "scoped_trace_fmt.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -91,7 +93,7 @@ VSyncConnection::VSyncConnection(
     socketPair_ = new LocalSocketPair();
     int32_t err = socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
     if (err != 0) {
-        ScopedBytrace func("Create socket channel failed, errno = " + std::to_string(errno));
+        RS_TRACE_NAME_FMT("Create socket channel failed, errno = %d", errno);
     }
     if (token_ != nullptr) {
         token_->AddDeathRecipient(vsyncConnDeathRecipient_);
@@ -153,18 +155,17 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     {
         std::unique_lock<std::mutex> locker(mutex_);
         if (isDead_) {
-            ScopedBytrace func("Vsync Client Connection is dead, conn: " + info_.name_);
+            RS_TRACE_NAME_FMT("Vsync Client Connection is dead, conn: %s", info_.name_.c_str());
             VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
             return ERRNO_OTHER;
         }
         socketPair = socketPair_;
     }
     if (socketPair == nullptr) {
-        ScopedBytrace func("socketPair is null, conn: " + info_.name_);
+        RS_TRACE_NAME_FMT("socketPair is null, conn: %s", info_.name_.c_str());
         return ERRNO_OTHER;
     }
-    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now) +
-                       ", refreshRate:" + std::to_string(refreshRate_));
+    RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%ld, refreshRate:%d", info_.name_.c_str(), now, refreshRate_);
     // 3 is array size.
     int64_t data[3];
     data[0] = now;
@@ -291,7 +292,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    ScopedBytrace func("Add VSyncConnection: " + connection->info_.name_);
+    RS_TRACE_NAME_FMT("Add VSyncConnection: %s", connection->info_.name_.c_str());
     connections_.push_back(connection);
     connectionCounter_[proxyPid]++;
     if (windowNodeId != 0) {
@@ -317,7 +318,7 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     if (it == connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    ScopedBytrace func("Remove VSyncConnection: " + connection->info_.name_);
+    RS_TRACE_NAME_FMT("Remove VSyncConnection: %s", connection->info_.name_.c_str());
     connections_.erase(it);
     connectionCounter_[proxyPid]--;
     if (connectionCounter_[proxyPid] == 0) {
@@ -353,7 +354,10 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     if (!isRs_ && IsDVsyncOn()) {
         con_.wait_for(locker, std::chrono::nanoseconds(dvsync_->WaitTime()), [this] {return dvsync_->WaitCond();});
     } else {
-        con_.wait(locker);
+        if (!(hasVsync_.load() && isRs_)) {
+            con_.wait(locker);
+        }
+        hasVsync_.store(false);
     }
     if (pendingRNVInVsync_) {
         return;
@@ -424,12 +428,12 @@ void VSyncDistributor::ThreadMain()
                     // just wait request or vsync signal
                     WaitForVsyncOrRequest(locker);
                 }
-                ScopedBytrace func(name_ + "_continue: waitForVSync " + std::to_string(waitForVSync) +
-                    ", vsyncEnabled " + std::to_string(vsyncEnabled_) + ", dvsyncOn " + std::to_string(IsDVsyncOn()));
+                RS_TRACE_NAME_FMT("%s_continue: waitForVSync %d, vsyncEnabled %d, dvsyncOn %d",
+                    name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false) && (isRs_ || !IsDVsyncOn())) {
                 // if there is a vsync signal but no vaild connections, we should disable vsync
-                ScopedBytrace func(name_ + "_DisableVSync, there is no valid connections");
+                RS_TRACE_NAME_FMT("%s_DisableVSync, there is no valid connections", name_.c_str());
                 DisableVSync();
                 continue;
             }
@@ -438,7 +442,7 @@ void VSyncDistributor::ThreadMain()
             continue;
         } else {
             // IMPORTANT: ScopedDebugTrace here will cause frame loss.
-            ScopedBytrace func(name_ + "_SendVsync");
+            RS_TRACE_NAME_FMT("%s_SendVsync", name_.c_str());
         }
         PostVSyncEvent(conns, timestamp);
     }
@@ -511,13 +515,9 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     vsyncMode_ = vsyncMode;
     dvsync_->RuntimeSwitch();
     if (IsDVsyncOn()) {
-        if (isRs_ && event_.period != 0 && event_.refreshRate != 0) {
-            period = event_.period;
-            refreshRate = event_.refreshRate;
-        }
-        ScopedBytrace func("VSyncD onVSyncEvent, now:" + std::to_string(now));
+        RS_TRACE_NAME_FMT("VSyncD onVSyncEvent, now:%ld", now);
     } else {
-        ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
+        RS_TRACE_NAME_FMT("VSync onVSyncEvent, now:%ld", now);
     }
     event_.period = period;
 
@@ -541,8 +541,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     }
 
     ChangeConnsRateLocked();
-    ScopedBytrace func("pendingRNVInVsync: " + std::to_string(pendingRNVInVsync_) + " DVSyncOn: " +
-        std::to_string(IsDVsyncOn()) + " isRS:" + std::to_string(isRs_));
+    RS_TRACE_NAME_FMT("pendingRNVInVsync: %d DVSyncOn: %d isRS:%d", pendingRNVInVsync_, IsDVsyncOn(), isRs_);
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -691,13 +690,10 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
             continue;
         }
         
-        ScopedBytrace trace("CollectConnections name:" + connections_[i]->info_.name_ +
-                            ", proxyPid:" + std::to_string(connections_[i]->proxyPid_) +
-                            ", highPriorityState_:" + std::to_string(connections_[i]->highPriorityState_) +
-                            ", highPriorityRate_:" + std::to_string(connections_[i]->highPriorityRate_) +
-                            ", rate_:" + std::to_string(connections_[i]->rate_) +
-                            ", timestamp:" + std::to_string(timestamp) +
-                            ", vsyncCount:" + std::to_string(vsyncCount));
+        RS_TRACE_NAME_FMT("CollectConnections name:%s, proxyPid:%d, highPriorityState_:%d, highPriorityRate_:%d"
+            ", rate_:%d, timestamp:%ld, vsyncCount:%ld", connections_[i]->info_.name_.c_str(),
+            connections_[i]->proxyPid_, connections_[i]->highPriorityState_,
+            connections_[i]->highPriorityRate_, connections_[i]->rate_, timestamp, vsyncCount);
 
         if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
             waitForVSync = true;
@@ -719,12 +715,9 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
                                               std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount)
 {
     for (uint32_t i = 0; i < connections_.size(); i++) {
-        ScopedDebugTrace trace("CollectConnectionsLTPO, i:" + std::to_string(i) +
-                               ", name:" + connections_[i]->info_.name_ +
-                               ", rate:" + std::to_string(connections_[i]->rate_) +
-                               ", vsyncPulseFreq:" + std::to_string(connections_[i]->vsyncPulseFreq_) +
-                               ", referencePulseCount:" + std::to_string(connections_[i]->referencePulseCount_) +
-                               ", vsyncCount:" + std::to_string(vsyncCount));
+        SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%d, name:%s, rate:%d, vsyncPulseFreq:%u"
+            ", referencePulseCount:%ld, vsyncCount:%d", i, connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
+            connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_, vsyncCount);
         if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
             continue;
         }
@@ -741,16 +734,6 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
     }
 }
 
-#if defined(RS_ENABLE_DVSYNC)
-void VSyncDistributor::UpdateVsyncPeriodAndRefreshRate()
-{
-    std::unique_lock<std::mutex> locker(mutex_);
-    event_.refreshRate = dvsync_->GetImmediateRefreshRate();
-    event_.period = dvsync_->GetImmediatePeriod();
-    dvsync_->UpdateVsyncPeriodAndRefreshRate(event_.period, event_.refreshRate);
-}
-#endif
-
 void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -761,18 +744,13 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
 #endif
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
     CountTrace(HITRACE_TAG_GRAPHIC_AGP, "DVSync-" + name_, countTraceValue_);
-
+    hasVsync_.store(false);
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t period = event_.period;
         if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
             (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
             period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
         }
-#if defined(RS_ENABLE_DVSYNC)
-        if (isRs_) {
-            UpdateVsyncPeriodAndRefreshRate();
-        }
-#endif
         int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name_.c_str(), ret);
@@ -829,6 +807,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     }
     connection->triggerThisTime_ = true;
 #if defined(RS_ENABLE_DVSYNC)
+    hasVsync_.store(true);
     if (dvsync_->IsFeatureEnabled()) {
         con_.notify_all();
     } else
@@ -1122,6 +1101,24 @@ int64_t VSyncDistributor::GetUiCommandDelayTime()
     return dvsync_->GetUiCommandDelayTime();
 #else
     return 0;
+#endif
+}
+
+void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->UpdatePendingReferenceTime(timeStamp);
+    }
+#endif
+}
+
+void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->SetHardwareTaskNum(num);
+    }
 #endif
 }
 }

@@ -129,7 +129,8 @@ HWTEST_F(RSDisplayNodeTest, TakeSurfaceCapture001, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
     ASSERT_TRUE(displayNode != nullptr);
     auto surfaceCaptureMock = std::make_shared<TestSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, surfaceCaptureMock);
+    RSSurfaceCaptureConfig captureConfig;
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, surfaceCaptureMock, captureConfig);
 }
 
 /**

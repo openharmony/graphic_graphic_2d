@@ -199,6 +199,20 @@ public:
         needSync_ = true;
     }
 
+    void SetUifirstUseStarting(NodeId id)
+    {
+        if (uifirstUseStarting_ == id) {
+            return;
+        }
+        uifirstUseStarting_ = id;
+        needSync_ = true;
+    }
+
+    NodeId GetUifirstUseStarting() const
+    {
+        return uifirstUseStarting_;
+    }
+
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
     {
         childrenDirtyRect_ = rect;
@@ -289,7 +303,11 @@ public:
 
     void SetPreScalingMode(ScalingMode scalingMode)
     {
+        if (preScalingMode_ == scalingMode) {
+            return;
+        }
         preScalingMode_ = scalingMode;
+        needSync_ = true;
     }
     ScalingMode GetPreScalingMode() const
     {
@@ -324,7 +342,17 @@ public:
 
     bool GetNeedOffscreen() const
     {
-        return needOffscreen_;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+    }
+
+    void SetLayerCreated(bool layerCreated)
+    {
+        layerCreated_ = layerCreated;
+    }
+
+    bool GetLayerCreated() const
+    {
+        return layerCreated_;
     }
 
 protected:
@@ -351,6 +379,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 
@@ -389,6 +418,7 @@ private:
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
+    bool layerCreated_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

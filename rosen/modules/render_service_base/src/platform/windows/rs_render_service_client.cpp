@@ -117,7 +117,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     return false;
 }
@@ -152,6 +152,26 @@ bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
+}
+
+int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+{
+    return 0;
+}
+ 
+int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
+{
+    return 0;
+}
+ 
+int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
+{
+    return 0;
+}
+ 
+int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
+{
+    return 0;
 }
 
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
@@ -198,6 +218,11 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
+}
+
+std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
+{
+    return "";
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -530,6 +555,11 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
 
 void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
+}
+
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS

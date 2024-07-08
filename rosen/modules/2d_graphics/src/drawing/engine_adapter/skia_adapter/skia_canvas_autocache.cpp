@@ -208,11 +208,11 @@ void SkiaCanvasAutoCache::ShowDrawResult(const SkRect& bound)
 #ifdef OPINC_ENABLE_FEATURE_DEBUG
     std::vector<SkRect>& drawAreaRects = drawAreaRects_;
     LOGD("opinc draw result %d, canvas w%d h%d, opNum%d, percent%d, cal%d, "
-        "node[%.2f %.2f %.2f %.2f] bound[%.2f %.2f %.2f %.2f] reject[%.2f %.2f %.2f %.2f]"
+        "bound[%.2f %.2f %.2f %.2f] unionDrawArea[%.2f %.2f %.2f %.2f]"
         "rect num %d not support %d",
         opCanCache_, proxy()->imageInfo().width(), proxy()->imageInfo().height(),
         totalOpNums_, percent_, calNotSupport_,
-        bound.x(), bound.y(), bound.width(), bound().height(),
+        bound.x(), bound.y(), bound.width(), bound.height(),
         unionDrawArea_.x(), unionDrawArea_.y(), unionDrawArea_.width(), unionDrawArea_.height(),
         static_cast<int>(drawAreaRects.size()), static_cast<int>(debugNotSupportOps_.size()));
     for (uint32_t i = 0; i < drawAreaRects.size(); i++) {

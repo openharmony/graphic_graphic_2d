@@ -25,6 +25,7 @@ group("fuzztest") {
     "ndkerrorcode_fuzzer:fuzztest",
     "ndkfilter_fuzzer:fuzztest",
     "ndkfont_fuzzer:fuzztest",
+    "ndkgpucontext_fuzzer:fuzztest",
     "ndkimage_fuzzer:fuzztest",
     "ndkimagefilter_fuzzer:fuzztest",
     "ndkmaskfilter_fuzzer:fuzztest",
@@ -41,6 +42,7 @@ group("fuzztest") {
     "ndksamplingoptions_fuzzer:fuzztest",
     "ndkshadereffect_fuzzer:fuzztest",
     "ndkshadowlayer_fuzzer:fuzztest",
+    "ndksurface_fuzzer:fuzztest",
     "ndktextblob_fuzzer:fuzztest",
     "ndktypeface_fuzzer:fuzztest",
   ]

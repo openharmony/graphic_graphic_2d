@@ -143,7 +143,8 @@ int main()
     uint64_t input;
     cin >> input;
     shared_ptr<SurfaceCaptureFuture> callback = make_shared<SurfaceCaptureFuture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(input, callback);
+    RSSurfaceCaptureConfig captureConfig;
+    RSInterfaces::GetInstance().TakeSurfaceCapture(input, callback, captureConfig);
     sleep(2);
     shared_ptr<PixelMap> pixelmap = callback->GetPixelMap();
     if (pixelmap == nullptr) {

@@ -43,9 +43,20 @@ ohos_shared_library("text_napi") {
     ":text_config",
   ]
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   deps = [ ":text_napi_impl" ]
 
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "hilog:libhilog",
+    "napi:ace_napi",
+  ]
+
   relative_install_dir = "module/graphics"
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -67,6 +78,13 @@ ohos_shared_library("text_napi_impl") {
     ":local_text",
     ":text_config",
   ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
 
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",

@@ -15,7 +15,7 @@
 
 #include "drawing_font.h"
 
-#include "drawing_canvas_utils.h"
+#include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
 #include "text/font.h"
@@ -228,6 +228,22 @@ void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyp
         return;
     }
     CastToFont(*cFont).GetWidths(glyphs, count, widths);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font* cFont, const char* str,
+    float* textWidth)
+{
+    if (cFont == nullptr || str == nullptr || textWidth == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    *textWidth = CastToFont(*cFont).MeasureSingleCharacter(unicode);
+    return OH_DRAWING_SUCCESS;
 }
 
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* cFont, const void* text, size_t byteLength,

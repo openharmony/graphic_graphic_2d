@@ -34,9 +34,9 @@ public:
      *
      * @param surfaceNodeId the surfaceNode unique id
      * @param sourceType the buffer queue type of the surfaceNode
-     * @param timestamp the buffer queue timestamp
+     * @param buffer the buffer queue
      */
-    void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, int64_t timestamp);
+    void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer);
 
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);

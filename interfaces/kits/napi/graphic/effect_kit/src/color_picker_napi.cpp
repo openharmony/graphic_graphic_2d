@@ -171,7 +171,7 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
     IMG_JS_NO_ARGS(env, info, status, thisVar);
 
     IMG_NAPI_CHECK_RET(IMG_IS_READY(status, thisVar), undefineVar);
-    ColorPickerNapi* pColorPickerNapi = new ColorPickerNapi();
+    ColorPickerNapi* pColorPickerNapi = new (std::nothrow) ColorPickerNapi();
 
     IMG_NAPI_CHECK_RET(IMG_NOT_NULL(pColorPickerNapi), undefineVar);
 
@@ -197,7 +197,8 @@ void ColorPickerNapi::Destructor(napi_env env, void* nativeObject, void* finaliz
     ColorPickerNapi *pColorPickerNapi = reinterpret_cast<ColorPickerNapi*>(nativeObject);
 
     if (IMG_NOT_NULL(pColorPickerNapi)) {
-        pColorPickerNapi->~ColorPickerNapi();
+        delete pColorPickerNapi;
+        nativeObject = nullptr;
     }
 }
 

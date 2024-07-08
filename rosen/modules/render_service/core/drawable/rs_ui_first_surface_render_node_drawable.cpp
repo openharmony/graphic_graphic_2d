@@ -531,23 +531,17 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-    bool useDmaBuffer = UseDmaBuffer();
-    if (useDmaBuffer) {
-        DrawBackground(canvas, bounds);
-    }
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
-    if (useDmaBuffer) {
-        DrawForeground(canvas, bounds);
-    }
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)
 {
+    RS_TRACE_NAME_FMT("DrawUIFirstCache_NOSTARTING");
     const auto& params = GetRenderParams();
     if (!params) {
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
@@ -577,5 +571,31 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
 #endif
     }
     return DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
+}
+
+bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id)
+{
+    RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%lld", HasCachedTexture(), id);
+    const auto& params = GetRenderParams();
+    if (!params) {
+        RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
+        return false;
+    }
+    auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
+    if (!drawable) {
+        return false;
+    }
+
+    bool ret = true;
+    // draw surface content&&childrensss
+    if (HasCachedTexture()) {
+        ret = DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
+    }
+    // draw starting window
+    {
+        RS_TRACE_NAME_FMT("drawStarting");
+        drawable->Draw(rscanvas);
+    }
+    return ret;
 }
 } // namespace OHOS::Rosen

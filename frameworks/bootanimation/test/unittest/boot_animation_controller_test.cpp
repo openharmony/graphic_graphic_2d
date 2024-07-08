@@ -67,9 +67,9 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.
 HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.Level1)
 {
     BootAnimationController controller;
-    controller.isCompatible_ = true;
+    controller.isMultiDisplay_ = true;
     BootStrategyType type = controller.GetBootType();
-    EXPECT_EQ(type, BootStrategyType::COMPATIBLE);
+    EXPECT_EQ(type, BootStrategyType::INDEPENDENT);
 }
 
 /**
@@ -80,7 +80,8 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.
 HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.Level1)
 {
     BootAnimationController controller;
-    controller.isMultiDisplay_ = true;
+    BootAnimationConfig config;
+    controller.animationConfigs_.emplace_back(config);
     BootStrategyType type = controller.GetBootType();
     EXPECT_EQ(type, BootStrategyType::INDEPENDENT);
 }
@@ -91,20 +92,6 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.
  * @tc.type:FUNC
  */
 HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.Level1)
-{
-    BootAnimationController controller;
-    BootAnimationConfig config;
-    controller.animationConfigs_.emplace_back(config);
-    BootStrategyType type = controller.GetBootType();
-    EXPECT_EQ(type, BootStrategyType::INDEPENDENT);
-}
-
-/**
- * @tc.name: BootAnimationControllerTest_006
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
- */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_006, TestSize.Level1)
 {
     BootAnimationController controller;
     BootAnimationConfig first_config;

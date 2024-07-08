@@ -48,6 +48,7 @@ namespace {
     constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
     constexpr float DEFAULT_CANVAS_SCALE = 1.0f;
+    constexpr NodeId DEFAULT_NODEID = 0;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_;
 }
@@ -124,7 +125,8 @@ void RSSurfaceCaptureTaskTest::SetUp()
     }
     surfaceCaptureCb_->Reset();
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(DEFAULT_CANVAS_SCALE, DEFAULT_CANVAS_SCALE, isUnirender);
+    RSSurfaceCaptureConfig captureConfig;
+    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, isUnirender);
     if (visitor_ == nullptr) {
         return;
     }
@@ -243,9 +245,10 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
 HWTEST_F(RSSurfaceCaptureTaskTest, Run001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -258,9 +261,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run001, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, Run002, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = DEFAULT_CANVAS_SCALE;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -273,9 +276,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run002, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, Run003, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = DEFAULT_BOUNDS_HEIGHT;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -288,9 +291,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run003, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, Run004, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = DEFAULT_CANVAS_SCALE;
-    float scaleY = DEFAULT_CANVAS_SCALE;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -303,9 +305,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run004, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, Run005, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = -1.0f;
-    float scaleY = DEFAULT_CANVAS_SCALE;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = -1.0f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -318,9 +320,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run005, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, Run007, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = DEFAULT_CANVAS_SCALE;
-    float scaleY = -1.0f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleY = -1.0f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(false, task.Run(nullptr));
 }
 
@@ -333,9 +335,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run007, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr));
 }
 
@@ -348,9 +351,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | Sm
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(nullptr, false));
 }
 
@@ -363,9 +367,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode001, Function | Sm
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode002, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(nullptr, true));
 }
 
@@ -378,9 +383,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode002, Function | Sm
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode003, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     RSSurfaceRenderNodeConfig config;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(node, false));
@@ -395,9 +401,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode003, Function | Sm
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode004, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     RSSurfaceRenderNodeConfig config;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(node, true));
@@ -412,9 +419,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode004, Function | Sm
 HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     ASSERT_EQ(nullptr, task.CreateSurface(nullptr));
 }
 
@@ -427,9 +435,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface001, Function | SmallTest | Leve
 HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
     ASSERT_EQ(nullptr, task.CreateSurface(pixelmap));
 }
@@ -443,9 +452,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
 HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, captureConfig);
     EXPECT_EQ(false, task.FindSecurityOrSkipOrProtectedLayer());
 }
 
@@ -457,10 +467,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer001, Functi
 */
 HWTEST_F(RSSurfaceCaptureTaskTest, SetSurface, Function | SmallTest | Level2)
 {
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     visitor->canvas_ = nullptr;
     visitor->SetSurface(nullptr);
@@ -476,10 +487,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, SetSurface, Function | SmallTest | Level2)
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     visitor->canvas_ = nullptr;
     visitor->SetSurface(nullptr);
@@ -497,10 +509,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode001, Function | SmallTes
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     RSCanvasRenderNode node(id);
     visitor->isUniRender_ = true;
@@ -516,10 +529,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode001, Function | SmallT
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode002, Function | SmallTest | Level2)
 {
     NodeId id = 0;
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     RSCanvasRenderNode node(id);
     visitor->isUniRender_ = false;
@@ -534,10 +548,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode002, Function | SmallT
 */
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode001, Function | SmallTest | Level2)
 {
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
@@ -553,10 +568,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode001, Function | Small
 */
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode002, Function | SmallTest | Level2)
 {
-    float scaleX = 0.f;
-    float scaleY = 0.f;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
-        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+        std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, false);
     ASSERT_NE(nullptr, visitor);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
@@ -1080,9 +1096,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode, Function | Sm
  */
 HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer, Function | SmallTest | Level2)
 {
-    float scaleX = 0.f;
-    float scaleY = 0.f;
-    RSSurfaceCaptureTask task(0, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSSurfaceCaptureTask task(DEFAULT_NODEID, captureConfig);
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     nodeMap.surfaceNodeMap_[0] = nullptr;
     NodeId id = 1;

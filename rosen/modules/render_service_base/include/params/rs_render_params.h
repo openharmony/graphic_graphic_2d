@@ -133,7 +133,7 @@ public:
 
     void OpincUpdateRootFlag(bool suggestFlag);
     bool OpincGetRootFlag() const;
-    void OpincSetCacheChangeFlag(bool state);
+    void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
     bool OpincGetCachedMark();
     void OpincSetCachedMark(bool mark);
@@ -146,15 +146,26 @@ public:
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
 
-    void SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo);
-    DirtyRegionInfoForDFX GetDirtyRegionInfoForDFX() const;
-
     // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
     SurfaceParam GetCanvasDrawingSurfaceParams();
     void SetCanvasDrawingSurfaceParams(int width, int height);
+
+    void SetStartingWindowFlag(bool b)
+    {
+        if (startingWindowFlag_ == b) {
+            return;
+        }
+        startingWindowFlag_ = b;
+        needSync_ = true;
+    }
+
+    bool GetStartingWindowFlag() const
+    {
+        return startingWindowFlag_;
+    }
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -203,6 +214,7 @@ private:
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
     bool isOpincMarkCached_ = false;
+    bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;

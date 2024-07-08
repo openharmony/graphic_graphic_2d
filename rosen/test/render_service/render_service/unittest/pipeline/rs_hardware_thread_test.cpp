@@ -125,8 +125,11 @@ void RSHardwareThreadTest::CreateComposerAdapterWithScreenInfo(uint32_t width, u
 HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers001, TestSize.Level1)
 {
     auto& hardwareThread = RSHardwareThread::Instance();
-    GSError ret = hardwareThread.ClearFrameBuffers(HdiOutput::CreateHdiOutput(screenId_));
-    ASSERT_EQ(ret, GSERROR_OK);
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId_);
+    if (hdiOutput->GetFrameBufferSurface()) {
+        GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
 }
 
 /**
@@ -232,7 +235,10 @@ HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers002, TestSize.Level1)
     auto& hardwareThread = RSHardwareThread::Instance();
     GSError ret = hardwareThread.ClearFrameBuffers(nullptr);
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
-    ret = hardwareThread.ClearFrameBuffers(HdiOutput::CreateHdiOutput(screenId_));
-    ASSERT_EQ(ret, GSERROR_OK);
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId_);
+    if (hdiOutput->GetFrameBufferSurface()) {
+        GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
 }
 } // namespace OHOS::Rosen

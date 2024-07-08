@@ -165,7 +165,7 @@ void RSRenderThread::Start()
     running_.store(true);
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
-        thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
+        thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
     }
 }
 

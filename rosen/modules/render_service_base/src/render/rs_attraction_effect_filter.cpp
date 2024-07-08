@@ -49,6 +49,11 @@ float RSAttractionEffectFilter::GetAttractionFraction() const
     return attractionFraction_;
 }
 
+RectI RSAttractionEffectFilter::GetAttractionDirtyRegion() const
+{
+    return attractionDirtyRegion_;
+}
+
 bool RSAttractionEffectFilter::IsWithinThreshold(const float left, const float right, const float threshold)
 {
     return (std::abs(left - right) <= threshold);
@@ -132,13 +137,13 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPointOf
     return pathList;
 }
 
-std::vector<int> RSAttractionEffectFilter::CreateIndexSequence(bool isBelowTarget, float location)
+std::vector<int> RSAttractionEffectFilter::CreateIndexSequence(float location)
 {
     float locationValue = 1.0f;
     float tolerance = 0.001f;
     // Select the parameter index of the window control point according to the window position.
     // 0 to 11 indicate the index of the window control point, which is rotated clockwise.
-    if (!isBelowTarget) {
+    if (!isBelowTarget_) {
         return IsWithinThreshold(location, locationValue, tolerance) ?
             std::vector<int>{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } :
             std::vector<int>{ 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4 };
@@ -153,18 +158,17 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPoint(
     std::vector<Drawing::Point> controlPointOfVertex,
     const Drawing::Point points[],          // Array instead of vector
     float location,                         // Determine whether the flag on the left or right is used.
-    bool isBelowTarget,                     // Determine whether the upper or lower flag is used.
     bool isFirstCtrl)
 {
     int pointNum = 12;
     std::vector<Drawing::Point> pathList = CalculateCubicsCtrlPointOffset(controlPointOfVertex);
 
-    std::vector<int> indice = CreateIndexSequence(isBelowTarget, location);
+    std::vector<int> indice = CreateIndexSequence(location);
     std::vector<Drawing::Point> pathCtrlPointList(pointNum, Drawing::Point(0.0f, 0.0f));
 
     for (int i = 0; i < pointNum; i++) {
         int index = indice[i];
-        if (!isBelowTarget) {
+        if (!isBelowTarget_) {
             pathCtrlPointList[i] = pathList[index] +  (isFirstCtrl ? points[i] : points[0]);
         } else {
             float px = isFirstCtrl ? points[i].GetX() : points[0].GetX();
@@ -183,8 +187,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPoint(
 }
 
 void RSAttractionEffectFilter::CalculateBezierVelList(const std::vector<Drawing::Point> &velocityList,
-    std::vector<Drawing::Point> &velocityCtrl,
-    float location, bool isBelowTarget)
+    std::vector<Drawing::Point> &velocityCtrl, float location)
 {
     std::vector<Drawing::Point> curveVelList;
     Drawing::Point topVelocity = velocityList[0];
@@ -194,15 +197,20 @@ void RSAttractionEffectFilter::CalculateBezierVelList(const std::vector<Drawing:
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.33f, 0.67f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.17f, 0.83f));
     curveVelList.push_back(topVelocity);
-    curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.17f, 0.68f));
-    curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.33f, 0.57f));
+    if (isBelowTarget_) {
+        curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.17f, 0.68f));
+        curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.33f, 0.57f));
+    } else {
+        curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.17f, 0.83f));
+        curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.33f, 0.67f));
+    }
     curveVelList.push_back(LerpPoint(topVelocity, bottomVelocity, 0.5f, 0.5f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.67f, 0.33f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.83f, 0.17f));
     curveVelList.push_back(bottomVelocity);
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.83f, 0.17f));
     curveVelList.push_back(LerpPoint(bottomVelocity, topVelocity, 0.67f, 0.33f));
-    std::vector<int> indice = CreateIndexSequence(isBelowTarget, location);
+    std::vector<int> indice = CreateIndexSequence(location);
     int pointNum = 12;
     for (int i = 0; i < pointNum; i++) {
         int index = indice[i];
@@ -283,11 +291,16 @@ void RSAttractionEffectFilter::CalculateDeltaXAndDeltaY(const Drawing::Point win
 std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateUpperCtrlPointOfVertex(float deltaX, float deltaY,
     float width, float height, int location)
 {
+    // Different regression parameters are used for different scenarios
     // Coordinates of the upper control point of the curve:(k1 * width + k2 * deltaX, k3 * height + k4 * deltaY)
-    Drawing::Point topLeft = { (0.016f * width - 0.08f * deltaX) * location, 0.464f * height + 0.40f * deltaY };
+    Drawing::Point topLeft = isBelowTarget_ ?
+        Drawing::Point((0.016f * width - 0.08f * deltaX) * location, 0.464f * height + 0.40f * deltaY) :
+        Drawing::Point((-0.100f * width - 0.008f * deltaX) * location, 0.008f * height + 0.085f * deltaY);
+    Drawing::Point bottomLeft = isBelowTarget_ ?
+        Drawing::Point((-0.15f * width - 0.075f * deltaX) * location, 0.0f * height + 0.2f * deltaY) :
+        Drawing::Point((-0.008f * width - 0.008f * deltaX) * location, 0.0f * height - 0.008f * deltaY);
     Drawing::Point topRight = { (-1.147f * width - 0.016f * deltaX) * location, -0.187f * height + 0.30f * deltaY };
-    Drawing::Point bottomLeft = { (-0.15f * width - 0.075f * deltaX) * location, 0.0f * height + 0.2f * deltaY };
-    Drawing::Point bottomRight = { (-0.84f * width - 0.2f * deltaX) * location, -0.859f * height - 0.2f * deltaY };
+    Drawing::Point bottomRight = { (-0.848f * width - 0.2f * deltaX) * location, -0.859f * height - 0.2f * deltaY };
     std::vector<Drawing::Point> upperControlPoint = { topLeft, topRight, bottomLeft, bottomRight };
     return upperControlPoint;
 }
@@ -296,11 +309,20 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateLowerCtrlPointOfV
     float width, float height, int location)
 {
     float inverseWidth = (width >= 1.0f) ? (1.0f / width) : 1.0f;
+    // Different regression parameters are used for different scenarios
     // Coordinates of the lower control point of the curve:(m1*(deltaX * height/width - width)), m2 * deltaY)
-    Drawing::Point topLeft = { (0.3f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY };
-    Drawing::Point topRight = { (0.45f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY };
-    Drawing::Point bottomLeft = { (0.15f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY };
-    Drawing::Point bottomRight = { (0.30f * (deltaX * height * inverseWidth - width)) * location, -0.112f * deltaY };
+    Drawing::Point topLeft = isBelowTarget_ ?
+        Drawing::Point((0.300f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY) :
+        Drawing::Point((0.131f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY);
+    Drawing::Point topRight = isBelowTarget_ ?
+        Drawing::Point((0.450f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY) :
+        Drawing::Point((0.147f * (deltaX * height * inverseWidth - width)) * location, -0.30f * deltaY);
+    Drawing::Point bottomLeft = isBelowTarget_ ?
+        Drawing::Point((0.150f * (deltaX * height * inverseWidth - width)) * location, -0.20f * deltaY) :
+        Drawing::Point((0.085f * (deltaX * height * inverseWidth - width)) * location, 0.008f * deltaY);
+    Drawing::Point bottomRight = isBelowTarget_ ?
+        Drawing::Point((0.300f * (deltaX * height * inverseWidth - width)) * location, -0.112f * deltaY) :
+        Drawing::Point((0.147f * (deltaX * height * inverseWidth - width)) * location, -0.069f * deltaY);
     std::vector<Drawing::Point> lowerControlPoint = { topLeft, topRight, bottomLeft, bottomRight };
     return lowerControlPoint;
 }
@@ -309,7 +331,7 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 {
     // Cubic Bezier curve with two control points
     Drawing::Point topVelFirst = { 0.50f, 0.0f };
-    Drawing::Point bottomVelFirst = { 0.20f, 0.0f };
+    Drawing::Point bottomVelFirst = isBelowTarget_ ? Drawing::Point(0.2f, 0.0f) : Drawing::Point(0.0f, 0.0f);
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelFirst, bottomVelFirst};
     return velocityCtrlPoint;
 }
@@ -318,9 +340,37 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateVelocityCtrlPoint
 {
     // Cubic Bezier curve with two control points
     Drawing::Point topVelSecond = { 0.50f, 1.0f };
-    Drawing::Point bottomVelSecond = { 0.20f, 1.0f };
+    Drawing::Point bottomVelSecond = isBelowTarget_ ? Drawing::Point(0.2f, 1.0f) : Drawing::Point(0.0f, 1.0f);
     std::vector<Drawing::Point> velocityCtrlPoint = {topVelSecond, bottomVelSecond};
     return velocityCtrlPoint;
+}
+
+void RSAttractionEffectFilter::UpdateDirtyRegion(float leftPoint, float topPonit)
+{
+    float dirtyRegionMinX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMaxX_ = windowStatusPoints_[0].GetX();
+    float dirtyRegionMinY_ = windowStatusPoints_[0].GetY();
+    float dirtyRegionMaxY_ = windowStatusPoints_[0].GetY();
+
+    int pointNum = 12;
+    for (int i = 1; i < pointNum; ++i) {
+        float x = windowStatusPoints_[i].GetX();
+        float y = windowStatusPoints_[i].GetY();
+        dirtyRegionMinX_ = std::min(dirtyRegionMinX_, x);
+        dirtyRegionMaxX_ = std::min(dirtyRegionMaxX_, x);
+        dirtyRegionMinY_ = std::min(dirtyRegionMinY_, y);
+        dirtyRegionMaxY_ = std::min(dirtyRegionMaxY_, y);
+    }
+
+    int dirtyRegionLeftCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionTopCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
+    int dirtyRegionRightCurrent = static_cast<int>(dirtyRegionMinX_ + leftPoint);
+    int dirtyRegionBottomCurrent = static_cast<int>(dirtyRegionMinY_ + topPonit);
+
+    attractionDirtyRegion_.left_ = dirtyRegionLeftCurrent;
+    attractionDirtyRegion_.top_ = dirtyRegionTopCurrent;
+    attractionDirtyRegion_.width_ = dirtyRegionRightCurrent - dirtyRegionLeftCurrent;
+    attractionDirtyRegion_.height_ = dirtyRegionBottomCurrent - dirtyRegionTopCurrent;
 }
 
 void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float canvasHeight, Vector2f destinationPoint)
@@ -339,10 +389,10 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
     // 1.0 indicates that the window is to the right of the target point,
     // and - 1.0 indicates that the window is to the left.
     float location = (windowBottomCenter.GetX() > pointDst[0].GetX()) ? 1.0f : -1.0f;
-    bool isBelowTarget = (windowBottomCenter.GetY() > pointDst[0].GetY()) ? true : false;
+    isBelowTarget_ = (windowBottomCenter.GetY() > pointDst[0].GetY()) ? true : false;
 
-    float width = isBelowTarget ? canvasHeight_ : canvasWidth_;
-    float height = isBelowTarget ? canvasWidth_ : canvasHeight_;
+    float width = isBelowTarget_ ? canvasHeight_ : canvasWidth_;
+    float height = isBelowTarget_ ? canvasWidth_ : canvasHeight_;
     float deltaX = 0.0f;
     float deltaY = 0.0f;
     CalculateDeltaXAndDeltaY(windowCtrlPoints, pointDst[0], deltaX, deltaY, location);
@@ -355,14 +405,14 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
     std::vector<Drawing::Point> velocityCtrlPointLower = CalculateVelocityCtrlPointLower();
 
     std::vector<Drawing::Point> controlPointListFirst =
-        CalculateCubicsCtrlPoint(upperControlPointOfVertex, windowCtrlPoints, location, isBelowTarget, true);
+        CalculateCubicsCtrlPoint(upperControlPointOfVertex, windowCtrlPoints, location, true);
     std::vector<Drawing::Point> controlPointListSecond =
-        CalculateCubicsCtrlPoint(lowerControlPointOfVertex, pointDst, location, isBelowTarget, false);
+        CalculateCubicsCtrlPoint(lowerControlPointOfVertex, pointDst, location, false);
 
     std::vector<Drawing::Point> speedListsFirst(pointNum, Drawing::Point(0.0f, 0.0f));
     std::vector<Drawing::Point> speedListsSecond(pointNum, Drawing::Point(0.0f, 0.0f));
-    CalculateBezierVelList(velocityCtrlPointUpper, speedListsFirst, location, isBelowTarget);
-    CalculateBezierVelList(velocityCtrlPointLower, speedListsSecond, location, isBelowTarget);
+    CalculateBezierVelList(velocityCtrlPointUpper, speedListsFirst, location);
+    CalculateBezierVelList(velocityCtrlPointLower, speedListsSecond, location);
 
     for (int i = 0; i < pointNum; ++i) {
         float speed = BinarySearch(attractionFraction_, speedListsFirst[i], speedListsSecond[i]);

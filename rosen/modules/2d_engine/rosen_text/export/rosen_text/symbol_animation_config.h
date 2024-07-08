@@ -25,9 +25,13 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 
-struct SymbolNode {
+struct NodeLayerInfo {
     Drawing::Path path;
     Drawing::DrawingSColor color;
+};
+
+struct SymbolNode {
+    std::vector<NodeLayerInfo> pathsInfo;
     Vector4f nodeBoundary;
     Drawing::DrawingHMSymbolData symbolData;
     int animationIndex = 0;

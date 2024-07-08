@@ -563,22 +563,29 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
             return;
         }
     }
-    const SkCanvas::Lattice::RectType skRectType =
-        static_cast<const SkCanvas::Lattice::RectType>(lattice.fRectTypes);
 
-    SkIRect skCenter = SkIRect::MakeLTRB(lattice.fBounds.GetLeft(), lattice.fBounds.GetTop(),
-        lattice.fBounds.GetRight(), lattice.fBounds.GetBottom());
+    const SkIRect* skBounds = reinterpret_cast<const SkIRect*>(lattice.fBounds);
+    int count = (lattice.fXCount + 1) * (lattice.fYCount + 1);
+    std::vector<SkCanvas::Lattice::RectType> skRectTypes = {};
+    if (lattice.fRectTypes != nullptr) {
+        skRectTypes.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skRectTypes[i] = static_cast<SkCanvas::Lattice::RectType>(lattice.fRectTypes[i]);
+        }
+    }
+    std::vector<SkColor> skColors = {};
+    if (lattice.fColors != nullptr) {
+        skColors.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skColors[i] = static_cast<SkColor>(lattice.fColors[i].CastToColorQuad());
+        }
+    }
+    SkCanvas::Lattice skLattice = {lattice.fXDivs, lattice.fYDivs,
+        skRectTypes.empty() ? nullptr : skRectTypes.data(),
+        lattice.fXCount, lattice.fYCount, skBounds,
+        skColors.empty() ? nullptr : skColors.data()};
 
-    SkColor color = lattice.fColors.CastToColorQuad();
-
-    const int xdivs[] = {lattice.fXDivs[0], lattice.fXDivs[1]};
-    const int ydivs[] = {lattice.fYDivs[0], lattice.fYDivs[1]};
-    SkCanvas::Lattice skLattice = {xdivs, ydivs,
-        &skRectType,
-        lattice.fXCount, lattice.fYCount,
-        &skCenter, &color};
     const SkRect* skDst = reinterpret_cast<const SkRect*>(&dst);
-
     SkFilterMode skFilterMode = static_cast<SkFilterMode>(filter);
 
     skPaint_ = defaultPaint_;

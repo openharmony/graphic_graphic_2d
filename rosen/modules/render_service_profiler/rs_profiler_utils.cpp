@@ -243,8 +243,8 @@ std::string Utils::GetRealPath(const std::string& path)
 {
     std::string realPath;
     if (!PathToRealPath(path, realPath)) {
-        RS_LOGE("Path %s is not real!", path.data()); // NOLINT
-        return "";
+        RS_LOGE("PathToRealPath fails on %s !", path.data()); // NOLINT
+        return path;
     }
     return realPath;
 }
@@ -261,17 +261,40 @@ std::string Utils::NormalizePath(const std::string& path)
 
 std::string Utils::GetFileName(const std::string& path)
 {
+#ifdef REPLAY_TOOL_CLIENT
     return std::filesystem::path(path).filename().string();
+#else
+    std::string filename;
+    const size_t lastSlashIdx = path.rfind('/');
+    if (std::string::npos != lastSlashIdx) {
+        filename = path.substr(lastSlashIdx + 1);
+    }
+    return filename;
+#endif
 }
 
 std::string Utils::GetDirectory(const std::string& path)
 {
+#ifdef REPLAY_TOOL_CLIENT
     return std::filesystem::path(path).parent_path().string();
+#else
+    std::string directory;
+    const size_t lastSlashIdx = path.rfind('/');
+    if (std::string::npos != lastSlashIdx) {
+        directory = path.substr(0, lastSlashIdx);
+    }
+    return directory;
+#endif
 }
 
 bool Utils::IsDirectory(const std::string& path)
 {
+#ifdef REPLAY_TOOL_CLIENT
     return std::filesystem::is_directory(path);
+#else
+    struct stat st {};
+    return (stat(path.data(), &st) == 0) && S_ISDIR(st.st_mode);
+#endif
 }
 
 void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& files)
@@ -381,7 +404,12 @@ static bool ShouldFileBeCreated(const std::string& options)
 
 bool Utils::FileExists(const std::string& path)
 {
+#ifdef REPLAY_TOOL_CLIENT
     return std::filesystem::exists(path);
+#else
+    struct stat st {};
+    return (stat(path.data(), &st) == 0) && S_ISREG(st.st_mode);
+#endif
 }
 
 FILE* Utils::FileOpen(const std::string& path, const std::string& options)
@@ -395,23 +423,17 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         return g_recordInMemoryFile;
     }
 
-    if (IsDirectory(path)) {
-        RS_LOGE("FileOpen: '%s' is the directory!", path.data()); // NOLINT
-        return nullptr;
-    }
-
-    std::string realPath;
-    if (ShouldFileBeCreated(options) && !FileExists(path)) {
-        const auto directory = GetRealPath(GetDirectory(path));
-        realPath = IsDirectory(directory) ? MakePath(directory, GetFileName(path)) : "";
-    } else {
-        realPath = GetRealPath(path);
-    }
-
+    const std::string realPath = GetRealPath(path);
     if (realPath.empty()) {
         RS_LOGE("FileOpen: '%s' is invalid!", path.data()); // NOLINT
         return nullptr;
     }
+
+    if (ShouldFileBeCreated(options)) {
+        auto createdFile = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+        close(createdFile); // will be opened and written into later
+    }
+
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {
         RS_LOGE("FileOpen: Cannot open '%s'!", realPath.data()); // NOLINT

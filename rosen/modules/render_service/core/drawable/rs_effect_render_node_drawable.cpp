@@ -65,7 +65,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // case 3b: static blur without valid cache, draw background image and blur
         auto surface = canvas.GetSurface();
         if (!surface) {
-            ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect surface null");
+            ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect surface is null");
             return;
         }
         // extract clip bounds
@@ -73,6 +73,10 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         auto currentRect = canvas.GetDeviceClipBounds();
         // create offscreen surface
         auto offscreenSurface = surface->MakeSurface(currentRect.GetWidth(), currentRect.GetHeight());
+        if (!offscreenSurface) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect offscreenSurface is null");
+            return;
+        }
         auto offscreenCanvas = std::make_unique<RSPaintFilterCanvas>(offscreenSurface.get());
         // copy current matrix to offscreen canvas, while aligned with current rect
         auto currentMatrix = canvas.GetTotalMatrix();

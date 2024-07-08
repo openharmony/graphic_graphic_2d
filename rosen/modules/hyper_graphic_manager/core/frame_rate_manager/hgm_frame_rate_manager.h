@@ -199,13 +199,13 @@ private:
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
-    void ClearScene();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
     std::shared_ptr<uint32_t> pendingRefreshRate_;
     uint64_t pendingConstraintRelativeTime_ = 0;
     std::shared_ptr<HgmVSyncGeneratorController> controller_;
+    std::mutex appChangeDataMutex_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
 
     std::function<void(bool, bool)> forceUpdateCallback_;
@@ -224,6 +224,7 @@ private:
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
+    std::mutex frameRateVoteInfoMutex_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 

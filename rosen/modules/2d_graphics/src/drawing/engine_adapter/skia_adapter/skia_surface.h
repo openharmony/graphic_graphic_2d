@@ -29,7 +29,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaSurface();
-    ~SkiaSurface() override = default;
+    ~SkiaSurface() override;
 
     AdapterType GetType() const override
     {
@@ -71,6 +71,7 @@ public:
     int Width() const override;
     int Height() const override;
 private:
+    void PostSkSurfaceToTargetThread();
     sk_sp<SkSurface> skSurface_ = nullptr;
     sk_sp<SkImage> skImage_ = nullptr;
 };

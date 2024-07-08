@@ -35,7 +35,6 @@
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
-#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
@@ -287,7 +286,7 @@ public:
 
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
+    void SetMagnifierParams(const std::optional<Vector2f>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -295,7 +294,7 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
-    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
+    const std::optional<Vector2f>& GetMagnifierPara() const;
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
@@ -452,6 +451,7 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
+    RectI GetAttractionEffectCurrentDirtyRegion() const;
 
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
@@ -615,7 +615,6 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
-    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
@@ -637,6 +636,7 @@ private:
     float attractFraction_ = 0.f;
     Vector2f attractDstPoint_ = {0.f, 0.f};
     bool isAttractionValid_ = false;
+    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
 
     // filter property
     float backgroundBlurRadius_ = 0.f;
@@ -677,6 +677,7 @@ private:
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
     std::optional<Vector2f> greyCoef_;
+    std::optional<Vector2f> magnifierPara_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
@@ -710,6 +711,7 @@ private:
     static const bool FilterCacheEnabled;
 #endif
     static const bool IS_UNI_RENDER;
+    static const bool FOREGROUND_FILTER_ENABLED;
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 

@@ -28,6 +28,7 @@
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/pointer_luminance_change_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -48,6 +49,7 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "rs_hgm_config_data.h"
 #include "rs_occlusion_data.h"
+#include "rs_uiextension_data.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 
@@ -55,6 +57,7 @@ namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
+using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
@@ -63,7 +66,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
-
+using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 struct DataBaseRs {
     int32_t appPid = -1;
     int32_t eventType = -1;
@@ -126,8 +129,7 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(
-        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma,
-        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE, bool isSync = false);
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId);
@@ -158,6 +160,14 @@ public:
     
     void RemoveVirtualScreen(ScreenId id);
 
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
+ 
+    int32_t SetPointerColorInversionEnabled(bool enable);
+ 
+    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
+ 
+    int32_t UnRegisterPointerLuminanceChangeCallback();
+
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
 #ifndef ROSEN_ARKUI_X
@@ -178,6 +188,8 @@ public:
     bool GetShowRefreshRateEnabled();
 
     void SetShowRefreshRateEnabled(bool enable);
+
+    std::string GetRefreshInfo(pid_t pid);
 
 #ifndef ROSEN_ARKUI_X
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -316,6 +328,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
 
     LayerComposeInfo GetLayerComposeInfo();
+
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
