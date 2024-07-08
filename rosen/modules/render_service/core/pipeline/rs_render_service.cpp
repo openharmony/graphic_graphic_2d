@@ -285,7 +285,9 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("fpsCount                       ")
         .append("|dump the refresh rate counts info\n")
         .append("clearFpsCount                  ")
-        .append("|clear the refresh rate counts info\n");
+        .append("|clear the refresh rate counts info\n")
+        .append("flushJankStatsRs")
+        .append("|flush rs jank stats hisysevent\n");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -493,6 +495,13 @@ void RSRenderService::DumpNode(std::unordered_set<std::u16string>& argSets, std:
     
 }
 
+void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    RSJankStats::GetInstance().ReportJankStats();
+    dumpString.append("flush done\n");
+}
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     std::u16string arg1(u"screen");
@@ -514,6 +523,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg16(u"clearFpsCount");
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
+    std::u16string arg19(u"flushJankStatsRs");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -593,6 +603,10 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg16) != 0) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); }).wait();
+    }
+    if (argSets.count(arg19) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
 }
 } // namespace Rosen
