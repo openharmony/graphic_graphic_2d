@@ -1026,7 +1026,7 @@ void RSMainThread::ProcessCommandForUniRender()
             if (!drawableNode) {
                 return;
             }
-            static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 PlaybackInCorrespondThread();
         }
     });

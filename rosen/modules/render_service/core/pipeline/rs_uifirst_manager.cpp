@@ -47,17 +47,17 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-DrawableV2::RSSurfaceRenderNodeDrawable* RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
+std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
         if (const auto ptr = cacheIt->second) {
-            return static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(ptr.get());
+            return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(ptr);
         }
     }
     // unlikely
     auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (ptr) {
-        return static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(ptr.get());
+        return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(ptr);
     }
     return nullptr;
 }
@@ -102,7 +102,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     }
     SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE);
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
-    DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(nodePtr->GetId());
+    auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
     if (drawable) {
         drawable->ResetUifirst();
     }
@@ -128,7 +128,7 @@ void RSUifirstManager::MergeOldDirty(RSSurfaceRenderNode& node)
     }
 }
 
-void RSUifirstManager::RenderGroupUpdate(DrawableV2::RSSurfaceRenderNodeDrawable* drawable)
+void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable)
 {
     auto surfaceNode = static_cast<const RSSurfaceRenderNode*>(drawable->GetRenderNode().get());
     if (surfaceNode == nullptr) {
@@ -234,7 +234,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %lld", id);
-        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        auto drawable = GetSurfaceDrawableByID(id);
         if (drawable && drawable->GetCacheSurfaceNeedUpdated() &&
             drawable->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
             NotifyUIStartingWindow(id, drawable->HasCachedTexture());
@@ -279,7 +279,7 @@ void RSUifirstManager::ProcessDoneNode()
 
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end();) {
         auto id = it->first;
-        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        auto drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             ++it;
             continue;
@@ -294,7 +294,7 @@ void RSUifirstManager::ProcessDoneNode()
     }
 }
 
-void RSUifirstManager::SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable)
+void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
     if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
@@ -355,7 +355,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
     for (auto it = pendingNode.begin(); it != pendingNode.end();) {
         auto id = it->first;
-        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        auto drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             ++it;
             continue;
@@ -414,7 +414,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
         // post task
         RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lld", id);
         RSSubThreadManager::Instance()->ScheduleRenderNodeDrawable(
-            static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable.get()));
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable));
     }
 }
 
@@ -441,7 +441,7 @@ void RSUifirstManager::PostReleaseCacheSurfaceSubTask(NodeId id)
         // post task
         RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
         RSSubThreadManager::Instance()->ScheduleReleaseCacheSurfaceOnly(
-            static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable.get()));
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable));
     }
 }
 
@@ -505,7 +505,8 @@ void RSUifirstManager::ConvertPendingNodeToDrawable()
             continue;
         }
         auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second);
-        pendingPostDrawables_.emplace_back(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawableNode.get()));
+        pendingPostDrawables_.emplace_back(
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
     }
 }
 
@@ -604,7 +605,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
     bool isFocusNodeFound = false;
     for (auto& item : pendingNode) {
         auto const& [id, value] = item;
-        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        auto drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             continue;
         }
@@ -792,7 +793,7 @@ void RSUifirstManager::AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceR
 
 CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
 {
-    DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+    auto drawable = GetSurfaceDrawableByID(id);
     if (drawable) {
         return drawable->GetCacheSurfaceProcessedStatus();
     }
@@ -801,7 +802,7 @@ CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
 
 void RSUifirstManager::UpdateCompletedSurface(NodeId id)
 {
-    DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+    auto drawable = GetSurfaceDrawableByID(id);
     if (drawable) {
         drawable->UpdateCompletedCacheSurface();
     }

@@ -381,7 +381,8 @@ std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() co
     return reThreadIndexMap_;
 }
 
-void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+void RSSubThreadManager::ScheduleRenderNodeDrawable(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {
         return;
@@ -426,7 +427,8 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     needResetContext_ = true;
 }
 
-void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {
         return;

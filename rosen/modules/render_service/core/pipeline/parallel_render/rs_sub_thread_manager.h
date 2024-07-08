@@ -54,8 +54,8 @@ public:
     void ReleaseSurface(uint32_t threadIndex) const;
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
-    void ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
-    void ScheduleReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
+    void ScheduleRenderNodeDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
+    void ScheduleReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
 
 private:
     RSSubThreadManager() = default;
