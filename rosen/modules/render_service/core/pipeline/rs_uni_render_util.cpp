@@ -1453,7 +1453,8 @@ void RSUniRenderUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& s
 GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
     auto consumer = node.GetConsumer();
-    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
+        (system::GetParameter("const.build.product", "") == "ICL") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());

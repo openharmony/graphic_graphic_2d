@@ -399,6 +399,7 @@ private:
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
+    static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 

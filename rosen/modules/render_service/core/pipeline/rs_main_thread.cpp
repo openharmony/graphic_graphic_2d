@@ -169,6 +169,7 @@ constexpr const char* MEM_MGR = "MemMgr";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -432,6 +433,7 @@ void RSMainThread::Init()
     });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
+    RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
             auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
@@ -1667,6 +1669,14 @@ void RSMainThread::NotifyUniRenderFinish()
     } else {
         uniRenderFinished_ = true;
     }
+}
+
+void RSMainThread::OnHideNotchStatusCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(key, HIDE_NOTCH_STATUS) != 0) {
+        return;
+    }
+    RSMainThread::Instance()->RequestNextVSync();
 }
 
 void RSMainThread::NotifyDisplayNodeBufferReleased()
