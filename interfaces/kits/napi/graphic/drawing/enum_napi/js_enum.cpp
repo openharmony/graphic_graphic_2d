@@ -121,6 +121,7 @@ static const std::vector<struct JsEnumInt> g_blurType = {
     { "INNER", static_cast<int32_t>(BlurType::INNER) },
 };
 
+#undef TRANSPARENT
 static const std::vector<struct JsEnumInt> g_rectType = {
     { "DEFAULT", static_cast<int32_t>(Lattice::RectType::DEFAULT) },
     { "TRANSPARENT", static_cast<int32_t>(Lattice::RectType::TRANSPARENT) },
