@@ -61,6 +61,7 @@ public:
     static napi_value DrawCircle(napi_env env, napi_callback_info info);
     static napi_value DrawColor(napi_env env, napi_callback_info info);
     static napi_value DrawImage(napi_env env, napi_callback_info info);
+    static napi_value DrawImageRect(napi_env env, napi_callback_info info);
     static napi_value DrawLine(napi_env env, napi_callback_info info);
     static napi_value DrawRect(napi_env env, napi_callback_info info);
     static napi_value DrawOval(napi_env env, napi_callback_info info);
@@ -86,10 +87,9 @@ public:
     static napi_value SaveLayer(napi_env env, napi_callback_info info);
     static napi_value Scale(napi_env env, napi_callback_info info);
     static napi_value SetMatrix(napi_env env, napi_callback_info info);
-    static napi_value Translate(napi_env env, napi_callback_info info);
-    static napi_value DrawImageRect(napi_env env, napi_callback_info info);
-    static napi_value ReadPixels(napi_env env, napi_callback_info info);
     static napi_value ResetMatrix(napi_env env, napi_callback_info info);
+    static napi_value Translate(napi_env env, napi_callback_info info);
+    static napi_value ReadPixels(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
@@ -108,6 +108,7 @@ private:
     napi_value OnDrawCircle(napi_env env, napi_callback_info info);
     napi_value OnDrawColor(napi_env env, napi_callback_info info);
     napi_value OnDrawImage(napi_env env, napi_callback_info info);
+    napi_value OnDrawImageRect(napi_env env, napi_callback_info info);
     napi_value OnDrawLine(napi_env env, napi_callback_info info);
     napi_value OnDrawRect(napi_env env, napi_callback_info info);
     napi_value OnDrawOval(napi_env env, napi_callback_info info);
@@ -131,10 +132,9 @@ private:
     napi_value OnSaveLayer(napi_env env, napi_callback_info info);
     napi_value OnScale(napi_env env, napi_callback_info info);
     napi_value OnSetMatrix(napi_env env, napi_callback_info info);
-    napi_value OnTranslate(napi_env env, napi_callback_info info);
-    napi_value OnDrawImageRect(napi_env env, napi_callback_info info);
-    napi_value OnReadPixels(napi_env env, napi_callback_info info);
     napi_value OnResetMatrix(napi_env env, napi_callback_info info);
+    napi_value OnTranslate(napi_env env, napi_callback_info info);
+    napi_value OnReadPixels(napi_env env, napi_callback_info info);
 
     static bool DeclareFuncAndCreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
