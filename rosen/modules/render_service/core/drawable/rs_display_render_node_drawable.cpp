@@ -429,7 +429,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
-    auto screenRotation = params->GetScreenRotation();
+    auto screenRotation = GetRenderParams()->GetScreenRotation();
     ScreenId paramScreenId = params->GetScreenId();
     if (RSSystemProperties::IsFoldScreenFlag() && paramScreenId == 0) {
         screenRotation = static_cast<ScreenRotation>((static_cast<int>(screenRotation) + 1) % ROTATION_NUM);

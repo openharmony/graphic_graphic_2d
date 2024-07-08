@@ -708,6 +708,13 @@ public:
     {
         return childrenHasUIExtension_;
     }
+
+    // Used to collect renderDrawable for UniRenderThread.
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable()
+    {
+        return renderDrawable_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

@@ -69,7 +69,7 @@ public:
     {
         return compositeType_;
     };
-    ScreenRotation GetScreenRotation() const
+    ScreenRotation GetScreenRotation() const override
     {
         return screenRotation_;
     }
