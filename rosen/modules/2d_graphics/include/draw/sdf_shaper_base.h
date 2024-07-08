@@ -33,6 +33,9 @@ public:
     virtual std::string Getshader() const = 0;
     virtual float GetSize() const = 0;
     virtual void SetSize(float size) = 0;
+    virtual void SetTranslate(float dx, float dy) = 0;
+    virtual float GetTranslateX() const = 0;
+    virtual float GetTranslateY() const = 0;
 
     virtual int GetParaNum() const = 0;
     virtual int GetFillType() const = 0;
