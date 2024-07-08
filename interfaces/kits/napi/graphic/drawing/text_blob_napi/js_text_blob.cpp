@@ -279,8 +279,13 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     uint32_t size = 0;
     napi_get_array_length(env, array, &size);
 
+    if (size == 0) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText Argv[1] size is invalid");
+        return nullptr;
+    }
+
     Point points[size];
-    if (size == 0 || !MakePoints(env, points, size, array)) {
+    if (!MakePoints(env, points, size, array)) {
         ROSEN_LOGE("JsTextBlob::MakeFromPosText Argv[1] is invalid");
         return nullptr;
     }
