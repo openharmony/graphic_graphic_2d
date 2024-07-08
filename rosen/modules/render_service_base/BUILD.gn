@@ -21,6 +21,7 @@ config("export_config") {
   cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
+  defines += gpu_defines
 }
 
 if (!is_mingw && !is_mac && !is_cross_platform) {
