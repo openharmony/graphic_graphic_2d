@@ -180,8 +180,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
-    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
 }
 
@@ -200,8 +200,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
-    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
-    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
 }
 
@@ -219,8 +219,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate003, TestSize.Level1)
     ASSERT_NE(childNode, nullptr);
     parentNode->AddChild(childNode);
     parentNode->nodeGroupType_ = RSUifirstManagerTest::GROUPED_BY_ANIM;
-    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(childNode);
-    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
 }
 
