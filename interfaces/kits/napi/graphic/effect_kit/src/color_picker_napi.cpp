@@ -121,6 +121,7 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getMainColorSync", GetMainColorSync),
         DECLARE_NAPI_FUNCTION("getLargestProportionColor", GetLargestProportionColor),
         DECLARE_NAPI_FUNCTION("getHighestSaturationColor", GetHighestSaturationColor),
+        DECLARE_NAPI_FUNCTION("getGrayscaleMSD", GetGrayscaleMSD),
         DECLARE_NAPI_FUNCTION("getAverageColor", GetAverageColor),
         DECLARE_NAPI_FUNCTION("isBlackOrWhiteOrGrayColor", IsBlackOrWhiteOrGrayColor),
         DECLARE_NAPI_FUNCTION("getTopProportionColors", GetTopProportionColors),
@@ -589,6 +590,41 @@ napi_value ColorPickerNapi::GetHighestSaturationColor(napi_env env, napi_callbac
     errorCode = thisColorPicker->nativeColorPicker_->GetHighestSaturationColor(color);
     if (errorCode == SUCCESS) {
         result = BuildJsColor(env, color);
+    } else {
+        napi_get_undefined(env, &result);
+    }
+    return result;
+}
+
+napi_value ColorPickerNapi::GetGrayscaleMSD(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Get GetGrayscaleMSD");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("GetGrayscaleMSD, fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("GetGrayscaleMSD, fail to unwrap context"));
+    
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("GetGrayscaleMSD, empty native ColorPicker"));
+
+    uint32_t value =  -1;
+
+    napi_value result = nullptr;
+    value = thisColorPicker->nativeColorPicker_->GetGrayscaleMSD();
+    if (value != -1) {
+        napi_create_int32(env, value, &result);
     } else {
         napi_get_undefined(env, &result);
     }

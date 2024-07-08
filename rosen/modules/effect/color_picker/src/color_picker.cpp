@@ -167,6 +167,11 @@ uint32_t ColorPicker::GetHighestSaturationColor(ColorManager::Color &color) cons
     return SUCCESS;
 }
 
+uint32_t ColorPicker::GetGrayscaleMSD() const
+{
+    return grayMsd_;
+}
+
 uint32_t ColorPicker::GetAverageColor(ColorManager::Color &color) const
 {
     uint32_t colorPicked = 0;
