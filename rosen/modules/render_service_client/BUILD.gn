@@ -32,7 +32,6 @@ config("render_service_client_config") {
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
   }
-  defines += gpu_defines
 }
 
 template("render_service_client_source_set") {
