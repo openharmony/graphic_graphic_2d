@@ -306,7 +306,6 @@ public:
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void RenderTraceDebug() const;
-
     inline bool ShouldPaint() const
     {
         return shouldPaint_;
