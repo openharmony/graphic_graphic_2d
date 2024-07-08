@@ -303,8 +303,6 @@ public:
         markRenderFlag_ = false;
     }
 
-    void PerfForBlurIfNeeded();
-
     bool IsOnVsync() const
     {
         return isOnVsync_.load();
@@ -416,6 +414,7 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
+    void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState(bool isUniRender);
