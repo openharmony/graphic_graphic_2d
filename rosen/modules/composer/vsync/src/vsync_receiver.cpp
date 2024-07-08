@@ -78,7 +78,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    RS_TRACE_NAME_FMT("ReceiveVsync dataCount:%ldbytes now:%ld expectedEnd:%ld vsyncId:%ld",
+    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
         dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
     if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
