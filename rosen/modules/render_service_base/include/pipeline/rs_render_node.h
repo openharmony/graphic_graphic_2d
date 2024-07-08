@@ -307,15 +307,6 @@ public:
 
     void RenderTraceDebug() const;
 
-    static bool GetTextureFlutterIdleState()
-    {
-        if (flutterIdle_) {
-            return true;
-        }
-        flutterIdle_ = true;
-        return false;
-    }
-
     inline bool ShouldPaint() const
     {
         return shouldPaint_;
@@ -917,7 +908,6 @@ private:
 #endif
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::string nodeName_ = "";
-    static bool flutterIdle_;
     CacheType cacheType_ = CacheType::NONE;
     // drawing group cache
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;

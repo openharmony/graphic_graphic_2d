@@ -3480,16 +3480,8 @@ bool RSRenderNode::IsStaticCached() const
 {
     return false;
 }
-bool RSRenderNode::flutterIdle_ = true;
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {
-    if (nodeName.substr(0, MAX_NODE_NAME_LEN) == FLUTTER_BUFFER_NAME) {
-        flutterIdle_ = false;
-        return;
-    } else {
-        flutterIdle_ = true;
-    }
-
     nodeName_ = nodeName;
 }
 const std::string& RSRenderNode::GetNodeName() const
