@@ -61,6 +61,10 @@ public:
     {
         return mirrorSource_;
     }
+    NodeId GetMirrorSourceId() const
+    {
+        return mirrorSourceId_;
+    }
     RSDisplayRenderNode::CompositeType GetCompositeType() const
     {
         return compositeType_;
@@ -133,6 +137,7 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
+    NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;

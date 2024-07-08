@@ -74,6 +74,7 @@ public:
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;
+    std::optional<std::vector<LineMetrics>> lineMetrics_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

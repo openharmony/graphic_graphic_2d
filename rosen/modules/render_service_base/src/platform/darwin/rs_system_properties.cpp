@@ -277,6 +277,11 @@ bool RSSystemProperties::GetKawaseEnabled()
     return false;
 }
 
+void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
+{
+    forceHpsBlurDisabled_ = flag;
+}
+
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;

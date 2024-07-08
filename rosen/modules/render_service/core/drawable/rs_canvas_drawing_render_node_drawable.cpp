@@ -291,6 +291,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
             }
             ctx->PostTask([ctx, nodeId]() {
                 if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
                     node->SetDirty();
                     ctx->RequestVsync();
                 }
@@ -517,6 +518,8 @@ inline void RSCanvasDrawingRenderNodeDrawable::ClearPreSurface(std::shared_ptr<D
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
     auto preMatrix = canvas_->GetTotalMatrix();
+    auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
+    auto preSaveCount = canvas_->GetSaveCount();
     auto preSurface = surface_;
     if (!ResetSurface(width, height, canvas)) {
         ClearPreSurface(preSurface);
@@ -550,6 +553,10 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         preThreadInfo_.second(std::move(preSurface));
     }
     preThreadInfo_ = curThreadInfo_;
+    if (preSaveCount > 1) {
+        canvas_->Save();
+    }
+    canvas_->ClipIRect(preDeviceClipBounds);
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
     std::lock_guard<std::mutex> lock(imageMutex_);

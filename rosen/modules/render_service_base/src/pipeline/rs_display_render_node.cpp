@@ -216,6 +216,8 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
     displayParams->mirrorSource_ = GetMirrorSource();
+    auto mirroredNode = displayParams->mirrorSource_.lock();
+    displayParams->mirrorSourceId_ = mirroredNode ? mirroredNode->GetId() : INVALID_NODEID;
 
     RSRenderNode::UpdateRenderParams();
 }

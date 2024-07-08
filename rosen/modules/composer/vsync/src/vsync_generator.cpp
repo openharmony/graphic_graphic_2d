@@ -25,6 +25,8 @@
 #include "vsync_log.h"
 #include <ctime>
 #include <vsync_sampler.h>
+#include <rs_trace.h>
+#include "scoped_trace_fmt.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -135,8 +137,7 @@ VSyncGenerator::~VSyncGenerator()
 void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
     int64_t occurReferenceTime, bool isWakeup)
 {
-    ScopedBytrace trace("occurTimestamp:" + std::to_string(occurTimestamp) +
-                        ", nextTimeStamp:" + std::to_string(nextTimeStamp));
+    SCOPED_DEBUG_TRACE_FMT("occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
     std::vector<Listener> listeners;
     {
         std::unique_lock<std::mutex> locker(mutex_);
@@ -151,11 +152,10 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         }
         expectTimeFlag_ = false;
     }
-    ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
-        ", period:" + std::to_string(periodRecord_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
-        ", vsyncMode_:" + std::to_string(vsyncMode_));
+    RS_TRACE_NAME_FMT("GenerateVsyncCount:%lu, period:%ld, currRefreshRate_:%u, vsyncMode_:%d",
+        listeners.size(), periodRecord_, currRefreshRate_, vsyncMode_);
     for (uint32_t i = 0; i < listeners.size(); i++) {
-        ScopedBytrace listenerTrace("listener phase is " + std::to_string(listeners[i].phase_));
+        RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
         listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
     }
 }
@@ -321,7 +321,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
 
     // change referenceTime
     if (expectNextVsyncTime_ > 0) {
-        ScopedBytrace trace("UpdateChangeDataLocked, expectNextVsyncTime_:" + std::to_string(expectNextVsyncTime_));
+        RS_TRACE_NAME_FMT("UpdateChangeDataLocked, expectNextVsyncTime_:%ld", expectNextVsyncTime_);
         nextVSyncTime = expectNextVsyncTime_;
         expectNextVsyncTime_ = 0;
         referenceTime_ = nextVSyncTime;
@@ -417,8 +417,8 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     // 3 / 5 just empirical value
     if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * periodRecord_ / 5))) ||
         ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {
-        ScopedBytrace trace("ComputeListenerNextVSyncTimeStamp add one more period:" + std::to_string(periodRecord_) +
-                            ", threshold:" + std::to_string(threshold));
+        RS_TRACE_NAME_FMT("ComputeListenerNextVSyncTimeStamp add one more period:%ld, threshold:%ld",
+            periodRecord_, threshold);
         nextTime += periodRecord_;
     }
 
@@ -462,8 +462,8 @@ VsyncError VSyncGenerator::UpdatePeriodLocked(int64_t period)
         if ((refreshRate != 0) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
             period_ = period;
         } else {
-            ScopedBytrace failedTrace("update period failed, refreshRate:" + std::to_string(refreshRate) +
-                                    ", currRefreshRate_:" + std::to_string(currRefreshRate_));
+            RS_TRACE_NAME_FMT("update period failed, refreshRate:%u, currRefreshRate_:%d",
+                refreshRate, currRefreshRate_);
             VLOGE("update period failed, refreshRate:%{public}u, currRefreshRate_:%{public}u, period:" VPUBI64,
                                     refreshRate, currRefreshRate_, period);
             ret = VSYNC_ERROR_API_FAILED;
@@ -516,10 +516,8 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
         period = REFRESH_PERIOD;
     }
     std::lock_guard<std::mutex> locker(mutex_);
-    ScopedBytrace func("UpdateMode, period:" + std::to_string(period) +
-                        ", phase:" + std::to_string(phase) +
-                        ", referenceTime:" + std::to_string((referenceTime)) +
-                        ", referenceTimeOffsetPulseNum_:" + std::to_string(referenceTimeOffsetPulseNum_));
+    RS_TRACE_NAME_FMT("UpdateMode, period:%ld, phase:%ld, referenceTime:%ld, referenceTimeOffsetPulseNum_:%d",
+        period, phase, referenceTime, referenceTimeOffsetPulseNum_);
     if (period < 0 || referenceTime < 0) {
         VLOGE("wrong parameter, period:" VPUBI64 ", referenceTime:" VPUBI64, period, referenceTime);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -603,16 +601,13 @@ VsyncError VSyncGenerator::SetExpectNextVsyncTimeInternal(int64_t expectNextVsyn
         }
     }
     if (expectTime == 0 || expectTime - now > 100000000) { // 100ms == 100000000ns
-        ScopedBytrace trace("SetExpectNextVsyncTime Failed, expectTime:" + std::to_string(expectTime) +
-                        ", now:" + std::to_string(now) +
-                        ", expectNextVsyncTime:" + std::to_string(expectNextVsyncTime) +
-                        ", referenceTime_:" + std::to_string(referenceTime_));
+        RS_TRACE_NAME_FMT("SetExpectNextVsyncTime Failed, expectTime:%ld, now:%ld, expectNextVsyncTime:%ld,"
+            " referenceTime_:%ld", expectTime, now, expectNextVsyncTime, referenceTime_);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     expectNextVsyncTime_ = expectTime;
-    ScopedBytrace trace("expectNextVsyncTime:" + std::to_string(expectNextVsyncTime) +
-                        ", expectNextVsyncTime_:" + std::to_string(expectNextVsyncTime_) +
-                        ", diff:" + std::to_string(expectNextVsyncTime_ - expectNextVsyncTime));
+    RS_TRACE_NAME_FMT("expectNextVsyncTime:%ld, expectNextVsyncTime_:%ld, diff:%ld", expectNextVsyncTime,
+        expectNextVsyncTime_, (expectNextVsyncTime_ - expectNextVsyncTime));
     return VSYNC_ERROR_OK;
 }
 
@@ -627,9 +622,8 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
         refreshrateStr += "(" + std::to_string(linkerId) + "," + std::to_string(refreshrate) + "),";
     }
     refreshrateStr += "]";
-    ScopedBytrace func("ChangeGeneratorRefreshRateModel:" + std::to_string(generatorRefreshRate) +
-                       ", phaseByPulseNum" + std::to_string(listenerPhaseOffset.phaseByPulseNum) +
-                       ", " + refreshrateStr + ", expectNextVsyncTime:" + std::to_string(expectNextVsyncTime));
+    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, %s, expectNextVsyncTime:%ld",
+        generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, refreshrateStr.c_str(), expectNextVsyncTime);
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
         ScopedBytrace trace("it's not ltpo mode.");
@@ -644,7 +638,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
     if ((generatorRefreshRate <= 0 || (VSYNC_MAX_REFRESHRATE % generatorRefreshRate != 0))) {
-        ScopedBytrace trace("Not support this refresh rate: " + std::to_string(generatorRefreshRate));
+        RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
         return VSYNC_ERROR_NOT_SUPPORT;
     }
@@ -659,8 +653,8 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
     } else {
-        ScopedBytrace trace("refreshRateNotChanged, generatorRefreshRate:" + std::to_string(generatorRefreshRate) +
-                            ", currRefreshRate_:" + std::to_string(currRefreshRate_));
+        RS_TRACE_NAME_FMT("refreshRateNotChanged, generatorRefreshRate:%u, currRefreshRate_:%u",
+            generatorRefreshRate, currRefreshRate_);
     }
 
     waitForTimeoutCon_.notify_all();
@@ -675,7 +669,7 @@ int64_t VSyncGenerator::GetVSyncPulse()
 
 VsyncError VSyncGenerator::SetVSyncMode(VSyncMode vsyncMode)
 {
-    ScopedBytrace func("SetVSyncMode:" + std::to_string(vsyncMode));
+    RS_TRACE_NAME_FMT("SetVSyncMode:%d", vsyncMode);
     std::lock_guard<std::mutex> locker(mutex_);
     pendingVsyncMode_ = vsyncMode;
     return VSYNC_ERROR_OK;
@@ -727,24 +721,20 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
             // if software period not changed, and hardwareVsyncInterval,
             // and software period is not the same, accumulate counter
             periodCheckCounter_++;
-            ScopedBytrace trace("CounterAccumulated, lastPeriod_:" + std::to_string(lastPeriod_) +
-                                ", period_:" + std::to_string(period_) +
-                                ", hardwareVsyncInterval:" + std::to_string(hardwareVsyncInterval) +
-                                ", periodCheckCounter_:" + std::to_string(periodCheckCounter_));
+            RS_TRACE_NAME_FMT("CounterAccumulated, lastPeriod_:%ld, period_:%ld, hardwareVsyncInterval:%ld,"
+                " periodCheckCounter_:%d", lastPeriod_, period_, hardwareVsyncInterval, periodCheckCounter_);
         }
     } else {
         // if period changed, record this period as lastPeriod_ and clear periodCheckCounter_
         lastPeriod_ = period_;
         periodCheckCounter_ = 0;
-        ScopedBytrace trace("periodCheckCounter_ = 0");
+        RS_TRACE_NAME("periodCheckCounter_ = 0");
     }
     // exit frameRateChanging status when the frame rate is inconsistent for 10 consecutive times.
     if (periodCheckCounter_ > 10) {
-        ScopedBytrace trace("samePeriodCounter ERROR, period_:" + std::to_string(period_) +
-                            ", hardwareVsyncInterval:" + std::to_string(hardwareVsyncInterval) +
-                            ", pendingReferenceTime_:" + std::to_string(pendingReferenceTime_) +
-                            ", referenceTime_:" + std::to_string(referenceTime_) +
-                            ", referenceTimeDiff:" + std::to_string(abs(pendingReferenceTime_ - referenceTime_)));
+        RS_TRACE_NAME_FMT("samePeriodCounter ERROR, period_:%ld, hardwareVsyncInterval:%ld, pendingReferenceTime_:%ld"
+            ", referenceTime_:%ld, referenceTimeDiff:%ld", period_, hardwareVsyncInterval, pendingReferenceTime_,
+            referenceTime_, abs(pendingReferenceTime_ - referenceTime_));
         VLOGE("samePeriodCounter ERROR, period_:" VPUBI64 ", hardwareVsyncInterval:" VPUBI64
             ", pendingReferenceTime_:" VPUBI64 ", referenceTime_:" VPUBI64 ", referenceTimeDiff:" VPUBI64,
             period_, hardwareVsyncInterval, pendingReferenceTime_, referenceTime_,
@@ -764,11 +754,9 @@ void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenc
     } else {
         referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);
     }
-    ScopedBytrace func("UpdateMode, referenceTime:" + std::to_string((referenceTime)) +
-                    ", actualOffsetPulseNum:" + std::to_string((actualOffsetPulseNum)) +
-                    ", referenceTimeOffsetPulseNum_:" + std::to_string(referenceTimeOffsetPulseNum_) +
-                    ", startRefresh_:" + std::to_string(startRefresh_) +
-                    ", period:" + std::to_string(pendingPeriod_));
+    RS_TRACE_NAME_FMT("UpdateMode, referenceTime:%ld, actualOffsetPulseNum:%d, referenceTimeOffsetPulseNum_:%d"
+        ", startRefresh_:%d, period:%ld", referenceTime, actualOffsetPulseNum, referenceTimeOffsetPulseNum_,
+        startRefresh_, pendingPeriod_);
 }
 
 VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
@@ -803,7 +791,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
             needNotify = false;
         }
         if ((periodRefreshRate != 0) && (periodRefreshRate == pendingPeriodRefreshRate)) {
-            ScopedBytrace trace("period not changed, period:" + std::to_string(period_));
+            RS_TRACE_NAME_FMT("period not changed, period:%ld", period_);
             needNotify = false;
         } else {
             UpdatePeriodLocked(pendingPeriod_);
@@ -886,6 +874,7 @@ void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
     pendingReferenceTime_ = timestamp;
+    rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
 }
 
 void VSyncGenerator::Dump(std::string &result)

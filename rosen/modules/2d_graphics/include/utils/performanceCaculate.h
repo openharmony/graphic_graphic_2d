@@ -62,7 +62,7 @@ public:
     static bool GetDrawingTestSkiaEnabled();
     static bool GetDrawingTestRecordingEnabled();
 
-    static unsigned long long GetUpTime(bool addCount = true);
+    static long long GetUpTime(bool addCount = true);
 
     static void SetCaculateSwitch(bool start = true);
 

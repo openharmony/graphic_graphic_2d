@@ -107,6 +107,8 @@ float Typography::DetectIndents(size_t index)
 void Typography::Layout(double width)
 {
     std::unique_lock lock(g_layoutMutex);
+    lineMetrics_.reset();
+    lineMetricsStyles_.clear();
     return paragraph_->Layout(width);
 }
 
@@ -304,14 +306,17 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
 
 std::vector<LineMetrics> Typography::GetLineMetrics()
 {
-    std::vector<LineMetrics> lineMetrics;
+    if (lineMetrics_) {
+        return lineMetrics_.value();
+    }
     if (paragraph_ != nullptr) {
+        lineMetrics_.emplace();
         auto metrics = paragraph_->GetLineMetrics();
         lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
             [](const int a, const skia::textlayout::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
 
         for (const skt::LineMetrics& skLineMetrics : metrics) {
-            LineMetrics& line = lineMetrics.emplace_back();
+            LineMetrics& line = lineMetrics_->emplace_back();
             if (!skLineMetrics.fLineMetrics.empty()) {
                 const auto &skmFontMetrics = skLineMetrics.fLineMetrics.begin()->second.font_metrics;
                 line.firstCharMetrics = skmFontMetrics;
@@ -340,7 +345,7 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
             }
         }
     }
-    return lineMetrics;
+    return lineMetrics_.value();
 }
 
 bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)

@@ -40,6 +40,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas,
         std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams* params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
@@ -103,6 +104,7 @@ private:
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
+    Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
 };
 } // namespace DrawableV2

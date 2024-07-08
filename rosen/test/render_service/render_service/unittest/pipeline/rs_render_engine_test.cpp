@@ -29,7 +29,6 @@ namespace {
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
     constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
-    constexpr float DEFAULT_CANVAS_SCALE = 1.0f;
     constexpr uint32_t DEFAULT_DRAWING_CANVAS_WIDTH = 10;
     constexpr uint32_t DEFAULT_DRAWING_CANVAS_HEIGHT = 10;
 }
@@ -51,7 +50,8 @@ void RSRenderEngineTest::SetUpTestCase()
 {
     drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(DEFAULT_CANVAS_SCALE, DEFAULT_CANVAS_SCALE, isUnirender);
+    RSSurfaceCaptureConfig captureConfig;
+    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig, isUnirender);
     if (visitor_ == nullptr) {
         return;
     }

@@ -185,6 +185,26 @@ public:
         return brightnessRatio_;
     }
 
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
+    void SetScreenId(ScreenId screenId)
+    {
+        screenId_ = screenId;
+    }
+
+    GraphicColorGamut GetTargetColorGamut() const
+    {
+        return targetColorGamut_;
+    }
+
+    void SetTargetColorGamut(GraphicColorGamut colorGamut)
+    {
+        targetColorGamut_ = colorGamut;
+    }
+
     void SetSubThreadSkip(bool isSubThreadSkip)
     {
         isSubThreadSkip_ = isSubThreadSkip;
@@ -219,7 +239,8 @@ private:
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
-
+    void OnGeneralProcess(RSSurfaceRenderNode& surfaceNode,
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
@@ -230,6 +251,7 @@ private:
     Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
         RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
         bool isOffscreen) const;
+    bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
@@ -283,6 +305,8 @@ private:
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
     uint64_t frameCount_ = 0;
     bool isSubThreadSkip_ = false;
 

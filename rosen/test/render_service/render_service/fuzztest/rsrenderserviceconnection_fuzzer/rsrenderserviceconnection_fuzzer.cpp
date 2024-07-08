@@ -779,14 +779,16 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
         return false;
     }
     uint64_t nodeId = GetData<uint64_t>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
     sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
     uint8_t type = GetData<uint8_t>();
-    SurfaceCaptureType surfaceCaptureType = (SurfaceCaptureType)type;
-    bool isSync = GetData<bool>();
-    rsConn->TakeSurfaceCapture(nodeId, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
+    rsConn->TakeSurfaceCapture(nodeId, callback, captureConfig);
     return true;
 }
 

@@ -303,7 +303,11 @@ public:
 
     void SetPreScalingMode(ScalingMode scalingMode)
     {
+        if (preScalingMode_ == scalingMode) {
+            return;
+        }
         preScalingMode_ = scalingMode;
+        needSync_ = true;
     }
     ScalingMode GetPreScalingMode() const
     {

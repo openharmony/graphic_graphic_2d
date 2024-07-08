@@ -128,6 +128,8 @@ public:
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
     int64_t GetUiCommandDelayTime();
+    void UpdatePendingReferenceTime(int64_t &timeStamp);
+    void SetHardwareTaskNum(uint32_t num);
 
 private:
 

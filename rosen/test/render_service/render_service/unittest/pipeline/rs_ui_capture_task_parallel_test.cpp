@@ -298,10 +298,11 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateResources, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
-    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, 1.0f, 1.0f);
+    RSSurfaceCaptureConfig captureConfig;
+    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     ASSERT_EQ(handle->CreateResources(), false);
-    ASSERT_EQ(handle->scaleX_, 1.0f);
-    ASSERT_EQ(handle->scaleY_, 1.0f);
+    ASSERT_EQ(handle->captureConfig_.scaleX, 1.0f);
+    ASSERT_EQ(handle->captureConfig_.scaleY, 1.0f);
     ASSERT_EQ(handle->pixelMap_, nullptr);
     ASSERT_EQ(handle->nodeDrawable_, nullptr);
 }
@@ -315,7 +316,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateResources, F
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNode, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
-    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, 1.0f, 1.0f);
+    RSSurfaceCaptureConfig captureConfig;
+    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_EQ(handle->CreatePixelMapByNode(node), nullptr);
 }

@@ -25,19 +25,34 @@
 
 namespace OHOS {
 namespace Rosen {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class DmaMem {
+public:
+    DmaMem() = default;
+    ~DmaMem();
+    sptr<SurfaceBuffer> DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelMap);
+    std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
+        std::shared_ptr<Drawing::GPUContext> gpuContext);
+    void ReleaseDmaMemory();
+private:
+    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+};
+#endif
+
 class RSSurfaceCaptureTaskParallel {
 public:
-    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool useDma = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), useDma_(useDma) {}
+    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
+        : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
-    static void CheckModifiers(NodeId id,
-        sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
+    // Confirm whether the node is occlusive which should apply modifiers
+    static void CheckModifiers(NodeId id);
+    // Do capture pipeline task
     static void Capture(NodeId id,
-        sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma);
+        sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
 #ifdef RS_ENABLE_UNI_RENDER
-    static std::function<void()> CreateSurfaceCopyTaskWithDMA(std::shared_ptr<Drawing::Surface> surface,
+    static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         int32_t rotation = 0, bool useDma = false);
 #endif
@@ -53,32 +68,22 @@ private:
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
 
+    void SetupGpuContext();
+
     int32_t CalPixelMapRotation();
 
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
     NodeId nodeId_;
-    float scaleX_;
-    float scaleY_;
+    RSSurfaceCaptureConfig captureConfig_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     int32_t finalRotationAngle_ = RS_ROTATION_0;
 
-    // if true, do surfaceCapture on background thread
-    bool useDma_ = false;
+    // only used for RSUniRenderThread
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 };
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-class DmaMem {
-public:
-    sptr<SurfaceBuffer> DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelMap);
-    std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
-    void ReleaseDmaMemory();
-private:
-    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
-};
-#endif
 
 } // namespace Rosen
 } // namespace OHOS

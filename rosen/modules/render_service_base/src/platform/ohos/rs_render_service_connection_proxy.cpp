@@ -903,7 +903,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -916,11 +916,12 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
-    data.WriteFloat(scaleX);
-    data.WriteFloat(scaleY);
-    data.WriteBool(useDma);
-    data.WriteUint8(static_cast<uint8_t>(surfaceCaptureType));
-    data.WriteBool(isSync);
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -2443,5 +2444,33 @@ void RSRenderServiceConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainS
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCurtainScreenUsingStatus: Send Request err.");
     }
 }
+
+int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
+    uint64_t userId, sptr<RSIUIExtensionCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterUIExtensionCallback: callback is nullptr.");
+        return INVALID_ARGUMENTS;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject())) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
+        int32_t err = Remote()->SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            return RS_CONNECTION_ERROR;
+        }
+        int32_t result = reply.ReadInt32();
+        return result;
+    } else {
+        return RS_CONNECTION_ERROR;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

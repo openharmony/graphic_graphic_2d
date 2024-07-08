@@ -40,6 +40,7 @@
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "vsync_iconnection_token.h"
 
 namespace OHOS {
@@ -130,8 +131,8 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
-    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync = false) = 0;
+    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig) = 0;
 
     virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -267,6 +268,8 @@ public:
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
 
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
+
+    virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

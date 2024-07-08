@@ -250,6 +250,7 @@ void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_p
         node->image_ = image;
         ctx->PostRTTask([ctx, nodeId]() {
             if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
                 node->SetDirty();
                 ctx->RequestVsync();
             }

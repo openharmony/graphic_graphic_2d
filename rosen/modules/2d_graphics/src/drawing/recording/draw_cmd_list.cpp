@@ -257,7 +257,7 @@ void DrawCmdList::UnmarshallingDrawOps()
         CaculatePerformanceOpType();
     }
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
 
     if (opAllocator_.GetSize() <= offset_) {
@@ -314,7 +314,7 @@ void DrawCmdList::UnmarshallingDrawOps()
     }
 
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance UnmarshallingDrawOps end %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());
     }
 }
 
@@ -324,7 +324,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
         return;
     }
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance Playback begin %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance Playback begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
     if (canvas.GetDrawingType() == DrawingType::RECORDING) {
         PlaybackToDrawCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
@@ -355,7 +355,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     if (performanceCaculateOpType_ != 0) {
         DRAWING_PERFORMANCE_STOP_CACULATE;
         performanceCaculateOpType_ = 0;
-        LOGI("Drawing Performance Playback end %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance Playback end %{public}lld", PerformanceCaculate::GetUpTime());
     }
 }
 

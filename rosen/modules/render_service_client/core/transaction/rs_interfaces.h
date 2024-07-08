@@ -78,13 +78,13 @@ public:
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
@@ -264,6 +264,8 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
+
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
 private:
     RSInterfaces();

@@ -329,12 +329,17 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto nodeId = GetData<NodeId>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
 
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY, useDma);
+    rsClient->TakeSurfaceCapture(nodeId, cb, captureConfig);
     return true;
 }
 

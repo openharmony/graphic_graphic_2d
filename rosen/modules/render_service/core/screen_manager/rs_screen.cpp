@@ -84,6 +84,8 @@ RSScreen::RSScreen(ScreenId id,
         hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
+        RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u],"
+            "screenType: %{public}u}", id_, width_, height_, screenType_);
     }
     capability_.props.clear();
 }
@@ -101,6 +103,9 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       filteredAppSet_(configs.filteredAppSet)
 {
     VirtualScreenInit();
+    RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64 ", "
+        "w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
+        id_, mirrorId_, width_, height_, name_.c_str(), screenType_);
 }
 
 RSScreen::~RSScreen() noexcept
@@ -270,6 +275,7 @@ void RSScreen::SetActiveMode(uint32_t modeId)
         RS_LOGE("RSScreen %{public}s: set fails because the index is out of bounds.", __func__);
         return;
     }
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
         RS_LOGE("RSScreen %{public}s: Hdi SetScreenMode fails.", __func__);
@@ -315,6 +321,7 @@ void RSScreen::SetResolution(uint32_t width, uint32_t height)
         RS_LOGW("RSScreen %{public}s: physical screen not support SetResolution.", __func__);
         return;
     }
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set resolution, w * h: [%{public}u * %{public}u]", width, height);
     width_ = width;
     height_ = height;
 }

@@ -188,6 +188,7 @@ void RSUifirstManager::ProcessForceUpdateNode()
         }
     }
     for (auto& node : toDirtyNodes) {
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, force update", node->GetId());
         node->SetDirty(true);
     }
     pendingForceUpdateNode_.clear();
@@ -313,6 +314,8 @@ void RSUifirstManager::SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawab
     if (isHdrOn) {
         // 0 means defalut brightnessRatio
         drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
+        drawable->SetScreenId(id);
+        drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
         drawable->GetBrightnessRatio());
@@ -364,11 +367,11 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-        if (!surfaceParams) {
+        auto node = it->second;
+        if (!surfaceParams || !node) {
             ++it;
             continue;
         }
-        auto node = it->second;
         bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
             node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
@@ -988,6 +991,19 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
 {
+    auto baseNode = node.GetAncestorDisplayNode().lock();
+    if (!baseNode) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
+        return false;
+    }
+    auto curDisplayNode = baseNode->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (curDisplayNode == nullptr) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
+        return false;
+    }
+    if (RSLuminanceControl::Get().IsHdrOn(curDisplayNode->GetScreenId())) {
+        return false;
+    }
     bool flag = ((RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) &&
         (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) &&
         RSUifirstManager::Instance().NodeIsInCardWhiteList(node) &&

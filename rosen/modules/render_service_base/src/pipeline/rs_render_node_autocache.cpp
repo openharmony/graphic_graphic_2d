@@ -14,10 +14,11 @@
  */
 
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
 #include "string_utils.h"
-#include "common/rs_optional_trace.h"
 #endif
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,7 +71,9 @@ void RSRenderNode::OpincUpdateRootFlag(bool& unchangeMarkEnable)
     if (unchangeMarkEnable) {
         if (IsOpincUnchangeState()) {
             isOpincRootFlag_ = true;
-            stagingRenderParams_->OpincUpdateRootFlag(true);
+            if (stagingRenderParams_) {
+                stagingRenderParams_->OpincUpdateRootFlag(true);
+            }
         }
     }
     if (isUnchangeMarkEnable_) {
@@ -124,8 +127,10 @@ bool RSRenderNode::OpincGetRootFlag() const
 // arkui mark
 void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
+    RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     isSuggestOpincNode_ = isOpincNode;
     isNeedCalculate_ = isNeedCalculate;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark suggest opinc node", GetId());
     SetDirty();
 }
 
@@ -173,11 +178,12 @@ void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
     isUnchangeMarkEnable_ = false;
     if (OpincGetRootFlag()) {
         SetCacheStateByRetrytime();
-        isOpincRootFlag_ = false;
     }
-    stagingRenderParams_->OpincSetCacheChangeFlag(true, lastFrameSynced_);
+    if (stagingRenderParams_) {
+        stagingRenderParams_->OpincSetCacheChangeFlag(true, lastFrameSynced_);
+        stagingRenderParams_->OpincUpdateRootFlag(false);
+    }
     isOpincRootFlag_ = false;
-    stagingRenderParams_->OpincUpdateRootFlag(false);
 }
 } // namespace Rosen
 } // namespace OHOS

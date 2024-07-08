@@ -17,6 +17,7 @@
 #include <set>
 #include <dlfcn.h>
 #include <vector>
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "render_context/memory_handler.h"
 #include "include/gpu/vk/GrVkExtensions.h"
@@ -73,7 +74,11 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
-    CreateSkiaBackendContext(&backendContext_, false, isProtected);
+    if (!isProtected) {
+        // In drm model backendContext_ is currently useless
+        CreateSkiaBackendContext(&backendContext_, false, isProtected);
+    }
+    CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -212,7 +217,9 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
-    const float priorities[1] = {0.0f};
+    // The priority of the queue under the same device is determined
+    // when it is greater than 0.5 indicates high priority and less than 0.5 indicates low priority
+    const float priorities[2] = {1.0f, 0.2f};
     VkDeviceQueueCreateFlags deviceQueueCreateFlags = isProtected ? VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT : 0;
     std::vector<VkDeviceQueueCreateInfo> queueCreate {{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .pNext = nullptr,
@@ -443,7 +450,9 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(bool isProtected)
 {
-    CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+    if (hcontext_ != nullptr) {
+        return hcontext_;
+    }
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     memHandler_ = std::make_shared<MemoryHandler>();
@@ -468,10 +477,12 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(
 RsVulkanContext::RsVulkanContext()
 {
     rsVulkanInterface.Init();
+    // Init drawingContext_ bind to backendContext
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     isProtected_ = true;
-    rsProtectedVulkanInterface.Init(true);
-    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(false, true);
+    rsProtectedVulkanInterface.Init(isProtected_);
+    // Init protectedDrawingContext_ bind to hbackendContext
+    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(true, true);
     isProtected_ = false;
 }
 
@@ -501,9 +512,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
 
     RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     if (queue == vkInterface.GetHardwareQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
+        RS_LOGD("%{public}s hardware queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     }
     std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+    RS_LOGD("%{public}s queue", __func__);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
     return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 }
 
@@ -512,10 +528,15 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
 {
     RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     if (queue == vkInterface.GetHardwareQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
+        RS_LOGD("%{public}s hardware queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount,
             pWaitSemaphores, image, pNativeFenceFd);
     }
     std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+    RS_LOGD("%{public}s queue", __func__);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
     return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
 }
 

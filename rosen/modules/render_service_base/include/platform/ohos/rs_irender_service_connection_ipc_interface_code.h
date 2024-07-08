@@ -119,6 +119,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_ACTIVE_DIRTY_REGION_INFO,
     GET_GLOBAL_DIRTY_REGION_INFO,
     GET_LAYER_COMPOSE_INFO,
+    REGISTER_UIEXTENSION_CALLBACK,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT  = 1001,

@@ -48,7 +48,7 @@ public:
     // set common subtype of symbol animation attribute
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);
 
-    bool operator ==(HMSymbolTxt const &sym) const;
+    bool operator ==(HMSymbolTxt const &symbol) const;
 
     std::vector<RSSColor> GetRenderColor() const;
 

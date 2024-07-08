@@ -27,6 +27,11 @@ HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Cr
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 
+std::shared_ptr<AppExecFwk::EventHandler> HgmTaskHandleThread::CreateHandler()
+{
+    return std::make_shared<AppExecFwk::EventHandler>(runner_);
+}
+
 void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {

@@ -202,12 +202,6 @@ void HgmFrameRateManager::UpdateAppSupportStatus()
         if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
             flag = true;
         }
-    } else {
-        if (multiAppStrategy_.GetScreenSettingMode(config) == EXEC_SUCCESS) {
-            if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
-                flag = true;
-            }
-        }
     }
     idleDetector_.UpdateAppBufferList(config.appBufferList);
     idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
@@ -458,6 +452,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
+            std::lock_guard<std::mutex> lock(appChangeDataMutex_);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
             HGM_LOGD("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
                 linker.second->GetId(), appFrameRate);
@@ -495,6 +490,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
     }
 
     RSTaskMessage::RSTask task = [this, lastRefreshRate, targetTime]() {
+        std::lock_guard<std::mutex> lock(appChangeDataMutex_);
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_, targetTime, isNeedUpdateAppOffset_);
         isNeedUpdateAppOffset_ = false;
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
@@ -623,6 +619,8 @@ void HgmFrameRateManager::Reset()
     controllerRate_ = 0;
     pendingConstraintRelativeTime_ = 0;
     pendingRefreshRate_.reset();
+
+    std::lock_guard<std::mutex> lock(appChangeDataMutex_);
     appChangeData_.clear();
 }
 
@@ -732,22 +730,11 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, uint32_t listSize, const
     }
     HgmTaskHandleThread::Instance().PostTask([this, packageList] () {
         if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
-            ClearScene();
+            std::lock_guard<std::mutex> locker(pkgSceneMutex_);
+            sceneStack_.clear();
         }
         UpdateAppSupportStatus();
     });
-}
-
-void HgmFrameRateManager::ClearScene()
-{
-    std::lock_guard<std::mutex> locker(pkgSceneMutex_);
-    for (auto it = sceneStack_.begin(); it != sceneStack_.end();) {
-        if (it->first.find("CAMERA") != std::string::npos) {
-            it++;
-        } else {
-            it = sceneStack_.erase(it);
-        }
-    }
 }
 
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
@@ -796,6 +783,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         if (touchCnt != LAST_TOUCH_CNT) {
             return;
         }
+        std::lock_guard<std::mutex> lock(voteMutex_);
         if (auto iter = voteRecord_.find("VOTER_GAMES"); iter != voteRecord_.end() && !iter->second.empty() &&
             gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.front().pid)) {
             HGM_LOGI("[touch manager] keep down in games");
@@ -901,7 +889,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     std::string sceneName = eventInfo.description;
-    auto &gameSceneList = multiAppStrategy_.GetScreenSetting().gameSceneList;
+    auto screenSetting = multiAppStrategy_.GetScreenSetting();
+    auto &gameSceneList = screenSetting.gameSceneList;
 
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
     std::lock_guard<std::mutex> lock(voteMutex_);
@@ -1286,7 +1275,7 @@ void HgmFrameRateManager::SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, ui
     if (voteInfo.voterName == "VOTER_PACKAGES" && touchManager_.GetState() != TouchState::IDLE_STATE) {
         voteInfo.extInfo = "ONTOUCH";
     }
-    if (auto& packages = multiAppStrategy_.GetPackages(); packages.size() > 0) {
+    if (auto packages = multiAppStrategy_.GetPackages(); packages.size() > 0) {
         const auto& package = packages.front();
         const auto& pos = package.find(":");
         if (pos != package.npos) {

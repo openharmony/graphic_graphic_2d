@@ -188,6 +188,15 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+struct RSSurfaceCaptureConfig {
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    bool useDma = false;
+    bool useCurWindow = true;
+    SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    bool isSync = false;
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -234,6 +243,7 @@ enum class RSSurfaceNodeType : uint8_t {
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
+    UI_EXTENSION_NODE,        // uiextension node that requires info callback
 };
 
 enum class MultiThreadCacheType : uint8_t {

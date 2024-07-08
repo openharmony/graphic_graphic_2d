@@ -991,7 +991,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-        consumer->GetSurfaceSourceType(), surfaceBuffer->timestamp);
+        consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
     return true;
 }

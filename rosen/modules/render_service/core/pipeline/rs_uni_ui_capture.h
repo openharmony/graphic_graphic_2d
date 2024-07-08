@@ -32,7 +32,7 @@ namespace Rosen {
 
 class RSUniUICapture {
 public:
-    RSUniUICapture(NodeId nodeId, float scaleX, float scaleY);
+    RSUniUICapture(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig);
     ~RSUniUICapture() = default;
 
     std::shared_ptr<Media::PixelMap> TakeLocalCapture();
@@ -40,7 +40,7 @@ public:
 private:
     class RSUniUICaptureVisitor : public RSNodeVisitor {
     public:
-        RSUniUICaptureVisitor(NodeId nodeId, float scaleX, float scaleY);
+        RSUniUICaptureVisitor(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig);
         ~RSUniUICaptureVisitor() noexcept override = default;
         void PrepareChildren(RSRenderNode& node) override;
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -68,8 +68,7 @@ private:
         std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
 
         NodeId nodeId_;
-        float scaleX_ = 1.0f;
-        float scaleY_ = 1.0f;
+        RSSurfaceCaptureConfig captureConfig_;
 
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
         bool isUniRender_ = false;
@@ -83,8 +82,7 @@ private:
     std::shared_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
 
     NodeId nodeId_;
-    float scaleX_;
-    float scaleY_;
+    RSSurfaceCaptureConfig captureConfig_;
     bool isUniRender_ = false;
     bool isUseCpuSurface_ = false;
 };
