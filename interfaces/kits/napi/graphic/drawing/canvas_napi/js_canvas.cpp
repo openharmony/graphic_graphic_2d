@@ -331,63 +331,63 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
     return jsThis;
 }
 
-bool JsCanvas::DeclareFuncAndCreateConstructor(napi_env env)
-{
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("clear", JsCanvas::Clear),
-        DECLARE_NAPI_FUNCTION("drawArc", JsCanvas::DrawArc),
-        DECLARE_NAPI_FUNCTION("drawRect", JsCanvas::DrawRect),
-        DECLARE_NAPI_FUNCTION("drawCircle", JsCanvas::DrawCircle),
-        DECLARE_NAPI_FUNCTION("drawImage", JsCanvas::DrawImage),
-        DECLARE_NAPI_FUNCTION("drawImageRect", JsCanvas::DrawImageRect),
-        DECLARE_NAPI_FUNCTION("drawColor", JsCanvas::DrawColor),
-        DECLARE_NAPI_FUNCTION("drawOval", JsCanvas::DrawOval),
-        DECLARE_NAPI_FUNCTION("drawPoint", JsCanvas::DrawPoint),
-        DECLARE_NAPI_FUNCTION("drawPoints", JsCanvas::DrawPoints),
-        DECLARE_NAPI_FUNCTION("drawPath", JsCanvas::DrawPath),
-        DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
-        DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
-        DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
-        DECLARE_NAPI_FUNCTION("drawPixelMapMesh", JsCanvas::DrawPixelMapMesh),
-        DECLARE_NAPI_FUNCTION("drawRegion", JsCanvas::DrawRegion),
-        DECLARE_NAPI_FUNCTION("attachPen", JsCanvas::AttachPen),
-        DECLARE_NAPI_FUNCTION("attachBrush", JsCanvas::AttachBrush),
-        DECLARE_NAPI_FUNCTION("detachPen", JsCanvas::DetachPen),
-        DECLARE_NAPI_FUNCTION("detachBrush", JsCanvas::DetachBrush),
-        DECLARE_NAPI_FUNCTION("skew", JsCanvas::Skew),
-        DECLARE_NAPI_FUNCTION("rotate", JsCanvas::Rotate),
-        DECLARE_NAPI_FUNCTION("getSaveCount", JsCanvas::GetSaveCount),
-        DECLARE_NAPI_FUNCTION("getWidth", JsCanvas::GetWidth),
-        DECLARE_NAPI_FUNCTION("getHeight", JsCanvas::GetHeight),
-        DECLARE_NAPI_FUNCTION("save", JsCanvas::Save),
-        DECLARE_NAPI_FUNCTION("saveLayer", JsCanvas::SaveLayer),
-        DECLARE_NAPI_FUNCTION("restore", JsCanvas::Restore),
-        DECLARE_NAPI_FUNCTION("restoreToCount", JsCanvas::RestoreToCount),
-        DECLARE_NAPI_FUNCTION("scale", JsCanvas::Scale),
-        DECLARE_NAPI_FUNCTION("clipPath", JsCanvas::ClipPath),
-        DECLARE_NAPI_FUNCTION("clipRegion", JsCanvas::ClipRegion),
-        DECLARE_NAPI_FUNCTION("clipRect", JsCanvas::ClipRect),
-        DECLARE_NAPI_FUNCTION("concatMatrix", JsCanvas::ConcatMatrix),
-        DECLARE_NAPI_FUNCTION("clipRoundRect", JsCanvas::ClipRoundRect),
-        DECLARE_NAPI_FUNCTION("setMatrix", JsCanvas::SetMatrix),
-        DECLARE_NAPI_FUNCTION("resetMatrix", JsCanvas::ResetMatrix),
-        DECLARE_NAPI_FUNCTION("translate", JsCanvas::Translate),
-        DECLARE_NAPI_FUNCTION("getImageInfo", JsCanvas::GetImageInfo),
-        DECLARE_NAPI_FUNCTION("readPixels", JsCanvas::ReadPixels),
-        DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
-    };
+napi_property_descriptor JsCanvas::properties_[] = {
+    DECLARE_NAPI_FUNCTION("clear", JsCanvas::Clear),
+    DECLARE_NAPI_FUNCTION("drawArc", JsCanvas::DrawArc),
+    DECLARE_NAPI_FUNCTION("drawRect", JsCanvas::DrawRect),
+    DECLARE_NAPI_FUNCTION("drawCircle", JsCanvas::DrawCircle),
+    DECLARE_NAPI_FUNCTION("drawImage", JsCanvas::DrawImage),
+    DECLARE_NAPI_FUNCTION("drawImageRect", JsCanvas::DrawImageRect),
+    DECLARE_NAPI_FUNCTION("drawColor", JsCanvas::DrawColor),
+    DECLARE_NAPI_FUNCTION("drawOval", JsCanvas::DrawOval),
+    DECLARE_NAPI_FUNCTION("drawPoint", JsCanvas::DrawPoint),
+    DECLARE_NAPI_FUNCTION("drawPoints", JsCanvas::DrawPoints),
+    DECLARE_NAPI_FUNCTION("drawPath", JsCanvas::DrawPath),
+    DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
+    DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
+    DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
+    DECLARE_NAPI_FUNCTION("drawPixelMapMesh", JsCanvas::DrawPixelMapMesh),
+    DECLARE_NAPI_FUNCTION("drawRegion", JsCanvas::DrawRegion),
+    DECLARE_NAPI_FUNCTION("attachPen", JsCanvas::AttachPen),
+    DECLARE_NAPI_FUNCTION("attachBrush", JsCanvas::AttachBrush),
+    DECLARE_NAPI_FUNCTION("detachPen", JsCanvas::DetachPen),
+    DECLARE_NAPI_FUNCTION("detachBrush", JsCanvas::DetachBrush),
+    DECLARE_NAPI_FUNCTION("skew", JsCanvas::Skew),
+    DECLARE_NAPI_FUNCTION("rotate", JsCanvas::Rotate),
+    DECLARE_NAPI_FUNCTION("getSaveCount", JsCanvas::GetSaveCount),
+    DECLARE_NAPI_FUNCTION("getWidth", JsCanvas::GetWidth),
+    DECLARE_NAPI_FUNCTION("getHeight", JsCanvas::GetHeight),
+    DECLARE_NAPI_FUNCTION("save", JsCanvas::Save),
+    DECLARE_NAPI_FUNCTION("saveLayer", JsCanvas::SaveLayer),
+    DECLARE_NAPI_FUNCTION("restore", JsCanvas::Restore),
+    DECLARE_NAPI_FUNCTION("restoreToCount", JsCanvas::RestoreToCount),
+    DECLARE_NAPI_FUNCTION("scale", JsCanvas::Scale),
+    DECLARE_NAPI_FUNCTION("clipPath", JsCanvas::ClipPath),
+    DECLARE_NAPI_FUNCTION("clipRegion", JsCanvas::ClipRegion),
+    DECLARE_NAPI_FUNCTION("clipRect", JsCanvas::ClipRect),
+    DECLARE_NAPI_FUNCTION("concatMatrix", JsCanvas::ConcatMatrix),
+    DECLARE_NAPI_FUNCTION("clipRoundRect", JsCanvas::ClipRoundRect),
+    DECLARE_NAPI_FUNCTION("setMatrix", JsCanvas::SetMatrix),
+    DECLARE_NAPI_FUNCTION("resetMatrix", JsCanvas::ResetMatrix),
+    DECLARE_NAPI_FUNCTION("translate", JsCanvas::Translate),
+    DECLARE_NAPI_FUNCTION("getImageInfo", JsCanvas::GetImageInfo),
+    DECLARE_NAPI_FUNCTION("readPixels", JsCanvas::ReadPixels),
+    DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
+};
 
+bool JsCanvas::CreateConstructor(napi_env env)
+{
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+        sizeof(properties_) / sizeof(properties_[0]), properties_, &constructor);
     if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: DeclareFuncAndCreateConstructor Failed, define class fail");
+        ROSEN_LOGE("Drawing_napi: CreateConstructor Failed, define class fail");
         return false;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: DeclareFuncAndCreateConstructor Failed, create reference fail");
+        ROSEN_LOGE("Drawing_napi: CreateConstructor Failed, create reference fail");
         return false;
     }
     return true;
@@ -401,8 +401,8 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
     {
         std::lock_guard<std::mutex> lock(g_constructorInitMutex);
         if (!constructor_) {
-            if (!DeclareFuncAndCreateConstructor(env)) {
-                ROSEN_LOGE("Drawing_napi: DeclareFuncAndCreateConstructor Failed");
+            if (!CreateConstructor(env)) {
+                ROSEN_LOGE("Drawing_napi: CreateConstructor Failed");
                 return nullptr;
             }
         }
@@ -437,8 +437,8 @@ napi_value JsCanvas::Init(napi_env env, napi_value exportObj)
     {
         std::lock_guard<std::mutex> lock(g_constructorInitMutex);
         if (!constructor_) {
-            if (!DeclareFuncAndCreateConstructor(env)) {
-                ROSEN_LOGE("Drawing_napi: DeclareFuncAndCreateConstructor Failed");
+            if (!CreateConstructor(env)) {
+                ROSEN_LOGE("Drawing_napi: CreateConstructor Failed");
                 return nullptr;
             }
         }

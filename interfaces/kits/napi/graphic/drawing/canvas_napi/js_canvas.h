@@ -136,7 +136,8 @@ private:
     napi_value OnTranslate(napi_env env, napi_callback_info info);
     napi_value OnReadPixels(napi_env env, napi_callback_info info);
 
-    static bool DeclareFuncAndCreateConstructor(napi_env env);
+    static bool CreateConstructor(napi_env env);
+    static napi_property_descriptor properties_[];
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
