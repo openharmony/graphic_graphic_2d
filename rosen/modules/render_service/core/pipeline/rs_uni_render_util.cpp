@@ -562,7 +562,10 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     if (consumer == nullptr) {
         return params;
     }
-    auto transform = consumer->GetTransform();
+    auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
+    }
     RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, nodeParams);
@@ -1458,10 +1461,15 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
-    int consumerTransform = consumer ?
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform())) : 0;
-    GraphicTransformType consumerFlip = consumer ?
-        RSBaseRenderUtil::GetFlipTransform(consumer->GetTransform()) : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    auto buffer = node.GetBuffer();
+    if (consumer != nullptr && buffer != nullptr) {
+        if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+            RS_LOGE("RSUniRenderUtil::GetLayerTransform GetSurfaceBufferTransformType failed");
+        }
+    }
+    int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));
+    GraphicTransformType consumerFlip = RSBaseRenderUtil::GetFlipTransform(transformType);
     int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) +
         surfaceNodeRotation + consumerTransform) % 360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation, consumerFlip);
