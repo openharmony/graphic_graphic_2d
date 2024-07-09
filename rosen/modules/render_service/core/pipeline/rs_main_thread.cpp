@@ -1982,6 +1982,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             processor->CreateLayer(*surfaceNode, *params);
         }
     }
+    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(processor, rcdInfo, screenInfo);
     if (waitForRT) {
@@ -3622,8 +3623,12 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+#if defined(RS_ENABLE_VK)
     RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        deviceType_ == DeviceType::PHONE);
+        deviceType_ == DeviceType::PHONE && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN);
+#else
+    RSUifirstManager::Instance().SetUseDmaBuffer(false);
+#endif
 
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {

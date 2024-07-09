@@ -1190,6 +1190,26 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
     node.SetUifirstChildrenDirtyRectParam(rect);
 }
 
+void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
+{
+    if (!useDmaBuffer_) {
+        return;
+    }
+    for (auto& drawable : pendingPostDrawables_) {
+        if (!drawable) {
+            continue;
+        }
+        auto& param = drawable->GetRenderParams();
+        if (!param) {
+            continue;
+        }
+        auto params = static_cast<RSSurfaceRenderParams*>(param.get());
+        if (params && params->GetHardwareEnabled()) {
+            processor->CreateUIFirstLayer(*drawable, *params);
+        }
+    }
+}
+
 void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
 {
     if (!useDmaBuffer_) {

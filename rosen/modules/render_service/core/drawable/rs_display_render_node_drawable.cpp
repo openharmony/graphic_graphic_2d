@@ -361,7 +361,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     }
     processor->ProcessDisplaySurface(*displayNode);
 
-    CreateUIFirstLayer(processor);
+    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
 
     // commit RCD layers
     auto rcdInfo = std::make_unique<RcdInfo>();
@@ -369,17 +369,6 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     DoScreenRcdTask(processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
-}
-
-void RSDisplayRenderNodeDrawable::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
-{
-    auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
-    for (auto& drawable : pendingDrawables) {
-        auto params = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-        if (params && params->GetHardwareEnabled()) {
-            processor->CreateUIFirstLayer(*drawable, *params);
-        }
-    }
 }
 
 void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag)
@@ -682,7 +671,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     displayNodeSp->SetDirtyRects(damageRegionrects);
     processor->ProcessDisplaySurface(*displayNodeSp);
-    CreateUIFirstLayer(processor);
+    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     processor->PostProcess();
     RS_TRACE_END();
 

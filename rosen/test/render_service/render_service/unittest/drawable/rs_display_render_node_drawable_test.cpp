@@ -375,23 +375,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
 }
 
 /**
- * @tc.name: CreateUIFirstLayer
- * @tc.desc: Test CreateUIFirstLayer
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateUIFirstLayerTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    displayDrawable_->CreateUIFirstLayer(processor);
-}
-
-/**
  * @tc.name: OnDraw
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
