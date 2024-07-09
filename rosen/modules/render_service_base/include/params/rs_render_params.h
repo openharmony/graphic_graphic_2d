@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
 
 namespace OHOS::Rosen {
@@ -180,6 +181,9 @@ public:
 
     static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
     static const Drawing::Matrix& GetParentSurfaceMatrix();
+
+    // overrided by displayNode
+    virtual ScreenRotation GetScreenRotation() const;
 
 protected:
     bool needSync_ = false;

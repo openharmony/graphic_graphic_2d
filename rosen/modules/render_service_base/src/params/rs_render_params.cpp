@@ -466,4 +466,11 @@ const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
     return parentSurfaceMatrix_;
 }
 
+// overrided by displayNode
+ScreenRotation RSRenderParams::GetScreenRotation() const
+{
+    static const ScreenRotation defaultRotation = ScreenRotation::ROTATION_0;
+    return defaultRotation;
+}
+
 } // namespace OHOS::Rosen
