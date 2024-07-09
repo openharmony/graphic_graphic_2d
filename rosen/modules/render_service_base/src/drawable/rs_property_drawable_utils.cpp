@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
+constexpr int PARAM_DOUBLE = 2;
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
@@ -1107,6 +1108,127 @@ Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& can
     return RSPropertyDrawableUtils::CalculateInvertColor(Color(
         Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
         Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
+}
+
+bool RSPropertyDrawableUtils::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat)
+{
+    if (w == rect.width_ && h == rect.height_) {
+        return false;
+    }
+    mat = Drawing::Matrix();
+
+    switch (gravity) {
+        case Gravity::CENTER: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, 0);
+            return true;
+        }
+        case Gravity::BOTTOM: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, rect.height_ - h);
+            return true;
+        }
+        case Gravity::LEFT: {
+            mat.PreTranslate(0, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RIGHT: {
+            mat.PreTranslate(rect.width_ - w, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP_LEFT: {
+            return false;
+        }
+        case Gravity::TOP_RIGHT: {
+            mat.PreTranslate(rect.width_ - w, 0);
+            return true;
+        }
+        case Gravity::BOTTOM_LEFT: {
+            mat.PreTranslate(0, rect.height_ - h);
+            return true;
+        }
+        case Gravity::BOTTOM_RIGHT: {
+            mat.PreTranslate(rect.width_ - w, rect.height_ - h);
+            return true;
+        }
+        case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            mat.PreScale(rect.width_ / w, rect.height_ / h);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
+        default: {
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%{public}d]", gravity);
+            return false;
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
