@@ -26,6 +26,7 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_interpolator_test.cpp",
     "rs_node_showing_command_test.cpp",
     "rs_property_trace_test.cpp",
+    "rs_render_animation_debug_trace_test.cpp",
     "rs_render_animation_test.cpp",
     "rs_render_curve_animation_test.cpp",
     "rs_render_interactive_implict_animator_map_test.cpp",

@@ -459,6 +459,11 @@ public:
     {
         return instanceId_;
     }
+
+    const std::string& GetNodeName() const
+    {
+        return nodeName_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);

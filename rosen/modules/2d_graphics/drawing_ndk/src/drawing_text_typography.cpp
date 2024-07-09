@@ -2871,10 +2871,11 @@ static bool CopyDrawingFontGenericInfoSetInner(OH_Drawing_FontGenericInfo** font
 static bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInfo,
     const TextEngine::FallbackInfo& fallbackInfo, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
+    if (!fallbackInfo.font.empty() && !CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
         return false;
     }
-    if (!CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
+    if (!fallbackInfo.familyName.empty() &&
+        !CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
         return false;
     }
     return true;

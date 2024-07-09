@@ -150,12 +150,12 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
     bool callbacked = false;
-    ScreenChangeCallback callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    ScreenChangeCallback changeCallback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
         screenId = id;
         screenEvent = event;
         callbacked = true;
     };
-    rsInterfaces.SetScreenChangeCallback(callback);
+    rsInterfaces.SetScreenChangeCallback(changeCallback);
     uint32_t screenRotation = GetData<uint32_t>();
     rsInterfaces.SetScreenCorrection(static_cast<ScreenId>(id), static_cast<ScreenRotation>(screenRotation));
     uint32_t systemAnimatedScenes = GetData<uint32_t>();

@@ -109,13 +109,9 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest003, TestSize.L
     transaction->SetDuration(0);
     transaction->GetDuration();
     transaction->SetParentPid(0);
-    transaction->SetChildPid(0);
     transaction->GetParentPid();
-    transaction->GetChildPid();
     transaction->IsOpenSyncTransaction();
     transaction->GetSyncId();
-    transaction->GetExtensionCount();
-    transaction->SetExtensionCount(0);
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest003 end";
 }
 

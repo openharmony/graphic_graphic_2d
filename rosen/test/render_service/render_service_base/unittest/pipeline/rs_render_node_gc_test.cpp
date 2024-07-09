@@ -61,7 +61,7 @@ HWTEST_F(RSRenderNodeGCTest, NodeDestructorInner001, TestSize.Level1)
 {
     RSRenderNodeGC& node = RSRenderNodeGC::Instance();
     node.NodeDestructorInner(nullptr);
-    EXPECT_TRUE(node.node_.size() == 1);
+    EXPECT_TRUE(node.nodeBucket_.size() == 1);
 
     RSRenderNode renderNode(0);
     RSRenderNode* ptr = &renderNode;
@@ -83,27 +83,15 @@ HWTEST_F(RSRenderNodeGCTest, NodeDestructorInner001, TestSize.Level1)
 HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemory001, TestSize.Level1)
 {
     RSRenderNodeGC& node = RSRenderNodeGC::Instance();
-    node.node_.clear();
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    node.nodeBucket_.swap(tempQueue);
     node.ReleaseNodeMemory();
-    EXPECT_TRUE(node.node_.size() == 0);
+    EXPECT_TRUE(node.nodeBucket_.size() == 0);
 
     auto ptrToNode = new RSRenderNode(0);
     node.NodeDestructorInner(ptrToNode);
     node.ReleaseNodeMemory();
-    EXPECT_TRUE(node.node_.size() == 0);
-}
-
-/**
- * @tc.name: GetNodeSize001
- * @tc.desc: test results of GetNodeSize
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSRenderNodeGCTest, GetNodeSize001, TestSize.Level1)
-{
-    RSRenderNodeGC& node = RSRenderNodeGC::Instance();
-    size_t num = node.GetNodeSize();
-    EXPECT_TRUE(!num);
+    EXPECT_TRUE(node.nodeBucket_.size() == 0);
 }
 
 /**
@@ -123,26 +111,13 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseDrawableMemory001, TestSize.Level1)
     };
     RSRenderNodeGC& node = RSRenderNodeGC::Instance();
     node.ReleaseDrawableMemory();
-    EXPECT_TRUE(node.drawable_.size() == 0);
+    EXPECT_TRUE(node.drawableBucket_.size() == 0);
 
     std::shared_ptr<const RSRenderNode> otherNode = std::make_shared<const RSRenderNode>(0);
     DrawableV2::RSRenderNodeDrawableAdapter* ptrToNode = new ConcreteRSRenderNodeDrawableAdapter(otherNode);
     node.DrawableDestructorInner(ptrToNode);
     node.ReleaseDrawableMemory();
-    EXPECT_TRUE(node.drawable_.size() == 0);
-}
-
-/**
- * @tc.name: GetDrawableSize001
- * @tc.desc: test results of GetDrawableSize
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSRenderNodeGCTest, GetDrawableSize001, TestSize.Level1)
-{
-    RSRenderNodeGC& node = RSRenderNodeGC::Instance();
-    size_t num = node.GetDrawableSize();
-    EXPECT_TRUE(!num);
+    EXPECT_TRUE(node.drawableBucket_.size() == 0);
 }
 } // namespace Rosen
 } // namespace OHOS

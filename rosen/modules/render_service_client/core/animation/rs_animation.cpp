@@ -17,6 +17,7 @@
 
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_animation_common.h"
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "modifier/rs_modifier_manager.h"
@@ -63,6 +64,11 @@ void RSAnimation::SetFinishCallback(const std::function<void()>& finishCallback)
 void RSAnimation::SetFinishCallback(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
 {
     finishCallback_ = finishCallback;
+    auto target = target_.lock();
+    if (target != nullptr) {
+        RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+            "Animation Set FinishCallback", target->GetId(), id_, true);
+    }
 }
 
 void RSAnimation::SetRepeatCallback(const std::shared_ptr<AnimationRepeatCallback>& repeatCallback)
@@ -82,6 +88,11 @@ void RSAnimation::CallFinishCallback()
     interactiveFinishCallback_.reset();
     state_ = AnimationState::FINISHED;
     OnCallFinishCallback();
+    auto target = target_.lock();
+    if (target != nullptr) {
+        RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+            "Animation Call FinishCallback", target->GetId(), id_, true);
+    }
 }
 
 void RSAnimation::CallRepeatCallback()

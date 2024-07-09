@@ -187,16 +187,12 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
 
 void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
 {
-    SkSurface* skSurface = skCanvas_->getSurface();
-    if (skSurface == nullptr) {
-        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
-        return;
-    }
     std::string shaderString = shape.Getshader();
-    if (shaderString.size() == 0) {
-        LOGD("sdf shape is empty, return on line %{public}d", __LINE__);
+    if (skCanvas_ == nullptr || skCanvas_->getSurface() == nullptr || shaderString.size() == 0) {
+        LOGE("skCanvas_ or surface is null, or sdf shape is empty. return on line %{public}d", __LINE__);
         return;
     }
+
     SkAutoCanvasRestore acr(skCanvas_, true);
     auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
     if (effect == nullptr) {
@@ -230,6 +226,8 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         builder.uniform("sdfalpha") = color[6]; // color_[6] is color alpha channel.
         builder.uniform("sdfsize") = shape.GetSize();
         builder.uniform("filltype") = shape.GetFillType();
+        builder.uniform("translatex") = shape.GetTranslateX();
+        builder.uniform("translatey") = shape.GetTranslateY();
     }
     builder.uniform("width") = width;
     auto shader = builder.makeShader(nullptr, false);

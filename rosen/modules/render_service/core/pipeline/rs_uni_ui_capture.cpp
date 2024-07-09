@@ -319,7 +319,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         if (!drawable) {
             return;
         }
-        auto canvasDrawable = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawable.get());
+        auto canvasDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
         canvasDrawable->DrawCaptureImage(*canvas_);
     } else {
         node.ProcessRenderContents(*canvas_);

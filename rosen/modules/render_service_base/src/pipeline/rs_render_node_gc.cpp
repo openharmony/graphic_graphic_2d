@@ -33,18 +33,28 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
     std::lock_guard<std::mutex> lock(nodeMutex_);
-    node_.push_back(ptr);
+    if (nodeBucket_.size() > 0) {
+        auto& bucket = nodeBucket_.back();
+        if (bucket.size() < BUCKET_MAX_SIZE) {
+            bucket.push_back(ptr);
+        } else {
+            nodeBucket_.push({ptr});
+        }
+    } else {
+        nodeBucket_.push({ptr});
+    }
 }
 
-void RSRenderNodeGC::ReleaseNodeMemory()
+void RSRenderNodeGC::ReleaseNodeBucket()
 {
     std::vector<RSRenderNode*> toDele;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
-        if (node_.size() == 0) {
+        if (nodeBucket_.empty()) {
             return;
         }
-        std::swap(toDele, node_);
+        toDele.swap(nodeBucket_.front());
+        nodeBucket_.pop();
     }
     RS_TRACE_NAME_FMT("ReleaseNodeMemory %d", toDele.size());
     for (auto ptr : toDele) {
@@ -55,14 +65,23 @@ void RSRenderNodeGC::ReleaseNodeMemory()
     }
 }
 
-size_t RSRenderNodeGC::GetNodeSize()
+void RSRenderNodeGC::ReleaseNodeMemory()
 {
-    size_t size = 0;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
-        size = node_.size();
+        if (nodeBucket_.empty()) {
+            return;
+        }
     }
-    return size;
+    if (mainTask_) {
+        auto task = []() {
+            RSRenderNodeGC::Instance().ReleaseNodeBucket();
+            RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        };
+        mainTask_(task, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+    } else {
+        ReleaseNodeBucket();
+    }
 }
 
 void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr)
@@ -73,19 +92,28 @@ void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter*
 void RSRenderNodeGC::DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr)
 {
     std::lock_guard<std::mutex> lock(drawableMutex_);
-    drawable_.push_back(ptr);
+    if (drawableBucket_.size() > 0) {
+        auto& bucket = drawableBucket_.back();
+        if (bucket.size() < BUCKET_MAX_SIZE) {
+            bucket.push_back(ptr);
+        } else {
+            drawableBucket_.push({ptr});
+        }
+    } else {
+        drawableBucket_.push({ptr});
+    }
 }
 
-void RSRenderNodeGC::ReleaseDrawableMemory()
+void RSRenderNodeGC::ReleaseDrawableBucket()
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter*> toDele;
     {
         std::lock_guard<std::mutex> lock(drawableMutex_);
-        if (drawable_.size() == 0) {
+        if (drawableBucket_.empty()) {
             return;
         }
-        std::swap(toDele, drawable_);
-        drawable_.clear();
+        toDele.swap(drawableBucket_.front());
+        drawableBucket_.pop();
     }
     RS_TRACE_NAME_FMT("ReleaseDrawableMemory %d", toDele.size());
     for (auto ptr : toDele) {
@@ -96,15 +124,23 @@ void RSRenderNodeGC::ReleaseDrawableMemory()
     }
 }
 
-size_t RSRenderNodeGC::GetDrawableSize()
+void RSRenderNodeGC::ReleaseDrawableMemory()
 {
-    size_t size = 0;
     {
         std::lock_guard<std::mutex> lock(drawableMutex_);
-        size = drawable_.size();
+        if (drawableBucket_.empty()) {
+            return;
+        }
     }
-    return size;
+    if (renderTask_) {
+        auto task = []() {
+            RSRenderNodeGC::Instance().ReleaseDrawableBucket();
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+        };
+        renderTask_(task, DELETE_DRAWABLE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+    } else {
+        ReleaseDrawableBucket();
+    }
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -4052,6 +4052,15 @@ RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId
     return nullptr;
 }
 
+void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
+{
+    childrenHasUIExtension_ = childrenHasUIExtension;
+    auto parent = GetParent().lock();
+    if (parent && parent->ChildrenHasUIExtension() != childrenHasUIExtension) {
+        parent->SetChildrenHasUIExtension(childrenHasUIExtension);
+    }
+}
+
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)
 {
     // We already know which node is the lower one.

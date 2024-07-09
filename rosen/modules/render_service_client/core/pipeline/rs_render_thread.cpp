@@ -120,9 +120,7 @@ RSRenderThread::RSRenderThread()
             std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
             context_->activeNodesInRoot_.clear();
         }
-        if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
-            RSRenderNodeGC::Instance().ReleaseNodeMemory();
-        }
+        RSRenderNodeGC::Instance().ReleaseNodeMemory();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);

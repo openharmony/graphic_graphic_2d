@@ -48,7 +48,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "drawable/rs_property_drawable_utils.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
@@ -372,6 +371,7 @@ void RSMainThread::Init()
         Render(); // now render is traverse tree to prepare
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
+        UIExtensionNodesTraverseAndCallback();
         InformHgmNodeInfo();
         if (!isUniRender_) {
             ReleaseAllNodesBuffer();
@@ -387,10 +387,7 @@ void RSMainThread::Init()
         ResetAnimateNodeFlag();
         SKResourceManager::Instance().ReleaseResource();
         // release node memory
-        if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
-            RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
-            RSRenderNodeGC::Instance().ReleaseNodeMemory();
-        }
+        RSRenderNodeGC::Instance().ReleaseNodeMemory();
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
@@ -453,6 +450,11 @@ void RSMainThread::Init()
     if (ret != 0) {
         RS_LOGW("Add watchdog thread failed");
     }
+    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority) {
+        RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
+    };
+    RSRenderNodeGC::Instance().SetMainTask(PostTaskProxy);
 #ifdef RES_SCHED_ENABLE
     SubScribeSystemAbility();
 #endif
@@ -1024,7 +1026,7 @@ void RSMainThread::ProcessCommandForUniRender()
             if (!drawableNode) {
                 return;
             }
-            static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 PlaybackInCorrespondThread();
         }
     });
@@ -1102,14 +1104,12 @@ void RSMainThread::ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t par
         parentPid, childPid);
     ROSEN_LOGI("RSMainThread::ProcessEmptySyncTransactionCount syncId:%{public}" PRIu64 " parentPid:%{public}d "
         "childPid:%{public}d", syncId, parentPid, childPid);
-    if ((parentPid == -1 && childPid == -1) || ExtractPid(syncId) == childPid) {
-        syncTransactionCount_ -= 1;
-    } else {
-        auto count = subSyncTransactionCounts_[childPid];
-        count--;
-        count == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = count;
+    subSyncTransactionCounts_[parentPid]--;
+    if (subSyncTransactionCounts_[parentPid] == 0) {
+        subSyncTransactionCounts_.erase(parentPid);
     }
-    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
+    if (subSyncTransactionCounts_.empty()) {
+        ROSEN_LOGD("SyncTransaction sucess");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1132,35 +1132,22 @@ void RSMainThread::StartSyncTransactionFallbackTask(std::unique_ptr<RSTransactio
 
 void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
+    auto sendingPid = rsTransactionData->GetSendingPid();
     auto parentPid = rsTransactionData->GetParentPid();
-    auto childPid = rsTransactionData->GetChildPid();
-    auto syncNum = rsTransactionData->GetSyncTransactionNum();
-    auto isFromSCB = ((parentPid == -1 && childPid == -1) || ExtractPid(rsTransactionData->GetSyncId()) == childPid);
-
-    if (isNeedCloseSync) {
-        syncTransactionCount_ += syncNum;
-    } else if (isFromSCB && syncNum == 0) {
-        // Synchronous commands initiated directly from the SCB and the subprocess does not contain UiExtension.
-        syncTransactionCount_ -= 1;
-    } else {
-        // Synchronous command initiated by uiextension host or the subprocess contain UiExtension.
-        auto parentNum = subSyncTransactionCounts_[parentPid];
-        auto childNum = subSyncTransactionCounts_[childPid];
-        if (syncNum > 0) {
-            parentPid == -1 ? syncTransactionCount_ -= 1 : parentNum -= 1;
-            childNum += syncNum;
-        } else {
-            childNum -= 1;
+    subSyncTransactionCounts_[sendingPid] += rsTransactionData->GetSyncTransactionNum();
+    if (subSyncTransactionCounts_[sendingPid] == 0) {
+        subSyncTransactionCounts_.erase(sendingPid);
+    }
+    if (!rsTransactionData->IsNeedCloseSync()) {
+        subSyncTransactionCounts_[parentPid]--;
+        if (subSyncTransactionCounts_[parentPid] == 0) {
+            subSyncTransactionCounts_.erase(parentPid);
         }
-        parentNum == 0 ? subSyncTransactionCounts_.erase(parentPid) : subSyncTransactionCounts_[parentPid] = parentNum;
-        childNum == 0 ? subSyncTransactionCounts_.erase(childPid) : subSyncTransactionCounts_[childPid] = childNum;
     }
     ROSEN_LOGD("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
-               " parentPid:%{public}d childPid:%{public}d syncNum:%{public}d  syncTransactionCount_:%{public}d "
-               "subSyncTransactionCounts_.size:%{public}zd",
-        isNeedCloseSync, rsTransactionData->GetSyncId(), parentPid, childPid, syncNum, syncTransactionCount_,
-        subSyncTransactionCounts_.size());
+               " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
+        rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
+        rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
@@ -1190,7 +1177,8 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
     ProcessSyncTransactionCount(rsTransactionData);
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0 && subSyncTransactionCounts_.empty()) {
+    if (subSyncTransactionCounts_.empty()) {
+        ROSEN_LOGD("SyncTransaction sucess");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1206,7 +1194,6 @@ void RSMainThread::ProcessAllSyncTransactionData()
         }
     }
     syncTransactionData_.clear();
-    syncTransactionCount_ = 0;
     subSyncTransactionCounts_.clear();
     RequestNextVSync();
 }
@@ -2636,7 +2623,6 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         renderThreadParams_->SetOnVsyncStartTime(onVsyncStartTime);
         renderThreadParams_->SetOnVsyncStartTimeSteady(onVsyncStartTimeSteady);
         renderThreadParams_->SetOnVsyncStartTimeSteadyFloat(onVsyncStartTimeSteadyFloat);
-        SetDiscardJankFrames(false);
         SetSkipJankAnimatorFrame(false);
     }
 }
@@ -2660,6 +2646,9 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                               .discardJankFrames_ = GetDiscardJankFrames(),
                                               .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame() };
         drawFrame_.PostDirectCompositionJankStats(rsParams);
+    }
+    if (isUniRender_) {
+        SetDiscardJankFrames(false);
     }
 }
 
@@ -3340,18 +3329,13 @@ void RSMainThread::PerfForBlurIfNeeded()
     static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
     static int cnt = 0;
-    auto timestamp = timestamp_;
-    if (isUniRender_) {
-        auto params = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-        if (!params) {
-            return;
-        }
-        timestamp = params->GetCurrentTimestamp();
-    }
-    auto task = [this, timestamp]() {
+
+    auto task = [this]() {
         if (preBlurCnt == 0) {
             return;
         }
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
         RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded now[%ld] timestamp[%ld] preBlurCnt[%d]",
             std::chrono::steady_clock::now().time_since_epoch(), timestamp, preBlurCnt);
         if (static_cast<uint64_t>(timestamp) - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT && preBlurCnt != 0) {
@@ -3362,8 +3346,7 @@ void RSMainThread::PerfForBlurIfNeeded()
     };
     // delay 100ms
     handler_->PostTask(task, PERF_FOR_BLUR_IF_NEEDED_TASK_NAME, 100);
-    int blurCnt = isUniRender_ ? RSPropertyDrawableUtils::GetAndResetBlurCnt() :
-        RSPropertiesPainter::GetAndResetBlurCnt();
+    int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
     if (blurCnt < preBlurCnt) {
@@ -3382,10 +3365,10 @@ void RSMainThread::PerfForBlurIfNeeded()
     if (blurCnt == 0) {
         return;
     }
-    if (timestamp - prePerfTimestamp > PERF_PERIOD_BLUR || cntIsMatch) {
+    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || cntIsMatch) {
         RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded PerfRequest, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
-        prePerfTimestamp = timestamp;
+        prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;
     }
 }
@@ -3878,10 +3861,11 @@ void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
     uiExtensionListenners_.erase(pid);
 }
 
-void RSMainThread::UIExtensionCallback()
+void RSMainThread::UIExtensionNodesTraverseAndCallback()
 {
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
-    if (uiExtensionCallbackData_.empty() && !lastFrameUIExtensionDataEmpty_) {
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
+    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
         return;
     }
     for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {

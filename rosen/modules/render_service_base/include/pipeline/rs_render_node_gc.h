@@ -17,33 +17,50 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_NODE_GC_H
 
 #include <cstdint>
+#include <event_handler.h>
 #include <mutex>
 #include <vector>
 
+#include "common/rs_thread_handler.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr const int BUCKET_MAX_SIZE = 100;
+constexpr const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
+constexpr const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
 class RSB_EXPORT RSRenderNodeGC {
 public:
+    typedef void (*gcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
+        AppExecFwk::EventQueue::Priority priority);
+
     static RSRenderNodeGC& Instance();
 
     static void NodeDestructor(RSRenderNode* ptr);
     void NodeDestructorInner(RSRenderNode* ptr);
+    void ReleaseNodeBucket();
     void ReleaseNodeMemory();
-    size_t GetNodeSize();
+    void SetMainTask(gcTask hook) {
+        mainTask_ = hook;
+    }
 
     static void DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
     void DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
+    void ReleaseDrawableBucket();
     void ReleaseDrawableMemory();
-    size_t GetDrawableSize();
+    void SetRenderTask(gcTask hook) {
+        renderTask_ = hook;
+    }
 
 private:
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter*> drawable_;
-    std::mutex drawableMutex_;
-    std::vector<RSRenderNode*> node_;
+    gcTask mainTask_ = nullptr;
+    gcTask renderTask_ = nullptr;
+
+    std::queue<std::vector<RSRenderNode*>> nodeBucket_;
+    std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> drawableBucket_;
     std::mutex nodeMutex_;
+    std::mutex drawableMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

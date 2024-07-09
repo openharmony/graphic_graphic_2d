@@ -118,7 +118,7 @@ VSyncGenerator::VSyncGenerator()
         period_ = REFRESH_PERIOD;
     }
     vsyncThreadRunning_ = true;
-    thread_ = std::thread(std::bind(&VSyncGenerator::ThreadLoop, this));
+    thread_ = std::thread([this] { this->ThreadLoop(); });
     pthread_setname_np(thread_.native_handle(), "VSyncGenerator");
 }
 

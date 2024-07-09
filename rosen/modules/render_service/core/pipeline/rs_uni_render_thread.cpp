@@ -22,6 +22,8 @@
 #include "hgm_core.h"
 
 #include "common/rs_common_def.h"
+#include "common/rs_optional_trace.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "include/core/SkGraphics.h"
 #include "surface.h"
 #include "sync_fence.h"
@@ -30,6 +32,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -47,17 +50,38 @@
 #include "common/rs_singleton.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 
+#ifdef SOC_PERF_ENABLE
+#include "socperf_client.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
+const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
+constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
+constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
+
+const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
+    { 1, 10021 },
+    { 2, 10022 },
+    { 3, 10023 },
+};
+
+void PerfRequest(int32_t perfRequestCode, bool onOffTag)
+{
+#ifdef SOC_PERF_ENABLE
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
+    RS_LOGD("RSUniRenderThread::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
+#endif
+}
 };
 
 thread_local CaptureParam RSUniRenderThread::captureParam_ = {};
@@ -121,6 +145,11 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Start runner null");
     }
     runner_->Run();
+    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority) {
+        RSUniRenderThread::Instance().PostTask(task, name, delayTime, priority);
+    };
+    RSRenderNodeGC::Instance().SetRenderTask(PostTaskProxy);
     PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
@@ -256,7 +285,7 @@ void RSUniRenderThread::Render()
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
-    RSMainThread::Instance()->PerfForBlurIfNeeded();
+    PerfForBlurIfNeeded();
 
     if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
         RSMainThread::Instance()->SetFrameIsRender(true);
@@ -416,6 +445,61 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
+void RSUniRenderThread::PerfForBlurIfNeeded()
+{
+    if (!handler_) {
+        return;
+    }
+    handler_->RemoveTask(PERF_FOR_BLUR_IF_NEEDED_TASK_NAME);
+    static uint64_t prePerfTimestamp = 0;
+    static int preBlurCnt = 0;
+    static int cnt = 0;
+    auto params = GetRSRenderThreadParams().get();
+    if (!params) {
+        return;
+    }
+    auto threadTimestamp = params->GetCurrentTimestamp();
+
+    auto task = [this]() {
+        if (preBlurCnt == 0) {
+            return;
+        }
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded now[%ld] timestamp[%ld] preBlurCnt[%d]",
+            now, timestamp, preBlurCnt);
+        if (static_cast<uint64_t>(timestamp) - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT) {
+            PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+            prePerfTimestamp = 0;
+            preBlurCnt = 0;
+        }
+    };
+
+    // delay 100ms
+    handler_->PostTask(task, PERF_FOR_BLUR_IF_NEEDED_TASK_NAME, 100);
+    int blurCnt = RSPropertyDrawableUtils::GetAndResetBlurCnt();
+    // clamp blurCnt to 0~3.
+    blurCnt = std::clamp<int>(blurCnt, 0, 3);
+    cnt = (blurCnt < preBlurCnt) ? (cnt + 1) : 0;
+
+    // if blurCnt > preBlurCnt, than change perf code;
+    // if blurCnt < preBlurCnt 10 times continuously, than change perf code.
+    bool cntIsMatch = blurCnt > preBlurCnt || cnt > 10;
+    if (cntIsMatch && preBlurCnt != 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded Perf close, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
+        PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+        preBlurCnt = blurCnt == 0 ? 0 : preBlurCnt;
+    }
+    if (blurCnt == 0) {
+        return;
+    }
+    if (threadTimestamp - prePerfTimestamp > PERF_PERIOD_BLUR || cntIsMatch) {
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded PerfRequest, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
+        PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
+        prePerfTimestamp = threadTimestamp;
+        preBlurCnt = blurCnt;
+    }
+}
 
 bool RSUniRenderThread::GetClearMemoryFinished() const
 {

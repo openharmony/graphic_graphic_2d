@@ -248,7 +248,7 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
     dvsync_ = new DVsync(isRs_);
     if (dvsync_->IsFeatureEnabled()) {
         vsyncThreadRunning_ = true;
-        threadLoop_ = std::thread(std::bind(&VSyncDistributor::ThreadMain, this));
+        threadLoop_ = std::thread([this] { this->ThreadMain(); });
         std::string threadName = "DVSync-" + name;
         pthread_setname_np(threadLoop_.native_handle(), threadName.c_str());
     }

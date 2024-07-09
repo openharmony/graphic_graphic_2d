@@ -16,9 +16,11 @@
 #ifndef RS_VULKAN_CONTEXT_H
 #define RS_VULKAN_CONTEXT_H
 
+#include <list>
 #include <memory>
 #include <mutex>
 #include <string>
+#include "sync_fence.h"
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
@@ -37,6 +39,33 @@ namespace Rosen {
 class MemoryHandler;
 class RsVulkanInterface {
 public:
+    struct CallbackSemaphoreInfo {
+        RsVulkanInterface& mVkContext;
+        VkDevice mDevice;
+        VkSemaphore mSemaphore;
+        int mFenceFd;
+        
+        int mRefs = 2; // 2 : both skia and rs hold fence fd
+        CallbackSemaphoreInfo(RsVulkanInterface& vkContext, VkSemaphore semaphore, int fenceFd)
+            : mVkContext(vkContext),
+            mSemaphore(semaphore),
+            mFenceFd(fenceFd)
+        {
+        }
+
+        static void DestroyCallbackRefs(void* context)
+        {
+            if (context == nullptr) {
+                return;
+            }
+            CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
+            --info->mRefs;
+            if (!info->mRefs) {
+                info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
+                delete info;
+            }
+        }
+    };
     template <class T>
     class Func {
     public:
@@ -184,6 +213,9 @@ public:
         return hbackendContext_.fQueue;
     }
 
+    VkSemaphore RequireSemaphore();
+    void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
+
 friend class RsVulkanContext;
 private:
     std::mutex vkMutex_;
@@ -224,6 +256,13 @@ private:
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext(bool isProtected = false);
     std::shared_ptr<MemoryHandler> memHandler_;
+
+    struct semaphoreFence {
+        VkSemaphore semaphore;
+        std::unique_ptr<SyncFence> fence;
+    };
+    std::list<semaphoreFence> usedSemaphoreFenceList_;
+    std::mutex semaphoreLock_;
 };
 
 class RsVulkanContext {

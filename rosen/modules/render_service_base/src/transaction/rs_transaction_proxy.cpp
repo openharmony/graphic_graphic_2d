@@ -253,17 +253,15 @@ void RSTransactionProxy::SetSyncTransactionNum(const int32_t transactionCount)
     }
 }
 
-void RSTransactionProxy::SetParentAndChildPid(const int32_t parentPid, const int32_t childPid)
+void RSTransactionProxy::SetParentPid(const int32_t parentPid)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitCommonTransactionDataStack_.empty()) {
         implicitCommonTransactionDataStack_.top()->SetParentPid(parentPid);
-        implicitCommonTransactionDataStack_.top()->SetChildPid(childPid);
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
         implicitRemoteTransactionDataStack_.top()->SetParentPid(parentPid);
-        implicitRemoteTransactionDataStack_.top()->SetChildPid(childPid);
     }
 }
 
