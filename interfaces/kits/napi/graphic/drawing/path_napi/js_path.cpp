@@ -464,7 +464,6 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
     } else if (argc == ARGC_FOUR) {
         int32_t flag = 0;
         GET_ENUM_PARAM(ARGC_THREE, flag, 0, static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX));
-
         bool result = m_path->GetMatrix(
             forceClosed,
             distance,
