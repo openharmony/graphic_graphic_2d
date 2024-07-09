@@ -114,6 +114,11 @@ public:
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
 
+    inline bool IsBufferDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
