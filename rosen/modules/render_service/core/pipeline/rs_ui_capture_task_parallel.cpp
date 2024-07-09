@@ -167,7 +167,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-        auto copytask = RSSurfaceCaptureTaskParallel::CreateSurfaceCopyTaskWithDMA(surface, std::move(pixelMap_),
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
+        auto copytask = RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, callback);
         if (!copytask) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: create capture task failed!");
