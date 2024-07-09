@@ -24,6 +24,7 @@ namespace Drawing {
 thread_local napi_ref JsTypeface::constructor_ = nullptr;
 std::shared_ptr<Typeface> drawingTypeface;
 const std::string CLASS_NAME = "Typeface";
+const std::string G_SYSTEM_FONT_DIR = "/system/fonts";
 napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
@@ -99,8 +100,23 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        drawingTypeface = typeface;
-        status = napi_new_instance(env, constructor, 0, nullptr, &result);
+        auto jsTypeface = new(std::nothrow) JsTypeface(typeface);
+        napi_create_object(env, &result);
+        if (result == nullptr) {
+            delete jsTypeface;
+            ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
+            return nullptr;
+        }
+        napi_status status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+        if (status != napi_ok) {
+            delete jsTypeface;
+            ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
+            return nullptr;
+        }
+        napi_property_descriptor resultFuncs[] = {
+            DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+        };
+        napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
         if (status == napi_ok) {
             return result;
         } else {
@@ -150,7 +166,21 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
     std::string text = "";
     GET_JSVALUE_PARAM(ARGC_ZERO, text);
 
-    auto typeface = new(std::nothrow) JsTypeface(Typeface::MakeFromFile(text.c_str()));
+    auto rawTypeface = Typeface::MakeFromFile(text.c_str());
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::MakeFromFile create rawTypeface failed!");
+        return nullptr;
+    }
+    auto typeface = new(std::nothrow) JsTypeface(rawTypeface);
+    std::string pathStr(text);
+    if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
+        if (!ret) {
+            ROSEN_LOGE("JsTypeface::MakeFromFile MakeRegister Typeface failed!");
+            return nullptr;
+        }
+    }
 
     napi_value jsObj = nullptr;
     napi_create_object(env, &jsObj);
