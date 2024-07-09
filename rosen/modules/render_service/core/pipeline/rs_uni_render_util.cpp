@@ -1685,5 +1685,95 @@ void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNo
     alpha *= parentProperty.GetAlpha();
     matrix.PostConcat(parentProperty.GetBoundsGeometry()->GetMatrix());
 }
+
+SecRectInfo RSUniRenderUtil::GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect)
+{
+    SecRectInfo uiExtensionRectInfo;
+    uiExtensionRectInfo.relativeCoords = rect;
+    uiExtensionRectInfo.scale = node.GetRenderProperties().GetScale();
+    return uiExtensionRectInfo;
+}
+
+SecSurfaceInfo RSUniRenderUtil::GenerateSecSurfaceInfoFromNode(
+    NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo)
+{
+    SecSurfaceInfo secSurfaceInfo;
+    secSurfaceInfo.uiExtensionRectInfo = uiExtensionRectInfo;
+    secSurfaceInfo.uiExtensionPid = ExtractPid(uiExtensionId);
+    secSurfaceInfo.hostPid = ExtractPid(hostId);
+    secSurfaceInfo.uiExtensionNodeId = uiExtensionId;
+    secSurfaceInfo.hostNodeId = hostId;
+    return secSurfaceInfo;
+}
+
+void RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(
+    const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData)
+{
+    const auto& secUIExtensionNodes = RSSurfaceRenderNode::GetSecUIExtensionNodes();
+    for (auto it = secUIExtensionNodes.begin(); it != secUIExtensionNodes.end(); ++it) {
+        currentUIExtensionIndex_ = -1;
+        // only traverse host node one time, even if it has multiple uiextension children.
+        if (callbackData.find(it->second) != callbackData.end()) {
+            continue;
+        }
+        auto hostNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(it->second));
+        if (!hostNode || !hostNode->GetSortedChildren()) {
+            RS_LOGE("RSUniRenderUtil::UIExtensionFindAndTraverseAncestor failed to get host node or its children.");
+            return;
+        }
+        for (const auto& child : *hostNode->GetSortedChildren()) {
+            TraverseAndCollectUIExtensionInfo(child, Drawing::Matrix(), hostNode->GetId(), callbackData);
+        }
+    }
+}
+
+void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
+    Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData)
+{
+    if (!node) {
+        return;
+    }
+    // update position relative to host app window node.
+    std::optional<Drawing::Point> offset;
+    auto parent = node->GetParent().lock();
+    if (parent && !(node->IsInstanceOf<RSSurfaceRenderNode>())) {
+        const auto& parentRenderProperties = parent->GetRenderProperties();
+        offset = Drawing::Point { parentRenderProperties.GetFrameOffsetX(), parentRenderProperties.GetFrameOffsetY() };
+    }
+    const auto& nodeRenderProperties = node->GetRenderProperties();
+    RSObjAbsGeometry boundsGeo = nodeRenderProperties.GetBoundsGeometry() == nullptr ?
+        RSObjAbsGeometry() : *(nodeRenderProperties.GetBoundsGeometry());
+    boundsGeo.UpdateMatrix(&parentMatrix, offset);
+    auto rect = boundsGeo.MapAbsRect(node->GetSelfDrawRect().JoinRect(node->GetChildrenRect().ConvertTo<float>()));
+    // if node is UIExtension type, update its own info, and skip its children.
+    if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        if (surfaceNode && surfaceNode->IsUIExtension()) {
+            currentUIExtensionIndex_++;
+            // if host node is not recorded in callbackData, insert it.
+            if (callbackData.find(hostId) == callbackData.end()) {
+                callbackData[hostId] = std::vector<SecSurfaceInfo>();
+            }
+            callbackData[hostId].push_back(GenerateSecSurfaceInfoFromNode(
+                surfaceNode->GetId(), hostId, GenerateSecRectInfoFromNode(*surfaceNode, rect)));
+            if (surfaceNode->ChildrenHasUIExtension()) {
+                RS_LOGW("RSUniRenderUtil::TraverseAndCollectUIExtensionInfo UIExtension node [%{public}" PRIu64 "]"
+                    " has children UIExtension, not surpported!", surfaceNode->GetId());
+            }
+            return;
+        }
+    }
+    // if the node is traversed after a UIExtension, collect it and skip its children (except it has UIExtension child.)
+    if (currentUIExtensionIndex_ != -1) {
+        callbackData[hostId][currentUIExtensionIndex_].upperNodes.push_back(GenerateSecRectInfoFromNode(*node, rect));
+        if (!node->ChildrenHasUIExtension()) {
+            return;
+        }
+    }
+    // continue to traverse.
+    for (const auto& child : *node->GetSortedChildren()) {
+        TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

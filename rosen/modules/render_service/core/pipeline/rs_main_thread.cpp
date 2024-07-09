@@ -372,6 +372,7 @@ void RSMainThread::Init()
         Render(); // now render is traverse tree to prepare
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
+        UIExtensionNodesTraverseAndCallback();
         InformHgmNodeInfo();
         if (!isUniRender_) {
             ReleaseAllNodesBuffer();
@@ -3867,10 +3868,11 @@ void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
     uiExtensionListenners_.erase(pid);
 }
 
-void RSMainThread::UIExtensionCallback()
+void RSMainThread::UIExtensionNodesTraverseAndCallback()
 {
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
-    if (uiExtensionCallbackData_.empty() && !lastFrameUIExtensionDataEmpty_) {
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
+    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
         return;
     }
     for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {

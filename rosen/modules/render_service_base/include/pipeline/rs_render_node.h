@@ -703,7 +703,11 @@ public:
     {
         return startingWindowFlag_;
     }
-
+    void SetChildrenHasUIExtension(bool SetChildrenHasUIExtension);
+    bool ChildrenHasUIExtension() const
+    {
+        return childrenHasUIExtension_;
+    }
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -784,7 +788,6 @@ protected:
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
-
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -1014,6 +1017,9 @@ private:
     bool foregroundFilterRegionChanged_ = false;
     bool foregroundFilterInteractWithDirty_ = false;
     bool isOccluded_ = false;
+
+    // for UIExtension info collection
+    bool childrenHasUIExtension_ = false;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;

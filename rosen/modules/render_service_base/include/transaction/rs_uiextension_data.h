@@ -29,18 +29,18 @@ namespace OHOS {
 namespace Rosen {
 
 struct SecRectInfo {
-    RectI relativeCoords;
-    Vector2f scale;
-    Vector2f anchor;
+    RectI relativeCoords = RectI();
+    Vector2f scale = {1.f, 1.f};
+    Vector2f anchor = {0.f, 0.f};
 };
 
 struct SecSurfaceInfo {
     SecRectInfo uiExtensionRectInfo;
-    pid_t hostPid;
-    pid_t uiExtensionPid;
-    uint64_t hostNodeId;
-    uint64_t uiExtensionNodeId;
-    std::vector<SecRectInfo> upperNodes;
+    pid_t hostPid = 0;
+    pid_t uiExtensionPid = 0;
+    uint64_t hostNodeId = INVALID_NODEID;
+    uint64_t uiExtensionNodeId = INVALID_NODEID;
+    std::vector<SecRectInfo> upperNodes = {};
 };
 
 using UIExtensionCallbackData = std::map<NodeId, std::vector<SecSurfaceInfo>>;
