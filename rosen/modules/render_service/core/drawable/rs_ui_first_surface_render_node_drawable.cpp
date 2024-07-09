@@ -581,11 +581,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
         return false;
     }
-    auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (!drawable) {
-        return false;
-    }
-
     bool ret = true;
     // draw surface content&&childrensss
     if (HasCachedTexture()) {
@@ -593,6 +588,10 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
     }
     // draw starting window
     {
+        auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
+        if (!drawable) {
+            return false;
+        }
         RS_TRACE_NAME_FMT("drawStarting");
         drawable->Draw(rscanvas);
     }
