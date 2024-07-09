@@ -6388,7 +6388,12 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
         parent->AddDirtyType(RSModifierType::CHILDREN);
         parent->ApplyModifiers();
         // avoid changing the paired status or unpairedShareTransitions_
-        sptr->GetSharedTransitionParam()->paired_ = false;
+        auto param = sptr->GetSharedTransitionParam();
+        if (param == nullptr) {
+            ROSEN_LOGE("RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode: param is null");
+            return;
+        }
+        param->paired_ = false;
         SharedTransitionParam::unpairedShareTransitions_.clear();
     };
     auto unpairedShareTransitions = std::move(SharedTransitionParam::unpairedShareTransitions_);
