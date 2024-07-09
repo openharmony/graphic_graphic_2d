@@ -329,7 +329,7 @@ DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetSymbolLayersGroups(static_cast<uint32>(glyphId));
+        return DDGRStaticFactory::GetSymbolLayersGroups(static_cast<uint32_t>(glyphId));
     }
 #endif
     return EngineStaticFactory::GetSymbolLayersGroups(glyphId);

@@ -76,7 +76,7 @@ void HelloComposer::Run(const std::vector<std::string> &runArgs)
     mainThreadHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     g_receiver = new VSyncReceiver(vsyncConnection, nullptr, mainThreadHandler_);
     g_receiver->Init();
-    mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
+    mainThreadHandler_->PostTask([this] { this->RequestSync(); });
     runner->Run();
 }
 
@@ -203,7 +203,7 @@ void HelloComposer::Sync(int64_t, void *data)
 {
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = data,
-        .callback_ = std::bind(&HelloComposer::Sync, this, ::std::placeholders::_1, ::std::placeholders::_2),
+        .callback_ = [this] { this->Sync(::std::placeholders::_1, ::std::placeholders::_2); },
     };
 
     if (g_receiver != nullptr) {
@@ -345,7 +345,7 @@ void HelloComposer::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool conn
         OnHotPlug(output, connected);
     } else {
         LOGI("In sub thread, post msg to main thread");
-        mainThreadHandler_->PostTask(std::bind(&HelloComposer::OnHotPlug, this, output, connected));
+        mainThreadHandler_->PostTask([this] { this->OnHotPlug(output, connected); });
     }
 }
 

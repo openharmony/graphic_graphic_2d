@@ -206,17 +206,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     }
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
-    VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
-    exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
-    exportSemaphoreCreateInfo.pNext = nullptr;
-    exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-
-    VkSemaphoreCreateInfo semaphoreInfo;
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
-    semaphoreInfo.flags = 0;
-    VkSemaphore semaphore;
-    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    VkSemaphore semaphore = vkContext.RequireSemaphore();
 
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
@@ -229,17 +219,17 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     auto& surface = mSurfaceMap[mSurfaceList.front()];
 
     RSTagTracker tagTracker(mSkContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-    DestroySemaphoreInfo* destroyInfo =
-        new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+
+    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
 
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
     drawingFlushInfo.numSemaphores = 1;
     drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
     drawingFlushInfo.finishedProc = [](void *context) {
-        DestroySemaphoreInfo::DestroySemaphore(context);
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(context);
     };
-    drawingFlushInfo.finishedContext = destroyInfo;
+    drawingFlushInfo.finishedContext = callbackInfo;
     surface.drawingSurface->Flush(&drawingFlushInfo);
     mSkContext->Submit();
     int fenceFd = -1;
@@ -251,22 +241,23 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
-        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-        destroyInfo = nullptr;
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+        callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
         return false;
     }
+    callbackInfo->mFenceFd = ::dup(fenceFd);
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
-        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-        destroyInfo = nullptr;
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+        callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
         return false;
     }
     mSurfaceList.pop_front();
-    DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-    destroyInfo = nullptr;
+    RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+    callbackInfo = nullptr;
     surface.fence.reset();
     surface.lastPresentedCount = mPresentCount;
     mPresentCount++;

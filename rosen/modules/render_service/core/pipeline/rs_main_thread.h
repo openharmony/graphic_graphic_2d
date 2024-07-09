@@ -303,8 +303,6 @@ public:
         markRenderFlag_ = false;
     }
 
-    void PerfForBlurIfNeeded();
-
     bool IsOnVsync() const
     {
         return isOnVsync_.load();
@@ -350,7 +348,7 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
-    void UIExtensionCallback();
+    void UIExtensionNodesTraverseAndCallback();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -416,6 +414,7 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
+    void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState(bool isUniRender);
@@ -478,7 +477,6 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     std::unordered_map<int32_t, int32_t> subSyncTransactionCounts_;
-    int32_t syncTransactionCount_ { 0 };
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
@@ -677,7 +675,7 @@ private:
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;
-    bool lastFrameUIExtensionDataEmpty_ = true;
+    bool lastFrameUIExtensionDataEmpty_ = false;
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
 };

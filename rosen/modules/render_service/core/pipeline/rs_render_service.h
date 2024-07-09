@@ -51,6 +51,7 @@ private:
     void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
     void DumpRefreshRateCounts(std::string& dumpString) const;
     void DumpClearRefreshRateCounts(std::string& dumpString) const;
+    void DumpJankStatsRs(std::string& dumpString) const;
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;

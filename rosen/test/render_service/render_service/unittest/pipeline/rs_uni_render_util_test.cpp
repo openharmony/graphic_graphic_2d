@@ -568,6 +568,71 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest 
 }
 
 /**
+ * @tc.name: MergeVisibleDirtyRegionTest001
+ * @tc.desc: Verify function MergeVisibleDirtyRegion while node is App Window
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTest | Level2)
+{
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
+    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
+    auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = true;
+    drawable->renderParams_ = std::move(param);
+    allSurfaceNodeDrawables.push_back(nullptr);
+    allSurfaceNodeDrawables.push_back(drawable);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
+    ASSERT_TRUE(drawable->renderParams_);
+}
+
+/**
+ * @tc.name: MergeVisibleDirtyRegionTest002
+ * @tc.desc: Verify function MergeVisibleDirtyRegion while node has no param
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest002, Function | SmallTest | Level2)
+{
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
+    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
+    allSurfaceNodeDrawables.push_back(drawable);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
+    ASSERT_FALSE(drawable->renderParams_);
+}
+
+/**
+ * @tc.name: MergeVisibleDirtyRegionTest003
+ * @tc.desc: Verify function MergeVisibleDirtyRegion while node is not App Window
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTest | Level2)
+{
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
+    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
+    auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = false;
+    drawable->renderParams_ = std::move(param);
+    allSurfaceNodeDrawables.push_back(drawable);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
+    ASSERT_TRUE(drawable->renderParams_);
+}
+
+/**
  * @tc.name: SetAllSurfaceGlobalDityRegionTest
  * @tc.desc: Verify function SetAllSurfaceGlobalDityRegion
  * @tc.type:FUNC

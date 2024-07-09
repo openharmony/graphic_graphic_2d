@@ -1542,6 +1542,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_);
 
     RectI prepareClipRect = prepareClipRect_;
+
+    if (!dirtyManager) {
+        return;
+    }
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
     // update prepare clip before children

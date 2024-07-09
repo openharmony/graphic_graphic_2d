@@ -56,6 +56,7 @@ void RSJankStats::SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncS
 
 void RSJankStats::SetAccumulatedBufferCount(int accumulatedBufferCount)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     accumulatedBufferCount_ = accumulatedBufferCount;
 }
 

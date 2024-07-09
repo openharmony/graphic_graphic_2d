@@ -64,7 +64,7 @@ public:
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
+    void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
@@ -330,7 +330,8 @@ public:
 
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     {
-        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
+        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_NODE) {
             nodeType_ = nodeType;
         }
     }
@@ -1194,6 +1195,12 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    bool IsUIExtension() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_NODE;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1459,6 +1466,8 @@ private:
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
 
+    // UIExtension record, <UIExtension, hostAPP>
+    inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 
@@ -107,45 +108,50 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
     return str;
 }
 
-void RSAnimationTraceUtils::addAnimationNameTrace(const std::string name, const uint64_t nodeId) const
+void RSAnimationTraceUtils::addAnimationNameTrace(const std::string str) const
 {
     if (isDebugOpen_) {
-        auto str = name + "node " + std::to_string(nodeId);
         RS_TRACE_NAME(str.c_str());
     }
 }
 
-void RSAnimationTraceUtils::addAnimationFinishTrace(const uint64_t nodeId, const uint64_t animationId) const
+void RSAnimationTraceUtils::addAnimationFinishTrace(
+    const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const
 {
     if (isDebugOpen_) {
-        RS_TRACE_NAME_FMT("AnimationFinish node[%llu] animate[%llu]", nodeId, animationId);
+        RS_TRACE_NAME_FMT("%s node[%llu] animate[%llu]", info.c_str(), nodeId, animationId);
+        if (isAddLogInfo) {
+            ROSEN_LOGI("%{public}s node[%{public}" PRIu64 "] animate[%{public}" PRIu64 "]",
+                info.c_str(), nodeId, animationId);
+        }
     }
 }
 
-void RSAnimationTraceUtils::addAnimationCreateTrace(const uint64_t nodeId, const uint64_t propertyId,
-    const uint64_t animationId, const int animationType, const int propertyType,
+void RSAnimationTraceUtils::addAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName,
+    const uint64_t propertyId, const uint64_t animationId, const int animationType, const int propertyType,
     const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
-    const int animationDelay, const int animationDur) const
+    const int animationDelay, const int animationDur, const int repeat) const
 {
     if (isDebugOpen_) {
         auto startStr = ParseRenderPropertyVaule(startValue);
         auto endStr = ParseRenderPropertyVaule(endValue);
         RS_TRACE_NAME_FMT(
-            "CreateImplicitAnimation node[%llu] pro[%llu] animate[%llu], animateType %d, propertyType %d, " \
-            "startValue[%s], endValue[%s], delay %d, dur %d",
-            nodeId, propertyId, animationId, animationType, propertyType, startStr.c_str(), endStr.c_str(),
-            animationDelay, animationDur);
+            "CreateImplicitAnimation node[%llu] name[%s] pro[%llu] animate[%llu], animateType %d, propertyType %d, "
+            "startValue[%s], endValue[%s], delay %d, dur %d repeat %d",
+            nodeId, nodeName.c_str(), propertyId, animationId, animationType, propertyType, startStr.c_str(),
+            endStr.c_str(), animationDelay, animationDur, repeat);
     }
 }
 
-void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const uint64_t animationId,
-    const uint64_t propertyId, const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
-    const int64_t time) const
+void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const std::string& nodeName,
+    const uint64_t animationId, const uint64_t propertyId, const float fraction,
+    const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time) const
 {
     if (isDebugOpen_) {
         auto propertyValue = ParseRenderPropertyVaule(value);
-        RS_TRACE_NAME_FMT("frame animation node[%llu] pro[%llu] animate[%llu], fraction %f, value[%s], time[%lld]",
-            nodeId, propertyId, animationId, fraction, propertyValue.c_str(), time);
+        RS_TRACE_NAME_FMT(
+            "frame animation node[%llu] name[%s] pro[%llu] animate[%llu], fraction %f, value[%s], time[%lld]", nodeId,
+            nodeName.c_str(), propertyId, animationId, fraction, propertyValue.c_str(), time);
     }
 }
 
