@@ -21,6 +21,9 @@
 #include <sstream>
 
 namespace OHOS {
+constexpr const float HALF = 2.0;
+constexpr const float RADIO = 360.0;
+
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {
     auto handler = AppExecFwk::EventHandler::Current();
@@ -333,5 +336,17 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
     imageStruct->imageData->MakeFromEncoded(data);
     imgVec.push_back(imageStruct);
     return true;
+}
+
+/**
+ * Transate vp to pixel.
+ *
+ * @param sideLen The short side length of screen.
+ * @param vp vp value.
+ * @return Returns the font size.
+ */
+int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
+{
+    return static_cast<int32_t>(std::ceil(sideLen * HALF / RADIO) / HALF * vp);
 }
 } // namespace OHOS
