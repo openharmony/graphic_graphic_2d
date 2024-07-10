@@ -27,7 +27,7 @@ bool RSUIExtensionData::MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel&
     // Write coordinates(4 int), scale(2 float), anchor position(2float).
     bool marshallingSuccess = true;
     marshallingSuccess = parcel.WriteInt32(rectInfo.relativeCoords.GetLeft());
-    marshallingSuccess = parcel.WriteInt32(rectInfo.relativeCoords.GetRight());
+    marshallingSuccess = parcel.WriteInt32(rectInfo.relativeCoords.GetTop());
     marshallingSuccess = parcel.WriteInt32(rectInfo.relativeCoords.GetWidth());
     marshallingSuccess = parcel.WriteInt32(rectInfo.relativeCoords.GetHeight());
     marshallingSuccess = parcel.WriteFloat(rectInfo.scale[0]);
