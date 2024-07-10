@@ -21,9 +21,14 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t BLENDMODE_SIZE = 29;
+constexpr size_t FILTERTYPE_SIZE = 8;
+constexpr size_t MATRIX_SIZE = 20;
+constexpr size_t OVER_DRAW_COLOR_NUM = 6;
+} // namespace
 namespace Drawing {
-
-bool ColorFilterFuzzTest(const uint8_t* data, size_t size)
+bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -47,6 +52,47 @@ bool ColorFilterFuzzTest(const uint8_t* data, size_t size)
 
     return true;
 }
+
+bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    ColorQuad colorQuad = GetObject<ColorQuad>();
+    uint32_t mode = GetObject<uint32_t>();
+    uint32_t type = GetObject<uint32_t>();
+    ColorFilter colorFilter = ColorFilter(static_cast<ColorFilter::FilterType>(type % FILTERTYPE_SIZE), colorQuad,
+        static_cast<BlendMode>(mode % BLENDMODE_SIZE));
+    ColorMatrix matrix;
+    ColorFilter colorFilterOne = ColorFilter(static_cast<ColorFilter::FilterType>(type % FILTERTYPE_SIZE), matrix);
+    std::shared_ptr<ColorFilter> colorFilterTwo = ColorFilter::CreateBlendModeColorFilter(colorQuad,
+        static_cast<BlendMode>(mode % BLENDMODE_SIZE));
+    std::shared_ptr<ColorFilter> colorFilterThree = ColorFilter::CreateComposeColorFilter(colorFilter, colorFilterOne);
+    float fOne[MATRIX_SIZE];
+    for (size_t i = 0; i < MATRIX_SIZE; i++) {
+        fOne[i] = GetObject<float>();
+    }
+    float fTwo[MATRIX_SIZE];
+    for (size_t i = 0; i < MATRIX_SIZE; i++) {
+        fTwo[i] = GetObject<float>();
+    }
+    std::shared_ptr<ColorFilter> colorFilterFour = ColorFilter::CreateComposeColorFilter(fOne, fTwo);
+    std::shared_ptr<ColorFilter> colorFilterFive = ColorFilter::CreateMatrixColorFilter(matrix);
+    std::shared_ptr<ColorFilter> colorFilterSix = ColorFilter::CreateFloatColorFilter(fOne);
+    std::shared_ptr<ColorFilter> colorFilterSeven = ColorFilter::CreateSrgbGammaToLinear();
+    ColorQuad colors[OVER_DRAW_COLOR_NUM];
+    for (size_t i = 0; i < OVER_DRAW_COLOR_NUM; i++) {
+        colors[i] = GetObject<ColorQuad>();
+    }
+    std::shared_ptr<ColorFilter> colorFilterEight = ColorFilter::CreateOverDrawColorFilter(colors);
+    std::shared_ptr<ColorFilter> colorFilterNine = ColorFilter::CreateLumaColorFilter();
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -55,6 +101,7 @@ bool ColorFilterFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::ColorFilterFuzzTest(data, size);
+    OHOS::Rosen::Drawing::ColorFilterFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::ColorFilterFuzzTest002(data, size);
     return 0;
 }
