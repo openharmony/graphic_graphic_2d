@@ -184,7 +184,6 @@ napi_value JsMatrix::OnPostTranslate(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
 
     JS_CALL_DRAWING_FUNC(m_matrix->PostTranslate(dx, dy));
-
     return nullptr;
 }
 

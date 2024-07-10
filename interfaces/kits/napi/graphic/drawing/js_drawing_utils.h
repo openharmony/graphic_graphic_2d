@@ -406,8 +406,10 @@ inline napi_value ConvertPointToJsValue(napi_env env, Drawing::Point& point)
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX()));
-        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY()));
+        if (napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX())) != napi_ok ||
+            napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY())) != napi_ok) {
+            return nullptr;
+        }
     }
     return objValue;
 }
