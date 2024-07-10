@@ -23,7 +23,7 @@
 #include "image/picture.h"
 #if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
-#else
+#endif
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
