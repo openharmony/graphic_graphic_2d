@@ -280,7 +280,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         return nullptr;
     }
     SharedSurfaceContext* sharedContext = new SharedSurfaceContext(UIFirstCompletedCache_->cacheSurface_);
-    auto& cacheImage = UIFirstCompletedCache_->image_;
+    auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
@@ -289,6 +289,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
         return nullptr;
     }
+    UIFirstCompletedCache_->image_ = cacheImage;
     return UIFirstCompletedCache_->cacheSurface_ ? cacheImage : nullptr;
 #else
     return UIFirstCompletedCache_->cacheSurface_ ? completeImage : nullptr;
