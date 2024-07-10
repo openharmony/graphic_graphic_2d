@@ -2590,6 +2590,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     RS_PROFILER_PATCH_TIME(timestamp_);
     RS_PROFILER_PATCH_TIME(curTime_);
     requestNextVsyncNum_ = 0;
+    vsyncId_ = frameCount;
     frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
@@ -3026,6 +3027,8 @@ void RSMainThread::SendCommands()
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
+    dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
+    dumpString.append("-- vsyncId: " + std::to_string(vsyncId_) + "\n");
     if (LIKELY(forceDumpSingleFrame)) {
         RS_TRACE_NAME("GetDumpTree");
         dumpString.append("Animating Node: [");
