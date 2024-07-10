@@ -165,6 +165,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const sptr<SurfaceBuffer>& preBuffer);
+
+    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
