@@ -1110,73 +1110,75 @@ Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& can
         Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
 }
 
-bool RSPropertyDrawableUtils::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat)
+bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Drawing::Rect& rect, const float& w,
+    const float& h, Drawing::Matrix& mat)
 {
-    if (w == rect.width_ && h == rect.height_) {
+    if (w == rect.GetWidth() && h == rect.GetHeight()) {
         return false;
     }
     mat = Drawing::Matrix();
 
     switch (gravity) {
         case Gravity::CENTER: {
-            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, (rect.height_ - h) / PARAM_DOUBLE);
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, (rect.GetHeight() - h) / PARAM_DOUBLE);
             return true;
         }
         case Gravity::TOP: {
-            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, 0);
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, 0);
             return true;
         }
         case Gravity::BOTTOM: {
-            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, rect.height_ - h);
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, rect.GetHeight() - h);
             return true;
         }
         case Gravity::LEFT: {
-            mat.PreTranslate(0, (rect.height_ - h) / PARAM_DOUBLE);
+            mat.PreTranslate(0, (rect.GetHeight() - h) / PARAM_DOUBLE);
             return true;
         }
         case Gravity::RIGHT: {
-            mat.PreTranslate(rect.width_ - w, (rect.height_ - h) / PARAM_DOUBLE);
+            mat.PreTranslate(rect.GetWidth() - w, (rect.GetHeight() - h) / PARAM_DOUBLE);
             return true;
         }
         case Gravity::TOP_LEFT: {
             return false;
         }
         case Gravity::TOP_RIGHT: {
-            mat.PreTranslate(rect.width_ - w, 0);
+            mat.PreTranslate(rect.GetWidth() - w, 0);
             return true;
         }
         case Gravity::BOTTOM_LEFT: {
-            mat.PreTranslate(0, rect.height_ - h);
+            mat.PreTranslate(0, rect.GetHeight() - h);
             return true;
         }
         case Gravity::BOTTOM_RIGHT: {
-            mat.PreTranslate(rect.width_ - w, rect.height_ - h);
+            mat.PreTranslate(rect.GetWidth() - w, rect.GetHeight() - h);
             return true;
         }
         case Gravity::RESIZE: {
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            mat.PreScale(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(rect.GetWidth() / w, rect.GetHeight() / h);
             return true;
         }
         case Gravity::RESIZE_ASPECT: {
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
             if (ROSEN_EQ(scale, 0.f)) {
                 return false;
             }
             mat.PreScale(scale, scale);
-            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            mat.PreTranslate((rect.GetWidth() / scale - w) / PARAM_DOUBLE,
+                (rect.GetHeight() / scale - h) / PARAM_DOUBLE);
             return true;
         }
         case Gravity::RESIZE_ASPECT_TOP_LEFT: {
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
             mat.PreScale(scale, scale);
             return true;
         }
@@ -1184,31 +1186,32 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(Gravity gravity, RectF rect, floa
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
             if (ROSEN_EQ(scale, 0.f)) {
                 return false;
             }
             mat.PreScale(scale, scale);
-            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            mat.PreTranslate(rect.GetWidth() / scale - w, rect.GetHeight() / scale - h);
             return true;
         }
         case Gravity::RESIZE_ASPECT_FILL: {
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
             if (ROSEN_EQ(scale, 0.f)) {
                 return false;
             }
             mat.PreScale(scale, scale);
-            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            mat.PreTranslate((rect.GetWidth() / scale - w) / PARAM_DOUBLE,
+                (rect.GetHeight() / scale - h) / PARAM_DOUBLE);
             return true;
         }
         case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
             mat.PreScale(scale, scale);
             return true;
         }
@@ -1216,12 +1219,12 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(Gravity gravity, RectF rect, floa
             if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
                 return false;
             }
-            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
             if (ROSEN_EQ(scale, 0.f)) {
                 return false;
             }
             mat.PreScale(scale, scale);
-            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            mat.PreTranslate(rect.GetWidth() / scale - w, rect.GetHeight() / scale - h);
             return true;
         }
         default: {

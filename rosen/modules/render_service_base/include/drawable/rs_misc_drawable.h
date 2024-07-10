@@ -74,8 +74,6 @@ private:
     bool needSync_ = false;
     Gravity gravity_;
     Gravity stagingGravity_;
-    RectF frameRect_;
-    RectF stagingFrameRect_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
 };
