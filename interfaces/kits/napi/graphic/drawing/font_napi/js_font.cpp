@@ -26,33 +26,34 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsFont::constructor_ = nullptr;
 const std::string CLASS_NAME = "Font";
+
+static napi_property_descriptor properties[] = {
+    DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
+    DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
+    DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
+    DECLARE_NAPI_FUNCTION("setSize", JsFont::SetSize),
+    DECLARE_NAPI_FUNCTION("setTypeface", JsFont::SetTypeface),
+    DECLARE_NAPI_FUNCTION("getTypeface", JsFont::GetTypeface),
+    DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
+    DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
+    DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
+    DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
+    DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
+    DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
+    DECLARE_NAPI_FUNCTION("setEdging", JsFont::SetEdging),
+    DECLARE_NAPI_FUNCTION("setHinting", JsFont::SetHinting),
+    DECLARE_NAPI_FUNCTION("countText", JsFont::CountText),
+    DECLARE_NAPI_FUNCTION("isSubpixel", JsFont::IsSubpixel),
+    DECLARE_NAPI_FUNCTION("isLinearMetrics", JsFont::IsLinearMetrics),
+    DECLARE_NAPI_FUNCTION("getSkewX", JsFont::GetSkewX),
+    DECLARE_NAPI_FUNCTION("isEmbolden", JsFont::IsEmbolden),
+    DECLARE_NAPI_FUNCTION("getScaleX", JsFont::GetScaleX),
+    DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
+    DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
+};
+
 napi_value JsFont::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
-        DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
-        DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
-        DECLARE_NAPI_FUNCTION("setSize", JsFont::SetSize),
-        DECLARE_NAPI_FUNCTION("setTypeface", JsFont::SetTypeface),
-        DECLARE_NAPI_FUNCTION("getTypeface", JsFont::GetTypeface),
-        DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
-        DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
-        DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
-        DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
-        DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
-        DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
-        DECLARE_NAPI_FUNCTION("setEdging", JsFont::SetEdging),
-        DECLARE_NAPI_FUNCTION("setHinting", JsFont::SetHinting),
-        DECLARE_NAPI_FUNCTION("countText", JsFont::CountText),
-        DECLARE_NAPI_FUNCTION("isSubpixel", JsFont::IsSubpixel),
-        DECLARE_NAPI_FUNCTION("isLinearMetrics", JsFont::IsLinearMetrics),
-        DECLARE_NAPI_FUNCTION("getSkewX", JsFont::GetSkewX),
-        DECLARE_NAPI_FUNCTION("isEmbolden", JsFont::IsEmbolden),
-        DECLARE_NAPI_FUNCTION("getScaleX", JsFont::GetScaleX),
-        DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
-        DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
                                            sizeof(properties) / sizeof(properties[0]), properties, &constructor);
