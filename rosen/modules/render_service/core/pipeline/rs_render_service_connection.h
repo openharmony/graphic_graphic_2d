@@ -262,7 +262,7 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
+    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
