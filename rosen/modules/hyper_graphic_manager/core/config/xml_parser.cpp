@@ -285,14 +285,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
     } else if (name == "rs_animation_power_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.animationPowerConfig);
-    } else if (name == "ui_animation_power_config") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.uiAnimationPowerConfig);
-    } else if (name == "display_sync_power_config") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.displaySyncPowerConfig);
-    } else if (name == "ace_component_power_config") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.aceComponentPowerConfig);
-    } else if (name == "display_soloist_power_config") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.displaySoloistPowerConfig);
+    } else if (name == "ui_power_config") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }

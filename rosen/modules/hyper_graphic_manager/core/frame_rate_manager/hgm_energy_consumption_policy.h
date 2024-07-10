@@ -26,7 +26,8 @@ namespace OHOS::Rosen {
 class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
-    void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> powerConfig, int32_t type);
+    void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
+    void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void StatisticAnimationTime(uint64_t timestamp);
@@ -36,11 +37,9 @@ public:
 
 private:
     std::recursive_mutex mutex_;
+    // <rateType, <isEnable, idleFps>>
+    std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;
-    bool isUiAnimationEnergyAssuranceEnable_ = false;
-    bool isDisplaySyncEnergyAssuranceEnable_ = false;
-    bool isAceComponentEnergyAssuranceEnable_ = false;
-    bool isDisplaySoloistEnergyAssuranceEnable_ = false;
     bool isAnimationEnergyConsumptionAssuranceMode_ = false;
     bool isUiEnergyConsumptionAssuranceMode_ = false;
     uint64_t firstAnimationTimestamp_ = 0;
@@ -48,10 +47,6 @@ private:
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
-    int uiAnimationIdleFps_ = 60;
-    int displaySyncIdleFps_ = 60;
-    int aceComponentIdleFps_ = 60;
-    int displaySoloistIdleFps_ = 60;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -60,7 +55,7 @@ private:
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&) = delete;
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
-    void SetFrameRateRange(FrameRateRange& rsRange, int idleFps);
+    void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
 };
 } // namespace OHOS::Rosen
 

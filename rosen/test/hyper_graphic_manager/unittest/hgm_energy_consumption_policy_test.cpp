@@ -39,26 +39,18 @@ public:
 
 void HgmEnergyConsumptionPolicyTest::SetConfigEnable(std::string isEnable)
 {
-    std::unordered_map<std::string, std::string> animationPowerConfig = { { "energy_assurance_enable", isEnable },
-        { "idle_fps", "60" }, { "idle_duration", "2000" } };
-    std::unordered_map<std::string, std::string> uiAnimationPowerConfig = { { "energy_assurance_enable", isEnable },
-        { "idle_fps", "30" } };
-    std::unordered_map<std::string, std::string> displaySyncPowerConfig = { { "energy_assurance_enable", isEnable },
-        { "idle_fps", "31" } };
-    std::unordered_map<std::string, std::string> aceComponentPowerConfig = { { "energy_assurance_enable", isEnable },
-        { "idle_fps", "32" } };
-    std::unordered_map<std::string, std::string> displaySoloistPowerConfig = { { "energy_assurance_enable", isEnable },
-        { "idle_fps", "33" } };
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        animationPowerConfig, RS_ANIMATION_FRAME_RATE_TYPE);
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        uiAnimationPowerConfig, UI_ANIMATION_FRAME_RATE_TYPE);
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        displaySyncPowerConfig, DISPLAY_SYNC_FRAME_RATE_TYPE);
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        aceComponentPowerConfig, ACE_COMPONENT_FRAME_RATE_TYPE);
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        displaySoloistPowerConfig, DISPLAY_SOLOIST_FRAME_RATE_TYPE);
+    std::unordered_map<std::string, std::string> animationPowerConfig = {
+        { "animation_energy_assurance_enable", isEnable },
+        { "animation_idle_fps", "60" },
+        { "animation_idle_duration", "2000" } };
+    std::unordered_map<std::string, std::string> uiPowerConfig = { { "ui_animation", "30" }, { "display_sync", "31" },
+    { "ace_component", "32" }, { "display_soloist", "33" } };
+
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(animationPowerConfig);
+    if (isEnable != "true") {
+        uiPowerConfig.clear();
+    }
+    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionConfig(uiPowerConfig);
 }
 
 void HgmEnergyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)

@@ -96,7 +96,7 @@ public:
             case ACE_COMPONENT_FRAME_RATE_TYPE:
                 return "ACE_COMPONENT";
             case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                return "DISPLAY_SOLOIST"
+                return "DISPLAY_SOLOIST";
             default:
                 return "";
         }

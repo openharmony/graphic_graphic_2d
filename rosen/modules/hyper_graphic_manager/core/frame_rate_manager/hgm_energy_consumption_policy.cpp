@@ -19,16 +19,23 @@
 
 #include "hgm_core.h"
 #include "hgm_log.h"
+#include "rs_trace.h"
 #include "xml_parser.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
-static const std::string IS_ENERGY_ASSURANCE_ENABLE = "energy_assurance_enable";
-static const std::string IDLE_FPS = "idle_fps";
-static const std::string IDLE_DURATION = "idle_duration";
-constexpr int DEFAULT_IDLE_FPS = 60;
+static const std::string IS_ANIMATION_ENERGY_ASSURANCE_ENABLE = "animation_energy_assurance_enable";
+static const std::string ANIMATION_IDLE_FPS = "animation_idle_fps";
+static const std::string ANIMATION_IDLE_DURATION = "animation_idle_duration";
+static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
+    {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
+    {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
+    {"ace_component", ACE_COMPONENT_FRAME_RATE_TYPE },
+    {"display_soloist", DISPLAY_SOLOIST_FRAME_RATE_TYPE },
+};
+constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
@@ -53,62 +60,58 @@ void HgmEnergyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sour
 }
 
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
-    std::unordered_map<std::string, std::string> powerConfig, int32_t type)
+    std::unordered_map<std::string, std::string> animationPowerConfig)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    bool isEnergyAssuranceEnable = false;
-    auto enableIt = powerConfig.find(IS_ENERGY_ASSURANCE_ENABLE);
-    if (enableIt != powerConfig.end()) {
-        isEnergyAssuranceEnable = enableIt->second == "true" ? true : false;
+    if (animationPowerConfig.count(IS_ANIMATION_ENERGY_ASSURANCE_ENABLE) == 0) {
+        isAnimationEnergyAssuranceEnable_ = false;
+    } else {
+        isAnimationEnergyAssuranceEnable_ =
+            animationPowerConfig[IS_ANIMATION_ENERGY_ASSURANCE_ENABLE] == "true" ? true : false;
+    }
+    if (!isAnimationEnergyAssuranceEnable_) {
+        HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig isAnimationLtpoPowerEnable is false");
+        return;
     }
 
-    int idleFps = 60;
-    auto idleFpsIt = powerConfig.find(IDLE_FPS);
-    if (idleFpsIt != powerConfig.end()) {
-        ConverStrToInt(idleFps, idleFpsIt->second, DEFAULT_IDLE_FPS);
+    if (animationPowerConfig.count(ANIMATION_IDLE_FPS) == 0) {
+        animationIdleFps_ = DEFAULT_ENERGY_ASSURANCE_IDLE_FPS;
+    } else {
+        ConverStrToInt(animationIdleFps_, animationPowerConfig[ANIMATION_IDLE_FPS], DEFAULT_ENERGY_ASSURANCE_IDLE_FPS);
     }
 
-    switch (type) {
-        case RS_ANIMATION_FRAME_RATE_TYPE: {
-            isAnimationEnergyAssuranceEnable_ = isEnergyAssuranceEnable;
-            animationIdleFps_ = idleFps;
-            if (powerConfig.count(IDLE_DURATION) == 0) {
-                animationIdleDuration_ = DEFAULT_ANIMATION_IDLE_DURATION;
-            } else {
-                ConverStrToInt(animationIdleDuration_, powerConfig[IDLE_DURATION], DEFAULT_ANIMATION_IDLE_DURATION);
-            }
-            break;
-        }
-        case UI_ANIMATION_FRAME_RATE_TYPE: {
-            isUiAnimationEnergyAssuranceEnable_ = isEnergyAssuranceEnable;
-            uiAnimationIdleFps_ = idleFps;
-            break;
-        }
-        case DISPLAY_SYNC_FRAME_RATE_TYPE: {
-            isDisplaySyncEnergyAssuranceEnable_ = isEnergyAssuranceEnable;
-            displaySyncIdleFps_ = idleFps;
-            break;
-        }
-        case ACE_COMPONENT_FRAME_RATE_TYPE: {
-            isAceComponentEnergyAssuranceEnable_ = isEnergyAssuranceEnable;
-            aceComponentIdleFps_ = idleFps;
-            break;
-        }
-        case DISPLAY_SOLOIST_FRAME_RATE_TYPE: {
-            isDisplaySoloistEnergyAssuranceEnable_ = isEnergyAssuranceEnable;
-            displaySoloistIdleFps_ = idleFps;
-            break;
-        }
-        default:
-            break;
+    if (animationPowerConfig.count(ANIMATION_IDLE_DURATION) == 0) {
+        animationIdleDuration_ = DEFAULT_ANIMATION_IDLE_DURATION;
+    } else {
+        ConverStrToInt(
+            animationIdleDuration_, animationPowerConfig[ANIMATION_IDLE_DURATION], DEFAULT_ANIMATION_IDLE_DURATION);
     }
     HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig update config success");
+}
+
+void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
+    std::unordered_map<std::string, std::string> uiPowerConfig)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    uiEnergyAssuranceMap_.clear();
+    for (auto config : uiPowerConfig) {
+        std::string rateTypeName = config.first;
+        auto it = UI_RATE_TYPE_NAME_MAP.find(rateTypeName);
+        if (it == UI_RATE_TYPE_NAME_MAP.end()) {
+            HGM_LOGD("HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig the rateType is invalid");
+            continue;
+        }
+        int idleFps = 60;
+        ConverStrToInt(idleFps, config.second, DEFAULT_ENERGY_ASSURANCE_IDLE_FPS);
+        uiEnergyAssuranceMap_[it->second] = std::make_pair(true, idleFps);
+    }
 }
 
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (!isAnimationEnergyAssuranceEnable_ || isAnimationEnergyConsumptionAssuranceMode_ == isEnergyConsumptionAssuranceMode) {
+    if (!isAnimationEnergyAssuranceEnable_ ||
+        isAnimationEnergyConsumptionAssuranceMode_ == isEnergyConsumptionAssuranceMode) {
         return;
     }
     isAnimationEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
@@ -151,7 +154,7 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
         (lastAnimationTimestamp_ - firstAnimationTimestamp_) < static_cast<uint64_t>(animationIdleDuration_)) {
         return;
     }
-    SetFrameRateRange(rsRange, animationIdleFps_);
+    SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
 }
 
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
@@ -160,38 +163,21 @@ void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
     if (!isUiEnergyConsumptionAssuranceMode_) {
         return;
     }
-    switch (rsRange.type_) {
-        case UI_ANIMATION_FRAME_RATE_TYPE: {
-            if (isUiAnimationEnergyAssuranceEnable_) {
-                SetFrameRateRange(rsRange, uiAnimationIdleFps_);
-            }
-            break;
-        }
-        case DISPLAY_SYNC_FRAME_RATE_TYPE: {
-            if (isDisplaySyncEnergyAssuranceEnable_) {
-                SetFrameRateRange(rsRange, displaySyncIdleFps_);
-            }
-            break;
-        }
-        case ACE_COMPONENT_FRAME_RATE_TYPE: {
-            if (isAceComponentEnergyAssuranceEnable_) {
-                SetFrameRateRange(rsRange, aceComponentIdleFps_);
-            }
-            break;
-        }
-        case DISPLAY_SOLOIST_FRAME_RATE_TYPE: {
-            if (isDisplaySoloistEnergyAssuranceEnable_) {
-                SetFrameRateRange(rsRange, displaySoloistIdleFps_);
-            }
-            break;
-        }
-        default:
-            break;
+    auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
+    if (it == uiEnergyAssuranceMap_.end()) {
+        HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
+        return;
+    }
+    bool isEnergyAssuranceEnable = it->second.first;
+    int idleFps = it->second.second;
+    if (isEnergyAssuranceEnable) {
+        SetEnergyConsumptionRateRange(rsRange, idleFps);
     }
 }
 
-void HgmEnergyConsumptionPolicy::SetFrameRateRange(FrameRateRange& rsRange, int idleFps)
+void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps)
 {
+    RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", rsRange.GetExtInfo().c_str(), idleFps);
     rsRange.max_ = std::min(rsRange.max_, idleFps);
     rsRange.min_ = std::min(rsRange.min_, idleFps);
     rsRange.preferred_ = std::min(rsRange.preferred_, idleFps);
