@@ -281,7 +281,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     }
     SharedSurfaceContext* sharedContext = new SharedSurfaceContext(UIFirstCompletedCache_->cacheSurface_);
     auto& cacheImage = UIFirstCompletedCache_->image_;
-    cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),

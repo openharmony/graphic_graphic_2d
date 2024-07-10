@@ -37,7 +37,7 @@ private:
 
 struct SharedTextureContext {
     SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
-        : sharedImage_(std::move(sharedImage)) {}
+        : sharedImage_(sharedImage) {}
 
 private:
     std::shared_ptr<Drawing::Image> sharedImage_;
