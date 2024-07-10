@@ -123,6 +123,38 @@ int32_t XMLParser::ParseParam(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
+{
+    int32_t setResult = EXEC_SUCCESS;
+
+    if (paraName == "additional_touch_rate_config") {
+        ParseAppBufferList(node);
+    } else if (paraName == "refreshRate_strategy_config") {
+        setResult = ParseStrategyConfig(node);
+    } else if (paraName == "refreshRate_virtual_display_config") {
+        if (ExtractPropertyValue("switch", node) == "1") {
+            setResult = ParseSimplex(node, mParsedData_->virtualDisplayConfigs_, "strategy");
+            mParsedData_->virtualDisplaySwitch_ = true;
+        } else {
+            mParsedData_->virtualDisplayConfigs_.clear();
+            mParsedData_->virtualDisplaySwitch_ = false;
+        }
+    } else if (paraName == "safe_vote") {
+        // "1": enable
+        mParsedData_->safeVoteEnabled = ExtractPropertyValue("switch", node) == "1";
+    } else if (paraName == "screen_strategy_config") {
+        setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
+    } else if (paraName == "screen_config") {
+        setResult = ParseScreenConfig(node);
+    } else if (paraName == "rs_video_frame_rate_vote_config") {
+        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+    } else {
+        setResult = EXEC_SUCCESS;
+    }
+
+    return setResult;
+}
+
 int32_t XMLParser::ParseParams(xmlNode &node)
 {
     std::string paraName = ExtractPropertyValue("name", node);
@@ -149,27 +181,8 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         }
         std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
             [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
-    } else if (paraName == "refreshRate_strategy_config") {
-        setResult = ParseStrategyConfig(node);
-    } else if (paraName == "refreshRate_virtual_display_config") {
-        if (ExtractPropertyValue("switch", node) == "1") {
-            setResult = ParseSimplex(node, mParsedData_->virtualDisplayConfigs_, "strategy");
-            mParsedData_->virtualDisplaySwitch_ = true;
-        } else {
-            mParsedData_->virtualDisplayConfigs_.clear();
-            mParsedData_->virtualDisplaySwitch_ = false;
-        }
-    } else if (paraName == "safe_vote") {
-        // "1": enable
-        mParsedData_->safeVoteEnabled = ExtractPropertyValue("switch", node) == "1";
-    } else if (paraName == "screen_strategy_config") {
-        setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
-    } else if (paraName == "screen_config") {
-        setResult = ParseScreenConfig(node);
-    } else if (paraName == "rs_video_frame_rate_vote_config") {
-        setResult = ParseVideoFrameVoteConfig(node);
     } else {
-        setResult = 0;
+        setResult = ParseSubSequentParams(node, paraName);
     }
 
     if (setResult != EXEC_SUCCESS) {
@@ -221,13 +234,66 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
-
+        ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
                  name.c_str(), mParsedData_->strategyConfigs_[name].min, mParsedData_->strategyConfigs_[name].drawMin);
     }
 
     return EXEC_SUCCESS;
+}
+
+void XMLParser::ParseAppBufferList(xmlNode &node)
+{
+    HGM_LOGD("XMLParser parsing ParseAppBufferList");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing ParseAppBufferList, no children nodes");
+        return;
+    }
+
+    mParsedData_->appBufferList_.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto name = ExtractPropertyValue("name", *currNode);
+        mParsedData_->appBufferList_.push_back(name);
+    }
+}
+
+void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy)
+{
+    if (mParsedData_->appBufferList_.empty()) {
+        return;
+    }
+    std::unordered_map<std::string, std::string> config;
+    for (auto &name : mParsedData_->appBufferList_) {
+        auto fps = ExtractPropertyValue(name, node);
+        if (IsNumber(fps)) {
+            config.insert(make_pair(name, fps));
+        }
+    }
+    if (config.empty()) {
+        return;
+    }
+    for (auto &it : config) {
+        if (std::stoi(it.second) == 0) {
+            strategy.appBufferBlackList.push_back(it.first);
+        } else {
+            strategy.appBufferList.push_back(make_pair(it.first, std::stoi(it.second)));
+        }
+    }
+    if (strategy.appBufferList.empty()) {
+        return;
+    }
+    std::sort(strategy.appBufferList.begin(), strategy.appBufferList.end(),
+        [](const std::pair<std::string, uint32_t>& a, const std::pair<std::string, uint32_t>& b) {
+        return a.second > b.second;
+    });
+
+    return;
 }
 
 int32_t XMLParser::ParseScreenConfig(xmlNode &node)
@@ -281,8 +347,6 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         ParseMultiAppStrategy(*thresholdNode, screenSetting);
     } else if (name == "app_types") {
         setResult = ParseAppTypes(*thresholdNode, screenSetting.appTypes);
-    } else if (name == "additional_touch_rate_config") {
-        setResult = ParseSimplex(*thresholdNode, screenSetting.appBufferList);
     } else if (name == "rs_animation_power_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.animationPowerConfig);
     } else {

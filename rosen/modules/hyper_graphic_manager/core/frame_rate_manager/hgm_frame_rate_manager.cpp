@@ -83,6 +83,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
+        idleDetector_.UpdateSupportAppBufferList(configData->appBufferList_);
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
@@ -141,12 +142,22 @@ void HgmFrameRateManager::InitTouchManager()
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
             [this] (TouchState lastState, TouchState newState) {
             if (lastState == TouchState::IDLE_STATE) {
-                multiAppStrategy_.HandleTouchInfo(touchManager_.GetPkgName(), newState);
+                HgmMultiAppStrategy::TouchInfo touchInfo = {
+                    .pkgName = touchManager_.GetPkgName(),
+                    .touchState = newState,
+                    .upExpectFps = OLED_120_HZ,
+                };
+                multiAppStrategy_.HandleTouchInfo(touchInfo);
+                lastTouchState_.store(TouchState::DOWN_STATE);
             }
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this] (TouchState lastState, TouchState newState) {
-            multiAppStrategy_.HandleTouchInfo(touchManager_.GetPkgName(), newState);
+            HgmMultiAppStrategy::TouchInfo touchInfo = {
+                .pkgName = touchManager_.GetPkgName(),
+                .touchState = newState,
+            };
+            multiAppStrategy_.HandleTouchInfo(touchInfo);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
             [this] (TouchState lastState, TouchState newState) {
@@ -184,12 +195,16 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& name, uint64_t ti
 void HgmFrameRateManager::UpdateAppSupportStatus()
 {
     bool flag = false;
+    idleDetector_.ClearAppBufferList();
+    idleDetector_.ClearAppBufferBlackList();
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS) {
         if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
             flag = true;
         }
     }
+    idleDetector_.UpdateAppBufferList(config.appBufferList);
+    idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
     idleDetector_.SetAppSupportStatus(flag);
 }
 
@@ -213,17 +228,21 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
         return;
     }
     RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleStatus = [%d]",
-        touchManager_.GetState(), idleDetector_.GetSurFaceIdleState(timestamp),
+        touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
         idleDetector_.GetAceAnimatorIdleStatus());
 
     if (touchManager_.GetState() != TouchState::UP_STATE) {
         prepareCheck_ = false;
         startCheck_ = false;
+        lastUpExpectFps_ = 0;
     }
 
-    if (touchManager_.GetState() == TouchState::UP_STATE && lastTouchState_ == TouchState::DOWN_STATE) {
+    if (touchManager_.GetState() == TouchState::UP_STATE && lastTouchState_.load() == TouchState::DOWN_STATE) {
         prepareCheck_ = true;
         if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
+            if (!idleDetector_.GetSupportSurface()) {
+                touchManager_.HandleThirdFrameIdle();
+            }
             prepareCheck_ = false;
             startCheck_ = true;
         }
@@ -231,18 +250,33 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
     if (prepareCheck_) {
         if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
+            if (!idleDetector_.GetSupportSurface()) {
+                touchManager_.HandleThirdFrameIdle();
+            }
             prepareCheck_ = false;
             startCheck_ = true;
         }
     }
-    lastTouchState_ = touchManager_.GetState();
+    lastTouchState_.store(touchManager_.GetState());
 
-    if (!startCheck_) {
+    if (!startCheck_ || touchManager_.GetState() == TouchState::IDLE_STATE) {
         return;
     }
 
-    if (idleDetector_.GetSurFaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
+    if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
         touchManager_.HandleThirdFrameIdle();
+    } else {
+        uint32_t fps = idleDetector_.GetSurfaceUpExpectFps();
+        if (fps == lastUpExpectFps_) {
+            return;
+        }
+
+        lastUpExpectFps_ = fps;
+        HgmMultiAppStrategy::TouchInfo touchInfo = {
+            .touchState = TouchState::UP_STATE,
+            .upExpectFps = fps,
+        };
+        multiAppStrategy_.HandleTouchInfo(touchInfo);
     }
 }
 

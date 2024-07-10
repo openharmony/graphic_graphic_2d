@@ -238,10 +238,11 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
-    int32_t lastTouchState_ = IDLE_STATE;
+    std::atomic<uint32_t> lastTouchState_ = IDLE_STATE;
     bool startCheck_ = false;
     bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
+    int32_t lastUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
