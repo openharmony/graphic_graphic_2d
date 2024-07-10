@@ -158,8 +158,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    const RSProperties& properties = node.GetRenderProperties();
-    stagingGravity_ = properties.GetFrameGravity();
+    stagingGravity_ = node.GetRenderProperties().GetFrameGravity();
     // regenerate stagingDrawCmdList_
     needSync_ = true;
     stagingDrawCmdListVec_.clear();
