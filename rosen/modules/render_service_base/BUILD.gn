@@ -17,7 +17,10 @@ import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 config("export_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${graphic_2d_root}/utils/log",
+  ]
   cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
