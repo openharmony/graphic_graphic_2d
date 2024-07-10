@@ -48,6 +48,13 @@ ohos_source_set("graphics_effect_src") {
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
+    if (host_cpu == "arm64") {
+    include_dirs += [ 
+      "$skia_root_new",
+      "$mindspore_root/mindspore-src/source/third_party/securec/include"
+    ]
+  }
+
   sources = [
     "src/ge_aibar_shader_filter.cpp",
     "src/ge_cache.cpp",
@@ -89,6 +96,13 @@ if (is_arkui_x) {
       cfi_cross_dso = true
       debug = false
     }
+    
+    if (host_cpu == "arm64") {
+      include_dirs = [ 
+        "$skia_root_new",
+        "$mindspore_root/mindspore-src/source/third_party/securec/include"
+      ]
+    }
 
     public_deps = [ ":graphics_effect_src" ]
     deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
@@ -103,6 +117,13 @@ if (is_arkui_x) {
       cfi = true
       cfi_cross_dso = true
       debug = false
+    }
+
+    if (host_cpu == "arm64") {
+      include_dirs = [ 
+        "$skia_root_new",
+        "$mindspore_root/mindspore-src/source/third_party/securec/include"
+      ]
     }
 
     public_deps = [ ":graphics_effect_src" ]
