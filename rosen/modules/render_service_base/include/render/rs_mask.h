@@ -21,7 +21,10 @@
 #include "draw/brush.h"
 #include "draw/path.h"
 #include "image/picture.h"
+#if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
+#else
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
