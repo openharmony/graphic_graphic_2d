@@ -421,7 +421,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Le
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    Drawing::Matrix matrix = displayDrawable_->canvasBackup_->GetTotalMatrix();
+    Drawing::Matrix matrix;
     displayDrawable_->CalculateVirtualDirty(*renderNode_.get(), virtualProcesser, *params, matrix);
 }
 
@@ -478,7 +478,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, WiredScreenProjectionTest, TestSize.Le
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    Drawing::Matrix matrix = displayDrawable_->canvasBackup_->GetTotalMatrix();
     displayDrawable_->WiredScreenProjection(renderNode_, *params, virtualProcesser);
 }
 
