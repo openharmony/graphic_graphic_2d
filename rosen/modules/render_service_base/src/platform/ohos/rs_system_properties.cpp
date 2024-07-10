@@ -104,6 +104,14 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
+bool RSSystemProperties::GetVkQueueDividedEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.q.divided.enalbed", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetInstantRecording()
 {
     return (system::GetParameter("debug.graphic.instant.recording.enabled", "0") != "0");
