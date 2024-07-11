@@ -54,6 +54,7 @@ private:
     int32_t timeLimitSec_ = -1;
     int64_t startTimeMs_ = -1;
     int64_t endTimePredictMs_ = -1;
+    int32_t fontSize_ = 0;
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
 
