@@ -159,6 +159,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     }
 
     stagingGravity_ = node.GetRenderProperties().GetFrameGravity();
+    stagingIsCanvasNode_ = node.IsInstanceOf<RSCanvasRenderNode>() && !node.IsInstanceOf<RSCanvasDrawingRenderNode>();
     // regenerate stagingDrawCmdList_
     needSync_ = true;
     stagingDrawCmdListVec_.clear();
@@ -192,6 +193,7 @@ void RSCustomModifierDrawable::OnSync()
         return;
     }
     gravity_ = stagingGravity_;
+    isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
     stagingDrawCmdListVec_.clear();
     needSync_ = false;
@@ -203,8 +205,9 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawCmdList : ptr->drawCmdListVec_) {
             Drawing::Matrix mat;
-            if (RSPropertyDrawableUtils::GetGravityMatrix(ptr->gravity_, *rect, drawCmdList->GetWidth(),
-                drawCmdList->GetHeight(), mat)) {
+            if (ptr->isCanvasNode_ &&
+                RSPropertyDrawableUtils::GetGravityMatrix(ptr->gravity_, *rect, drawCmdList->GetWidth(),
+                    drawCmdList->GetHeight(), mat)) {
                 canvas->ConcatMatrix(mat);
             }
             drawCmdList->Playback(*canvas, rect);

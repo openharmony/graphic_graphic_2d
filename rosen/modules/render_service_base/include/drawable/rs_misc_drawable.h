@@ -74,6 +74,8 @@ private:
     bool needSync_ = false;
     Gravity gravity_;
     Gravity stagingGravity_;
+    bool isCanvasNode_;
+    bool stagingIsCanvasNode_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
 };
