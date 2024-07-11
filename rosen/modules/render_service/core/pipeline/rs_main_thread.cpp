@@ -2683,6 +2683,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
     rsCurrRange_.Reset();
+    needRequestNextVsyncAnimate_ = false;
 
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
@@ -2693,7 +2694,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
     bool curWinAnim = false;
     bool needRequestNextVsync = false;
-    needRequestNextVsyncAnimate_ = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
