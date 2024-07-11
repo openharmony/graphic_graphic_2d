@@ -1754,9 +1754,8 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     boundsGeo.UpdateMatrix(&parentMatrix, offset);
     auto rect = boundsGeo.MapAbsRect(node->GetSelfDrawRect().JoinRect(node->GetChildrenRect().ConvertTo<float>()));
     // if node is UIExtension type, update its own info, and skip its children.
-    if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        if (surfaceNode && surfaceNode->IsUIExtension()) {
+    if (auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node)) {
+        if (surfaceNode->IsUIExtension()) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
             if (callbackData.find(hostId) == callbackData.end()) {

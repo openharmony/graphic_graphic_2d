@@ -348,7 +348,7 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
-    void UIExtensionNodesTraverseAndCallback();
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -464,6 +464,8 @@ private:
     void DvsyncCheckRequestNextVsync();
 
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void UIExtensionNodesTraverseAndCallback();
+    bool CheckUIExtensionCallbackDataChanged() const;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

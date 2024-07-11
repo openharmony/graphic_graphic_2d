@@ -3874,18 +3874,37 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
 {
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
-    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
-        return;
-    }
-    for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
-        auto userId = iter->second.first;
-        auto callback = iter->second.second;
-        if (callback) {
-            callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
+    if (CheckUIExtensionCallbackDataChanged()) {
+        RS_TRACE_NAME("RSMainThread::UIExtensionNodesTraverseAndCallback.");
+        for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
+            auto userId = iter->second.first;
+            auto callback = iter->second.second;
+            if (callback) {
+                callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
+            }
         }
     }
     lastFrameUIExtensionDataEmpty_ = uiExtensionCallbackData_.empty();
     uiExtensionCallbackData_.clear();
+}
+
+bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
+{
+    // empty for two consecutive frames, callback can be skipped.
+    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
+        RS_TRACE_NAME("RSMainThread::UIExtensionCallbackData is consecutively empty, skip callback.");
+        return false;
+    }
+    // layout of host node was not changed, callback can be skipped.
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto iter = uiExtensionCallbackData_.begin(); iter != uiExtensionCallbackData_.end(); ++iter) {
+        auto hostNode = nodeMap.GetRenderNode(iter->first);
+        if (hostNode != nullptr && !hostNode->LastFrameSubTreeSkipped()) {
+            return true;
+        }
+    }
+    RS_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
+    return false;
 }
 
 void RSMainThread::SetHardwareTaskNum(uint32_t num)
