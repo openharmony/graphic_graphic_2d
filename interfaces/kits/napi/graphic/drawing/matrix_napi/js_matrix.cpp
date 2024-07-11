@@ -514,37 +514,36 @@ napi_value JsMatrix::OnMapPoints(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_value argv[ARGC_THREE] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
-    uint32_t count = 0;
-    napi_value dstArray = argv[ARGC_ZERO];
-    napi_value srcArray = argv[ARGC_ONE];
-    GET_UINT32_PARAM(ARGC_TWO, count);
-
-    if (count == 0) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect count value.");
-    }
+    napi_value srcArray = argv[ARGC_ZERO];
 
     /* Check size */
     uint32_t srcPointsSize = 0;
-    if (napi_get_array_length(env, srcArray, &srcPointsSize) != napi_ok || (count > srcPointsSize)) {
+    if (napi_get_array_length(env, srcArray, &srcPointsSize) != napi_ok || (srcPointsSize == 0)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
     }
 
-    std::vector<Point> dstPoints(count);
-    std::vector<Point> srcPoints(count);
+    std::vector<Point> dstPoints(srcPointsSize);
+    std::vector<Point> srcPoints(srcPointsSize);
     /* Fill vector with data from input array */
-    if (!ConvertFromJsPointsArray(env, srcArray, srcPoints.data(), count)) {
+    if (!ConvertFromJsPointsArray(env, srcArray, srcPoints.data(), srcPointsSize)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array data.");
     }
 
-    JS_CALL_DRAWING_FUNC(m_matrix->MapPoints(dstPoints, srcPoints, count));
+    JS_CALL_DRAWING_FUNC(m_matrix->MapPoints(dstPoints, srcPoints, srcPointsSize));
+
+    napi_value resultArray = nullptr;
+    if (napi_create_array_with_length(env, dstPoints.size(), &resultArray) != napi_ok) {
+        ROSEN_LOGE("JsMatrix::OnMapPoints failed to create array");
+        return nullptr;
+    }
     for (uint32_t idx = 0; idx < dstPoints.size(); idx++) {
-        NAPI_CALL(env, napi_set_element(env, dstArray, idx, ConvertPointToJsValue(env, dstPoints.at(idx))));
+        NAPI_CALL(env, napi_set_element(env, resultArray, idx, ConvertPointToJsValue(env, dstPoints.at(idx))));
     }
 
-    return nullptr;
+    return resultArray;
 }
 
 napi_value JsMatrix::PostScale(napi_env env, napi_callback_info info)
