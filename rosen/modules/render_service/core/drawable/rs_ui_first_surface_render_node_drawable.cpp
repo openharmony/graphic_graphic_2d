@@ -259,41 +259,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         return UIFirstCompletedCache_->cacheSurface_ ? image : nullptr;
 #endif
     }
-
-    if (!UIFirstCompletedCache_->cacheSurface_) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface invalid cacheCompletedSurface");
-        return nullptr;
-    }
-    auto& completeImage = UIFirstCompletedCache_->image_;
-    if (!completeImage) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface Get complete image failed");
-        return nullptr;
-    }
-    if (threadIndex == completedSurfaceThreadIndex_) {
-        return completeImage;
-    }
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto backendTexture = completeImage->GetBackendTexture(false, &origin);
-    if (!backendTexture.IsValid()) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface get backendTexture failed");
-        return nullptr;
-    }
-    SharedSurfaceContext* sharedContext = new SharedSurfaceContext(UIFirstCompletedCache_->cacheSurface_);
-    auto cacheImage = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat info =
-        Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
-    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
-        origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
-    if (!ret) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
-        return nullptr;
-    }
-    UIFirstCompletedCache_->image_ = cacheImage;
-    return UIFirstCompletedCache_->cacheSurface_ ? cacheImage : nullptr;
-#else
-    return UIFirstCompletedCache_->cacheSurface_ ? completeImage : nullptr;
-#endif
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,

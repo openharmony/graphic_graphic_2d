@@ -27,14 +27,6 @@
 namespace OHOS::Rosen {
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-struct SharedSurfaceContext {
-    SharedSurfaceContext(std::shared_ptr<Drawing::Surface> sharedSurface)
-        : sharedSurface_(std::move(sharedSurface)) {}
-
-private:
-    std::shared_ptr<Drawing::Surface> sharedSurface_;
-};
-
 struct SharedTextureContext {
     SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
         : sharedImage_(sharedImage) {}
