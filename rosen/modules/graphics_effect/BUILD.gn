@@ -48,13 +48,6 @@ ohos_source_set("graphics_effect_src") {
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
-  if (host_cpu == "arm64") {
-    include_dirs += [
-      "$skia_root_new",
-      "$mindspore_root/mindspore-src/source/third_party/securec/include",
-    ]
-  }
-
   sources = [
     "src/ge_aibar_shader_filter.cpp",
     "src/ge_cache.cpp",
@@ -75,10 +68,19 @@ ohos_source_set("graphics_effect_src") {
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   if (is_arkui_x) {
-    deps += [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
+    deps += [ 
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "hilog:libhilog",
+      "bounds_checking_function:libsec_static",
+      "skia:skia_canvaskit"
+    ]
   }
 
-  external_deps = [ "hilog:libhilog" ]
   if (current_os == "ohos") {
     defines = [ "GE_OHOS" ]
     external_deps += [ "init:libbegetutil" ]
@@ -91,14 +93,6 @@ ohos_source_set("graphics_effect_src") {
 if (is_arkui_x) {
   ohos_source_set("libgraphics_effect") {
     branch_protector_ret = "pac_ret"
-
-    if (host_cpu == "arm64") {
-      include_dirs = [
-        "$skia_root_new",
-        "$mindspore_root/mindspore-src/source/third_party/securec/include",
-      ]
-    }
-
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -106,19 +100,17 @@ if (is_arkui_x) {
     }
 
     public_deps = [ ":graphics_effect_src" ]
-    deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
+    deps = [ 
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform"  
+    ]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 } else {
   ohos_shared_library("libgraphics_effect") {
-    if (host_cpu == "arm64") {
-      include_dirs = [
-        "$skia_root_new",
-        "$mindspore_root/mindspore-src/source/third_party/securec/include",
-      ]
-    }
     branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
@@ -127,7 +119,11 @@ if (is_arkui_x) {
     }
 
     public_deps = [ ":graphics_effect_src" ]
-    external_deps = [ "hilog:libhilog" ]
+    external_deps = [ 
+      "hilog:libhilog",
+      "bounds_checking_function:libsec_static",
+      "skia:skia_canvaskit",  
+    ]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
