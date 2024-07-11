@@ -24,7 +24,6 @@ static std::atomic<bool> g_releaseResourceEnabled_ = true;
 RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
-        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
         return;
     }
     if (!g_releaseResourceEnabled_) {
@@ -86,7 +85,6 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTag
     : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
-        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
         return;
     }
     if (!g_releaseResourceEnabled_) {
@@ -101,7 +99,6 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTag
 RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
-        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
         return;
     }
     if (!g_releaseResourceEnabled_) {
@@ -115,7 +112,6 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResource
 void RSTagTracker::SetTagEnd()
 {
     if (!gpuContext_) {
-        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
         return;
     }
     if (!g_releaseResourceEnabled_) {
