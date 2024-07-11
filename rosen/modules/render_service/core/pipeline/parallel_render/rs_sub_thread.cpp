@@ -249,16 +249,18 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     }
 
     nodeDrawable->SetSubThreadSkip(false);
+
+    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
+    RSTagTracker tagTracker(grContext_.get(), param->GetId(), RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+    nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
         RS_TRACE_NAME_FMT("subthread skip node id %llu", param->GetId());
+        nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
         nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum--;
         return;
     }
-    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
-    RSTagTracker tagTracker(grContext_.get(), param->GetId(), RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
-    nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->UseDmaBuffer()) {
         DrawableCacheWithDma(nodeDrawable);
     } else {
