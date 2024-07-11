@@ -484,8 +484,8 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsPen::GetFillPath pen is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    napi_value argv[ARGC_FOUR] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
     
     JsPath* src = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, src);
@@ -501,24 +501,7 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    Drawing::Rect rect;
-    napi_valuetype isRectNullptr;
-    napi_typeof(env, argv[ARGC_TWO], &isRectNullptr);
-    if (isRectNullptr != napi_null) {
-        // Need to simplify it when JsRect class will be developed
-        double ltrb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter type. The type of left, top, right and bottom must be number.");
-        }
-        rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
-    }
-    
-    JsMatrix* matrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, matrix);
-    return CreateJsValue(env, pen->GetFillPath(*src->GetPath(),
-        *dst->GetPath(), isRectNullptr != napi_null ? &rect : nullptr,
-        matrix->GetMatrix() ? *matrix->GetMatrix().get() : Matrix()));
+    return CreateJsValue(env, pen->GetFillPath(*src->GetPath(), *dst->GetPath(), nullptr, Matrix()));
 }
 
 Pen* JsPen::GetPen()
