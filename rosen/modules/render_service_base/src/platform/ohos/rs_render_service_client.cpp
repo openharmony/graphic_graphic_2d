@@ -1329,6 +1329,14 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, const std::str
     }
 }
 
+void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyDynamicModeEvent(enableDynamicMode);
+    }
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

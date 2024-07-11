@@ -395,7 +395,7 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
 void HgmMultiAppStrategy::UpdateStrategyByTouch(
     PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate)
 {
-    if (HgmCore::Instance().GetEnableDynamicMode() && strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
+    if (!HgmCore::Instance().GetEnableDynamicMode() || strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
         return;
     }
     if (uniqueTouchInfo_ == nullptr) {

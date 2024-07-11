@@ -201,7 +201,7 @@ public:
         enableDynamicMode_ = enableDynamicMode;
     }
 
-    bool GetEnableDynamicMode()
+    bool GetEnableDynamicMode() const
     {
         return enableDynamicMode_;
     }

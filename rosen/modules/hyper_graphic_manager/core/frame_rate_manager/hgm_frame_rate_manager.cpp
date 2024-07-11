@@ -807,6 +807,13 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus,
     }
 }
 
+void HgmFrameRateManager::HandleDynamicModeEvent(bool enableDynamicModeEvent)
+{
+    HGM_LOGE("HandleDynamicModeEvent status:%{public}u", enableDynamicModeEvent);
+    HgmCore::Instance().SetEnableDynamicMode(enableDynamicModeEvent);
+    multiAppStrategy_.CalcVote();
+}
+
 void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
 {
     if (isIdle) {
