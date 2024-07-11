@@ -537,8 +537,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             pid_t pid = data.ReadInt32();
-            std::string ret = GetRefreshInfo(pid);
-            reply.WriteString(ret);
+            std::string refreshInfo = GetRefreshInfo(pid);
+            reply.WriteString(refreshInfo);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
