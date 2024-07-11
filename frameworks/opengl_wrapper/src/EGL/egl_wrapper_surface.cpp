@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 #include "egl_wrapper_surface.h"
-
+#include "external_window.h"
+#include "surface.h"
+#include "window.h"
 #include "wrapper_log.h"
 
 namespace OHOS {
