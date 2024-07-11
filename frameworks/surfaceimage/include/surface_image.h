@@ -27,6 +27,7 @@
 #include <GLES3/gl32.h>
 #include "buffer_log.h"
 #include "consumer_surface.h"
+#include "native_window.h"
 
 namespace OHOS {
 struct ImageCacheSeq {
@@ -75,6 +76,9 @@ public:
     SurfaceError UnsetOnBufferAvailableListener();
     OnBufferAvailableListener listener_ = nullptr;
     void *context_ = nullptr;
+
+    SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd);
+    SurfaceError ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd);
 
 private:
     SurfaceError ValidateEglState();

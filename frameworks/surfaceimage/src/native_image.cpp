@@ -163,3 +163,23 @@ void OH_NativeImage_Destroy(OH_NativeImage** image)
     delete *image;
     *image = nullptr;
 }
+
+int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
+    OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+{
+    if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr || fenceFd == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->AcquireNativeWindowBuffer(nativeWindowBuffer, fenceFd);
+}
+
+int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
+    OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
+{
+    if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->ReleaseNativeWindowBuffer(nativeWindowBuffer, fenceFd);
+}
