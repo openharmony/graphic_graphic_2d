@@ -39,7 +39,7 @@ EglWrapperSurface::~EglWrapperSurface()
 {
     WLOGD("");
     if (window_ != nullptr) {
-        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(obj);
+        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(window_);
         ref->DecStrongRef(ref);
     }
     surf_ = nullptr;
