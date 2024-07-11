@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+namespace {
+    constexpr uint32_t MAX_ARRAY_SIZE = 5000;
+} // namespace
 bool PathEffectFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -36,7 +39,6 @@ bool PathEffectFuzzTest(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-
     scalar radius = GetObject<scalar>();
     PathEffect::CreateCornerPathEffect(radius);
     Path path;
@@ -44,6 +46,36 @@ bool PathEffectFuzzTest(const uint8_t* data, size_t size)
     scalar phase = GetObject<scalar>();
     uint32_t style = GetObject<uint32_t>();
     PathEffect::CreatePathDashEffect(path, advance, phase, static_cast<PathDashStyle>(style));
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    float* intervals = new float[count];
+    if (intervals == nullptr) {
+        return false;
+    }
+    for (size_t i = 0; i < count; i++) {
+        intervals[i] = GetObject<float>();
+    }
+    PathEffect::CreateDashPathEffect(intervals, count, phase);
+    PathEffect::CreateCornerPathEffect(radius);
+    scalar segLength = GetObject<scalar>();
+    scalar dev = GetObject<scalar>();
+    uint32_t seedAssist = GetObject<uint32_t>();
+    PathEffect::CreateDiscretePathEffect(segLength, dev, seedAssist);
+    PathEffect::PathEffectType type = GetObject<PathEffect::PathEffectType>();
+    PathEffect pathEffect = PathEffect(type);
+    PathEffect pathEffectTWO = PathEffect(type);
+    PathEffect::CreateSumPathEffect(pathEffect, pathEffectTWO);
+    PathEffect::CreateComposePathEffect(pathEffect, pathEffectTWO);
+    pathEffect.GetType();
+    pathEffect.GetDrawingType();
+    PathEffect(type, intervals, count, phase);
+    PathEffect(type, path, advance, phase, static_cast<PathDashStyle>(style));
+    PathEffect(type, radius);
+    PathEffect(type, segLength, dev, seedAssist);
+    PathEffect(type, pathEffect, pathEffectTWO);
+    if (intervals != nullptr) {
+        delete [] intervals;
+        intervals = nullptr;
+    }
     return true;
 }
 } // namespace Drawing
