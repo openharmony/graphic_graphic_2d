@@ -117,7 +117,8 @@ public:
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
 
-    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) = 0;
+    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+        int32_t animatorExpectedFrameRate) = 0;
 
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 

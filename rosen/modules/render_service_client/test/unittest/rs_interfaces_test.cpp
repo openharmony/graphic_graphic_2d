@@ -1082,7 +1082,7 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
 
     FrameRateLinkerId id = 0;
     FrameRateRange range;
-    rsInterfaces->SyncFrameRateRange(id, range, false);
+    rsInterfaces->SyncFrameRateRange(id, range, 0);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
     uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);

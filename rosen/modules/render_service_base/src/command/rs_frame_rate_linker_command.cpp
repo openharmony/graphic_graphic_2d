@@ -29,14 +29,14 @@ void RSFrameRateLinkerCommandHelper::Destroy(RSContext& context, FrameRateLinker
 }
 
 void RSFrameRateLinkerCommandHelper::UpdateRange(RSContext& context, FrameRateLinkerId id,
-    FrameRateRange range, bool isAnimatorStopped)
+    FrameRateRange range, int32_t animatorExpectedFrameRate)
 {
     ROSEN_LOGD("RSFrameRateLinkerCommandHelper::UpdateRange %{public}" PRIu64 ", {%{public}d, %{public}d, %{public}d}",
         id, range.min_, range.max_, range.preferred_);
     auto linker = context.GetMutableFrameRateLinkerMap().GetFrameRateLinker(id);
     if (linker != nullptr) {
         linker->SetExpectedRange(range);
-        linker->SetAnimationIdle(isAnimatorStopped);
+        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     }
 }
 } // namespace Rosen
