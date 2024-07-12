@@ -338,6 +338,7 @@ napi_property_descriptor JsCanvas::properties_[] = {
     DECLARE_NAPI_FUNCTION("drawCircle", JsCanvas::DrawCircle),
     DECLARE_NAPI_FUNCTION("drawImage", JsCanvas::DrawImage),
     DECLARE_NAPI_FUNCTION("drawImageRect", JsCanvas::DrawImageRect),
+    DECLARE_NAPI_FUNCTION("drawImageRectWithSrc", JsCanvas::DrawImageRectWithSrc),
     DECLARE_NAPI_FUNCTION("drawColor", JsCanvas::DrawColor),
     DECLARE_NAPI_FUNCTION("drawOval", JsCanvas::DrawOval),
     DECLARE_NAPI_FUNCTION("drawPoint", JsCanvas::DrawPoint),
@@ -1798,6 +1799,93 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
     }
 #endif
     return nullptr;
+}
+
+napi_value JsCanvas::DrawImageRectWithSrc(napi_env env, napi_callback_info info)
+{
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnDrawImageRectWithSrc(env, info) : nullptr;
+}
+
+#ifdef ROSEN_OHOS
+static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size_t argc, Canvas& canvas,
+                                            const Image& image, const Rect& srcRect, const Rect& dstRect)
+{
+    if (argc == ARGC_THREE) { // without optional arg #3 (samplingOptions) and arg #4 (constraint):
+        DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+        canvas.DrawImageRect(image, srcRect, dstRect, Drawing::SamplingOptions());
+    } else if (argc == ARGC_FOUR) { // without optional arg #4 (constraint):
+        JsSamplingOptions* jsSamplingOptions = nullptr;
+        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
+        if (samplingOptions == nullptr) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+        }
+        DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+        canvas.DrawImageRect(image, srcRect, dstRect, *samplingOptions.get());
+    } else if (argc == ARGC_FIVE) {  // with optional arg #3 (samplingOptions) and arg #4 (constraint):
+        JsSamplingOptions* jsSamplingOptions = nullptr;
+        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
+        if (samplingOptions == nullptr) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+        }
+        int32_t constraint = 0;
+        GET_ENUM_PARAM(ARGC_FOUR,
+            constraint,
+            static_cast<int32_t>(SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT),
+            static_cast<int32_t>(SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT));
+        DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+        canvas.DrawImageRect(image, srcRect, dstRect,
+            *samplingOptions.get(), static_cast<SrcRectConstraint>(constraint));
+    } else { // argc > 5:
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "More than 5 parameters are not supported");
+    }
+    return nullptr;
+}
+#endif
+
+napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info info)
+{
+#ifdef ROSEN_OHOS
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    size_t argc = ARGC_FIVE;
+    napi_value argv[ARGC_FIVE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_THREE, ARGC_FIVE);
+
+    PixelMapNapi* pixelMapNapi = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi); // arg #0: pixelmap/image
+    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc pixelmap GetPixelNapiInner is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
+    if (image == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc image is nullptr");
+        return nullptr;
+    }
+
+    double ltrb[ARGC_FOUR] = {0};
+    if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) { // arg #1: srcRect
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect rect src parameter type. The type of left, top, right and bottom must be number.");
+    }
+    Drawing::Rect srcRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+
+    if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) { // arg #2: dstRect
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect rect dst parameter type. The type of left, top, right and bottom must be number.");
+    }
+    Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+
+    return OnDrawingImageRectWithSrc(env, argv, argc, *m_canvas, *image, srcRect, dstRect);
+#else
+    return nullptr;
+#endif
 }
 
 napi_value JsCanvas::ResetMatrix(napi_env env, napi_callback_info info)
