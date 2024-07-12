@@ -57,22 +57,23 @@ public:
     ~ImageFilterImpl() override {}
 
     virtual void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f,
-        ImageBlurType blurType) = 0;
-    virtual void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) = 0;
+        ImageBlurType blurType, const Rect& cropRect) = 0;
+    virtual void InitWithColor(const ColorFilter& colorFilter,
+        const std::shared_ptr<ImageFilter> f, const Rect& cropRect) = 0;
     virtual void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY,
-        ImageBlurType blurType) = 0;
-    virtual void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) = 0;
+        ImageBlurType blurType, const Rect& cropRect) = 0;
+    virtual void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f, const Rect& cropRect) = 0;
     virtual void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
-        const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
+        const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2, const Rect& cropRect) = 0;
     virtual void InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
     virtual void InitWithGradientBlur(float radius, const std::vector<std::pair<float, float>>& fractionStops,
         GradientDir direction, GradientBlurType blurType,
         const std::shared_ptr<ImageFilter> f) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
-    virtual void InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
+    virtual void InitWithBlend(BlendMode mode, const Rect& cropRect, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) = 0;
-    virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect) = 0;
+    virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
