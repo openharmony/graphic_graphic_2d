@@ -699,19 +699,26 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode&
 {
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) && HasCornerRadius(surfaceParams) &&
+    if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {
-        auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0, std::round(surfaceParams.GetBounds().GetWidth()),
-            std::round(surfaceParams.GetBounds().GetHeight()) });
-        Drawing::SaveLayerOps layerOps(&bounds, nullptr);
-        canvas.SaveLayer(layerOps);
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-        canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
-        canvas.DetachBrush();
-        renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
-        canvas.Restore();
+        if (HasCornerRadius(surfaceParams)) {
+            auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0,
+                std::round(surfaceParams.GetBounds().GetWidth()), std::round(surfaceParams.GetBounds().GetHeight()) });
+            Drawing::SaveLayerOps layerOps(&bounds, nullptr);
+            canvas.SaveLayer(layerOps);
+            canvas.AttachBrush(brush);
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
+            canvas.DetachBrush();
+            renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+            canvas.Restore();
+        } else {
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(surfaceParams.GetBounds());
+            canvas.DetachBrush();
+            renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+        }
     } else {
         renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
     }
