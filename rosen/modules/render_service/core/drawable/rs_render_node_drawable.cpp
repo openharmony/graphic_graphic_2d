@@ -583,7 +583,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     if (renderEngine) {
         cacheCanvas->SetHighContrast(renderEngine->IsHighContrastEnabled());
     }
-    cacheCanvas->CopyConfiguration(*curCanvas);
+    cacheCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas);
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures
     // [PLANNNING] disable it in sub-thread.
 

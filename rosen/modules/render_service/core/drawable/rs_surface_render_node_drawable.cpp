@@ -214,7 +214,7 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     // copy HDR properties into offscreen canvas
     offscreenCanvas_->CopyHDRConfiguration(*curCanvas_);
     // copy current canvas properties into offscreen canvas
-    offscreenCanvas_->CopyConfiguration(*curCanvas_);
+    offscreenCanvas_->CopyConfigurationToOffscreenCanvas(*curCanvas_);
 
     // backup current canvas and replace with offscreen canvas
     canvasBackup_ = curCanvas_;

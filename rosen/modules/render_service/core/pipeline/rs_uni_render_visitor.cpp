@@ -5082,7 +5082,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         cacheCanvas->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     }
     if (canvas_) {
-        cacheCanvas->CopyConfiguration(*canvas_);
+        cacheCanvas->CopyConfigurationToOffscreenCanvas(*canvas_);
     }
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures, so we explicitly
     // disable it in sub-thread.
@@ -5936,7 +5936,7 @@ void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
 
     // copy current canvas properties into offscreen canvas
-    offscreenCanvas->CopyConfiguration(*canvas_);
+    offscreenCanvas->CopyConfigurationToOffscreenCanvas(*canvas_);
 
     // backup current canvas and replace with offscreen canvas
     canvasBackup_ = std::exchange(canvas_, offscreenCanvas);

@@ -1540,7 +1540,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSRenderNode& nod
     // copy HDR properties into offscreen canvas
     offscreenCanvas->CopyHDRConfiguration(*curCanvas_);
     // copy current canvas properties into offscreen canvas
-    offscreenCanvas->CopyConfiguration(*curCanvas_);
+    offscreenCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas_);
 
     // backup current canvas and replace with offscreen canvas
     canvasBackup_ = std::exchange(curCanvas_, offscreenCanvas);

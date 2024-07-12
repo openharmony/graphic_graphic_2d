@@ -1283,14 +1283,33 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     targetColorGamut_ = other.targetColorGamut_;
 }
 
-void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
+void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
 {
     // Note:
     // 1. we don't need to copy alpha status, alpha will be applied when drawing cache.
+    // 2. This function should only be called when creating offscreen canvas.
     // copy high contrast flag
     isHighContrastEnabled_.store(other.isHighContrastEnabled_.load());
     // copy env
     envStack_.top() = other.envStack_.top();
+    // update effect matrix
+    auto effectData = other.envStack_.top().effectData_;
+    if (effectData != nullptr) {
+        // make a deep copy of effect data, and calculate the mapping matrix from
+        // local coordinate system to global coordinate system.
+        auto copiedEffectData = std::make_shared<CachedEffectData>(*effectData);
+        if (copiedEffectData == nullptr) {
+            ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to create effectData");
+            return;
+        }
+        Drawing::Matrix inverse;
+        if (other.GetTotalMatrix().Invert(inverse)) {
+            copiedEffectData->cachedMatrix_.PostConcat(inverse);
+        } else {
+            ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas get invert matrix failed!");
+        }
+        envStack_.top().effectData_ = copiedEffectData;
+    }
     // cache related
     if (other.isHighContrastEnabled()) {
         // explicit disable cache for high contrast mode
@@ -1416,7 +1435,7 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect)
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
