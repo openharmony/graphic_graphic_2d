@@ -358,7 +358,7 @@ void RSMainThread::Init()
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
-        RS_LOGD("DoComposition start time:%{public}llu", curTime_);
+        RS_LOGD("DoComposition start time:%{public}" PRIu64, curTime_);
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
