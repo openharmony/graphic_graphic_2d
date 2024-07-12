@@ -350,7 +350,7 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
         if (frameBufferSurface) {
-            frameBufferSurface->ClearSurfaceMap();
+            frameBufferSurface->WaitSurfaceClear();
         }
     }
 #endif
