@@ -101,6 +101,8 @@ public:
     {
         return hardwareEnabledTopNodes_;
     }
+    void SetGlobalZOrder(float zOrder);
+    float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasSecurityLayer();
@@ -145,7 +147,7 @@ private:
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
-
+    float zOrder_ = 0.0f;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     
