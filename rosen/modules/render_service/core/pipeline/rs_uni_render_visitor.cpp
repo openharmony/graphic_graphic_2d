@@ -6043,6 +6043,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
     renderThreadParams->isVirtualDirtyEnabled_ = isVirtualDirtyEnabled_;
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
+    renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
 }
 
 void RSUniRenderVisitor::SetHardwareEnabledNodes(

@@ -44,6 +44,16 @@ public:
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
+    std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
+    {
+        return cacheImgForCapture_;
+    }
+
+    void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture)
+    {
+        cacheImgForCapture_ = cacheImgForCapture;
+    }
+
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode, RSDisplayRenderParams* params,
@@ -71,23 +81,23 @@ private:
     void DrawMirror(std::shared_ptr<RSDisplayRenderNode>& displayNode, RSDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, DrawFuncPtr drawFunc,
         RSRenderThreadParams& uniParam);
+    void DrawMirrorCopy(std::shared_ptr<RSDisplayRenderNode>& displayNodeSp,
+        std::shared_ptr<RSDisplayRenderNode>& mirroredNode, RSDisplayRenderParams& params,
+        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
-    std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(
-        std::shared_ptr<RSDisplayRenderNode> mirrorNode);
     void ResetRotateIfNeed(RSDisplayRenderNode& mirroredNode, RSUniRenderVirtualProcessor& mirroredProcessor,
         Drawing::Region& clipRegion);
-    void ProcessCacheImage(Drawing::Image& cacheImageProcessed);
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSRenderNode& node);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool SkipDisplayIfScreenOff() const;
-    bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
+    int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
 
@@ -98,8 +108,9 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
     std::unordered_set<NodeId> virtualScreenBlackList_ = {};
     std::unordered_set<NodeId> castScreenBlackList_ = {};
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+    int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;
-    bool hasSpecialLayer_ = false;
     bool isLastFrameHasSecSurface_ = false;
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;

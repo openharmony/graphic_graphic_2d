@@ -94,6 +94,7 @@ public:
     static void SetCaptureParam(const CaptureParam& param);
     static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();
+    static bool IsInCaptureProcess();
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;
