@@ -698,18 +698,23 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
-
     std::function<void()> captureTask = [id, callback, captureConfig]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
-    if (!captureConfig.isSync && node->IsOnTheTree() && !node->IsDirty()) {
-        RSUniRenderThread::Instance().PostTask(captureTask);
+
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+    if (!node) {
+        if (captureConfig.isSync) {
+            RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        } else {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+        }
+        return;
+    }
+
+    if (node->IsOnTheTree() && !node->IsDirty()) {
+        RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
     }
