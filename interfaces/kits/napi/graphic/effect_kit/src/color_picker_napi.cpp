@@ -94,7 +94,11 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
 
     napi_delete_async_work(env, asyncContext->work);
 
-    delete asyncContext;
+    if (asyncContext == nullptr) {
+        EFFECT_LOG_E("Failed to delete asyncContext, asyncContext is nullptr");
+    } else {
+        delete asyncContext;
+    }
     asyncContext = nullptr;
 }
 
