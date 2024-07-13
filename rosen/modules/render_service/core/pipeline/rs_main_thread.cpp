@@ -1800,7 +1800,6 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
         }
 
         if (!node->IsOnTheTree() || node->IsDirty()) {
-            node->QuickPrepare(uniVisitor);
             node->PrepareSelfNodeForApplyModifiers();
         }
     }
