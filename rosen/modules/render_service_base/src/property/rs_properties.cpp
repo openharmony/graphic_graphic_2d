@@ -4219,7 +4219,8 @@ void RSProperties::CheckGreyCoef()
         return;
     }
     // 127.0 half of 255.0
-    if (greyCoef_->x_ < 0.0f || greyCoef_->x_ > 127.0f || greyCoef_->y_ < 0.0f || greyCoef_->y_ > 127.0f) {
+    if (greyCoef_->x_ < 0.0f || greyCoef_->x_ > 127.0f || greyCoef_->y_ < 0.0f || greyCoef_->y_ > 127.0f ||
+        (greyCoef_->x_ == 0.0f && greyCoef_->y_ == 0.0f)) {
         greyCoef_ = std::nullopt;
     }
 }
