@@ -460,7 +460,6 @@ void VSyncDistributor::CollectConns(bool &waitForVSync, int64_t &timestamp,
     } else {
         CollectConnections(waitForVSync, timestamp, conns, event_.vsyncCount, isDvsync);
     }
-
 }
 
 bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns)
