@@ -130,7 +130,11 @@ void RSUifirstManager::MergeOldDirty(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable)
 {
-    auto surfaceNode = static_cast<const RSSurfaceRenderNode*>(drawable->GetRenderNode().get());
+    auto nodeSp = mainThread_->GetContext().GetNodeMap().GetRenderNode(drawable->GetId());
+    if (nodeSp == nullptr) {
+        return;
+    }
+    auto surfaceNode = std::static_pointer_cast<const RSSurfaceRenderNode>(nodeSp);
     if (surfaceNode == nullptr) {
         return;
     }

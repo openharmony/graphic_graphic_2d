@@ -15,6 +15,7 @@
 
 #include "skia_canvas_autocache.h"
 
+#include <algorithm>
 #include "include/core/SkPaint.h"
 #include "include/core/SkPixmap.h"
 #include "include/core/SkSurface.h"
@@ -46,6 +47,7 @@ static constexpr int32_t MAX_PERCENTAGE = 8;
 static constexpr int32_t MIN_OPS_NUM = 3;
 static constexpr int32_t MAX_OPS_NUM = 8;
 static constexpr int32_t PERCENT = 100;
+static constexpr int MAX_DRAW_RECT = 32768;
 
 SkiaCanvasAutoCache::SkiaCanvasAutoCache(SkCanvas* canvas)
     : SkiaCanvasOp(canvas)
@@ -272,7 +274,8 @@ bool SkiaCanvasAutoCache::RecordDrawArea(const SkRect& bounds, const SkPaint& pa
         if (!devRect.isEmpty()) {
             drawAreaRects_.push_back(devRect);
             totalOpNums_++;
-            totalDrawAreas_ += static_cast<int>(devRect.width()) * static_cast<int>(devRect.height());
+            totalDrawAreas_ += std::min(std::max(static_cast<int>(devRect.width()), 0), MAX_DRAW_RECT) *
+                std::min(std::max(static_cast<int>(devRect.height()), 0), MAX_DRAW_RECT);
         }
         return true;
     }

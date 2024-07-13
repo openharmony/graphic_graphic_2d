@@ -3096,7 +3096,7 @@ void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode>
         return;
     }
 
-    auto curSurfaceNode = (static_cast<const RSSurfaceRenderNode*>(curSurfaceNodeParam.get()));
+    auto curSurfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(curSurfaceNodeParam);
     auto surfaceNodeAbsRect = curSurfaceNode->GetOldDirty();
     auto absRect = GetFilterRect();
     if (surfaceNodeAbsRect.IsInsideOf(absRect)) {
