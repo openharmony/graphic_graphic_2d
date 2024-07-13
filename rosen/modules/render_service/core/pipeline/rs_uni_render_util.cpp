@@ -1782,5 +1782,16 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
         TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
     }
 }
+
+void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.DetachBrush();
+}
 } // namespace Rosen
 } // namespace OHOS
