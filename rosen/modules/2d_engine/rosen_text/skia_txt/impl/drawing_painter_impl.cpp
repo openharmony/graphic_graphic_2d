@@ -157,6 +157,9 @@ void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& b
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
+        if (blob != nullptr && blob->IsEmoji()) {
+            brush.SetBlenderEnabled(false);
+        }
         brush.SetColor(pr.color);
         canvas_->AttachBrush(brush);
         canvas_->DrawTextBlob(blob.get(), x, y);

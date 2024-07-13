@@ -505,6 +505,36 @@ HWTEST_F(BrushTest, GetterAndSetterOfShaderEffect002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBlenderEnabledAndBlenderEnabled001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BrushTest, SetBlenderEnabledAndBlenderEnabled001, TestSize.Level1)
+{
+    auto brush = std::make_unique<Brush>();
+    ASSERT_TRUE(brush != nullptr);
+    brush->SetBlenderEnabled(true);
+    ASSERT_EQ(true, brush->GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: SetBlenderEnabledAndBlenderEnabled002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BrushTest, SetBlenderEnabledAndBlenderEnabled002, TestSize.Level1)
+{
+    auto brush = std::make_unique<Brush>();
+    ASSERT_TRUE(brush != nullptr);
+    brush->SetBlenderEnabled(false);
+    ASSERT_EQ(false, brush->GetBlenderEnabled());
+}
+
+/**
  * @tc.name: SetAntiAliasAndIsAntiAlias001
  * @tc.desc:
  * @tc.type: FUNC

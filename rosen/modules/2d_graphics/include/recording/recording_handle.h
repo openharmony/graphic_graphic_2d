@@ -78,6 +78,7 @@ struct SymbolOpHandle {
 
 struct PaintHandle {
     bool isAntiAlias;
+    bool blenderEnabled;
     Paint::PaintStyle style = Paint::PaintStyle::PAINT_NONE;
     Color color = Color::COLOR_BLACK;
     BlendMode mode = BlendMode::SRC_OVER;
@@ -99,6 +100,7 @@ struct BrushHandle {
     Color color;
     BlendMode mode;
     bool isAntiAlias;
+    bool blenderEnabled;
     Filter::FilterQuality filterQuality;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
