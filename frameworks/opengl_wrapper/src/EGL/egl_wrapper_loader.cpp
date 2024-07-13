@@ -51,16 +51,23 @@ EglWrapperLoader::~EglWrapperLoader()
 }
 
 using GetProcAddressType = FunctionPointerType (*)(const char *);
-bool EglWrapperLoader::LoadEgl(const char *libName, EglHookTable *table)
+bool EglWrapperLoader::LoadEgl(const char* libName, EglHookTable* table)
 {
     WLOGD("");
     std::string path = std::string(VENDOR_LIB_PATH) + std::string(libName);
-    dlEglHandle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+    std::string realPath = "";
+    if (!PathToRealPath(path, realPath) ||
+        strncmp(realPath.c_str(), VENDOR_LIB_PATH, strlen(VENDOR_LIB_PATH)) != 0) {
+        WLOGD("Vendor path is invalid or not within vendor directory: %{private}s", path.c_str());
+        dlEglHandle_ = nullptr;
+    } else {
+        dlEglHandle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    }
     if (dlEglHandle_ == nullptr) {
         path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        std::string realPath;
-        if (!PathToRealPath(path, realPath)) {
-            WLOGE("file is not real path, file path: %{private}s", path.c_str());
+        if (!PathToRealPath(path, realPath) ||
+            strncmp(realPath.c_str(), SYSTEM_LIB_PATH, strlen(SYSTEM_LIB_PATH)) != 0) {
+            WLOGE("System path is invalid or not within system directory: %{private}s", path.c_str());
             return false;
         }
         dlEglHandle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -101,12 +108,19 @@ void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, 
 {
     WLOGD("");
     std::string path = std::string(VENDOR_LIB_PATH) + std::string(libName);
-    void *dlHandle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+    std::string realPath = "";
+    void *dlHandle = nullptr;
+    if (!PathToRealPath(path, realPath) ||
+        strncmp(realPath.c_str(), VENDOR_LIB_PATH, strlen(VENDOR_LIB_PATH)) != 0) {
+        WLOGD("Vendor path is invalid or not within vendor directory: %{private}s", path.c_str());
+    } else {
+        dlHandle = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    }
     if (dlHandle == nullptr) {
         path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        std::string realPath;
-        if (!PathToRealPath(path, realPath)) {
-            WLOGE("file is not real path, file path: %{private}s", path.c_str());
+        if (!PathToRealPath(path, realPath) ||
+            strncmp(realPath.c_str(), SYSTEM_LIB_PATH, strlen(SYSTEM_LIB_PATH)) != 0) {
+            WLOGE("System path is invalid or not within system directory: %{private}s", path.c_str());
             return nullptr;
         }
         dlHandle = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);

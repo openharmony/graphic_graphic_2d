@@ -26,11 +26,13 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_hash_test.cpp",
     "ge_kawase_blur_shader_filter_test.cpp",
     "ge_linear_gradient_blur_shader_filter_test.cpp",
+    "ge_magnifier_shader_filter_test.cpp",
     "ge_render_test.cpp",
     "ge_system_properties_test.cpp",
     "ge_visual_effect_container_test.cpp",
     "ge_visual_effect_impl_test.cpp",
     "ge_visual_effect_test.cpp",
+    "ge_water_ripple_filter_test.cpp",
   ]
 
   include_dirs = [

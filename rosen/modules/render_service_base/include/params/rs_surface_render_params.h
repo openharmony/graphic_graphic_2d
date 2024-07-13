@@ -123,6 +123,10 @@ public:
     {
         return isProtectedLayer_;
     }
+    bool GetAnimateState() const
+    {
+        return animateState_;
+    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -303,7 +307,11 @@ public:
 
     void SetPreScalingMode(ScalingMode scalingMode)
     {
+        if (preScalingMode_ == scalingMode) {
+            return;
+        }
         preScalingMode_ = scalingMode;
+        needSync_ = true;
     }
     ScalingMode GetPreScalingMode() const
     {
@@ -339,6 +347,16 @@ public:
     bool GetNeedOffscreen() const
     {
         return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+    }
+
+    void SetLayerCreated(bool layerCreated)
+    {
+        layerCreated_ = layerCreated;
+    }
+
+    bool GetLayerCreated() const
+    {
+        return layerCreated_;
     }
 
 protected:
@@ -391,6 +409,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
+    bool animateState_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
@@ -404,6 +423,7 @@ private:
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
+    bool layerCreated_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

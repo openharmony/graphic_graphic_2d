@@ -59,7 +59,7 @@ enum class SkipType : uint8_t {
     SKIP_BACKGROUND_COLOR = 2
 };
 
-class RSB_EXPORT RSRenderNodeDrawableAdapter {
+class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
     virtual ~RSRenderNodeDrawableAdapter() = default;
@@ -92,6 +92,10 @@ public:
         return uifirstRenderParams_;
     }
 
+    inline NodeId GetId() const
+    {
+        return nodeId_;
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec() const;

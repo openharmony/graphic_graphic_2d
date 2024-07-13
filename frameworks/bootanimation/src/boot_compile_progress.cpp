@@ -46,7 +46,7 @@ namespace {
     constexpr const float OFFSET_Y_PERCENT = 0.85f;
     constexpr const float HEIGHT_PERCENT = 0.05f;
     constexpr const int TEXT_BLOB_OFFSET = 5;
-    constexpr const int FONT_SIZE = 48;
+    constexpr const int FONT_SIZE_VP = 12;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
     constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
@@ -74,6 +74,7 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+    fontSize_ = TransalteVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_VP);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
@@ -83,8 +84,8 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
         SHARP_CURVE_CTLX1, SHARP_CURVE_CTLY1, SHARP_CURVE_CTLX2, SHARP_CURVE_CTLY2);
     compileRunner_ = AppExecFwk::EventRunner::Create(false);
     compileHandler_ = std::make_shared<AppExecFwk::EventHandler>(compileRunner_);
-    compileHandler_->PostTask(std::bind(&BootCompileProgress::CreateCanvasNode, this));
-    compileHandler_->PostTask(std::bind(&BootCompileProgress::RegisterVsyncCallback, this));
+    compileHandler_->PostTask([this] { this->CreateCanvasNode(); });
+    compileHandler_->PostTask([this] { this->RegisterVsyncCallback(); });
     compileRunner_->Run();
 }
 
@@ -97,7 +98,7 @@ bool BootCompileProgress::CreateCanvasNode()
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
     if (!rsSurfaceNode_) {
         LOGE("ota compile, SFNode create failed");
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
         return false;
     }
     float positionZ = MAX_ZORDER + 1;
@@ -126,12 +127,12 @@ bool BootCompileProgress::RegisterVsyncCallback()
 {
     if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
         LOGI("bms compile is already done.");
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
         return false;
     }
 
     if (!WaitBmsStartIfNeeded()) {
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
         return false;
     }
 
@@ -140,7 +141,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
     while (receiver_ == nullptr) {
         if (retry++ > MAX_RETRY_TIMES) {
             LOGE("get vsync receiver failed");
-            compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+            compileRunner_->Stop();
             return false;
         }
         if (retry > 1) {
@@ -150,18 +151,18 @@ bool BootCompileProgress::RegisterVsyncCallback()
     }
     VsyncError ret = receiver_->Init();
     if (ret) {
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
         LOGE("init vsync receiver failed");
         return false;
     }
 
     Rosen::VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
-        .callback_ = std::bind(&BootCompileProgress::OnVsync, this),
+        .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
     ret = receiver_->SetVSyncRate(fcb, CHANGE_FREQ);
     if (ret) {
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
         LOGE("set vsync rate failed");
     }
 
@@ -185,10 +186,10 @@ bool BootCompileProgress::WaitBmsStartIfNeeded()
 void BootCompileProgress::OnVsync()
 {
     if (!isUpdateOptEnd_) {
-        compileHandler_->PostTask(std::bind(&BootCompileProgress::DrawCompileProgress, this));
+        compileHandler_->PostTask([this] { this->DrawCompileProgress(); });
     } else {
         LOGI("ota compile completed");
-        compileHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, compileRunner_));
+        compileRunner_->Stop();
     }
 }
 
@@ -201,7 +202,7 @@ void BootCompileProgress::DrawCompileProgress()
 
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
-    font.SetSize(FONT_SIZE);
+    font.SetSize(fontSize_);
     char info[64] = {0};
     int ret = sprintf_s(info, sizeof(info), "%s %d%%", displayInfo_.c_str(), progress_);
     if (ret == -1) {

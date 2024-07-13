@@ -65,7 +65,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
     if (type == RSSurfaceNodeType::APP_WINDOW_NODE) {
-        auto callback = std::bind(&RSSurfaceNode::SetHDRPresent, std::placeholders::_1, std::placeholders::_2);
+        auto callback = &RSSurfaceNode::SetHDRPresent;
         RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
     }
 
@@ -76,7 +76,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
-        .isSync = surfaceNodeConfig.isSync,
+        .isSync = isWindow,
         .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;

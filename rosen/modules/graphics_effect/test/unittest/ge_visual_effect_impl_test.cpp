@@ -58,6 +58,9 @@ HWTEST_F(GEVisualEffectImplTest, GetFilterType001, TestSize.Level1)
 
     Drawing::GEVisualEffectImpl geVisualEffectImpl4(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR);
     EXPECT_EQ(geVisualEffectImpl4.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
+
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
+    EXPECT_EQ(geVisualEffectImpl.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE);
 }
 
 /**
@@ -276,6 +279,57 @@ HWTEST_F(GEVisualEffectImplTest, SetParam009, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->blurRadius, 1.0f);
     geVisualEffectImpl.SetLinearGradientBlurParams("", 2.0f);
     EXPECT_NE(geVisualEffectImpl.GetLinearGradientBlurParams()->blurRadius, 2.0f);
+}
+
+/**
+ * @tc.name: SetParam010
+ * @tc.desc: Verify function SetParam for action is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam010, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_PROGRESS, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_WAVE_NUM, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->waveCount, 1.0f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterX, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterY, 0.5f);
+}
+ 
+/**
+ * @tc.name: SetWaterRippleParams001
+ * @tc.desc: Verify function SetWaterRippleParams is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetWaterRippleParams001, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
+    ASSERT_NE(geVisualEffectImpl.waterRippleParams_, nullptr);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_PROGRESS, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_WAVE_NUM, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->waveCount, 1.0f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterX, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, 0.5f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterY, 0.5f);
+}
+ 
+/**
+ * @tc.name: MakeWaterRippleParams001
+ * @tc.desc: Verify function MakeWaterRippleParams is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, MakeWaterRippleParams001, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE);
+    ASSERT_EQ(geVisualEffectImpl.GetWaterRippleParams(), nullptr);
+    geVisualEffectImpl.MakeWaterRippleParams();
+    ASSERT_NE(geVisualEffectImpl.GetWaterRippleParams(), nullptr);
 }
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

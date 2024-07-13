@@ -353,16 +353,15 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderDashParamsTest, TestSize.Level
     EXPECT_TRUE(result1.has_value());
     EXPECT_TRUE(result1.value()[0].GetRed() == SHOWING_COLOR_NUM);
 
-    Vector4f dashParamZero(0.f, 0.f, 0.f, 0.f);
     Vector4f dashParam(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f);
-    canvasNode->SetBorderDashWidth(dashParamZero);
-    canvasNode->SetBorderDashGap(dashParamZero);
+    canvasNode->SetBorderDashWidth(dashParam);
+    canvasNode->SetBorderDashGap(dashParam);
     auto dashWidth = canvasNode->GetShowingProperties().GetBorderDashWidth();
     auto dashGap = canvasNode->GetShowingProperties().GetBorderDashGap();
     EXPECT_TRUE(dashWidth.has_value());
-    EXPECT_TRUE(dashWidth->IsNearEqual(dashParam));
+    EXPECT_TRUE(dashWidth->x_ == SHOWING_FLOAT_NUM);
     EXPECT_TRUE(dashGap.has_value());
-    EXPECT_TRUE(dashGap->IsNearEqual(dashParam));
+    EXPECT_TRUE(dashGap->x_ == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderDashParamsTest end";
 }

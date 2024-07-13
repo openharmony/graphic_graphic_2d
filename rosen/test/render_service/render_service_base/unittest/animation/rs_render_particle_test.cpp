@@ -670,100 +670,15 @@ HWTEST_F(RSRenderParticleTest, GetParticleRenderParamsTest, Level1)
 }
 
 /**
- * @tc.name: GetAccelerationValueUpdatorTest
- * @tc.desc: test results of GetAccelerationValueUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetAccelerationValueUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetAccelerationValueUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
- * @tc.name: GetAccelerationAngleUpdatorTest
- * @tc.desc: test results of GetAccelerationAngleUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetAccelerationAngleUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetAccelerationAngleUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
- * @tc.name: GetColorUpdatorTest
- * @tc.desc: test results of GetColorUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetColorUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetColorUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
- * @tc.name: GetOpacityUpdatorTest
- * @tc.desc: test results of GetOpacityUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetOpacityUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetOpacityUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
- * @tc.name: GetScaleUpdatorTest
- * @tc.desc: test results of GetScaleUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetScaleUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetScaleUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
- * @tc.name: GetSpinUpdatorTest
- * @tc.desc: test results of GetSpinUpdator
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleTest, GetSpinUpdatorTest, Level1)
-{
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    ParticleUpdator part;
-    part = rsRenderParticle.GetSpinUpdator();
-    ASSERT_EQ(part, part);
-}
-
-/**
  * @tc.name: GetAcceValChangeOverLifeTest
  * @tc.desc: test results of GetAcceValChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetAcceValChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetAcceValChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> res;
-    res = rsRenderParticle.GetAcceValChangeOverLife();
+    res = particleRenderParams.GetAcceValChangeOverLife();
     ASSERT_EQ(res, res);
 }
 
@@ -772,12 +687,11 @@ HWTEST_F(RSRenderParticleTest, GetAcceValChangeOverLifeTest, Level1)
  * @tc.desc: test results of GetAcceAngChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetAcceAngChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetAcceAngChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> res;
-    res = rsRenderParticle.GetAcceAngChangeOverLife();
+    res = particleRenderParams.GetAcceAngChangeOverLife();
     ASSERT_EQ(res, res);
 }
 
@@ -786,12 +700,11 @@ HWTEST_F(RSRenderParticleTest, GetAcceAngChangeOverLifeTest, Level1)
  * @tc.desc: test results of GetOpacityChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetOpacityChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetOpacityChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> res;
-    res = rsRenderParticle.GetOpacityChangeOverLife();
+    res = particleRenderParams.GetOpacityChangeOverLife();
     ASSERT_EQ(res, res);
 }
 
@@ -800,12 +713,11 @@ HWTEST_F(RSRenderParticleTest, GetOpacityChangeOverLifeTest, Level1)
  * @tc.desc: test results of GetScaleChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetScaleChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetScaleChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> res;
-    res = rsRenderParticle.GetScaleChangeOverLife();
+    res = particleRenderParams.GetScaleChangeOverLife();
     ASSERT_EQ(res, res);
 }
 
@@ -814,12 +726,11 @@ HWTEST_F(RSRenderParticleTest, GetScaleChangeOverLifeTest, Level1)
  * @tc.desc: test results of GetSpinChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetSpinChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetSpinChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> res;
-    res = rsRenderParticle.GetSpinChangeOverLife();
+    res = particleRenderParams.GetSpinChangeOverLife();
     ASSERT_EQ(res, res);
 }
 
@@ -828,12 +739,11 @@ HWTEST_F(RSRenderParticleTest, GetSpinChangeOverLifeTest, Level1)
  * @tc.desc: test results of GetColorChangeOverLife
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderParticleTest, GetColorChangeOverLifeTest, Level1)
+HWTEST_F(ParticleRenderParamsTest, GetColorChangeOverLifeTest, Level1)
 {
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
+    ParticleRenderParams particleRenderParams;
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> res;
-    res = rsRenderParticle.GetColorChangeOverLife();
+    res = particleRenderParams.GetColorChangeOverLife();
     ASSERT_EQ(res, res);
 }
 

@@ -4101,6 +4101,19 @@ HWTEST_F(RSNodeTest, SetandGetSpherizeDegree001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetSetAttractionEffectDstPoint001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetSetAttractionEffectDstPoint001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f attractionDstPoint = { 100.0, 100.0 };
+    rsNode->SetAttractionEffectDstPoint(attractionDstPoint);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetAttractionDstPointValue(), attractionDstPoint));
+}
+
+/**
  * @tc.name: SetandGetLightUpEffectDegree001
  * @tc.desc:
  * @tc.type:FUNC
@@ -5094,24 +5107,6 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSandBox
- * @tc.desc: test results of SetSandBox
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, SetSandBox, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::optional<Vector2f> parentPosition;
-    rsNode->SetSandBox(parentPosition);
-
-    Vector2f newPosition(1.0f, 2.0f);
-    parentPosition = newPosition;
-    rsNode->SetSandBox(parentPosition);
-    EXPECT_EQ(parentPosition, newPosition);
-}
-
-/**
  * @tc.name: SetPivotZ
  * @tc.desc: test results of SetPivotZ
  * @tc.type: FUNC
@@ -5380,6 +5375,26 @@ HWTEST_F(RSNodeTest, SetMotionBlurPara, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetMagnifierParams
+ * @tc.desc: test results of SetMagnifierParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f para = { 1.f, 1.f }; // for test
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetMagnifierParams(para);
+
+    auto iter = rsNode->propertyModifiers_.find(RSModifierType::MAGNIFIER_PARA);
+    ASSERT_TRUE(iter != rsNode->propertyModifiers_.end());
+    auto property = std::static_pointer_cast<RSProperty<Vector2f>>(iter->second->GetProperty());
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->Get(), para);
+}
+
+/**
  * @tc.name: SetDynamicLightUpRate
  * @tc.desc: test results of SetDynamicLightUpRate
  * @tc.type: FUNC
@@ -5632,18 +5647,31 @@ HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetClipRRect
+ * @tc.name: SetClipRRect001
  * @tc.desc: test results of SetClipRRect
  * @tc.type: FUNC
  * @tc.require: issueI9KAZH
  */
-HWTEST_F(RSNodeTest, SetClipRRect, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetClipRRect001, TestSize.Level1)
 {
     Vector4f clipRect = { 1.f, 1.f, 1.f, 1.f }; // for test
     auto rsNode = RSCanvasNode::Create();
     Vector4f clipRadius = { 0.f, 1.f, 0.f, 1.f }; // for test
     rsNode->SetClipRRect(clipRect, clipRadius);
     EXPECT_EQ(clipRect[0], 1.f);
+}
+
+/**
+ * @tc.name: SetClipRRect002
+ * @tc.desc: test results of SetClipRRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetClipRRect002, TestSize.Level1)
+{
+    auto rect = std::make_shared<RRect>();
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipRRect(rect);
 }
 
 /**
@@ -5749,12 +5777,19 @@ HWTEST_F(RSNodeTest, SetPixelStretchPercent, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    auto name = rsNode->GetNodeName();
+    EXPECT_EQ(name, "");
+
     std::string nodeName = "1"; // for test
     rsNode->SetNodeName(nodeName);
+    name = rsNode->GetNodeName();
+    EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 
     nodeName = ""; // for test
     rsNode->SetNodeName(nodeName);
+    name = rsNode->GetNodeName();
+    EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
@@ -5783,6 +5818,20 @@ HWTEST_F(RSNodeTest, SetSpherizeDegree, TestSize.Level1)
     float spherizeDegree = 1.f; // for test
     rsNode->SetSpherizeDegree(spherizeDegree);
     EXPECT_NE(spherizeDegree, 0.f);
+}
+
+/**
+ * @tc.name: SetAttractionEffectDstPoint
+ * @tc.desc: test results of SetAttractionEffectDstPoint
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetAttractionEffectDstPoint, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector2f attractionDstPoint = { 100.0, 100.0 };
+    rsNode->SetAttractionEffectDstPoint(attractionDstPoint);
+    EXPECT_NE(attractionDstPoint.x_, 0.f);
 }
 
 /**
@@ -6930,5 +6979,27 @@ HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
     rsNode->MarkContentChanged(0);
     rsNode->SetInstanceId(1);
     ASSERT_EQ(rsNode->GetInstanceId(), 1);
+}
+
+/**
+ * @tc.name: SetWaterRippleParams
+ * @tc.desc: test results of SetWaterRippleParams
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
+{
+    float waveCount = 2.0f;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    float progress = 0.5f;
+    RSWaterRipplePara rs_water_ripple_param = {
+        waveCount,
+        rippleCenterX,
+        rippleCenterY
+    };
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
+    EXPECT_EQ(waveCount, 2.0f);
 }
 } // namespace OHOS::Rosen

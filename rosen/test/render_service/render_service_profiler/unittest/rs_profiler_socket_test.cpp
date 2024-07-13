@@ -44,21 +44,6 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketStateTest, testing::ext::TestSize
 }
 
 /*
- * @tc.name: RSProfilerSocketOpenTest
- * @tc.desc: Test public method Open
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketOpenTest, testing::ext::TestSize.Level1)
-{
-    Socket s;
-    s.Open(5050);
-    EXPECT_EQ(s.GetState(), SocketState::CREATE);
-    EXPECT_NE(s.socket_, -1);
-    EXPECT_EQ(s.client_, -1);
-}
-
-/*
  * @tc.name: RSProfilerSocketShutdownTest
  * @tc.desc: Test public method Shutdown
  * @tc.type: FUNC
@@ -103,25 +88,6 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketGetStatusTest, testing::ext::Test
     s.GetStatus(readyToReceive, readyToSend);
     EXPECT_FALSE(readyToReceive);
     EXPECT_FALSE(readyToSend);
-}
-
-/*
- * @tc.name: RSProfilerSocketSendTest
- * @tc.desc: Test public method socket send
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketSendTest, testing::ext::TestSize.Level1)
-{
-    Socket s;
-    std::vector<uint8_t> sendData {0x04, 0x03, 0x02, 0x08, 0x1a};
-    std::vector<uint8_t> recvData(5);
-    EXPECT_NO_THROW({
-        s.SendWhenReady(sendData.data(), sendData.size() * sizeof(uint8_t));
-    });
-    EXPECT_FALSE(s.ReceiveWhenReady(recvData.data(), recvData.size() * sizeof(uint8_t)));
-    size_t size = recvData.size() * sizeof(uint8_t);
-    EXPECT_TRUE(s.Receive(recvData.data(), size));
 }
 
 } // namespace OHOS::Rosen

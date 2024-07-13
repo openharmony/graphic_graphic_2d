@@ -109,35 +109,67 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
+int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+{
+    if (renderServiceClient_ == nullptr) {
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+}
+ 
+int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)
+{
+    if (renderServiceClient_ == nullptr) {
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+    return renderServiceClient_->SetPointerColorInversionEnabled(enable);
+}
+ 
+int32_t RSInterfaces::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
+{
+    if (renderServiceClient_ == nullptr) {
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+    return renderServiceClient_->RegisterPointerLuminanceChangeCallback(callback);
+}
+ 
+int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
+{
+    if (renderServiceClient_ == nullptr) {
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+    return renderServiceClient_->UnRegisterPointerLuminanceChangeCallback();
+}
+
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
         ROSEN_LOGW("node is nullptr");
         return false;
     }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool useDma)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY, useDma);
+    return renderServiceClient_->TakeSurfaceCapture(id, callback, captureConfig);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -156,9 +188,10 @@ void RSInterfaces::SetRefreshRateMode(int32_t refreshRateMode)
     renderServiceClient_->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped)
+void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+    int32_t animatorExpectedFrameRate)
 {
-    renderServiceClient_->SyncFrameRateRange(id, range, isAnimatorStopped);
+    renderServiceClient_->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
 uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)
@@ -186,6 +219,11 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
 }
 
+std::string RSInterfaces::GetRefreshInfo(pid_t pid)
+{
+    return renderServiceClient_->GetRefreshInfo(pid);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
@@ -200,12 +238,16 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUI unsupported node type return");
         return false;
     }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = scaleX;
+    captureConfig.scaleY = scaleY;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = isSync;
     if (RSSystemProperties::GetUniRenderEnabled()) {
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            false, SurfaceCaptureType::UICAPTURE, isSync);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -589,9 +631,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt)
 {
-    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -637,6 +679,11 @@ void RSInterfaces::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+}
+
+int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
 #ifdef RS_ENABLE_VK

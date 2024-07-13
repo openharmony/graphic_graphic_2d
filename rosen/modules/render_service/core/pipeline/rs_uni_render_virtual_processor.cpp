@@ -18,6 +18,7 @@
 #include <ctime>
 #include <parameters.h>
 
+#include "common/rs_optional_trace.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #ifndef NEW_RENDER_CONTEXT
@@ -25,7 +26,6 @@
 #endif
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
-#include "rs_trace.h"
 #include "string_utils.h"
 
 namespace OHOS {
@@ -77,12 +77,15 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
 #endif
     if (renderFrame_ == nullptr) {
-        auto rsSurface = node.GetVirtualSurface();
-        if (rsSurface == nullptr) {
+        uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
+        auto rsSurface = node.GetVirtualSurface(pSurfaceUniqueId);
+        if (rsSurface == nullptr || screenManager->GetAndResetVirtualSurfaceUpdateFlag(node.GetScreenId())) {
             RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
                 node.GetScreenId());
+            RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %" PRIu64 ")",
+                node.GetScreenId());
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
-            node.SetVirtualSurface(rsSurface);
+            node.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
 #ifdef NEW_RENDER_CONTEXT
         renderFrame_ = renderEngine_->RequestFrame(
@@ -93,11 +96,18 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 #endif
     }
     if (renderFrame_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): RenderFrame is null!",
+            node.GetScreenId());
         return false;
     }
 
+    RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
+
     canvas_ = renderFrame_->GetCanvas();
     if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): Canvas is null!",
+            node.GetScreenId());
         return false;
     }
 
@@ -124,9 +134,9 @@ void RSUniRenderVirtualProcessor::CanvasInit(RSDisplayRenderNode& node)
 
     RS_LOGD("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", " \
         "screen(%{public}f, %{public}f, %{public}f, %{public}f), " \
-        "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d",
+        "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, rotationAngle: %{public}d",
         node.GetScreenId(), mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
-        screenRotation_, screenCorrection_, canvasRotation_, scaleMode_);
+        screenRotation_, screenCorrection_, canvasRotation_, rotationAngle);
 }
 
 int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
@@ -220,10 +230,10 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(
         std::swap(mirrorWidth_, mirrorHeight_);
     }
 
-    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed:(%f, %f, %f, %f), " \
-        "screenCorrection:%d, oriRotation:%d",
+    RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed:(%{public}f, %{public}f, %{public}f, %{public}f), " \
+        "screenCorrection:%{public}d, oriRotation:%{public}d, scaleMode:%{public}d",
         mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
-        static_cast<int>(screenCorrection_), static_cast<int>(angle));
+        static_cast<int>(screenCorrection_), static_cast<int>(angle), static_cast<int>(scaleMode_));
 
     if (mainWidth_ == mirrorWidth_ && mainHeight_ == mirrorHeight_) {
         return;
@@ -244,12 +254,14 @@ void RSUniRenderVirtualProcessor::PostProcess()
         return;
     }
     if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
+        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderframe is null.");
         return;
     }
     auto surfaceOhos = renderFrame_->GetSurface();
     renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
+    RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }
 
 void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)

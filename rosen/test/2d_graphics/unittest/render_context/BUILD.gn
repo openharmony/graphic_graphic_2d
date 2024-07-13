@@ -80,6 +80,7 @@ ohos_unittest("2d_graphics_shader_cache_test") {
 
   sources = [
     "cache_data_test.cpp",
+    "momory_handler_test.cpp",
     "shader_cache_test.cpp",
   ]
 

@@ -23,6 +23,10 @@ config("render_service_link_config") {
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
+
+    if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
+      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+    }
   }
 }
 
@@ -95,6 +99,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_hardware_thread.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
+    "core/pipeline/rs_pointer_render_manager.cpp",
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
     "core/pipeline/rs_realtime_refresh_rate_manager.cpp",

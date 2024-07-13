@@ -40,6 +40,7 @@
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "vsync_iconnection_token.h"
 
 namespace OHOS {
@@ -100,6 +101,14 @@ public:
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
+    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) = 0;
+ 
+    virtual int32_t SetPointerColorInversionEnabled(bool enable) = 0;
+ 
+    virtual int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) = 0;
+ 
+    virtual int32_t UnRegisterPointerLuminanceChangeCallback() = 0;
+
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
@@ -108,7 +117,8 @@ public:
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
 
-    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) = 0;
+    virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+        int32_t animatorExpectedFrameRate) = 0;
 
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 
@@ -120,6 +130,8 @@ public:
 
     virtual void SetShowRefreshRateEnabled(bool enable) = 0;
 
+    virtual std::string GetRefreshInfo(pid_t pid) = 0;
+
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
@@ -128,8 +140,8 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
-    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync = false) = 0;
+    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig) = 0;
 
     virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -236,7 +248,7 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
+    virtual void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) = 0;
 
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 
@@ -265,6 +277,8 @@ public:
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
 
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
+
+    virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

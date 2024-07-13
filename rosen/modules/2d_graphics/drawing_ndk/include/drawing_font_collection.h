@@ -93,6 +93,16 @@ void OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection*);
  * @version 1.0
  */
 void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection*);
+
+/**
+ * @brief Clear font caches.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_FontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection*);
 #ifdef __cplusplus
 }
 #endif

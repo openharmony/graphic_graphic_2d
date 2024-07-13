@@ -30,6 +30,7 @@
 #include "message_parcel.h"
 #include "securec.h"
 
+#include "ipc_callbacks/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -507,6 +508,66 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return true;
+}
+
+class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub {
+public:
+    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
+    ~CustomPointerLuminanceChangeCallback() override {};
+ 
+    void OnPointerLuminanceChanged(int32_t brightness) override
+    {
+        if (cb_ != nullptr) {
+            cb_(brightness);
+        }
+    }
+
+private:
+    PointerLuminanceChangeCallback cb_;
+};
+
+bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+    PointerLuminanceChangeCallback callback = [](int32_t brightness) {};
+    sptr<CustomPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
+    rsConn->RegisterPointerLuminanceChangeCallback(cb);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -779,14 +840,16 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
         return false;
     }
     uint64_t nodeId = GetData<uint64_t>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
     sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
     uint8_t type = GetData<uint8_t>();
-    SurfaceCaptureType surfaceCaptureType = (SurfaceCaptureType)type;
-    bool isSync = GetData<bool>();
-    rsConn->TakeSurfaceCapture(nodeId, callback, scaleX, scaleY, useDma, surfaceCaptureType, isSync);
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
+    rsConn->TakeSurfaceCapture(nodeId, callback, captureConfig);
     return true;
 }
 
@@ -858,6 +921,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenGamutMap(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
+    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
+    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);
     OHOS::Rosen::DoCreateVSyncConnection(data, size);

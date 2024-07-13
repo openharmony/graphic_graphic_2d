@@ -62,11 +62,12 @@ void FilterTest(const uint8_t* data, size_t size)
     OH_Drawing_FilterSetMaskFilter(nullptr, maskFilter);
     OH_Drawing_FilterSetMaskFilter(filter, nullptr);
     OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
+    OH_Drawing_FilterSetColorFilter(filter, nullptr);
     OH_Drawing_FilterSetColorFilter(filter, colorFilter);
     OH_Drawing_FilterSetColorFilter(nullptr, colorFilter);
-    OH_Drawing_FilterSetColorFilter(filter, nullptr);
-    OH_Drawing_FilterGetColorFilter(filter, colorFilter);
-    OH_Drawing_FilterGetColorFilter(nullptr, colorFilter);
+    OH_Drawing_ColorFilter* colorFilterTwo = nullptr;
+    OH_Drawing_FilterGetColorFilter(filter, colorFilterTwo);
+    OH_Drawing_FilterGetColorFilter(nullptr, colorFilterTwo);
     OH_Drawing_FilterGetColorFilter(filter, nullptr);
 
     OH_Drawing_FilterDestroy(filter);

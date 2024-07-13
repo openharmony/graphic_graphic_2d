@@ -14,13 +14,18 @@
  */
 
 #include "animation/rs_animation_callback.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-AnimationCallback::AnimationCallback(const std::function<void()>&& callback) : callback_(std::move(callback)) {}
+AnimationCallback::AnimationCallback(const std::function<void()>&& callback) : callback_(std::move(callback))
+{
+    RS_TRACE_NAME_FMT("AnimationCallback %p", this);
+}
 
 AnimationCallback::~AnimationCallback()
 {
+    RS_TRACE_NAME_FMT("~AnimationCallback %p", this);
     if (callback_ != nullptr) {
         callback_();
     }

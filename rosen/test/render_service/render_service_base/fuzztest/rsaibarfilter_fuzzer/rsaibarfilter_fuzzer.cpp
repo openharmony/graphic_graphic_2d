@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <hilog/log.h>
+#include <iostream>
 #include <securec.h>
 #include <unistd.h>
 
@@ -37,6 +38,7 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+int g_number = 6;
 } // namespace
 
 template<class T>
@@ -132,9 +134,12 @@ bool DoIsAiInvertCoefValid(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float value = GetData<float>();
     std::vector<float> aiInvertCoef;
-    aiInvertCoef.push_back(value);
+    aiInvertCoef.reserve(g_number);
+    for (int i = 0; i < g_number; i++) {
+        float value = GetData<float>();
+        aiInvertCoef.push_back(value);
+    }
     RSAIBarFilter::IsAiInvertCoefValid(aiInvertCoef);
     return true;
 }

@@ -24,6 +24,7 @@
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
+#include <rs_trace.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -77,8 +78,8 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
-        " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
+    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
+        dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
     if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
         cbWithId != nullptr ? cbWithId(now, data[2], userData_) : cb(now, userData_);
@@ -217,8 +218,7 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         period = periodShared;
         timeStamp = timeStampShared;
     }
-    ScopedBytrace func("VSyncReceiver:period:" + std::to_string(period) + " timeStamp:" + std::to_string(timeStamp) +
-        " isThreadShared:" + std::to_string(isThreadShared));
+    RS_TRACE_NAME_FMT("VSyncReceiver:period:%ld timeStamp:%ld isThreadShared:%d", period, timeStamp, isThreadShared);
     return VSYNC_ERROR_OK;
 }
 

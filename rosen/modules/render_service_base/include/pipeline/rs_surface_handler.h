@@ -199,6 +199,11 @@ public:
         preBuffer_.Reset();
     }
 
+    void CleanPreBuffer()
+    {
+        preBuffer_.Reset();
+    }
+
     void ResetBufferAvailableCount()
     {
         bufferAvailableCount_ = 0;

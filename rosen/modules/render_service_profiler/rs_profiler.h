@@ -48,6 +48,10 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
+#define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
+#define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
+#define RS_PROFILER_SHOULD_BLOCK_HWCNODE() RSProfiler::ShouldBlockHWCNode()
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -71,6 +75,10 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
+#define RS_PROFILER_GET_FRAME_NUMBER() 0
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
+#define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
+#define RS_PROFILER_SHOULD_BLOCK_HWCNODE() false
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -117,6 +125,8 @@ public:
     static void OnFrameEnd();
     static void OnRenderBegin();
     static void OnRenderEnd();
+    static void OnParallelRenderBegin();
+    static void OnParallelRenderEnd(uint32_t frameNumber);
     static void OnProcessCommand();
 
     // see RSRenderService::CreateConnection
@@ -155,6 +165,9 @@ public:
 
     RSB_EXPORT static void WriteParcelData(Parcel& parcel);
     RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
+
+    RSB_EXPORT static uint32_t GetFrameNumber();
+    RSB_EXPORT static bool ShouldBlockHWCNode();
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
@@ -227,6 +240,7 @@ private:
     RSB_EXPORT static void UnmarshalNodes(RSContext& context, std::stringstream& data);
     RSB_EXPORT static void UnmarshalTree(RSContext& context, std::stringstream& data);
     RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data);
+    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId);
     RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data);
 
     // RSRenderNode
@@ -237,18 +251,23 @@ private:
     // JSON
     static void RenderServiceTreeDump(JsonWriter& outWrapper);
     RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpDrawCmdModifier(
+    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeDrawCmdModifier(
         const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
-    RSB_EXPORT static void DumpProperties(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodePropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& outWrapper);
 
     // RSAnimationManager
     RSB_EXPORT static void FilterAnimationForPlayback(RSAnimationManager& manager);
@@ -275,6 +294,7 @@ private:
     static void ScheduleTask(std::function<void()> && task);
     static void RequestNextVSync();
     static void AwakeRenderServiceThread();
+    static void AwakeRenderServiceThreadResetCaches();
     static void ResetAnimationStamp();
 
     static void CreateMockConnection(pid_t pid);
@@ -286,7 +306,9 @@ private:
     static void ProcessSendingRdc();
 
     static void CalcPerfNodeAllStep();
-    static void CalcNodeWeigthOnFrameEnd();
+    static void CalcNodeWeigthOnFrameEnd(uint64_t frameLength);
+
+    RSB_EXPORT static uint32_t GetNodeDepth(const std::shared_ptr<RSRenderNode> node);
 
     // Network interface
     using Command = void (*)(const ArgList&);

@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+    const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
     const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
 }
 
@@ -41,24 +42,30 @@ RSFrameRateVote::~RSFrameRateVote()
     ffrtQueue_ = nullptr;
 }
 
-void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, int64_t timestamp)
+void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
+    sptr<SurfaceBuffer>& buffer)
 {
-    if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || timestamp == 0) {
+    if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
         return;
     }
+    double videoRate = 0.0;
+    sptr<BufferExtraData> extraData = buffer->GetExtraData();
+    if (extraData != nullptr) {
+        extraData->ExtraGet(VIDEO_RATE_FLAG, videoRate);
+    }
     std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-    auto initTask = [this, surfaceNodeId, timestamp]() {
+    auto initTask = [this, surfaceNodeId, videoRate]() {
         std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote;
         if (surfaceVideoFrameRateVote_.find(surfaceNodeId) == surfaceVideoFrameRateVote_.end()) {
             rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(surfaceNodeId,
-                std::bind(&RSFrameRateVote::ReleaseSurfaceMap, this, std::placeholders::_1),
-                std::bind(&RSFrameRateVote::SurfaceVideoVote, this, std::placeholders::_1, std::placeholders::_2));
+                [this](uint64_t id) { this->ReleaseSurfaceMap(id); },
+                [this](uint64_t id, uint32_t rate) { this->SurfaceVideoVote(id, rate); });
             surfaceVideoFrameRateVote_.insert(std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(
                 surfaceNodeId, rsVideoFrameRateVote));
         } else {
             rsVideoFrameRateVote = surfaceVideoFrameRateVote_[surfaceNodeId];
         }
-        rsVideoFrameRateVote->StartVideoFrameRateVote(timestamp);
+        rsVideoFrameRateVote->StartVideoFrameRateVote(videoRate);
     };
     if (ffrtQueue_) {
         ffrtQueue_->submit(initTask);

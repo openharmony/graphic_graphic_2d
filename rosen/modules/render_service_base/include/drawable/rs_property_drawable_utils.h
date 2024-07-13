@@ -76,6 +76,8 @@ public:
     static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,
         const Vector4f& boundsRect, const Color& backgroundColor);
     RSB_EXPORT static int GetAndResetBlurCnt();
+    static bool GetGravityMatrix(const Gravity& gravity, const Drawing::Rect& rect, const float& w, const float& h,
+        Drawing::Matrix& mat);
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

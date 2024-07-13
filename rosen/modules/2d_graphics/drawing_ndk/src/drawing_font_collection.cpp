@@ -117,3 +117,21 @@ void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontC
 #endif
 #endif
 }
+
+void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
+{
+    if (!fontCollection) {
+        return;
+    }
+
+    if (FontCollectionMgr::GetInstance().Find(fontCollection)) {
+        ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
+        return;
+    }
+
+    if (objectMgr->HasObject(fontCollection)) {
+        ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
+        return;
+    }
+    return;
+}

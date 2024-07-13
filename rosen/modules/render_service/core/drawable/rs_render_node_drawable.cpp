@@ -131,7 +131,14 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         }
     }
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
-    bool needUpdateCache = CheckIfNeedUpdateCache(params);
+    int32_t updateTimes = 0;
+    bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
+    if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
+        updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        RS_TRACE_NAME_FMT("DisableCache by update time > 3, id:%llu", params.GetId());
+        params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        ClearCachedSurface();
+    }
     // reset drawing cache changed false for render param if drawable is visited this frame
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
@@ -413,17 +420,37 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     if (cachedImage_->IsValid(canvas.GetGPUContext().get())) {
         return cachedImage_;
     }
+#ifdef RS_ENABLE_GL
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
+        SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
+        cachedImage_ = std::make_shared<Drawing::Image>();
+        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+            origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
+        if (!ret) {
+            RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
+            return nullptr;
+        }
+    }
+#endif
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    Drawing::BitmapFormat info = Drawing::BitmapFormat { cachedImage_->GetColorType(), cachedImage_->GetAlphaType() };
-    SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
-    cachedImage_ = std::make_shared<Drawing::Image>();
-    bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
-        origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
-    if (!ret) {
-        RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
-        return nullptr;
+#ifdef RS_ENABLE_VK
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        if (vulkanCleanupHelper_ == nullptr) {
+            return nullptr;
+        }
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
+        cachedImage_ = std::make_shared<Drawing::Image>();
+        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+            origin, info, nullptr, NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_->Ref());
+        if (!ret) {
+            RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
+            return nullptr;
+        }
     }
 #endif
     return cachedImage_;
@@ -495,15 +522,12 @@ void RSRenderNodeDrawable::ClearCachedSurface()
 #endif
 }
 
-bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
+bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes)
 {
-    int32_t updateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
         if (drawingCacheUpdateTimeMap_.count(nodeId_) > 0) {
             updateTimes = drawingCacheUpdateTimeMap_.at(nodeId_);
-        } else {
-            drawingCacheUpdateTimeMap_.emplace(nodeId_, 0);
         }
     }
 
@@ -513,16 +537,12 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
     // node freeze
     if (params.GetRSFreezeFlag()) {
-        if (updateTimes == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return updateTimes == 0;
     }
 
-    if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
-        (updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME ||
-            (params.NeedFilter() && params.GetDrawingCacheIncludeProperty()))) {
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && params.NeedFilter() &&
+        params.GetDrawingCacheIncludeProperty()) || ROSEN_LE(params.GetCacheSize().x_, 0.f) ||
+        ROSEN_LE(params.GetCacheSize().y_, 0.f)) {
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;
@@ -627,5 +647,20 @@ void RSRenderNodeDrawable::TotalProcessedNodeCountInc()
 void RSRenderNodeDrawable::ClearTotalProcessedNodeCount()
 {
     totalProcessedNodeCount_ = 0;
+}
+
+int RSRenderNodeDrawable::GetProcessedNodeCount()
+{
+    return processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ProcessedNodeCountInc()
+{
+    ++processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ClearProcessedNodeCount()
+{
+    processedNodeCount_ = 0;
 }
 } // namespace OHOS::Rosen::DrawableV2

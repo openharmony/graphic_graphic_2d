@@ -253,6 +253,10 @@ void OH_Drawing_PathAddRoundRect(OH_Drawing_Path* cPath,
 void OH_Drawing_PathAddOvalWithInitialPoint(OH_Drawing_Path* cPath,
     const OH_Drawing_Rect* oval, uint32_t start, OH_Drawing_PathDirection dir)
 {
+    if (dir < PATH_DIRECTION_CW || dir > PATH_DIRECTION_CCW) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     if (oval == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
@@ -303,6 +307,10 @@ void OH_Drawing_PathAddPath(OH_Drawing_Path* cPath,
 void OH_Drawing_PathAddPathWithMatrixAndMode(OH_Drawing_Path* cPath,
     const OH_Drawing_Path* src, const OH_Drawing_Matrix* cMatrix, OH_Drawing_PathAddMode mode)
 {
+    if (mode < PATH_ADD_MODE_APPEND || mode > PATH_ADD_MODE_EXTEND) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     Path* path = CastToPath(cPath);
     if (path == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -323,6 +331,10 @@ void OH_Drawing_PathAddPathWithMatrixAndMode(OH_Drawing_Path* cPath,
 
 void OH_Drawing_PathAddPathWithMode(OH_Drawing_Path* cPath, const OH_Drawing_Path* src, OH_Drawing_PathAddMode mode)
 {
+    if (mode < PATH_ADD_MODE_APPEND || mode > PATH_ADD_MODE_EXTEND) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     Path* path = CastToPath(cPath);
     if (path == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -339,6 +351,10 @@ void OH_Drawing_PathAddPathWithMode(OH_Drawing_Path* cPath, const OH_Drawing_Pat
 void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* cPath,
     const OH_Drawing_Path* src, float dx, float dy, OH_Drawing_PathAddMode mode)
 {
+    if (mode < PATH_ADD_MODE_APPEND || mode > PATH_ADD_MODE_EXTEND) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     Path* path = CastToPath(cPath);
     if (path == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -354,6 +370,10 @@ void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* cPath,
 
 void OH_Drawing_PathAddOval(OH_Drawing_Path* cPath, const OH_Drawing_Rect* oval, OH_Drawing_PathDirection dir)
 {
+    if (dir < PATH_DIRECTION_CW || dir > PATH_DIRECTION_CCW) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     if (oval == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
@@ -387,6 +407,10 @@ void OH_Drawing_PathAddPolygon(OH_Drawing_Path* cPath, const OH_Drawing_Point2D*
 
 void OH_Drawing_PathAddCircle(OH_Drawing_Path* cPath, float x, float y, float radius, OH_Drawing_PathDirection dir)
 {
+    if (dir < PATH_DIRECTION_CW || dir > PATH_DIRECTION_CCW) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return;
+    }
     if (radius <= 0) {
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return;
@@ -544,6 +568,10 @@ bool OH_Drawing_PathGetPositionTangent(OH_Drawing_Path* cPath, bool forceClosed,
 
 bool OH_Drawing_PathOp(OH_Drawing_Path* cPath, const OH_Drawing_Path* src, OH_Drawing_PathOpMode op)
 {
+    if (op < PATH_OP_MODE_DIFFERENCE || op > PATH_OP_MODE_REVERSE_DIFFERENCE) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return false;
+    }
     Path* path = CastToPath(cPath);
     Path* srcPath = CastToPath(const_cast<OH_Drawing_Path*>(src));
     if (path == nullptr || srcPath == nullptr) {
@@ -556,6 +584,10 @@ bool OH_Drawing_PathOp(OH_Drawing_Path* cPath, const OH_Drawing_Path* src, OH_Dr
 bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* cPath, bool forceClosed,
     float distance, OH_Drawing_Matrix* cMatrix, OH_Drawing_PathMeasureMatrixFlags flag)
 {
+    if (flag < GET_POSITION_MATRIX || flag > GET_POSITION_AND_TANGENT_MATRIX) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return false;
+    }
     Path* path = CastToPath(cPath);
     Matrix* matrix = CastToMatrix(cMatrix);
     if (path == nullptr || matrix == nullptr) {

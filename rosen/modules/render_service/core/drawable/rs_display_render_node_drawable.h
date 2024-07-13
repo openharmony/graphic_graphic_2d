@@ -40,6 +40,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas,
         std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams* params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
@@ -88,7 +89,6 @@ private:
     bool SkipDisplayIfScreenOff() const;
     bool CheckIfHasSpecialLayer(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
-    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -103,6 +103,7 @@ private:
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
+    Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
 };
 } // namespace DrawableV2

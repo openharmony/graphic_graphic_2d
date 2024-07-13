@@ -67,6 +67,7 @@ public:
     virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
     virtual sptr<Surface> GetProducerSurface() const = 0;
     virtual void SetProducerSurface(sptr<Surface> producerSurface) = 0;
+    virtual bool GetAndResetVirtualSurfaceUpdateFlag() = 0;
     virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
@@ -146,6 +147,7 @@ public:
     std::shared_ptr<HdiOutput> GetOutput() const override;
     sptr<Surface> GetProducerSurface() const override;
     void SetProducerSurface(sptr<Surface> producerSurface) override;
+    bool GetAndResetVirtualSurfaceUpdateFlag() override;
     void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
@@ -214,6 +216,7 @@ private:
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
 
     bool isVirtual_ = true;
+    bool isVirtualSurfaceUpdateFlag_ = false;
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;

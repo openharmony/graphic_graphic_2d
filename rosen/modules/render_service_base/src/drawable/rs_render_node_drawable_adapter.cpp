@@ -249,10 +249,10 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
     const auto& drawCmdList = uifirstDrawCmdList_;
     auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
     auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
-    if (contentIdx != -1) {
+    if (0 <= contentIdx && contentIdx < drawCmdList.size()) {
         drawCmdList[contentIdx](&canvas, &rect);
     }
-    if (childrenIdx != -1) {
+    if (0 <= childrenIdx && childrenIdx < drawCmdList.size()) {
         drawCmdList[childrenIdx](&canvas, &rect);
     }
 }

@@ -12,10 +12,10 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("common.gni")
 
 form_components_support = true
 plugin_components_support = true
-use_external_icu = "shared"
 
 defines = [
   "FORM_SUPPORTED",

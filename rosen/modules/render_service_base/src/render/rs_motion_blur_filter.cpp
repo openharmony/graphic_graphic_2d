@@ -44,13 +44,9 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     RS_OPTIONAL_TRACE_NAME("RSMotionBlurFilter::MotionBlur");
-    Drawing::Matrix mat = canvas.GetTotalMatrix();
-    Drawing::Rect rect = canvas.GetDeviceClipBounds();
-    mat.MapRect(rect, rect);
-    curRect_ = Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
 
     if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
-        lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
+        lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
         ROSEN_LOGE("RSMotionBlurFilter::image error");
         return;
     }
@@ -61,9 +57,10 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
         return;
     }
 
-    RS_OPTIONAL_TRACE_NAME_FMT("RSMotionBlurFilter: radius:%f, lastRect:%s, curRect:%s", motionBlurPara_->radius,
-        lastRect_.ToString().c_str(), curRect_.ToString().c_str());
-
+    Drawing::Matrix mat = canvas.GetTotalMatrix();
+    Drawing::Rect rect = Drawing::Rect(0.f, 0.f, image->GetWidth(), image->GetHeight());
+    mat.MapRect(rect, rect);
+    curRect_ = Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
     if (!RectValid(lastRect_, curRect_)) {
         lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
         OutputOriginalImage(canvas, image, src, dst);

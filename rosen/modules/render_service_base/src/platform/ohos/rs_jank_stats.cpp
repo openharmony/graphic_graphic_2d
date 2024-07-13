@@ -56,6 +56,7 @@ void RSJankStats::SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncS
 
 void RSJankStats::SetAccumulatedBufferCount(int accumulatedBufferCount)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     accumulatedBufferCount_ = accumulatedBufferCount;
 }
 
@@ -199,7 +200,7 @@ void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshR
         return;
     }
     if (rsJankStats_[type] == USHRT_MAX) {
-        ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
+        ROSEN_LOGD("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
         return;
     }
     if (type == JANK_FRAME_6_FREQ) {

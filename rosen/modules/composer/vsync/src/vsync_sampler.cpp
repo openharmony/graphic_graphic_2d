@@ -21,6 +21,7 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <string>
+#include <rs_trace.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -284,7 +285,7 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
 
     UpdateErrorLocked();
     if (error_ > ERROR_THRESHOLD) {
-        ScopedBytrace trace("PresentFenceTime error_:" + std::to_string(error_));
+        RS_TRACE_NAME_FMT("PresentFenceTime error_:%lf", error_);
     }
 
     return !modeUpdated_ || error_ > ERROR_THRESHOLD;

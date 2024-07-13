@@ -107,6 +107,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetVkQueueDividedEnable()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -275,6 +280,11 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;
+}
+
+void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
+{
+    forceHpsBlurDisabled_ = flag;
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()

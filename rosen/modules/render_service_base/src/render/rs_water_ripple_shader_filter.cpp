@@ -65,10 +65,10 @@ void RSWaterRippleShaderFilter::GenerateGEVisualEffect(
 {
     auto waterRippleFilter = std::make_shared<Drawing::GEVisualEffect>
         ("WATER_RIPPLE", Drawing::DrawingPaintType::BRUSH);
-    waterRippleFilter->SetParam("PROGRESS", progress_);
-    waterRippleFilter->SetParam("WAVE_NUM", waveCount_);
-    waterRippleFilter->SetParam("RIPPLE_CENTER_X", rippleCenterX_);
-    waterRippleFilter->SetParam("RIPPLE_CENTER_Y", rippleCenterY_);
+    waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_PROGRESS, progress_);
+    waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_WAVE_NUM, waveCount_);
+    waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, rippleCenterX_);
+    waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, rippleCenterY_);
     visualEffectContainer->AddToChainedFilter(waterRippleFilter);
 }
 } // namespace Rosen

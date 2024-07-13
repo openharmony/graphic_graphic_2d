@@ -28,6 +28,10 @@ RSRenderParticleEmitter::RSRenderParticleEmitter(std::shared_ptr<ParticleRenderP
 
 void RSRenderParticleEmitter::PreEmit()
 {
+    if (particleParams_ == nullptr) {
+        emitFinish_ = true;
+        return;
+    }
     auto particleType = particleParams_->GetParticleType();
     auto opacityUpdater = particleParams_->GetOpacityUpdator();
     auto scaleUpdater = particleParams_->GetScaleUpdator();
@@ -67,7 +71,7 @@ void RSRenderParticleEmitter::PreEmit()
 void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
 {
     PreEmit();
-    if (emitFinish_ == true) {
+    if (particleParams_ == nullptr || emitFinish_ == true) {
         return;
     }
     auto emitRate = std::min(particleParams_->GetEmitRate(), MAX_EMIT_RATE);

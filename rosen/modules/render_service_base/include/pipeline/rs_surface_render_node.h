@@ -64,7 +64,7 @@ public:
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
+    void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
@@ -165,6 +165,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const sptr<SurfaceBuffer>& preBuffer);
+
+    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -280,6 +282,11 @@ public:
         return needCollectHwcNode_;
     }
 
+    void SetNeedCollectHwcNode(bool needCollect)
+    {
+        needCollectHwcNode_ = needCollect;
+    }
+
     void ResetNeedCollectHwcNode()
     {
         needCollectHwcNode_ = false;
@@ -325,7 +332,8 @@ public:
 
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     {
-        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
+        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_NODE) {
             nodeType_ = nodeType;
         }
     }
@@ -1176,9 +1184,25 @@ public:
         return brightnessRatio_;
     }
 
+    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
+    {
+        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
+    }
+
+    bool GetHardWareDisabledByReverse() const
+    {
+        return isHardWareDisabledByReverse_;
+    }
+
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    bool IsUIExtension() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_NODE;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1399,6 +1423,7 @@ private:
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
+    bool isHardWareDisabledByReverse_ = false;
 
     uint32_t processZOrder_ = -1;
 
@@ -1443,6 +1468,8 @@ private:
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
 
+    // UIExtension record, <UIExtension, hostAPP>
+    inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

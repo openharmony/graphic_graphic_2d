@@ -44,6 +44,18 @@ SkiaFont::SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scale
     skFont_ = SkFont(skiaTypeface->GetTypeface(), size, scaleX, skewX);
 }
 
+SkiaFont::SkiaFont(const Font& font) noexcept
+{
+    auto skiaFont = font.GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        skFont_ = SkFont();
+        LOGD("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    typeface_ = skiaFont->typeface_;
+    skFont_ = skiaFont->skFont_;
+}
+
 void SkiaFont::SetEdging(FontEdging edging)
 {
     skFont_.setEdging(static_cast<SkFont::Edging>(edging));
@@ -161,7 +173,7 @@ scalar SkiaFont::GetSize() const
     return skFont_.getSize();
 }
 
-std::shared_ptr<Typeface> SkiaFont::GetTypeface()
+std::shared_ptr<Typeface> SkiaFont::GetTypeface() const
 {
     return typeface_;
 }
@@ -231,17 +243,7 @@ int SkiaFont::TextToGlyphs(const void* text, size_t byteLength, TextEncoding enc
 scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
-    if (bounds) {
-        SkRect rect;
-        scalar width = skFont_.measureText(text, byteLength, skEncoding, &rect);
-        bounds->SetLeft(rect.fLeft);
-        bounds->SetTop(rect.fTop);
-        bounds->SetRight(rect.fRight);
-        bounds->SetBottom(rect.fBottom);
-        return width;
-    } else {
-        return skFont_.measureText(text, byteLength, skEncoding);
-    }
+    return skFont_.measureText(text, byteLength, skEncoding, reinterpret_cast<SkRect*>(bounds));
 }
 
 int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encoding) const

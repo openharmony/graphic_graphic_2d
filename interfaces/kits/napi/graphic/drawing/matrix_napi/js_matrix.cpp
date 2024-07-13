@@ -27,6 +27,14 @@ napi_value JsMatrix::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("preRotate", JsMatrix::PreRotate),
         DECLARE_NAPI_FUNCTION("preScale", JsMatrix::PreScale),
         DECLARE_NAPI_FUNCTION("preTranslate", JsMatrix::PreTranslate),
+        DECLARE_NAPI_FUNCTION("setRotation", JsMatrix::SetRotation),
+        DECLARE_NAPI_FUNCTION("setScale", JsMatrix::SetScale),
+        DECLARE_NAPI_FUNCTION("setTranslation", JsMatrix::SetTranslation),
+        DECLARE_NAPI_FUNCTION("setMatrix", JsMatrix::SetMatrix),
+        DECLARE_NAPI_FUNCTION("preConcat", JsMatrix::PreConcat),
+        DECLARE_NAPI_FUNCTION("isEqual", JsMatrix::IsEqual),
+        DECLARE_NAPI_FUNCTION("invert", JsMatrix::Invert),
+        DECLARE_NAPI_FUNCTION("isIdentity", JsMatrix::IsIdentity),
     };
 
     napi_value constructor = nullptr;
@@ -110,7 +118,6 @@ napi_value JsMatrix::OnPreRotate(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_TWO, py);
 
     JS_CALL_DRAWING_FUNC(m_matrix->PreRotate(degree, px, py));
-
     return nullptr;
 }
 
@@ -140,7 +147,6 @@ napi_value JsMatrix::OnPreScale(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_THREE, py);
 
     JS_CALL_DRAWING_FUNC(m_matrix->PreScale(sx, sy, px, py));
-
     return nullptr;
 }
 
@@ -166,8 +172,236 @@ napi_value JsMatrix::OnPreTranslate(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
 
     JS_CALL_DRAWING_FUNC(m_matrix->PreTranslate(dx, dy));
-
     return nullptr;
+}
+
+napi_value JsMatrix::SetRotation(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetRotation(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetRotation(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetRotation matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_THREE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+
+    double degree = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, degree);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, py);
+
+    JS_CALL_DRAWING_FUNC(m_matrix->Rotate(degree, px, py));
+    return nullptr;
+}
+
+napi_value JsMatrix::SetScale(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetScale(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetScale(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetScale matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    double sx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, sx);
+    double sy = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, sy);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py);
+
+    JS_CALL_DRAWING_FUNC(m_matrix->Scale(sx, sy, px, py));
+    return nullptr;
+}
+
+napi_value JsMatrix::SetTranslation(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetTranslation(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetTranslation(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetTranslation matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    double dx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, dx);
+    double dy = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, dy);
+
+    JS_CALL_DRAWING_FUNC(m_matrix->Translate(dx, dy));
+    return nullptr;
+}
+
+napi_value JsMatrix::SetMatrix(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetMatrix(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetMatrix matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    uint32_t arrayLength = 0;
+    if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
+    }
+
+    if (arrayLength != ARGC_NINE) { // arrayLength must be an nine number
+        ROSEN_LOGE("JsMatrix::OnSetMatrix count of array is not nine : %{public}u", arrayLength);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "parameter array length verification failed.");
+    }
+
+    scalar matrixPara[arrayLength];
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[ARGC_ZERO], i, &hasElement);
+        if (!hasElement) {
+            ROSEN_LOGE("JsMatrix::OnSetMatrix parameter check error");
+            return nullptr;
+        }
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[ARGC_ZERO], i, &element);
+
+        double value = 0.0;
+        ConvertFromJsNumber(env, element, value);
+        matrixPara[i] = value;
+    }
+
+    m_matrix->SetMatrix(matrixPara[ARGC_ZERO], matrixPara[ARGC_ONE], matrixPara[ARGC_TWO],
+        matrixPara[ARGC_THREE], matrixPara[ARGC_FOUR], matrixPara[ARGC_FIVE], matrixPara[ARGC_SIX],
+        matrixPara[ARGC_SEVEN], matrixPara[ARGC_EIGHT]);
+    return nullptr;
+}
+
+napi_value JsMatrix::PreConcat(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnPreConcat(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnPreConcat(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPreConcat matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsMatrix* jsMatrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+    if (jsMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPreConcat matrix is nullptr");
+        return nullptr;
+    }
+
+    m_matrix->PreConcat(*jsMatrix->GetMatrix());
+    return nullptr;
+}
+
+napi_value JsMatrix::IsEqual(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnIsEqual(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnIsEqual matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsMatrix* jsMatrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+    if (jsMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnIsEqual matrix is nullptr");
+        return CreateJsValue(env, false);
+    }
+
+    return CreateJsValue(env, m_matrix->operator == (*jsMatrix->GetMatrix()));
+}
+
+napi_value JsMatrix::Invert(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnInvert(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnInvert(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnInvert matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsMatrix* jsMatrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+    if (jsMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnInvert matrix is nullptr");
+        return nullptr;
+    }
+
+    return CreateJsValue(env, m_matrix->Invert(*jsMatrix->GetMatrix()));
+}
+
+napi_value JsMatrix::IsIdentity(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnIsIdentity(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnIsIdentity(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnIsIdentity matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_matrix->IsIdentity());
 }
 
 JsMatrix::~JsMatrix()

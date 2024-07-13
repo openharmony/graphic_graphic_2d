@@ -17,10 +17,14 @@ import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 config("export_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${graphic_2d_root}/utils/log",
+  ]
   cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
+  defines += gpu_defines
 }
 
 if (!is_mingw && !is_mac && !is_cross_platform) {
@@ -153,16 +157,22 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_proxy.cpp",
+    "src/ipc_callbacks/pointer_luminance_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/rs_iuiextension_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
+    "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
@@ -281,6 +291,7 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
+    "src/transaction/rs_uiextension_data.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",
@@ -575,6 +586,10 @@ config("render_service_base_link_config") {
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
+
+    if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
+      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+    }
   }
 }
 
@@ -588,6 +603,8 @@ ohos_shared_library("librender_service_base") {
       blocklist = "./rs_base_blocklist.txt"
     }
   }
+
+  sources = [ "src/common/rs_common_hook.cpp" ]
 
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
@@ -638,6 +655,10 @@ ohos_source_set("librender_service_base_static") {
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
   public_configs = [ ":render_service_base_all_deps_config" ]
+
+  if (is_arkui_x) {
+    sources = [ "src/common/rs_common_hook.cpp" ]
+  }
 
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [

@@ -981,7 +981,17 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         }
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
-    result = deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[index].image, -1,
+    int fenceDup = -1;
+    if (fence != -1) {
+        fenceDup = ::dup(fence);
+        if (fenceDup == -1) {
+            SWLOGE("dup NativeWindow requested fencefd failed, wait for signalled");
+            sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fence);
+            syncFence->Wait(-1);
+        }
+    }
+    // in vkAcquireImageOHOS should close fenceDup fd
+    result = deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[index].image, fenceDup,
                                                                     semaphore, vkFence);
     if (result != VK_SUCCESS) {
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {

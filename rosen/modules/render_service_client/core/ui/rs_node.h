@@ -291,7 +291,7 @@ public:
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
+    void SetMagnifierParams(const Vector2f& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
@@ -458,6 +458,11 @@ public:
     int32_t GetInstanceId() const
     {
         return instanceId_;
+    }
+
+    const std::string& GetNodeName() const
+    {
+        return nodeName_;
     }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);

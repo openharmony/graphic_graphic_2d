@@ -111,6 +111,7 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
     if (finishCallback.use_count() != 1) {
         return;
     }
+    RSAnimationTraceUtils::GetInstance().addAnimationNameTrace("ProcessEmptyAnimations");
     auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
     // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
     // execute it asynchronously, in order to avoid timing issues.
@@ -599,9 +600,11 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         repeatCallback.reset();
     }
 
-    RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(target->GetId(), property->GetId(), animation->GetId(),
-        static_cast<int>(params->GetType()), static_cast<int>(property->type_), startValue->GetRenderProperty(),
-        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration());
+    RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
+        target->GetId(), target->GetNodeName(), property->GetId(),
+        animation->GetId(), static_cast<int>(params->GetType()), static_cast<int>(property->type_),
+        startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
+        animation->GetDuration(), protocol.GetRepeatCount());
 
     if (params->GetType() == ImplicitAnimationParamType::TRANSITION ||
         params->GetType() == ImplicitAnimationParamType::KEYFRAME) {
@@ -680,6 +683,13 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
         animation->SetRepeatCallback(std::move(repeatCallback));
         repeatCallback.reset();
     }
+
+    auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
+    RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
+        target->GetId(), target->GetNodeName(), property->GetId(),
+        animation->GetId(), static_cast<int>(params->GetType()), static_cast<int>(property->type_),
+        startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
+        animation->GetDuration(), protocol.GetRepeatCount());
 
     target->AddAnimation(animation);
     implicitAnimations_.top().emplace_back(animation, target->GetId());

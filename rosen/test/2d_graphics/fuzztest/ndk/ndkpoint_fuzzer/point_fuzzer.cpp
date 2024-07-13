@@ -42,6 +42,16 @@ void NativeDrawingPointTest001(const uint8_t* data, size_t size)
     float y = GetObject<float>();
 
     OH_Drawing_Point* point = OH_Drawing_PointCreate(x, y);
+
+    OH_Drawing_PointGetX(point, &x);
+    OH_Drawing_PointGetX(nullptr, &x);
+
+    OH_Drawing_PointGetY(point, &y);
+    OH_Drawing_PointGetY(nullptr, &y);
+
+    OH_Drawing_PointSet(point, x, y);
+    OH_Drawing_PointSet(nullptr, x, y);
+
     OH_Drawing_PointDestroy(point);
 }
 } // namespace Drawing

@@ -46,9 +46,8 @@ void RSSurfaceCaptureTaskParallelTest::TearDown() {}
 */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CalPixelMapRotation, TestSize.Level2)
 {
-    float scaleX = 1.0f;
-    float scaleY = 1.0f;
-    RSSurfaceCaptureTaskParallel task(0, scaleX, scaleY);
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     task.screenCorrection_ = ScreenRotation::ROTATION_90;
     task.screenRotation_ = ScreenRotation::ROTATION_270;
     ASSERT_EQ(task.CalPixelMapRotation(), RS_ROTATION_180);

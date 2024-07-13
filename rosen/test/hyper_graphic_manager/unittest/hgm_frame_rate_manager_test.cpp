@@ -82,23 +82,74 @@ HWTEST_F(HgmFrameRateMgrTest, MergeRangeByPriority, Function | SmallTest | Level
 }
 
 /**
- * @tc.name: UniProcessDataForLtps
- * @tc.desc: Verify the result of UniProcessDataForLtps function
+ * @tc.name: MultiThread001
+ * @tc.desc: Verify the result of MultiThread001 function
  * @tc.type: FUNC
- * @tc.require: I7DMS1
+ * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtps, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
 {
-    bool flag = false;
-    std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
-    frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-    frameRateMgr->SetSchedulerPreferredFps(OLED_60_HZ);
-    frameRateMgr->SetIsNeedUpdateAppOffset(true);
-    PART("CaseDescription") {
-        STEP("1. check the result of UniProcessDataForLtps") {
-            frameRateMgr->UniProcessDataForLtps(flag);
+    int64_t offset = 0;
+    int64_t touchCnt = 1;
+    int32_t testThreadNum = 100;
+    std::string pkg0 = "com.pkg.other:0:-1";
+    std::string pkg1 = "com.ss.hm.ugc.aweme:1001:10067";
+    std::string pkg2 = "com.wedobest.fivechess.harm:1002:10110";
+
+    HgmFrameRateManager frameRateMgr;
+    auto vsyncGenerator = CreateVSyncGenerator();
+    sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
+    sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
+    frameRateMgr.Init(rsController, appController, vsyncGenerator);
+
+    std::vector<std::thread> testThreads;
+    
+    for (int i = 0; i < testThreadNum; i++) {
+        // HandleLightFactorStatus
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleLightFactorStatus(i, true); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleLightFactorStatus(i, false); }));
+
+        // HandlePackageEvent
+        // param 1/2：pkg size
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg0}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg1}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg2}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 2, {pkg0, pkg1}); }));
+
+        // HandleRefreshRateEvent
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateEvent(i, {}); }));
+
+        // HandleTouchEvent
+        // param 1: touchCnt
+        testThreads.push_back(std::thread([&] () {
+            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, "", i, 1);
+        }));
+        testThreads.push_back(std::thread([&] () {
+            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, "", i, 1);
+        }));
+
+        // HandleRefreshRateMode
+        // param -1、0、1、2、3：refresh rate mode
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(-1); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(0); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(1); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(2); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(3); }));
+
+        // HandleScreenPowerStatus
+        testThreads.push_back(std::thread([&] () {
+            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
+        }));
+        testThreads.push_back(std::thread([&] () {
+            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
+        }));
+    }
+    for (auto &testThread : testThreads) {
+        if (testThread.joinable()) {
+            testThread.join();
         }
     }
+    sleep(1); // wait for handler task finished
 }
 
 /**
@@ -153,6 +204,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Lev
             testThread.join();
         }
     }
+    sleep(1); // wait for handler task finished
 }
 } // namespace Rosen
 } // namespace OHOS

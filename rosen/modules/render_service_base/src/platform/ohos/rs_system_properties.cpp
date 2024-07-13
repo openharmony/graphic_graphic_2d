@@ -104,6 +104,14 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
+bool RSSystemProperties::GetVkQueueDividedEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.q.divided.enalbed", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetInstantRecording()
 {
     return (system::GetParameter("debug.graphic.instant.recording.enabled", "0") != "0");
@@ -543,11 +551,16 @@ bool RSSystemProperties::GetKawaseEnabled()
     return kawaseBlurEnabled;
 }
 
+void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
+{
+    forceHpsBlurDisabled_ = flag;
+}
+
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     static bool hpsBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.HpsBlurEnable", "1")).c_str()) != 0;
-    return hpsBlurEnabled;
+    return hpsBlurEnabled && !forceHpsBlurDisabled_;
 }
 
 float RSSystemProperties::GetKawaseRandomColorFactor()
@@ -866,14 +879,6 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
-{
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
-}
-
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
@@ -1018,7 +1023,7 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;

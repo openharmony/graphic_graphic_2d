@@ -145,9 +145,16 @@ static std::vector<std::string> GetDebugLayerPaths()
     WLOGD("GetDebugLayerPaths");
     std::vector<std::string> layerPaths = {std::string(DEBUG_LAYERS_LIB_DIR)};
     std::string pathStr(DEBUG_SANDBOX_DIR);
-    layerPaths.push_back(pathStr + g_bundleInfo.applicationInfo.nativeLibraryPath + "/");
+
+    std::string appLibPath = g_bundleInfo.applicationInfo.nativeLibraryPath;
+    if (!appLibPath.empty()) {
+        layerPaths.push_back(pathStr + appLibPath + "/");
+    }
+
     for (auto hapModuleInfo: g_bundleInfo.hapModuleInfos) {
-        layerPaths.push_back(hapModuleInfo.nativeLibraryPath + "/");
+        if (!hapModuleInfo.nativeLibraryPath.empty()) {
+            layerPaths.push_back(hapModuleInfo.nativeLibraryPath + "/");
+        }
     }
     return layerPaths;
 }
@@ -176,11 +183,6 @@ bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
         return false;
     }
 
-    if (!InitBundleInfo()) {
-        WLOGE("Get BundleInfo failed.");
-        return false;
-    }
-
     if (!LoadLayers()) {
         WLOGE("LoadLayers failed.");
         return false;
@@ -194,6 +196,11 @@ bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
 
 bool EglWrapperLayer::InitBundleInfo()
 {
+    std::string debugHap = system::GetParameter(DEBUG_HAP_NAME, "");
+    if (debugHap.empty()) {
+        WLOGD("The parameter for debug hap name is not set!");
+        return false;
+    }
     auto eglBundleMgrHelper = DelayedSingleton<AppExecFwk::EGLBundleMgrHelper>::GetInstance();
     if (eglBundleMgrHelper == nullptr) {
         WLOGE("eglBundleMgrHelper is null!");
@@ -202,7 +209,6 @@ bool EglWrapperLayer::InitBundleInfo()
 
     if (eglBundleMgrHelper->GetBundleInfoForSelf(
         AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION, g_bundleInfo) == ERR_OK) {
-        std::string debugHap = system::GetParameter(DEBUG_HAP_NAME, "");
         if (g_bundleInfo.name == debugHap) {
             return true;
         } else {
@@ -277,6 +283,10 @@ bool EglWrapperLayer::LoadLayers()
     if (layers.empty()) {
         WLOGD("layers is empty");
         return false;
+    }
+
+    if (!InitBundleInfo()) {
+        WLOGD("Get BundleInfo failed.");
     }
 
     for (int32_t i = layers.size() - 1; i >= 0; i--) {

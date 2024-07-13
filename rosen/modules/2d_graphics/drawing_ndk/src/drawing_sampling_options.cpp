@@ -15,6 +15,7 @@
 
 #include "drawing_sampling_options.h"
 #include "utils/sampling_options.h"
+#include "drawing_canvas_utils.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -27,6 +28,10 @@ static SamplingOptions* CastToSamplingOptions(OH_Drawing_SamplingOptions* cSampl
 
 OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode fm, OH_Drawing_MipmapMode mm)
 {
+    if (mm < MIPMAP_MODE_NONE || mm > MIPMAP_MODE_LINEAR) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
     return (OH_Drawing_SamplingOptions*)new SamplingOptions(static_cast<FilterMode>(fm), static_cast<MipmapMode>(mm));
 }
 

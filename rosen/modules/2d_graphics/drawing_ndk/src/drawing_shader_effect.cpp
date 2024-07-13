@@ -66,6 +66,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradient(const OH_Dr
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
@@ -86,6 +90,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMat
 {
     if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -110,6 +118,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradient(const OH_Dr
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
@@ -128,6 +140,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
 {
     if (centerPt == nullptr || colors == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -150,6 +166,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Dra
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
@@ -170,6 +190,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
+    if (tileX < CLAMP || tileX > DECAL || tileY < CLAMP || tileY > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
     if (cMatrix == nullptr) {
         Matrix matrix;
         return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::IMAGE, CastToImage(*cImage),
@@ -186,6 +210,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(co
 {
     if (startPt == nullptr || endPt == nullptr || colors == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (cTileMode < CLAMP || cTileMode > DECAL) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;

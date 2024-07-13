@@ -21,6 +21,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
@@ -128,8 +129,11 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
+        // Enable anti-aliasing only on surface nodes to resolve the issue of jagged edges on card compoments
+        // during dragging.
+        bool aa = node.IsInstanceOf<RSSurfaceRenderNode>();
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, aa);
     }
     return true;
 }
@@ -356,7 +360,11 @@ void RSFilterDrawable::ClearFilterCache()
     }
     // 1. clear memory when region changed and is not the first time occured.
     bool needClearMemoryForGpu = filterRegionChanged_ && cacheManager_->GetCachedType() != FilterCacheType::NONE;
-    cacheManager_->InvalidateFilterCache(clearType_);
+    if (filterType_ == RSFilter::AIBAR && isOccluded_) {
+        cacheManager_->InvalidateFilterCache(FilterCacheType::BOTH);
+    } else {
+        cacheManager_->InvalidateFilterCache(clearType_);
+    }
     // 2. clear memory when region changed without skip frame.
     needClearMemoryForGpu = needClearMemoryForGpu && cacheManager_->GetCachedType() == FilterCacheType::NONE;
     if (needClearMemoryForGpu) {
@@ -380,16 +388,34 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
-        cacheUpdateInterval_--;
-        pendingPurge_ = true;
+    if (isAIBarInteractWithHWC_) {
+        if (cacheUpdateInterval_ > 0) {
+            cacheUpdateInterval_--;
+            pendingPurge_ = true;
+        }
+    } else {
+        if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
+            cacheUpdateInterval_--;
+            pendingPurge_ = true;
+        }
     }
+    isAIBarInteractWithHWC_ = false;
 }
 
 bool RSFilterDrawable::IsAIBarCacheValid()
 {
-    return (filterType_ == RSFilter::AIBAR) && !filterRegionChanged_ &&
-        (forceUseCache_ || ((filterInteractWithDirty_ || rotationChanged_))) && cacheUpdateInterval_ > 0;
+    if (filterType_ != RSFilter::AIBAR) {
+        return false;
+    }
+    isAIBarInteractWithHWC_ = true;
+    RS_OPTIONAL_TRACE_NAME_FMT("IsAIBarCacheValid cacheUpdateInterval_:%d forceClearCacheWithLastFrame_:%d",
+        cacheUpdateInterval_, forceClearCacheWithLastFrame_);
+    if (cacheUpdateInterval_ == 0 || forceClearCacheWithLastFrame_) {
+        return false;
+    } else {
+        MarkFilterForceUseCache(true);
+        return true;
+    }
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

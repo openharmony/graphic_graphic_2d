@@ -493,6 +493,9 @@ void RSProfiler::MarshalNode(const RSRenderNode* node, std::stringstream& data)
     const bool isOnTree = node->IsOnTheTree();
     data.write(reinterpret_cast<const char*>(&isOnTree), sizeof(isOnTree));
 
+    const uint8_t nodeGroupType = node->nodeGroupType_;
+    data.write(reinterpret_cast<const char*>(&nodeGroupType), sizeof(nodeGroupType));
+
     MarshalNode(*node, data);
 }
 
@@ -611,6 +614,7 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
             return;
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
+            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, unmarshal nodes", node->GetId());
             node->SetContentDirty();
             node->SetDirty();
         }
@@ -648,24 +652,28 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
     } else {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     }
+    UnmarshalNode(context, data, nodeId);
+}
 
+void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId)
+{
     float positionZ = 0.0f;
     data.read(reinterpret_cast<char*>(&positionZ), sizeof(positionZ));
-
     float pivotZ = 0.0f;
     data.read(reinterpret_cast<char*>(&pivotZ), sizeof(pivotZ));
-
     NodePriorityType priority = NodePriorityType::MAIN_PRIORITY;
     data.read(reinterpret_cast<char*>(&priority), sizeof(priority));
-
     bool isOnTree = false;
     data.read(reinterpret_cast<char*>(&isOnTree), sizeof(isOnTree));
+    uint8_t nodeGroupType = 0;
+    data.read(reinterpret_cast<char*>(&nodeGroupType), sizeof(nodeGroupType));
 
     if (auto node = context.GetMutableNodeMap().GetRenderNode(nodeId)) {
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
         node->SetIsOnTheTree(isOnTree);
+        node->nodeGroupType_ = nodeGroupType;
         UnmarshalNode(*node, data);
     }
 }
@@ -1007,6 +1015,15 @@ const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMall
     auto data = RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), size);
     return data;
+}
+
+uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)
+{
+    uint32_t depth = 0;
+    for (auto curNode = node; curNode != nullptr; depth++) {
+        curNode = curNode ? curNode->GetParent().lock() : nullptr;
+    }
+    return depth;
 }
 
 } // namespace OHOS::Rosen

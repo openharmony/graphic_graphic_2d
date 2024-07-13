@@ -25,19 +25,6 @@ namespace {
 static constexpr int MAX_FLOATING_WINDOW_NUMBER = 100;
 static constexpr int MAX_WINDOW_NUMBER = 100;
 }
-const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFuncMap_{
-    std::make_pair(RSIWindowAnimationController::ON_START_APP, &RSWindowAnimationStub::StartApp),
-    std::make_pair(RSIWindowAnimationController::ON_APP_TRANSITION, &RSWindowAnimationStub::AppTransition),
-    std::make_pair(RSIWindowAnimationController::ON_APP_BACK_TRANSITION, &RSWindowAnimationStub::AppBackTransition),
-    std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_WINDOW, &RSWindowAnimationStub::MinimizeWindow),
-    std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, &RSWindowAnimationStub::MinimizeAllWindow),
-    std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
-    std::make_pair(RSIWindowAnimationController::ON_SCREEN_UNLOCK, &RSWindowAnimationStub::ScreenUnlock),
-    std::make_pair(RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE,
-        &RSWindowAnimationStub::WindowAnimationTargetsUpdate),
-    std::make_pair(RSIWindowAnimationController::ON_WALLPAPER_UPDATE, &RSWindowAnimationStub::WallpaperUpdate)
-};
-
 int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     MessageParcel& reply, MessageOption &option)
 {
@@ -47,13 +34,39 @@ int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
         return ERR_INVALID_STATE;
     }
 
-    const auto func = stubFuncMap_.find(code);
-    if (func == stubFuncMap_.end()) {
-        WALOGE("Failed to find function handler!");
-        return ERR_UNKNOWN_TRANSACTION;
+    switch (code) {
+        case RSIWindowAnimationController::ON_START_APP:
+            return StartApp(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_APP_TRANSITION:
+            return AppTransition(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_APP_BACK_TRANSITION:
+            return AppBackTransition(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_MINIMIZE_WINDOW:
+            return MinimizeWindow(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW:
+            return MinimizeAllWindow(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_CLOSE_WINDOW:
+            return CloseWindow(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_SCREEN_UNLOCK:
+            return ScreenUnlock(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE:
+            return WindowAnimationTargetsUpdate(data, reply);
+            break;
+        case RSIWindowAnimationController::ON_WALLPAPER_UPDATE:
+            return WallpaperUpdate(data, reply);
+            break;
+        default:
+            break;
     }
-
-    return (this->*(func->second))(data, reply);
+    WALOGE("Failed to find function handler!");
+    return ERR_UNKNOWN_TRANSACTION;
 }
 
 int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)

@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MAGNIFIER_SHADER_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MAGNIFIER_SHADER_FILTER_H
 
-#include "render/rs_magnifier_para.h"
+#include "common/rs_vector2.h"
 #include "render/rs_shader_filter.h"
 
 namespace OHOS {
@@ -23,20 +23,19 @@ namespace Rosen {
 
 class RSB_EXPORT RSMagnifierShaderFilter : public RSShaderFilter {
 public:
-    RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifierParams>& para);
+    RSMagnifierShaderFilter(float offsetX, float offsetY);
     RSMagnifierShaderFilter(const RSMagnifierShaderFilter&) = delete;
     RSMagnifierShaderFilter operator=(const RSMagnifierShaderFilter&) = delete;
     ~RSMagnifierShaderFilter() override;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
-    const std::shared_ptr<RSMagnifierParams>& GetMagnifierShaderFilterPara()
-    {
-        return magnifierPara_;
-    }
+    float GetMagnifierOffsetX() const { return offsetX_; }
+    float GetMagnifierOffsetY() const { return offsetY_; }
 
 private:
     friend class RSMarshallingHelper;
-    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
+    float offsetX_ = 0.f;
+    float offsetY_ = 0.f;
 };
 } // namespace Rosen
 } // namespace OHOS

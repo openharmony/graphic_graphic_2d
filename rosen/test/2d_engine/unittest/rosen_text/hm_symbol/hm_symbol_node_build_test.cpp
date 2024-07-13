@@ -126,7 +126,7 @@ bool OHHmSymbolNodeBuildTest::SetSymbolAnimationTwo(
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSAnimationSetting animationSetting;
     RSHMSymbolData symbol;
     RSEffectStrategy effectMode = RSEffectStrategy::SCALE;
@@ -140,7 +140,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 40); // 100 x, 100, 40 radius
     path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
@@ -165,7 +165,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw002, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 50); // 100 x, 100, 50 radius
     path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
@@ -190,7 +190,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw002, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw003, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 65); // 100 x, 100, 40 radius
     path.AddCircle(100, 100, 45); // 100 x, 100, 30 radius
@@ -215,7 +215,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw003, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 50); // 100 x, 100, 50 radius
     path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
@@ -240,7 +240,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 50); // 100 x, 100, 50 radius
     path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
@@ -264,7 +264,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
     path.AddCircle(100, 100, 65); // 100 x, 100, 40 radius
     path.AddCircle(100, 100, 45); // 100 x, 100, 30 radius
@@ -297,13 +297,36 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level1)
 }
 
 /*
+ * @tc.name: DecomposeSymbolAndDraw007
+ * @tc.desc: test DecomposeSymbolAndDraw with animation VARIABLE_COLOR, two rendergroups and only one animationGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw007, TestSize.Level1)
+{
+    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    RSPath path;
+    path.AddCircle(100, 100, 50); // 100 x, 100, 50 radius
+    path.AddCircle(100, 100, 30, Drawing::PathDirection::CCW_DIRECTION); // 100 x, 100, 30 radius
+    RSHMSymbolData symbol;
+    symbol.path_ = path;
+    symbol.symbolInfo_.layers = layers_;
+    symbol.symbolInfo_.renderGroups = renderGroupsTwo_;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::VARIABLE_COLOR;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOne_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    int result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result, true);
+}
+
+/*
  * @tc.name: ClearAnimation001
  * @tc.desc: test ClearAnimation with animation VARIABLE_COLOR, cumulative effect and maskIndexes
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
 {
-    std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
 
     RSEffectStrategy effectMode = RSEffectStrategy::NONE;

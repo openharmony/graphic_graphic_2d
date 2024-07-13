@@ -16,6 +16,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 
 #include <memory>
+#include "acquire_fence_manager.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "draw/brush.h"
@@ -30,6 +31,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_pointer_render_manager.h"
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
@@ -49,7 +51,9 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
-
+namespace {
+constexpr int32_t CORNER_SIZE = 4;
+}
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
@@ -59,6 +63,9 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
+#ifndef ROSEN_CROSS_PLATFORM
+    consumerOnDraw_ = surfaceNode->GetConsumer();
+#endif
 }
 
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
@@ -70,6 +77,33 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 {
     RS_TRACE_NAME("RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate");
     return new RSSurfaceRenderNodeDrawable(std::move(node));
+}
+
+void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSSurfaceRenderNode& surfaceNode,
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface)
+{
+    auto bounds = surfaceParams.GetFrameRect();
+
+    // 1. draw background
+    DrawBackground(canvas, bounds);
+
+    // 2. draw self drawing node
+    if (surfaceParams.GetBuffer() != nullptr) {
+        DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
+    }
+
+    if (isSelfDrawingSurface) {
+        canvas.Restore();
+    }
+
+    // 3. Draw content of this node by the main canvas.
+    DrawContent(canvas, bounds);
+
+    // 4. Draw children of this node by the main canvas.
+    DrawChildren(canvas, bounds);
+
+    // 5. Draw foreground of this node by the main canvas.
+    DrawForeground(canvas, bounds);
 }
 
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams* uniParam,
@@ -177,6 +211,8 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
 
     offscreenCanvas_ = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
 
+    // copy HDR properties into offscreen canvas
+    offscreenCanvas_->CopyHDRConfiguration(*curCanvas_);
     // copy current canvas properties into offscreen canvas
     offscreenCanvas_->CopyConfiguration(*curCanvas_);
 
@@ -198,6 +234,7 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
+    paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
     auto image = offscreenSurface_->GetImageSnapshot();
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
@@ -298,13 +335,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const auto &absDrawRect = surfaceParams->GetAbsDrawRect();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d %d %d %d)Alpha: %f", name_.c_str(),
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d, %d, %d, %d)Alpha: %f", name_.c_str(),
         absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, surfaceNode->GetGlobalAlpha());
 
-    RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u,"
-            "name:%{public}s,OcclusionVisible:%{public}d",
-        surfaceParams->GetId(), surfaceNode->GetChildrenCount(), name_.c_str(),
-        surfaceParams->GetOcclusionVisible());
+    RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u, name:%{public}s,"
+            "OcclusionVisible:%{public}d Bound:%{public}s",
+        surfaceParams->GetId(), surfaceNode->GetChildrenCount(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
+        surfaceParams->GetBounds().ToString().c_str());
 
     if (DealWithUIFirstCache(*surfaceNode, *rscanvas, *surfaceParams, *uniParam)) {
         return;
@@ -318,8 +355,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    bool needOffscreen = surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
-        surfaceParams->IsAppWindow() && surfaceNode->GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled();
+    bool needOffscreen = (gettid() == RSUniRenderThread::Instance().GetTid()) &&
+        surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
+        surfaceParams->IsAppWindow() && surfaceNode->GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
+        (surfaceParams->GetVisibleRegion().Area() == surfaceParams->GetOpaqueRegion().Area());
     curCanvas_ = rscanvas;
     if (needOffscreen) {
         releaseCount_ = 0;
@@ -336,14 +375,17 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*curCanvas_, !needOffscreen);
 
-    bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid() && !surfaceParams->IsAttractionValid()) {
+    bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
+        !surfaceParams->IsSpherizeValid() && !surfaceParams->IsAttractionValid();
+    if (isSelfDrawingSurface) {
         SetSkip(surfaceParams->GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
+        // Restore in OnGeneralProcess
         curCanvas_->Save();
     }
 
     if (surfaceParams->IsMainWindowType()) {
         RSRenderNodeDrawable::ClearTotalProcessedNodeCount();
+        RSRenderNodeDrawable::ClearProcessedNodeCount();
         if (!surfaceParams->GetNeedOffscreen()) {
             curCanvas_->PushDirtyRegion(curSurfaceDrawRegion);
         }
@@ -358,28 +400,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         EnableGpuOverDrawDrawBufferOptimization(*curCanvas_, surfaceParams);
     }
 
-    auto bounds = surfaceParams->GetFrameRect();
-
-    // 1. draw background
-    DrawBackground(*curCanvas_, bounds);
-
-    // 2. draw self drawing node
-    if (surfaceParams->GetBuffer() != nullptr) {
-        DealWithSelfDrawingNodeBuffer(*surfaceNode, *curCanvas_, *surfaceParams);
-    }
-
-    if (isSelfDrawingSurface) {
-        curCanvas_->Restore();
-    }
-
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(*curCanvas_, bounds);
-
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(*curCanvas_, bounds);
-
-    // 5. Draw foreground of this node by the main canvas.
-    DrawForeground(*curCanvas_, bounds);
+    OnGeneralProcess(*surfaceNode, *curCanvas_, *surfaceParams, isSelfDrawingSurface);
 
     if (needOffscreen) {
         Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
@@ -390,7 +411,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             canvasBackup_->ConcatMatrix(surfaceParams->GetMatrix());
         }
         FinishOffscreenRender(
-            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST));
+            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
         RS_LOGD("FinishOffscreenRender %{public}s node type %{public}d", surfaceParams->GetName().c_str(),
             int(surfaceParams->GetSurfaceNodeType()));
     }
@@ -400,6 +421,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (!surfaceParams->GetNeedOffscreen()) {
             curCanvas_->PopDirtyRegion();
         }
+        int processedNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
+        AcquireFenceTracker::SetContainerNodeNum(processedNodes);
         RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
         const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
@@ -589,38 +612,18 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNod
     }
     surfaceParams.SetHardwareEnabled(hwcEnable);
 
-    auto nodeType = surfaceParams.GetSurfaceNodeType();
-    bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
-    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid() && !surfaceParams.IsAttractionValid()) {
+    bool isSelfDrawingSurface = surfaceParams.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
+        !surfaceParams.IsSpherizeValid() && !surfaceParams.IsAttractionValid();
+    if (isSelfDrawingSurface) {
         SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
+        // Restore in OnGeneralProcess
         canvas.Save();
     }
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(canvas.GetTotalMatrix());
 
-    auto bounds = surfaceParams.GetFrameRect();
-
-    // 1. draw background
-    DrawBackground(canvas, bounds);
-
-    // 2. draw self drawing node
-    if (surfaceParams.GetBuffer() != nullptr) {
-        DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas.Restore();
-    }
-
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(canvas, bounds);
-
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(canvas, bounds);
-
-    // 5. Draw foreground of this node by the main canvas.
-    DrawForeground(canvas, bounds);
+    OnGeneralProcess(surfaceNode, canvas, surfaceParams, isSelfDrawingSurface);
 
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
@@ -684,24 +687,52 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.screenBrightnessNits = surfaceNode.GetDisplayNit();
 #endif
+    if (surfaceNode.IsHardwareEnabledTopSurface()) {
+        RSPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
+    }
+
+    DrawSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams, params);
+}
+
+void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
+    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
+{
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {
-        auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0, std::round(surfaceParams.GetBounds().GetWidth()),
-            std::round(surfaceParams.GetBounds().GetHeight()) });
-        Drawing::SaveLayerOps layerOps(&bounds, nullptr);
-        canvas.SaveLayer(layerOps);
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-        canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
-        canvas.DetachBrush();
-        renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
-        canvas.Restore();
+        if (HasCornerRadius(surfaceParams)) {
+            auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0,
+                std::round(surfaceParams.GetBounds().GetWidth()), std::round(surfaceParams.GetBounds().GetHeight()) });
+            Drawing::SaveLayerOps layerOps(&bounds, nullptr);
+            canvas.SaveLayer(layerOps);
+            canvas.AttachBrush(brush);
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
+            canvas.DetachBrush();
+            renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+            canvas.Restore();
+        } else {
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(surfaceParams.GetBounds());
+            canvas.DetachBrush();
+            renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+        }
     } else {
         renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
     }
+}
+
+bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const
+{
+    auto rrect = surfaceParams.GetRRect();
+    for (auto index = 0; index < CORNER_SIZE; ++index) {
+        if (!ROSEN_EQ(rrect.radius_[index].x_, 0.f) || !ROSEN_EQ(rrect.radius_[index].y_, 0.f)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode,
@@ -721,9 +752,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
     bool useDmaBuffer = UseDmaBuffer();
-    if (!useDmaBuffer) {
-        DrawBackground(canvas, bounds);
-    }
+    DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;
     if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
         drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
@@ -737,9 +766,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
         RS_LOGE("DrawUIFirstCache failed!");
     }
-    if (!useDmaBuffer) {
-        DrawForeground(canvas, bounds);
-    }
+    DrawForeground(canvas, bounds);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

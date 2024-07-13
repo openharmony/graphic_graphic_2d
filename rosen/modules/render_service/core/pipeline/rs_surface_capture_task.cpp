@@ -47,7 +47,8 @@ namespace OHOS {
 namespace Rosen {
 bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
-    if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
+    if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
         RS_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
         RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
@@ -59,7 +60,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
-    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_, RSUniRenderJudgement::IsUniRender());
+    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig_, RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
@@ -272,15 +273,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
     int pixmapWidth = property.GetBoundsWidth();
     int pixmapHeight = property.GetBoundsHeight();
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * scaleX_);
-    opts.size.height = ceil(pixmapHeight * scaleY_);
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],"
         " isProcOnBgThread_[%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        scaleX_, scaleY_, isProcOnBgThread_);
+        captureConfig_.scaleX, captureConfig_.scaleY, isProcOnBgThread_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -309,15 +310,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
         }
     }
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * scaleX_);
-    opts.size.height = ceil(pixmapHeight * scaleY_);
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],"
         " isProcOnBgThread_[%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        scaleX_, scaleY_, isProcOnBgThread_);
+        captureConfig_.scaleX, captureConfig_.scaleY, isProcOnBgThread_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -448,8 +449,8 @@ bool RSSurfaceCaptureTask::FindSecurityOrSkipOrProtectedLayer()
     return hasSecurityOrSkipOrProtectedLayer;
 }
 
-RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender)
-    : scaleX_(scaleX), scaleY_(scaleY), isUniRender_(isUniRender)
+RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender)
+    : captureConfig_(captureConfig), isUniRender_(isUniRender)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
@@ -462,7 +463,7 @@ void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
         return;
     }
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
-    canvas_->Scale(scaleX_, scaleY_);
+    canvas_->Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas_->SetDisableFilterCache(true);
 }
 

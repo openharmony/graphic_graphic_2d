@@ -27,8 +27,9 @@ namespace Rosen {
 #define PROPERTY_HIGPU_VERSION "const.gpu.vendor"
 #define PROPERTY_DEBUG_SUPPORT_AF "persist.sys.graphic.supports_af"
 #define PROPERTY_BLUR_EXTRA_FILTER "persist.sys.graphic.blurExtraFilter"
-namespace {
+#define PROPERTY_KAWASE_ORIGINAL_IMAGE "persist.sys.graphic.kawaseOriginalEnable"
 
+namespace {
 constexpr uint32_t BLUR_SAMPLE_COUNT = 5;
 constexpr float BASE_BLUR_SCALE = 0.5f;        // base downSample radio
 constexpr int32_t MAX_PASSES_LARGE_RADIUS = 7; // Maximum number of render passes
@@ -56,7 +57,6 @@ static bool IsAdvancedFilterUsable()
     // If persist.sys.graphic.supports_af=0
     // we will not use it
     return GESystemProperties::GetBoolSystemProperty(PROPERTY_DEBUG_SUPPORT_AF, false);
-    return false;
 }
 
 static bool GetBlurExtraFilterEnabled()
@@ -64,6 +64,17 @@ static bool GetBlurExtraFilterEnabled()
     static bool blurExtraFilterEnabled =
         (std::atoi(GESystemProperties::GetEventProperty(PROPERTY_BLUR_EXTRA_FILTER).c_str()) != 0);
     return blurExtraFilterEnabled;
+}
+
+static bool GetKawaseOriginalEnabled()
+{
+#ifdef GE_OHOS
+    static bool kawaseOriginalEnabled =
+        (std::atoi(GESystemProperties::GetEventProperty(PROPERTY_KAWASE_ORIGINAL_IMAGE).c_str()) != 0);
+    return kawaseOriginalEnabled;
+#else
+    return false;
+#endif
 }
 
 static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const OffsetInfo& offsetInfo)
@@ -226,6 +237,10 @@ bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas& canvas, const std::
         OutputOriginalImage(canvas, image, src, dst);
         return false;
     }
+    if (GetKawaseOriginalEnabled()) {
+        OutputOriginalImage(canvas, image, src, dst);
+        return false;
+    }
     return true;
 }
 
@@ -280,12 +295,12 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const st
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
-        auto gpu = canvas.GetGPUContext();
-        if (resizedImage == nullptr || gpu == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::resize image failed, input nullptr");
+        auto gpuCtx = canvas.GetGPUContext();
+        if (gpuCtx == nullptr || !(image->IsValid(gpuCtx.get()))) {
+            LOGE("GEKawaseBlurShaderFilter::CheckInputImage invalid image");
             return;
         }
-        if (resizedImage->BuildSubset(image, srcRect, *gpu)) {
+        if (resizedImage->BuildSubset(image, srcRect, *gpuCtx)) {
             checkedImage = resizedImage;
             LOGD("GEKawaseBlurShaderFilter::resize image success");
         } else {

@@ -169,6 +169,7 @@ void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
     context_ = context;
     renderContent_->type_ = GetType();
     renderContent_->renderProperties_.backref_ = weak_from_this();
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, register node", GetId());
     SetDirty(true);
     InitRenderParams();
 }
@@ -237,6 +238,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
     }
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node add child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -270,6 +272,7 @@ void RSRenderNode::MoveChild(SharedPtr child, int index)
         children_.emplace(std::next(children_.begin(), index), child);
     }
     children_.erase(it);
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node move child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -301,6 +304,7 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -403,6 +407,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
     }
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node add crossParent child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -435,6 +440,7 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
         hasRemovedChild_ = true;
     }
     children_.erase(it);
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove crossParent child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -481,6 +487,7 @@ void RSRenderNode::ClearChildren()
         ++pos;
     }
     children_.clear();
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node clear child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -505,6 +512,7 @@ void RSRenderNode::ResetParent()
             }
         }
         parentNode->hasRemovedChild_ = true;
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node reset child", GetId());
         parentNode->SetContentDirty();
         UpdateSubSurfaceCnt(nullptr, parentNode);
     }
@@ -1008,7 +1016,8 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
 
 void RSRenderNode::DisableDrawingCacheByHwcNode()
 {
-    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
+    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
+        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DisableDrawingCacheByHwcNode id:%llu", GetId());
@@ -1054,6 +1063,9 @@ RSRenderNode::~RSRenderNode()
 {
     if (appPid_ != 0) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
+    }
+    if (fallbackAnimationOnDestroy_) {
+        FallbackAnimationsToRoot();
     }
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
@@ -1310,8 +1322,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // currently CheckAndUpdateGeoTrans without dirty check
         auto& geoPtr = properties.boundsGeo_;
         // selfdrawing node's geo may not dirty when its dirty region changes
-        if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ || isSelfDrawingNode_ ||
-            selfDrawRectChanged) {
+        if (geoPtr && (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
+            isSelfDrawingNode_ || selfDrawRectChanged)) {
             absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
@@ -1369,24 +1381,33 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
         return;
     }
-    // update OVERLAY_RECT
+    // update dirty region information that depends on geoPtr.
     auto& properties = GetRenderProperties();
-    if (auto drawRegion = properties.GetDrawRegion()) {
-        if (auto& geoPtr = properties.GetBoundsGeometry()) {
+    if (auto& geoPtr = properties.GetBoundsGeometry()) {
+        // drawRegion can be nullptr if not set.
+        if (auto drawRegion = properties.GetDrawRegion()) {
             dirtyManager.UpdateDirtyRegionInfoForDfx(
                 GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, geoPtr->MapAbsRect(*drawRegion));
         }
-    } else {
         dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, RectI());
+            GetId(), GetType(), DirtyRegionType::SHADOW_RECT, geoPtr->MapAbsRect(localShadowRect_.ConvertTo<float>()));
+        dirtyManager.UpdateDirtyRegionInfoForDfx(GetId(),
+            GetType(), DirtyRegionType::OUTLINE_RECT, geoPtr->MapAbsRect(localOutlineRect_.ConvertTo<float>()));
     }
-    // update UPDATE_DIRTY_REGION
+
+    // update dirty region information in abs Coords.
     dirtyManager.UpdateDirtyRegionInfoForDfx(
         GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
-    DirtyRegionInfoForDFX dirtyRegionInfo;
-    dirtyRegionInfo.oldDirty = oldDirty_;
-    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
-    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::FILTER_RECT, filterRegion_);
+    if (LastFrameSubTreeSkipped()) {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, subTreeDirtyRegion_);
+    }
+    if (properties.GetClipToBounds() || properties.GetClipToFrame()) {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, GetAbsDrawRect());
+    }
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
@@ -2123,14 +2144,11 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         return;
     }
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        auto it = std::find_if(modifiers.begin(), modifiers.end(),
-            [id](const auto& modifier) -> bool { return modifier->GetPropertyId() == id; });
-        if (it == modifiers.end()) {
-            continue;
+        bool found = EraseIf(modifiers,
+            [id](const auto& modifier) -> bool { return modifier == nullptr || modifier->GetPropertyId() == id; });
+        if (found) {
+            AddDirtyType(type);
         }
-        AddDirtyType(type);
-        modifiers.erase(it);
-        return;
     }
 }
 
@@ -2166,6 +2184,7 @@ void RSRenderNode::AccmulateDirtyStatus()
     if (curDirtyStatus_ == NodeDirty::CLEAN) {
         return;
     }
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, accmulate dirty status after properties changed", GetId());
     SetDirty();
 }
 
@@ -2237,6 +2256,16 @@ void RSRenderNode::MarkForegroundFilterCache()
     }
 }
 
+void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSRenderModifier> modifier)
+{
+    auto modifierType = modifier->GetType();
+    if (!dirtyTypes_.test(static_cast<size_t>(modifierType))) {
+        return;
+    }
+    modifier->Apply(context);
+    isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ && BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifierType);
+}
+
 void RSRenderNode::ApplyModifiers()
 {
     if (UNLIKELY(!isFullChildrenListValid_)) {
@@ -2260,14 +2289,17 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().ResetProperty(dirtyTypes_);
 
     // Apply modifiers
-    for (auto& [id, modifier] : modifiers_) {
-        auto modifierType = modifier->GetType();
-        if (!dirtyTypes_.test(static_cast<size_t>(modifierType))) {
-            continue;
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
+    if (displayNode && displayNode->GetCurrentScbPid() != -1) {
+        for (auto& [id, modifier] : modifiers_) {
+            if (ExtractPid(id) == displayNode->GetCurrentScbPid()) {
+                ApplyModifier(context, modifier);
+            }
         }
-        modifier->Apply(context);
-        isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ &&
-            BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifierType);
+    } else {
+        for (auto& [id, modifier] : modifiers_) {
+            ApplyModifier(context, modifier);
+        }
     }
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
@@ -2285,8 +2317,11 @@ void RSRenderNode::ApplyModifiers()
     }
 
     // Temporary code, copy matrix into render params
-    UpdateDrawableVec();
-    UpdateDrawableVecV2();
+    if (LIKELY(RSUniRenderJudgement::IsUniRender())) {
+        UpdateDrawableVecV2();
+    } else {
+        UpdateDrawableVec();
+    }
 
     UpdateFilterCacheWithBackgroundDirty();
 
@@ -2532,10 +2567,13 @@ void RSRenderNode::SetSharedTransitionParam(const std::shared_ptr<SharedTransiti
         return;
     }
     sharedTransitionParam_ = sharedTransitionParam;
+    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, shared transition param changed", GetId());
     SetDirty();
     // tell parent to regenerate children drawable
     if (auto parent = parent_.lock()) {
         parent->AddDirtyType(RSModifierType::CHILDREN);
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, parent of shared transition param changed node",
+            parent->GetId());
         parent->SetDirty();
     }
 }
@@ -2982,7 +3020,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
             nodeGroupType_ |= type;
+            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark node group", GetId());
             SetDirty();
+            stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
         }
     } else {
         if (isNodeGroup) {
@@ -2990,7 +3030,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         } else {
             nodeGroupType_ &= ~type;
         }
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark node group", GetId());
         SetDirty();
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     }
     if (nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE) && !isNodeGroup) {
         needClearSurface_ = true;
@@ -3054,7 +3096,7 @@ void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode>
         return;
     }
 
-    auto curSurfaceNode = (static_cast<const RSSurfaceRenderNode*>(curSurfaceNodeParam.get()));
+    auto curSurfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(curSurfaceNodeParam);
     auto surfaceNodeAbsRect = curSurfaceNode->GetOldDirty();
     auto absRect = GetFilterRect();
     if (surfaceNodeAbsRect.IsInsideOf(absRect)) {
@@ -3157,12 +3199,14 @@ void RSRenderNode::OnTreeStateChanged()
     }
     if (isOnTheTree_) {
         // Set dirty and force add to active node list, re-generate children list if needed
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, onTree state changed", GetId());
         SetDirty(true);
         SetParentSubTreeDirty();
     } else if (sharedTransitionParam_) {
         // Mark shared transition unpaired, and mark paired node dirty
         sharedTransitionParam_->paired_ = false;
         if (auto pairedNode = sharedTransitionParam_->GetPairedNode(id_)) {
+            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, paired node of shared transition", pairedNode->GetId());
             pairedNode->SetDirty(true);
         }
     }
@@ -3450,6 +3494,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
     // ensure defrost subtree would be updated
     stagingRenderParams_->SetRSFreezeFlag(isStaticCached);
     if (!isStaticCached_) {
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node not static cached", GetId());
         SetContentDirty();
     }
 }
@@ -3972,6 +4017,7 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
+    isUifirstDelay_ = 0;
 }
 
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
@@ -4011,6 +4057,15 @@ RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId
         return inNode_.lock();
     }
     return nullptr;
+}
+
+void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
+{
+    childrenHasUIExtension_ = childrenHasUIExtension;
+    auto parent = GetParent().lock();
+    if (parent && parent->ChildrenHasUIExtension() != childrenHasUIExtension) {
+        parent->SetChildrenHasUIExtension(childrenHasUIExtension);
+    }
 }
 
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)

@@ -170,16 +170,6 @@ public:
         return parentPid_;
     }
 
-    void SetChildPid(const int32_t childPid)
-    {
-        childPid_ = childPid;
-    }
-
-    int32_t GetChildPid() const
-    {
-        return childPid_;
-    }
-
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -196,7 +186,6 @@ private:
     bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
     int32_t parentPid_ { -1 };
-    int32_t childPid_ { -1 };
     uint64_t syncId_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;

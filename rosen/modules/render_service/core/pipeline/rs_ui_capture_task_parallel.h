@@ -27,11 +27,12 @@ namespace OHOS {
 namespace Rosen {
 class RSUiCaptureTaskParallel {
 public:
-    explicit RSUiCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    explicit RSUiCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
+        : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSUiCaptureTaskParallel() = default;
 
-    static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+    static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig);
 
     bool CreateResources();
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
@@ -43,8 +44,7 @@ private:
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
     NodeId nodeId_;
-    float scaleX_;
-    float scaleY_;
+    RSSurfaceCaptureConfig captureConfig_;
 };
 } // namespace Rosen
 } // namespace OHOS

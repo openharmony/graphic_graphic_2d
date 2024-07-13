@@ -30,36 +30,22 @@ public:
     /**
      * @brief vote frame rate by video rate
      *
-     * @param timestamp the timestamp of video
+     * @param videoRate the rate of video
      */
-    void StartVideoFrameRateVote(int64_t timestamp);
+    void StartVideoFrameRateVote(double videoRate);
 
 private:
-    uint32_t CalculateVideoFrameRate();
-    uint32_t Calculate(int64_t oneSecond) const;
-    void VoteVideoFrameRate(uint32_t rate);
+    void VoteVideoFrameRate(double videoRate);
     void SendDelayTask();
     void CancelDelayTask();
     void DoVoteCallback(uint32_t rate);
     void DoReleaseCallback();
-    int64_t GetCurrentTimeMillis();
-
-private:
-    enum TimestampType: int32_t {
-        MICRO_SECOND_TYPE,
-        MILLI_SECOND_TYPE,
-    };
 
 private:
     uint64_t surfaceNodeId_ {0};
     std::function<void(uint64_t)> releaseCallback_ {nullptr};
     std::function<void(uint64_t, uint32_t)> voteCallback_ {nullptr};
-    int64_t lastTimestamp_ {-1};
     uint32_t lastRate_ {0};
-    std::vector<int64_t> videoTimestamp_ {};
-    TimestampType timestampType_ {MICRO_SECOND_TYPE};
-    int64_t lastVotedTimestamp_ {-1};
-    int32_t votedCount_ {0};
     std::shared_ptr<ffrt::queue> ffrtQueue_ {nullptr};
     ffrt::mutex ffrtMutex_;
     ffrt::task_handle taskHandler_ {nullptr};

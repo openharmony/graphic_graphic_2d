@@ -143,6 +143,7 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
     target_ = renderNode;
     if (target_ != nullptr) {
         targetId_ = target_->GetId();
+        targetName_ = target_->GetNodeName();
         target_->CheckGroupableAnimation(GetPropertyId(), true);
     }
     OnAttach();
@@ -164,6 +165,11 @@ void RSRenderAnimation::Detach(bool forceDetach)
 NodeId RSRenderAnimation::GetTargetId() const
 {
     return targetId_;
+}
+
+const std::string& RSRenderAnimation::GetTargetName() const
+{
+    return targetName_;
 }
 
 void RSRenderAnimation::Start()

@@ -157,10 +157,13 @@ protected:
     const std::shared_ptr<RSFilter>& rsFilter = nullptr);
     void ClearCachedSurface();
 
-    bool CheckIfNeedUpdateCache(RSRenderParams& params);
+    bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
 
+    static int GetProcessedNodeCount();
+    static void ProcessedNodeCountInc();
+    static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
 
 private:
@@ -182,6 +185,7 @@ private:
 
     static thread_local bool isOpDropped_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
+    static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
 
     // opinc cache state

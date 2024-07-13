@@ -187,16 +187,12 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
 
 void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
 {
-    SkSurface* skSurface = skCanvas_->getSurface();
-    if (skSurface == nullptr) {
-        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
-        return;
-    }
     std::string shaderString = shape.Getshader();
-    if (shaderString.size() == 0) {
-        LOGD("sdf shape is empty, return on line %{public}d", __LINE__);
+    if (skCanvas_ == nullptr || skCanvas_->getSurface() == nullptr || shaderString.size() == 0) {
+        LOGE("skCanvas_ or surface is null, or sdf shape is empty. return on line %{public}d", __LINE__);
         return;
     }
+
     SkAutoCanvasRestore acr(skCanvas_, true);
     auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
     if (effect == nullptr) {
@@ -230,6 +226,8 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         builder.uniform("sdfalpha") = color[6]; // color_[6] is color alpha channel.
         builder.uniform("sdfsize") = shape.GetSize();
         builder.uniform("filltype") = shape.GetFillType();
+        builder.uniform("translatex") = shape.GetTranslateX();
+        builder.uniform("translatey") = shape.GetTranslateY();
     }
     builder.uniform("width") = width;
     auto shader = builder.makeShader(nullptr, false);
@@ -563,22 +561,29 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
             return;
         }
     }
-    const SkCanvas::Lattice::RectType skRectType =
-        static_cast<const SkCanvas::Lattice::RectType>(lattice.fRectTypes);
 
-    SkIRect skCenter = SkIRect::MakeLTRB(lattice.fBounds.GetLeft(), lattice.fBounds.GetTop(),
-        lattice.fBounds.GetRight(), lattice.fBounds.GetBottom());
+    const SkIRect* skBounds = reinterpret_cast<const SkIRect*>(lattice.fBounds);
+    int count = (lattice.fXCount + 1) * (lattice.fYCount + 1);
+    std::vector<SkCanvas::Lattice::RectType> skRectTypes = {};
+    if (lattice.fRectTypes != nullptr) {
+        skRectTypes.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skRectTypes[i] = static_cast<SkCanvas::Lattice::RectType>(lattice.fRectTypes[i]);
+        }
+    }
+    std::vector<SkColor> skColors = {};
+    if (lattice.fColors != nullptr) {
+        skColors.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skColors[i] = static_cast<SkColor>(lattice.fColors[i].CastToColorQuad());
+        }
+    }
+    SkCanvas::Lattice skLattice = {lattice.fXDivs, lattice.fYDivs,
+        skRectTypes.empty() ? nullptr : skRectTypes.data(),
+        lattice.fXCount, lattice.fYCount, skBounds,
+        skColors.empty() ? nullptr : skColors.data()};
 
-    SkColor color = lattice.fColors.CastToColorQuad();
-
-    const int xdivs[] = {lattice.fXDivs[0], lattice.fXDivs[1]};
-    const int ydivs[] = {lattice.fYDivs[0], lattice.fYDivs[1]};
-    SkCanvas::Lattice skLattice = {xdivs, ydivs,
-        &skRectType,
-        lattice.fXCount, lattice.fYCount,
-        &skCenter, &color};
     const SkRect* skDst = reinterpret_cast<const SkRect*>(&dst);
-
     SkFilterMode skFilterMode = static_cast<SkFilterMode>(filter);
 
     skPaint_ = defaultPaint_;

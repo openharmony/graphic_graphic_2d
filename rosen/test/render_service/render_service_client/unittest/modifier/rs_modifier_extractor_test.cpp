@@ -82,6 +82,58 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBorderDashWidth001
+ * @tc.desc: test results of GetBorderDashWidth
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierExtractorTest, GetBorderDashWidth001, TestSize.Level1)
+{
+    auto extractor = std::make_shared<RSModifierExtractor>();
+    Vector4f vector = extractor->GetBorderDashWidth();
+    EXPECT_EQ(vector, Vector4f(0.f));
+}
+
+/**
+ * @tc.name: GetBorderDashGap001
+ * @tc.desc: test results of GetBorderDashGap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierExtractorTest, GetBorderDashGap001, TestSize.Level1)
+{
+    auto extractor = std::make_shared<RSModifierExtractor>();
+    Vector4f vector = extractor->GetBorderDashGap();
+    EXPECT_EQ(vector, Vector4f(0.f));
+}
+
+/**
+ * @tc.name: GetOutlineDashWidth001
+ * @tc.desc: test results of GetOutlineDashWidth
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierExtractorTest, GetOutlineDashWidth001, TestSize.Level1)
+{
+    auto extractor = std::make_shared<RSModifierExtractor>();
+    Vector4f vector = extractor->GetOutlineDashWidth();
+    EXPECT_EQ(vector, Vector4f(0.f));
+}
+
+/**
+ * @tc.name: GetOutlineDashGap001
+ * @tc.desc: test results of GetOutlineDashWidth
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierExtractorTest, GetOutlineDashGap001, TestSize.Level1)
+{
+    auto extractor = std::make_shared<RSModifierExtractor>();
+    Vector4f vector = extractor->GetOutlineDashWidth();
+    EXPECT_EQ(vector, Vector4f(0.f));
+}
+
+/**
  * @tc.name: GetOutlineColor001
  * @tc.desc: test results of GetOutlineColor
  * @tc.type: FUNC
@@ -183,6 +235,19 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
     auto extractor = std::make_shared<RSModifierExtractor>();
     float degree = extractor->GetSpherizeDegree();
     EXPECT_TRUE(degree == 0.f);
+}
+
+/**
+ * @tc.name: GetAttractionDstPointValue001
+ * @tc.desc: test results of GetAttractionDstPointValue
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1)
+{
+    auto extractor = std::make_shared<RSModifierExtractor>();
+    Vector2f attractionDstPoint = extractor->GetAttractionDstPointValue();
+    EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
 }
 
 /**

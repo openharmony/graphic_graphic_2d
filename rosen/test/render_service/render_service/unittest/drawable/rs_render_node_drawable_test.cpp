@@ -108,12 +108,12 @@ HWTEST_F(RSRenderNodeDrawableTest, PreDrawableCacheState, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
     RSRenderParams params(RSRenderNodeDrawableTest::id);
-    params.OpincSetCacheChangeFlag(true);
+    params.OpincSetCacheChangeFlag(true, true);
     drawable->isOpincRootNode_ = true;
     bool isOpincDropNodeExt = true;
     ASSERT_TRUE(drawable->PreDrawableCacheState(params, isOpincDropNodeExt));
 
-    params.OpincSetCacheChangeFlag(false);
+    params.OpincSetCacheChangeFlag(false, true);
     drawable->isOpincRootNode_ = false;
     isOpincDropNodeExt = false;
     ASSERT_FALSE(drawable->PreDrawableCacheState(params, isOpincDropNodeExt));
@@ -558,15 +558,18 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     params.freezeFlag_ = true;
-    drawable->CheckIfNeedUpdateCache(params);
+    int32_t updateTimes = 0;
+    drawable->CheckIfNeedUpdateCache(params, updateTimes);
 
     params.freezeFlag_ = false;
     params.isDrawingCacheChanged_ = true;
-    auto result = drawable->CheckIfNeedUpdateCache(params);
+    updateTimes = 0;
+    auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_EQ(result, true);
     
     params.isDrawingCacheChanged_ = false;
-    result = drawable->CheckIfNeedUpdateCache(params);
+    updateTimes = 0;
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
 }
 
 /**

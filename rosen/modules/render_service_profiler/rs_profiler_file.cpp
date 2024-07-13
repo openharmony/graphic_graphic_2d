@@ -30,6 +30,8 @@ namespace OHOS::Rosen {
 
 RSFile::RSFile() = default;
 
+constexpr uint32_t VERSION_RENDER_METRICS_ADDED = 0x240701;
+
 const std::string& RSFile::GetDefaultPath()
 {
     static const std::string PATH("RECORD_IN_MEMORY");
@@ -52,8 +54,11 @@ void RSFile::Create(const std::string& fname)
         return;
     }
 
-    uint32_t headerId = 'RPLY';
+    uint32_t headerId = 'ROHR';
     Utils::FileWrite(&headerId, sizeof(headerId), 1, file_);
+
+    uint32_t versionId = VERSION_RENDER_METRICS_ADDED;
+    Utils::FileWrite(&versionId, sizeof(versionId), 1, file_);
 
     headerOff_ = 0; // TEMP VALUE
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
@@ -78,9 +83,13 @@ bool RSFile::Open(const std::string& fname)
         return false;
     }
 
-    uint32_t headerId = 'RPLY';
+    uint32_t headerId;
     Utils::FileRead(&headerId, sizeof(headerId), 1, file_);
-    if (headerId != 'RPLY') {
+    if (headerId == 'ROHR') {
+        Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
+    } else if (headerId == 'RPLY') {
+        versionId_ = 0;
+    } else {
         Utils::FileClose(file_);
         file_ = nullptr;
         return false;
@@ -186,8 +195,8 @@ void RSFile::WriteHeader()
         Utils::FileWrite(&i.layerHeader, sizeof(i.layerHeader), 1, file_);
     }
 
-    constexpr int offset4 = 4;
-    Utils::FileSeek(file_, offset4, SEEK_SET);
+    constexpr int preambleSize = 8;
+    Utils::FileSeek(file_, preambleSize, SEEK_SET);
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
 }
 
@@ -284,6 +293,7 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     LayerWriteHeaderOfTrack(layerData.rsData);
     LayerWriteHeaderOfTrack(layerData.oglData);
     LayerWriteHeaderOfTrack(layerData.rsMetrics);
+    LayerWriteHeaderOfTrack(layerData.renderMetrics);
     LayerWriteHeaderOfTrack(layerData.oglMetrics);
     LayerWriteHeaderOfTrack(layerData.gfxMetrics);
     layerData.layerHeader = { layerHeaderOff, Utils::FileTell(file_) - layerHeaderOff }; // position of layer table
@@ -312,6 +322,9 @@ void RSFile::LayerReadHeader(uint32_t layer)
     LayerReadHeaderOfTrack(layerData.rsData);
     LayerReadHeaderOfTrack(layerData.oglData);
     LayerReadHeaderOfTrack(layerData.rsMetrics);
+    if (versionId_ >= VERSION_RENDER_METRICS_ADDED) {
+        LayerReadHeaderOfTrack(layerData.renderMetrics);
+    }
     LayerReadHeaderOfTrack(layerData.oglMetrics);
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
 }
@@ -334,6 +347,11 @@ void RSFile::WriteOGLData(uint32_t layer, double time, const void* data, size_t 
 void RSFile::WriteRSMetrics(uint32_t layer, double time, const void* data, size_t size)
 {
     WriteTrackData(&RSFileLayer::rsMetrics, layer, time, data, size);
+}
+
+void RSFile::WriteRenderMetrics(uint32_t layer, double time, const void* data, size_t size)
+{
+    WriteTrackData(&RSFileLayer::renderMetrics, layer, time, data, size);
 }
 
 void RSFile::WriteOGLMetrics(uint32_t layer, double time, uint32_t /*frame*/, const void* data, size_t size)
@@ -364,6 +382,11 @@ void RSFile::ReadRSMetricsRestart(uint32_t layer)
     ReadTrackDataRestart(&RSFileLayer::readindexRsMetrics, layer);
 }
 
+void RSFile::ReadRenderMetricsRestart(uint32_t layer)
+{
+    ReadTrackDataRestart(&RSFileLayer::readindexRenderMetrics, layer);
+}
+
 void RSFile::ReadOGLMetricsRestart(uint32_t layer)
 {
     ReadTrackDataRestart(&RSFileLayer::readindexOglMetrics, layer);
@@ -387,6 +410,11 @@ bool RSFile::OGLDataEOF(uint32_t layer) const
 bool RSFile::RSMetricsEOF(uint32_t layer) const
 {
     return TrackEOF({ &RSFileLayer::readindexRsMetrics, &RSFileLayer::rsMetrics }, layer);
+}
+
+bool RSFile::RenderMetricsEOF(uint32_t layer) const
+{
+    return TrackEOF({ &RSFileLayer::readindexRenderMetrics, &RSFileLayer::renderMetrics }, layer);
 }
 
 bool RSFile::OGLMetricsEOF(uint32_t layer) const
@@ -436,6 +464,12 @@ bool RSFile::ReadRSMetrics(double untilTime, uint32_t layer, std::vector<uint8_t
 {
     return ReadTrackData(
         { &RSFileLayer::readindexRsMetrics, &RSFileLayer::rsMetrics }, untilTime, layer, data, readTime);
+}
+
+bool RSFile::ReadRenderMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime)
+{
+    return ReadTrackData(
+        { &RSFileLayer::readindexRenderMetrics, &RSFileLayer::renderMetrics }, untilTime, layer, data, readTime);
 }
 
 bool RSFile::ReadOGLMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime)

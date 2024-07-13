@@ -152,7 +152,8 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*this);
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true)) {
+    // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true) || !GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");
         return false;
     }
@@ -175,6 +176,19 @@ void RSSurfaceRenderNodeDrawable::DrawDmaBufferWithGPU(RSPaintFilterCanvas& canv
     renderEngine->RegisterDeleteBufferListener(surfaceHandler);
     renderEngine->DrawUIFirstCacheWithParams(canvas, param);
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
+}
+
+void RSSurfaceRenderNodeDrawable::ClipRoundRect(Drawing::Canvas& canvas)
+{
+    if (!uifirstRenderParams_) {
+        return;
+    }
+    auto uifirstParams = static_cast<RSSurfaceRenderParams*>(uifirstRenderParams_.get());
+    if (!uifirstParams) {
+        return;
+    }
+    RRect rrect = uifirstParams->GetRRect();
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
 }
 
 void RSSurfaceRenderNodeDrawable::ClearBufferQueue()

@@ -23,6 +23,10 @@ namespace OHOS::Rosen {
 namespace {
 thread_local Drawing::Matrix parentSurfaceMatrix_;
 }
+void RSRenderParams::SetDirtyType(RSRenderParamsDirtyType dirtyType)
+{
+    dirtyType_.set(dirtyType);
+}
 
 void RSRenderParams::SetAlpha(float alpha)
 {
@@ -231,6 +235,7 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     if (drawingCacheType_ == cacheType) {
         return;
     }
+    dirtyType_.set(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     drawingCacheType_ = cacheType;
     needSync_ = true;
 }
@@ -282,10 +287,15 @@ bool RSRenderParams::OpincGetRootFlag() const
     return isOpincRootFlag_;
 }
 
-void RSRenderParams::OpincSetCacheChangeFlag(bool state)
+void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
 {
-    isOpincStateChanged_ = state;
-    needSync_ = true;
+    if (lastFrameSynced) {
+        isOpincStateChanged_ = state;
+        needSync_ = true;
+    } else {
+        needSync_ = needSync_ || (isOpincStateChanged_ || (isOpincStateChanged_ != state));
+        isOpincStateChanged_ = isOpincStateChanged_ || state;
+    }
 }
 
 bool RSRenderParams::OpincGetCacheChangeState()
@@ -317,20 +327,6 @@ void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 Drawing::Rect RSRenderParams::GetShadowRect() const
 {
     return shadowRect_;
-}
-
-void RSRenderParams::SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo)
-{
-    if (dirtyRegionInfoForDFX_ == dirtyRegionInfo) {
-        return;
-    }
-    dirtyRegionInfoForDFX_ = dirtyRegionInfo;
-    needSync_ = true;
-}
-
-DirtyRegionInfoForDFX RSRenderParams::GetDirtyRegionInfoForDFX() const
-{
-    return dirtyRegionInfoForDFX_;
 }
 
 void RSRenderParams::SetNeedSync(bool needSync)
@@ -416,7 +412,10 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
         target->matrix_.Swap(matrix_);
         dirtyType_.reset(RSRenderParamsDirtyType::MATRIX_DIRTY);
     }
-
+    if (dirtyType_.test(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY)) {
+        target->drawingCacheType_ = drawingCacheType_;
+        dirtyType_.reset(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+    }
     target->alpha_ = alpha_;
     target->boundsRect_ = boundsRect_;
     target->frameRect_ = frameRect_;
@@ -433,7 +432,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
-    target->drawingCacheType_ = drawingCacheType_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
@@ -473,6 +471,13 @@ void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurface
 const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
 {
     return parentSurfaceMatrix_;
+}
+
+// overrided by displayNode
+ScreenRotation RSRenderParams::GetScreenRotation() const
+{
+    static const ScreenRotation defaultRotation = ScreenRotation::ROTATION_0;
+    return defaultRotation;
 }
 
 } // namespace OHOS::Rosen

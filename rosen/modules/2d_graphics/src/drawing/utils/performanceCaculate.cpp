@@ -61,9 +61,9 @@ bool PerformanceCaculate::GetDrawingTestRecordingEnabled()
         drawingTestFlag_ == PerformanceCaculate::TestFlag::TEST_SKIA);
 }
 
-unsigned long long PerformanceCaculate::GetUpTime(bool addCount)
+long long PerformanceCaculate::GetUpTime(bool addCount)
 {
-    unsigned long long time = 0;
+    long long time = 0;
 #ifdef ROSEN_OHOS
     struct timespec tv {};
     if (clock_gettime(CLOCK_BOOTTIME, &tv) >= 0) {

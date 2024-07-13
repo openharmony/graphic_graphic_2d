@@ -165,6 +165,8 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
 constexpr size_t ARGC_SEVEN = 7;
+constexpr size_t ARGC_EIGHT = 8;
+constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
 
 enum class DrawingErrorCode : int32_t {
@@ -329,6 +331,8 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
+
+bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t size);
 
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {

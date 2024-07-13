@@ -148,6 +148,7 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
     SetTextStyleBaseType(env, argValue, textStyle);
     ReceiveFontFeature(env, argValue, textStyle);
+    ReceiveFontVariation(env, argValue, textStyle);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
     std::string text = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
@@ -211,6 +212,42 @@ void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
             break;
         }
         textStyle.fontFeatures.SetFeature(name, value);
+    }
+    return;
+}
+
+void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value allVariationValue = nullptr;
+    napi_get_named_property(env, argValue, "fontVariations", &allVariationValue);
+    uint32_t arrayLength = 0;
+    if (napi_get_array_length(env, allVariationValue, &arrayLength) != napi_ok ||
+        !arrayLength) {
+        ROSEN_LOGE("The parameter of font variations is unvaild");
+        return;
+    }
+
+    for (uint32_t further = 0; further < arrayLength; further++) {
+        napi_value singleElementValue;
+        if (napi_get_element(env, allVariationValue, further, &singleElementValue) != napi_ok) {
+            ROSEN_LOGE("This parameter of the font variations is unvaild");
+            break;
+        }
+        napi_value variationElement;
+        std::string axis;
+        if (napi_get_named_property(env, singleElementValue, "axis", &variationElement) != napi_ok ||
+            !ConvertFromJsValue(env, variationElement, axis)) {
+            ROSEN_LOGE("This time that the axis of parameter in font variations is unvaild");
+            break;
+        }
+
+        int value = 0;
+        if (napi_get_named_property(env, singleElementValue, "value", &variationElement) != napi_ok ||
+            !ConvertFromJsValue(env, variationElement, value)) {
+            ROSEN_LOGE("This time that the value of parameter in font variations is unvaild");
+            break;
+        }
+        textStyle.fontVariations.SetAxisValue(axis, value);
     }
     return;
 }

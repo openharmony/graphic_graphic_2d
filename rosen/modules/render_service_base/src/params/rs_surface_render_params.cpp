@@ -347,6 +347,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
+    targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
@@ -363,6 +364,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
+    targetSurfaceParams->preScalingMode_ = preScalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     RSRenderParams::OnSync(target);
 }

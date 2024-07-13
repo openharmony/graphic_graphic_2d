@@ -193,13 +193,13 @@ private:
     int32_t explicitAnimationTotal_ = 0;
     int32_t implicitAnimationTotal_ = 0;
     uint16_t animationTraceCheckCnt_ = 0;
+    int accumulatedBufferCount_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
     std::queue<pid_t> firstFrameAppPids_;
     std::map<int32_t, AnimationTraceStats> animationAsyncTraces_;
     std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
-    std::atomic<int> accumulatedBufferCount_ = 0;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

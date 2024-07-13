@@ -61,6 +61,10 @@ bool OH_Drawing_RegionOp(OH_Drawing_Region* cRegion, const OH_Drawing_Region* cD
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return false;
     }
+    if (op < REGION_OP_MODE_DIFFERENCE || op > REGION_OP_MODE_REPLACE) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return false;
+    }
     return region->Op(*dst, static_cast<RegionOp>(op));
 }
 
