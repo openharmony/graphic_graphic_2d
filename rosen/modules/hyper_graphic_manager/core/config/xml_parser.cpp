@@ -148,6 +148,9 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
         setResult = ParseScreenConfig(node);
     } else if (paraName == "rs_video_frame_rate_vote_config") {
         mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+    } else if (paraName == "source_tuning_for_yuv420") {
+        setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
+    }
     } else {
         setResult = EXEC_SUCCESS;
     }

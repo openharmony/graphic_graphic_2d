@@ -24,6 +24,7 @@ constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 
 template<typename T>
 bool Compare(const T& lhs, const T& rhs)
@@ -761,6 +762,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
             ret = SetPerFrameParameterBrightnessRatio();
             CheckRet(ret, "SetPerFrameParameterBrightnessRatio");
+        } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
+            ret = SetPerFrameLayerSourceTuning();
+            CheckRet(ret, "SetLayerSourceTuning");
         }
     }
     return ret;
@@ -790,6 +794,19 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
     return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerSourceTuning()
+{
+    if (doLayerInfoCompare_) {
+        if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
+    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
 }
 
 } // namespace Rosen

@@ -40,12 +40,14 @@ struct RSLayerInfo {
     float alpha = 1.f;
     GraphicBlendType blendType;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    int32_t layerSource;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
-            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
+            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
+            (layerSource == layerInfo.layerSource);
     }
 #endif
 };
@@ -288,6 +290,8 @@ public:
     bool GetLastFrameHardwareEnabled() const;
     void SetForceHardwareByUser(bool flag);
     bool GetForceHardwareByUser() const;
+    void SetLayerSourceTuning(int32_t needSourceTuning);
+    int32_t GetLayerSourceTuning() const;
 
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
@@ -424,6 +428,7 @@ private:
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
+    int32_t layerSource_ = 0;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

@@ -17,9 +17,11 @@
 #include <functional>
 #include <string>
 
+#include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "rs_base_render_util.h"
 #include "rs_uni_render_util.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
@@ -88,6 +90,25 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;
     info.transform = static_cast<int>(transform);
+
+    if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat(node)) {
+        info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {1};
+    } else {
+        info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
+    }
+    return true;
+}
+
+bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const
+{
+    if (node->GetBuffer() == nullptr) {
+        return false;
+    }
+    auto format = node->GetBuffer()->GetFormat();
+    if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+        format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        return false;
+    }
     return true;
 }
 

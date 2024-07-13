@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_thread_handler.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -72,8 +73,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     auto& hgmCore = HgmCore::Instance();
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
     multiAppStrategy_.UpdateXmlConfigCache();
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+    UpdateEnergyConsumptionConfig();
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
@@ -81,6 +81,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
+    RsCommonHook::Instance().SetVideoSurfaceConfig(configData->videoSurfaceConfig_);
     if (configData != nullptr) {
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
         idleDetector_.UpdateSupportAppBufferList(configData->appBufferList_);
@@ -91,8 +92,8 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
-        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-            multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+        UpdateEnergyConsumptionConfig();
+        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
     }
@@ -739,8 +740,20 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, uint32_t listSize, const
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
         }
+        CheckPackageInConfigList(multiAppStrategy_.GetForegroundPidApp());
         UpdateAppSupportStatus();
     });
+}
+
+void HgmFrameRateManager::CheckPackageInConfigList(std::unordered_map<pid_t,
+    std::pair<int32_t, std::string>> foregroundPidAppMap)
+{
+    std::unordered_map<std::string, std::string> videoConfigFromHgm = RsCommonHook::Instance().GetVideoSurfaceConfig();
+    for (auto pair: foregroundPidAppMap) {
+        if (videoConfigFromHgm.find(pair.second.second) != videoConfigFromHgm.end()) {
+            RsCommonHook::Instance().SetVideoSurfaceFlag(true);
+        }
+    }
 }
 
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
@@ -828,7 +841,11 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-        multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+    UpdateEnergyConsumptionConfig();
+    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    if (configData != nullptr) {
+        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
+    }
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     schedulePreferredFpsChange_ = true;
@@ -876,8 +893,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
         multiAppStrategy_.UpdateXmlConfigCache();
-        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
-            multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+        UpdateEnergyConsumptionConfig();
+        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
     }
 
     multiAppStrategy_.CalcVote();

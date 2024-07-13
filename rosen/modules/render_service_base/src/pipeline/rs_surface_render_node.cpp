@@ -17,6 +17,7 @@
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -42,6 +43,7 @@ namespace Rosen {
 // set the offset value to prevent the situation where the float number
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
+constexpr int32_t NEED_SOURCE_TUNING = 1;
 
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
@@ -171,16 +173,6 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
     isHardwareForcedDisabledBySrcRect_ = false;
     if (buffer == nullptr) {
         return;
-    }
-     // We allow 1px error value to avoid disable dss by mistake [this flag only used for YUV buffer format]
-    if (IsYUVBufferFormat()) {
-        auto width = static_cast<int>(buffer->GetSurfaceBufferWidth());
-        auto height = static_cast<int>(buffer->GetSurfaceBufferHeight());
-        isHardwareForcedDisabledBySrcRect_ =  !GetAncoForceDoDirect() &&
-            (hasRotation ? srcRect_.width_ + 1 < width : srcRect_.height_ + 1 < height);
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disableBySrc:%d src:[%d, %d]" \
-            " buffer:[%d, %d] hasRotation:%d", GetName().c_str(), GetId(),
-            isHardwareForcedDisabledBySrcRect_, srcRect_.width_, srcRect_.height_, width, height, hasRotation);
     }
 #endif
 }
@@ -1363,8 +1355,22 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
+    if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat()) {
+        surfaceParams->SetLayerSourceTuning(NEED_SOURCE_TUNING);
+    }
     AddToPendingSyncList();
 #endif
+}
+
+std::string RSSurfaceRenderNode::GetNeedSourceTuningWindow()
+{
+    int32_t uid = 0;
+    auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    auto nodeId = GetId();
+    auto pid = ExtractPid(nodeId);
+    std::string appName = "";
+    appMgrClient->GetBundleNameByPid(pid, appName, uid);
+    return appName;
 }
 
 void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)

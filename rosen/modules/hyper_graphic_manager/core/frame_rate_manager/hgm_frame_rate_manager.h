@@ -169,6 +169,7 @@ public:
     }
 
     static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
     void UpdateAppSupportStatus();

@@ -128,6 +128,7 @@ private:
     int32_t SetPerFrameParameters();
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
+    int32_t SetPerFrameLayerSourceTuning();
 };
 } // namespace Rosen
 } // namespace OHOS

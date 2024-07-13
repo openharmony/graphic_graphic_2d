@@ -159,6 +159,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
     layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     return layer;
 }
 

@@ -33,4 +33,24 @@ void RsCommonHook::OnStartNewAnimation()
         startNewAniamtionFunc_();
     }
 }
+
+void RsCommonHook::SetVideoSurfaceConfig(std::unordered_map<std::string, std::string> sourceTuningConfig)
+{
+    sourceTuningConfig_ = sourceTuningConfig;
+}
+
+std::unordered_map<std::string, std::string> RsCommonHook::GetVideoSurfaceConfig()
+{
+    return sourceTuningConfig_;
+}
+
+void RsCommonHook::SetVideoSurfaceFlag(bool VideoSurfaceFlag)
+{
+    VideoSurfaceFlag_ = VideoSurfaceFlag;
+}
+
+bool RsCommonHook::GetVideoSurfaceFlag() const
+{
+    return VideoSurfaceFlag_;
+}
 } // namespace OHOS::Rosen

@@ -1184,9 +1184,16 @@ public:
         return brightnessRatio_;
     }
 
-    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
+    std::string GetNeedSourceTuningWindow();
+ 
+    void SetNodeNeedTuning(bool isVideoInYuvConfig)
     {
-        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
+        isVideoInYuvConfig_ = isVideoInYuvConfig;
+    }
+    
+    bool IsNodeNeedTuning() const
+    {
+        return isVideoInYuvConfig_;
     }
 
     bool GetHardWareDisabledByReverse() const
@@ -1208,6 +1215,7 @@ protected:
     void OnSkipSync() override;
 
 private:
+bool isVideoInYuvConfig_ = false;
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
@@ -1339,7 +1347,8 @@ private:
     // hdr
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
-
+    int32_t layerSource_ = 0;
+    
     struct OpaqueRegionBaseInfo
     {
         RectI screenRect_;
