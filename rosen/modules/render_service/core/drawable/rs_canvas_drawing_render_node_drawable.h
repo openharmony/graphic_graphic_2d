@@ -71,6 +71,8 @@ private:
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
     bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);
     void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);
+    bool GetCurrentContextAndImage(std::shared_ptr<Drawing::GPUContext>& grContext,
+        std::shared_ptr<Drawing::Image>& image);
 #endif
     static Registrar instance_;
     std::recursive_mutex drawableMutex_;

@@ -132,6 +132,19 @@ void RSSubThreadManager::DumpMem(DfxString& log)
     }
 }
 
+std::shared_ptr<Drawing::GPUContext> RSSubThreadManager::GetGrContextFromSubThread(pid_t tid)
+{
+    auto iter = threadIndexMap_.find(tid);
+    if (iter == threadIndexMap_.end()) {
+        return nullptr;
+    }
+    auto index = iter->second;
+    if ((index >= 0) && (index < SUB_THREAD_NUM)) {
+        return threadList_[index]->GetGrContext();
+    }
+    return nullptr;
+}
+
 float RSSubThreadManager::GetAppGpuMemoryInMB()
 {
     if (threadList_.empty()) {
