@@ -497,7 +497,9 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config, NativeWindowTyp
     if (table->isLoad && table->egl.eglCreateWindowSurface) {
         EGLSurface surf = table->egl.eglCreateWindowSurface(disp_, config, window, attribList);
         if (surf != EGL_NO_SURFACE) {
-            return new EglWrapperSurface(this, surf, window);
+            EGLSurface mySurface = new EglWrapperSurface(this, surf);
+            EglWrapperSurface::Init(window);
+            return mySurface;
         } else {
             WLOGE("egl.eglCreateWindowSurface error.");
         }
@@ -526,6 +528,7 @@ EGLBoolean EglWrapperDisplay::DestroyEglSurface(EGLSurface surf)
     if (table->isLoad && table->egl.eglDestroySurface) {
         ret = table->egl.eglDestroySurface(disp_, sur);
         if (ret == EGL_TRUE) {
+            EglWrapperSurface::Disconnect();
             surfPtr->Destroy();
         } else {
             WLOGE("eglDestroySurface error.");
