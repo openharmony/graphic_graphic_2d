@@ -961,5 +961,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetLayerComposeInfo, TestSize.Level
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
     ASSERT_EQ(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
 }
+
+/**
+ * @tc.name: GetHardwareComposeDisabledReasonInfo Test
+ * @tc.desc: GetHardwareComposeDisabledReasonInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issueIACUOK
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHardwareComposeDisabledReasonInfo, TestSize.Level1)
+{
+    NodeId id = 0;
+    std::string nodeName = "Test";
+    GpuDirtyRegionCollection::GetInstance().UpdateHardwareComposeDisabledReasonInfoForDFX(id,
+        HardwareComposeDisabledReasons::DISABLED_BY_SRC_PIXEL, nodeName);
+    ASSERT_EQ(proxy->GetHardwareComposeDisabledReasonInfo().size(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

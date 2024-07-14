@@ -51,6 +51,7 @@
 #include "rs_occlusion_data.h"
 #include "rs_uiextension_data.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 
 namespace OHOS {
@@ -329,6 +330,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
 
     LayerComposeInfo GetLayerComposeInfo();
+
+    std::vector<HardwareComposeDisabledReasonInfo> GetHardwareComposeDisabledReasonInfo();
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 

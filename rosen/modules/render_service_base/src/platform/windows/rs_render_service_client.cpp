@@ -529,7 +529,7 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
 {
 }
 
-std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
+std::vector<HardwareComposeDisabledReasonInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
     return {};
 }
@@ -542,6 +542,11 @@ GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
 LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 {
     return LayerComposeInfo {};
+}
+
+std::vector<HardwareComposeDisabledReasonInfo> RSRenderServiceClient::GetHardwareComposeDisabledReasonInfo()
+{
+    return {};
 }
 
 #ifdef TP_FEATURE_ENABLE

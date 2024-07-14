@@ -1380,6 +1380,15 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
     return renderService->GetLayerComposeInfo();
 }
 
+std::vector<HardwareComposeDisabledReasonInfo> RSRenderServiceClient::GetHardwareComposeDisabledReasonInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return {};
+    }
+    return renderService->GetHardwareComposeDisabledReasonInfo();
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {

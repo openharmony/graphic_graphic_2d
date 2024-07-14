@@ -278,6 +278,8 @@ public:
 
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
 
+    virtual std::vector<HardwareComposeDisabledReasonInfo> GetHardwareComposeDisabledReasonInfo() = 0;
+
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
 #ifdef TP_FEATURE_ENABLE

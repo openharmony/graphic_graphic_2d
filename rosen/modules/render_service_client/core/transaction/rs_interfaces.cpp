@@ -664,6 +664,12 @@ LayerComposeInfo RSInterfaces::GetLayerComposeInfo() const
     return layerComposeInfo;
 }
 
+std::vector<HardwareComposeDisabledReasonInfo> RSInterfaces::GetHardwareComposeDisabledReasonInfo() const
+{
+    const auto& hardwareComposeDisabledReasonInfo = renderServiceClient_->GetHardwareComposeDisabledReasonInfo();
+    return hardwareComposeDisabledReasonInfo;
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {

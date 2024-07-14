@@ -213,6 +213,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetActiveDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
+    rsRenderServiceConnectionProxy.GetHardwareComposeDisabledReasonInfo();
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.SetCurtainScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);

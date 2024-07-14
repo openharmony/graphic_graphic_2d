@@ -275,6 +275,8 @@ private:
 
     LayerComposeInfo GetLayerComposeInfo() override;
 
+    std::vector<HardwareComposeDisabledReasonInfo> GetHardwareComposeDisabledReasonInfo() override;
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
 #ifdef TP_FEATURE_ENABLE

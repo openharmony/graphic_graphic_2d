@@ -2478,6 +2478,37 @@ LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()
     return LayerComposeInfo(reply.ReadInt32(), reply.ReadInt32(), reply.ReadInt32());
 }
 
+std::vector<HardwareComposeDisabledReasonInfo> RSRenderServiceConnectionProxy::GetHardwareComposeDisabledReasonInfo()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<HardwareComposeDisabledReasonInfo> hardwareComposeDisabledReasonInfos;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return hardwareComposeDisabledReasonInfos;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
+        GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetHardwareComposeDisabledReasonInfo: Send Request err.");
+        return hardwareComposeDisabledReasonInfos;
+    }
+
+    HardwareComposeDisabledReasonInfo hardwareComposeDisabledReasonInfo;
+    int32_t hardwareComposeDisabledReasonInfosSize = reply.ReadInt32();
+    while (hardwareComposeDisabledReasonInfosSize--) {
+        for (int32_t pos = 0; pos < HardwareComposeDisabledReasons::DISABLED_REASON_LENGTH; pos++) {
+            hardwareComposeDisabledReasonInfo.disabledReasonStatistics[pos] = reply.ReadInt32();
+        }
+        hardwareComposeDisabledReasonInfo.pidOfBelongsApp = reply.ReadInt32();
+        hardwareComposeDisabledReasonInfo.nodeName = reply.ReadString();
+        hardwareComposeDisabledReasonInfos.emplace_back(hardwareComposeDisabledReasonInfo);
+    }
+    return hardwareComposeDisabledReasonInfos;
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
 {

@@ -288,6 +288,20 @@ HWTEST_F(RSInterfacesTest, GetLayerComposeInfo001, TestSize.Level1)
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
+/**
+ * @tc.name: GetHardwareComposeDisabledReasonInfo001
+ * @tc.desc: test results of GetHardwareComposeDisabledReasonInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.GetHardwareComposeDisabledReasonInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
 #ifdef TP_FEATURE_ENABLE
 /**
  * @tc.name: SetTpFeatureConfig001
