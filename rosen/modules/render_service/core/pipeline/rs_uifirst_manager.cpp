@@ -510,13 +510,13 @@ void RSUifirstManager::ConvertPendingNodeToDrawable()
         return;
     }
     pendingPostDrawables_.clear();
-    for (auto& iter : pendingPostNodes_) {
-        if (!iter.second) {
-            continue;
+    for (const auto& iter : pendingPostNodes_) {
+        if (iter.second && GetUseDmaBuffer(iter.second->GetName())) {
+            if (auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second)) {
+                pendingPostDrawables_.emplace_back(
+                    std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
+            }
         }
-        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second);
-        pendingPostDrawables_.emplace_back(
-            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
     }
 }
 
@@ -1224,18 +1224,19 @@ void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processo
     }
 }
 
-void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
+void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
 {
     if (!useDmaBuffer_) {
         return;
     }
-    for (auto& iter : pendingPostNodes_) {
-        if (!iter.second) {
-            continue;
+    for (const auto& iter : pendingPostNodes_) {
+        auto& node = iter.second;
+        if (node && GetUseDmaBuffer(node->GetName())) {
+            node->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
+            auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
+            node->UpdateHwcNodeLayerInfo(transform);
+            node->SetIsLastFrameHwcEnabled(!node->IsHardwareForcedDisabled());
         }
-        auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
-        iter.second->UpdateHwcNodeLayerInfo(transform);
-        iter.second->SetIsLastFrameHwcEnabled(!iter.second->IsHardwareForcedDisabled());
     }
 }
 
