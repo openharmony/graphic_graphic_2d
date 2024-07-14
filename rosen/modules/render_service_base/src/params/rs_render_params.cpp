@@ -300,16 +300,6 @@ bool RSRenderParams::OpincGetCacheChangeState()
     return state;
 }
 
-bool RSRenderParams::OpincGetCachedMark()
-{
-    return isOpincMarkCached_;
-}
-
-void RSRenderParams::OpincSetCachedMark(bool mark)
-{
-    isOpincMarkCached_ = mark;
-}
-
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 {
     if (shadowRect_ == rect) {

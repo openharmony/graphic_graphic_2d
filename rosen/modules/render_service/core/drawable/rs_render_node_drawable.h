@@ -201,6 +201,11 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
+    bool isOpincMarkCached_ = false;
+    bool OpincGetCachedMark() const
+    {
+        return isOpincMarkCached_;
+    }
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

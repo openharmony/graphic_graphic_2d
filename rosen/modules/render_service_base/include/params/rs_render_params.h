@@ -136,8 +136,6 @@ public:
     bool OpincGetRootFlag() const;
     void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
-    bool OpincGetCachedMark();
-    void OpincSetCachedMark(bool mark);
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
@@ -217,7 +215,6 @@ private:
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
-    bool isOpincMarkCached_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;

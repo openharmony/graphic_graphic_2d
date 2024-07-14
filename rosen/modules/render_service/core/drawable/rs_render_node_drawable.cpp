@@ -108,7 +108,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     // check drawing cache type (disabled: clear cache)
-    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !params.OpincGetCachedMark()) &&
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !OpincGetCachedMark()) &&
         !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         {
@@ -137,7 +137,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
-        && !params.OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
+        && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
     }
 
