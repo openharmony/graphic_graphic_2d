@@ -62,21 +62,7 @@ void JsLattice::Finalizer(napi_env env, void* data, void* hint)
 
 JsLattice::~JsLattice()
 {
-    if (m_lattice != nullptr) {
-        if (m_lattice->fXDivs != nullptr) {
-            delete[] m_lattice->fXDivs;
-        }
-        if (m_lattice->fXDivs != nullptr) {
-            delete[] m_lattice->fYDivs;
-        }
-        if (m_lattice->fRectTypes != nullptr) {
-            delete[] m_lattice->fRectTypes;
-        }
-        if (m_lattice->fColors != nullptr) {
-            delete[] m_lattice->fColors;
-        }
-        m_lattice = nullptr;
-    }
+    m_lattice = nullptr;
 }
 
 napi_value JsLattice::Constructor(napi_env env, napi_callback_info info)
@@ -111,7 +97,7 @@ void JsLattice::Destructor(napi_env env, void *nativeObject, void *finalize)
     }
 }
 
-bool GetLatticeDividers(napi_env env, napi_value dividersArray, uint32_t count, int** dividers)
+bool GetLatticeDividers(napi_env env, napi_value dividersArray, uint32_t count, std::vector<int>& dividers)
 {
     uint32_t dividersSize = 0;
     napi_get_array_length(env, dividersArray, &dividersSize);
@@ -120,25 +106,23 @@ bool GetLatticeDividers(napi_env env, napi_value dividersArray, uint32_t count, 
         return false;
     }
     if (dividersSize != 0) {
-        auto divs = new int[dividersSize];
+        dividers.reserve(dividersSize);
         for (uint32_t i = 0; i < dividersSize; i++) {
             napi_value tempDiv = nullptr;
             napi_get_element(env, dividersArray, i, &tempDiv);
             int div = 0;
             if (napi_get_value_int32(env, tempDiv, &div) != napi_ok) {
                 ROSEN_LOGE("JsLattice::CreateImageLattice divider is invalid");
-                delete []divs;
                 return false;
             }
-            divs[i] = div;
+            dividers.push_back(div);
         }
-        *dividers = divs;
     }
     return true;
 }
 
 bool GetLatticeRectTypes(napi_env env, napi_value rectTypesArray, uint32_t count,
-    Lattice::RectType** latticeRectTypes)
+    std::vector<Lattice::RectType>& latticeRectTypes)
 {
     uint32_t rectTypesSize = 0;
     napi_get_array_length(env, rectTypesArray, &rectTypesSize);
@@ -147,7 +131,7 @@ bool GetLatticeRectTypes(napi_env env, napi_value rectTypesArray, uint32_t count
         return false;
     }
     if (rectTypesSize != 0) {
-        auto rectTypes = new Lattice::RectType[rectTypesSize];
+        latticeRectTypes.reserve(rectTypesSize);
         for (uint32_t i = 0; i < rectTypesSize; i++) {
             napi_value tempType = nullptr;
             napi_get_element(env, rectTypesArray, i, &tempType);
@@ -155,17 +139,15 @@ bool GetLatticeRectTypes(napi_env env, napi_value rectTypesArray, uint32_t count
             if (napi_get_value_int32(env, tempType, &rectType) != napi_ok ||
                 rectType < 0 || rectType > 2) { // 2: FIXEDCOLOR
                 ROSEN_LOGE("JsLattice::CreateImageLattice rectType is invalid");
-                delete []rectTypes;
                 return false;
             }
-            rectTypes[i] = static_cast<Lattice::RectType>(rectType);
+            latticeRectTypes.push_back(static_cast<Lattice::RectType>(rectType));
         }
-        *latticeRectTypes = rectTypes;
     }
     return true;
 }
 
-bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, Color** latticeColors)
+bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, std::vector<Color>& latticeColors)
 {
     uint32_t colorsSize = 0;
     napi_get_array_length(env, colorsArray, &colorsSize);
@@ -174,7 +156,7 @@ bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, Colo
         return false;
     }
     if (colorsSize != 0) {
-        auto colors = new Color[colorsSize];
+        latticeColors.reserve(colorsSize);
         for (uint32_t i = 0; i < colorsSize; i++) {
             napi_value tempColor = nullptr;
             napi_get_element(env, colorsArray, i, &tempColor);
@@ -182,14 +164,12 @@ bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, Colo
             int32_t argb[ARGC_FOUR] = {0};
             if (!ConvertFromJsColor(env, tempColor, argb, ARGC_FOUR)) {
                 ROSEN_LOGE("JsLattice::CreateImageLattice colors is invalid");
-                delete []colors;
                 return false;
             }
             drawingColor = Color::ColorQuadSetARGB(
                 argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
-            colors[i] = drawingColor;
+            latticeColors.push_back(drawingColor);
         }
-        *latticeColors = colors;
     }
     return true;
 }
@@ -205,70 +185,45 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
     uint32_t yCount = 0;
     GET_UINT32_PARAM(ARGC_THREE, yCount);
 
-    int* xDividers = nullptr;
-    if (!GetLatticeDividers(env, argv[ARGC_ZERO], xCount, &xDividers)) {
+    Lattice lat;
+    if (!GetLatticeDividers(env, argv[ARGC_ZERO], xCount, lat.fXDivs)) {
         ROSEN_LOGE("JsLattice::CreateImageLattice xDividers are invalid");
-        delete xDividers;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
-    int* yDividers = nullptr;
-    if (!GetLatticeDividers(env, argv[ARGC_ONE], yCount, &yDividers)) {
+    if (!GetLatticeDividers(env, argv[ARGC_ONE], yCount, lat.fYDivs)) {
         ROSEN_LOGE("JsLattice::CreateImageLattice yDividers are invalid");
-        delete xDividers;
-        delete yDividers;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
     }
-    Lattice lat;
-    lat.fXDivs = xDividers;
-    lat.fYDivs = yDividers;
     lat.fXCount = xCount;
     lat.fYCount = yCount;
-    lat.fBounds = nullptr;
-    lat.fRectTypes = nullptr;
-    lat.fColors = nullptr;
 
     if (argc >= ARGC_FIVE) {
         napi_valuetype valueType = napi_undefined;
         if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
             (valueType != napi_null && valueType != napi_object)) {
-            delete xDividers;
-            delete yDividers;
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Incorrect CreateImageLattice parameter5 type.");
         }
         int32_t ltrb[ARGC_FOUR] = {0};
         if (valueType == napi_object) {
             if (!ConvertFromJsIRect(env, argv[ARGC_FOUR], ltrb, ARGC_FOUR)) {
-                delete xDividers;
-                delete yDividers;
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                     "Incorrect parameter5 type. The type of left, top, right and bottom must be number.");
             }
-            lat.fBounds = new Drawing::RectI(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+            lat.fBounds.push_back(Drawing::RectI(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]));
         }
     }
 
     if (argc >= ARGC_SIX) {
         int count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
-        Lattice::RectType* latticeRectTypes = nullptr;
-        if (!GetLatticeRectTypes(env, argv[ARGC_FIVE], count, &latticeRectTypes)) {
-            delete xDividers;
-            delete yDividers;
-            delete latticeRectTypes;
+        if (!GetLatticeRectTypes(env, argv[ARGC_FIVE], count, lat.fRectTypes)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");
         }
-        lat.fRectTypes = latticeRectTypes;
 
         if (argc == ARGC_SEVEN) {
-            Color* latticeColors = nullptr;
-            if (!GetLatticeColors(env, argv[ARGC_SIX], count, &latticeColors)) {
-                delete xDividers;
-                delete yDividers;
-                delete latticeRectTypes;
-                delete latticeColors;
+            if (!GetLatticeColors(env, argv[ARGC_SIX], count, lat.fColors)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter7 type.");
             }
-            lat.fColors = latticeColors;
         }
     }
     return JsLattice::Create(env, std::make_shared<Lattice>(lat));

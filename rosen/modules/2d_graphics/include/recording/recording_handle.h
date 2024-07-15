@@ -70,6 +70,16 @@ struct SymbolLayersHandle {
     std::pair<uint32_t, size_t> groups;
 };
 
+struct LatticeHandle {
+    std::pair<uint32_t, size_t> fXDivs = {0, 0};
+    std::pair<uint32_t, size_t> fYDivs = {0, 0};
+    std::pair<uint32_t, size_t> fRectTypes = {0, 0};
+    int fXCount = 0;
+    int fYCount = 0;
+    std::pair<uint32_t, size_t> fBounds = {0, 0};
+    std::pair<uint32_t, size_t> fColors = {0, 0};
+};
+
 struct SymbolOpHandle {
     SymbolLayersHandle symbolLayerHandle;
     OpDataHandle pathHandle;
