@@ -261,7 +261,11 @@ struct Index {
     if (str == 'All') {
       for (let key of CaseFactory.getFunctonCpuAllCase().keys()) {
         this.TestSingleFunctionGpu(key);
-        await this.sleep(500);
+        if (key == 'canvasdrawimage') {
+          await this.sleep(1500);
+        } else {
+          await this.sleep(500);
+        }
       }
       this.LogMsg('TestFunctionalGpu All end');
     } else {
@@ -271,7 +275,11 @@ struct Index {
 
   async TestSingleFunctionGpu(str: string) {
     this.myNodeController.TestFunctionalGpuUpScreen(str);
-    await this.sleep(50);
+    if (str == 'canvasdrawimage') {
+      await this.sleep(1000);
+    } else {
+      await this.sleep(50);
+    }
     const context : Context = getContext(this);
     componentSnapshot.get("myNodeController", (error:Error, pixmap: image.PixelMap) => {
       if (error) {
