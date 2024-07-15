@@ -146,7 +146,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
-            if (parentNode && parentNode->IsLeashWindow()) {
+            if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
                 curNode = parentNode;
             }
         }
