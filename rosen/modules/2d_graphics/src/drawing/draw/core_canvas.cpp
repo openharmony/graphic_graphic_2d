@@ -571,6 +571,11 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     return impl_->DrawBlurImage(image, blurParams);
 }
 
+std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam)
+{
+    return impl_->CalcHpsBluredImageDimension(blurParam);
+}
+
 void CoreCanvas::GetLooperPaint(const Paint& paint, Paint& looperPaint)
 {
     looperPaint = paint;

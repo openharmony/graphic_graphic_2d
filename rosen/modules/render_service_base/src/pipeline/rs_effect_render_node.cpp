@@ -132,6 +132,7 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     if (filterDrawable == nullptr) {
         return;
     }
+    filterDrawable->MarkEffectNode();
     RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
     if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;

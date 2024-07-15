@@ -32,6 +32,7 @@ namespace Rosen {
 namespace Drawing {
 using pid_t = int;
 struct GPUResourceTag;
+struct HpsBlurParameter;
 class GPUContext;
 class GPUContextOptions;
 class GPUContextImpl : public BaseImpl {

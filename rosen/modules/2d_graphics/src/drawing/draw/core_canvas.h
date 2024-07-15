@@ -415,7 +415,7 @@ public:
      * This approach can be optimized when you want to draw many parts of an image on the canvas.
      * Rect tex selects the area in the atlas, xform transforms each sprite individually rotating or zooming.
      * MaskFilter and PathEffect on brush are ignored.
-     * 
+     *
      * The xform and tex list must contain count entries, and if the colors is present,
      * it must be the same length as the other two lists, the max count supported is 2000.
      * Optional parameter colors, if present, are applied to each sprite using BlendMode mode, treating
@@ -562,7 +562,7 @@ public:
      * @brief Sets RSMatrix to the identity matrix. Any prior matrix state is overwritten.
      */
     virtual void ResetMatrix();
-    
+
     /**
      * @brief Replaces RSMatrix with matrix premultiplied with existing RSMatrix.
      * This has the effect of transforming the drawn geometry by matrix, before
@@ -570,7 +570,7 @@ public:
      * @param matrix matrix to premultiply with existing RSMatrix
      */
     virtual void ConcatMatrix(const Matrix& matrix);
-    
+
     /**
      * @brief Translates RSMatrix by dx along the x-axis and dy along the y-axis.
      * Mathematically, replaces RSMatrix with a translation matrix premultiplied with RSMatrix.
@@ -579,7 +579,7 @@ public:
      * @param dy distance to translate on y-axis
      */
     virtual void Translate(scalar dx, scalar dy);
-    
+
     /**
      * @brief Scales RSMatrix by sx on the x-axis and sy on the y-axis.
      * Mathematically, replaces RSMatrix with a scale matrix premultiplied with RSMatrix.
@@ -655,7 +655,7 @@ public:
 
     /**
      * @brief Returns the number of saved states, each containing Matrix and clipping area.
-     * 
+     *
      * @return uint32_t type, represent depth of save state stack
      */
     virtual uint32_t GetSaveCount() const;
@@ -686,13 +686,13 @@ public:
      * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPaint(const Paint& paint);
-    
+
     /**
      * @brief Detach pen from canvas.
      * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPen();
-    
+
     /**
      * @brief Detach brush from canvas.
      * @return CoreCanvas&
@@ -731,6 +731,13 @@ public:
     }
 
     virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
+
+    /**
+     * @brief                   Get the size after HPS blur downsampling. Only VK will return valid values.
+     * @param blurParam         HPS blur Param is used to calculate the size after downsampling.
+     * @return {width, height}, if return {0, 0}, witch means something error.
+     */
+    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams);
 
 protected:
     CoreCanvas(int32_t width, int32_t height);

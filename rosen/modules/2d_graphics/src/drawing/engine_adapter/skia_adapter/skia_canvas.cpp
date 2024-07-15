@@ -1192,6 +1192,22 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
     SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
     return skCanvas_->drawBlurImage(img.get(), blurArg);
 }
+
+std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
+{
+    if (!skCanvas_) {
+        LOGD("SkiaCanvas::CalcHpsBluredImageDimension, skCanvas_ is nullptr");
+        return {0, 0};
+    }
+
+    SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
+        blurParams.src.GetRight(), blurParams.src.GetBottom());
+    SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
+        blurParams.dst.GetRight(), blurParams.dst.GetBottom());
+
+    SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
+    return skCanvas_->CalcHpsBluredImageDimension(blurArg);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
