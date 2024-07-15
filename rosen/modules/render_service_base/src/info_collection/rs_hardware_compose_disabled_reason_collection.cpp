@@ -31,7 +31,7 @@ HardwareComposeDisabledReasonCollection::~HardwareComposeDisabledReasonCollectio
 {
 }
 
-void HardwareComposeDisabledReasonCollection::UpdateHardwareComposeDisabledReasonInfoForDFX(NodeId id,
+void HardwareComposeDisabledReasonCollection::UpdateHardwareComposeDisabledReasonForDFX(NodeId id,
     int32_t disabledReason, const std::string& nodeName)
 {
     std::lock_guard<std::mutex> lock(hardwareComposeDisabledReasonMtx_);
