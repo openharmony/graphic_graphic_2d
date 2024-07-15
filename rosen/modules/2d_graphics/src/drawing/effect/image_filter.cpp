@@ -22,46 +22,50 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-ImageFilter::ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input) noexcept : ImageFilter()
+ImageFilter::ImageFilter(FilterType t, scalar x, scalar y,
+    std::shared_ptr<ImageFilter> input, const Rect& cropRect) noexcept : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithOffset(x, y, input);
+    impl_->InitWithOffset(x, y, input, cropRect);
 }
 
 ImageFilter::ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::shared_ptr<ImageFilter> input,
-    ImageBlurType blurType) noexcept
+    ImageBlurType blurType, const Rect& cropRect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithBlur(x, y, mode, input, blurType);
+    impl_->InitWithBlur(x, y, mode, input, blurType, cropRect);
 }
 
-ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<ImageFilter> input) noexcept
+ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf,
+    std::shared_ptr<ImageFilter> input, const Rect& cropRect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithColor(cf, input);
+    impl_->InitWithColor(cf, input, cropRect);
 }
 
-ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType) noexcept
+ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y,
+    ImageBlurType blurType, const Rect& cropRect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithColorBlur(cf, x, y, blurType);
+    impl_->InitWithColorBlur(cf, x, y, blurType, cropRect);
 }
 
-void ImageFilter::InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType)
+void ImageFilter::InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y,
+    ImageBlurType blurType, const Rect& cropRect)
 {
     type_ = ImageFilter::FilterType::COLOR_FILTER;
-    impl_->InitWithColorBlur(cf, x, y, blurType);
+    impl_->InitWithColorBlur(cf, x, y, blurType, cropRect);
 }
 
 ImageFilter::ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
-    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept
+    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground, const Rect& cropRect) noexcept
     :ImageFilter()
 {
     type_ = t;
-    impl_->InitWithArithmetic(coefficients, enforcePMColor, background, foreground);
+    impl_->InitWithArithmetic(coefficients, enforcePMColor, background, foreground, cropRect);
 }
 
 ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::shared_ptr<ImageFilter> f2) noexcept
@@ -93,27 +97,30 @@ ImageFilter::FilterType ImageFilter::GetType() const
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
-    std::shared_ptr<ImageFilter> input, ImageBlurType blurType)
+    std::shared_ptr<ImageFilter> input, ImageBlurType blurType, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, sigmaX, sigmaY, mode, input, blurType);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, sigmaX, sigmaY,
+        mode, input, blurType, cropRect);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateColorFilterImageFilter(
-    const ColorFilter& cf, std::shared_ptr<ImageFilter> input)
+    const ColorFilter& cf, std::shared_ptr<ImageFilter> input, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, input);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, input, cropRect);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateColorBlurImageFilter(const ColorFilter& cf,
-    scalar sigmaX, scalar sigmaY, ImageBlurType blurType)
+    scalar sigmaX, scalar sigmaY, ImageBlurType blurType, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, sigmaX, sigmaY, blurType);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf,
+        sigmaX, sigmaY, blurType, cropRect);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateOffsetImageFilter(
-    scalar dx, scalar dy, std::shared_ptr<ImageFilter> input)
+    scalar dx, scalar dy, std::shared_ptr<ImageFilter> input, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::OFFSET, dx, dy, input);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::OFFSET,
+        dx, dy, input, cropRect);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateGradientBlurImageFilter(float radius,
@@ -125,10 +132,11 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateGradientBlurImageFilter(float ra
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateArithmeticImageFilter(const std::vector<scalar>& coefficients,
-    bool enforcePMColor, std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground)
+    bool enforcePMColor, std::shared_ptr<ImageFilter> background,
+    std::shared_ptr<ImageFilter> foreground, const Rect& cropRect)
 {
     return std::make_shared<ImageFilter>(
-        ImageFilter::FilterType::ARITHMETIC, coefficients, enforcePMColor, background, foreground);
+        ImageFilter::FilterType::ARITHMETIC, coefficients, enforcePMColor, background, foreground, cropRect);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateComposeImageFilter(
@@ -148,30 +156,30 @@ bool ImageFilter::Deserialize(std::shared_ptr<Data> data)
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateBlendImageFilter(BlendMode mode,
-    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground)
+    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::BLEND, mode, background, foreground);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::BLEND, mode, background, foreground, cropRect);
 }
 
 ImageFilter::ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilter> background,
-    std::shared_ptr<ImageFilter> foreground) noexcept
+    std::shared_ptr<ImageFilter> foreground, const Rect& cropRect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithBlend(mode, background, foreground);
+    impl_->InitWithBlend(mode, cropRect, background, foreground);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateShaderImageFilter(
-    std::shared_ptr<ShaderEffect> shader, const Rect& rect)
+    std::shared_ptr<ShaderEffect> shader, const Rect& cropRect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::SHADER, shader, rect);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::SHADER, shader, cropRect);
 }
 
-ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& rect) noexcept
+ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithShader(shader, rect);
+    impl_->InitWithShader(shader, cropRect);
 }
 
 } // namespace Drawing

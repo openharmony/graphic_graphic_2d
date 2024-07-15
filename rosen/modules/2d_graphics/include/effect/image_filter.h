@@ -25,6 +25,12 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class ImageFilterImpl;
+
+static const Rect noCropRect = {
+    -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+    std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+};
+
 class DRAWING_API ImageFilter {
 public:
     enum class FilterType {
@@ -45,30 +51,34 @@ public:
      * @param mode       The tile mode applied at edges.
      * @param input      The input filter that is blurred, uses source bitmap if this is null.
      * @param blurType   The BlurType of Image, default as GAUSS.
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return           A shared pointer to ImageFilter that its type is blur.
      */
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
-        std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS);
+        std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS,
+        const Rect& cropRect = noCropRect);
     /**
      * @brief Create a filter that applies the color filter to the input filter results.
      * @param cf     The color filter that transforms the input image.
      * @param input  The input filter, or uses the source bitmap if this is null.
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return       A shared pointer to ImageFilter that its type is color.
      */
     static std::shared_ptr<ImageFilter> CreateColorFilterImageFilter(const ColorFilter& cf,
-        std::shared_ptr<ImageFilter> input);
+        std::shared_ptr<ImageFilter> input, const Rect& cropRect = noCropRect);
 
     static std::shared_ptr<ImageFilter> CreateColorBlurImageFilter(const ColorFilter& cf, scalar sigmaX, scalar sigmaY,
-        ImageBlurType blurType = ImageBlurType::GAUSS);
+        ImageBlurType blurType = ImageBlurType::GAUSS, const Rect& cropRect = noCropRect);
     /*
      * @brief        Create a filter that offsets the input filter by the given vector.
      * @param dx     The x offset in local space that the image is shifted.
      * @param dy     The y offset in local space that the image is shifted.
      * @param input  The input that will be moved, if null the source bitmap is used instead.
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return       A shared pointer to ImageFilter that its type is offset.
      */
     static std::shared_ptr<ImageFilter> CreateOffsetImageFilter(scalar dx, scalar dy,
-        std::shared_ptr<ImageFilter> input);
+        std::shared_ptr<ImageFilter> input, const Rect& cropRect = noCropRect);
     /**
      * @brief Create a filter that implements a custom blend mode.
      * @param coefficients    Get the four coefficients used to combine the foreground and background in the vector.
@@ -76,10 +86,12 @@ public:
      * @param enforcePMColor  If true, the RGB channels will be clamped to the Calculated alpha.
      * @param background      The Background content, using the source bitmap when this is null.
      * @param foreground      The foreground content, using the source bitmap when this is null.
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return                A shared point to ImageFilter that its type is arithmetic.
      */
     static std::shared_ptr<ImageFilter> CreateArithmeticImageFilter(const std::vector<scalar>& coefficients,
-        bool enforcePMColor, std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground);
+        bool enforcePMColor, std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground,
+        const Rect& cropRect = noCropRect);
     /**
      * @brief Create a filter that composes f1 with f2.
      * @param f1  The outer filter that evaluates the results of inner.
@@ -98,10 +110,12 @@ public:
      * @param mode  The blend mode that defines the compositing operation
      * @param background  The Dst pixels used in blending, if null the source bitmap is used.
      * @param foreground  The Src pixels used in blending, if null the source bitmap is used.
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return    A shared pointer to ImageFilter that its type is blend.
      */
     static std::shared_ptr<ImageFilter> CreateBlendImageFilter(BlendMode mode,
-        std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground = nullptr);
+        std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground = nullptr,
+        const Rect& cropRect = noCropRect);
 
     /**
      * @brief Create a filter that fills the output with the per-pixel evaluation of the ShaderEffect. The
@@ -112,13 +126,11 @@ public:
      *        a complex filter graph, but should generally be combined with a filter that as at least
      *        one null input to use the implicit source image.
      * @param shader  The shader that fills the result image
+     * @param cropRect   Optional rectangle that crops the input and output
      * @return    A shared pointer to ImageFilter that its type is shader.
      */
     static std::shared_ptr<ImageFilter> CreateShaderImageFilter(std::shared_ptr<ShaderEffect> shader,
-        const Rect& rect = {
-            -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
-            std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
-        });
+        const Rect& cropRect = noCropRect);
 
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
@@ -134,21 +146,27 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
-    ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input) noexcept;
+    ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input,
+        const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::shared_ptr<ImageFilter> input,
-        ImageBlurType blurType) noexcept;
-    ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<ImageFilter> input) noexcept;
-    ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType) noexcept;
+        ImageBlurType blurType, const Rect& cropRect = noCropRect) noexcept;
+    ImageFilter(FilterType t, const ColorFilter& cf,
+        std::shared_ptr<ImageFilter> input, const Rect& cropRect = noCropRect) noexcept;
+    ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y,
+        ImageBlurType blurType, const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
-        std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept;
+        std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground,
+        const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::shared_ptr<ImageFilter> f2) noexcept;
     ImageFilter(FilterType t, float radius, const std::vector<std::pair<float, float>>& fractionStops,
         GradientDir direction, GradientBlurType blurType, std::shared_ptr<ImageFilter> input) noexcept;
     ImageFilter(FilterType t) noexcept;
-    void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType);
+    void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType,
+        const Rect& cropRect = noCropRect);
     ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilter> background,
-        std::shared_ptr<ImageFilter> foreground = nullptr) noexcept;
-    ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& rect) noexcept;
+        std::shared_ptr<ImageFilter> foreground = nullptr,
+        const Rect& cropRect = noCropRect) noexcept;
+    ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& cropRect = noCropRect) noexcept;
 protected:
     ImageFilter() noexcept;
 
