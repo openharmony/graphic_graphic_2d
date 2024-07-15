@@ -265,6 +265,7 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     return true;
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -300,6 +301,7 @@ bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
     rsClient->RegisterPointerLuminanceChangeCallback(cb);
     return true;
 }
+#endif
 
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
@@ -830,8 +832,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
     OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
+#endif
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);

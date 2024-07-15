@@ -336,9 +336,11 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     layers_.emplace_back(layer);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 std::vector<LayerInfoPtr> RSUniRenderProcessor::GetLayers() const
 {
     return layers_;
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

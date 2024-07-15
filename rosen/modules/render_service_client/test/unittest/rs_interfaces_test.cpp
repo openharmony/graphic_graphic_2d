@@ -420,6 +420,7 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
     EXPECT_EQ(supportedScreenModes.size(), 0);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig001
  * @tc.desc: set pointer color inversion config function.
@@ -470,6 +471,7 @@ HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback001, TestSize
     int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
+#endif
 
 /*
 * Function: SetScreenActiveMode

@@ -75,6 +75,7 @@ public:
 
     void RemoveVirtualScreen(ScreenId id);
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
  
     int32_t SetPointerColorInversionEnabled(bool enable);
@@ -82,6 +83,7 @@ public:
     int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
  
     int32_t UnRegisterPointerLuminanceChangeCallback();
+#endif
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 

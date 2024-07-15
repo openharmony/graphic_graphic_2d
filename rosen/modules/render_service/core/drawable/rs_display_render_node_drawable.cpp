@@ -37,7 +37,6 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_pointer_render_manager.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uifirst_manager.h"
@@ -46,6 +45,9 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/sk_resource_manager.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#endif
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
@@ -681,12 +683,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     processor->PostProcess();
     RS_TRACE_END();
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (!mirrorDrawable) {
-        RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable ProcessColorPicker");
         RSPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext());
         RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
-        RS_TRACE_END();
     }
+#endif
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorScreen(

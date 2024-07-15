@@ -105,6 +105,7 @@ private:
 
     void RemoveVirtualScreen(ScreenId id) override;
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
  
     int32_t SetPointerColorInversionEnabled(bool enable) override;
@@ -112,6 +113,7 @@ private:
     int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) override;
  
     int32_t UnRegisterPointerLuminanceChangeCallback() override;
+#endif
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
