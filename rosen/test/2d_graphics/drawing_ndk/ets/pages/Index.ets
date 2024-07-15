@@ -303,7 +303,11 @@ struct Index {
     await this.sleep(100);
     this.myNodeController.TestFunctional(str);
     this.caseNameStr = str;
-    await this.sleep(500);
+    if (str == 'bigbitmaprect') {
+      await this.sleep(1500);
+    } else {
+      await this.sleep(500);
+    }
     const context: Context = getContext(this);
     componentSnapshot.get("myNodeController",
       (error:Error, pixmap: image.PixelMap) => {
