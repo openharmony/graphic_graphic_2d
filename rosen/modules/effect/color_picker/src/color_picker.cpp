@@ -123,12 +123,17 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
     if (pixelmap_ == nullptr) {
         return ERR_EFFECT_INVALID_VALUE;
     }
-    std::shared_ptr<Media::PixelMap> pixelMap = GetScaledPixelMap();
 
     // get color
     uint32_t colorVal = 0;
     int x = 0;
     int y = 0;
+    std::shared_ptr<Media::PixelMap> pixelMap = GetScaledPixelMap();
+    if (pixelMap == nullptr) {
+        EFFECT_LOG_E("ColorPicker::GetMainColor pixelMap is nullptr");
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+
     bool bSucc = pixelMap->GetARGB32Color(x, y, colorVal);
     EFFECT_LOG_I("[newpix].argb.ret=%{public}d, %{public}x", bSucc, colorVal);
     color = ColorManager::Color(colorVal);
