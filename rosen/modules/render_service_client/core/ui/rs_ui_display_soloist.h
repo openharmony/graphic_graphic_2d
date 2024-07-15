@@ -120,7 +120,8 @@ public:
     bool hasRequestedVsync_ = false;
     bool destroyed_ = false;
     std::string vsyncTimeoutTaskName_ = "";
-    AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ = std::bind(&RSDisplaySoloist::OnVsyncTimeOut, this);
+    AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
+        [this] { this->OnVsyncTimeOut(); };
 };
 
 using IdToSoloistMapType = std::unordered_map<SoloistIdType, std::shared_ptr<RSDisplaySoloist>>;
@@ -182,7 +183,7 @@ private:
     std::mutex dataUpdateMtx_;
     std::string vsyncTimeoutTaskName_ = "soloist_manager_time_out_task";
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
-        std::bind(&RSDisplaySoloistManager::OnVsyncTimeOut, this);
+        [this] { this->OnVsyncTimeOut(); };
 };
 
 } // namespace Rosen
