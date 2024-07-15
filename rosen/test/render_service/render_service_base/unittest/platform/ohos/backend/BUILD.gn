@@ -66,13 +66,13 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
-  deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "vulkan-headers:vulkan_headers",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"
