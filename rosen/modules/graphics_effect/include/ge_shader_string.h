@@ -94,7 +94,7 @@ static std::string g_blurStringAF(R"(
         for (int i = 0; i < 5; ++i) {
             c += imageShader.eval(float2(coord.x + in_blurOffset[i].x, coord.y + in_blurOffset[i].y));
         }
-        return half4(c.rgba * 0.2);
+        return half4(c.rgb * 0.2, 1.0);
     }
 )");
 
@@ -132,7 +132,7 @@ static std::string g_blurString(R"(
                                     clamp(in_blurOffset.y + coord.y, 0, in_maxSizeXY.y)));
         c += imageShader.eval(float2(clamp(-in_blurOffset.x + coord.x, 0, in_maxSizeXY.x),
                                     clamp(-in_blurOffset.y + coord.y, 0, in_maxSizeXY.y)));
-        return half4(c.rgba * 0.2);
+        return half4(c.rgb * 0.2, 1.0);
     }
 )");
 
