@@ -42,7 +42,8 @@ void RSRecordingThreadTest::TearDown() {}
 HWTEST_F(RSRecordingThreadTest, CheckAndRecording001, TestSize.Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    bool ret = RSRecordingThread::Instance(renderContext).CheckAndRecording();
+    RSRecordingThread rsRecordingThread(renderContext);
+    bool ret = rsRecordingThread.CheckAndRecording();
     EXPECT_EQ(ret, false);
 }
 
@@ -55,7 +56,8 @@ HWTEST_F(RSRecordingThreadTest, CheckAndRecording001, TestSize.Level1)
 HWTEST_F(RSRecordingThreadTest, GetCurDumpFrame001, TestSize.Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    int ret = RSRecordingThread::Instance(renderContext).GetCurDumpFrame();
+    RSRecordingThread rsRecordingThread(renderContext);
+    bool ret = rsRecordingThread.GetCurDumpFrame();
     EXPECT_EQ(ret, 0);
 }
 
@@ -71,6 +73,7 @@ HWTEST_F(RSRecordingThreadTest, RecordingToFile001, TestSize.Level1)
     int h = 300;
     auto list = std::make_shared<Drawing::DrawCmdList>(w, h);
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    RSRecordingThread::Instance(renderContext).RecordingToFile(list);
+    RSRecordingThread rsRecordingThread(renderContext);
+    rsRecordingThread.RecordingToFile(list);
 }
 } // namespace OHOS::Rosen
