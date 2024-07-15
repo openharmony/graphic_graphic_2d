@@ -58,7 +58,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
+    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
@@ -126,7 +126,7 @@ public:
     uint32_t GetRefreshRate();
     void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
-    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
+    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
