@@ -21,10 +21,6 @@ group("color_manager") {
   ]
 }
 
-group("buffer_handle") {
-  public_deps = [ "buffer_handle:buffer_handle" ]
-}
-
 group("scoped_bytrace") {
   public_deps = [ "scoped_bytrace:scoped_bytrace" ]
 }
@@ -98,7 +94,6 @@ ohos_shared_library("libgraphic_utils") {
   }
 
   deps = [
-    ":buffer_handle",
     ":color_manager",
     ":cpudraw",
     ":gl_utils",
