@@ -153,6 +153,7 @@ public:
     void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
+    void SetDisplayGlobalZOrder(float zOrder);
     bool SkipFrame(uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;

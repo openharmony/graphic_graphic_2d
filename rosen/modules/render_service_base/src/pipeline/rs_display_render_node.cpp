@@ -303,6 +303,17 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
     return true;
 }
 
+void RSDisplayRenderNode::SetDisplayGlobalZOrder(float zOrder)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetDisplayGlobalZOrder displayParams is null");
+        return;
+    }
+    displayParams->SetGlobalZOrder(zOrder);
+}
+
+
 ScreenRotation RSDisplayRenderNode::GetRotation() const
 {
     auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
