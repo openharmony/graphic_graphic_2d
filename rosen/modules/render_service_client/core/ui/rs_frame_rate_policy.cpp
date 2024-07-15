@@ -39,14 +39,14 @@ RSFrameRatePolicy::~RSFrameRatePolicy()
 
 void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
 {
-    auto callback = std::bind(&RSFrameRatePolicy::HgmConfigChangeCallback, this,
-        std::placeholders::_1);
+    auto callback =
+        [this](std::shared_ptr<RSHgmConfigData> data) { this->RSFrameRatePolicy::HgmConfigChangeCallback(data); };
     if (RSInterfaces::GetInstance().RegisterHgmConfigChangeCallback(callback) != NO_ERROR) {
         ROSEN_LOGE("RegisterHgmConfigChangeCallback failed");
     }
 
-    auto refreshRateModeChangeCallback = std::bind(&RSFrameRatePolicy::HgmRefreshRateModeChangeCallback, this,
-        std::placeholders::_1);
+    auto refreshRateModeChangeCallback =
+        [this](int32_t mode) { this->RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(mode); };
     if (RSInterfaces::GetInstance().RegisterHgmRefreshRateModeChangeCallback(
         refreshRateModeChangeCallback) != NO_ERROR) {
         ROSEN_LOGE("RegisterHgmRefreshRateModeChangeCallback failed");
