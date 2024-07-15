@@ -194,4 +194,18 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNeedOffscreen001, TestSize.Level1)
     auto needOffscreen = params.GetNeedOffscreen();
     params.SetNeedOffscreen(needOffscreen);
 }
+
+/**
+ * @tc.name: IsSpecialLayerChanged001
+ * @tc.desc: test result of IsSpecialLayerChanged
+ * @tc.type: FUNC
+ * @tc.require: issuesIACYVJ
+ */
+HWTEST_F(RSDisplayRenderParamsTest, IsSpecialLayerChanged001, TestSize.Level1)
+{
+    constexpr NodeId id = 0;
+    RSDisplayRenderParams params(id);
+    EXPECT_FALSE(params.IsSpecialLayerChanged());
+}
+
 } // namespace OHOS::Rosen

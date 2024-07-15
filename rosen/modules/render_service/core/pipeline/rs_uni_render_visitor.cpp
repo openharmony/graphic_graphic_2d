@@ -258,6 +258,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     displayHasSecSurface_ = visitor.displayHasSecSurface_;
     displayHasSkipSurface_ = visitor.displayHasSkipSurface_;
     displayHasProtectedSurface_ = visitor.displayHasProtectedSurface_;
+    displaySpecailSurfaceChanged_ = visitor.displaySpecailSurfaceChanged_;
     hasCaptureWindow_ = visitor.hasCaptureWindow_;
     parentSurfaceNodeMatrix_ = visitor.parentSurfaceNodeMatrix_;
     curAlpha_ = visitor.curAlpha_;
@@ -282,6 +283,7 @@ void RSUniRenderVisitor::CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> vi
     displayHasSecSurface_ = visitor->displayHasSecSurface_;
     displayHasSkipSurface_ = visitor->displayHasSkipSurface_;
     displayHasProtectedSurface_ = visitor->displayHasProtectedSurface_;
+    displaySpecailSurfaceChanged_ = visitor->displaySpecailSurfaceChanged_;
     hasCaptureWindow_ = visitor->hasCaptureWindow_;
     parentSurfaceNodeMatrix_ = visitor->parentSurfaceNodeMatrix_;
     curAlpha_ = visitor->curAlpha_;
@@ -786,6 +788,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
     displayHasProtectedSurface_.emplace(currentVisitDisplay_, false);
+    displaySpecailSurfaceChanged_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);
     node.GetDirtySurfaceNodeMap().clear();
 
@@ -1160,6 +1163,9 @@ void RSUniRenderVisitor::UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRen
     if (node.GetHasProtectedLayer()) {
         displayHasProtectedSurface_[currentVisitDisplay_] = true;
     }
+    if (node.IsSpecialLayerChanged()) {
+        displaySpecailSurfaceChanged_[currentVisitDisplay_] = true;
+    }
 }
 
 void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node,
@@ -1268,7 +1274,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     SendRcdMessage(node);
     ancestorNodeHasAnimation_ = false;
-
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
     prepareClipRect_ = screenRect_;
@@ -1294,8 +1299,14 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     RSUifirstManager::Instance().UpdateUIFirstLayerInfo(screenInfo_);
     curDisplayNode_->UpdatePartialRenderParams();
-    curDisplayNode_->UpdateScreenRenderParams(screenInfo_, displayHasSecSurface_, displayHasSkipSurface_,
-        displayHasProtectedSurface_, hasCaptureWindow_);
+    RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
+    screenRenderParams.screenInfo = std::move(screenInfo_);
+    screenRenderParams.displayHasSecSurface = std::move(displayHasSecSurface_);
+    screenRenderParams.displayHasSkipSurface = std::move(displayHasSkipSurface_);
+    screenRenderParams.displayHasProtectedSurface = std::move(displayHasProtectedSurface_);
+    screenRenderParams.displaySpecailSurfaceChanged = std::move(displaySpecailSurfaceChanged_);
+    screenRenderParams.hasCaptureWindow = std::move(hasCaptureWindow_);
+    curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
     curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
@@ -1433,9 +1444,8 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     // check current surface Participate In Occlusion
     if (node.CheckParticipateInOcclusion()) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
-        auto blackList = screenManager_->GetVirtualScreenBlackList(curDisplayNode_->GetScreenId());
-        bool hasBlackList = !blackList.empty() && (blackList.find(node.GetId()) != blackList.end());
-        if (IsValidInVirtualScreen(node) && !hasBlackList) {
+        std::unordered_set<NodeId> currentBlackList = GetCurrentBlackList();
+        if (IsValidInVirtualScreen(node) && currentBlackList.find(node.GetId()) == currentBlackList.end()) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
         }
     }
@@ -1488,6 +1498,21 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
         RS_LOGD("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
             VisibleDataToString(allDstCurVisVec_).c_str());
     }
+}
+
+std::unordered_set<NodeId> RSUniRenderVisitor::GetCurrentBlackList() const
+{
+    if (!screenManager_ || !curDisplayNode_) {
+        return std::unordered_set<NodeId>();
+    }
+
+    std::unordered_set<NodeId> currentBlackList;
+    if (screenManager_->GetCastScreenEnableSkipWindow(curDisplayNode_->GetScreenId())) {
+        screenManager_->GetCastScreenBlackList(currentBlackList);
+    } else {
+        currentBlackList = screenManager_->GetVirtualScreenBlackList(curDisplayNode_->GetScreenId());
+    }
+    return currentBlackList;
 }
 
 RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
@@ -1664,6 +1689,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
     displayHasProtectedSurface_.emplace(currentVisitDisplay_, false);
+    displaySpecailSurfaceChanged_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();

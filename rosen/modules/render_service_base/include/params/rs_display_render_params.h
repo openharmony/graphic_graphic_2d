@@ -121,6 +121,12 @@ public:
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
 
+    bool IsSpecialLayerChanged() const
+    {
+        auto iter = displaySpecailSurfaceChanged_.find(screenId_);
+        return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -128,6 +134,7 @@ private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
     std::map<ScreenId, bool> displayHasProtectedSurface_;
+    std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;

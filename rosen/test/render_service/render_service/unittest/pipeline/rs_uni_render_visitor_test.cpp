@@ -4113,6 +4113,19 @@ HWTEST_F(RSUniRenderVisitorTest, SurfaceOcclusionCallbackToWMS001, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetCurrentBlackList001
+ * @tc.desc: Test GetCurrentBlackList with default constructed visitor
+ * @tc.type: FUNC
+ * @tc.require: issuesIACYVJ
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_TRUE(rsUniRenderVisitor->GetCurrentBlackList().empty());
+}
+
+/**
  * @tc.name: NeedPrepareChindrenInReverseOrder001
  * @tc.desc: Test NeedPrepareChindrenInReverseOrder with default constructed visitor
  * @tc.type: FUNC

@@ -42,6 +42,16 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
+    struct ScreenRenderParams
+    {
+        ScreenInfo screenInfo;
+        std::map<ScreenId, bool> displayHasSecSurface;
+        std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasProtectedSurface;
+        std::map<ScreenId, bool> displaySpecailSurfaceChanged;
+        std::map<ScreenId, bool> hasCaptureWindow;
+    };
+
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
         UNI_RENDER_MIRROR_COMPOSITE,
@@ -281,9 +291,7 @@ public:
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
-    void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
-        std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
