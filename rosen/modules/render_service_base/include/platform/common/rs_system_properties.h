@@ -181,7 +181,6 @@ public:
     static bool GetMagnifierEnabled();
     static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
-    static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
@@ -270,7 +269,6 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
-    static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;
