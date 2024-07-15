@@ -36,8 +36,8 @@ void HardwareComposeDisabledReasonCollection::UpdateHardwareComposeDisabledReaso
 {
     std::lock_guard<std::mutex> lock(hardwareComposeDisabledReasonMtx_);
     ++hardwareComposeDisabledReasonInfoMap_[id].disabledReasonStatistics[disabledReason];
-    activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
-    activeDirtyRegionInfoMap_[id].nodeName = nodeName;
+    hardwareComposeDisabledReasonInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
+    hardwareComposeDisabledReasonInfoMap_[id].nodeName = nodeName;
 }
 
 std::vector<HardwareComposeDisabledReasonInfo> HardwareComposeDisabledReasonCollection::GetHardwareComposeDisabledReasonInfo() const
