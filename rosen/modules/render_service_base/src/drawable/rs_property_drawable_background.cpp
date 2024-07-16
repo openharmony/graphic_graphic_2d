@@ -484,7 +484,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingBgImage_ = properties.GetBgImage();
-    if (!stagingBgImage_ || !stagingBgImage_->GetPixelMap()) {
+    if (!stagingBgImage_) {
         return false;
     }
 
