@@ -780,10 +780,10 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
 }
 
 void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns,
-                                      int64_t timestamp, bool dvsyncFlag)
+                                      int64_t timestamp, bool isDvsyncThread)
 {
 #if defined(RS_ENABLE_DVSYNC)
-    if (dvsyncFlag) {
+    if (isDvsyncThread) {
         std::unique_lock<std::mutex> locker(mutex_);
         dvsync_->RecordPostEvent(conns, timestamp);
         hasVsync_.store(false);

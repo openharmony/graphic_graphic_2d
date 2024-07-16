@@ -149,7 +149,7 @@ private:
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
     constexpr pid_t ExtractPid(uint64_t id);
-    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp, bool dvsyncFlag);
+    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp, bool isDvsyncThread);
     void ChangeConnsRateLocked();
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
         std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
