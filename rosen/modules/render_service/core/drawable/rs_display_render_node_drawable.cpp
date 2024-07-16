@@ -545,8 +545,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
     for (const auto& surfaceNode : hardwareNodes) {
-        if (surfaceNode != nullptr) {
-            auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        auto params = surfaceNode == nullptr ? nullptr :
+            static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (params != nullptr) {
             params->SetLayerCreated(false);
         }
     }
