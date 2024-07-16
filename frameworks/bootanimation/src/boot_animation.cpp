@@ -56,7 +56,6 @@ void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
     canvas->drawImageRect(image.get(), rect, &paint);
 #endif
     imageVector_[curNo].reset();
-    imageVector_[curNo] = nullptr;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
