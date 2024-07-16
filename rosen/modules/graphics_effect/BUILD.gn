@@ -70,16 +70,22 @@ ohos_source_set("graphics_effect_src") {
   if (is_arkui_x) {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
-      "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/skia:skia_$platform",
     ]
+    if (host_cpu == "arm64" && host_os == "linux") {
+      deps += [
+        "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/skia:skia_$platform",
+      ]
+    }
     external_deps = [ "hilog:libhilog" ]
   } else {
-    external_deps = [
-      "bounds_checking_function:libsec_static",
-      "hilog:libhilog",
-      "skia:skia_canvaskit",
-    ]
+    if (host_cpu == "arm64" && host_os == "linux") {
+      external_deps = [
+        "bounds_checking_function:libsec_static",
+        "hilog:libhilog",
+        "skia:skia_canvaskit",
+      ]
+    }
   }
 
   if (current_os == "ohos") {
@@ -103,9 +109,13 @@ if (is_arkui_x) {
     public_deps = [ ":graphics_effect_src" ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
-      "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/skia:skia_$platform",
     ]
+    if (host_cpu == "arm64" && host_os == "linux") {
+      deps += [
+        "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/skia:skia_$platform",
+      ]
+    }
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
@@ -120,11 +130,13 @@ if (is_arkui_x) {
     }
 
     public_deps = [ ":graphics_effect_src" ]
-    external_deps = [
-      "bounds_checking_function:libsec_static",
-      "hilog:libhilog",
-      "skia:skia_canvaskit",
-    ]
+    external_deps = [ "hilog:libhilog" ]
+    if (host_cpu == "arm64" && host_os == "linux") {
+      external_deps += [
+        "bounds_checking_function:libsec_static",
+        "skia:skia_canvaskit",
+      ]
+    }
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
