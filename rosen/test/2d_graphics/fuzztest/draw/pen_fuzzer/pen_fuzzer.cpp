@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -80,6 +80,7 @@ void PenFuzzTestInner03(Pen& pen)
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(radius);
     pen.SetPathEffect(pathEffect);
     pen.GetPathEffect();
+    pen.GetPathEffectPtr();
 
     Filter filter;
     pen.SetFilter(filter);
@@ -89,8 +90,45 @@ void PenFuzzTestInner03(Pen& pen)
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(colorQuad);
     pen.SetShaderEffect(shaderEffect);
     pen.GetShaderEffect();
+    pen.GetShaderEffectPtr();
 
     pen.Reset();
+}
+
+void PenFuzzTestInner04(Pen& pen)
+{
+    uint32_t alpha = GetObject<uint32_t>();
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t green = GetObject<uint32_t>();
+    Color color(alpha, red, blue, green);
+    Pen PenOne = Pen(pen);
+    Pen PenTwo = Pen(color);
+    int rgba = GetObject<int>();
+    Pen PenThree = Pen(rgba);
+    PenTwo.GetColor();
+    PenTwo.GetColorSpacePtr();
+    PenTwo.GetAlphaF();
+    BlendMode mode = GetObject<BlendMode>();
+    std::shared_ptr<Blender> blender = Blender::CreateWithBlendMode(mode);
+    PenTwo.SetBlender(blender);
+    PenTwo.GetBlender();
+    PenTwo.GetBlenderPtr();
+    PenTwo.HasFilter();
+    float blurRadius = GetObject<float>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
+    PenTwo.SetLooper(blurDrawLooper);
+    PenTwo.GetLooper();
+    Path src;
+    Path dst;
+    Rect rect = GetObject<Rect>();
+    Matrix matrix;
+    PenTwo.GetFillPath(src, dst, &rect, matrix);
+
+    if (PenOne == PenTwo) {}
+    if (PenOne != PenTwo) {}
 }
 
 bool PenFuzzTest(const uint8_t* data, size_t size)
@@ -118,6 +156,7 @@ bool PenFuzzTest(const uint8_t* data, size_t size)
     PenFuzzTestInner01(pen);
     PenFuzzTestInner02(pen);
     PenFuzzTestInner03(pen);
+    PenFuzzTestInner04(pen);
 
     return true;
 }
