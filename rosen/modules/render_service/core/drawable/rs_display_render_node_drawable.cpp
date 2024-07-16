@@ -489,15 +489,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             castScreenEnableSkipWindow_ = screenManager->GetCastScreenEnableSkipWindow(paramScreenId);
             if (castScreenEnableSkipWindow_) {
                 RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable CastScreen SkipWindow.");
-                screenManager->GetCastScreenBlackList(castScreenBlackList_);
-                uniParam->SetBlackList(castScreenBlackList_);
+                screenManager->GetCastScreenBlackList(currentBlackList_);
             } else {
                 RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable RecordScreen SkipWindow.");
-                virtualScreenBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-                uniParam->SetBlackList(virtualScreenBlackList_);
+                currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             }
+            uniParam->SetBlackList(currentBlackList_);
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(displayNodeSp, *params, processor);
+            lastBlackList_ = currentBlackList_;
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
             uniParam->SetOpDropped(false);
@@ -742,8 +742,7 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    if (hasGeneralSpecialLayer || !params.GetScreenInfo().filteredAppSet.empty() ||
-        !virtualScreenBlackList_.empty() || !castScreenBlackList_.empty()) {
+    if (hasGeneralSpecialLayer || !params.GetScreenInfo().filteredAppSet.empty() || !currentBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -795,11 +794,11 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(RSDisplayR
         mappedDamageRegionRects.emplace_back(mappedRect);
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirroredParams->GetMatrix()) ||
-        isLastFrameHasSecSurface_ || uniParam->GetForceMirrorScreenDirty()) {
+        uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
+        mirroredParams->IsSpecialLayerChanged()) {
         displayNode.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirroredParams->GetMatrix();
-        isLastFrameHasSecSurface_ = false;
     }
     RectI hwcRect = mirroredNode->GetSyncDirtyManager()->GetHwcDirtyRegion();
     if (!hwcRect.IsEmpty()) {
@@ -841,7 +840,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     }
     auto hasSecSurface = mirroredParams->GetDisplayHasSecSurface();
     if (hasSecSurface[mirroredNode->GetScreenId()]) {
-        isLastFrameHasSecSurface_ = true;
+        std::vector<RectI> emptyRects = {};
+        virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
         return;
     }

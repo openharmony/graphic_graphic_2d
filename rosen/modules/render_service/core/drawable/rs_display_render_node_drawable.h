@@ -105,12 +105,11 @@ private:
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
     std::shared_ptr<Drawing::Surface> offscreenSurface_; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen rende
-    std::unordered_set<NodeId> virtualScreenBlackList_ = {};
-    std::unordered_set<NodeId> castScreenBlackList_ = {};
+    std::unordered_set<NodeId> currentBlackList_;
+    std::unordered_set<NodeId> lastBlackList_;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;
-    bool isLastFrameHasSecSurface_ = false;
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
