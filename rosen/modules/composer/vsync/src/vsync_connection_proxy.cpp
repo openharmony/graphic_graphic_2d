@@ -46,6 +46,22 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, i
     return VSYNC_ERROR_OK;
 }
 
+VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
+{
+    MessageOption opt(MessageOption::TF_ASYNC);
+    MessageParcel arg;
+    MessageParcel ret;
+
+    arg.WriteInterfaceToken(GetDescriptor());
+    arg.WriteBool(dvsyncSwitch);
+    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, arg, ret, opt);
+    if (res != NO_ERROR) {
+        VLOGE("ipc send fail, error:%{public}d", res);
+        return VSYNC_ERROR_UNKOWN;
+    }
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
 {
     MessageOption opt;
@@ -94,22 +110,6 @@ VsyncError VSyncConnectionProxy::Destroy()
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_DESTROY, arg, ret, opt);
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
-    }
-    return VSYNC_ERROR_OK;
-}
-
-VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
-{
-    MessageOption opt(MessageOption::TF_ASYNC);
-    MessageParcel arg;
-    MessageParcel ret;
-
-    arg.WriteInterfaceToken(GetDescriptor());
-    arg.WriteBool(dvsyncSwitch);
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, arg, ret, opt);
-    if (res != NO_ERROR) {
-        VLOGE("ipc send fail, error:%{public}d", res);
-        return VSYNC_ERROR_UNKOWN;
     }
     return VSYNC_ERROR_OK;
 }
