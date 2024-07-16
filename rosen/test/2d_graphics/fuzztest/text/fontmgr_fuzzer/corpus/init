@@ -11,12 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "fontmgr_fuzzer:fuzztest",
-    "fontstyle_fuzzer:fuzztest",
-    "fontstyleset_fuzzer:fuzztest",
-  ]
-}
+FUZZ
