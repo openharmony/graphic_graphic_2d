@@ -13,53 +13,49 @@
  * limitations under the License.
  */
 
-#include "text_blob_builder_fuzzer.h"
+#include "picture_fuzzer.h"
+
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
+
 #include "get_object.h"
-#include "text/text_blob_builder.h"
+#include "image/picture.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t MAX_SIZE = 5000;
-}
+constexpr size_t DATA_MIN_SIZE = 2;
+constexpr size_t MAX_ARRAY_SIZE = 5000;
+} // namespace
+
 namespace Drawing {
-
-bool TextBlobBuilderFuzzTest001(const uint8_t* data, size_t size)
+bool PictureFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    TextBlobBuilder builder;
-    Font font;
-    int count = 9;
-    builder.AllocRunPos(font, count, nullptr);
-    builder.Make();
+    Picture picture;
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
+    char* dataText = new char[length];
+    if (dataText == nullptr) {
+        return false;
+    }
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    picture.Deserialize(dataVal);
+    picture.Serialize();
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
     return true;
 }
 
-bool TextBlobBuilderFuzzTest002(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    TextBlobBuilder builder;
-    Font font;
-    int count = GetObject<int>() % MAX_SIZE;
-    builder.AllocRunRSXform(font, count);
-    return true;
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -68,7 +64,6 @@ bool TextBlobBuilderFuzzTest002(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::TextBlobBuilderFuzzTest001(data, size);
-    OHOS::Rosen::Drawing::TextBlobBuilderFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::PictureFuzzTest(data, size);
     return 0;
 }
