@@ -56,6 +56,8 @@ void BootAnimation::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo)
     Rosen::Drawing::Rect rect(pointX_, pointY_, pointX_ + realWidth_, pointY_ + realHeight_);
     Rosen::Drawing::SamplingOptions samplingOptions;
     canvas->DrawImageRect(*image, rect, samplingOptions);
+    imageVector_[curNo].reset();
+    imageVector_[curNo] = nullptr;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
