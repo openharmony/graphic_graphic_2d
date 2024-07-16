@@ -449,16 +449,16 @@ void VSyncDistributor::ThreadMain()
 }
 
 void VSyncDistributor::CollectConns(bool &waitForVSync, int64_t &timestamp,
-    std::vector<sptr<VSyncConnection>> &conns, bool isDvsync)
+    std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread)
 {
-    if (isDvsync) {
+    if (isDvsyncThread) {
         timestamp = event_.timestamp;
         event_.timestamp = 0;
     }
     if (vsyncMode_ == VSYNC_MODE_LTPO) {
-        CollectConnectionsLTPO(waitForVSync, timestamp, conns, event_.vsyncPulseCount, isDvsync);
+        CollectConnectionsLTPO(waitForVSync, timestamp, conns, event_.vsyncPulseCount, isDvsyncThread);
     } else {
-        CollectConnections(waitForVSync, timestamp, conns, event_.vsyncCount, isDvsync);
+        CollectConnections(waitForVSync, timestamp, conns, event_.vsyncCount, isDvsyncThread);
     }
 }
 
@@ -641,7 +641,9 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
         return;
     }
     CollectConns(waitForVSync, now, conns, false);
+    locker.unlock();
     PostVSyncEvent(conns, now, false);
+    locker.lock();
 }
 
 int32_t VSyncDistributor::GetUIDVsyncPid()
@@ -695,15 +697,15 @@ void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
 }
 
 void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
-    std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsync)
+    std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread)
 {
 #if defined(RS_ENABLE_DVSYNC)
     auto uiDVsyncPid = GetUIDVsyncPid();
 #endif
     for (uint32_t i = 0; i < connections_.size(); i++) {
 #if defined(RS_ENABLE_DVSYNC)
-    if (uiDVsyncPid != 0 && ((!isDvsync && connections_[i]->proxyPid_ == uiDVsyncPid) ||
-        (isDvsync && connections_[i]->proxyPid_ != uiDVsyncPid))) {
+    if (uiDVsyncPid != 0 && ((!isDvsyncThread && connections_[i]->proxyPid_ == uiDVsyncPid) ||
+        (isDvsyncThread && connections_[i]->proxyPid_ != uiDVsyncPid))) {
             continue;
         }
 #endif
@@ -746,15 +748,15 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
 }
 
 void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
-    std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsync)
+    std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread)
 {
 #if defined(RS_ENABLE_DVSYNC)
     auto uiDVsyncPid = GetUIDVsyncPid();
 #endif
     for (uint32_t i = 0; i < connections_.size(); i++) {
 #if defined(RS_ENABLE_DVSYNC)
-    if (uiDVsyncPid != 0 && ((!isDvsync && connections_[i]->proxyPid_ == uiDVsyncPid) ||
-        (isDvsync && connections_[i]->proxyPid_ != uiDVsyncPid))) {
+    if (uiDVsyncPid != 0 && ((!isDvsyncThread && connections_[i]->proxyPid_ == uiDVsyncPid) ||
+        (isDvsyncThread && connections_[i]->proxyPid_ != uiDVsyncPid))) {
             continue;
         }
 #endif

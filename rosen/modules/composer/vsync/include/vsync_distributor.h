@@ -146,13 +146,13 @@ private:
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
-                            std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsync = false);
+                            std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
     constexpr pid_t ExtractPid(uint64_t id);
     void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp, bool dvsyncFlag);
     void ChangeConnsRateLocked();
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
-                                std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsync = false);
+        std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
@@ -164,7 +164,7 @@ private:
 #endif
     void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     void CollectConns(bool &waitForVSync, int64_t &timestamp,
-        std::vector<sptr<VSyncConnection>> &conns, bool isDvsync);
+        std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread);
     bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
