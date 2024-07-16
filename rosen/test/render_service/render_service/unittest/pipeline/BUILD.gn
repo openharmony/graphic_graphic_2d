@@ -968,7 +968,10 @@ ohos_unittest("RSUniHWcPrevalidateUtilTest") {
 ## Build RSUifirstManagerTest
 ohos_unittest("RSUifirstManagerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uifirst_manager_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_uifirst_manager_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
