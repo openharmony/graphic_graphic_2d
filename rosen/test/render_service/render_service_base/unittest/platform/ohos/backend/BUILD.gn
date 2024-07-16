@@ -71,8 +71,8 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "c_utils:utils",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "vulkan-headers:vulkan_headers",
     "skia:skia_canvaskit",
+    "vulkan-headers:vulkan_headers",
   ]
 
   subsystem_name = "graphic"
