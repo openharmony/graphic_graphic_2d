@@ -661,6 +661,9 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSDynamicLightUpDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas->GetUICapture()) {
+            return;
+        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         auto alpha = paintFilterCanvas->GetAlpha();
         auto blender = RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(

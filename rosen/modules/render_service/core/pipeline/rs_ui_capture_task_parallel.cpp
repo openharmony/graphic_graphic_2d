@@ -145,6 +145,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
+    canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
     if (nodeParams) {
         Drawing::Matrix relativeMatrix = Drawing::Matrix();
