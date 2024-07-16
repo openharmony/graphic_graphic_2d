@@ -66,7 +66,7 @@ enum class PathAddMode {
 enum class PathMeasureMatrixFlags {
     GET_POSITION_MATRIX,
     GET_TANGENT_MATRIX,
-    GET_POS_AND_TAN_MATRIX,
+    GET_POSITION_AND_TANGENT_MATRIX,
 };
 
 class DRAWING_API Path {
@@ -498,7 +498,7 @@ public:
     bool IsClosed(bool forceClosed) const;
 
     bool GetMatrix(bool forceClosed, scalar distance, Matrix* matrix,
-        PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
+        PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POSITION_AND_TANGENT_MATRIX);
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
