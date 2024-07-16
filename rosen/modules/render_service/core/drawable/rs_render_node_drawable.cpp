@@ -62,7 +62,7 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
 
 void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
 {
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isInCaptureFlag_)) {
+    if (UNLIKELY(RSUniRenderThread::IsInCaptureProcess())) {
         OnCapture(canvas);
     } else {
         OnDraw(canvas);
@@ -108,7 +108,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     // check drawing cache type (disabled: clear cache)
-    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !params.OpincGetCachedMark()) &&
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !OpincGetCachedMark()) &&
         !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         {
@@ -131,13 +131,20 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         }
     }
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
-    bool needUpdateCache = CheckIfNeedUpdateCache(params);
+    int32_t updateTimes = 0;
+    bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
+    if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
+        updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        RS_TRACE_NAME_FMT("DisableCache by update time > 3, id:%llu", params.GetId());
+        params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        ClearCachedSurface();
+    }
     // reset drawing cache changed false for render param if drawable is visited this frame
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
-        && !params.OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
+        && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
     }
 
@@ -515,15 +522,12 @@ void RSRenderNodeDrawable::ClearCachedSurface()
 #endif
 }
 
-bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
+bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes)
 {
-    int32_t updateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
         if (drawingCacheUpdateTimeMap_.count(nodeId_) > 0) {
             updateTimes = drawingCacheUpdateTimeMap_.at(nodeId_);
-        } else {
-            drawingCacheUpdateTimeMap_.emplace(nodeId_, 0);
         }
     }
 
@@ -533,16 +537,12 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
     // node freeze
     if (params.GetRSFreezeFlag()) {
-        if (updateTimes == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return updateTimes == 0;
     }
 
-    if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
-        (updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME ||
-            (params.NeedFilter() && params.GetDrawingCacheIncludeProperty()))) {
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && params.NeedFilter() &&
+        params.GetDrawingCacheIncludeProperty()) || ROSEN_LE(params.GetCacheSize().x_, 0.f) ||
+        ROSEN_LE(params.GetCacheSize().y_, 0.f)) {
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;
@@ -583,7 +583,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     if (renderEngine) {
         cacheCanvas->SetHighContrast(renderEngine->IsHighContrastEnabled());
     }
-    cacheCanvas->CopyConfiguration(*curCanvas);
+    cacheCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas);
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures
     // [PLANNNING] disable it in sub-thread.
 

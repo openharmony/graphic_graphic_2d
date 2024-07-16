@@ -558,15 +558,18 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     params.freezeFlag_ = true;
-    drawable->CheckIfNeedUpdateCache(params);
+    int32_t updateTimes = 0;
+    drawable->CheckIfNeedUpdateCache(params, updateTimes);
 
     params.freezeFlag_ = false;
     params.isDrawingCacheChanged_ = true;
-    auto result = drawable->CheckIfNeedUpdateCache(params);
+    updateTimes = 0;
+    auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_EQ(result, true);
     
     params.isDrawingCacheChanged_ = false;
-    result = drawable->CheckIfNeedUpdateCache(params);
+    updateTimes = 0;
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
 }
 
 /**

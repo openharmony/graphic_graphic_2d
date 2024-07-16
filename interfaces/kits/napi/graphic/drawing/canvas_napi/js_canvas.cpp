@@ -797,26 +797,34 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPoints canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
-    int32_t pointMode = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, pointMode);
-
-    napi_value array = argv[ARGC_ONE];
+    napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
     napi_get_array_length(env, array, &size);
 
-    Point* points = new Point[size];
+    Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return nullptr;
     }
     if (!OnMakePoints(env, points, size, array)) {
         delete [] points;
-        ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ONE] is invalid");
+        ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ZERO] is invalid");
         return nullptr;
     }
-    JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode(pointMode), size, points));
+
+    if (argc == ARGC_ONE) {
+        JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
+        delete [] points;
+        return nullptr;
+    }
+
+    int32_t pointMode = 0;
+    GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
+
+    JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
     delete [] points;
     return nullptr;
 }

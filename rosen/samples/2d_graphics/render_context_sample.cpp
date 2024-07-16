@@ -57,7 +57,7 @@ void RenderContextSample::Run()
 
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&RenderContextSample::Init, this));
+    handler->PostTask([this]() { this->Init(); });
     runner->Run();
 }
 
@@ -117,7 +117,9 @@ void RenderContextSample::Sync(int64_t, void *data)
         .frequency_ = freq_,
         .timestamp_ = 0,
         .userdata_ = data,
-        .callback_ = std::bind(&RenderContextSample::Sync, this, SYNC_FUNC_ARG),
+        .callback_ = [this, data]() {
+            this->Sync(SYNC_FUNC_ARG, data);
+        },
     };
 
     OHOS::VsyncError ret = OHOS::VsyncHelper::Current()->RequestFrameCallback(cb);

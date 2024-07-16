@@ -1754,9 +1754,8 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     boundsGeo.UpdateMatrix(&parentMatrix, offset);
     auto rect = boundsGeo.MapAbsRect(node->GetSelfDrawRect().JoinRect(node->GetChildrenRect().ConvertTo<float>()));
     // if node is UIExtension type, update its own info, and skip its children.
-    if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        if (surfaceNode && surfaceNode->IsUIExtension()) {
+    if (auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node)) {
+        if (surfaceNode->IsUIExtension()) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
             if (callbackData.find(hostId) == callbackData.end()) {
@@ -1782,6 +1781,17 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     for (const auto& child : *node->GetSortedChildren()) {
         TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
     }
+}
+
+void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.DetachBrush();
 }
 } // namespace Rosen
 } // namespace OHOS

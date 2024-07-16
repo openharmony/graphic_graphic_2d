@@ -112,19 +112,14 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
         return;
     }
     uint32_t threadIndex = 1;
-    bool isUIFirst = true;
 
     Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
-    auto result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
+    auto result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex);
     EXPECT_EQ(result, nullptr);
 
-    isUIFirst = false;
-    result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
-    ASSERT_EQ(result, nullptr);
-
     surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex);
     ASSERT_EQ(result, nullptr);
 }
 
@@ -141,17 +136,16 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawCacheSurfaceTest, TestSize.
     }
     Vector2f boundSize;
     uint32_t threadIndex = 1;
-    bool isUIFirst = false;
 
     Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
-    auto result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex, isUIFirst);
+    auto result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex);
     EXPECT_FALSE(result);
     
 
     surfaceDrawable_->boundsWidth_ = 0;
     surfaceDrawable_->boundsHeight_ = 0;
-    result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex, isUIFirst);
+    result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex);
     EXPECT_FALSE(result);
 }
 

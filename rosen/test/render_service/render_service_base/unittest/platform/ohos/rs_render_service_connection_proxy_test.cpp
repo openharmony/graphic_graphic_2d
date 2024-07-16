@@ -961,5 +961,22 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetLayerComposeInfo, TestSize.Level
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
     ASSERT_EQ(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
 }
+
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback Test, with empty/non-empty callback.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterUIExtensionCallback, TestSize.Level1)
+{
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIUIExtensionCallback> callback = iface_cast<RSIUIExtensionCallback>(remoteObject);
+    uint64_t userId = 0;
+    ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, nullptr), INVALID_ARGUMENTS);
+    ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, callback), RS_CONNECTION_ERROR);
+}
 } // namespace Rosen
 } // namespace OHOS

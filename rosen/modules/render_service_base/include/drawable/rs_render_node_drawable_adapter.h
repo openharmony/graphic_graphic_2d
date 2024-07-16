@@ -92,6 +92,10 @@ public:
         return uifirstRenderParams_;
     }
 
+    inline NodeId GetId() const
+    {
+        return nodeId_;
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec() const;

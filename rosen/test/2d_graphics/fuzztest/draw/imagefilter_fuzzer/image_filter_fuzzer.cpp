@@ -47,7 +47,11 @@ bool ImageFilterFuzzTest001(const uint8_t* data, size_t size)
         *colorFilter, sigmaX, sigmaY);
     scalar sigmaX2 = GetObject<scalar>();
     scalar sigmaY2 = GetObject<scalar>();
-    imageFilter->InitWithColorBlur(*colorFilter, sigmaX2, sigmaY2, ImageBlurType::GAUSS);
+    Rect noCropRect = {
+        -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+        std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+    };
+    imageFilter->InitWithColorBlur(*colorFilter, sigmaX2, sigmaY2, ImageBlurType::GAUSS, noCropRect);
     imageFilter->Serialize();
     imageFilter->Deserialize(nullptr);
     imageFilter->GetType();

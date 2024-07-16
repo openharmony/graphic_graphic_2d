@@ -812,5 +812,32 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
 
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback, expected success when callback non-empty.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSClientTest, RegisterUIExtensionCallback_001, TestSize.Level1)
+{
+    UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
+    uint64_t userId = 0;
+    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+        StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback, expected success when callback is empty.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
+{
+    UIExtensionCallback callback = nullptr;
+    uint64_t userId = 0;
+    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+        StatusCode::INVALID_ARGUMENTS);
+}
 } // namespace Rosen
 } // namespace OHOS

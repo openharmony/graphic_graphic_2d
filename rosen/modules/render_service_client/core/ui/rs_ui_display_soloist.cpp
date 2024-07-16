@@ -146,7 +146,7 @@ void RSDisplaySoloist::OnVsyncTimeOut()
 void RSDisplaySoloist::FlushFrameRate(int32_t rate)
 {
     if (frameRateLinker_ && frameRateLinker_->IsEnable()) {
-        FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, rate};
+        FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, rate, DISPLAY_SOLOIST_FRAME_RATE_TYPE};
         frameRateLinker_->UpdateFrameRateRangeImme(range);
     }
 }
@@ -571,7 +571,7 @@ void RSDisplaySoloistManager::InsertUseExclusiveThreadFlag(SoloistIdType id, boo
 void RSDisplaySoloistManager::FlushFrameRate(int32_t rate)
 {
     if (frameRateLinker_ && frameRateLinker_->IsEnable()) {
-        FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, rate};
+        FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, rate, DISPLAY_SOLOIST_FRAME_RATE_TYPE};
         frameRateLinker_->UpdateFrameRateRangeImme(range);
     }
 }

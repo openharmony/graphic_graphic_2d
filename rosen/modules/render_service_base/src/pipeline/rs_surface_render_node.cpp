@@ -979,7 +979,7 @@ void RSSurfaceRenderNode::OnSkipSync()
 {
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams && surfaceParams->IsLayerDirty()) {
+    if (surfaceParams && surfaceParams->IsBufferDirty()) {
         auto& preBuffer = surfaceParams->GetPreBuffer();
         if (!preBuffer) {
             return;
@@ -988,6 +988,7 @@ void RSSurfaceRenderNode::OnSkipSync()
         if (context && !surfaceParams->GetHardwareEnabled()) {
             context->GetMutableSkipSyncBuffer().push_back(
                 { preBuffer, GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+            preBuffer = nullptr;
         }
     }
 #endif
@@ -2622,6 +2623,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
+    surfaceParams->animateState_ = animateState_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;

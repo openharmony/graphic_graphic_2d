@@ -45,6 +45,7 @@ public:
         int width = 0;
         int height = 0;
     };
+    void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -115,6 +116,11 @@ public:
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
 
+    inline bool IsBufferDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
@@ -136,8 +142,6 @@ public:
     bool OpincGetRootFlag() const;
     void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
-    bool OpincGetCachedMark();
-    void OpincSetCachedMark(bool mark);
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
@@ -217,7 +221,6 @@ private:
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
-    bool isOpincMarkCached_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;

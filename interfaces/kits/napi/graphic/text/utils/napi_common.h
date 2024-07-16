@@ -22,7 +22,7 @@
 #include "utils/point.h"
 
 #include "draw/color.h"
-#include "js_drawing_utils.h"
+#include "log_wrapper.h"
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -59,13 +59,21 @@ enum class ResourceType {
     RAWFILE = 30000
 };
 
-enum class DrawingErrorCode : int32_t {
+enum class TextErrorCode : int32_t {
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
 };
+
+#define GET_UNWRAP_PARAM(argc, value)                                                                                  \
+    do {                                                                                                               \
+        if ((napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) || value == nullptr) {         \
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+    } while (0)
 
 template<class T>
 T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char* name = nullptr)
@@ -283,7 +291,7 @@ inline void GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Po
     double targetX = 0;
     if (napi_get_named_property(env, argValue, "x", &objValue) != napi_ok ||
         napi_get_value_double(env, objValue, &targetX) != napi_ok) {
-        ROSEN_LOGE("The Parameter of number x about JsPoint is unvaild");
+        TEXT_LOGE("The Parameter of number x about JsPoint is unvaild");
         return;
     }
     point.SetX(targetX);
@@ -296,7 +304,7 @@ inline void GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Po
     double targetY = 0;
     if (napi_get_named_property(env, argValue, "y", &objValue) != napi_ok ||
         napi_get_value_double(env, objValue, &targetY) != napi_ok) {
-        ROSEN_LOGE("The Parameter of number y about JsPoint is unvaild");
+        TEXT_LOGE("The Parameter of number y about JsPoint is unvaild");
         return;
     }
     point.SetY(targetY);
@@ -313,7 +321,7 @@ inline void GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Poin
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
-napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
+napi_value NapiThrowError(napi_env env, TextErrorCode err, const std::string& message);
 
 inline std::u16string Str8ToStr16(const std::string &str)
 {

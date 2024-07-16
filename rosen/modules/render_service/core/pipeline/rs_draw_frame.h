@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_PIPELINE_RS_DRAW_FRAME_H
 #define RENDER_SERVICE_PIPELINE_RS_DRAW_FRAME_H
 #include <condition_variable>
+#include <cstdint>
 #include <list>
 #include <mutex>
 

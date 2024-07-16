@@ -643,7 +643,11 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
         return VSYNC_ERROR_NOT_SUPPORT;
     }
 
-    changingRefreshRates_ = listenerRefreshRates;
+    if (changingRefreshRates_.cb == nullptr) {
+        changingRefreshRates_ = listenerRefreshRates;
+    } else {
+        UpdateChangeRefreshRatesLocked(listenerRefreshRates);
+    }
     needChangeRefreshRates_ = true;
 
     changingPhaseOffset_ = listenerPhaseOffset;
@@ -659,6 +663,24 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     waitForTimeoutCon_.notify_all();
     return ret;
+}
+
+void VSyncGenerator::UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates)
+{
+    for (auto refreshRate : listenerRefreshRates.refreshRates) {
+        bool found = false;
+        for (auto it = changingRefreshRates_.refreshRates.begin();
+             it != changingRefreshRates_.refreshRates.end(); it++) {
+            if ((*it).first == refreshRate.first) { // first is linkerId
+                (*it).second = refreshRate.second; // second is refreshRate
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            changingRefreshRates_.refreshRates.push_back(refreshRate);
+        }
+    }
 }
 
 int64_t VSyncGenerator::GetVSyncPulse()

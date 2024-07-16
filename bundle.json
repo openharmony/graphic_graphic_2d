@@ -110,7 +110,6 @@
         "group_type": {
           "base_group": [
             "//third_party/libpng:libpng",
-            "//third_party/vulkan-loader:vulkan_loader",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
@@ -418,17 +417,6 @@
                 "typography_types.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export/rosen_text"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
-            "header": {
-              "header_files": [
-                "buffer_handle_parcel.h",
-                "buffer_handle_utils.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/utils/buffer_handle/export"
             }
           },
           {

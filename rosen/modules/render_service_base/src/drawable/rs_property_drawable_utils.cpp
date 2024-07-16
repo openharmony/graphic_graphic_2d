@@ -843,13 +843,12 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     canvas->Save();
     canvas->ClipRect(Rect2DrawingRect(boundsRect), Drawing::ClipOp::INTERSECT, false);
     auto tmpBounds = canvas->GetDeviceClipBounds();
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawPixelStretch, tmpBounds: %s", tmpBounds.ToString().c_str());
     canvas->Restore();
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(), clipBounds.GetBottom());
-    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-        "RSPropertyDrawableUtils::DrawPixelStretch, right: %f, bottom: %f", tmpBounds.GetRight(),
-        tmpBounds.GetBottom());
 
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch map rect failed.");
@@ -993,7 +992,9 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     }
     RS_TRACE_FUNC();
     Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ResetMatrix();
+    // Align the current coordinate system with the one that the effect data was generated from. In most cases,
+    // the two coordinate systems are the same, so the cachedMatrix_ should be set to identity.
+    canvas->SetMatrix(effectData->cachedMatrix_);
     auto visibleRect = canvas->GetVisibleRect();
     visibleRect.Round();
     auto visibleIRect = Drawing::RectI(
@@ -1005,15 +1006,13 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     Drawing::Brush brush;
     brush.SetForceBrightnessDisable(true);
     canvas->AttachBrush(brush);
-    // dstRect: canvas clip region
-    Drawing::Rect dstRect = canvas->GetDeviceClipBounds();
-    // srcRect: map dstRect onto cache coordinate
-    Drawing::Rect srcRect = dstRect;
-    srcRect.Offset(-effectData->cachedRect_.GetLeft(), -effectData->cachedRect_.GetTop());
-    canvas->DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
-        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, src:%s, dst:%s",
-        effectData->cachedRect_.ToString().c_str(), srcRect.ToString().c_str(), dstRect.ToString().c_str());
+    // Draw the cached image in the coordinate system where the effect data is generated. The image content
+    // outside the device clip bounds will be automatically clipped.
+    canvas->DrawImage(*effectData->cachedImage_, static_cast<float>(effectData->cachedRect_.GetLeft()),
+        static_cast<float>(effectData->cachedRect_.GetTop()), Drawing::SamplingOptions());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, DeviceClipBounds:%s, "
+        "IdentityMatrix: %d", effectData->cachedRect_.ToString().c_str(),
+        canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
     canvas->DetachBrush();
 }
 

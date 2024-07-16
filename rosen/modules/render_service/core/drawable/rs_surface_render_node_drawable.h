@@ -108,8 +108,7 @@ public:
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
     bool NeedInitCacheSurface();
-    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
-        bool isUIFirst);
+    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex);
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
@@ -142,7 +141,7 @@ public:
 #endif
 
     bool DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isUIFirst = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     void DrawableCache(std::shared_ptr<Drawing::GPUContext> grContext_);
 
     void SetLastFrameUsedThreadIndex(pid_t tid)
@@ -264,6 +263,7 @@ private:
     std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
+    // To be deleted after captureWindow being deleted
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
 #ifdef USE_VIDEO_PROCESSING_ENGINE

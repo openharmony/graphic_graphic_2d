@@ -33,6 +33,12 @@
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "native_buffer_inner.h"
+#include "native_window.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 namespace OHOS::Rosen {
 RSImageBase::~RSImageBase()
 {
@@ -48,6 +54,20 @@ RSImageBase::~RSImageBase()
                 RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
             }
         }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+            cleanupHelper = cleanUpHelper_]() {
+            if (nativeWindowBuffer != nullptr) {
+                DestroyNativeWindowBuffer(nativeWindowBuffer);
+            }
+            if (cleanupHelper != nullptr) {
+                NativeBufferUtils::DeleteVkImage(cleanupHelper);
+            }
+        });
+    }
+#endif
     } else { // if pixelMap_ not nullptr, do not release skImage cache
         if (image_) {
             image_ = nullptr;
@@ -61,9 +81,36 @@ RSImageBase::~RSImageBase()
     }
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return Drawing::COLORTYPE_RGBA_8888;
+    }
+    switch (vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return Drawing::COLORTYPE_RGBA_8888;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return Drawing::COLORTYPE_RGBA_F16;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            return Drawing::COLORTYPE_RGB_565;
+        default:
+            return Drawing::COLORTYPE_RGBA_8888;
+    }
+}
+#endif
+
 void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
 {
-    ConvertPixelMapToDrawingImage();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        BindPixelMapToDrawingImage(canvas);
+    }
+#endif
+    if (!image_) {
+        ConvertPixelMapToDrawingImage();
+    }
     auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
     auto dst = RSPropertiesPainter::Rect2DrawingRect(dstRect_);
     if (image_ == nullptr) {
@@ -365,4 +412,68 @@ std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
 {
     return pixelMap_;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
+    Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return nullptr;
+    }
+    if (!surfaceBuffer || !canvas.GetGPUContext()) {
+        RS_LOGE("RSImageBase MakeFromTextureForVK surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    if (nativeWindowBuffer_ == nullptr) {
+        sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
+        if (!nativeWindowBuffer_) {
+            RS_LOGE("RSImageBase MakeFromTextureForVK create native window buffer fail");
+            return nullptr;
+        }
+    }
+    bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
+    if (!backendTexture_.IsValid() || isProtected) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), isProtected);
+        if (backendTexture_.IsValid()) {
+            auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+                RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
+    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    Drawing::ColorType colorType = GetColorTypeWithVKFormat(vkTextureInfo->format);
+    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
+        cleanUpHelper_->Ref())) {
+        RS_LOGE("RSImageBase MakeFromTextureForVK build image failed");
+        return nullptr;
+    }
+    return dmaImage;
+}
+
+void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+{
+    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
+        if (!pixelMap_->IsEditable()) {
+            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+        }
+        if (!image_) {
+            image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
+            if (!pixelMap_->IsEditable() && image_) {
+                SKResourceManager::Instance().HoldResource(image_);
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+            }
+        }
+    }
+}
+#endif
 }

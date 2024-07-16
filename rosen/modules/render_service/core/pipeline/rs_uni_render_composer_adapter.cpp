@@ -122,7 +122,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
         dirtyRects.emplace_back(info.srcRect);
     }
     info.dirtyRects = dirtyRects;
-    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
+    auto displayParams = static_cast<RSDisplayRenderParams*>(node.GetRenderParams().get());
+    info.zOrder = static_cast<int32_t>(displayParams ? displayParams->GetGlobalZOrder() : 0);
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
     SetPreBufferInfo(node, info);

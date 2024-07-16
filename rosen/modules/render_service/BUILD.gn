@@ -23,6 +23,10 @@ config("render_service_link_config") {
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
+
+    if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
+      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+    }
   }
 }
 

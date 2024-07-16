@@ -39,7 +39,7 @@ auto rsMarshallingHelper = std::make_shared<RSMarshallingHelper>();
 
 namespace {
 const uint8_t* DATA = nullptr;
-constexpr uint32_t MAX_ARRAY_SIZE = 5000;
+constexpr uint32_t MAX_ARRAY_SIZE = 2500;
 constexpr size_t FUNCTYPE_SIZE = 4;
 constexpr size_t MATRIXTYPE_SIZE = 5;
 constexpr size_t POINTNUMBER = 4;
@@ -153,10 +153,17 @@ bool DoMarshallingHelper001(const uint8_t* data, size_t size)
 
     Parcel parcel;
     size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    if (length == 0) {
+        return false;
+    }
     char* path = new char[length];
+    if (path == nullptr) {
+        return false;
+    }
     for (size_t i = 0; i < length; i++) {
         path[i] = GetData<char>();
     }
+    path[length - 1] = '\0';
     std::shared_ptr<Typeface> val = Typeface::MakeFromFile(path, length);
     rsMarshallingHelper->Marshalling(parcel, val);
     rsMarshallingHelper->Unmarshalling(parcel, val);
@@ -239,8 +246,8 @@ bool DoMarshallingHelper004(const uint8_t* data, size_t size)
 
     Parcel parcel;
     Bitmap bitmap;
-    int32_t width = static_cast<int>(data[0]);
-    int32_t height = static_cast<int>(data[1]);
+    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     rsMarshallingHelper->Marshalling(parcel, bitmap);
@@ -283,8 +290,8 @@ bool DoMarshallingHelper006(const uint8_t* data, size_t size)
     Parcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
-    int32_t width = static_cast<int32_t>(data[0]);
-    int32_t height = static_cast<int32_t>(data[1]);
+    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     auto image = std::make_shared<Image>();
@@ -307,8 +314,8 @@ bool DoMarshallingHelper007(const uint8_t* data, size_t size)
 
     Parcel parcel;
     Bitmap bitmap;
-    int width = static_cast<int>(data[0]);
-    int height = static_cast<int>(data[1]);
+    int width = GetData<int>() % MAX_ARRAY_SIZE;
+    int height = GetData<int>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     auto image = std::make_shared<Image>();
@@ -332,8 +339,8 @@ bool DoMarshallingHelper008(const uint8_t* data, size_t size)
     Parcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
-    int32_t width = static_cast<int32_t>(data[0]);
-    int32_t height = static_cast<int32_t>(data[1]);
+    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     auto image = std::make_shared<Image>();
@@ -435,8 +442,8 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     Parcel parcel;
     Bitmap bitmap;
     auto image = std::make_shared<Image>();
-    int32_t width = static_cast<int32_t>(data[0]);
-    int32_t height = static_cast<int32_t>(data[1]);
+    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     image->BuildFromBitmap(bitmap);

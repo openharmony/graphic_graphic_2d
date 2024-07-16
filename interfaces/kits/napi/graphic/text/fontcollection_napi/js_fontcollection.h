@@ -18,10 +18,11 @@
 
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
-#include "resource_manager.h"
-#include "font_collection.h"
-#include "js_text_utils.h"
 #include <memory>
+
+#include "font_collection.h"
+#include "napi_common.h"
+#include "resource_manager.h"
 
 namespace OHOS::Rosen {
 class JsFontCollection final {

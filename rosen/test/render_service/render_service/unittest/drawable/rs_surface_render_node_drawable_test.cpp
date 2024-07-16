@@ -657,7 +657,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest, Tes
     const auto params01 = surfaceParams;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*renderNode_.get(), canvas, *params01);
 
-    rtThread.captureParam_.isInCaptureFlag_ = false;
+    rtThread.captureParam_.isSnapshot_ = false;
     surfaceParams->isHardwareEnabled_ = false;
     const auto params02 = surfaceParams;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*renderNode_.get(), canvas, *params02);

@@ -78,8 +78,9 @@ void RSHardwareThread::Start()
     hdiBackend_ = HdiBackend::GetInstance();
     runner_ = AppExecFwk::EventRunner::Create("RSHardwareThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    redrawCb_ = std::bind(&RSHardwareThread::Redraw, this, std::placeholders::_1, std::placeholders::_2,
-        std::placeholders::_3);
+    redrawCb_ = [this](const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId) {
+        return this->Redraw(surface, layers, screenId);
+    };
     if (handler_) {
         ScheduleTask(
             [this]() {
@@ -349,7 +350,7 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
         if (frameBufferSurface) {
-            frameBufferSurface->ClearSurfaceMap();
+            frameBufferSurface->WaitSurfaceClear();
         }
     }
 #endif

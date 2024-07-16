@@ -101,6 +101,11 @@ void RSUniRenderThread::ResetCaptureParam()
     captureParam_ = {};
 }
 
+bool RSUniRenderThread::IsInCaptureProcess()
+{
+    return captureParam_.isSnapshot_ || captureParam_.isMirror_;
+}
+
 RSUniRenderThread& RSUniRenderThread::Instance()
 {
     static RSUniRenderThread instance;

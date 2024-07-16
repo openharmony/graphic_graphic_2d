@@ -65,6 +65,17 @@ void RSDisplayRenderParams::SetRotationChanged(bool changed)
     needSync_ = true;
 }
 
+void RSDisplayRenderParams::SetGlobalZOrder(float zOrder)
+{
+    zOrder_ = zOrder;
+    needSync_ = true;
+}
+
+float RSDisplayRenderParams::GetGlobalZOrder() const
+{
+    return zOrder_;
+}
+
 bool RSDisplayRenderParams::IsRotationChanged() const
 {
     return isRotationChanged_;
@@ -148,6 +159,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
+    targetDisplayParams->zOrder_ = zOrder_;
     RSRenderParams::OnSync(target);
 }
 

@@ -37,9 +37,11 @@ void RSTransaction::OpenSyncTransaction()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("OpenSyncTransaction");
+        transactionProxy->FlushImplicitTransaction();
         transactionProxy->StartSyncTransaction();
         transactionProxy->Begin();
         isOpenSyncTransaction_ = true;
+        transactionCount_ = 0;
         parentPid_ = GetRealPid();
     }
 }

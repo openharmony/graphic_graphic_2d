@@ -269,12 +269,44 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
     return img;
 }
 
+void SurfaceImage::CheckImageCacheNeedClean(uint32_t seqNum)
+{
+    for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
+        bool result = true;
+        if (seqNum == it->first) {
+            continue;
+        }
+        if (IsSurfaceBufferInCache(it->first, result) == SURFACE_ERROR_OK && !result) {
+            if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
+                eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
+                it->second.eglImage_ = EGL_NO_IMAGE_KHR;
+            }
+            if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
+                eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
+                it->second.eglSync_ = EGL_NO_SYNC_KHR;
+            }
+            imageCacheSeqs_.erase(it->first);
+        }
+    }
+}
+
+void SurfaceImage::DestroyEGLImage(uint32_t seqNum)
+{
+    if (imageCacheSeqs_[seqNum].eglImage_ != EGL_NO_IMAGE_KHR) {
+        eglDestroyImageKHR(eglDisplay_, imageCacheSeqs_[seqNum].eglImage_);
+        imageCacheSeqs_[seqNum].eglImage_ = EGL_NO_IMAGE_KHR;
+    }
+    imageCacheSeqs_.erase(seqNum);
+}
+
 SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer)
 {
+    bool isNewBuffer = false;
     // private function, buffer is always valid.
     uint32_t seqNum = buffer->GetSeqNum();
     // If there was no eglImage binding to this buffer, we create a new one.
     if (imageCacheSeqs_.count(seqNum) == 0) {
+        isNewBuffer = true;
         EGLImageKHR eglImage = CreateEGLImage(eglDisplay_, buffer);
         if (eglImage == EGL_NO_IMAGE_KHR) {
             return SURFACE_ERROR_EGL_API_FAILED;
@@ -286,6 +318,9 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     glBindTexture(textureTarget_, textureId_);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
+        if (isNewBuffer) {
+            DestroyEGLImage(seqNum);
+        }
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
             textureTarget_, textureId_, error);
         return SURFACE_ERROR_EGL_API_FAILED;
@@ -293,6 +328,9 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(image));
     error = glGetError();
     if (error != GL_NO_ERROR) {
+        if (isNewBuffer) {
+            DestroyEGLImage(seqNum);
+        }
         BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d",
             textureTarget_, error);
         return SURFACE_ERROR_EGL_API_FAILED;
@@ -304,6 +342,9 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     }
     sync = eglCreateSyncKHR(disp, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
     imageCacheSeqs_.at(seqNum).eglSync_ = sync;
+    if (isNewBuffer) {
+        CheckImageCacheNeedClean(seqNum);
+    }
     return SURFACE_ERROR_OK;
 }
 

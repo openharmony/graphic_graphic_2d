@@ -57,7 +57,7 @@ static RSFile g_playbackFile {};
 static double g_playbackStartTime = 0.0;
 static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
-static bool g_playbackShouldBeTerminated = false;
+static bool g_playbackShouldBeTerminated = true;
 static double g_playbackPauseTime = 0;
 static int g_playbackWaitFrames = 0;
 
@@ -1379,6 +1379,9 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
+    if (g_playbackShouldBeTerminated) {
+        return;
+    }
     HiddenSpaceTurnOff();
     FilterMockNode(*g_context);
     g_playbackShouldBeTerminated = true;

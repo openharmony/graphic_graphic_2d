@@ -52,48 +52,60 @@ static inline SkTileMode ConvertToSkTileMode(const TileMode& mode)
 }
 
 void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f,
-    ImageBlurType blurType)
+    ImageBlurType blurType, const Rect& cropRect)
 {
     // SK only support gauss, ignore the input blurType
     sk_sp<SkImageFilter> input = nullptr;
     if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
         input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
-    filter_ = SkImageFilters::Blur(sigmaX, sigmaY, ConvertToSkTileMode(mode), input);
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
+    filter_ = SkImageFilters::Blur(sigmaX, sigmaY, ConvertToSkTileMode(mode), input, skCropRect);
 }
 
-void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f)
+void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter,
+    const std::shared_ptr<ImageFilter> f, const Rect& cropRect)
 {
     sk_sp<SkImageFilter> input = nullptr;
     if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
         input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
     auto skColorFilterImpl = colorFilter.GetImpl<SkiaColorFilter>();
     if (skColorFilterImpl != nullptr) {
-        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetColorFilter(), input);
+        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetColorFilter(), input, skCropRect);
     }
 }
 
-void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f)
+void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy,
+    const std::shared_ptr<ImageFilter> f, const Rect& cropRect)
 {
     sk_sp<SkImageFilter> input = nullptr;
     if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
         input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
-    filter_ = SkImageFilters::Offset(dx, dy, input);
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
+    filter_ = SkImageFilters::Offset(dx, dy, input, skCropRect);
 }
 
 void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY,
-    ImageBlurType blurType)
+    ImageBlurType blurType, const Rect& cropRect)
 {
     // SK only support gauss, ignore the input blurType
     auto skColorFilterImpl = colorFilter.GetImpl<SkiaColorFilter>();
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
     filter_ = SkImageFilters::ColorFilter(
-        skColorFilterImpl->GetColorFilter(), SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr));
+        skColorFilterImpl->GetColorFilter(),
+        SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);
 }
 
 void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients,
-    bool enforcePMColor, const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
+    bool enforcePMColor, const std::shared_ptr<ImageFilter> f1,
+    const std::shared_ptr<ImageFilter> f2, const Rect& cropRect)
 {
     if (coefficients.size() != numberOfCoefficients) {
         LOGD("SkiaImageFilter::InitWithArithmetic: the number of coefficients must be 4");
@@ -108,8 +120,11 @@ void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients
     if (f2 != nullptr && f2->GetImpl<SkiaImageFilter>() != nullptr) {
         foreground = f2->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
-    filter_ = SkImageFilters::Arithmetic(
-        coefficients[0], coefficients[1], coefficients[2], coefficients[3], enforcePMColor, background, foreground);
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
+    filter_ = SkImageFilters::Arithmetic(coefficients[0],
+        coefficients[1], coefficients[2], coefficients[3], // 0 1 2 3 used to combine the foreground and background.
+        enforcePMColor, background, foreground, skCropRect);
 }
 
 void SkiaImageFilter::InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
@@ -169,8 +184,8 @@ bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
     return true;
 }
 
-void SkiaImageFilter::InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
-    std::shared_ptr<ImageFilter> foreground)
+void SkiaImageFilter::InitWithBlend(BlendMode mode, const Rect& cropRect,
+    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground)
 {
     sk_sp<SkImageFilter> outer = nullptr;
     sk_sp<SkImageFilter> inner = nullptr;
@@ -180,16 +195,18 @@ void SkiaImageFilter::InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter>
     if (foreground != nullptr && foreground->GetImpl<SkiaImageFilter>() != nullptr) {
         inner = foreground->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
-    filter_ = SkImageFilters::Blend(static_cast<SkBlendMode>(mode), outer, inner);
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
+    SkImageFilters::CropRect skCropRect(skiaRect);
+    filter_ = SkImageFilters::Blend(static_cast<SkBlendMode>(mode), outer, inner, skCropRect);
 }
 
-void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect)
+void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect)
 {
     sk_sp<SkShader> skShader = nullptr;
     if (shader != nullptr && shader->GetImpl<SkiaShaderEffect>() != nullptr) {
         skShader = shader->GetImpl<SkiaShaderEffect>()->GetShader();
     }
-    SkRect skiaRect = {rect.left_, rect.top_, rect.right_, rect.bottom_};
+    SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
     SkImageFilters::CropRect skCropRect(skiaRect);
     filter_ = SkImageFilters::Shader(skShader, skCropRect);
 }

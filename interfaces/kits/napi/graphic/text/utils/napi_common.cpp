@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_text_utils.h"
+#include "napi_common.h"
 
 namespace OHOS::Rosen {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
@@ -36,7 +36,7 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
     return result;
 }
 
-napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message)
+napi_value NapiThrowError(napi_env env, TextErrorCode err, const std::string& message)
 {
     napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
     return NapiGetUndefined(env);
@@ -187,28 +187,28 @@ void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allFeatureValue, &arrayLength) != napi_ok ||
         !arrayLength) {
-        ROSEN_LOGE("The parameter of font features is unvaild");
+        TEXT_LOGE("The parameter of font features is unvaild");
         return;
     }
 
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
         if (napi_get_element(env, allFeatureValue, further, &singleElementValue) != napi_ok) {
-            ROSEN_LOGE("This parameter of the font features is unvaild");
+            TEXT_LOGE("This parameter of the font features is unvaild");
             break;
         }
         napi_value featureElement;
         std::string name;
         if (napi_get_named_property(env, singleElementValue, "name", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, name)) {
-            ROSEN_LOGE("This time that the name of parameter in font features is unvaild");
+            TEXT_LOGE("This time that the name of parameter in font features is unvaild");
             break;
         }
 
         int value = 0;
         if (napi_get_named_property(env, singleElementValue, "value", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, value)) {
-            ROSEN_LOGE("This time that the value of parameter in font features is unvaild");
+            TEXT_LOGE("This time that the value of parameter in font features is unvaild");
             break;
         }
         textStyle.fontFeatures.SetFeature(name, value);
@@ -223,28 +223,28 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allVariationValue, &arrayLength) != napi_ok ||
         !arrayLength) {
-        ROSEN_LOGE("The parameter of font variations is unvaild");
+        TEXT_LOGE("The parameter of font variations is unvaild");
         return;
     }
 
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
         if (napi_get_element(env, allVariationValue, further, &singleElementValue) != napi_ok) {
-            ROSEN_LOGE("This parameter of the font variations is unvaild");
+            TEXT_LOGE("This parameter of the font variations is unvaild");
             break;
         }
         napi_value variationElement;
         std::string axis;
         if (napi_get_named_property(env, singleElementValue, "axis", &variationElement) != napi_ok ||
             !ConvertFromJsValue(env, variationElement, axis)) {
-            ROSEN_LOGE("This time that the axis of parameter in font variations is unvaild");
+            TEXT_LOGE("This time that the axis of parameter in font variations is unvaild");
             break;
         }
 
         int value = 0;
         if (napi_get_named_property(env, singleElementValue, "value", &variationElement) != napi_ok ||
             !ConvertFromJsValue(env, variationElement, value)) {
-            ROSEN_LOGE("This time that the value of parameter in font variations is unvaild");
+            TEXT_LOGE("This time that the value of parameter in font variations is unvaild");
             break;
         }
         textStyle.fontVariations.SetAxisValue(axis, value);
@@ -268,24 +268,24 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value element;
         Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-        Drawing::Point offset(Drawing::ARGC_ZERO, Drawing::ARGC_ZERO);
+        Drawing::Point offset(0, 0);
         double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
-            ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
+            TEXT_LOGE("The parameter of as private text-shadow is unvaild");
             return;
         }
         SetColorFromJS(env, element, "color", colorSrc);
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            ROSEN_LOGD("The parameter of as private point is unvaild");
+            TEXT_LOGD("The parameter of as private point is unvaild");
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
-            ROSEN_LOGD("The parameter of as private blur radius is unvaild");
+            TEXT_LOGD("The parameter of as private blur radius is unvaild");
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
@@ -301,7 +301,7 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allShadowValue, &arrayLength) != napi_ok) {
-        ROSEN_LOGE("The parameter of text shadow is not array");
+        TEXT_LOGE("The parameter of text shadow is not array");
         return;
     }
     ScanShadowValue(env, allShadowValue, arrayLength, textStyle);

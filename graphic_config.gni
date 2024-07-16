@@ -309,6 +309,7 @@ arkui_root = "//foundation/arkui"
 ace_root = "//foundation/arkui/ace_engine"
 bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
+mindspore_root = "//third_party/mindspore"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

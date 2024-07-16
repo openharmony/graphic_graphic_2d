@@ -136,8 +136,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    layer->SetCompositionType(RSSystemProperties::IsForceClient() ?
-        GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+    bool forceClient = RSSystemProperties::IsForceClient() ||
+        (params.GetIsProtectedLayer() && params.GetAnimateState());
+    layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
     std::vector<GraphicIRect> visibleRegions;

@@ -25,6 +25,7 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+const uint32_t usleepTime = 1000;
 } // namespace
 
 class SurfaceCaptureFuture : public SurfaceCaptureCallback {
@@ -161,7 +162,11 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
     rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
-    sleep(1);
+    rsInterfaces.MarkPowerOffNeedProcessOneFrame();
+    rsInterfaces.DisablePowerOffRenderControl(static_cast<ScreenId>(id));
+    UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
+    rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
+    usleep(usleepTime);
 
     return true;
 }

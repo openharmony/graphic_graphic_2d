@@ -220,6 +220,18 @@ public:
     std::shared_ptr<Blender> GetBlender() const;
 
     /**
+     * @brief Sets the blenderEnabled flag, which determines whether the blender is used.
+     * @param blenderEnabled  whether the blender is used.
+     */
+    void SetBlenderEnabled(bool blenderEnabled);
+
+    /**
+     * @brief Returns the blenderEnabled flag, which determines whether the blender is used.
+     * @return the blenderEnabled flag, whether the blender is used.
+     */
+    bool GetBlenderEnabled() const { return blenderEnabled_; };
+
+    /**
      * @brief Returns the user-supplied blend function, if one has been set.
      * @return the Blender assigned to this Brush, otherwise nullptr
      */
@@ -318,6 +330,8 @@ private:
     std::shared_ptr<PathEffect> pathEffect_;
 
     Brush brush_;
+
+    bool blenderEnabled_ = true;
 };
 } // namespace Drawing
 } // namespace Rosen

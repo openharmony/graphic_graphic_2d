@@ -56,6 +56,7 @@ public:
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
     void ScheduleRenderNodeDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     void ScheduleReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
+    std::shared_ptr<Drawing::GPUContext> GetGrContextFromSubThread(pid_t tid);
 
 private:
     RSSubThreadManager() = default;

@@ -358,6 +358,7 @@ void RSMainThread::Init()
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
+        RS_LOGD("DoComposition start time:%{public}" PRIu64, curTime_);
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -1268,10 +1269,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         }
 #ifdef RS_ENABLE_VK
-        const auto& surfaceBuffer = surfaceNode->GetBuffer();
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
-            deviceType_ != DeviceType::PC && surfaceBuffer && (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+            deviceType_ != DeviceType::PC && (surfaceNode->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
             }
@@ -1799,7 +1799,6 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
         }
 
         if (!node->IsOnTheTree() || node->IsDirty()) {
-            node->QuickPrepare(uniVisitor);
             node->PrepareSelfNodeForApplyModifiers();
         }
     }
@@ -2683,6 +2682,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
     rsCurrRange_.Reset();
+    needRequestNextVsyncAnimate_ = false;
 
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
@@ -2693,7 +2693,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
     bool curWinAnim = false;
     bool needRequestNextVsync = false;
-    needRequestNextVsyncAnimate_ = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
@@ -3873,18 +3872,37 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
 {
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
-    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
-        return;
-    }
-    for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
-        auto userId = iter->second.first;
-        auto callback = iter->second.second;
-        if (callback) {
-            callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
+    if (CheckUIExtensionCallbackDataChanged()) {
+        RS_TRACE_NAME("RSMainThread::UIExtensionNodesTraverseAndCallback.");
+        for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
+            auto userId = iter->second.first;
+            auto callback = iter->second.second;
+            if (callback) {
+                callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
+            }
         }
     }
     lastFrameUIExtensionDataEmpty_ = uiExtensionCallbackData_.empty();
     uiExtensionCallbackData_.clear();
+}
+
+bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
+{
+    // empty for two consecutive frames, callback can be skipped.
+    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
+        RS_TRACE_NAME("RSMainThread::UIExtensionCallbackData is consecutively empty, skip callback.");
+        return false;
+    }
+    // layout of host node was not changed, callback can be skipped.
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto iter = uiExtensionCallbackData_.begin(); iter != uiExtensionCallbackData_.end(); ++iter) {
+        auto hostNode = nodeMap.GetRenderNode(iter->first);
+        if (hostNode != nullptr && !hostNode->LastFrameSubTreeSkipped()) {
+            return true;
+        }
+    }
+    RS_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
+    return false;
 }
 
 void RSMainThread::SetHardwareTaskNum(uint32_t num)

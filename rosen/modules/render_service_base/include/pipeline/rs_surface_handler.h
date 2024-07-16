@@ -133,6 +133,16 @@ public:
         return buffer_.buffer;
     }
 
+    uint64_t GetBufferUsage() const
+    {
+        std::lock_guard<std::mutex> lock(bufMutex_);
+        if (!buffer_.buffer) {
+            ROSEN_LOGE("RSSurfaceHandler GetBufferUsage buffer is nullptr");
+            return 0;
+        }
+        return buffer_.buffer->GetUsage();
+    }
+
     const sptr<SyncFence>& GetAcquireFence() const
     {
         return buffer_.acquireFence;

@@ -129,6 +129,7 @@ public:
         const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData);
     static void TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
         Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
+    static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

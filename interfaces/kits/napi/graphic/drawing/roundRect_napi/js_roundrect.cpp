@@ -14,9 +14,9 @@
  */
 
 #include "js_roundrect.h"
-#include "../js_drawing_utils.h"
+#include "js_common.h"
+#include "js_drawing_utils.h"
 #include "native_value.h"
-#include "../js_common.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
