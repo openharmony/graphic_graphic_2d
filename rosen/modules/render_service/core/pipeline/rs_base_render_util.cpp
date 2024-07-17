@@ -1173,10 +1173,13 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     }
 
     // deal with buffer's gravity effect in node's inner space.
-    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
+    auto matrix = RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds);
+    params.matrix.PreConcat(matrix);
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
-    params.dstRect = params.srcRect;
+    if (!matrix.IsIdentity()) {
+        params.dstRect = params.srcRect;
+    }
 }
 
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
