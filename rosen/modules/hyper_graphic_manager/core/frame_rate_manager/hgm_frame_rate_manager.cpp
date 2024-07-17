@@ -848,7 +848,6 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     curRefreshRateMode_ = refreshRateMode;
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
     UpdateEnergyConsumptionConfig();
     auto configData = HgmCore::Instance().GetPolicyConfigData();
     if (configData != nullptr) {
