@@ -83,7 +83,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
-    RsCommonHook::Instance().SetVideoSurfaceConfig(configData->videoSurfaceConfig_);
     if (configData != nullptr) {
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
         idleDetector_.UpdateSupportAppBufferList(configData->appBufferList_);
