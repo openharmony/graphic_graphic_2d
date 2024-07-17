@@ -428,6 +428,14 @@ void RSUifirstManager::PostSubTask(NodeId id)
     }
 }
 
+void RSUifirstManager::TryReleaseTextureForIdleThread()
+{
+    if (noUifirstNodeFrameCount_.load() <= CLEAR_RES_THRESHOLD) {
+        return;
+    }
+    RSSubThreadManager::Instance()->TryReleaseTextureForIdleThread();
+}
+
 void RSUifirstManager::PostReleaseCacheSurfaceSubTasks()
 {
     for (auto cardNode : collectedCardNodes_) {
@@ -588,24 +596,20 @@ void RSUifirstManager::ClearSubthreadRes()
     RS_OPTIONAL_TRACE_NAME_FMT("ClearSubthreadRes");
     if (subthreadProcessingNode_.size() == 0 &&
         pendingSyncForSkipBefore_.size() == 0) {
-        if (noUifirstNodeFrameCount_ < CLEAR_RES_THRESHOLD) {
-            ++noUifirstNodeFrameCount_;
-            if (noUifirstNodeFrameCount_ == CLEAR_RES_THRESHOLD) {
-                RSSubThreadManager::Instance()->ResetSubThreadGrContext();
-                PostReleaseCacheSurfaceSubTasks();
-            }
-        } else {
-            noUifirstNodeFrameCount_ = 1;
+        noUifirstNodeFrameCount_.fetch_add(1);
+        if (noUifirstNodeFrameCount_.load() == CLEAR_RES_THRESHOLD) {
+            RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+            PostReleaseCacheSurfaceSubTasks();
         }
     } else {
-        noUifirstNodeFrameCount_ = 0;
+        noUifirstNodeFrameCount_.store(0);
     }
     reuseNodes_.clear();
 }
 
 void RSUifirstManager::ForceClearSubthreadRes()
 {
-    noUifirstNodeFrameCount_ = 0;
+    noUifirstNodeFrameCount_.store(0);
     RSSubThreadManager::Instance()->ReleaseTexture();
 }
 

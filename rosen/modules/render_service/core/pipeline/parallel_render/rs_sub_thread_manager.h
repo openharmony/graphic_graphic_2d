@@ -46,6 +46,7 @@ public:
     void ResetSubThreadGrContext();
     void CancelReleaseResourceTask();
     void ReleaseTexture();
+    void TryReleaseTextureForIdleThread();
     void CancelReleaseTextureTask();
     void ForceReleaseResource();
     void DumpMem(DfxString& log);
