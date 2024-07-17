@@ -43,7 +43,7 @@ constexpr float CACHE_UPDATE_FILL_ALPHA = 0.8f;
 RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawableAdapter(std::move(node))
 {
-    auto task = std::bind(&RSRenderNodeDrawable::ClearCachedSurface, this);
+    auto task = [this] { this->RSRenderNodeDrawable::ClearCachedSurface(); };
     std::const_pointer_cast<RSRenderNode>(node)->RegisterClearSurfaceFunc(task);
 }
 

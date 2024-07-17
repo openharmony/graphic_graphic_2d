@@ -1162,7 +1162,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
                 node.SetUifirstUseStarting(LeashWindowContainMainWindowAndStarting(*surfaceNode));
             }
-            auto func = std::bind(&RSUifirstManager::ProcessTreeStateChange, std::placeholders::_1);
+            auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);
             node.SetUifirstStartTime(GetCurSysTime());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType); // clear pending reset status
