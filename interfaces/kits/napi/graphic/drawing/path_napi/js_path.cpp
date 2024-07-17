@@ -82,6 +82,10 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
     if (argc == ARGC_ZERO) {
         Path* path = new Path();
         jsPath = new(std::nothrow) JsPath(path);
+        if (!jsPath) {
+            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
+            return nullptr;
+        }
     } else if (argc == ARGC_ONE) {
         napi_valuetype valueType = napi_undefined;
         if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
@@ -92,6 +96,10 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         GET_UNWRAP_PARAM(ARGC_ZERO, path);
         Path* p = new Path(*path->GetPath());
         jsPath = new(std::nothrow) JsPath(p);
+        if (!jsPath) {
+            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
+            return nullptr;
+        }
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
