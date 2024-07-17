@@ -1021,14 +1021,16 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     auto mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredNode.GetRenderParams().get());
     if (!mirroredParams) {
         RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen mirroredParams is null");
+        return;
+    }
+    auto nodeParams = static_cast<RSDisplayRenderParams*>(node.GetRenderParams().get());
+    if (!nodeParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
+        return;
     }
     auto mainScreenInfo = mirroredParams->GetScreenInfo();
     auto mainWidth = static_cast<float>(mainScreenInfo.width);
     auto mainHeight = static_cast<float>(mainScreenInfo.height);
-    auto nodeParams = static_cast<RSDisplayRenderParams*>(node.GetRenderParams().get());
-    if (!nodeParams) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
-    }
     auto mirrorScreenInfo = nodeParams->GetScreenInfo();
     auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
     auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
