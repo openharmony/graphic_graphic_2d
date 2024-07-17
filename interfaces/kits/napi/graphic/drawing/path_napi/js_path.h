@@ -50,6 +50,7 @@ public:
     static napi_value Close(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
     static napi_value GetLength(napi_env env, napi_callback_info info);
+    static napi_value IsClosed(napi_env env, napi_callback_info info);
     Path* GetPath();
 
 private:
@@ -71,6 +72,7 @@ private:
     napi_value OnClose(napi_env env, napi_callback_info info);
     napi_value OnReset(napi_env env, napi_callback_info info);
     napi_value OnGetLength(napi_env env, napi_callback_info info);
+    napi_value OnIsClosed(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     Path* m_path = nullptr;

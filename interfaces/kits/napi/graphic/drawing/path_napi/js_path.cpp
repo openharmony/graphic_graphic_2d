@@ -46,6 +46,7 @@ napi_value JsPath::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("close", JsPath::Close),
         DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
         DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
+        DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
     };
 
     napi_value constructor = nullptr;
@@ -221,6 +222,12 @@ napi_value JsPath::GetLength(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnGetLength(env, info) : nullptr;
+}
+
+napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsClosed(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -626,6 +633,17 @@ napi_value JsPath::OnGetBounds(napi_env env, napi_callback_info info)
     }
 
     return GetRectAndConvertToJsValue(env, rect);
+}
+
+napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsClosed path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->IsClosed(true);
+    return CreateJsNumber(env, result);
 }
 
 Path* JsPath::GetPath()
