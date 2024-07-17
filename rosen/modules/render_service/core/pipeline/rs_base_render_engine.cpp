@@ -1074,7 +1074,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
     std::lock_guard<std::mutex> lockGuard(rsSurfacesMutex_);
     while (rsSurfaces_.size() > MAX_RS_SURFACE_SIZE) {
         auto it = rsSurfaces_.begin();
-        void(rsSurfaces_).erase(it);
+        (void)rsSurfaces_.erase(it);
         RS_LOGD("ShrinkCachesIfNeeded remove item");
     }
 }
