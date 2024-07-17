@@ -127,8 +127,9 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REGISTER_UIEXTENSION_CALLBACK,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
-    NOTIFY_PACKAGE_EVENT  = 1001,
+    NOTIFY_PACKAGE_EVENT = 1001,
     NOTIFY_REFRESH_RATE_EVENT = 1002,
+    NOTIFY_DYNAMIC_MODE_EVENT = 1003,
 };
 } // namespace Rosen
 } // namespace OHOS

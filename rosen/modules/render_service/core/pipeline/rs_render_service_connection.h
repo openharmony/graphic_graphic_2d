@@ -265,6 +265,8 @@ private:
 
     void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) override;
 
+    void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
+
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;

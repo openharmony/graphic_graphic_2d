@@ -209,7 +209,8 @@ void RSRenderThread::RequestNextVSync()
         SendFrameEvent(true);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
-            .callbackWithId_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1, std::placeholders::_2),
+            .callbackWithId_ = [this](uint64_t timestamp, int64_t frameCount,
+                                   void* arg) { this->OnVsync(timestamp, frameCount); },
         };
         if (receiver_ != nullptr) {
             receiver_->RequestNextVSync(fcb);

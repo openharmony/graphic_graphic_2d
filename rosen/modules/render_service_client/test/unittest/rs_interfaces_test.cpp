@@ -1340,6 +1340,20 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: NotifyDynamicModeEvent001
+ * @tc.desc: Notify touch event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool enableDynamicMode = false;
+    rsInterfaces->NotifyDynamicModeEvent(enableDynamicMode);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.type: FUNC

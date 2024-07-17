@@ -517,6 +517,10 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, const std::str
 {
 }
 
+void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }

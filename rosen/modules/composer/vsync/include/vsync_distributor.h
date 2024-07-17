@@ -76,6 +76,7 @@ public:
     bool rnvTrigger_ = false;
 private:
     VsyncError CleanAllLocked();
+    VsyncError GetRemoteDistributorLocked(sptr<VSyncDistributor> &distributor);
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit VSyncConnectionDeathRecipient(wptr<VSyncConnection> conn);

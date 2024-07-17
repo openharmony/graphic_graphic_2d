@@ -60,7 +60,7 @@ private:
 
     bool RefreshRateRotationProcess(ScreenRotation rotation, uint64_t screenId);
     void DrawCurrentRefreshRate();
-    void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color, const RSPaintStyle fillType,
+    void DrawDirtyRectForDFX(RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType,
         float alpha, int edgeWidth = 6) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node) const;
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const;
