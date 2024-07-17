@@ -39,7 +39,7 @@ void RsCommonHook::SetVideoSurfaceConfig(std::unordered_map<std::string, std::st
     sourceTuningConfig_ = sourceTuningConfig;
 }
 
-std::unordered_map<std::string, std::string> RsCommonHook::GetVideoSurfaceConfig()
+const std::unordered_map<std::string, std::string>& RsCommonHook::GetVideoSurfaceConfig() const
 {
     return sourceTuningConfig_;
 }
