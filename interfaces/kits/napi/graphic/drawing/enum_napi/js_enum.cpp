@@ -194,6 +194,13 @@ static const std::vector<struct JsEnumInt> g_scaleToFit = {
     { "END_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
 };
 
+static const std::vector<struct JsEnumInt> g_tileMode = {
+    { "CLAMP", static_cast<int32_t>(TileMode::CLAMP) },
+    { "REPEAT", static_cast<int32_t>(TileMode::REPEAT) },
+    { "MIRROR", static_cast<int32_t>(TileMode::MIRROR) },
+    { "DECAL", static_cast<int32_t>(TileMode::DECAL) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -204,6 +211,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "CapStyle", g_capStyle },
     { "BlurType", g_blurType },
     { "RectType", g_rectType },
+    { "TileMode", g_tileMode },
     { "FontMetricsFlags", g_fontMetricsFlags },
     { "FontEdging", g_fontEdging },
     { "FontHinting", g_fontHinting },

@@ -26,6 +26,7 @@ namespace Drawing {
 class JsPen final {
 public:
     JsPen();
+    explicit JsPen(const Pen& pen);
     ~JsPen();
 
     static napi_value Init(napi_env env, napi_value exportObj);
@@ -33,22 +34,30 @@ public:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
     static napi_value SetColor(napi_env env, napi_callback_info info);
+    static napi_value GetColor(napi_env env, napi_callback_info info);
     static napi_value SetStrokeWidth(napi_env env, napi_callback_info info);
     static napi_value SetAntiAlias(napi_env env, napi_callback_info info);
+    static napi_value IsAntiAlias(napi_env env, napi_callback_info info);
     static napi_value SetAlpha(napi_env env, napi_callback_info info);
+    static napi_value GetAlpha(napi_env env, napi_callback_info info);
     static napi_value SetColorFilter(napi_env env, napi_callback_info info);
     static napi_value GetColorFilter(napi_env env, napi_callback_info info);
     static napi_value SetImageFilter(napi_env env, napi_callback_info info);
     static napi_value SetMaskFilter(napi_env env, napi_callback_info info);
     static napi_value SetBlendMode(napi_env env, napi_callback_info info);
     static napi_value SetDither(napi_env env, napi_callback_info info);
+    static napi_value GetWidth(napi_env env, napi_callback_info info);
     static napi_value SetJoinStyle(napi_env env, napi_callback_info info);
     static napi_value GetJoinStyle(napi_env env, napi_callback_info info);
     static napi_value SetCapStyle(napi_env env, napi_callback_info info);
     static napi_value GetCapStyle(napi_env env, napi_callback_info info);
     static napi_value SetPathEffect(napi_env env, napi_callback_info info);
     static napi_value SetShadowLayer(napi_env env, napi_callback_info info);
+    static napi_value SetShaderEffect(napi_env env, napi_callback_info info);
     static napi_value GetFillPath(napi_env env, napi_callback_info info);
+    static napi_value SetMiterLimit(napi_env env, napi_callback_info info);
+    static napi_value GetMiterLimit(napi_env env, napi_callback_info info);
+    static napi_value Reset(napi_env env, napi_callback_info info);
     
     Pen* GetPen();
 

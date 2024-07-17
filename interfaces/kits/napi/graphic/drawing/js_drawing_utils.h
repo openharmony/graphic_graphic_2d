@@ -22,6 +22,7 @@
 #endif
 
 #include "common/rs_common_def.h"
+#include "draw/color.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font_metrics.h"
@@ -335,6 +336,8 @@ bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t si
 
 bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t size);
 
+bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size);
+
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
     return napi_get_value_int32(env, jsValue, &value) == napi_ok && value >= lo && value <= hi;
@@ -425,6 +428,19 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name, const
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
+
+inline napi_value GetColorAndConvertToJsValue(napi_env env, Color& color)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "alpha", CreateJsNumber(env, color.GetAlpha()));
+        napi_set_named_property(env, objValue, "red", CreateJsNumber(env, color.GetRed()));
+        napi_set_named_property(env, objValue, "green", CreateJsNumber(env, color.GetGreen()));
+        napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color.GetBlue()));
+    }
+    return objValue;
+}
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 } // namespace Drawing

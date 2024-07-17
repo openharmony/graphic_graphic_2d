@@ -87,6 +87,7 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 
 static const char* g_argbString[4] = {"alpha", "red", "green", "blue"};
 static const char* g_ltrbString[4] = {"left", "top", "right", "bottom"};
+static const char* g_pointString[2] = {"x", "y"};
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
 {
@@ -136,6 +137,19 @@ bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* po
             return false;
         }
         if (!GetPointFromJsValue(env, tempPoint, points[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        double* curEdge = point + idx;
+        napi_get_named_property(env, jsValue, g_pointString[idx], &tempValue);
+        if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
             return false;
         }
     }
