@@ -137,7 +137,6 @@ public:
     {
         std::lock_guard<std::mutex> lock(bufMutex_);
         if (!buffer_.buffer) {
-            ROSEN_LOGE("RSSurfaceHandler GetBufferUsage buffer is nullptr");
             return 0;
         }
         return buffer_.buffer->GetUsage();
