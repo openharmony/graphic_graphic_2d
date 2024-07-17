@@ -440,8 +440,8 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
-    if (surfaceBuffer == nullptr) {
-        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr");
+    if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
+        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
     if (nativeWindowBuffer_ == nullptr) {
