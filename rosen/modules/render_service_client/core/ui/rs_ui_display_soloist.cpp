@@ -477,8 +477,11 @@ void RSDisplaySoloistManager::DispatchSoloistCallback(TimestampType timestamp)
                 frameRateRange_.Merge(displaySoloist->frameRateRange_);
             }
         }
-        isNeedRequestVSync = isNeedRequestVSync ||
-                             static_cast<bool>(displaySoloist->subStatus_ == ActiveStatus::ACTIVE);
+        bool isActiveSoloist = false;
+        if (displaySoloist && displaySoloist->subStatus_ == ActiveStatus::ACTIVE) {
+            isActiveSoloist = true;
+        }
+        isNeedRequestVSync = isNeedRequestVSync || isActiveSoloist;
     }
 
     if (isNeedRequestVSync && managerStatus_ == ActiveStatus::ACTIVE) {
