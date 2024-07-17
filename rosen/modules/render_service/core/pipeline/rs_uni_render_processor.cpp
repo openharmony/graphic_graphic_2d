@@ -26,6 +26,7 @@
 #include "platform/common/rs_log.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,6 +43,19 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
                                 std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
     if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
+        return false;
+    }
+    // In uni render mode, we can handle screen rotation in the rendering process,
+    // so we do not need to handle rotation in composer adapter any more,
+    // just pass the buffer to composer straightly.
+    screenInfo_.rotation = ScreenRotation::ROTATION_0;
+    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
+}
+
+bool RSUniRenderProcessor::InitUniProcessor(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    if (!RSProcessor::InitUniProcessor(displayDrawable)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,

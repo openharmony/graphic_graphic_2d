@@ -101,6 +101,10 @@ public:
     {
         return hardwareEnabledTopNodes_;
     }
+    bool GetSecurityDisplay() const
+    {
+        return isSecurityDisplay_;
+    }
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
@@ -132,6 +136,10 @@ public:
     // dfx
     std::string ToString() const override;
 
+    const std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> GetMirrorSourceDrawable()
+    {
+        return mirrorSourceDrawable_;
+    }
 private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
@@ -145,7 +153,9 @@ private:
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
+    bool isSecurityDisplay_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
