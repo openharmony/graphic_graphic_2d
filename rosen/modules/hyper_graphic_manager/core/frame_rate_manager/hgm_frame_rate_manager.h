@@ -123,6 +123,7 @@ public:
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(pid_t remotePid, int32_t touchStatus, const std::string& pkgName,
         uint32_t pid, int32_t touchCnt);
+    void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };

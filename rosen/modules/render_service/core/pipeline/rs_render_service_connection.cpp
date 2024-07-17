@@ -1358,6 +1358,18 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, const std:
     mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, pkgName, pid, touchCnt);
 }
 
+void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
+{
+    HgmTaskHandleThread::Instance().PostTask([enableDynamicModeEvent] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            RS_LOGW("RSRenderServiceConnection::NotifyDynamicModeEvent: frameRateMgr is nullptr.");
+            return;
+        }
+        frameRateMgr->HandleDynamicModeEvent(enableDynamicModeEvent);
+    });
+}
+
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
 {
     auto task = [this, info]() -> void {

@@ -903,6 +903,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
     proxy->NotifyTouchEvent(touchStatus, "", 0, touchCnt);
+    proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }

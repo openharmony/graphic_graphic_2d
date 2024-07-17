@@ -513,6 +513,10 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, const std::str
 {
 }
 
+void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+}
+
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
 {
 }

@@ -222,6 +222,8 @@ public:
 
     void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) override;
 
+    void NotifyDynamicModeEvent(bool enableDynamicMode) override;
+
     void ReportEventResponse(DataBaseRs info) override;
 
     void ReportEventComplete(DataBaseRs info) override;

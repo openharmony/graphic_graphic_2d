@@ -2360,6 +2360,25 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, const
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(enableDynamicMode)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyDynamicModeEvent: Send Request err.");
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;

@@ -636,6 +636,11 @@ void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgN
     renderServiceClient_->NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
 }
 
+void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    renderServiceClient_->NotifyDynamicModeEvent(enableDynamicMode);
+}
+
 void RSInterfaces::DisableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(false);

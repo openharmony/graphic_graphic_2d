@@ -202,6 +202,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, "", 0, uid);
+    rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
