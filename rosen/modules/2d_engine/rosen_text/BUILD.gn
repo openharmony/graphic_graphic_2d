@@ -140,7 +140,7 @@ if (enable_text_gine) {
       }
     }
 
-    deps = [ "$skia_root_new:skia_$platform" ]
+    external_deps = [ "skia:skia_canvaskit" ]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
@@ -191,16 +191,12 @@ if (enable_text_gine) {
         defines += [ "ACE_ENABLE_GPU" ]
       }
     }
-
+    external_deps = [ "hilog:libhilog" ]
     deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
     if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps += [
-        "$skia_root_new:skia_$platform",
-        "./skia_txt:skia_libtxt_$platform",
-      ]
+      deps += [ "./skia_txt:skia_libtxt_$platform" ]
+      external_deps += [ "skia:skia_canvaskit" ]
     }
-
-    external_deps = [ "hilog:libhilog" ]
 
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
