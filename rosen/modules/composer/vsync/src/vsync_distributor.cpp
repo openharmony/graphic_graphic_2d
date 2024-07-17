@@ -111,7 +111,8 @@ VSyncConnection::~VSyncConnection()
 
 VsyncError VSyncConnection::RequestNextVSync()
 {
-    return RequestNextVSync("unknown", 0);
+    static const std::string DEFAULT_REQUEST = "unknown";
+    return RequestNextVSync(DEFAULT_REQUEST, 0);
 }
 
 VsyncError VSyncConnection::GetRemoteDistributorLocked(sptr<VSyncDistributor> &distributor)
@@ -246,7 +247,8 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
     : controller_(controller), mutex_(), con_(), connections_(),
     event_(), vsyncEnabled_(false), name_(name)
 {
-    if (name == "rs") {
+    static const std::string DEFAULT_RS_NAME = "rs";
+    if (name == DEFAULT_RS_NAME) {
         isRs_ = true;
     }
 #if defined(RS_ENABLE_DVSYNC)

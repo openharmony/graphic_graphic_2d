@@ -291,6 +291,72 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level
 {
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
+
+/*
+* Function: MarkRSAnimate001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call MarkRSAnimate
+ */
+HWTEST_F(VSyncDistributorTest, MarkRSAnimate001, Function | MediumTest| Level3)
+{
+    VSyncDistributorTest::vsyncDistributor->MarkRSAnimate();
+}
+
+/*
+* Function: UnmarkRSAnimate001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UnmarkRSAnimate
+ */
+HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3)
+{
+    VSyncDistributorTest::vsyncDistributor->UnmarkRSAnimate();
+}
+
+/*
+* Function: HasPendingUIRNV001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call HasPendingUIRNV
+ */
+HWTEST_F(VSyncDistributorTest, HasPendingUIRNV001, Function | MediumTest| Level3)
+{
+    VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
+}
+
+/*
+* Function: UpdatePendingReferenceTime001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdatePendingReferenceTime
+ */
+HWTEST_F(VSyncDistributorTest, UpdatePendingReferenceTime001, Function | MediumTest| Level3)
+{
+    int64_t timeStamp = 0;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    VSyncDistributorTest::vsyncDistributor->UpdatePendingReferenceTime(timeStamp);
+}
+
+/*
+* Function: SetHardwareTaskNum001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetHardwareTaskNum
+ */
+HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Level3)
+{
+    uint32_t num = 0;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
