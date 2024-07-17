@@ -71,7 +71,7 @@ ohos_source_set("graphics_effect_src") {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/skia:skia_$platform",
+      "//third_party/skia:skia_$target_os",
     ]
     external_deps = [ "hilog:libhilog" ]
   } else {
@@ -104,7 +104,7 @@ if (is_arkui_x) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/skia:skia_$platform",
+      "//third_party/skia:skia_$target_os",
     ]
 
     part_name = "graphic_2d"
