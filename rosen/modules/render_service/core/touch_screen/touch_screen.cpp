@@ -26,8 +26,10 @@ const std::string TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/chipsetsdk/libh
 TouchScreen::TouchScreen() {}
 TouchScreen::~TouchScreen()
 {
-    dlclose(touchScreenHandle_);
-    touchScreenHandle_ = nullptr;
+    if (touchScreenHandle_ != nullptr) {
+        dlclose(touchScreenHandle_);
+        touchScreenHandle_ = nullptr;
+    }
 }
 
 void TouchScreen::InitTouchScreen()
