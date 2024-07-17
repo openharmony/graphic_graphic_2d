@@ -54,6 +54,51 @@ public:
         cacheImgForCapture_ = cacheImgForCapture;
     }
 
+    bool IsFirstTimeToProcessor() const
+    {
+        return isFirstTimeToProcessor_;
+    }
+
+    void SetOriginScreenRotation(const ScreenRotation& rotate)
+    {
+        originScreenRotation_ = rotate;
+        isFirstTimeToProcessor_ = false;
+    }
+
+    ScreenRotation GetOriginScreenRotation() const
+    {
+        return originScreenRotation_;
+    }
+
+#ifdef NEW_RENDER_CONTEXT
+    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
+    {
+        virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
+    }
+
+    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
+    {
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
+    }
+#else
+    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
+    {
+        virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
+    }
+
+    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
+    {
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
+    }
+#endif
+
+    const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
+    {
+        return surfaceHandler_;
+    }
+
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode, RSDisplayRenderParams* params,
@@ -85,7 +130,6 @@ private:
         std::shared_ptr<RSDisplayRenderNode>& mirroredNode, RSDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
-    void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
@@ -115,6 +159,16 @@ private:
     Drawing::Matrix lastMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
+    std::shared_ptr<RSDisplayRenderNodeDrawable> mirrorSourceDrawable_ = nullptr;
+    bool isFirstTimeToProcessor_ = false;
+    ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    uint64_t virtualSurfaceUniqueId_ = 0;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> virtualSurface_ = nullptr;
+#else
+    std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
+#endif
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

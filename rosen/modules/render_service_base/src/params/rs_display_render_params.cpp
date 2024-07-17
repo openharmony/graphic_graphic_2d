@@ -149,9 +149,11 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->nodeRotation_ = nodeRotation_;
     targetDisplayParams->screenRotation_ = screenRotation_;
     targetDisplayParams->screenId_ = screenId_;
+    targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSource_ = mirrorSource_;
+    targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
