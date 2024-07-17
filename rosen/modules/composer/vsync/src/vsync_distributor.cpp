@@ -655,7 +655,7 @@ int32_t VSyncDistributor::GetUIDVsyncPid()
 {
     int32_t pid = 0;
     if (!isRs_ && IsDVsyncOn()) {
-        pid = dvsync->GetProxyPid();
+        pid = dvsync_->GetProxyPid();
     }
     return pid;
 }
