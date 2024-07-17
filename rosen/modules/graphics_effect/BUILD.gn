@@ -78,9 +78,9 @@ ohos_source_set("graphics_effect_src") {
     external_deps = [ "hilog:libhilog" ]
   } else {
     external_deps = [
-    "bounds_checking_function:libsec_static",
-    "hilog:libhilog",
-    "skia:skia_canvaskit",
+      "bounds_checking_function:libsec_static",
+      "hilog:libhilog",
+      "skia:skia_canvaskit",
     ]
   }
 
