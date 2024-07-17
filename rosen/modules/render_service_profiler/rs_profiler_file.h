@@ -29,6 +29,9 @@
 
 namespace OHOS::Rosen {
 
+#define RSFILE_VERSION_RENDER_METRICS_ADDED 0x240701
+#define RSFILE_VERSION_LATEST RSFILE_VERSION_RENDER_METRICS_ADDED
+
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
 
@@ -108,6 +111,8 @@ public:
     void GetPreparedHeader(std::vector<uint8_t>& headerData);
     void SetPreparedHeaderMode(bool mode);
     void Close();
+
+    uint32_t GetVersion();
 
     static const std::string& GetDefaultPath();
 

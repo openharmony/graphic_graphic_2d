@@ -30,8 +30,6 @@ namespace OHOS::Rosen {
 
 RSFile::RSFile() = default;
 
-constexpr uint32_t VERSION_RENDER_METRICS_ADDED = 0x240701;
-
 const std::string& RSFile::GetDefaultPath()
 {
     static const std::string PATH("RECORD_IN_MEMORY");
@@ -57,7 +55,7 @@ void RSFile::Create(const std::string& fname)
     uint32_t headerId = 'ROHR';
     Utils::FileWrite(&headerId, sizeof(headerId), 1, file_);
 
-    uint32_t versionId = VERSION_RENDER_METRICS_ADDED;
+    uint32_t versionId = RSFILE_VERSION_LATEST;
     Utils::FileWrite(&versionId, sizeof(versionId), 1, file_);
 
     headerOff_ = 0; // TEMP VALUE
@@ -322,11 +320,16 @@ void RSFile::LayerReadHeader(uint32_t layer)
     LayerReadHeaderOfTrack(layerData.rsData);
     LayerReadHeaderOfTrack(layerData.oglData);
     LayerReadHeaderOfTrack(layerData.rsMetrics);
-    if (versionId_ >= VERSION_RENDER_METRICS_ADDED) {
+    if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
         LayerReadHeaderOfTrack(layerData.renderMetrics);
     }
     LayerReadHeaderOfTrack(layerData.oglMetrics);
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
+}
+
+uint32_t RSFile::GetVersion()
+{
+    return versionId_;
 }
 
 // ***********************************

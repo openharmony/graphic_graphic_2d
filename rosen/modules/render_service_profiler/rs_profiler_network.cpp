@@ -31,7 +31,7 @@
 namespace OHOS::Rosen {
 
 bool Network::isRunning_ = false;
-bool Network::forceShutdown_ = false;
+std::atomic<bool> Network::forceShutdown_ = false;
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -41,6 +41,8 @@ std::queue<std::vector<char>> Network::outgoing_ {};
 
 static void AwakeRenderServiceThread()
 {
+    RSMainThread::Instance()->SetAccessibilityConfigChanged();
+    RSMainThread::Instance()->RequestNextVSync();
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetAccessibilityConfigChanged();
         RSMainThread::Instance()->RequestNextVSync();

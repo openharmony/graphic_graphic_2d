@@ -74,7 +74,7 @@ private:
 
 private:
     static bool isRunning_;
-    static bool forceShutdown_;
+    static std::atomic<bool> forceShutdown_;
 
     static std::mutex incomingMutex_;
     static std::queue<std::vector<std::string>> incoming_;

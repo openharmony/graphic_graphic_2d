@@ -418,6 +418,10 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 
 bool RSProfiler::ShouldBlockHWCNode()
 {
+    if (!IsEnabled()) {
+        return false;
+    }
+
     return GetMode() == Mode::READ;
 }
 
@@ -555,11 +559,15 @@ void RSProfiler::ScheduleTask(std::function<void()> && task)
 
 void RSProfiler::RequestNextVSync()
 {
+    g_mainThread->RequestNextVSync();
     ScheduleTask([]() { g_mainThread->RequestNextVSync(); });
 }
 
 void RSProfiler::AwakeRenderServiceThread()
 {
+    g_mainThread->RequestNextVSync();
+    g_mainThread->SetAccessibilityConfigChanged();
+    g_mainThread->SetDirtyFlag();
     ScheduleTask([]() {
         g_mainThread->SetAccessibilityConfigChanged();
         g_mainThread->SetDirtyFlag();
@@ -693,7 +701,7 @@ std::string RSProfiler::FirstFrameMarshalling()
     return stream.str();
 }
 
-void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
+void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     std::stringstream stream;
     stream.str(data);
@@ -701,7 +709,7 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
     SetMode(Mode::READ_EMUL);
 
     DisableSharedMemory();
-    UnmarshalNodes(*g_context, stream);
+    UnmarshalNodes(*g_context, stream, fileVersion);
     EnableSharedMemory();
 
     SetMode(Mode::NONE);
@@ -1208,7 +1216,7 @@ void RSProfiler::TestSaveFrame(const ArgList& args)
 
 void RSProfiler::TestLoadFrame(const ArgList& args)
 {
-    FirstFrameUnmarshalling(g_testDataFrame);
+    FirstFrameUnmarshalling(g_testDataFrame, RSFILE_VERSION_LATEST);
     Respond("Load Frame Size: " + std::to_string(g_testDataFrame.size()));
 }
 
@@ -1329,9 +1337,11 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
-    FirstFrameUnmarshalling(dataFirstFrame);
-    constexpr int defaultWaitFrames = 50;
+    FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
+    // The number of frames loaded before command processing
+    constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
+    Respond("awake_frame " + std::to_string(g_playbackWaitFrames));
     AwakeRenderServiceThread();
 }
 
@@ -1379,7 +1389,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
-    if (g_playbackShouldBeTerminated) {
+    if (g_childOfDisplayNodes.empty()) {
         return;
     }
     HiddenSpaceTurnOff();
@@ -1451,6 +1461,7 @@ void RSProfiler::PlaybackUpdate()
         g_playbackFile.Close();
         g_playbackPid = 0;
         TimePauseClear();
+        g_playbackShouldBeTerminated = false;
     }
 }
 
@@ -1569,7 +1580,9 @@ void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
         g_playbackWaitFrames--;
+        Respond("awake_frame " + std::to_string(g_playbackWaitFrames));
         AwakeRenderServiceThread();
+        return;
     }
 
     std::vector<std::string> commandData;
