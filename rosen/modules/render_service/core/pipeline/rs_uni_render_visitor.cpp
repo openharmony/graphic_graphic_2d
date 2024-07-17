@@ -2771,12 +2771,12 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
-        auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
-        if (rendernode->IsAIBarFilterCacheValid()) {
-            ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
-            continue;
-        }
         if (hwcNodePtr.GetDstRect().Intersect(filter->second)) {
+            auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
+            if (rendernode->IsAIBarFilterCacheValid()) {
+                ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
+                continue;
+            }
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by transparentCleanFilter",
                 hwcNodePtr.GetName().c_str(), hwcNodePtr.GetId());
             hwcNodePtr.SetHardwareForcedDisabledState(true);
