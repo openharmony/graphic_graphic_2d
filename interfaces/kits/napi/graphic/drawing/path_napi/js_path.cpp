@@ -414,17 +414,11 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
     double distance = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, distance);
 
-    double px1 = 0.0;
-    GET_DOUBLE_PARAM(ARGC_TWO, px1);
-    double py1 = 0.0;
-    GET_DOUBLE_PARAM(ARGC_THREE, py1);
-    Point position = { px1, py1 };
+    Point position = { 0.0, 0.0 };
+    GET_UNWRAP_PARAM(ARGC_TWO, tangent);
 
-    double tg1 = 0.0;
-    GET_DOUBLE_PARAM(ARGC_FOUR, tg1);
-    double tg2 = 0.0;
-    GET_DOUBLE_PARAM(ARGC_FIVE, tg2);
-    Point tangent = { tg1, tg2 };
+    Point tangent = { 0.0, 0.0 };
+    GET_UNWRAP_PARAM(ARGC_THREE, tangent);
 
     bool result = m_path->GetPositionAndTangent(distance, position, tangent, forceClosed);
     return CreateJsNumber(env, result);
@@ -437,9 +431,8 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argc = ARGC_FOUR;
     napi_value argv[ARGC_FOUR] = {nullptr};
-    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_THREE, ARGC_FOUR);
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
 
     bool forceClosed = false;
     GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
@@ -455,24 +448,15 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    if (argc == ARGC_THREE) {
-        bool result = m_path->GetMatrix(
-            forceClosed,
-            distance,
-            jsMatrix->GetMatrix().get());
-        return CreateJsNumber(env, result);
-    } else if (argc == ARGC_FOUR) {
-        int32_t flag = 0;
-        GET_ENUM_PARAM(ARGC_THREE, flag, 0,
-            static_cast<int32_t>(PathMeasureMatrixFlags::GET_POSITION_AND_TANGENT_MATRIX));
-        bool result = m_path->GetMatrix(
-            forceClosed,
-            distance,
-            jsMatrix->GetMatrix().get(),
-            static_cast<PathMeasureMatrixFlags>(flag));
-        return CreateJsNumber(env, result);
-    }
-    return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    int32_t flag = 0;
+    GET_ENUM_PARAM(ARGC_THREE, flag, 0,
+        static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX));
+    bool result = m_path->GetMatrix(
+        forceClosed,
+        distance,
+        jsMatrix->GetMatrix().get(),
+        static_cast<PathMeasureMatrixFlags>(flag));
+    return CreateJsNumber(env, result);
 }
 
 napi_value JsPath::OnBuildFromSvgString(napi_env env, napi_callback_info info)
