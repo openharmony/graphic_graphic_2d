@@ -177,10 +177,10 @@ static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
 };
 
 static const std::vector<struct JsEnumInt> g_scaleToFit = {
-    { "FILL_SCALETOFIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
-    { "START_SCALETOFIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
-    { "CENTER_SCALETOFIT", static_cast<int32_t>(ScaleToFit::CENTER_SCALETOFIT) },
-    { "END_SCALETOFIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
+    { "FILL_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
+    { "START_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
+    { "CENTER_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::CENTER_SCALETOFIT) },
+    { "END_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
