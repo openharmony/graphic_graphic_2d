@@ -43,7 +43,6 @@ namespace Rosen {
 // set the offset value to prevent the situation where the float number
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
-constexpr int32_t NEED_SOURCE_TUNING = 1;
 
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
@@ -1371,7 +1370,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
     if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat()) {
-        surfaceParams->SetLayerSourceTuning(NEED_SOURCE_TUNING);
+        surfaceParams->SetLayerSourceTuning(1);
     }
     AddToPendingSyncList();
 #endif
