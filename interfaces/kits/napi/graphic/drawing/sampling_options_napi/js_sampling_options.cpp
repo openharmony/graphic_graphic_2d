@@ -71,6 +71,10 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
         samplingOptions = std::make_shared<SamplingOptions>(FilterMode(jsFilterMode));
         jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);
     }
+    if (jsSamplingOptions == nullptr) {
+        ROSEN_LOGE("JsSamplingOptions::Constructor failed to new jsSamplingOptions");
+        return nullptr;
+    }
 
     status = napi_wrap(env, jsThis, jsSamplingOptions,
                        JsSamplingOptions::Destructor, nullptr, nullptr);

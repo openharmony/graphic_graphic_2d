@@ -177,6 +177,10 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
         return nullptr;
     }
     auto typeface = new(std::nothrow) JsTypeface(rawTypeface);
+    if (typeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::MakeFromFile New Typeface failed!");
+        return nullptr;
+    }
     std::string pathStr(text);
     if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
         Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
