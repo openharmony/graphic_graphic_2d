@@ -294,6 +294,9 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
+    static constexpr size_t MAX_RS_SURFACE_SIZE = 32;
+    static inline std::unordered_map<SurfaceId, std::shared_ptr<RSSurfaceOhos>> rsSurfaces_;
+    std::mutex rsSurfacesMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

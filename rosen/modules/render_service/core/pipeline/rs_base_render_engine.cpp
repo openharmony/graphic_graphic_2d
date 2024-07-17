@@ -49,6 +49,18 @@ RSBaseRenderEngine::RSBaseRenderEngine()
 
 RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
+    std::lock_guard<std::mutex> lockGuard(rsSurfacesMutex_);
+    // clear map when deinit
+    uint32_t mapSize = rsSurfaces_.size();
+    RS_LOGI("RSBaseRenderEngine deinit enter, mapSize:%{public}u", mapSize);
+    uint32_t itemIndex = 0;
+    while(!rsSurfaces_.empty()) {
+        auto it = rsSurfaces_.begin();
+        (void)rsSurfaces_.erase(it);
+        itemIndex++;
+        RS_LOGD("RSBaseRenderEngine remove item:[%{public}u]", itemIndex);
+    }
+    RS_LOGI("RSBaseRenderEngine deinit exit");
 }
 
 void RSBaseRenderEngine::Init(bool independentContext)
@@ -435,7 +447,14 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         RS_OPTIONAL_TRACE_END();
         return nullptr;
     }
-
+    auto surfaceId = targetSurface->GetUniqueId();
+    uint32_t mapSize = rsSurfaces_.size();
+    RS_LOGD("RequestFrame: surfaceId=%{public}llu, mapSize=%{public}u", surfaceId, mapSize);
+    if (rsSurfaces_.count(surfaceId) != 0) {
+        RS_OPTIONAL_TRACE_END();
+        return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
+    }
+    // if rsSurface is not exist, create it
 #if defined(NEW_RENDER_CONTEXT)
     std::shared_ptr<RSRenderSurfaceOhos> rsSurface = nullptr;
     std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
@@ -462,8 +481,10 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
     }
 #endif
+    std::lock_guard<std::mutex> lockGuard(rsSurfacesMutex_);
+    rsSurfaces_[surfaceId] = rsSurface;
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC);
+    return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
 }
 
 #ifdef NEW_RENDER_CONTEXT
@@ -1048,6 +1069,14 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
 #endif // RS_ENABLE_EGLIMAGE
+    uint32_t mapSize = rsSurfaces_.size();
+    RS_LOGD("ShrinkCachesIfNeeded check over max, mapSize=%{public}u", mapSize);
+    std::lock_guard<std::mutex> lockGuard(rsSurfacesMutex_);
+    while (rsSurface_.size() > MAX_RS_SURFACE_SIZE) {
+        auto it = rsSurfaces_.begin();
+        void(rsSurfaces_).erase(it);
+        RS_LOGD("ShrinkCachesIfNeeded remove item");
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
