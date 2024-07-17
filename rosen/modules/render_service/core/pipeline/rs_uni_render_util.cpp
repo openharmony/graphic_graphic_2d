@@ -1216,6 +1216,13 @@ Drawing::BackendTexture RSUniRenderUtil::MakeBackendTexture(uint32_t width, uint
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
 
+    if (width * height > VKIMAGE_LIMIT_SIZE) {
+        ROSEN_LOGE(
+            "RSUniRenderUtil::MakeBackendTexture failed, image is too large, width:%{public}u, height::%{public}u",
+            width, height);
+        return {};
+    }
+
     if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         return {};
     }
