@@ -98,7 +98,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
             *minor = table->minor;
         }
         refCnt_++;
-        UpdateQueryValue(major, minor);
+        UpdateQueryValue(&table->major, &table->minor);
         return EGL_TRUE;
     }
 
@@ -117,7 +117,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
             }
             refCnt_++;
             BlobCache::Get()->Init(this);
-            UpdateQueryValue(major, minor);
+            UpdateQueryValue(&table->major, &table->minor);
             return EGL_TRUE;
         } else {
             WLOGE("eglInitialize Error.");
@@ -497,7 +497,8 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config, NativeWindowTyp
     if (table->isLoad && table->egl.eglCreateWindowSurface) {
         EGLSurface surf = table->egl.eglCreateWindowSurface(disp_, config, window, attribList);
         if (surf != EGL_NO_SURFACE) {
-            return new EglWrapperSurface(this, surf, window);
+            EglWrapperSurface::Init(window);
+            return new EglWrapperSurface(this, surf);
         } else {
             WLOGE("egl.eglCreateWindowSurface error.");
         }

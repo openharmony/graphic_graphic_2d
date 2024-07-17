@@ -72,6 +72,7 @@ void RSDrawFrame::RenderFrame()
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
+    unirenderInstance_.MemoryManagementBetweenFrames();
     JankStatsRenderFrameEnd(doJankStats);
 }
 

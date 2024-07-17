@@ -121,6 +121,7 @@ public:
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
+    static bool GetVkQueueDividedEnable();
 
     static bool GetProfilerEnabled();
     static bool GetInstantRecording();
@@ -198,6 +199,7 @@ public:
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
+    static bool GetPreAllocateTextureBetweenFramesEnabled();
 
     static bool GetAnimationCacheEnabled();
 

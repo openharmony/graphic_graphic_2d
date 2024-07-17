@@ -17,7 +17,10 @@ import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 config("export_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${graphic_2d_root}/utils/log",
+  ]
   cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
@@ -300,6 +303,7 @@ ohos_source_set("render_service_base_src") {
 
     #info_collection
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
+    "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
 
@@ -583,6 +587,10 @@ config("render_service_base_link_config") {
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
+
+    if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
+      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+    }
   }
 }
 
@@ -648,6 +656,10 @@ ohos_source_set("librender_service_base_static") {
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
   public_configs = [ ":render_service_base_all_deps_config" ]
+
+  if (is_arkui_x) {
+    sources = [ "src/common/rs_common_hook.cpp" ]
+  }
 
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [

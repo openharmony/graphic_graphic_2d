@@ -76,6 +76,7 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
 {
     brush.SetBlendMode(brushHandle.mode);
     brush.SetAntiAlias(brushHandle.isAntiAlias);
+    brush.SetBlenderEnabled(brushHandle.blenderEnabled);
 
     if (brushHandle.colorSpaceHandle.size) {
         auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, brushHandle.colorSpaceHandle);
@@ -121,6 +122,7 @@ void DrawOpItem::BrushToBrushHandle(const Brush& brush, DrawCmdList& cmdList, Br
     brushHandle.color = brush.GetColor();
     brushHandle.mode = brush.GetBlendMode();
     brushHandle.isAntiAlias = brush.IsAntiAlias();
+    brushHandle.blenderEnabled = brush.GetBlenderEnabled();
     brushHandle.filterQuality = filter.GetFilterQuality();
     brushHandle.colorSpaceHandle = CmdListHelper::AddColorSpaceToCmdList(cmdList, brush.GetColorSpace());
     brushHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, brush.GetShaderEffect());
@@ -133,6 +135,7 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 {
     paint.SetBlendMode(paintHandle.mode);
     paint.SetAntiAlias(paintHandle.isAntiAlias);
+    paint.SetBlenderEnabled(paintHandle.blenderEnabled);
     paint.SetStyle(paintHandle.style);
 
     if (paintHandle.colorSpaceHandle.size) {
@@ -195,6 +198,7 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle)
 {
     paintHandle.isAntiAlias = paint.IsAntiAlias();
+    paintHandle.blenderEnabled = paint.GetBlenderEnabled();
     paintHandle.style = paint.GetStyle();
     paintHandle.color = paint.GetColor();
     paintHandle.mode = paint.GetBlendMode();
@@ -803,13 +807,14 @@ REGISTER_UNMARSHALLING_FUNC(DrawImageLattice, DrawOpItem::IMAGE_LATTICE_OPITEM, 
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     const DrawCmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM), lattice_(handle->lattice),
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM),
     dst_(handle->dst), filter_(handle->filter)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
     if (DrawOpItem::holdDrawingImagefunc_) {
         DrawOpItem::holdDrawingImagefunc_(image_);
     }
+    lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
 std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -823,7 +828,8 @@ void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
-    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, paintHandle);
+    auto latticeHandle =  CmdListHelper::AddLatticeToCmdList(cmdList, lattice_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, latticeHandle, dst_, filter_, paintHandle);
 }
 
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)

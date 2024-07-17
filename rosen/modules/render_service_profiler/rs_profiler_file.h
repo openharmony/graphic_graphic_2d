@@ -42,12 +42,14 @@ struct RSFileLayer final {
     TrackMarkup rsMetrics;
     TrackMarkup oglMetrics;
     TrackMarkup gfxMetrics;
+    TrackMarkup renderMetrics;
 
     uint32_t readindexRsData = 0;
     uint32_t readindexOglData = 0;
     uint32_t readindexRsMetrics = 0;
     uint32_t readindexOglMetrics = 0;
     uint32_t readindexGfxMetrics = 0;
+    uint32_t readindexRenderMetrics = 0;
 };
 
 class RSFile final {
@@ -74,24 +76,28 @@ public:
     void WriteRSData(double time, const void* data, size_t size);
     void WriteOGLData(uint32_t layer, double time, const void* data, size_t size);
     void WriteRSMetrics(uint32_t layer, double time, const void* data, size_t size);
+    void WriteRenderMetrics(uint32_t layer, double time, const void* data, size_t size);
     void WriteOGLMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
     void WriteGFXMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
 
     void ReadRSDataRestart();
     void ReadOGLDataRestart(uint32_t layer);
     void ReadRSMetricsRestart(uint32_t layer);
+    void ReadRenderMetricsRestart(uint32_t layer);
     void ReadOGLMetricsRestart(uint32_t layer);
     void ReadGFXMetricsRestart(uint32_t layer);
 
     bool RSDataEOF() const;
     bool OGLDataEOF(uint32_t layer) const;
     bool RSMetricsEOF(uint32_t layer) const;
+    bool RenderMetricsEOF(uint32_t layer) const;
     bool OGLMetricsEOF(uint32_t layer) const;
     bool GFXMetricsEOF(uint32_t layer) const;
 
     bool ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLData(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadRSMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
+    bool ReadRenderMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool GetDataCopy(std::vector<uint8_t>& data); // copy the content of RSFile so far
@@ -152,6 +158,7 @@ private:
 
 private:
     FILE* file_ = nullptr;
+    uint32_t versionId_ = 0;
     double writeStartTime_ = 0.0;
     uint32_t headerOff_ = 0u;
     std::vector<pid_t> headerPidList_;

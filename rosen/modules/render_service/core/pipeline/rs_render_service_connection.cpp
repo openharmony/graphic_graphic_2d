@@ -534,7 +534,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 }
 
 void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
-    const FrameRateRange& range, bool isAnimatorStopped)
+    const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
     mainThread_->ScheduleTask([=]() {
         auto& context = mainThread_->GetContext();
@@ -545,7 +545,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             return;
         }
         linker->SetExpectedRange(range);
-        linker->SetAnimationIdle(isAnimatorStopped);
+        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     }).wait();
 }
 
@@ -698,18 +698,23 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
-
     std::function<void()> captureTask = [id, callback, captureConfig]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
-    if (!captureConfig.isSync && node->IsOnTheTree() && !node->IsDirty()) {
-        RSUniRenderThread::Instance().PostTask(captureTask);
+
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+    if (!node) {
+        if (captureConfig.isSync) {
+            RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        } else {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+        }
+        return;
+    }
+
+    if (node->IsOnTheTree() && !node->IsDirty()) {
+        RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
     }
@@ -1343,13 +1348,26 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
 }
 
-void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName,
+    uint32_t pid, int32_t touchCnt)
 {
     if (mainThread_->GetFrameRateMgr() == nullptr) {
         RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
         return;
     }
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, pkgName, pid, touchCnt);
+}
+
+void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
+{
+    HgmTaskHandleThread::Instance().PostTask([enableDynamicModeEvent] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            RS_LOGW("RSRenderServiceConnection::NotifyDynamicModeEvent: frameRateMgr is nullptr.");
+            return;
+        }
+        frameRateMgr->HandleDynamicModeEvent(enableDynamicModeEvent);
+    });
 }
 
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
@@ -1432,6 +1450,13 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     const auto& layerComposeInfo = LayerComposeCollection::GetInstance().GetLayerComposeInfo();
     LayerComposeCollection::GetInstance().ResetLayerComposeInfo();
     return layerComposeInfo;
+}
+
+HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+{
+    const auto& hwcDisabledReasonInfos = HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
+    HwcDisabledReasonCollection::GetInstance().ResetHwcDisabledReasonInfo();
+    return hwcDisabledReasonInfos;
 }
 
 #ifdef TP_FEATURE_ENABLE

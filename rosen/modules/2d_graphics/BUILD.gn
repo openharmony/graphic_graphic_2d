@@ -73,6 +73,7 @@ template("graphics2d_source_set") {
     sources = [
       "$drawing_core_src_dir/draw/OpListHandle.cpp",
       "$drawing_core_src_dir/draw/brush.cpp",
+      "$drawing_core_src_dir/draw/canvas.cpp",
       "$drawing_core_src_dir/draw/color.cpp",
       "$drawing_core_src_dir/draw/core_canvas.cpp",
       "$drawing_core_src_dir/draw/paint.cpp",
@@ -381,7 +382,12 @@ if (!is_arkui_x) {
     if (!(host_os == "linux" && host_cpu == "arm64")) {
       deps = [ ":2d_graphics_source_$platform" ]
     }
-    external_deps = [ "hilog:libhilog" ]
+
+    external_deps = [
+      "bounds_checking_function:libsec_static",
+      "hilog:libhilog",
+    ]
+
     public_configs = [ ":export_config" ]
 
     if (platform == "ohos") {

@@ -148,6 +148,7 @@ private:
     void SubScribeSystemAbility();
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
+    void UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates);
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);

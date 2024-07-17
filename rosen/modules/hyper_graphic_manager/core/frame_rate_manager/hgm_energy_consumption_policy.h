@@ -27,15 +27,21 @@ class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
-    void SetEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
+    void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    void SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void StatisticAnimationTime(uint64_t timestamp);
     void StartNewAnimation();
     void GetAnimationIdleFps(FrameRateRange& rsRange);
+    void GetUiIdleFps(FrameRateRange& rsRange);
 
 private:
     std::recursive_mutex mutex_;
+    // <rateType, <isEnable, idleFps>>
+    std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;
-    bool isEnergyConsumptionAssuranceMode_ = false;
+    bool isAnimationEnergyConsumptionAssuranceMode_ = false;
+    bool isUiEnergyConsumptionAssuranceMode_ = false;
     uint64_t firstAnimationTimestamp_ = 0;
     uint64_t lastAnimationTimestamp_ = 0;
     // Unit: ms
@@ -49,6 +55,7 @@ private:
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&) = delete;
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
+    void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
 };
 } // namespace OHOS::Rosen
 

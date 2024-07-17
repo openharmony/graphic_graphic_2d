@@ -25,6 +25,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "include/core/SkGraphics.h"
+#include "include/gpu/GrDirectContext.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "memory/rs_memory_manager.h"
@@ -46,9 +47,10 @@
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #endif
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_uifirst_manager.h"
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -60,6 +62,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
+constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -99,6 +102,11 @@ CaptureParam& RSUniRenderThread::GetCaptureParam()
 void RSUniRenderThread::ResetCaptureParam()
 {
     captureParam_ = {};
+}
+
+bool RSUniRenderThread::IsInCaptureProcess()
+{
+    return captureParam_.isSnapshot_ || captureParam_.isMirror_;
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
@@ -663,6 +671,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
+        RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
         this->clearMemDeeply_ = false;
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
@@ -703,6 +712,29 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
             RemoveTask(PURGE_CACHE_BETWEEN_FRAMES);
         },
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+}
+
+void RSUniRenderThread::PreAllocateTextureBetweenFrames()
+{
+    if (!RSSystemProperties::IsPhoneType()) {
+        return;
+    }
+    RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
+    PostTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
+            GrDirectContext::preAllocateTextureBetweenFrames();
+        },
+        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+        AppExecFwk::EventQueue::Priority::LOW);
+}
+
+void RSUniRenderThread::MemoryManagementBetweenFrames()
+{
+    if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
+        PreAllocateTextureBetweenFrames();
+    }
 }
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const

@@ -655,7 +655,7 @@ bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node
     }
 
     // copy current canvas properties into cacheCanvas
-    cacheCanvas->CopyConfiguration(*canvas_);
+    cacheCanvas->CopyConfigurationToOffscreenCanvas(*canvas_);
 
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.

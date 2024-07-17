@@ -15,7 +15,10 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "blurdrawlooper_fuzzer:fuzztest",
+    "colormatrix_fuzzer:fuzztest",
     "filter_fuzzer:fuzztest",
+    "maskfilter_fuzzer:fuzztest",
     "patheffect_fuzzer:fuzztest",
   ]
 }

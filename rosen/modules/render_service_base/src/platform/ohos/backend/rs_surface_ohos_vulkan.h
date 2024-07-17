@@ -80,8 +80,11 @@ public:
     {
         mSkContext = skContext;
     }
-    void ClearSurfaceMap()
+    void WaitSurfaceClear()
     {
+        if (mSkContext) {
+            mSkContext->FlushAndSubmit(true);
+        }
         mSurfaceMap.clear();
     }
 private:

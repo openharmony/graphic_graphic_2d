@@ -165,6 +165,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const sptr<SurfaceBuffer>& preBuffer);
+
+    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -444,6 +446,16 @@ public:
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
     bool GetHasProtectedLayer() const;
+
+    void ResetSpecialLayerChangedFlag()
+    {
+        specialLayerChanged_ = false;
+    }
+
+    bool IsSpecialLayerChanged() const
+    {
+        return specialLayerChanged_;
+    }
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
@@ -1244,6 +1256,7 @@ private:
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    bool specialLayerChanged_ = false;
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;

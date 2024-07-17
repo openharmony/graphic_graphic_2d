@@ -59,9 +59,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange001, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRange(initialRange, false);
-    frameRateLinker->UpdateFrameRateRange({30, 144, 60}, false);
-    frameRateLinker->UpdateFrameRateRange(newRange, false);
+    frameRateLinker->UpdateFrameRateRange(initialRange, -1);
+    frameRateLinker->UpdateFrameRateRange({30, 144, 60}, -1);
+    frameRateLinker->UpdateFrameRateRange(newRange, -1);
 }
 
 /**
@@ -74,22 +74,22 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange002, TestSize.Level1)
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initial = {0, 0, 0};
-    frameRateLinker->UpdateFrameRateRange(initial, true);
-    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRange(initial, -1);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 
-    frameRateLinker->UpdateFrameRateRange(initial, false);
-    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRange(initial, 0);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, 0);
 
     FrameRateRange initialRange = {30, 144, 60};
-    frameRateLinker->UpdateFrameRateRange(initialRange, true);
-    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRange(initialRange, -1);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 
-    frameRateLinker->UpdateFrameRateRange(initialRange, false);
-    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRange(initialRange, 0);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, 0);
 
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    frameRateLinker->UpdateFrameRateRange(initialRange, false);
+    frameRateLinker->UpdateFrameRateRange(initialRange, 0);
     EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
@@ -106,9 +106,9 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme001, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
-    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, false);
-    frameRateLinker->UpdateFrameRateRangeImme(newRange, false);
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, 0);
+    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60}, 0);
+    frameRateLinker->UpdateFrameRateRangeImme(newRange, 0);
 }
 
 /**
@@ -121,18 +121,18 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme002, TestSize.Level1)
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initial = {0, 0, 0};
-    frameRateLinker->UpdateFrameRateRangeImme(initial, true);
-    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRangeImme(initial, -1);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 
-    frameRateLinker->UpdateFrameRateRangeImme(initial, false);
-    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRangeImme(initial, 0);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, 0);
 
     FrameRateRange initialRange = {30, 144, 60};
-    frameRateLinker->UpdateFrameRateRangeImme(initialRange, true);
-    EXPECT_TRUE(frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, -1);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 
-    frameRateLinker->UpdateFrameRateRangeImme(initialRange, false);
-    EXPECT_TRUE(!frameRateLinker->currAnimationStatus_);
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange, 0);
+    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, 0);
 }
 
 /**

@@ -905,7 +905,6 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<uint
     } else {
         if (virtualScreen->second != nullptr) {
             virtualScreen->second->SetBlackList(screenBlackList);
-            return SUCCESS;
         } else {
             RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
             return SCREEN_NOT_FOUND;
@@ -920,7 +919,6 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, std::vector<uint
         } else {
             if (mainScreen->second != nullptr) {
                 mainScreen->second->SetBlackList(screenBlackList);
-                return SUCCESS;
             } else {
                 RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, mainId);
                 return SCREEN_NOT_FOUND;

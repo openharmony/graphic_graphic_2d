@@ -84,7 +84,7 @@ public:
     }
 
 private:
-    uint32_t logFlag_;
+    uint32_t logFlag_ = 0;
 
     bool IsFlagValid(std::string& flag);
 

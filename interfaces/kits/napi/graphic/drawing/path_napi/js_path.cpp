@@ -51,6 +51,7 @@ napi_value JsPath::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
         DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
         DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
+        DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
     };
 
     napi_value constructor = nullptr;
@@ -244,6 +245,12 @@ napi_value JsPath::BuildFromSvgString(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnBuildFromSvgString(env, info) : nullptr;
+}
+
+napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsClosed(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -486,8 +493,9 @@ napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
 
     Drawing::Rect drawingRect;
     double ltrb[ARGC_FOUR] = {0};
@@ -499,7 +507,11 @@ napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
 
     uint32_t start = 0;
     GET_UINT32_PARAM(ARGC_ONE, start);
-
+    if (argc == ARGC_TWO) {
+        JS_CALL_DRAWING_FUNC(m_path->AddOval(drawingRect, start,
+            static_cast<PathDirection>(PathDirection::CW_DIRECTION)));
+        return nullptr;
+    }
     int32_t jsDirection = 0;
     GET_ENUM_PARAM(ARGC_TWO, jsDirection, 0, static_cast<int32_t>(PathDirection::CCW_DIRECTION));
 
@@ -514,8 +526,9 @@ napi_value JsPath::OnAddCircle(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    size_t argc = ARGC_FOUR;
     napi_value argv[ARGC_FOUR] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_THREE, ARGC_FOUR);
 
     double px1 = 0.0;
     GET_DOUBLE_PARAM(ARGC_ZERO, px1);
@@ -523,6 +536,10 @@ napi_value JsPath::OnAddCircle(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, py1);
     double radius = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, radius);
+    if (argc == ARGC_THREE) {
+        JS_CALL_DRAWING_FUNC(m_path->AddCircle(px1, py1, radius));
+        return nullptr;
+    }
     int32_t jsDirection = 0;
     GET_ENUM_PARAM(ARGC_THREE, jsDirection, 0, static_cast<int32_t>(PathDirection::CCW_DIRECTION));
 
@@ -564,8 +581,9 @@ napi_value JsPath::OnAddRect(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     Drawing::Rect drawingRect;
     double ltrb[ARGC_FOUR] = {0};
@@ -574,7 +592,10 @@ napi_value JsPath::OnAddRect(napi_env env, napi_callback_info info)
             "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
     }
     drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
-
+    if (argc == ARGC_ONE) {
+        JS_CALL_DRAWING_FUNC(m_path->AddRect(drawingRect));
+        return nullptr;
+    }
     int32_t jsDirection = 0;
     GET_ENUM_PARAM(ARGC_ONE, jsDirection, 0, static_cast<int32_t>(PathDirection::CCW_DIRECTION));
 
@@ -589,12 +610,16 @@ napi_value JsPath::OnAddRoundRect(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsRoundRect* jsRoundRect = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
-
+    if (argc == ARGC_ONE) {
+        JS_CALL_DRAWING_FUNC(m_path->AddRoundRect(jsRoundRect->GetRoundRect()));
+        return nullptr;
+    }
     int32_t jsDirection = 0;
     GET_ENUM_PARAM(ARGC_ONE, jsDirection, 0, static_cast<int32_t>(PathDirection::CCW_DIRECTION));
 
@@ -609,8 +634,9 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
@@ -618,15 +644,25 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsPath::OnAddPath path is nullptr");
         return nullptr;
     }
-
-    JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsMatrix);
-    if (jsMatrix->GetMatrix() == nullptr) {
-        ROSEN_LOGE("JsPath::OnAddPath Matrix is nullptr");
+    if (argc == ARGC_ONE) {
+        JS_CALL_DRAWING_FUNC(m_path->AddPath(*jsPath->GetPath(), Drawing::Matrix()));
         return nullptr;
     }
-
-    JS_CALL_DRAWING_FUNC(m_path->AddPath(*jsPath->GetPath(), *jsMatrix->GetMatrix()));
+    Drawing::Matrix* drawingMatrixPtr = nullptr;
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnAddPath parameter1 type.");
+    }
+    if (valueType == napi_object) {
+        JsMatrix* jsMatrix = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ONE, jsMatrix);
+        if (jsMatrix->GetMatrix() != nullptr) {
+            drawingMatrixPtr = jsMatrix->GetMatrix().get();
+        }
+    }
+    JS_CALL_DRAWING_FUNC(m_path->AddPath(*jsPath->GetPath(),
+        drawingMatrixPtr ? *drawingMatrixPtr : Drawing::Matrix()));
     return nullptr;
 }
 
@@ -701,6 +737,17 @@ napi_value JsPath::OnGetBounds(napi_env env, napi_callback_info info)
     }
 
     return GetRectAndConvertToJsValue(env, rect);
+}
+
+napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsClosed path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->IsClosed(true);
+    return CreateJsNumber(env, result);
 }
 
 Path* JsPath::GetPath()

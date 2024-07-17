@@ -440,8 +440,8 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
-    if (surfaceBuffer == nullptr) {
-        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr");
+    if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
+        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
     if (nativeWindowBuffer_ == nullptr) {
@@ -484,7 +484,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingBgImage_ = properties.GetBgImage();
-    if (!stagingBgImage_ || !stagingBgImage_->GetPixelMap()) {
+    if (!stagingBgImage_) {
         return false;
     }
 
@@ -584,7 +584,13 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas == nullptr || rect == nullptr) {
+            RS_LOGE("RSBackgroundEffectDrawable::DrawBackgroundEffect data error");
+            return;
+        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        Drawing::AutoCanvasRestore acr(*canvas, true);
+        paintFilterCanvas->ClipRect(*rect);
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->clearFilteredCacheAfterDrawing_);

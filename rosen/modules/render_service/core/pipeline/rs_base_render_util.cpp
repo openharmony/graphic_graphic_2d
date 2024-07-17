@@ -85,7 +85,7 @@ inline PixelTransformFunc GenOETF(float gamma)
         return PassThrough;
     }
 
-    return std::bind(SafePow, std::placeholders::_1, 1.0f / gamma);
+    return [gamma](float x) { return SafePow(x, 1.0f / gamma); };
 }
 
 inline PixelTransformFunc GenEOTF(float gamma)
@@ -94,7 +94,7 @@ inline PixelTransformFunc GenEOTF(float gamma)
         return PassThrough;
     }
 
-    return std::bind(SafePow, std::placeholders::_1, gamma);
+    return [gamma](float x) { return SafePow(x, gamma); };
 }
 
 struct TransferParameters {
@@ -143,27 +143,27 @@ inline constexpr float FullResponse(float x, const TransferParameters& p)
 inline PixelTransformFunc GenOETF(const TransferParameters& params)
 {
     if (params.g < 0) { // HDR
-        return std::bind(RcpResponsePq, std::placeholders::_1, params);
+        return [params](float x) { return RcpResponsePq(x, params); };
     }
 
     if (params.e == 0.0f && params.f == 0.0f) {
-        return std::bind(RcpResponse, std::placeholders::_1, params);
+        return [params](float x) { return RcpResponse(x, params); };
     }
 
-    return std::bind(RcpFullResponse, std::placeholders::_1, params);
+    return [params](float x) { return RcpFullResponse(x, params); };
 }
 
 inline PixelTransformFunc GenEOTF(const TransferParameters& params)
 {
     if (params.g < 0) {
-        return std::bind(ResponsePq, std::placeholders::_1, params);
+        return [params](float x) { return ResponsePq(x, params); };
     }
 
     if (params.e == 0.0f && params.f == 0.0f) {
-        return std::bind(Response, std::placeholders::_1, params);
+        return [params](float x) { return Response(x, params); };
     }
 
-    return std::bind(FullResponse, std::placeholders::_1, params);
+    return [params](float x) { return FullResponse(x, params); };
 }
 
 float ACESToneMapping(float color, float targetLum)
@@ -184,7 +184,7 @@ inline PixelTransformFunc GenACESToneMapping(float targetLum)
         const float defaultLum = 200.f;
         targetLum = defaultLum;
     }
-    return std::bind(ACESToneMapping, std::placeholders::_1, targetLum);
+    return [targetLum](float color) { return ACESToneMapping(color, targetLum); };
 }
 
 Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vector2f& whitePoint)

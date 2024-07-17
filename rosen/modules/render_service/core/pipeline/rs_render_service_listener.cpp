@@ -87,6 +87,8 @@ void RSRenderServiceListener::OnCleanCache()
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
     node->ResetBufferAvailableCount();
+    node->ResetPreBuffer();
+    node->CleanPreBuffer();
 }
 
 void RSRenderServiceListener::OnGoBackground()

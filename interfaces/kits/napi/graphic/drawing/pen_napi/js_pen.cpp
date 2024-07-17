@@ -20,7 +20,9 @@
 #include "color_filter_napi/js_color_filter.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
+#include "matrix_napi/js_matrix.h"
 #include "path_effect_napi/js_path_effect.h"
+#include "path_napi/js_path.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 
 namespace OHOS::Rosen {
@@ -44,6 +46,7 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("setPathEffect", SetPathEffect),
         DECLARE_NAPI_FUNCTION("setStrokeWidth", SetStrokeWidth),
         DECLARE_NAPI_FUNCTION("setShadowLayer", SetShadowLayer),
+        DECLARE_NAPI_FUNCTION("getFillPath", GetFillPath),
     };
 
     napi_value constructor = nullptr;
@@ -468,6 +471,38 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
 
     pen->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
+}
+
+napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    
+    JsPath* src = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, src);
+    if (src->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath src jsPath is nullptr");
+        return nullptr;
+    }
+
+    JsPath* dst = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, dst);
+    if (dst->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath dst jsPath is nullptr");
+        return nullptr;
+    }
+
+    return CreateJsValue(env, pen->GetFillPath(*src->GetPath(), *dst->GetPath(), nullptr, Matrix()));
 }
 
 Pen* JsPen::GetPen()

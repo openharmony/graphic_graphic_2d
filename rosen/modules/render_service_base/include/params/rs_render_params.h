@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
 
 namespace OHOS::Rosen {
@@ -44,6 +45,7 @@ public:
         int width = 0;
         int height = 0;
     };
+    void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -114,6 +116,11 @@ public:
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
 
+    inline bool IsBufferDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
@@ -135,8 +142,6 @@ public:
     bool OpincGetRootFlag() const;
     void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
-    bool OpincGetCachedMark();
-    void OpincSetCachedMark(bool mark);
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
@@ -181,6 +186,9 @@ public:
     static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
     static const Drawing::Matrix& GetParentSurfaceMatrix();
 
+    // overrided by displayNode
+    virtual ScreenRotation GetScreenRotation() const;
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -213,7 +221,6 @@ private:
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
-    bool isOpincMarkCached_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;

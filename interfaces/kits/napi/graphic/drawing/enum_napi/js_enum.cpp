@@ -141,34 +141,39 @@ static const std::vector<struct JsEnumInt> g_fontMetricsFlags = {
 };
 
 static const std::vector<struct JsEnumInt> g_fontEdging = {
-    { "FONT_EDGING_ALIAS", static_cast<int32_t>(FontEdging::ALIAS) },
-    { "FONT_EDGING_ANTI_ALIAS", static_cast<int32_t>(FontEdging::ANTI_ALIAS) },
-    { "FONT_EDGING_SUBPIXEL_ANTI_ALIAS", static_cast<int32_t>(FontEdging::SUBPIXEL_ANTI_ALIAS) },
+    { "ALIAS", static_cast<int32_t>(FontEdging::ALIAS) },
+    { "ANTI_ALIAS", static_cast<int32_t>(FontEdging::ANTI_ALIAS) },
+    { "SUBPIXEL_ANTI_ALIAS", static_cast<int32_t>(FontEdging::SUBPIXEL_ANTI_ALIAS) },
 };
 
 static const std::vector<struct JsEnumInt> g_fontHinting = {
-    { "FONT_HINTING_NONE", static_cast<int32_t>(FontHinting::NONE) },
-    { "FONT_HINTING_SLIGHT", static_cast<int32_t>(FontHinting::SLIGHT) },
-    { "FONT_HINTING_NORMAL", static_cast<int32_t>(FontHinting::NORMAL) },
-    { "FONT_HINTING_FULL", static_cast<int32_t>(FontHinting::FULL) },
+    { "NONE", static_cast<int32_t>(FontHinting::NONE) },
+    { "SLIGHT", static_cast<int32_t>(FontHinting::SLIGHT) },
+    { "NORMAL", static_cast<int32_t>(FontHinting::NORMAL) },
+    { "FULL", static_cast<int32_t>(FontHinting::FULL) },
 };
 
 static const std::vector<struct JsEnumInt> g_pointMode = {
-    { "POINT_MODE_POINTS", static_cast<int32_t>(PointMode::POINTS_POINTMODE) },
-    { "POINT_MODE_LINES", static_cast<int32_t>(PointMode::LINES_POINTMODE) },
-    { "POINT_MODE_POLYGON", static_cast<int32_t>(PointMode::POLYGON_POINTMODE) },
+    { "POINTS", static_cast<int32_t>(PointMode::POINTS_POINTMODE) },
+    { "LINES", static_cast<int32_t>(PointMode::LINES_POINTMODE) },
+    { "POLYGON", static_cast<int32_t>(PointMode::POLYGON_POINTMODE) },
 };
 
 static const std::vector<struct JsEnumInt> g_pathDirection = {
-    { "PATH_DIRECTION_CW", static_cast<int32_t>(PathDirection::CW_DIRECTION) },
-    { "PATH_DIRECTION_CCW", static_cast<int32_t>(PathDirection::CCW_DIRECTION) },
+    { "CLOCKWISE", static_cast<int32_t>(PathDirection::CW_DIRECTION) },
+    { "COUNTER_CLOCKWISE", static_cast<int32_t>(PathDirection::CCW_DIRECTION) },
 };
 
 static const std::vector<struct JsEnumInt> g_pathFillType = {
-    { "PATH_FILL_TYPE_WINDING", 0 }, // 0: PathFillType::WINDING, conflict with define WINDING
-    { "PATH_FILL_TYPE_EVEN_ODD", static_cast<int32_t>(PathFillType::EVENTODD) },
-    { "PATH_FILL_TYPE_INVERSE_WINDING", static_cast<int32_t>(PathFillType::INVERSE_WINDING) },
-    { "PATH_FILL_TYPE_INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
+    { "WINDING", 0 }, // 0: PathFillType::WINDING, conflict with define WINDING
+    { "EVEN_ODD", static_cast<int32_t>(PathFillType::EVENTODD) },
+    { "INVERSE_WINDING", static_cast<int32_t>(PathFillType::INVERSE_WINDING) },
+    { "INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
+};
+
+static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
+    { "STRICT", static_cast<int32_t>(Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) },
+    { "FAST", static_cast<int32_t>(Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT) },
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
@@ -187,6 +192,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
     { "PathFillType", g_pathFillType },
+    { "SrcRectConstraint", g_srcRectConstraint },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

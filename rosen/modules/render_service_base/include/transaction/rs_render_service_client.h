@@ -51,6 +51,7 @@
 #include "rs_occlusion_data.h"
 #include "rs_uiextension_data.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 
 namespace OHOS {
@@ -177,7 +178,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+        int32_t animatorExpectedFrameRate);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -305,7 +307,9 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt);
+
+    void NotifyDynamicModeEvent(bool enableDynamicMode);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -328,6 +332,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
 
     LayerComposeInfo GetLayerComposeInfo();
+
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 

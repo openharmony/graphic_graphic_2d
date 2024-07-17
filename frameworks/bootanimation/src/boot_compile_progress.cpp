@@ -46,7 +46,7 @@ namespace {
     constexpr const float OFFSET_Y_PERCENT = 0.85f;
     constexpr const float HEIGHT_PERCENT = 0.05f;
     constexpr const int TEXT_BLOB_OFFSET = 5;
-    constexpr const int FONT_SIZE = 40;
+    constexpr const int FONT_SIZE_VP = 12;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
     constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
@@ -74,6 +74,7 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+    fontSize_ = TransalteVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_VP);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
@@ -201,7 +202,7 @@ void BootCompileProgress::DrawCompileProgress()
 
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
-    font.SetSize(FONT_SIZE);
+    font.SetSize(fontSize_);
     char info[64] = {0};
     int ret = sprintf_s(info, sizeof(info), "%s %d%%", displayInfo_.c_str(), progress_);
     if (ret == -1) {

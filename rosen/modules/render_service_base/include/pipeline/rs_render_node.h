@@ -708,6 +708,13 @@ public:
     {
         return childrenHasUIExtension_;
     }
+
+    // Used to collect renderDrawable for UniRenderThread.
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable()
+    {
+        return renderDrawable_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -778,6 +785,7 @@ protected:
     bool clipAbsDrawRectChange_ = false;
     bool startingWindowFlag_ = false;
     bool isUifirstNode_ = true;
+    int isUifirstDelay_ = 0;
     bool lastFrameHasAnimation_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;

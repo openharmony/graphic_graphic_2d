@@ -70,6 +70,7 @@ private:
     static void ProcessOutgoing(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);
     static void SendPacket(const Packet& packet);
+    static void Shutdown(Socket*& socket);
 
 private:
     static bool isRunning_;

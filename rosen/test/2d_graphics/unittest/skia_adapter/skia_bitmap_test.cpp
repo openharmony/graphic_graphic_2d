@@ -440,6 +440,25 @@ HWTEST_F(SkiaBitmapTest, Serialize002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Serialize003
+ * @tc.desc: Test Serialize
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaBitmapTest, Serialize003, TestSize.Level1)
+{
+    const int width = 100;
+    const int height = 50;
+    SkiaBitmap skiaBitmap;
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+    ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL, colorSpace};
+    bool build = skiaBitmap.Build(offscreenInfo, 0);
+    ASSERT_TRUE(build);
+    std::shared_ptr<Data> result = skiaBitmap.Serialize();
+    ASSERT_TRUE(result->GetSize() == 20104);
+}
+
+/**
  * @tc.name: Deserialize
  * @tc.desc: Test Deserialize
  * @tc.type: FUNC

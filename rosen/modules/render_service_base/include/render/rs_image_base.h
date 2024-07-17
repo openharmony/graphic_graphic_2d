@@ -26,11 +26,21 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "transaction/rs_marshalling_helper.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "surface_buffer.h"
+#include "external_window.h"
+#endif
+
 namespace OHOS {
 namespace Media {
 class PixelMap;
 }
 namespace Rosen {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+namespace NativeBufferUtils {
+class VulkanCleanupHelper;
+}
+#endif
 class RSB_EXPORT RSImageBase {
 public:
     RSImageBase() = default;
@@ -61,6 +71,10 @@ protected:
     void GenUniqueId(uint32_t id);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+#if defined(RS_ENABLE_VK)
+    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+    std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
+#endif
 #endif
     static bool UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useDrawingImage,
         std::shared_ptr<Drawing::Image>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
@@ -81,6 +95,13 @@ protected:
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;
     bool isYUVImage_ = false;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+    mutable pid_t tid_ = 0;
+    mutable Drawing::BackendTexture backendTexture_ = {};
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

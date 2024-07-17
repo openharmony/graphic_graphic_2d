@@ -13,19 +13,35 @@
  * limitations under the License.
  */
 #include "egl_wrapper_surface.h"
-
+#include "external_window.h"
+#include "surface.h"
+#include "window.h"
 #include "wrapper_log.h"
 
 namespace OHOS {
-EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window)
-    : EglWrapperObject(disp), surf_(surf), window_(window)
+NativeWindowType EglWrapperSurface::window_ = nullptr;
+EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf)
+    : EglWrapperObject(disp), surf_(surf)
 {
     WLOGD("");
+}
+
+void EglWrapperSurface::Init(NativeWindowType window)
+{
+    window_ = window;
+    if (window_) {
+        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(window_);
+        ref->IncStrongRef(ref);
+    }
 }
 
 EglWrapperSurface::~EglWrapperSurface()
 {
     WLOGD("");
+    if (window_ != nullptr) {
+        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(window_);
+        ref->DecStrongRef(ref);
+    }
     surf_ = nullptr;
     window_ = nullptr;
 }
@@ -35,4 +51,13 @@ EglWrapperSurface *EglWrapperSurface::GetWrapperSurface(EGLSurface surf)
     WLOGD("");
     return reinterpret_cast<EglWrapperSurface *>(surf);
 }
+
+void EglWrapperSurface::Disconnect()
+{
+    OHNativeWindow *window = reinterpret_cast<OHNativeWindow*>(window_);
+    if (window != nullptr) {
+        NativeWindowDisconnect(window);
+    }
+}
+
 } // namespace OHOS

@@ -148,7 +148,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
     rsRenderServiceConnectionProxy.SetRefreshRateMode(pid1);
-    rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, true);
+    rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, 0);
     rsRenderServiceConnectionProxy.GetScreenCurrentRefreshRate(id1);
     rsRenderServiceConnectionProxy.GetCurrentRefreshRateMode();
     rsRenderServiceConnectionProxy.GetScreenSupportedRefreshRates(id1);
@@ -201,7 +201,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyLightFactorStatus(true);
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
-    rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
+    rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, "", 0, uid);
+    rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
@@ -213,6 +214,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetActiveDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
+    rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.SetCurtainScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);

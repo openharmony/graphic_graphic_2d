@@ -58,6 +58,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSi
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
+    OH_Drawing_ClearFontCaches(fontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 }

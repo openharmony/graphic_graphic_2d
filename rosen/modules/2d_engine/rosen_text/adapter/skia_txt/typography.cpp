@@ -309,8 +309,8 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
     if (lineMetrics_) {
         return lineMetrics_.value();
     }
+    lineMetrics_.emplace();
     if (paragraph_ != nullptr) {
-        lineMetrics_.emplace();
         auto metrics = paragraph_->GetLineMetrics();
         lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
             [](const int a, const skia::textlayout::LineMetrics& b) { return a + b.fLineMetrics.size(); }));

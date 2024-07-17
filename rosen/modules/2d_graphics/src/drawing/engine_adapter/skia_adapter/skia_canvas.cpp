@@ -562,25 +562,26 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
         }
     }
 
-    const SkIRect* skBounds = reinterpret_cast<const SkIRect*>(lattice.fBounds);
     int count = (lattice.fXCount + 1) * (lattice.fYCount + 1);
     std::vector<SkCanvas::Lattice::RectType> skRectTypes = {};
-    if (lattice.fRectTypes != nullptr) {
+    if (!lattice.fRectTypes.empty()) {
         skRectTypes.resize(count);
         for (int i = 0; i < count; ++i) {
             skRectTypes[i] = static_cast<SkCanvas::Lattice::RectType>(lattice.fRectTypes[i]);
         }
     }
     std::vector<SkColor> skColors = {};
-    if (lattice.fColors != nullptr) {
+    if (!lattice.fColors.empty()) {
         skColors.resize(count);
         for (int i = 0; i < count; ++i) {
             skColors[i] = static_cast<SkColor>(lattice.fColors[i].CastToColorQuad());
         }
     }
-    SkCanvas::Lattice skLattice = {lattice.fXDivs, lattice.fYDivs,
+    SkCanvas::Lattice skLattice = {lattice.fXDivs.empty() ? nullptr : lattice.fXDivs.data(),
+        lattice.fYDivs.empty() ? nullptr : lattice.fYDivs.data(),
         skRectTypes.empty() ? nullptr : skRectTypes.data(),
-        lattice.fXCount, lattice.fYCount, skBounds,
+        lattice.fXCount, lattice.fYCount,
+        lattice.fBounds.empty() ? nullptr : reinterpret_cast<const SkIRect*>(lattice.fBounds.data()),
         skColors.empty() ? nullptr : skColors.data()};
 
     const SkRect* skDst = reinterpret_cast<const SkRect*>(&dst);

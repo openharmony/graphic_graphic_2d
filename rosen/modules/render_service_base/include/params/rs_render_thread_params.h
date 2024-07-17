@@ -25,16 +25,16 @@
 
 namespace OHOS::Rosen {
 struct CaptureParam {
-    bool isInCaptureFlag_ = false;
+    bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     CaptureParam() {}
-    CaptureParam(bool isInCaptureFlag, bool isSingleSurface, bool isMirror,
+    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
         float scaleX, float scaleY, bool isFirstNode = false)
-        : isInCaptureFlag_(isInCaptureFlag),
+        : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
@@ -228,21 +228,25 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
+    // To be deleted after captureWindow being deleted
     void SetStartVisit(bool startVisit)
     {
         startVisit_ = startVisit;
     }
 
+    // To be deleted after captureWindow being deleted
     bool GetStartVisit() const
     {
         return startVisit_;
     }
 
+    // To be deleted after captureWindow being deleted
     void SetHasCaptureImg(bool hasCaptureImg)
     {
         hasCaptureImg_ = hasCaptureImg;
     }
 
+    // To be deleted after captureWindow being deleted
     bool GetHasCaptureImg() const
     {
         return hasCaptureImg_;
@@ -258,11 +262,13 @@ public:
         return blackList_;
     }
 
+    // To be deleted after captureWindow being deleted
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
     {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
 
+    // To be deleted after captureWindow being deleted
     NodeId GetRootIdOfCaptureWindow() const
     {
         return rootIdOfCaptureWindow_;
@@ -318,11 +324,16 @@ public:
         return discardJankFrames_;
     }
 
+    bool HasMirrorDisplay() const
+    {
+        return hasMirrorDisplay_;
+    }
+
 private:
-    bool startVisit_ = false;
-    bool hasCaptureImg_ = false;
+    bool startVisit_ = false;     // To be deleted after captureWindow being deleted
+    bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
     std::unordered_set<NodeId> blackList_ = {};
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
@@ -346,6 +357,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
     bool isForceCommitLayer_ = false;
+    bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;

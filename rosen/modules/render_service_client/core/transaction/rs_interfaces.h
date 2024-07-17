@@ -132,7 +132,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -242,7 +242,9 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt);
+
+    void NotifyDynamicModeEvent(bool enableDynamicMode);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -267,6 +269,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
 
     LayerComposeInfo GetLayerComposeInfo() const;
+
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

@@ -234,6 +234,12 @@ public:
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
+
+    sptr<IConsumerSurface> GetConsumerOnDraw()
+    {
+        return consumerOnDraw_;
+    }
+
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
@@ -258,6 +264,7 @@ private:
     std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
+    // To be deleted after captureWindow being deleted
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -318,6 +325,10 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
     int maxRenderSize_ = 0;
     std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
+
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
+#endif
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

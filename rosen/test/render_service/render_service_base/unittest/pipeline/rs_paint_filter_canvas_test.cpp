@@ -1163,12 +1163,12 @@ HWTEST_F(RSPaintFilterCanvasTest, SaveAllStatusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CopyConfigurationTest
- * @tc.desc: CopyConfiguration Test
+ * @tc.name: CopyConfigurationToOffscreenCanvas
+ * @tc.desc: CopyConfigurationToOffscreenCanvas Test
  * @tc.type:FUNC
  * @tc.require:issueI9L0ZK
  */
-HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationTest, TestSize.Level1)
+HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationToOffscreenCanvasTest, TestSize.Level1)
 {
     // building a new RSPaintFilterCanvas object
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
@@ -1180,10 +1180,10 @@ HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationTest, TestSize.Level1)
     rsPaintFilterCanvas.envStack_.push(envOther);
 
     rsPaintFilterCanvas.SetHighContrast(false);
-    paintFilterCanvas_->CopyConfiguration(rsPaintFilterCanvas);
+    paintFilterCanvas_->CopyConfigurationToOffscreenCanvas(rsPaintFilterCanvas);
 
     rsPaintFilterCanvas.SetHighContrast(true);
-    paintFilterCanvas_->CopyConfiguration(rsPaintFilterCanvas);
+    paintFilterCanvas_->CopyConfigurationToOffscreenCanvas(rsPaintFilterCanvas);
     EXPECT_TRUE(EnvStackClear());
 }
 

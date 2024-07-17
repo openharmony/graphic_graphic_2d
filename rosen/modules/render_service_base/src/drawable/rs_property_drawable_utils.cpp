@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
+constexpr int PARAM_DOUBLE = 2;
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
@@ -842,13 +843,12 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     canvas->Save();
     canvas->ClipRect(Rect2DrawingRect(boundsRect), Drawing::ClipOp::INTERSECT, false);
     auto tmpBounds = canvas->GetDeviceClipBounds();
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawPixelStretch, tmpBounds: %s", tmpBounds.ToString().c_str());
     canvas->Restore();
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(), clipBounds.GetBottom());
-    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-        "RSPropertyDrawableUtils::DrawPixelStretch, right: %f, bottom: %f", tmpBounds.GetRight(),
-        tmpBounds.GetBottom());
 
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch map rect failed.");
@@ -992,7 +992,9 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     }
     RS_TRACE_FUNC();
     Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ResetMatrix();
+    // Align the current coordinate system with the one that the effect data was generated from. In most cases,
+    // the two coordinate systems are the same, so the cachedMatrix_ should be set to identity.
+    canvas->SetMatrix(effectData->cachedMatrix_);
     auto visibleRect = canvas->GetVisibleRect();
     visibleRect.Round();
     auto visibleIRect = Drawing::RectI(
@@ -1004,15 +1006,13 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     Drawing::Brush brush;
     brush.SetForceBrightnessDisable(true);
     canvas->AttachBrush(brush);
-    // dstRect: canvas clip region
-    Drawing::Rect dstRect = canvas->GetDeviceClipBounds();
-    // srcRect: map dstRect onto cache coordinate
-    Drawing::Rect srcRect = dstRect;
-    srcRect.Offset(-effectData->cachedRect_.GetLeft(), -effectData->cachedRect_.GetTop());
-    canvas->DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
-        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, src:%s, dst:%s",
-        effectData->cachedRect_.ToString().c_str(), srcRect.ToString().c_str(), dstRect.ToString().c_str());
+    // Draw the cached image in the coordinate system where the effect data is generated. The image content
+    // outside the device clip bounds will be automatically clipped.
+    canvas->DrawImage(*effectData->cachedImage_, static_cast<float>(effectData->cachedRect_.GetLeft()),
+        static_cast<float>(effectData->cachedRect_.GetTop()), Drawing::SamplingOptions());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, DeviceClipBounds:%s, "
+        "IdentityMatrix: %d", effectData->cachedRect_.ToString().c_str(),
+        canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
     canvas->DetachBrush();
 }
 
@@ -1107,6 +1107,130 @@ Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& can
     return RSPropertyDrawableUtils::CalculateInvertColor(Color(
         Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
         Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
+}
+
+bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Drawing::Rect& rect, const float& w,
+    const float& h, Drawing::Matrix& mat)
+{
+    if (w == rect.GetWidth() && h == rect.GetHeight()) {
+        return false;
+    }
+    mat = Drawing::Matrix();
+
+    switch (gravity) {
+        case Gravity::CENTER: {
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, (rect.GetHeight() - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP: {
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, 0);
+            return true;
+        }
+        case Gravity::BOTTOM: {
+            mat.PreTranslate((rect.GetWidth() - w) / PARAM_DOUBLE, rect.GetHeight() - h);
+            return true;
+        }
+        case Gravity::LEFT: {
+            mat.PreTranslate(0, (rect.GetHeight() - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RIGHT: {
+            mat.PreTranslate(rect.GetWidth() - w, (rect.GetHeight() - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP_LEFT: {
+            return false;
+        }
+        case Gravity::TOP_RIGHT: {
+            mat.PreTranslate(rect.GetWidth() - w, 0);
+            return true;
+        }
+        case Gravity::BOTTOM_LEFT: {
+            mat.PreTranslate(0, rect.GetHeight() - h);
+            return true;
+        }
+        case Gravity::BOTTOM_RIGHT: {
+            mat.PreTranslate(rect.GetWidth() - w, rect.GetHeight() - h);
+            return true;
+        }
+        case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            mat.PreScale(rect.GetWidth() / w, rect.GetHeight() / h);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.GetWidth() / scale - w) / PARAM_DOUBLE,
+                (rect.GetHeight() / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.GetWidth() / w, rect.GetHeight() / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.GetWidth() / scale - w, rect.GetHeight() / scale - h);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.GetWidth() / scale - w) / PARAM_DOUBLE,
+                (rect.GetHeight() / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.GetWidth() / w, rect.GetHeight() / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.GetWidth() / scale - w, rect.GetHeight() / scale - h);
+            return true;
+        }
+        default: {
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%{public}d]", gravity);
+            return false;
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

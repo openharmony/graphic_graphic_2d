@@ -629,12 +629,12 @@ private:
 class DrawImageLatticeOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
-            const PaintHandle& paintHandle) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), image(image),
-            lattice(lattice), dst(dst), filter(filterMode), paintHandle(paintHandle) {}
+        ConstructorHandle(const OpDataHandle& image, const LatticeHandle& latticeHandle, const Rect& dst,
+            FilterMode filterMode, const PaintHandle& paintHandle) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM),
+            image(image), latticeHandle(latticeHandle), dst(dst), filter(filterMode), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle image;
-        Lattice lattice;
+        LatticeHandle latticeHandle;
         Rect dst;
         FilterMode filter;
         PaintHandle paintHandle;

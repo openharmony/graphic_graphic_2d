@@ -121,7 +121,9 @@ public:
     void HandleLightFactorStatus(pid_t pid, bool isSafe);
     void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(pid_t remotePid, int32_t touchStatus, const std::string& pkgName,
+        uint32_t pid, int32_t touchCnt);
+    void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -199,6 +201,9 @@ private:
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
+    void UpdateEnergyConsumptionConfig();
+    void EnterEnergyConsumptionAssuranceMode();
+    void ExitEnergyConsumptionAssuranceMode();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -237,10 +242,11 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
-    int32_t lastTouchState_ = IDLE_STATE;
+    std::atomic<uint32_t> lastTouchState_ = IDLE_STATE;
     bool startCheck_ = false;
     bool prepareCheck_ = false;
     HgmIdleDetector idleDetector_;
+    int32_t lastUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;

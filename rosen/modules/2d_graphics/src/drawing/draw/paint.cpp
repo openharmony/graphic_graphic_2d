@@ -42,6 +42,7 @@ Paint::Paint(const Paint& other) noexcept
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
+    blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
     hdrImage_ = other.hdrImage_;
 }
@@ -70,6 +71,7 @@ Paint& Paint::operator=(const Paint& other)
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
+    blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
     hdrImage_ = other.hdrImage_;
     return *this;
@@ -85,6 +87,7 @@ bool Paint::CanCombinePaint(const Paint& pen, const Paint& brush)
         pen.colorSpace_ == brush.colorSpace_ &&
         pen.shaderEffect_ == brush.shaderEffect_ &&
         pen.blender_ == brush.blender_ &&
+        pen.blenderEnabled_ == brush.blenderEnabled_ &&
         pen.blurDrawLooper_ == brush.blurDrawLooper_;
 }
 
@@ -104,6 +107,7 @@ void Paint::AttachBrush(const Brush& brush)
     colorSpace_ = brush.GetColorSpace();
     shaderEffect_ = brush.GetShaderEffect();
     blender_ = brush.GetBlender();
+    blenderEnabled_ = brush.GetBlenderEnabled();
     blurDrawLooper_ = brush.GetLooper();
 }
 
@@ -128,6 +132,7 @@ void Paint::AttachPen(const Pen& pen)
     shaderEffect_ = pen.GetShaderEffect();
     pathEffect_ = pen.GetPathEffect();
     blender_ = pen.GetBlender();
+    blenderEnabled_ = pen.GetBlenderEnabled();
     blurDrawLooper_ = pen.GetLooper();
 }
 
@@ -213,6 +218,11 @@ void Paint::SetBlender(std::shared_ptr<Blender> blender)
     blender_ = blender;
 }
 
+void Paint::SetBlenderEnabled(bool blenderEnabled)
+{
+    blenderEnabled_ = blenderEnabled;
+}
+
 void Paint::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
 {
     blurDrawLooper_ = blurDrawLooper;
@@ -275,6 +285,7 @@ bool operator==(const Paint& p1, const Paint& p2)
         p1.shaderEffect_ == p2.shaderEffect_ &&
         p1.pathEffect_ == p2.pathEffect_ &&
         p1.blender_ == p2.blender_ &&
+        p1.blenderEnabled_ == p2.blenderEnabled_ &&
         p1.blurDrawLooper_ == p2.blurDrawLooper_;
 }
 
@@ -293,6 +304,7 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.shaderEffect_ != p2.shaderEffect_ ||
         p1.pathEffect_ != p2.pathEffect_ ||
         p1.blender_ != p2.blender_ ||
+        p1.blenderEnabled_ != p2.blenderEnabled_ ||
         p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
 } // namespace Drawing

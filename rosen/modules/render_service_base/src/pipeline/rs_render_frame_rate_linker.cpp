@@ -57,9 +57,9 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
     return frameRate_;
 }
 
-void RSRenderFrameRateLinker::SetAnimationIdle(bool status)
+void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate)
 {
-    isAnimationIdle_ = status;
+    animatorExpectedFrameRate_ = animatorExpectedFrameRate;
 }
 
 } // namespace Rosen

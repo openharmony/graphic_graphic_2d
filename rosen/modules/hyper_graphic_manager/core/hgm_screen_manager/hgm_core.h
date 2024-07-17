@@ -195,6 +195,16 @@ public:
     {
         return refreshRateUpdateCallback_;
     }
+
+    void SetEnableDynamicMode(bool enableDynamicMode)
+    {
+        enableDynamicMode_ = enableDynamicMode;
+    }
+
+    bool GetEnableDynamicMode() const
+    {
+        return enableDynamicMode_;
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -240,6 +250,7 @@ private:
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
     bool doDirectComposition_ = false;
+    bool enableDynamicMode_ = true;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

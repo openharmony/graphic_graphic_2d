@@ -98,6 +98,9 @@ public:
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
+        // <bufferName, fps>
+        std::vector<std::pair<std::string, uint32_t>> appBufferList;
+        std::vector<std::string> appBufferBlackList;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -129,8 +132,6 @@ public:
         std::string multiAppStrategyName;
         // <appType, strategyName>
         std::unordered_map<int32_t, std::string> appTypes;
-        // <bufferName, fps>
-        std::unordered_map<std::string, std::string> appBufferList;
         SceneConfigMap sceneList;
         // <SCENE_APP_START_ANIMATION, placeholder>
         std::unordered_map<std::string, std::string> gameSceneList;
@@ -138,6 +139,8 @@ public:
         DynamicSettingMap aceSceneDynamicSettings;
         // <CONFIG_NAME, VALUE>
         std::unordered_map<std::string, std::string> animationPowerConfig;
+        // <rateTypeName, idleFps>
+        std::unordered_map<std::string, std::string> uiPowerConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
@@ -147,6 +150,7 @@ public:
     std::string defaultRefreshRateMode_ = "-1";
     // <"120", "1">
     std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings_;
+    std::vector<std::string> appBufferList_;
     bool xmlCompatibleMode_ = false;
     bool safeVoteEnabled = true;
     // <"VIRTUAL_AXX", "4">

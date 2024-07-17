@@ -146,7 +146,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
-            if (parentNode && parentNode->IsLeashWindow()) {
+            if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
                 curNode = parentNode;
             }
         }
@@ -328,8 +328,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return Drawing::Surface::MakeRenderTarget(
-            RSUniRenderThread::Instance().GetRenderEngine()->GetSkContext().get(), false, info);
+        return Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, info);
     }
 #endif
 

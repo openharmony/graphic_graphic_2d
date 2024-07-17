@@ -959,5 +959,19 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdatePartialRenderParams, TestSize.Level1)
     node->UpdatePartialRenderParams();
     EXPECT_NE(node->stagingRenderParams_.get(), nullptr);
 }
+
+/**
+ * @tc.name: IsSpecialLayerChanged001
+ * @tc.desc: test result of IsSpecialLayerChanged
+ * @tc.type: FUNC
+ * @tc.require: issuesIACYVJ
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, IsSpecialLayerChanged001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->ResetSpecialLayerChangedFlag();
+    EXPECT_FALSE(node->IsSpecialLayerChanged());
+}
+
 } // namespace Rosen
 } // namespace OHOS

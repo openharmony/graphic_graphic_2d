@@ -105,20 +105,13 @@ void NativeShaderEffectTest002(const uint8_t* data, size_t size)
     for (size_t i = 0; i < format; i++) {
         pos[i] = GetObject<float>();
     }
-    uint32_t arraySize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    OH_Drawing_Point2D* startPoint = new OH_Drawing_Point2D[arraySize];
-    for (size_t i = 0; i < arraySize; i++) {
-        startPoint[i] = {GetObject<float>(), GetObject<float>()};
-    }
-    OH_Drawing_Point2D* endPoint = new OH_Drawing_Point2D[arraySize];
-    for (size_t i = 0; i < arraySize; i++) {
-        endPoint[i] = {GetObject<float>(), GetObject<float>()};
-    }
+    OH_Drawing_Point2D startPoint = {GetObject<float>(), GetObject<float>()};
+    OH_Drawing_Point2D endPoint = {GetObject<float>(), GetObject<float>()};
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(startPoint,
-        endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(&startPoint,
+        &endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(nullptr,
-        endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+        &endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(shaderEffectThree);
     OH_Drawing_ShaderEffectDestroy(shaderEffectFour);
@@ -130,14 +123,6 @@ void NativeShaderEffectTest002(const uint8_t* data, size_t size)
     if (pos != nullptr) {
         delete[] pos;
         pos = nullptr;
-    }
-    if (startPoint != nullptr) {
-        delete[] startPoint;
-        startPoint = nullptr;
-    }
-    if (endPoint != nullptr) {
-        delete[] endPoint;
-        endPoint = nullptr;
     }
 }
 
@@ -212,12 +197,9 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     for (size_t i = 0; i < format; i++) {
         pos[i] = GetObject<float>();
     }
-    OH_Drawing_Point2D* centerPoint = new OH_Drawing_Point2D[format];
-    for (size_t i = 0; i < format; i++) {
-        centerPoint[i] = {GetObject<float>(), GetObject<float>()};
-    }
+    OH_Drawing_Point2D centerPoint = {GetObject<float>(), GetObject<float>()};
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(centerPoint,
+    OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(&centerPoint,
         radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_ShaderEffect* shaderEffectSix = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(nullptr,
         radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
@@ -236,10 +218,6 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* shaderEffectNine = OH_Drawing_ShaderEffectCreateImageShader(image,
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, nullptr);
-    if (centerPoint != nullptr) {
-        delete[] centerPoint;
-        centerPoint = nullptr;
-    }
     if (colors != nullptr) {
         delete[] colors;
         colors = nullptr;
@@ -271,14 +249,8 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
     float startRadius = GetObject<float>();
     float endRadius = GetObject<float>();
     uint32_t format = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    OH_Drawing_Point2D* startPoint = new OH_Drawing_Point2D[format];
-    for (size_t i = 0; i < format; i++) {
-        startPoint[i] = {GetObject<float>(), GetObject<float>()};
-    }
-    OH_Drawing_Point2D* endPoint = new OH_Drawing_Point2D[format];
-    for (size_t i = 0; i < format; i++) {
-        endPoint[i] = {GetObject<float>(), GetObject<float>()};
-    }
+    OH_Drawing_Point2D startPoint = {GetObject<float>(), GetObject<float>()};
+    OH_Drawing_Point2D endPoint = {GetObject<float>(), GetObject<float>()};
     uint32_t* colors = new uint32_t[format];
     for (size_t i = 0; i < format; i++) {
         colors[i] = GetObject<uint32_t>();
@@ -288,11 +260,11 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
         pos[i] = GetObject<float>();
     }
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_ShaderEffect* ShaderEffectEight = OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(startPoint,
-        startRadius, endPoint, endRadius, colors, pos, format,
+    OH_Drawing_ShaderEffect* ShaderEffectEight = OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPoint,
+        startRadius, &endPoint, endRadius, colors, pos, format,
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_ShaderEffect* ShaderEffectNine = OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(nullptr,
-        startRadius, endPoint, endRadius, colors, pos, format,
+        startRadius, &endPoint, endRadius, colors, pos, format,
         static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
 
     if (colors != nullptr) {
@@ -302,14 +274,6 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
     if (pos != nullptr) {
         delete[] pos;
         pos = nullptr;
-    }
-    if (startPoint != nullptr) {
-        delete[] startPoint;
-        startPoint = nullptr;
-    }
-    if (endPoint != nullptr) {
-        delete[] endPoint;
-        endPoint = nullptr;
     }
 
     OH_Drawing_MatrixDestroy(matrix);

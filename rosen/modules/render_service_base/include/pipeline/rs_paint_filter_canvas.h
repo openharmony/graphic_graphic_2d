@@ -146,7 +146,7 @@ public:
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
     ~RSPaintFilterCanvas() override = default;;
 
-    void CopyConfiguration(const RSPaintFilterCanvas& other);
+    void CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
@@ -234,6 +234,7 @@ public:
         ~CachedEffectData() = default;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
+        Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;

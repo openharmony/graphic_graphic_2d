@@ -628,5 +628,19 @@ HWTEST_F(HyperGraphicManagerTest, RefreshRateModeChangeCallback, Function | Smal
     EXPECT_NE(instance.GetRefreshRateModeChangeCallback(), nullptr);
 }
 
+/**
+ * @tc.name: SetEnableDynamicMode
+ * @tc.desc: Test SetEnableDynamicMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | Level1)
+{
+    auto &instance = HgmCore::Instance();
+    EXPECT_EQ(instance.GetEnableDynamicMode(), true);
+    instance.SetEnableDynamicMode(false);
+    EXPECT_EQ(instance.GetEnableDynamicMode(), false);
+}
+
 } // namespace Rosen
 } // namespace OHOS

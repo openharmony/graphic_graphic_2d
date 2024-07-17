@@ -774,7 +774,7 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
     // copy matrix and other properties to offscreen canvas
     offscreenCanvas->SetMatrix(canvas.GetTotalMatrix());
-    offscreenCanvas->CopyConfiguration(canvas);
+    offscreenCanvas->CopyConfigurationToOffscreenCanvas(canvas);
     // draw background onto offscreen canvas
     RSPropertiesPainter::DrawBackground(properties, *offscreenCanvas);
     // generate effect data

@@ -191,6 +191,18 @@ public:
     const std::shared_ptr<Blender> GetBlender() const { return blender_; }
 
     /**
+     * @brief Sets the blenderEnabled flag, which determines whether the blender is used.
+     * @param blenderEnabled  whether the blender is used.
+     */
+    void SetBlenderEnabled(bool blenderEnabled);
+
+    /**
+     * @brief Returns the blenderEnabled flag, which determines whether the blender is used.
+     * @return the blenderEnabled flag, whether the blender is used.
+     */
+    bool GetBlenderEnabled() const { return blenderEnabled_; };
+
+    /**
      * @brief Returns the user-supplied blend function, if one has been set.
      * @return the Blender assigned to this Brush, otherwise nullptr
      */
@@ -292,6 +304,7 @@ private:
     std::shared_ptr<BlurDrawLooper> blurDrawLooper_;
 
     bool antiAlias_;
+    bool blenderEnabled_ = true;
     bool hasFilter_ = false;
     bool forceBrightnessDisable_ = false;
     bool isHdr_ = false;
