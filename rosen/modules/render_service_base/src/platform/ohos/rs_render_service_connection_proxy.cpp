@@ -2360,6 +2360,25 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, const
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(enableDynamicMode)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyDynamicModeEvent: Send Request err.");
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;
@@ -2476,6 +2495,44 @@ LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()
         return layerComposeInfo;
     }
     return LayerComposeInfo(reply.ReadInt32(), reply.ReadInt32(), reply.ReadInt32());
+}
+
+HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    HwcDisabledReasonInfos hwcDisabledReasonInfos;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return hwcDisabledReasonInfos;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
+        GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo: Send Request err.");
+        return hwcDisabledReasonInfos;
+    }
+    int32_t size = reply.ReadInt32();
+    size_t readableSize = reply.GetReadableBytes() / sizeof(NodeId);
+    size_t len = static_cast<size_t>(size);
+    if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
+        RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
+            " readableSize:%{public}zu", len, readableSize);
+        return hwcDisabledReasonInfos;
+    }
+
+    HwcDisabledReasonInfo hwcDisabledReasonInfo;
+    while (size--) {
+        for (int32_t pos = 0; pos < HwcDisabledReasons::DISABLED_REASON_LENGTH; pos++) {
+            hwcDisabledReasonInfo.disabledReasonStatistics[pos] = reply.ReadInt32();
+        }
+        hwcDisabledReasonInfo.pidOfBelongsApp = reply.ReadInt32();
+        hwcDisabledReasonInfo.nodeName = reply.ReadString();
+        hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo);
+    }
+    return hwcDisabledReasonInfos;
 }
 
 #ifdef TP_FEATURE_ENABLE

@@ -698,18 +698,23 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 void RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
-
     std::function<void()> captureTask = [id, callback, captureConfig]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
-    if (!captureConfig.isSync && node->IsOnTheTree() && !node->IsDirty()) {
-        RSUniRenderThread::Instance().PostTask(captureTask);
+
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+    if (!node) {
+        if (captureConfig.isSync) {
+            RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        } else {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+        }
+        return;
+    }
+
+    if (node->IsOnTheTree() && !node->IsDirty()) {
+        RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
     }
@@ -1353,6 +1358,18 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, const std:
     mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, pkgName, pid, touchCnt);
 }
 
+void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
+{
+    HgmTaskHandleThread::Instance().PostTask([enableDynamicModeEvent] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            RS_LOGW("RSRenderServiceConnection::NotifyDynamicModeEvent: frameRateMgr is nullptr.");
+            return;
+        }
+        frameRateMgr->HandleDynamicModeEvent(enableDynamicModeEvent);
+    });
+}
+
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
 {
     auto task = [this, info]() -> void {
@@ -1433,6 +1450,13 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     const auto& layerComposeInfo = LayerComposeCollection::GetInstance().GetLayerComposeInfo();
     LayerComposeCollection::GetInstance().ResetLayerComposeInfo();
     return layerComposeInfo;
+}
+
+HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+{
+    const auto& hwcDisabledReasonInfos = HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
+    HwcDisabledReasonCollection::GetInstance().ResetHwcDisabledReasonInfo();
+    return hwcDisabledReasonInfos;
 }
 
 #ifdef TP_FEATURE_ENABLE

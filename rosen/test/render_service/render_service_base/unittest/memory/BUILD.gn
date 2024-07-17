@@ -64,8 +64,6 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  deps += [ "//third_party/skia:skia_ohos" ]
-
   external_deps += [
     "c_utils:utils",
     "init:libbegetutil",

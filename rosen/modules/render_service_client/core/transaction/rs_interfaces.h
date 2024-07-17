@@ -244,6 +244,8 @@ public:
 
     void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt);
 
+    void NotifyDynamicModeEvent(bool enableDynamicMode);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);
@@ -267,6 +269,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
 
     LayerComposeInfo GetLayerComposeInfo() const;
+
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

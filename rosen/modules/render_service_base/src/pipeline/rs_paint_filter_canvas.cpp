@@ -981,7 +981,9 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
 
     // use envStack_.top().blender_ to set blender
     if (auto& blender = envStack_.top().blender_) {
-        p.SetBlender(blender);
+        if (p.GetBlenderEnabled()) {
+            p.SetBlender(blender);
+        }
     }
 
 #ifdef ENABLE_RECORDING_DCL
@@ -1018,7 +1020,9 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
 
     // use envStack_.top().blender_ to set blender
     if (auto& blender = envStack_.top().blender_) {
-        b.SetBlender(blender);
+        if (b.GetBlenderEnabled()) {
+            b.SetBlender(blender);
+        }
     }
 
 #ifdef ENABLE_RECORDING_DCL
@@ -1074,7 +1078,9 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 
     // use envStack_.top().blender_ to set blender
     if (auto& blender = envStack_.top().blender_) {
-        p.SetBlender(blender);
+        if (p.GetBlenderEnabled()) {
+            p.SetBlender(blender);
+        }
     }
 
 #ifdef ENABLE_RECORDING_DCL

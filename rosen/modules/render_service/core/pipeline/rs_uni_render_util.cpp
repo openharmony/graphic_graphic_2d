@@ -590,12 +590,36 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
 
-    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    const sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (!buffer) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
+        return params;
+    }
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     return params;
+}
+
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU)
+{
+    BufferDrawParam bufferDrawParam;
+    bufferDrawParam.useCPU = forceCPU;
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    bufferDrawParam.paint.SetFilter(filter);
+
+    const sptr<SurfaceBuffer> buffer = surfaceHandler.GetBuffer();
+    if (!buffer) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
+        return bufferDrawParam;
+    }
+    bufferDrawParam.buffer = buffer;
+    bufferDrawParam.acquireFence = surfaceHandler.GetAcquireFence();
+    bufferDrawParam.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    return bufferDrawParam;
 }
 
 BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
@@ -1781,6 +1805,17 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     for (const auto& child : *node->GetSortedChildren()) {
         TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
     }
+}
+
+void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.DetachBrush();
 }
 } // namespace Rosen
 } // namespace OHOS

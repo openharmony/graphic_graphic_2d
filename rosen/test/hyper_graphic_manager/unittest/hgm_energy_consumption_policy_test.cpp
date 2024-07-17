@@ -39,14 +39,24 @@ public:
 
 void HgmEnergyConsumptionPolicyTest::SetConfigEnable(std::string isEnable)
 {
-    std::unordered_map<std::string, std::string> animationPowerConfig = { { "animation_ltpo_power_enable", isEnable },
-        { "animation_idle_fps", "60" }, { "animation_idle_duration", "2000" } };
+    std::unordered_map<std::string, std::string> animationPowerConfig = {
+        { "animation_energy_assurance_enable", isEnable },
+        { "animation_idle_fps", "60" },
+        { "animation_idle_duration", "2000" } };
+    std::unordered_map<std::string, std::string> uiPowerConfig = { { "ui_animation", "30" }, { "display_sync", "31" },
+    { "ace_component", "32" }, { "display_soloist", "33" } };
+
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(animationPowerConfig);
+    if (isEnable != "true") {
+        uiPowerConfig.clear();
+    }
+    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionConfig(uiPowerConfig);
 }
 
 void HgmEnergyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)
 {
-    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(isIdle);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(isIdle);
+    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(isIdle);
 }
 
 /**
@@ -228,5 +238,92 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAnimationIdleFpsTest3, TestSize.Leve
     ASSERT_EQ(rsRange.preferred_, IDLE_FPS);
 }
 
+/**
+ * @tc.name: GetUiAnimationIdleFpsTest1
+ * @tc.desc: test results of GetUiAnimationIdleFpsTest1
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetUiAnimationIdleFpsTest1, TestSize.Level1)
+{
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, UI_ANIMATION_FRAME_RATE_TYPE };
+    SetConfigEnable("false");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
+
+    SetConfigEnable("true");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, 30);
+    ASSERT_EQ(rsRange.min_, 30);
+    ASSERT_EQ(rsRange.preferred_, 30);
+}
+
+/**
+ * @tc.name: GetDisplaySyncIdleFpsTest1
+ * @tc.desc: test results of GetDisplaySyncIdleFpsTest1
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySyncIdleFpsTest1, TestSize.Level1)
+{
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SYNC_FRAME_RATE_TYPE };
+    SetConfigEnable("false");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
+
+    SetConfigEnable("true");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, 31);
+    ASSERT_EQ(rsRange.min_, 31);
+    ASSERT_EQ(rsRange.preferred_, 31);
+}
+
+/**
+ * @tc.name: GetAceComponentIdleFpsTest1
+ * @tc.desc: test results of GetAceComponentIdleFpsTest1
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAceComponentIdleFpsTest1, TestSize.Level1)
+{
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, ACE_COMPONENT_FRAME_RATE_TYPE };
+    SetConfigEnable("false");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
+
+    SetConfigEnable("true");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, 32);
+    ASSERT_EQ(rsRange.min_, 32);
+    ASSERT_EQ(rsRange.preferred_, 32);
+}
+
+/**
+ * @tc.name: GetDisplaySoloistIdleFpsTest1
+ * @tc.desc: test results of GetDisplaySoloistIdleFpsTest1
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize.Level1)
+{
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SOLOIST_FRAME_RATE_TYPE };
+    SetConfigEnable("false");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
+    ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
+
+    SetConfigEnable("true");
+    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_EQ(rsRange.max_, 33);
+    ASSERT_EQ(rsRange.min_, 33);
+    ASSERT_EQ(rsRange.preferred_, 33);
+}
 } // namespace Rosen
 } // namespace OHOS

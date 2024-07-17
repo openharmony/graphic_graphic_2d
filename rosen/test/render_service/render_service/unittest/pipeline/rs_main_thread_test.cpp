@@ -3378,4 +3378,35 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
 
     mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
 }
+
+/**
+ * @tc.name: UIExtensionNodesTraverseAndCallback001
+ * @tc.desc: test UIExtensionNodesTraverseAndCallback, no need to callback
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = true;
+    mainThread->uiExtensionCallbackData_.clear();
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+}
+
+/**
+ * @tc.name: UIExtensionNodesTraverseAndCallback002
+ * @tc.desc: test UIExtensionNodesTraverseAndCallback, empty callback list
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = false;
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+}
 } // namespace OHOS::Rosen

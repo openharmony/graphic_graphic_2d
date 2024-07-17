@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-
-#include "js_drawing_utils.h"
 #include "js_run.h"
-#include "js_text_utils.h"
+#include "napi_common.h"
+#include "log_wrapper.h"
 #include "canvas_napi/js_canvas.h"
 #include "font_napi/js_font.h"
 #include "recording/recording_canvas.h"
@@ -30,13 +29,13 @@ napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
-        ROSEN_LOGE("JsRun::Constructor failed to napi_get_cb_info");
+        TEXT_LOGE("JsRun::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
 
     JsRun* jsRun = new(std::nothrow) JsRun();
     if (!jsRun) {
-        ROSEN_LOGE("JsRun::Constructor failed to create JsRun");
+        TEXT_LOGE("JsRun::Constructor failed to create JsRun");
         return nullptr;
     }
 
@@ -44,7 +43,7 @@ napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
         JsRun::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsRun;
-        ROSEN_LOGE("JsRun::Constructor Failed to wrap native instance");
+        TEXT_LOGE("JsRun::Constructor Failed to wrap native instance");
         return nullptr;
     }
 
@@ -66,19 +65,19 @@ napi_value JsRun::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
-        ROSEN_LOGE("JsRun::Init Failed to define JsRun class");
+        TEXT_LOGE("JsRun::Init Failed to define JsRun class");
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        ROSEN_LOGE("JsRun::Init Failed to create reference of constructor");
+        TEXT_LOGE("JsRun::Init Failed to create reference of constructor");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
-        ROSEN_LOGE("JsRun::Init Failed to set constructor");
+        TEXT_LOGE("JsRun::Init Failed to set constructor");
         return nullptr;
     }
 
@@ -100,16 +99,15 @@ napi_value JsRun::CreateRun(napi_env env, napi_callback_info info)
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+        TEXT_LOGE("Failed to get the representation of constructor object");
         return nullptr;
     }
 
     status = napi_new_instance(env, constructor, 0, nullptr, &result);
     if (status != napi_ok) {
-        ROSEN_LOGE("Failed to instantiate JavaScript font instance");
+        TEXT_LOGE("Failed to instantiate JavaScript font instance");
         return nullptr;
     }
-
     return result;
 }
 
@@ -131,8 +129,8 @@ napi_value JsRun::GetGlyphCount(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphCount(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        ROSEN_LOGE("JsRun::OnGetGlyphCount run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphCount run is nullptr.");
+        TEXT_LOGE("JsRun::OnGetGlyphCount run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphCount run is nullptr.");
     }
     int64_t count = static_cast<int64_t>(run_->GetGlyphCount());
     return CreateJsNumber(env, count);
@@ -147,8 +145,8 @@ napi_value JsRun::GetGlyphs(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphs(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        ROSEN_LOGE("JsRun::OnGetGlyphs run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphs run is nullptr.");
+        TEXT_LOGE("JsRun::OnGetGlyphs run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphs run is nullptr.");
     }
 
     std::vector<uint16_t> glyphs = run_->GetGlyphs();
@@ -171,8 +169,8 @@ napi_value JsRun::GetPositions(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetPositions(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        ROSEN_LOGE("JsRun::OnGetPositions run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetPositions run is nullptr.");
+        TEXT_LOGE("JsRun::OnGetPositions run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetPositions run is nullptr.");
     }
 
     std::vector<Drawing::Point> positions = run_->GetPositions();
@@ -195,8 +193,8 @@ napi_value JsRun::GetOffsets(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetOffsets(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        ROSEN_LOGE("JsRun::OnGetOffsets run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetOffsets run is nullptr.");
+        TEXT_LOGE("JsRun::OnGetOffsets run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetOffsets run is nullptr.");
     }
 
     std::vector<Drawing::Point> offsets = run_->GetOffsets();
@@ -219,25 +217,25 @@ napi_value JsRun::GetFont(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetFont(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        ROSEN_LOGE("JsRun::OnGetFont run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont run is nullptr.");
+        TEXT_LOGE("JsRun::OnGetFont run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont run is nullptr.");
     }
 
     std::shared_ptr<Drawing::Font> fontPtr = std::make_shared<Drawing::Font>(run_->GetFont());
     if (!fontPtr) {
-        ROSEN_LOGE("JsRun::OnGetFont fontPtr is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont fontPtr is nullptr.");
+        TEXT_LOGE("JsRun::OnGetFont fontPtr is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont fontPtr is nullptr.");
     }
 
     napi_value resultValue  = Drawing::JsFont::CreateFont(env, info);
     if (!resultValue) {
-        ROSEN_LOGE("JsRun::OnGetFont JsFont::CreateFont resultValue is null");
+        TEXT_LOGE("JsRun::OnGetFont JsFont::CreateFont resultValue is null");
         return nullptr;
     }
     Drawing::JsFont* jsFont = nullptr;
     napi_unwrap(env, resultValue, reinterpret_cast<void**>(&jsFont));
     if (!jsFont) {
-        ROSEN_LOGE("JsRun::OnGetFont napi_unwrap jsFont is null");
+        TEXT_LOGE("JsRun::OnGetFont napi_unwrap jsFont is null");
         return nullptr;
     }
     jsFont->SetFont(fontPtr);
@@ -253,15 +251,15 @@ napi_value JsRun::Paint(napi_env env, napi_callback_info info)
 napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
 {
     if (run_ == nullptr) {
-        ROSEN_LOGE("JsRun::OnPaint run is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "JsRun::OnPaint run is nullptr.");
+        TEXT_LOGE("JsRun::OnPaint run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnPaint run is nullptr.");
     }
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_THREE) {
-        ROSEN_LOGE("JsRun::OnPaint Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        TEXT_LOGE("JsRun::OnPaint Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
     double x = 0.0;
@@ -269,7 +267,7 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas() ||
         !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
-        ROSEN_LOGE("JsRun::OnPaint Argv is invalid");
+        TEXT_LOGE("JsRun::OnPaint Argv is invalid");
         return NapiGetUndefined(env);
     }
     run_->Paint(jsCanvas->GetCanvas(), x, y);

@@ -117,8 +117,7 @@ void Network::Run()
 
         const SocketState state = socket->GetState();
         if (forceShutdown_) {
-            delete socket;
-            socket = nullptr;
+            Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
             socket->Open(port);
@@ -137,8 +136,7 @@ void Network::Run()
                 ProcessOutgoing(*socket);
             }
         } else if (state == SocketState::SHUTDOWN) {
-            delete socket;
-            socket = nullptr;
+            Shutdown(socket);
         }
     }
 
@@ -386,6 +384,18 @@ void Network::ProcessBinary(const char* data, size_t size)
 void Network::ForceShutdown()
 {
     forceShutdown_ = true;
+}
+
+void Network::Shutdown(Socket*& socket)
+{
+    delete socket;
+    socket = nullptr;
+
+    std::string command = "rsrecord_stop";
+    ProcessCommand(command.c_str(), command.size());
+    command = "rsrecord_replay_stop";
+    ProcessCommand(command.c_str(), command.size());
+    AwakeRenderServiceThread();
 }
 
 void Network::ProcessIncoming(Socket& socket)

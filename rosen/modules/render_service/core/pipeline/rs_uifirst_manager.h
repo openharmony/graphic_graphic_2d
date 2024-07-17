@@ -73,7 +73,7 @@ public:
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
 
-    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo);
+    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
     void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
     
     void SetUiFirstSwitch(bool uiFirstSwitch)
@@ -137,6 +137,7 @@ public:
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
+    void TryReleaseTextureForIdleThread();
 
 private:
     RSUifirstManager() = default;
@@ -208,7 +209,7 @@ private:
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
-    int noUifirstNodeFrameCount_ = 0;
+    std::atomic<int> noUifirstNodeFrameCount_ = 0;
     bool hasDoneNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;

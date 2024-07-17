@@ -135,6 +135,11 @@ void Brush::SetBlender(std::shared_ptr<Blender> blender)
     blender_ = blender;
 }
 
+void Brush::SetBlenderEnabled(bool blenderEnabled)
+{
+    blenderEnabled_ = blenderEnabled;
+}
+
 bool Brush::IsAntiAlias() const
 {
     return antiAlias_;
@@ -188,8 +193,9 @@ void Brush::SetHdr(bool isHdr)
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
-        b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
-        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ && b1.isHdr_ == b2.isHdr_;
+        b1.blender_ == b2.blender_ && b1.blenderEnabled_ == b2.blenderEnabled_ && b1.colorSpace_ == b2.colorSpace_ &&
+        b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ &&
+        b1.isHdr_ == b2.isHdr_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)

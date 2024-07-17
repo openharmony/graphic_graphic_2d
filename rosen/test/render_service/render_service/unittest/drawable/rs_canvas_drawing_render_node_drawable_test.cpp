@@ -267,12 +267,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
     int width = 1;
     int height = 1;
     canvas.recordingState_ = true;
-    auto result = drawable->ResetSurface(width, height, canvas);
+    auto result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
 
     canvas.recordingState_ = false;
     drawable->image_ = std::make_shared<Drawing::Image>();
-    result = drawable->ResetSurface(width, height, canvas);
+    result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
 }
 

@@ -1340,6 +1340,20 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: NotifyDynamicModeEvent001
+ * @tc.desc: Notify touch event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool enableDynamicMode = false;
+    rsInterfaces->NotifyDynamicModeEvent(enableDynamicMode);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.type: FUNC
@@ -1662,6 +1676,36 @@ HWTEST_F(RSInterfacesTest, SetCastScreenEnableSkipWindow_Test, Function | SmallT
     bool enable = true;
     auto res = rsInterfaces->SetCastScreenEnableSkipWindow(virtualScreenId, enable);
     EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: RegisterUIExtensionCallback_001
+ * @tc.desc: Test if UIExtensionCallback can be sucessifully registered.
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
+    uint64_t userId = 0;
+    auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: RegisterUIExtensionCallback_002
+ * @tc.desc: Test if UIExtensionCallback is null, registration failed.
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    UIExtensionCallback callback = nullptr;
+    uint64_t userId = 0;
+    auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
 }
 } // namespace Rosen
 } // namespace OHOS

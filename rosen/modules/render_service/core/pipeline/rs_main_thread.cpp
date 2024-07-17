@@ -1214,6 +1214,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
+        surfaceNode->ResetSpecialLayerChangedFlag();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
@@ -1269,10 +1270,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         }
 #ifdef RS_ENABLE_VK
-        const auto& surfaceBuffer = surfaceNode->GetBuffer();
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
-            deviceType_ != DeviceType::PC && surfaceBuffer && (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+            deviceType_ != DeviceType::PC && (surfaceNode->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
             }
@@ -1800,7 +1800,6 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
         }
 
         if (!node->IsOnTheTree() || node->IsDirty()) {
-            node->QuickPrepare(uniVisitor);
             node->PrepareSelfNodeForApplyModifiers();
         }
     }

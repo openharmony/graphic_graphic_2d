@@ -766,6 +766,10 @@ void RSSurfaceRenderNode::SetForceHardware(bool flag)
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
+    if (isSecurityLayer_ == isSecurityLayer) {
+        return;
+    }
+    specialLayerChanged_ = true;
     isSecurityLayer_ = isSecurityLayer;
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set security layer", GetId());
     SetDirty();
@@ -779,6 +783,10 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 
 void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 {
+    if (isSkipLayer_ == isSkipLayer) {
+        return;
+    }
+    specialLayerChanged_ = true;
     isSkipLayer_ = isSkipLayer;
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set skip layer", GetId());
     SetDirty();
@@ -792,6 +800,10 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 
 void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
 {
+    if (isProtectedLayer_ == isProtectedLayer) {
+        return;
+    }
+    specialLayerChanged_ = true;
     isProtectedLayer_ = isProtectedLayer;
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set protected layer", GetId());
     SetDirty();
@@ -844,6 +856,7 @@ void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
         } else {
             firstLevelNode->securityLayerIds_.erase(GetId());
         }
+        firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
     }
 }
 
@@ -857,6 +870,7 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
         } else {
             firstLevelNode->skipLayerIds_.erase(GetId());
         }
+        firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
     }
 }
 
@@ -875,6 +889,7 @@ void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
             } else {
                 firstLevelNode->protectedLayerIds_.erase(GetId());
             }
+            firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
         }
     }
 }

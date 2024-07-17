@@ -46,9 +46,10 @@
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #endif
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_uifirst_manager.h"
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -99,6 +100,11 @@ CaptureParam& RSUniRenderThread::GetCaptureParam()
 void RSUniRenderThread::ResetCaptureParam()
 {
     captureParam_ = {};
+}
+
+bool RSUniRenderThread::IsInCaptureProcess()
+{
+    return captureParam_.isSnapshot_ || captureParam_.isMirror_;
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
@@ -663,6 +669,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
+        RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
         this->clearMemDeeply_ = false;
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);

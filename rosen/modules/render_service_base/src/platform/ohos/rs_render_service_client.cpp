@@ -1329,6 +1329,14 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, const std::str
     }
 }
 
+void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyDynamicModeEvent(enableDynamicMode);
+    }
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1378,6 +1386,15 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
         return LayerComposeInfo {};
     }
     return renderService->GetLayerComposeInfo();
+}
+
+HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return {};
+    }
+    return renderService->GetHwcDisabledReasonInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE

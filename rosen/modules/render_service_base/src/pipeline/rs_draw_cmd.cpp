@@ -299,8 +299,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     if (!RSSystemProperties::IsUseVukan()) {
         return false;
     }
-    if (surfaceBuffer == nullptr) {
-        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr");
+    if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
+        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return false;
     }
     if (nativeWindowBuffer_ == nullptr) {

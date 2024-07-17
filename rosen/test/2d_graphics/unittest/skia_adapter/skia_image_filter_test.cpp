@@ -46,8 +46,12 @@ void SkiaImageFilterTest::TearDown() {}
 HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+    Rect noCropRect = {
+        -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+        std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+    };
     skiaImageFilter->InitWithBlur(
-        5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
+        5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
 }
 
 /**
@@ -59,9 +63,12 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-
+    Rect noCropRect = {
+        -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+        std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+    };
     skiaImageFilter->InitWithBlur(
-        5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
+        5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
 }
 
 /**
@@ -73,8 +80,12 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+    Rect noCropRect = {
+        -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+        std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+    };
     skiaImageFilter->InitWithBlur(
-        5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
+        5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
 }
 
 /**

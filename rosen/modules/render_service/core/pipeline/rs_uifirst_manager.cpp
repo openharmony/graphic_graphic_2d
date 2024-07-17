@@ -428,6 +428,14 @@ void RSUifirstManager::PostSubTask(NodeId id)
     }
 }
 
+void RSUifirstManager::TryReleaseTextureForIdleThread()
+{
+    if (noUifirstNodeFrameCount_.load() <= CLEAR_RES_THRESHOLD) {
+        return;
+    }
+    RSSubThreadManager::Instance()->TryReleaseTextureForIdleThread();
+}
+
 void RSUifirstManager::PostReleaseCacheSurfaceSubTasks()
 {
     for (auto cardNode : collectedCardNodes_) {
@@ -510,13 +518,13 @@ void RSUifirstManager::ConvertPendingNodeToDrawable()
         return;
     }
     pendingPostDrawables_.clear();
-    for (auto& iter : pendingPostNodes_) {
-        if (!iter.second) {
-            continue;
+    for (const auto& iter : pendingPostNodes_) {
+        if (iter.second && GetUseDmaBuffer(iter.second->GetName())) {
+            if (auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second)) {
+                pendingPostDrawables_.emplace_back(
+                    std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
+            }
         }
-        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second);
-        pendingPostDrawables_.emplace_back(
-            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
     }
 }
 
@@ -588,24 +596,20 @@ void RSUifirstManager::ClearSubthreadRes()
     RS_OPTIONAL_TRACE_NAME_FMT("ClearSubthreadRes");
     if (subthreadProcessingNode_.size() == 0 &&
         pendingSyncForSkipBefore_.size() == 0) {
-        if (noUifirstNodeFrameCount_ < CLEAR_RES_THRESHOLD) {
-            ++noUifirstNodeFrameCount_;
-            if (noUifirstNodeFrameCount_ == CLEAR_RES_THRESHOLD) {
-                RSSubThreadManager::Instance()->ResetSubThreadGrContext();
-                PostReleaseCacheSurfaceSubTasks();
-            }
-        } else {
-            noUifirstNodeFrameCount_ = 1;
+        noUifirstNodeFrameCount_.fetch_add(1);
+        if (noUifirstNodeFrameCount_.load() == CLEAR_RES_THRESHOLD) {
+            RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+            PostReleaseCacheSurfaceSubTasks();
         }
     } else {
-        noUifirstNodeFrameCount_ = 0;
+        noUifirstNodeFrameCount_.store(0);
     }
     reuseNodes_.clear();
 }
 
 void RSUifirstManager::ForceClearSubthreadRes()
 {
-    noUifirstNodeFrameCount_ = 0;
+    noUifirstNodeFrameCount_.store(0);
     RSSubThreadManager::Instance()->ReleaseTexture();
 }
 
@@ -1224,18 +1228,19 @@ void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processo
     }
 }
 
-void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo)
+void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
 {
     if (!useDmaBuffer_) {
         return;
     }
-    for (auto& iter : pendingPostNodes_) {
-        if (!iter.second) {
-            continue;
+    for (const auto& iter : pendingPostNodes_) {
+        auto& node = iter.second;
+        if (node && GetUseDmaBuffer(node->GetName())) {
+            node->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
+            auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
+            node->UpdateHwcNodeLayerInfo(transform);
+            node->SetIsLastFrameHwcEnabled(!node->IsHardwareForcedDisabled());
         }
-        auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
-        iter.second->UpdateHwcNodeLayerInfo(transform);
-        iter.second->SetIsLastFrameHwcEnabled(!iter.second->IsHardwareForcedDisabled());
     }
 }
 

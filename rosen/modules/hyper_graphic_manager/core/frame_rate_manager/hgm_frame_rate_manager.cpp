@@ -48,7 +48,9 @@ namespace {
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
+    constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
+    const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -325,7 +327,9 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                 continue;
             }
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
-            finalRange.Merge(linker.second->GetExpectedRange());
+            auto expectedRange = linker.second->GetExpectedRange();
+            HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
+            finalRange.Merge(expectedRange);
         }
         ProcessLtpoVote(finalRange, idleTimerExpired);
     }
@@ -793,8 +797,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus,
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGI("[touch manager] down %{public}s: %{public}d", pkgName.c_str(), pid);
         PolicyConfigData::StrategyConfig strategyRes;
-        HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
-        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(false);
+        ExitEnergyConsumptionAssuranceMode();
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
                 touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
@@ -811,13 +814,19 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t remotePid, int32_t touchStatus,
         }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGI("[touch manager] up %{public}s: %{public}d", pkgName.c_str(), pid);
-            auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceMode(true); };
-            HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
+            EnterEnergyConsumptionAssuranceMode();
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
     }
+}
+
+void HgmFrameRateManager::HandleDynamicModeEvent(bool enableDynamicModeEvent)
+{
+    HGM_LOGE("HandleDynamicModeEvent status:%{public}u", enableDynamicModeEvent);
+    HgmCore::Instance().SetEnableDynamicMode(enableDynamicModeEvent);
+    multiAppStrategy_.CalcVote();
 }
 
 void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
@@ -1308,6 +1317,30 @@ void HgmFrameRateManager::SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, ui
             voteInfo.bundleName = packages.front();
         }
     }
+}
+
+void HgmFrameRateManager::UpdateEnergyConsumptionConfig()
+{
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().animationPowerConfig);
+    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionConfig(
+        multiAppStrategy_.GetScreenSetting().uiPowerConfig);
+}
+
+void HgmFrameRateManager::EnterEnergyConsumptionAssuranceMode()
+{
+    auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true); };
+    HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
+    auto uiTask = []() { HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(true); };
+    HgmTaskHandleThread::Instance().PostEvent(UI_ENERGY_ASSURANCE_TASK_ID, uiTask, UI_ENERGY_ASSURANCE_TASK_DELAY_TIME);
+}
+
+void HgmFrameRateManager::ExitEnergyConsumptionAssuranceMode()
+{
+    HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
+    HgmTaskHandleThread::Instance().RemoveEvent(UI_ENERGY_ASSURANCE_TASK_ID);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
+    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(false);
 }
 } // namespace Rosen
 } // namespace OHOS

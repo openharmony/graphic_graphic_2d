@@ -139,6 +139,8 @@ public:
         DynamicSettingMap aceSceneDynamicSettings;
         // <CONFIG_NAME, VALUE>
         std::unordered_map<std::string, std::string> animationPowerConfig;
+        // <rateTypeName, idleFps>
+        std::unordered_map<std::string, std::string> uiPowerConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

@@ -379,9 +379,6 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
-    ASSERT_EQ(ret, GSERROR_OK);
-
     struct Region *region = new Region();
     struct Region::Rect *rect = new Region::Rect();
     rect->x = 0x100;
@@ -389,12 +386,17 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
     rect->w = 0x100;
     rect->h = 0x100;
     region->rects = rect;
-    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
-    ASSERT_EQ(ret, GSERROR_OK);
-    delete region;
+    for (int32_t i = 0; i < 2; i++) {
+        ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
+        ASSERT_EQ(ret, GSERROR_OK);
 
-    ret = OH_NativeImage_UpdateSurfaceImage(image);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+        ret = OH_NativeImage_UpdateSurfaceImage(image);
+        ASSERT_EQ(ret, SURFACE_ERROR_OK);
+        ASSERT_EQ(NativeWindowDisconnect(nativeWindow), SURFACE_ERROR_OK);
+    }
+    delete region;
 }
 
 /*

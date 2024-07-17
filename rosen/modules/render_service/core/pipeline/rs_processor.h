@@ -23,7 +23,6 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "rs_base_render_engine.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -31,6 +30,9 @@ namespace Rosen {
 class RSRcdSurfaceRenderNode;
 class RSDisplayRenderParams;
 class RSSurfaceRenderParams;
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+}
 class RSProcessor : public std::enable_shared_from_this<RSProcessor> {
 public:
     static inline constexpr RSProcessorType Type = RSProcessorType::RS_PROCESSOR;
@@ -46,6 +48,7 @@ public:
     void operator=(const RSProcessor&) = delete;
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false);
+    virtual bool InitUniProcessor(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
         RSSurfaceRenderParams& params) {}

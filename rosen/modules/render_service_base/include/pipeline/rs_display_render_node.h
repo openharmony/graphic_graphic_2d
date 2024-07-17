@@ -42,12 +42,23 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
+    struct ScreenRenderParams
+    {
+        ScreenInfo screenInfo;
+        std::map<ScreenId, bool> displayHasSecSurface;
+        std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasProtectedSurface;
+        std::map<ScreenId, bool> displaySpecailSurfaceChanged;
+        std::map<ScreenId, bool> hasCaptureWindow;
+    };
+
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
         UNI_RENDER_MIRROR_COMPOSITE,
         UNI_RENDER_EXPAND_COMPOSITE,
         HARDWARE_COMPOSITE,
-        SOFTWARE_COMPOSITE
+        SOFTWARE_COMPOSITE,
+        UNKNOWN
     };
     using WeakPtr = std::weak_ptr<RSDisplayRenderNode>;
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
@@ -153,6 +164,7 @@ public:
     void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
+    void SetDisplayGlobalZOrder(float zOrder);
     bool SkipFrame(uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
@@ -281,9 +293,7 @@ public:
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
-    void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
-        std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}

@@ -35,44 +35,9 @@ void GpuContextFuzzTest000(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
-    EGLConfig eglConfig = EGL_NO_CONFIG_KHR;
-    EGLContext eglContext = EGL_NO_CONTEXT;
-    EGLSurface eglSurface = EGL_NO_SURFACE;
-    OH_Drawing_GpuContext* gpuContext = nullptr;
+    // Due to conflicts between libfuzzer and dlclose, effective use cases cannot be provided.
+    OH_Drawing_GpuContextDestroy(nullptr);
 
-    eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    EGLint eglMajVers;
-    EGLint eglMinVers;
-    EGLBoolean ret = eglInitialize(eglDisplay, &eglMajVers, &eglMinVers);
-
-    EGLint count;
-    EGLint configAttribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8,
-        EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
-        EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
-    ret = eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &count);
-
-    const EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
-    eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
-
-    EGLint attribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
-    eglSurface = eglCreatePbufferSurface(eglDisplay, eglConfig, attribs);
-
-    ret = eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-
-    OH_Drawing_GpuContextOptions options;
-    options.allowPathMaskCaching = GetObject<bool>();
-    gpuContext = OH_Drawing_GpuContextCreateFromGL(options);
-    OH_Drawing_GpuContextDestroy(gpuContext);
-
-    ret = eglDestroySurface(eglDisplay, eglSurface);
-    ret = eglDestroyContext(eglDisplay, eglContext);
-    ret = eglTerminate(eglDisplay);
-
-    eglSurface = EGL_NO_SURFACE;
-    eglContext = EGL_NO_CONTEXT;
-    eglDisplay = EGL_NO_DISPLAY;
     return;
 }
 } // namespace Drawing

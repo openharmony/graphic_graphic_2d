@@ -447,6 +447,16 @@ public:
     bool GetHasSkipLayer() const;
     bool GetHasProtectedLayer() const;
 
+    void ResetSpecialLayerChangedFlag()
+    {
+        specialLayerChanged_ = false;
+    }
+
+    bool IsSpecialLayerChanged() const
+    {
+        return specialLayerChanged_;
+    }
+
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
@@ -1254,6 +1264,7 @@ bool isVideoInYuvConfig_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    bool specialLayerChanged_ = false;
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;

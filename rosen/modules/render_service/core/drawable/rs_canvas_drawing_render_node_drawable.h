@@ -38,6 +38,8 @@ public:
         threadId_ = threadId;
     }
     bool InitSurface(int width, int height, RSPaintFilterCanvas& canvas);
+    bool InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
+    bool InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas();
     void Flush(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
@@ -45,7 +47,7 @@ public:
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     void DrawCaptureImage(RSPaintFilterCanvas& canvas);
-    void ReleaseCaptureImage(std::shared_ptr<Drawing::Image> image);
+    void ReleaseCaptureImage();
 
     uint32_t GetTid() const
     {
@@ -58,15 +60,22 @@ private:
     void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds,
         std::shared_ptr<RSContext> ctx, NodeId nodeId);
     void DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect);
-    bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
+    bool ResetSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
+    bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
     bool IsNeedResetSurface() const;
+    void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,
+        NodeId nodeId, RSPaintFilterCanvas& rscanvas);
+    void FlushForVK(float width, float height, std::shared_ptr<RSContext> context,
+        NodeId nodeId, RSPaintFilterCanvas& rscanvas);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
+    bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);
     void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);
+    bool GetCurrentContextAndImage(std::shared_ptr<Drawing::GPUContext>& grContext,
+        std::shared_ptr<Drawing::Image>& image);
 #endif
     static Registrar instance_;
-    std::mutex taskMutex_;
-    std::mutex imageMutex_;
+    std::recursive_mutex drawableMutex_;
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
     std::shared_ptr<Drawing::Image> captureImage_;
@@ -74,6 +83,7 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
     Drawing::BackendTexture backendTexture_;
+    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     pid_t threadId_ = RSUniRenderThread::Instance().GetTid();
