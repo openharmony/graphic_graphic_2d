@@ -421,13 +421,13 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
     double distance = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, distance);
 
-    Point position = { 0.0, 0.0 };
-    GET_UNWRAP_PARAM(ARGC_TWO, tangent);
+    Point* position = nullptr;
+    GET_UNWRAP_PARAM(ARGC_TWO, position);
 
-    Point tangent = { 0.0, 0.0 };
+    Point* tangent = nullptr;
     GET_UNWRAP_PARAM(ARGC_THREE, tangent);
 
-    bool result = m_path->GetPositionAndTangent(distance, position, tangent, forceClosed);
+    bool result = m_path->GetPositionAndTangent(distance, *position, *tangent, forceClosed);
     return CreateJsNumber(env, result);
 }
 
