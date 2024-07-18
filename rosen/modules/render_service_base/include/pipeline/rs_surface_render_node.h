@@ -1198,9 +1198,7 @@ public:
     {
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
     }
-    
-    std::string GetNeedSourceTuningWindow();
- 
+
     void SetNodeNeedTuning(bool isVideoInYuvConfig)
     {
         isVideoInYuvConfig_ = isVideoInYuvConfig;
