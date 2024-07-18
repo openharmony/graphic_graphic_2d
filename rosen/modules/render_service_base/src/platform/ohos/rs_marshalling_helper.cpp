@@ -791,10 +791,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
         return false;
     }
     std::shared_ptr<ParticleNoiseFields> noiseFields = std::make_shared<ParticleNoiseFields>();
-    if (!noiseFields) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Create ParticleNoiseFields fail");
-        return false;
-    }
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleNoiseField> ParticleNoiseField;
         success = success && Unmarshalling(parcel, ParticleNoiseField);
