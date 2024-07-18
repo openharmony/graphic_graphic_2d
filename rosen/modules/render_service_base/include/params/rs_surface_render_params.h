@@ -290,6 +290,7 @@ public:
     bool GetLastFrameHardwareEnabled() const;
     void SetForceHardwareByUser(bool flag);
     bool GetForceHardwareByUser() const;
+    // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
 
