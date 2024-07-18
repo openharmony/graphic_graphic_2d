@@ -36,6 +36,11 @@ constexpr size_t MAX_SIZE = 4;
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
 constexpr size_t SCREEN_REFRESH_RATE = 60;
+constexpr int MAX_CODE = 98;
+constexpr int MIN_CODE = 0;
+constexpr int MIN_SPECIAL_CODE = 1000;
+constexpr int MAX_SPECIAL_CODE = 1002;
+
 const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
 static std::shared_ptr<RSRenderServiceClient> rsClient = std::make_shared<RSRenderServiceClient>();
 
@@ -80,7 +85,46 @@ bool DoOnRemoteRequest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t code = GetData<uint32_t>();
+    uint32_t code = 0;
+    do {
+        code = GetData<uint32_t>();
+    } while (code < MIN_CODE || code > MAX_CODE);
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint8_t subData = GetData<uint8_t>();
+    std::vector<uint8_t> subDataVec;
+    subDataVec.push_back(subData);
+    dataParcel.WriteBuffer(subDataVec.data(), subDataVec.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoOnRemoteRequest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code = 0;
+    do {
+        code = GetData<uint32_t>();
+    } while (code < MIN_SPECIAL_CODE || code > MAX_SPECIAL_CODE);
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
         new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
@@ -779,6 +823,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoOnRemoteRequest(data, size);
+    OHOS::Rosen::DoOnRemoteRequest002(data, size);
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
