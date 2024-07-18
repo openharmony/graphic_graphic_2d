@@ -331,7 +331,7 @@ void OH_Drawing_FontSetScaleX(OH_Drawing_Font* cFont, float scaleX)
 float OH_Drawing_FontGetScaleX(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
-    if (cFont == nullptr) {
+    if (font == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1.0f;
     }
@@ -367,7 +367,7 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
 {
     float ret = -1;
     Font* font = CastToFont(cFont);
-    if (cFont == nullptr || cFontMetrics == nullptr) {
+    if (font == nullptr || cFontMetrics == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return ret;
     }
