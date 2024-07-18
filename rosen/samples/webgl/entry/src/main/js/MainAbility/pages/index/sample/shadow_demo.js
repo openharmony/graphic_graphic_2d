@@ -297,19 +297,19 @@ function initElementArrayBuffer(gl, data, type) {
 function initFramebuffer(gl) {
     let framebuffer, texture, depthBuffer;
     let error = () => {
-        if (framebuffer){
+        if (framebuffer) {
             gl.deleteFramebuffer(framebuffer);
         }
-        if (texture){
+        if (texture) {
             gl.deleteTexture(texture);
         }
-        if (depthBuffer){
+        if (depthBuffer) {
             gl.deleteRenderbuffer(depthBuffer);
         }
         return null;
     };
     framebuffer = gl.createFramebuffer();
-    if (!framebuffer){
+    if (!framebuffer) {
         return error();
     }
     texture = gl.createTexture();
