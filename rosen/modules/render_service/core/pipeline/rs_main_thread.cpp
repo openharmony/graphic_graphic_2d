@@ -419,6 +419,11 @@ void RSMainThread::Init()
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
+    auto delayTaskFunc = [](const std::function<void()>& task, const uint16_t time, const std::string name = "",
+        AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH) {
+            RSMainThread::Instance()->PostTask(task, name, time, priority);
+    };
+    context_->SetDelayTaskRunner(delayTaskFunc);
     if (isUniRender_) {
         auto rtTaskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
             RSUniRenderThread::Instance().PostRTTask(task);

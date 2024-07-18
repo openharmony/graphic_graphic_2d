@@ -60,6 +60,11 @@ public:
     void DumpAnimation(std::string& out) const;
     virtual void DumpAnimationType(std::string& out) const;
 
+    virtual uint16_t GetRemainingTime(const bool isCountRepeat = false) const
+    {
+        return 0;
+    }
+
     void SetAnimationId(AnimationId id)
     {
         id_ = id;

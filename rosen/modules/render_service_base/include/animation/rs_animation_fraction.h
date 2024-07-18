@@ -43,6 +43,7 @@ public:
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
+    uint16_t GetRemainingTime(const bool isCountRepeat = false) const;
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void SetLastFrameTime(int64_t lastFrameTime);
     int64_t GetLastFrameTime() const;

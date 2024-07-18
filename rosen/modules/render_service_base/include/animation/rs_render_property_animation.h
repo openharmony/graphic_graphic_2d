@@ -38,7 +38,10 @@ public:
     bool GetAdditive();
 
     void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) override;
+
     bool Marshalling(Parcel& parcel) const override;
+
+    uint16_t GetRemainingTime(const bool isCountRepeat = false) const override;
 protected:
     RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);

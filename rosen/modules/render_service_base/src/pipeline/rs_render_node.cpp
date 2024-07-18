@@ -1065,9 +1065,9 @@ RSRenderNode::~RSRenderNode()
     if (appPid_ != 0) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
     }
-    if (fallbackAnimationOnDestroy_) {
-        FallbackAnimationsToRoot();
-    }
+    
+    ClearAnimations();
+
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
@@ -1080,29 +1080,39 @@ RSRenderNode::~RSRenderNode()
     }
 }
 
-void RSRenderNode::FallbackAnimationsToRoot()
+void RSRenderNode::EndAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    if (animationManager_.animations_.empty()) {
+    if (animation == nullptr) {
         return;
     }
 
-    auto context = GetContext().lock();
-    if (!context) {
-        ROSEN_LOGE("Invalid context");
-        return;
-    }
-    auto target = context->GetNodeMap().GetAnimationFallbackNode();
-    if (!target) {
-        ROSEN_LOGE("Failed to move animation to root, root render node is null!");
-        return;
-    }
-    context->RegisterAnimatingRenderNode(target);
+    const auto finishTask = [animation]() {
+        RSAnimationManager executor;
+        executor.OnAnimationFinished(animation);
+    };
 
+    if (auto context = context_.lock()) {
+        auto delayTime = animation->GetRemainingTime();
+        // executor has a fixed delay about 300 milliseconds
+        // so animation with less than 300 milliseconds remaining will not be delayed
+        constexpr uint16_t immediate = 300;
+        if (delayTime >= immediate) {
+            context->PostDelayTask(finishTask, delayTime - immediate);
+        } else {
+            finishTask();
+        }
+    } else {
+        ROSEN_LOGE("The context does not exist and the delayed task cannot be executed");
+        finishTask();
+    }
+    animation->Finish();
+}
+
+void RSRenderNode::ClearAnimations()
+{
     for (auto& [unused, animation] : animationManager_.animations_) {
         animation->Detach(true);
-        // avoid infinite loop for fallback animation
-        animation->SetRepeatCount(1);
-        target->animationManager_.AddAnimation(std::move(animation));
+        EndAnimation(animation);
     }
     animationManager_.animations_.clear();
 }
