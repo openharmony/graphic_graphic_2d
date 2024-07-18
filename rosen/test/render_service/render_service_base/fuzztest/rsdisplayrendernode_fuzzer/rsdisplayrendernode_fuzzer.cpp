@@ -138,6 +138,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.UpdatePartialRenderParams();
     rsDisplayRenderNode.IsRotationChanged();
     rsDisplayRenderNode.IsLastRotationChanged();
+    rsDisplayRenderNode.GetPreRotationStatus();
+    rsDisplayRenderNode.GetCurRotationStatus();
     rsDisplayRenderNode.IsFirstTimeToProcessor();
     rsDisplayRenderNode.SetOriginScreenRotation(screenRotation);
     rsDisplayRenderNode.GetOriginScreenRotation();

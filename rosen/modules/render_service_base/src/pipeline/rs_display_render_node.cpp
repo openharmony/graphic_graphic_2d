@@ -352,7 +352,9 @@ void RSDisplayRenderNode::UpdateRotation()
     }
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
-    displayParams->SetRotationChanged(IsRotationChanged());
+    preRotationStatus_ = curRotationStatus_;
+    curRotationStatus_ = IsRotationChanged();
+    displayParams->SetRotationChanged(curRotationStatus_);
 }
 
 void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)
