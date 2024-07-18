@@ -75,7 +75,7 @@ export class SphereGraph {
                 if (iy !== 0 || this.thetaStart > 0){
                     indices.push(a, b, d);
                 }
-                if (iy !== heightSegments - 1 || thetaEnd < Math.PI){
+                if (iy !== heightSegments - 1 || thetaEnd < Math.PI) {
                     indices.push(b, c, d);
                 }
             }
