@@ -31,7 +31,7 @@ namespace {
 }
 
 LayerContext::LayerContext(GraphicIRect dst, GraphicIRect src, uint32_t zorder, LayerType layerType)
-    : cSurface_(IConsumerSurface::Create()), dst_(dst), src_(src), zorder_(zorder), layerType_(layerType)
+    : dst_(dst), src_(src), zorder_(zorder), cSurface_(IConsumerSurface::Create()), layerType_(layerType)
 {
     cSurface_->SetDefaultWidthAndHeight(src.w, src.h);
     cSurface_->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
