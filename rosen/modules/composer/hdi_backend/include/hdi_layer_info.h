@@ -411,7 +411,7 @@ public:
     {
         return scalingMode_;
     }
-
+    // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
         return layerSource_;
