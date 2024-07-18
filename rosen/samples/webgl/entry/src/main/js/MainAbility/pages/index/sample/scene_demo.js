@@ -72,7 +72,7 @@ export async function scene_demo(gl) {
         }
         else {
             cube2.alpha += 0.02;
-            if (cube2.alpha >= 1){
+            if (cube2.alpha >= 1) {
                 cube2.alpha = 1;
             }
             scene.camera().pointLightY += 0.02;
