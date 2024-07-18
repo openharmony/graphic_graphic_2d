@@ -54,7 +54,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
     uint32_t mapSize = rsSurfaces_.size();
     RS_LOGI("RSBaseRenderEngine deinit enter, mapSize:%{public}u", mapSize);
     uint32_t itemIndex = 0;
-    while(!rsSurfaces_.empty()) {
+    while (!rsSurfaces_.empty()) {
         auto it = rsSurfaces_.begin();
         (void)rsSurfaces_.erase(it);
         itemIndex++;
