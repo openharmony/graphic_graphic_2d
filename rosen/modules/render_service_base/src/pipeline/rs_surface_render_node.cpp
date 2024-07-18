@@ -546,12 +546,23 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 {
-    // force preparation case
+    // force preparation case for occlusion
     if (IsLeashWindow()) {
         SetSubTreeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
+
+    // force preparation case for update gravity when appWindow geoDirty
+    auto parentPtr = this->GetParent().lock();
+    auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+    if (surfaceParentPtr != nullptr &&
+        surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        if (this->GetRenderProperties().IsCurGeoDirty()) {
+            return true;
+        }
+    }
+
     return RSRenderNode::IsSubTreeNeedPrepare(filterInGlobal, isOccluded);
 }
 

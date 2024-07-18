@@ -1801,8 +1801,13 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 
 bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 {
-    // 1. Update surfaceNode info
-    auto& geoPtr = node.GetMutableRenderProperties().GetBoundsGeometry();
+    // 1. Update surfaceNode info and AppWindow gravity
+    const auto& property = node.GetRenderProperties();
+    if (node.IsAppWindow()) {
+        boundsRect_ = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        frameGravity_ = property.GetFrameGravity();
+    }
+    auto& geoPtr = property.GetBoundsGeometry();
     if (geoPtr == nullptr) {
         return false;
     }

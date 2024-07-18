@@ -438,6 +438,7 @@ public:
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
+    bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
 
     void SetSpherize(float spherizeDegree);

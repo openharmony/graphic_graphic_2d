@@ -2199,9 +2199,9 @@ void RSProperties::ResetDirty()
 
 void RSProperties::RecordCurDirtyStatus()
 {
-    curIsDirty_ = false;
-    curGeoDirty_ = false;
-    curContentDirty_ = false;
+    curIsDirty_ = isDirty_;
+    curGeoDirty_ = geoDirty_;
+    curContentDirty_ = contentDirty_;
 }
 
 void RSProperties::AccmulateDirtyStatus()
@@ -2219,6 +2219,11 @@ bool RSProperties::IsDirty() const
 bool RSProperties::IsGeoDirty() const
 {
     return geoDirty_;
+}
+
+bool RSProperties::IsCurGeoDirty() const
+{
+    return curGeoDirty_;
 }
 
 bool RSProperties::IsContentDirty() const
