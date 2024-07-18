@@ -1399,9 +1399,14 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const Gravity frameGravity = property.GetFrameGravity();
 
     CheckForceHardwareAndUpdateDstRect(node);
+    if (frameGravity == Gravity::TOP_LEFT) {
+        auto dstRect = node.GetDstRect();
+        auto srcRect = node.GetSrcRect();
+        node.SetDstRect({dstRect.left_, dstRect.top_, srcRect.width_, srcRect.height_});
+        return;
+    }
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
-        (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
+    if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
         return;
     }
  
