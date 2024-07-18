@@ -173,6 +173,11 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
+    if (end > drawCmdList_.size()) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
+        return;
+    }
+
     if (UNLIKELY(skipType_ != SkipType::NONE)) {
         auto skipIndex_ = GetSkipIndex();
         if (start <= skipIndex_ && end > skipIndex_) {
