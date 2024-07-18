@@ -1199,16 +1199,6 @@ public:
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
     }
 
-    void SetNodeNeedTuning(bool isVideoInYuvConfig)
-    {
-        isVideoInYuvConfig_ = isVideoInYuvConfig;
-    }
-    
-    bool IsNodeNeedTuning() const
-    {
-        return isVideoInYuvConfig_;
-    }
-
     bool GetHardWareDisabledByReverse() const
     {
         return isHardWareDisabledByReverse_;
@@ -1228,7 +1218,6 @@ protected:
     void OnSkipSync() override;
 
 private:
-bool isVideoInYuvConfig_ = false;
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
