@@ -151,7 +151,7 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
     if (rsNode_->replaceNodesSwapMap.find(INVALID_STATUS) == rsNode_->replaceNodesSwapMap.end()) {
         rsNode_->replaceNodesSwapMap[INVALID_STATUS] = {};
     } else {
-        auto& invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
+        const auto& invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
         for (const auto& [id, config] : invalidNodes) {
             rsNode_->canvasNodesListMap[symbolSpanId].erase(id);
         }
