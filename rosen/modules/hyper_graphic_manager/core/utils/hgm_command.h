@@ -99,7 +99,7 @@ public:
         int32_t drawMax;
         int32_t down;
         // <bufferName, fps>
-        std::vector<std::pair<std::string, uint32_t>> appBufferList;
+        std::vector<std::pair<std::string, int32_t>> appBufferList;
         std::vector<std::string> appBufferBlackList;
     };
     // <"1", StrategyConfig>
