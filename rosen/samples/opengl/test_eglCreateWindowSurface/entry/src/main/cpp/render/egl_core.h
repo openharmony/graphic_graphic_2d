@@ -33,20 +33,21 @@ private:
     GLuint LoadShader(GLenum type, const char *shaderSrc);
     GLuint CreateProgram(const char *vertexShader, const char *fragShader);
     GLint PrepareDraw();
-    bool ExecuteDraw(GLint position, const GLfloat *color, const GLfloat rectangleVertices[], unsigned long vertSize);
+    static bool ExecuteDraw(GLint position, const GLfloat *color, const GLfloat rectangleVertices[],
+        unsigned long vertSize);
     bool FinishDraw();
 
 private:
-    EGLNativeWindowType m_eglWindow;
-    EGLDisplay m_eglDisplay = EGL_NO_DISPLAY;
-    EGLConfig m_eglConfig = EGL_NO_CONFIG_KHR;
-    EGLSurface m_eglSurface = EGL_NO_SURFACE;
-    EGLContext m_eglContext = EGL_NO_CONTEXT;
-    GLuint m_program;
-    bool m_flag = false;
-    int m_width;
-    int m_height;
-    GLfloat m_widthPercent;
+    EGLNativeWindowType eglwindow_;
+    EGLDisplay egldisplay_ = EGL_NO_DISPLAY;
+    EGLConfig eglconfig_ = EGL_NO_CONFIG_KHR;
+    EGLSurface eglsurface_ = EGL_NO_SURFACE;
+    EGLContext eglcontext_ = EGL_NO_CONTEXT;
+    GLuint program_ = 0;
+    bool flag_ = false;
+    int width_ = 0;
+    int height_ = 0;
+    GLfloat widthpercent_;
 };
 } // namespace OHOS
 #endif // EGL_CORE_H

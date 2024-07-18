@@ -32,23 +32,21 @@ bool EGLCore::EglContextInit(void *window, int width, int height)
         return false;
     }
 
-    m_width = width;
-    m_height = height;
-    if (m_width > 0) {
-        m_widthPercent = FIFTY_PERCENT * m_height / m_width;
-    }
-    m_eglWindow = static_cast<EGLNativeWindowType>(window);
+    width_ = width;
+    height_ = height;
+    widthpercent_ = FIFTY_PERCENT * height_ / width_;
+    eglwindow_ = static_cast<EGLNativeWindowType>(window);
 
     // Init display.
-    m_eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (m_eglDisplay == EGL_NO_DISPLAY) {
+    egldisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (egldisplay_ == EGL_NO_DISPLAY) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "eglGetDisplay: unable to get EGL display");
         return false;
     }
 
     EGLint majorVersion;
     EGLint minorVersion;
-    if (!eglInitialize(m_eglDisplay, &majorVersion, &minorVersion)) {
+    if (!eglInitialize(egldisplay_, &majorVersion, &minorVersion)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore",
             "eglInitialize: unable to get initialize EGL display");
         return false;
@@ -57,7 +55,7 @@ bool EGLCore::EglContextInit(void *window, int width, int height)
     // Select configuration.
     const EGLint maxConfigSize = 1;
     EGLint numConfigs;
-    if (!eglChooseConfig(m_eglDisplay, ATTRIB_LIST, &m_eglConfig, maxConfigSize, &numConfigs)) {
+    if (!eglChooseConfig(egldisplay_, ATTRIB_LIST, &eglconfig_, maxConfigSize, &numConfigs)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "eglChooseConfig: unable to choose configs");
         return false;
     }
@@ -67,27 +65,27 @@ bool EGLCore::EglContextInit(void *window, int width, int height)
 
 bool EGLCore::CreateEnvironment()
 {
-    if (m_eglWindow == nullptr) {
-        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "m_eglWindow is null");
+    if (eglwindow_ == nullptr) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "eglwindow_ is null");
         return false;
     }
-    m_eglSurface = eglCreateWindowSurface(m_eglDisplay, m_eglConfig, m_eglWindow, nullptr);
-    if (m_eglSurface == nullptr) {
+    eglsurface_ = eglCreateWindowSurface(egldisplay_, eglconfig_, eglwindow_, nullptr);
+    if (eglsurface_ == nullptr) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore",
             "eglCreateWindowSurface: unable to create WindowSurface");
         return false;
     }
 
     // Create context.
-    m_eglContext = eglCreateContext(m_eglDisplay, m_eglConfig, EGL_NO_CONTEXT, CONTEXT_ATTRIBS);
-    if (!eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext)) {
+    eglcontext_ = eglCreateContext(egldisplay_, eglconfig_, EGL_NO_CONTEXT, CONTEXT_ATTRIBS);
+    if (!eglMakeCurrent(egldisplay_, eglsurface_, eglsurface_, eglcontext_)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "eglMakeCurrent failed");
         return false;
     }
 
     // Create program.
-    m_program = CreateProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    if (m_program == PROGRAM_ERROR) {
+    program_ = CreateProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    if (program_ == PROGRAM_ERROR) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "CreateProgram: unable to create program");
         return false;
     }
@@ -138,7 +136,7 @@ GLuint EGLCore::CreateProgram(const char *vertexShader, const char *fragShader)
     GLint infoLen = 0;
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLen);
     if (infoLen > 1) {
-        char *infoLog = (char *)malloc(sizeof(char) * (infoLen + 1));
+        char *infoLog = static_cast<char*>(malloc(sizeof(char) * (infoLen + 1)));
         std::fill(infoLog, infoLog + infoLen, 0);
         glGetProgramInfoLog(program, infoLen, nullptr, infoLog);
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "glLinkProgram error = %s", infoLog);
@@ -181,7 +179,7 @@ GLuint EGLCore::LoadShader(GLenum type, const char *shaderSrc)
         return PROGRAM_ERROR;
     }
 
-    char *infoLog = (char *)malloc(sizeof(char) * (infoLen + 1));
+    char *infoLog = static_cast<char*>(malloc(sizeof(char) * (infoLen + 1)));
     if (infoLog != nullptr) {
         std::fill(infoLog, infoLog + infoLen, 0);
         glGetShaderInfoLog(shader, infoLen, nullptr, infoLog);
@@ -195,7 +193,7 @@ GLuint EGLCore::LoadShader(GLenum type, const char *shaderSrc)
 
 void EGLCore::Draw()
 {
-    m_flag = false;
+    flag_ = false;
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "EGLCore", "Draw");
     GLint position = PrepareDraw();
     if (position == POSITION_ERROR) {
@@ -210,10 +208,10 @@ void EGLCore::Draw()
     }
 
     const GLfloat rectangleVertices[] = {
-        -m_widthPercent, FIFTY_PERCENT,
-        m_widthPercent, FIFTY_PERCENT,
-        m_widthPercent, -FIFTY_PERCENT,
-        -m_widthPercent, -FIFTY_PERCENT
+        -widthpercent_, FIFTY_PERCENT,
+        widthpercent_, FIFTY_PERCENT,
+        widthpercent_, -FIFTY_PERCENT,
+        -widthpercent_, -FIFTY_PERCENT
     };
     if (!ExecuteDraw(position, DRAW_COLOR, rectangleVertices, sizeof(rectangleVertices))) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "Draw execute draw rectangle failed");
@@ -225,24 +223,24 @@ void EGLCore::Draw()
         return;
     }
 
-    m_flag = true;
+    flag_ = true;
 }
 
 GLint EGLCore::PrepareDraw()
 {
-    if ((m_eglDisplay == nullptr) || (m_eglSurface == nullptr) || (m_eglContext == nullptr) ||
-        (!eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext))) {
+    if ((egldisplay_ == nullptr) || (eglsurface_ == nullptr) || (eglcontext_ == nullptr) ||
+        (!eglMakeCurrent(egldisplay_, eglsurface_, eglsurface_, eglcontext_))) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "PrepareDraw: param error");
         return POSITION_ERROR;
     }
 
     // The gl function has no return value.
-    glViewport(0, 0, m_width, m_height);
+    glViewport(0, 0, width_, height_);
     glClearColor(0, 255, 0, 1); //255 is color value, 1 is transparency
     glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(m_program);
+    glUseProgram(program_);
 
-    return glGetAttribLocation(m_program, "a_position");
+    return glGetAttribLocation(program_, "a_position");
 }
 
 bool EGLCore::ExecuteDraw(GLint position, const GLfloat *color, const GLfloat rectangleVertices[],
@@ -268,20 +266,20 @@ bool EGLCore::FinishDraw()
     // The gl function has no return value.
     glFlush();
     glFinish();
-    return eglSwapBuffers(m_eglDisplay, m_eglSurface);
+    return eglSwapBuffers(egldisplay_, eglsurface_);
 }
 
 void EGLCore::Release()
 {
-    if ((m_eglDisplay == nullptr) || (m_eglSurface == nullptr) || (!eglDestroySurface(m_eglDisplay, m_eglSurface))) {
+    if ((egldisplay_ == nullptr) || (eglsurface_ == nullptr) || (!eglDestroySurface(egldisplay_, eglsurface_))) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "Release eglDestroySurface failed");
     }
 
-    if ((m_eglDisplay == nullptr) || (m_eglContext == nullptr) || (!eglDestroyContext(m_eglDisplay, m_eglContext))) {
+    if ((egldisplay_ == nullptr) || (eglcontext_ == nullptr) || (!eglDestroyContext(egldisplay_, eglcontext_))) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "Release eglDestroyContext failed");
     }
 
-    if ((m_eglDisplay == nullptr) || (!eglTerminate(m_eglDisplay))) {
+    if ((egldisplay_ == nullptr) || (!eglTerminate(egldisplay_))) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "EGLCore", "Release eglTerminate failed");
     }
 }

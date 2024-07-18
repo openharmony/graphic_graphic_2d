@@ -52,11 +52,11 @@ public:
     void DisPlay();
     void ConstructPath();
     void SetPenAndBrush();
-    void Export(napi_env env, napi_value exports);
+    static void Export(napi_env env, napi_value exports);
     void RegisterCallback(OH_NativeXComponent *nativeXComponent);
     void Destroy();
     static SampleBitMap *GetInstance(std::string &id);
-    std::string id_;
+    std::string id_ = "";
 private:
     OH_NativeXComponent_Callback renderCallback_;
 

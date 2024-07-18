@@ -26,26 +26,26 @@
 namespace OHOS {
 class PluginRender {
 public:
-    explicit PluginRender(std::string &id);
+    explicit PluginRender(const std::string &id);
     ~PluginRender()
     {
-        if (m_eglCore != nullptr) {
-            m_eglCore->Release();
-            delete m_eglCore;
-            m_eglCore = nullptr;
+        if (eglcore_ != nullptr) {
+            eglcore_->Release();
+            delete eglcore_;
+            eglcore_ = nullptr;
         }
     }
     static PluginRender *GetInstance(std::string &id);
     static void Release(std::string &id);
     static napi_value NapiDrawRectangle(napi_env env, napi_callback_info info);
-    void Export(napi_env env, napi_value exports);
+    static void Export(napi_env env, napi_value exports);
 
 public:
-    static std::unordered_map<std::string, PluginRender *> m_instance;
-    static OH_NativeXComponent_Callback m_callback;
+    static std::unordered_map<std::string, PluginRender *> instance_;
+    static OH_NativeXComponent_Callback callback_;
 
-    EGLCore *m_eglCore;
-    std::string m_id;
+    EGLCore *eglcore_ = nullptr;
+    std::string id_ = "";
 };
 } // namespace OHOS
 #endif // PLUGIN_RENDER_H

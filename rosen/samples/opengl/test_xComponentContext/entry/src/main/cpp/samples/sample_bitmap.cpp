@@ -301,6 +301,9 @@ static void OnSurfaceCreatedCB(OH_NativeXComponent *component,
     }
     std::string id(idStr);
     auto render = SampleBitMap::GetInstance(id);
+    if (render == nullptr) {
+        return;
+    }
     OHNativeWindow *nativeWindow = static_cast<OHNativeWindow *>(window);
     render->SetNativeWindow(nativeWindow);
 

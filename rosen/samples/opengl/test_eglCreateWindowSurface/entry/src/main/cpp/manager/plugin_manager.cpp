@@ -23,25 +23,25 @@
 #include "common.h"
 
 namespace OHOS {
-PluginManager PluginManager::m_pluginManager;
+PluginManager PluginManager::pluginmanager_;
 
 PluginManager::~PluginManager()
 {
-    for (auto iter = m_nativeXComponentMap.begin(); iter != m_nativeXComponentMap.end(); ++iter) {
+    for (auto iter = nativeXComponentMap_.begin(); iter != nativeXComponentMap_.end(); ++iter) {
         if (iter->second != nullptr) {
             delete iter->second;
             iter->second = nullptr;
         }
     }
-    m_nativeXComponentMap.clear();
+    nativeXComponentMap_.clear();
 
-    for (auto iter = m_pluginRenderMap.begin(); iter != m_pluginRenderMap.end(); ++iter) {
+    for (auto iter = pluginrendermap_.begin(); iter != pluginrendermap_.end(); ++iter) {
         if (iter->second != nullptr) {
             delete iter->second;
             iter->second = nullptr;
         }
     }
-    m_pluginRenderMap.clear();
+    pluginrendermap_.clear();
 }
 
 void PluginManager::Export(napi_env env, napi_value exports)
@@ -76,7 +76,7 @@ void PluginManager::Export(napi_env env, napi_value exports)
     if ((context != nullptr) && (nativeXComponent != nullptr)) {
         context->SetNativeXComponent(id, nativeXComponent);
         auto render = context->GetRender(id);
-        OH_NativeXComponent_RegisterCallback(nativeXComponent, &PluginRender::m_callback);
+        OH_NativeXComponent_RegisterCallback(nativeXComponent, &PluginRender::callback_);
         if (render != nullptr) {
             render->Export(env, exports);
         }
@@ -89,27 +89,21 @@ void PluginManager::SetNativeXComponent(std::string &id, OH_NativeXComponent *na
         return;
     }
 
-    if (m_nativeXComponentMap.find(id) == m_nativeXComponentMap.end()) {
-        m_nativeXComponentMap[id] = nativeXComponent;
-        return;
-    }
-
-    if (m_nativeXComponentMap[id] != nativeXComponent) {
-        OH_NativeXComponent *tmp = m_nativeXComponentMap[id];
-        delete tmp;
-        tmp = nullptr;
-        m_nativeXComponentMap[id] = nativeXComponent;
+    auto [iter, inserted] = nativeXComponentMap_.try_emplace(id, nativeXComponent);
+    if (!inserted && iter->second != nativeXComponent) {
+        delete iter->second;
+        iter->second = nativeXComponent;
     }
 }
 
 PluginRender *PluginManager::GetRender(std::string &id)
 {
-    if (m_pluginRenderMap.find(id) == m_pluginRenderMap.end()) {
+    if (pluginrendermap_.find(id) == pluginrendermap_.end()) {
         PluginRender *instance = PluginRender::GetInstance(id);
-        m_pluginRenderMap[id] = instance;
+        pluginrendermap_[id] = instance;
         return instance;
     }
 
-    return m_pluginRenderMap[id];
+    return pluginrendermap_[id];
 }
 } // namespace OHOS
