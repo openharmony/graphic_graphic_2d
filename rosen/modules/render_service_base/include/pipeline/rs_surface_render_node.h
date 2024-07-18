@@ -1350,8 +1350,7 @@ private:
     // hdr
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
-    int32_t layerSource_ = 0;
-    
+
     struct OpaqueRegionBaseInfo
     {
         RectI screenRect_;
