@@ -68,7 +68,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    RSUIDirector::Create();
     return true;
 }
 

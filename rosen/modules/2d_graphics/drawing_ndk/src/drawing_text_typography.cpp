@@ -2392,7 +2392,10 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string str = convert.to_bytes(buffer);
     char* result = new char[str.size()+1];
-    strcpy(result, str.c_str());
+    if (strcpy_s(result, str.size() + 1, str.c_str()) != 0) {
+        delete[] result;
+        return nullptr;
+    }
     return result;
 }
 

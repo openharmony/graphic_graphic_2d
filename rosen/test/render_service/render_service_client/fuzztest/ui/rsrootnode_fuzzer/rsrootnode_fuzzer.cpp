@@ -63,7 +63,7 @@ bool DoCreate(const uint8_t* data, size_t size)
 
     // test
     bool isRenderServiceNode = GetData<bool>();
-    std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
+    RSRootNode::Create(isRenderServiceNode);
     return true;
 }
 
