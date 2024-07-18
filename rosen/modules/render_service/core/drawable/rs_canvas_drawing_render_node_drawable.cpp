@@ -27,6 +27,9 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen::DrawableV2 {
+namespace {
+    constexpr int EDGE_WIDTH_LIMIT = 1000;
+}
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -348,6 +351,9 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 
 void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
 {
+    if (surface_ && surface_->GetImageInfo().GetWidth() > 1000) {
+        RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
+    }
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
@@ -667,6 +673,10 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
+    if (width > 1000) {
+        RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture id:%{public}" PRIu64 " "
+             "width:%{public}d height:%{public}d ", nodeId_, width, height);
+    }
     auto preMatrix = canvas_->GetTotalMatrix();
     auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
     auto preSaveCount = canvas_->GetSaveCount();
