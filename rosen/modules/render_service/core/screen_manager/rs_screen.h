@@ -37,7 +37,7 @@ struct VirtualScreenConfigs {
     sptr<Surface> surface = nullptr;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
-    std::unordered_set<uint64_t> filteredAppSet = {};
+    std::unordered_set<uint64_t> whiteList = {};
     std::unordered_set<uint64_t> blackListSet = {};
 };
 
@@ -102,7 +102,7 @@ public:
     virtual int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
     virtual int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const = 0;
     virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
-    virtual const std::unordered_set<uint64_t>& GetFilteredAppSet() const = 0;
+    virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
     virtual void SetBlackList(std::unordered_set<uint64_t>& blackListSet) = 0;
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
@@ -182,7 +182,7 @@ public:
     int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
     int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const override;
     int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
-    const std::unordered_set<uint64_t>& GetFilteredAppSet() const override;
+    const std::unordered_set<uint64_t>& GetWhiteList() const override;
     void SetBlackList(std::unordered_set<uint64_t>& blackListSet) override;
     void SetCastScreenEnableSkipWindow(bool enable) override;
     const std::unordered_set<uint64_t>& GetBlackList() const override;
@@ -248,7 +248,7 @@ private:
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;
     static std::map<GraphicHDRFormat, ScreenHDRFormat> HDI_HDR_FORMAT_TO_RS_MAP;
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
-    std::unordered_set<uint64_t> filteredAppSet_ = {};
+    std::unordered_set<uint64_t> whiteList_ = {};
     std::unordered_set<uint64_t> blackList_ = {};
     std::atomic<bool> skipWindow_ = false;
 };

@@ -379,13 +379,13 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: call CreateVirtualScreen with filteredAppVector
+* CaseDescription: call CreateVirtualScreen with whiteList
 */
 HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2)
 {
-    std::vector<NodeId> filteredAppVector = {};
+    std::vector<NodeId> whiteList = {};
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 

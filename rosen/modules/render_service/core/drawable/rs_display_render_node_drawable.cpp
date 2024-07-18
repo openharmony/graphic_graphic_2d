@@ -494,6 +494,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             }
             uniParam->SetBlackList(currentBlackList_);
+            uniParam->SetWhiteList(screenInfo.whiteList);
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(displayNodeSp, *params, processor);
             lastBlackList_ = currentBlackList_;
@@ -741,7 +742,9 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    if (hasGeneralSpecialLayer || !params.GetScreenInfo().filteredAppSet.empty() || !currentBlackList_.empty()) {
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams() ?
+       RSUniRenderThread::Instance().GetRSRenderThreadParams().get() : nullptr;
+    if (hasGeneralSpecialLayer || (uniParam && !uniParam->GetWhiteList().empty()) || !currentBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -896,9 +899,10 @@ void RSDisplayRenderNodeDrawable::DrawMirror(std::shared_ptr<RSDisplayRenderNode
     curCanvas_->Restore();
     curCanvas_->ResetMatrix();
     rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(false);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetStartVisit(false);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetBlackList({});
+    uniParam.SetHasCaptureImg(false);
+    uniParam.SetStartVisit(false);
+    uniParam.SetBlackList({});
+    uniParam.SetWhiteList({});
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorCopy(std::shared_ptr<RSDisplayRenderNode>& displayNodeSp,

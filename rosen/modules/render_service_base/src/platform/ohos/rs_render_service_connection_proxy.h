@@ -66,7 +66,7 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int32_t flags = 0,
-        std::vector<NodeId> filteredAppVector = {}) override;
+        std::vector<NodeId> whiteList = {}) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 

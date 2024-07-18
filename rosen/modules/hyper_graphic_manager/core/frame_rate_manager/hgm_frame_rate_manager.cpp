@@ -768,7 +768,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     }
 
     static std::mutex hgmTouchEventMutex;
-    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
+    std::unique_lock<std::mutex> eventLock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGI("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;

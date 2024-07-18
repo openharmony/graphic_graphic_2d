@@ -42,7 +42,6 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
-    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -143,6 +142,7 @@ private:
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
+    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

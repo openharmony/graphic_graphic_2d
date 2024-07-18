@@ -218,7 +218,10 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, EnableRecordingOptimization, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
-    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(*(drawable_->renderParams_)));
+    auto surfaceParams = drawable_->renderParams_ ?
+        static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get()) : nullptr;
+    ASSERT_NE(surfaceParams, nullptr);
+    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(*surfaceParams));
 }
 
 /**

@@ -109,10 +109,10 @@ public:
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    bool HasSecurityLayer();
-    bool HasSkipLayer();
-    bool HasProtectedLayer();
-    bool HasCaptureWindow();
+    bool HasSecurityLayer() const;
+    bool HasSkipLayer() const;
+    bool HasProtectedLayer() const;
+    bool HasCaptureWindow() const;
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 

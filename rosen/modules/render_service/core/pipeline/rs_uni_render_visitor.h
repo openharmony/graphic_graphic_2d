@@ -419,8 +419,8 @@ private:
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {
-        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.filteredAppSet.empty() ||
-            screenInfo_.filteredAppSet.find(node.GetId()) != screenInfo_.filteredAppSet.end());
+        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.whiteList.empty() ||
+            screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
@@ -644,8 +644,8 @@ private:
     bool CheckIfNeedResetRotate();
 
     // use for virtual screen app/window filtering ability
-    NodeId virtualScreenFilterAppRootId_ = INVALID_NODEID;
-    void UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node);
+    NodeId virtualScreenWhiteListRootId_ = INVALID_NODEID;
+    void UpdateVirtualScreenWhiteListRootId(const RSRenderNode::SharedPtr& node);
 
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
 

@@ -91,7 +91,7 @@ private:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int32_t flags = 0,
-        std::vector<NodeId> filteredAppVector = {}) override;
+        std::vector<NodeId> whiteList = {}) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 

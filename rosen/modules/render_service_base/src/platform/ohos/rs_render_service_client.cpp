@@ -319,14 +319,14 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
 
-    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
+    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)

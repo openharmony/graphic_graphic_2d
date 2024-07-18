@@ -60,7 +60,7 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int flags = 0,
-        std::vector<NodeId> filteredAppVector = {});
+        std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 

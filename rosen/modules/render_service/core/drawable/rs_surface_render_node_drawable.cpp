@@ -510,24 +510,16 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    // process black list
-    auto blackList = uniParam->GetBlackList();
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) &&
-        !blackList.empty() && blackList.find(surfaceParams->GetId()) != blackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture: (id:[%{public}" PRIu64 "]) is in black list",
-            surfaceParams->GetId());
-        return;
-    }
+    // process white list
+    auto whiteList = uniParam->GetWhiteList();
+    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
 
-    // To be deleted after captureWindow being deleted
-    bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
-        EnableRecordingOptimization(*surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirror(*uniParam, *surfaceParams)) {
         return;
     }
 
     if (uniParam->IsOcclusionEnabled() && surfaceNode->IsMainWindowType() &&
-        surfaceParams->GetVisibleRegionInVirtual().IsEmpty() &&
+        surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
         RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
             surfaceParams->GetAbsDrawRect().ToString());
@@ -549,23 +541,73 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     CaptureSurface(*surfaceNode, *rscanvas, *surfaceParams);
+    ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
+}
+
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(
+    const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams)
+{
+    if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
+        return false;
+    }
+    // Check black list.
+    const auto& blackList = uniParam.GetBlackList();
+    if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
+            (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+        return true;
+    }
+    // Check white list.
+    const auto& whiteList = uniParam.GetWhiteList();
+    if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
+            (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
+        return true;
+    }
+    // To be deleted after captureWindow being deleted.
+    // Check weather can be skipped due to using screen recording optimization.
+    if (EnableRecordingOptimization(surfaceParams)) {
+        return true;
+    }
+    return false;
+}
+
+void RSSurfaceRenderNodeDrawable::SetVirtualScreenWhiteListRootId(
+    const std::unordered_set<NodeId>& whiteList, NodeId id)
+{
+    if (whiteList.find(id) == whiteList.end()) {
+        return;
+    }
+    // don't update if it's ancestor has already set
+    if (RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ != INVALID_NODEID) {
+        return;
+    }
+    RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ = id;
+}
+
+void RSSurfaceRenderNodeDrawable::ResetVirtualScreenWhiteListRootId(NodeId id)
+{
+    // only reset by the node which sets the flag
+    if (RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == id) {
+        RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ = INVALID_NODEID;
+    }
 }
 
 // To be deleted after captureWindow being deleted
-bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
+bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(const RSSurfaceRenderParams& surfaceParams)
 {
     auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (threadParams) {
         NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
         bool hasCaptureImg = threadParams->GetHasCaptureImg();
-        if (nodeId == params.GetId()) {
+        if (nodeId == surfaceParams.GetId()) {
             RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
-                params.GetId());
+                surfaceParams.GetId());
             threadParams->SetStartVisit(true);
         }
         if (hasCaptureImg && !threadParams->GetStartVisit()) {
             RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
-                params.GetId());
+                surfaceParams.GetId());
             return true;
         }
     }
