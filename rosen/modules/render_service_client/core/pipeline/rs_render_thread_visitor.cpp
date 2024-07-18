@@ -748,6 +748,9 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %{public}" PRIu64
                 " cannot find surface by surfaceId %{public}" PRIu64 "",
             node.GetId(), node.GetSurfaceId());
+        RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is " PRIu64
+                " cannot find surface by surfaceId " PRIu64 "",
+            node.GetId(), node.GetSurfaceId());
         return;
     }
     sptr<SurfaceBuffer> surfaceBuffer;
@@ -761,10 +764,13 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     sptr<SyncFence> fence;
     int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderThreadVisitor::ProcessSurfaceViewInRT:GetLastFlushedBuffer failed, err: %d", ret);
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
         return;
     }
     if (fence != nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT: waitfence");
         fence->Wait(3000); // wait at most 3000ms
     }
     auto transform = surface->GetTransform();
