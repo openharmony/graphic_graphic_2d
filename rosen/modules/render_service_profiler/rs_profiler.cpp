@@ -18,6 +18,7 @@
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler.h"
+#include "rs_profiler_archive.h"
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
@@ -179,7 +180,10 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     if (!IsBetaRecordEnabled()) {
-        static std::thread const THREAD(Network::Run);
+        static auto const networkRunLambda = []() {
+            Network::Run();
+        };
+        static std::thread const thread(networkRunLambda);
     }
 }
 
@@ -406,10 +410,10 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         captureData.SetProperty(RSCaptureData::KEY_RENDER_FRAME_LEN, frameLengthNanosecs);
 
         std::vector<char> out;
-        captureData.Serialize(out);
-
-        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RENDER_METRICS);
-        out.insert(out.begin(), headerType);
+        DataWriter archive(out);
+        char headerType = static_cast<char>(PackageID::RS_PROFILER_RS_METRICS);
+        archive.Serialize(headerType);
+        captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
@@ -559,15 +563,19 @@ void RSProfiler::ScheduleTask(std::function<void()> && task)
 
 void RSProfiler::RequestNextVSync()
 {
-    g_mainThread->RequestNextVSync();
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
+    }
     ScheduleTask([]() { g_mainThread->RequestNextVSync(); });
 }
 
 void RSProfiler::AwakeRenderServiceThread()
 {
-    g_mainThread->RequestNextVSync();
-    g_mainThread->SetAccessibilityConfigChanged();
-    g_mainThread->SetDirtyFlag();
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
+        g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
+    }
     ScheduleTask([]() {
         g_mainThread->SetAccessibilityConfigChanged();
         g_mainThread->SetDirtyFlag();
@@ -804,10 +812,10 @@ void RSProfiler::RecordUpdate()
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
 
         std::vector<char> out;
-        captureData.Serialize(out);
-
-        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RS_METRICS);
-        out.insert(out.begin(), headerType);
+        DataWriter archive(out);
+        char headerType = static_cast<char>(PackageID::RS_PROFILER_RS_METRICS);
+        archive.Serialize(headerType);
+        captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());

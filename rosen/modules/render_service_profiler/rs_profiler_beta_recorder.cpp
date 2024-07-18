@@ -16,6 +16,7 @@
 #include <thread>
 
 #include "rs_profiler.h"
+#include "rs_profiler_archive.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
@@ -263,9 +264,10 @@ void RSProfiler::WriteBetaRecordMetrics(RSFile& file, double time)
     DeviceInfoToCaptureData(time, deviceInfo, captureData);
 
     std::vector<char> out;
-    const char headerType = static_cast<const char>(PackageID::RS_PROFILER_GFX_METRICS);
-    captureData.Serialize(out);
-    out.insert(out.begin(), headerType);
+    DataWriter archive(out);
+    char headerType = static_cast<char>(PackageID::RS_PROFILER_GFX_METRICS);
+    archive.Serialize(headerType);
+    captureData.Serialize(archive);
 
     file.WriteGFXMetrics(0, time, 0, out.data(), out.size());
 }

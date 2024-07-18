@@ -240,7 +240,8 @@ private:
     RSB_EXPORT static void UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static void UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
+    RSB_EXPORT static void UnmarshalNode(
+        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
     RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
     // RSRenderNode

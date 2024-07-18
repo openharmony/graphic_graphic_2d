@@ -19,6 +19,7 @@
 #include <memory>
 #include <thread>
 
+#include "rs_profiler_archive.h"
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
@@ -242,11 +243,14 @@ void Network::SendSkp(const void* data, size_t size)
 void Network::SendCaptureData(const RSCaptureData& data)
 {
     std::vector<char> out;
-    const_cast<RSCaptureData&>(data).Serialize(out);
+    DataWriter archive(out);
+    char headerType = static_cast<char>(PackageID::RS_PROFILER_GFX_METRICS);
+    archive.Serialize(headerType);
 
-    if (!out.empty()) {
-        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_GFX_METRICS);
-        out.insert(out.begin(), headerType);
+    const_cast<RSCaptureData&>(data).Serialize(archive);
+
+    // if no data is serialized, we end up with just 1 char header
+    if (out.size() > 1) {
         SendBinary(out);
     }
 }
