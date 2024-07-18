@@ -66,7 +66,7 @@ export async function scene_demo(gl) {
         if (scene.camera().pointMoveDirect === 0) {
             scene.camera().pointLightY -= 0.02;
             cube2.alpha -= 0.02;
-            if (cube2.alpha <= 0){
+            if (cube2.alpha <= 0) {
                 cube2.alpha = 0;
             }
         }
