@@ -160,7 +160,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     }
 
     RSUniRenderThread::SetCaptureParam(
-        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true));
+        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 
