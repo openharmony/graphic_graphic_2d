@@ -59,7 +59,6 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
         itemIndex++;
         RS_LOGD("RSBaseRenderEngine remove item:[%{public}u]", itemIndex);
     }
-    RS_LOGI("RSBaseRenderEngine deinit exit");
 }
 
 void RSBaseRenderEngine::Init(bool independentContext)
