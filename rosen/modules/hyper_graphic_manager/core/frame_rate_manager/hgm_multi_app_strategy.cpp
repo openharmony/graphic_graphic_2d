@@ -266,16 +266,28 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     screenSettingCache_ = screenConfig[curRefreshRateMode];
 }
 
-PolicyConfigData::ScreenSetting& HgmMultiAppStrategy::GetScreenSetting()
+PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting()
 {
     std::unique_lock<std::mutex> lock(updateCacheMutex_);
     return screenSettingCache_;
 }
 
-PolicyConfigData::StrategyConfigMap& HgmMultiAppStrategy::GetStrategyConfigs()
+void HgmMultiAppStrategy::SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting)
+{
+    std::unique_lock<std::mutex> lock(updateCacheMutex_);
+    screenSettingCache_ = screenSetting;
+}
+
+PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs()
 {
     std::unique_lock<std::mutex> lock(updateCacheMutex_);
     return strategyConfigMapCache_;
+}
+
+void HgmMultiAppStrategy::SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
+{
+    std::unique_lock<std::mutex> lock(updateCacheMutex_);
+    strategyConfigMapCache_ = strategyConfigs;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(

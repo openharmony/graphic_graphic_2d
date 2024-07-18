@@ -64,8 +64,10 @@ public:
     std::vector<std::string> GetPackages();
     void CleanApp(pid_t pid);
     void UpdateXmlConfigCache();
-    PolicyConfigData::ScreenSetting& GetScreenSetting();
-    PolicyConfigData::StrategyConfigMap& GetStrategyConfigs();
+    PolicyConfigData::ScreenSetting GetScreenSetting();
+    void SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting);
+    PolicyConfigData::StrategyConfigMap GetStrategyConfigs();
+    void SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs);
     HgmErrCode GetStrategyConfig(const std::string& strategyName, PolicyConfigData::StrategyConfig& strategyRes);
     HgmErrCode GetAppStrategyConfig(const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes);
 

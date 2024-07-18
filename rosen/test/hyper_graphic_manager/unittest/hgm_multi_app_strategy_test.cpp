@@ -71,8 +71,8 @@ void HgmMultiAppStrategyTest::SetUp()
     multiAppStrategy_ = std::make_shared<HgmMultiAppStrategy>();
     // init config
     // set app config
-    auto &strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
-    auto &screenSetting = multiAppStrategy_->GetScreenSetting();
+    auto strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
+    auto screenSetting = multiAppStrategy_->GetScreenSetting();
     auto &appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
@@ -97,14 +97,17 @@ void HgmMultiAppStrategyTest::SetUp()
 
     appTypes[appType0] = strategyName0;
     appTypes[appType1] = strategyName1;
+    multiAppStrategy_->SetStrategyConfigs(strategyConfigs);
+    multiAppStrategy_->SetScreenSetting(screenSetting);
 }
 
 void HgmMultiAppStrategyTest::SetMultiAppStrategy(
     MultiAppStrategyType multiAppStrategyType, const std::string& strategyName)
 {
-    auto &screenSetting = multiAppStrategy_->GetScreenSetting();
+    auto screenSetting = multiAppStrategy_->GetScreenSetting();
     screenSetting.multiAppStrategyType = multiAppStrategyType;
     screenSetting.multiAppStrategyName = strategyName;
+    multiAppStrategy_->SetScreenSetting(screenSetting);
 }
 
 std::vector<std::string> HgmMultiAppStrategyTest::CreateVotePkgs()
