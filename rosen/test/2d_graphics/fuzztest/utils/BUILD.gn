@@ -24,8 +24,10 @@ group("fuzztest") {
     "rect_fuzzer:fuzztest",
     "resourceholder_fuzzer:fuzztest",
     "roundrect_fuzzer:fuzztest",
+    "samplingoptions_fuzzer:fuzztest",
     "scalar_fuzzer:fuzztest",
     "size_fuzzer:fuzztest",
+    "systemproperties_fuzzer:fuzztest",
     "vertices_fuzzer:fuzztest",
   ]
 }
