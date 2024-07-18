@@ -17,6 +17,7 @@
 #define SKIA_GPUCONTEXT_H
 
 #include <unordered_map>
+#include <array>
 
 #include "include/core/SkExecutor.h"
 #include "include/gpu/GrContextOptions.h"

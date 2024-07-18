@@ -130,6 +130,7 @@ public:
     CoreCanvas& DetachPaint() override;
 
     bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+    std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
 protected:
     virtual bool OnFilter() const = 0;
@@ -337,7 +338,7 @@ private:
 
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
-    
+
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
 

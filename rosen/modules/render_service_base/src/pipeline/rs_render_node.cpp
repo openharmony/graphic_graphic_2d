@@ -1994,8 +1994,6 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     // force update if no next vsync when skip-frame enabled
     if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
         filterDrawable->ForceClearCacheWithLastFrame();
-        dirtyManager.MergeDirtyRect(filterRegion_);
-        isDirtyRegionUpdated_ = true;
         return;
     }
 

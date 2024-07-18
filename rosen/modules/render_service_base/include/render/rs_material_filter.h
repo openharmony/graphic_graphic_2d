@@ -20,6 +20,7 @@
 #endif
 
 #include "common/rs_color.h"
+#include "render/rs_hps_blur.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_kawase_blur.h"
 
@@ -95,7 +96,7 @@ public:
 
     bool IsEqual(const std::shared_ptr<RSFilter>& other) const override;
     bool IsEqualZero() const override;
- 
+
     // color picker subthread
     const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
     void ReleaseColorPickerFilter();
