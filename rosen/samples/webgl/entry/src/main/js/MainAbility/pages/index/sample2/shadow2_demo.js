@@ -126,7 +126,7 @@ export async function shadow2_demo(gl) {
 
 function draw(gl, program, o, viewProjMatrix) {
     initAttributeVariable(gl, program.a_Position, o.vertexBuffer);
-    if (program.a_Color != undefined){ // 如果a_Color定义为属性
+    if (program.a_Color != undefined) { // 如果a_Color定义为属性
         initAttributeVariable(gl, program.a_Color, o.colorBuffer);
     }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
@@ -188,7 +188,7 @@ function initVertexBuffersPlane(gl) {
     o.indexBuffer = initElementArrayBuffer(gl, indices, gl.UNSIGNED_BYTE);
     o.uvsBuffer = initArrayBuffer(gl, uvs, 2, gl.FLOAT);
     o.texture = gl.createTexture();
-    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer){
+    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer) {
         return null;
     }
     o.numIndices = indices.length;
@@ -267,7 +267,7 @@ function initVertexBuffersTriangle(gl) {
     o.colorBuffer = initArrayBuffer(gl, colors, 3, gl.FLOAT); // colorBuffer
     o.uvsBuffer = initArrayBuffer(gl, uvs, 2, gl.FLOAT); // uvsBuffer
     o.indexBuffer = initElementArrayBuffer(gl, indices, gl.UNSIGNED_BYTE); // indexBuffer
-    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer){
+    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer) {
         return null;
     }
     o.numIndices = indices.length;
@@ -334,7 +334,7 @@ function initFramebuffer(gl) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
     let e = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if (gl.FRAMEBUFFER_COMPLETE !== e){
+    if (gl.FRAMEBUFFER_COMPLETE !== e) {
         return error();
     }
     framebuffer.texture = texture;
