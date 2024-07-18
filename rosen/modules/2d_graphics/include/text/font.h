@@ -29,12 +29,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class FontEdging {
-    ALIAS,
-    ANTI_ALIAS,
-    SUBPIXEL_ANTI_ALIAS,
-};
-
 class DRAWING_API Font {
 public:
     Font();

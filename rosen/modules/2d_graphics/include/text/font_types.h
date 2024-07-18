@@ -32,6 +32,12 @@ enum class FontHinting {
     NORMAL,
     FULL,
 };
+
+enum class FontEdging {
+    ALIAS,
+    ANTI_ALIAS,
+    SUBPIXEL_ANTI_ALIAS,
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

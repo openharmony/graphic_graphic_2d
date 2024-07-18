@@ -26,26 +26,34 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsFont::constructor_ = nullptr;
 const std::string CLASS_NAME = "Font";
+
+static napi_property_descriptor properties[] = {
+    DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
+    DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
+    DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
+    DECLARE_NAPI_FUNCTION("setSize", JsFont::SetSize),
+    DECLARE_NAPI_FUNCTION("setTypeface", JsFont::SetTypeface),
+    DECLARE_NAPI_FUNCTION("getTypeface", JsFont::GetTypeface),
+    DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
+    DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
+    DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
+    DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
+    DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
+    DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
+    DECLARE_NAPI_FUNCTION("setEdging", JsFont::SetEdging),
+    DECLARE_NAPI_FUNCTION("setHinting", JsFont::SetHinting),
+    DECLARE_NAPI_FUNCTION("countText", JsFont::CountText),
+    DECLARE_NAPI_FUNCTION("isSubpixel", JsFont::IsSubpixel),
+    DECLARE_NAPI_FUNCTION("isLinearMetrics", JsFont::IsLinearMetrics),
+    DECLARE_NAPI_FUNCTION("getSkewX", JsFont::GetSkewX),
+    DECLARE_NAPI_FUNCTION("isEmbolden", JsFont::IsEmbolden),
+    DECLARE_NAPI_FUNCTION("getScaleX", JsFont::GetScaleX),
+    DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
+    DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
+};
+
 napi_value JsFont::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
-        DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
-        DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
-        DECLARE_NAPI_FUNCTION("setSize", JsFont::SetSize),
-        DECLARE_NAPI_FUNCTION("setTypeface", JsFont::SetTypeface),
-        DECLARE_NAPI_FUNCTION("getTypeface", JsFont::GetTypeface),
-        DECLARE_NAPI_FUNCTION("getSize", JsFont::GetSize),
-        DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
-        DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
-        DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
-        DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
-        DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
-        DECLARE_NAPI_FUNCTION("setEdging", JsFont::SetEdging),
-        DECLARE_NAPI_FUNCTION("setHinting", JsFont::SetHinting),
-        DECLARE_NAPI_FUNCTION("countText", JsFont::CountText),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
                                            sizeof(properties) / sizeof(properties[0]), properties, &constructor);
@@ -225,6 +233,48 @@ napi_value JsFont::CountText(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnCountText(env, info) : nullptr;
+}
+
+napi_value JsFont::IsSubpixel(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnIsSubpixel(env, info) : nullptr;
+}
+
+napi_value JsFont::IsLinearMetrics(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnIsLinearMetrics(env, info) : nullptr;
+}
+
+napi_value JsFont::GetSkewX(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnGetSkewX(env, info) : nullptr;
+}
+
+napi_value JsFont::IsEmbolden(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnIsEmbolden(env, info) : nullptr;
+}
+
+napi_value JsFont::GetScaleX(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnGetScaleX(env, info) : nullptr;
+}
+
+napi_value JsFont::GetHinting(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnGetHinting(env, info) : nullptr;
+}
+
+napi_value JsFont::GetEdging(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnGetEdging(env, info) : nullptr;
 }
 
 napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
@@ -492,6 +542,83 @@ napi_value JsFont::OnCountText(napi_env env, napi_callback_info info)
 
     double textSize = m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
     return GetDoubleAndConvertToJsValue(env, textSize);
+}
+
+napi_value JsFont::OnIsSubpixel(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnIsSubpixel font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool subpixel = m_font->IsSubpixel();
+    return CreateJsValue(env, subpixel);
+}
+
+napi_value JsFont::OnIsLinearMetrics(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnIsLinearMetrics font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool linear = m_font->IsLinearMetrics();
+    return CreateJsValue(env, linear);
+}
+
+napi_value JsFont::OnGetSkewX(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetSkewX font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double skewX = m_font->GetSkewX();
+    return GetDoubleAndConvertToJsValue(env, skewX);
+}
+
+napi_value JsFont::OnIsEmbolden(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnIsEmbolden font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool fakeBoldText = m_font->IsEmbolden();
+    return CreateJsValue(env, fakeBoldText);
+}
+
+napi_value JsFont::OnGetScaleX(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetScaleX font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double scaleX = m_font->GetScaleX();
+    return GetDoubleAndConvertToJsValue(env, scaleX);
+}
+
+napi_value JsFont::OnGetHinting(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetHinting font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    FontHinting hinting = m_font->GetHinting();
+    return CreateJsNumber(env, static_cast<uint32_t>(hinting));
+}
+
+napi_value JsFont::OnGetEdging(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetEdging font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    FontEdging edging = m_font->GetEdging();
+    return CreateJsNumber(env, static_cast<uint32_t>(edging));
 }
 
 std::shared_ptr<Font> JsFont::GetFont()
