@@ -2327,7 +2327,7 @@ void RSRenderNode::ApplyModifiers()
     }
 
     // Temporary code, copy matrix into render params
-    if (LIKELY(RSUniRenderJudgement::IsUniRender())) {
+    if (LIKELY(RSUniRenderJudgement::IsUniRender() && !isTextureExportNode_)) {
         UpdateDrawableVecV2();
     } else {
         UpdateDrawableVec();
