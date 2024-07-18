@@ -13,56 +13,56 @@
  * limitations under the License.
  */
 
-import { cube_demo } from "./sample/cube_demo";
-import { scene_demo } from './sample/scene_demo';
-import { shadow_demo } from './sample/shadow_demo';
-import { panorama_demo } from './sample/panorama_demo';
-import { texture_2d_demo } from './sample/texture_2d_demo';
-import { cube2_demo } from './sample2/cube2_demo';
-import { panorama2_demo } from './sample2/panorama2_demo';
-import { shadow2_demo } from './sample2/shadow2_demo';
+import { cubeDemo } from './sample/cube_demo';
+import { sceneDemo } from './sample/scene_demo';
+import { shadowDemo } from './sample/shadow_demo';
+import { panoramaDemo } from './sample/panorama_demo';
+import { texture2dDemo } from './sample/texture_2d_demo';
+import { cube2Demo } from './sample2/cube2_demo';
+import { panorama2Demo } from './sample2/panorama2_demo';
+import { shadow2Demo } from './sample2/shadow2_demo';
 
 export class Demo {
     //webgl1_demo
-    static WEBGL1_CUBE_DEMO = "webgl1_cube_demo"
-    static WEBGL1_PANORAMA_DEMO = "webgl1_panorama_demo"
-    static WEBGL1_SCENE_DEMO = "webgl1_scene_demo"
-    static WEBGL1_SHADOW_DEMO = "webgl1_shadow_demo"
-    static WEBGL1_TEXTURE2D_DEMO = "webgl1_texture_2d_demo"
+    static WEBGL1_CUBE_DEMO = 'webgl1_cube_demo';
+    static WEBGL1_PANORAMA_DEMO = 'webgl1_panorama_demo';
+    static WEBGL1_SCENE_DEMO = 'webgl1_scene_demo';
+    static WEBGL1_SHADOW_DEMO = 'webgl1_shadow_demo';
+    static WEBGL1_TEXTURE2D_DEMO = 'webgl1_texture_2d_demo';
     //webgl2_demo
-    static WEBGL2_CUBE_DEMO = "webgl2_cube_demo"
-    static WEBGL2_PANORAMA_DEMO = "webgl2_panorama_demo"
-    static WEBGL2_SHADOW_DEMO = "webgl2_shadow_demo"
+    static WEBGL2_CUBE_DEMO = 'webgl2_cube_demo';
+    static WEBGL2_PANORAMA_DEMO = 'webgl2_panorama_demo';
+    static WEBGL2_SHADOW_DEMO = 'webgl2_shadow_demo';
 }
 
 export async function main(gl, type) {
-    if(!type){
-        type = Demo.WEBGL1_CUBE_DEMO
+    if(!type) {
+        type = Demo.WEBGL1_CUBE_DEMO;
     }
     switch (type) {
         case Demo.WEBGL1_CUBE_DEMO:
-            await cube_demo(gl);
+            await cubeDemo(gl);
             break;
         case Demo.WEBGL1_PANORAMA_DEMO:
-            await panorama_demo(gl);
+            await panoramaDemo(gl);
             break;
         case Demo.WEBGL1_SCENE_DEMO:
-            await scene_demo(gl);
+            await sceneDemo(gl);
             break;
         case Demo.WEBGL1_SHADOW_DEMO:
-            await shadow_demo(gl);
+            await shadowDemo(gl);
             break;
         case Demo.WEBGL1_TEXTURE2D_DEMO:
-            await texture_2d_demo();
+            await texture2dDemo();
             break;
         case Demo.WEBGL2_CUBE_DEMO:
-            await cube2_demo(gl);
+            await cube2Demo(gl);
             break;
         case Demo.WEBGL2_PANORAMA_DEMO:
-            await panorama2_demo(gl);
+            await panorama2Demo(gl);
             break;
         case Demo.WEBGL2_SHADOW_DEMO:
-            await shadow2_demo(gl);
+            await shadow2Demo(gl);
             break;
         default:
             break;

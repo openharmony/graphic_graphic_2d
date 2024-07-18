@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { Shape } from "./Shape.js";
-import { Point } from "./Point.js";
+import { Shape } from './Shape.js';
+import { Point } from './Point.js';
 
 export class CubeShape extends Shape {
     width; //边长
@@ -42,8 +42,8 @@ export class CubeShape extends Shape {
     indexBufferData = null;
     normalBufferData = null;
     textureUint = 0;
-    attributes = ["a_Position", "a_Color", "a_Normal", "a_TexCoord"];
-    uniforms = ["u_MvpMatrix", "u_NormalMatrix", "u_ModelMatrix", "lightPosition", "lightDirection", "lightInnerCutoff", "lightOuterCutoff", "u_FogColor", "u_FogDist", "u_Eye", "u_Sampler", "v_UseTexture", "alpha"];
+    attributes = ['a_Position', 'a_Color', 'a_Normal', 'a_TexCoord'];
+    uniforms = ['u_MvpMatrix', 'u_NormalMatrix', 'u_ModelMatrix', 'lightPosition', 'lightDirection', 'lightInnerCutoff', 'lightOuterCutoff', 'u_FogColor', 'u_FogDist', 'u_Eye', 'u_Sampler', 'v_UseTexture', 'alpha'];
 
     constructor(width = 1, height = 1, depth = 1, center = new Point(), widthSegments = 1, heightSegments = 1, depthSegments = 1) {
         super();
