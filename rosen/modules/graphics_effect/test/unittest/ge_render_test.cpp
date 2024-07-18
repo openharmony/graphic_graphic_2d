@@ -365,5 +365,25 @@ HWTEST_F(GERenderTest, GenerateShaderFilter005, TestSize.Level1)
  
     GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter005 end";
 }
+
+/**
+ * @tc.name: GenerateShaderFilter006
+ * @tc.desc: Verify the GenerateShaderFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GERenderTest, GenerateShaderFilter006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter006 start";
+ 
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_MAGNIFIER);
+    Drawing::GEVisualEffectContainer veContainer;
+    veContainer.AddToChainedFilter(visualEffect);
+    auto geRender = std::make_shared<GERender>();
+    auto shaderFilters = geRender->GenerateShaderFilter(veContainer);
+    EXPECT_NE(shaderFilters[0], nullptr);
+ 
+    GTEST_LOG_(INFO) << "GERenderTest GenerateShaderFilter006 end";
+}
+
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

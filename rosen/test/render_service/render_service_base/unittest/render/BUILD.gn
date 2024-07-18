@@ -29,6 +29,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_border_test.cpp",
     "rs_color_extract_test.cpp",
     "rs_color_picker_test.cpp",
+    "rs_colorful_shadow_filter_test.cpp",
     "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",

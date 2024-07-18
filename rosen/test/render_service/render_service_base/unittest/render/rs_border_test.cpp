@@ -671,4 +671,31 @@ HWTEST_F(RSBorderTest, GetIPTest, TestSize.Level1)
     EXPECT_EQ(border->GetBLIP(rrect, innerRectCenter).GetX(), 1);
     EXPECT_EQ(border->GetBRIP(rrect, innerRectCenter).GetX(), 10);
 }
+
+/**
+ * @tc.name: GetDashWidthTest
+ * @tc.desc: Verify function GetDashWidth
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, GetDashWidthTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+    border->SetDashWidth(0.1f);
+    border->dashWidth_.push_back(0.2f);
+    EXPECT_EQ(border->GetDashWidth(1), 0.2f);
+}
+
+/**
+ * @tc.name: GetDashGapTest
+ * @tc.desc: Verify function GetDashGap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, GetDashGapTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+    border->SetDashGap(0.1f);
+    border->dashGap_.push_back(0.2f);
+    EXPECT_EQ(border->GetDashGap(1), 0.2f);
+}
+
 } // namespace OHOS::Rosen

@@ -240,6 +240,7 @@ HWTEST_F(RSMaterialFilterTest, AddTest001, TestSize.Level1)
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
+    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
 }
 
 /**
@@ -256,6 +257,7 @@ HWTEST_F(RSMaterialFilterTest, SubTest001, TestSize.Level1)
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
+    EXPECT_EQ(rsMaterialFilter->Sub(nullptr), rsMaterialFilter);
 }
 
 /**
@@ -370,6 +372,7 @@ HWTEST_F(RSMaterialFilterTest, IsNearEqual001, TestSize.Level1)
     float threshold = 1.0f;
     std::shared_ptr<RSFilter> rsMaterialFilter1 = std::make_shared<RSMaterialFilter>(materialParam1, mode);
     EXPECT_TRUE(rsMaterialFilter->IsNearEqual(rsMaterialFilter1, threshold));
+    EXPECT_TRUE(rsMaterialFilter->IsNearEqual(nullptr, threshold));
 }
 
 /**

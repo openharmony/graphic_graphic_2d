@@ -150,6 +150,18 @@ HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTest001ionTest001, TestSize.Le
 }
 
 /**
+ * @tc.name: AddTest002
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, AddTest002, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_EQ(filter->Add(nullptr), filter);
+}
+
+/**
  * @tc.name: SubTest001
  * @tc.desc: Verify function Sub
  * @tc.type:FUNC
@@ -162,6 +174,31 @@ HWTEST_F(RSLightUpEffectFilterTest, SubTest001, TestSize.Level1)
     EXPECT_NE(filter->Sub(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
     EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTest002
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTest002, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_EQ(filter->Sub(nullptr), filter);
+}
+
+/**
+ * @tc.name: IsEqualTest001
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, IsEqualTest001, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto otherFilter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_TRUE(filter->IsEqual(otherFilter));
 }
 
 /**

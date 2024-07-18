@@ -136,5 +136,54 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest, TestSize.Level
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     EXPECT_EQ(image->GetWidth(), 1);
 }
+
+/**
+ * @tc.name: GetDescriptionTest
+ * @tc.desc: Verify function GetDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSForegroundEffectFilterTest, GetDescriptionTest, TestSize.Level1)
+{
+    float blurRadius = 401.f;
+    auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(blurRadius);
+    std::string expectRes = "ForegroundEffect radius: " + std::to_string(blurRadius) +
+        ", scale: " + std::to_string(rsForegroundEffectFilter->blurScale_) + ", passNum: " +
+        std::to_string(rsForegroundEffectFilter->numberOfPasses_) + ", dirtyExtension: " +
+        std::to_string(rsForegroundEffectFilter->GetDirtyExtension());
+    EXPECT_NE(rsForegroundEffectFilter->blurRadius_, blurRadius);
+
+    blurRadius = 151.f;
+    auto otherFilter = std::make_shared<RSForegroundEffectFilter>(blurRadius);
+    EXPECT_NE(otherFilter->GetDescription(), expectRes);
+}
+
+/**
+ * @tc.name: IsValidTest
+ * @tc.desc: Verify function IsValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSForegroundEffectFilterTest, IsValidTest, TestSize.Level1)
+{
+    auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(1.0f);
+    std::string expectRes;
+    EXPECT_TRUE(rsForegroundEffectFilter->IsValid());
+}
+
+/**
+ * @tc.name: DrawImageRectTest
+ * @tc.desc: Verify function DrawImageRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSForegroundEffectFilterTest, DrawImageRectTest, TestSize.Level1)
+{
+    auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(1.0f);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> originImage = image;
+    Drawing::Canvas canvas;
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    rsForegroundEffectFilter->DrawImageRect(canvas, image, src, dst);
+    EXPECT_EQ(image, originImage);
+}
 } // namespace Rosen
 } // namespace OHOS
