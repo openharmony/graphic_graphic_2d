@@ -51,7 +51,6 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
     std::lock_guard<std::mutex> lockGuard(rsSurfacesMutex_);
     // clear map when deinit
-    uint32_t mapSize = rsSurfaces_.size();
     uint32_t itemIndex = 0;
     while (!rsSurfaces_.empty()) {
         auto it = rsSurfaces_.begin();
