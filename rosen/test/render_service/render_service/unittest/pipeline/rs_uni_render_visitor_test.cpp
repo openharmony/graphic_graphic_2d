@@ -53,6 +53,7 @@ namespace {
     constexpr int ROTATION_90 = 90;
     const OHOS::Rosen::RectI DEFAULT_RECT = {0, 80, 1000, 1000};
     const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+    constexpr int MAX_ALPHA = 255;
 }
 
 namespace OHOS::Rosen {
@@ -5058,6 +5059,143 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheFullyCovered001, TestSize.Level
     surfaceNode1->visibleFilterChild_.emplace_back(node1->GetId());
     surfaceNode1->visibleFilterChild_.emplace_back(node2->GetId());
     rsUniRenderVisitor->CheckFilterCacheFullyCovered(surfaceNode1);
+}
+
+/*
+ * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode001
+ * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has no child
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE0Q3
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckIsGpuOverDrawBufferOptimizeNode001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->CheckIsGpuOverDrawBufferOptimizeNode(*surfaceNode);
+    ASSERT_FALSE(surfaceNode->IsGpuOverDrawBufferOptimizeNode());
+}
+
+/*
+ * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode002
+ * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has child
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE0Q3
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckIsGpuOverDrawBufferOptimizeNode002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    surfaceNode->SetIsScale(true);
+
+    NodeId childNodeId = config.id + 1;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
+    surfaceNode->AddChild(childNode, -1);
+    surfaceNode->GenerateFullChildrenList();
+
+    NodeId rootNodeId = childNodeId + 1;
+    auto rootNode = std::make_shared<RSRenderNode>(rootNodeId);
+    childNode->AddChild(rootNode, -1);
+
+    NodeId canvasNodeId = rootNodeId + 1;
+    auto canvasNode = std::make_shared<RSRenderNode>(canvasNodeId);
+    auto& properties = canvasNode->GetMutableRenderProperties();
+    Color color(0, 0, 0, MAX_ALPHA);
+    properties.SetBackgroundColor(color);
+    rootNode->AddChild(canvasNode, -1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curCornerRadius_ = {1.0f, 1.0f, 1.0f, 1.0f};
+    rsUniRenderVisitor->CheckIsGpuOverDrawBufferOptimizeNode(*surfaceNode);
+    ASSERT_TRUE(surfaceNode->IsGpuOverDrawBufferOptimizeNode());
+}
+
+/*
+ * @tc.name: CollectFilterInfoAndUpdateDirty001
+ * @tc.desc: Verify function CollectFilterInfoAndUpdateDirty without curSurfaceNode_
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE0Q3
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    RectI rect(0, 0, 0, 0);
+
+    ASSERT_TRUE(rsUniRenderVisitor->containerFilter_.empty());
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    ASSERT_FALSE(rsUniRenderVisitor->containerFilter_.empty());
+}
+
+/*
+ * @tc.name: CollectFilterInfoAndUpdateDirty002
+ * @tc.desc: Verify function CollectFilterInfoAndUpdateDirty with non-transparent curSurfaceNode_
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE0Q3
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId surfaceNodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    surfaceNode->SetAbilityBGAlpha(MAX_ALPHA);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    NodeId nodeId = surfaceNodeId + 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    RectI rect(0, 0, 0, 0);
+
+    ASSERT_TRUE(rsUniRenderVisitor->globalFilter_.empty());
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    ASSERT_FALSE(rsUniRenderVisitor->globalFilter_.empty());
+}
+
+/*
+ * @tc.name: CollectFilterInfoAndUpdateDirty003
+ * @tc.desc: Verify function CollectFilterInfoAndUpdateDirty with transparent curSurfaceNode_
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE0Q3
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId surfaceNodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    surfaceNode->SetAbilityBGAlpha(0);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    NodeId nodeId = surfaceNodeId + 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    RectI rect(0, 0, 0, 0);
+
+    ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 
 /**
