@@ -46,6 +46,9 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK))
+constexpr uint8_t ASTC_HEADER_SIZE = 16;
+#endif
 }
 
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
@@ -440,8 +443,8 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
-    if (surfaceBuffer == nullptr) {
-        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr");
+    if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
+        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
     if (nativeWindowBuffer_ == nullptr) {
@@ -478,13 +481,45 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     }
     return dmaImage;
 }
+
+void RSBackgroundImageDrawable::SetCompressedDataForASTC()
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
+    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+    if (!pixelMap || !fileData) {
+        RS_LOGE("SetCompressedDataForASTC fail, data is null");
+        return;
+    }
+    // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+        RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        if (!nativeWindowBuffer_) {
+            sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+            nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+        }
+        OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
+        if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
+            RS_LOGE("SetCompressedDataForASTC data BuildFromOHNativeBuffer fail");
+            return;
+        }
+    } else {
+        const void* data = pixelMap->GetPixels();
+        if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
+            (data == nullptr || !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
+            pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
+            RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
+            return;
+        }
+    }
+    bgImage_->SetCompressData(fileData);
+}
 #endif
 
 bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingBgImage_ = properties.GetBgImage();
-    if (!stagingBgImage_ || !stagingBgImage_->GetPixelMap()) {
+    if (!stagingBgImage_) {
         return false;
     }
 
@@ -520,9 +555,13 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() c
             if (!bgImage->GetPixelMap()->GetFd()) {
                 return;
             }
-            auto dmaImage =
-                ptr->MakeFromTextureForVK(*canvas, reinterpret_cast<SurfaceBuffer*>(bgImage->GetPixelMap()->GetFd()));
-            bgImage->SetDmaImage(dmaImage);
+            if (bgImage->GetPixelMap()->IsAstc()) {
+                ptr->SetCompressedDataForASTC();
+            } else {
+                auto dmaImage = ptr->MakeFromTextureForVK(*canvas,
+                reinterpret_cast<SurfaceBuffer*>(bgImage->GetPixelMap()->GetFd()));
+                bgImage->SetDmaImage(dmaImage);
+            }
         }
 #endif
         bgImage->CanvasDrawImage(*canvas, ptr->boundsRect_, Drawing::SamplingOptions(), true);
@@ -661,6 +700,9 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSDynamicLightUpDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas->GetUICapture()) {
+            return;
+        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         auto alpha = paintFilterCanvas->GetAlpha();
         auto blender = RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(

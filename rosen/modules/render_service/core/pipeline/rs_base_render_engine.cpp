@@ -482,6 +482,17 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
     }
 }
 
+void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
+    BufferDrawParam& drawParam)
+{
+    if (drawParam.useCPU) {
+        DrawBuffer(canvas, drawParam);
+    } else {
+        RegisterDeleteBufferListener(surfaceHandler.GetConsumer());
+        DrawImage(canvas, drawParam);
+    }
+}
+
 void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 {
     std::lock_guard<std::mutex> lock(colorFilterMutex_);

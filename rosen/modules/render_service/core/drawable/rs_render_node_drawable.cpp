@@ -43,7 +43,7 @@ constexpr float CACHE_UPDATE_FILL_ALPHA = 0.8f;
 RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawableAdapter(std::move(node))
 {
-    auto task = std::bind(&RSRenderNodeDrawable::ClearCachedSurface, this);
+    auto task = [this] { this->RSRenderNodeDrawable::ClearCachedSurface(); };
     std::const_pointer_cast<RSRenderNode>(node)->RegisterClearSurfaceFunc(task);
 }
 
@@ -108,7 +108,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     // check drawing cache type (disabled: clear cache)
-    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !params.OpincGetCachedMark()) &&
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !OpincGetCachedMark()) &&
         !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         {
@@ -144,7 +144,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
-        && !params.OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
+        && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
     }
 

@@ -332,6 +332,22 @@ void RSSubThreadManager::ReleaseTexture()
     needCancelReleaseTextureTask_ = true;
 }
 
+void RSSubThreadManager::TryReleaseTextureForIdleThread()
+{
+    if (threadList_.empty()) {
+        return;
+    }
+
+    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+        auto subThread = threadList_[i];
+        if (subThread->GetDoingCacheProcessNum() != 0) {
+            continue;
+        }
+        subThread->PostTask([subThread]() { subThread->ThreadSafetyReleaseTexture(); }, RELEASE_TEXTURE);
+    }
+    needCancelReleaseTextureTask_ = true;
+}
+
 void RSSubThreadManager::CancelReleaseTextureTask()
 {
     if (!needCancelReleaseTextureTask_) {

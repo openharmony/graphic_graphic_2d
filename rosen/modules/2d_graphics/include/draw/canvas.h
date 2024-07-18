@@ -52,10 +52,15 @@ public:
     virtual void SetOffscreen(bool isOffscreen);
 
     virtual bool GetOffscreen() const;
+
+    virtual void SetUICapture(bool isUICapture);
+
+    virtual bool GetUICapture() const;
 protected:
     std::vector<Canvas*> pCanvasList_;
     bool recordingState_ = false;
     bool isOffscreen_ = false;
+    bool isUICapture_ = false;
 };
 
 class DRAWING_API OverDrawCanvas : public Canvas {

@@ -850,10 +850,13 @@ HWTEST_F(RSRenderNodeTest2, CheckBlurFilterCacheNeedForceClearOrSave, TestSize.L
 {
     RSRenderNode node(id, context);
     bool rotationChanged = true;
+    bool rotationStatusChanged = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
-    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
+    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
+    rotationStatusChanged = false;
+    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
     ASSERT_TRUE(true);
 }
 

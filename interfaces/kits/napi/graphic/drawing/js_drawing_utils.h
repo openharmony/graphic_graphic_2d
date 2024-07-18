@@ -26,6 +26,7 @@
 #include "native_engine/native_value.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
+#include "utils/point.h"
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
@@ -339,6 +340,38 @@ inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value
     return napi_get_value_int32(env, jsValue, &value) == napi_ok && value >= lo && value <= hi;
 }
 
+inline bool GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetX = 0;
+    if (napi_get_named_property(env, argValue, "x", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetX) != napi_ok) {
+        return false;
+    }
+    point.SetX(targetX);
+    return true;
+}
+
+inline bool GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetY = 0;
+    if (napi_get_named_property(env, argValue, "y", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetY) != napi_ok) {
+        return false;
+    }
+    point.SetY(targetY);
+    return true;
+}
+
+inline bool GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    return GetPointXFromJsNumber(env, argValue, point) &&
+           GetPointYFromJsNumber(env, argValue, point);
+}
+
+bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count);
+
 inline napi_value GetDoubleAndConvertToJsValue(napi_env env, double d)
 {
     napi_value value = nullptr;
@@ -364,6 +397,19 @@ inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect>
         napi_set_named_property(env, objValue, "top", CreateJsNumber(env, rect->GetTop()));
         napi_set_named_property(env, objValue, "right", CreateJsNumber(env, rect->GetRight()));
         napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, rect->GetBottom()));
+    }
+    return objValue;
+}
+
+inline napi_value ConvertPointToJsValue(napi_env env, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        if (napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX())) != napi_ok ||
+            napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY())) != napi_ok) {
+            return nullptr;
+        }
     }
     return objValue;
 }

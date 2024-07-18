@@ -362,7 +362,11 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         pographyStyle.breakStrategy = BreakStrategy(breakStrategy);
     }
 
-    SetStrutStyleFromJS(env, argValue, pographyStyle);
+    napi_value strutStyleValue = nullptr;
+    if (GetNamePropertyFromJS(env, argValue, "strutStyle", strutStyleValue)) {
+        SetStrutStyleFromJS(env, strutStyleValue, pographyStyle);
+    }
+
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
     return true;
@@ -465,37 +469,28 @@ bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetri
     return true;
 }
 
-void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
 {
-    if (!argValue) {
-        return;
-    }
-
-    napi_value strutStyleValue = nullptr;
-    if (!GetNamePropertyFromJS(env, argValue, "strutStyle", strutStyleValue)) {
-        return;
-    }
-
     napi_value tempValue = nullptr;
     if (GetNamePropertyFromJS(env, strutStyleValue, "fontFamilies", tempValue)) {
         std::vector<std::string> fontFamilies;
         if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
-            pographyStyle.lineStyleFontFamilies = fontFamilies;
+            typographyStyle.lineStyleFontFamilies = fontFamilies;
         }
     }
 
-    SetEnumValueFromJS(env, strutStyleValue, "fontStyle", pographyStyle.lineStyleFontStyle);
-    SetEnumValueFromJS(env, strutStyleValue, "fontWidth", pographyStyle.lineStyleFontWidth);
-    SetEnumValueFromJS(env, strutStyleValue, "fontWeight", pographyStyle.lineStyleFontWeight);
+    SetEnumValueFromJS(env, strutStyleValue, "fontStyle", typographyStyle.lineStyleFontStyle);
+    SetEnumValueFromJS(env, strutStyleValue, "fontWidth", typographyStyle.lineStyleFontWidth);
+    SetEnumValueFromJS(env, strutStyleValue, "fontWeight", typographyStyle.lineStyleFontWeight);
 
-    SetDoubleValueFromJS(env, strutStyleValue, "fontSize", pographyStyle.lineStyleFontSize);
-    SetDoubleValueFromJS(env, strutStyleValue, "height", pographyStyle.lineStyleHeightScale);
-    SetDoubleValueFromJS(env, strutStyleValue, "leading", pographyStyle.lineStyleSpacingScale);
+    SetDoubleValueFromJS(env, strutStyleValue, "fontSize", typographyStyle.lineStyleFontSize);
+    SetDoubleValueFromJS(env, strutStyleValue, "height", typographyStyle.lineStyleHeightScale);
+    SetDoubleValueFromJS(env, strutStyleValue, "leading", typographyStyle.lineStyleSpacingScale);
 
-    SetBoolValueFromJS(env, strutStyleValue, "forceHeight", pographyStyle.lineStyleOnly);
-    SetBoolValueFromJS(env, strutStyleValue, "enabled", pographyStyle.useLineStyle);
-    SetBoolValueFromJS(env, strutStyleValue, "heightOverride", pographyStyle.lineStyleHeightOnly);
-    SetBoolValueFromJS(env, strutStyleValue, "halfLeading", pographyStyle.lineStyleHalfLeading);
+    SetBoolValueFromJS(env, strutStyleValue, "forceHeight", typographyStyle.lineStyleOnly);
+    SetBoolValueFromJS(env, strutStyleValue, "enabled", typographyStyle.useLineStyle);
+    SetBoolValueFromJS(env, strutStyleValue, "heightOverride", typographyStyle.lineStyleHeightOnly);
+    SetBoolValueFromJS(env, strutStyleValue, "halfLeading", typographyStyle.lineStyleHalfLeading);
 }
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
@@ -665,4 +660,34 @@ napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetr
     }
     return objValue;
 }
+
+napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics* metrics)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (metrics != nullptr && objValue != nullptr) {
+        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, metrics->fTop));
+        napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, metrics->fAscent));
+        napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, metrics->fDescent));
+        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, metrics->fBottom));
+        napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, metrics->fLeading));
+        napi_set_named_property(env, objValue, "flags", CreateJsNumber(env, metrics->fFlags));
+        napi_set_named_property(env, objValue, "avgCharWidth", CreateJsNumber(env, metrics->fAvgCharWidth));
+        napi_set_named_property(env, objValue, "maxCharWidth", CreateJsNumber(env, metrics->fMaxCharWidth));
+        napi_set_named_property(env, objValue, "xMin", CreateJsNumber(env, metrics->fXMin));
+        napi_set_named_property(env, objValue, "xMax", CreateJsNumber(env, metrics->fXMax));
+        napi_set_named_property(env, objValue, "xHeight", CreateJsNumber(env, metrics->fXHeight));
+        napi_set_named_property(env, objValue, "capHeight", CreateJsNumber(env, metrics->fCapHeight));
+        napi_set_named_property(env, objValue, "underlineThickness", CreateJsNumber(env,
+            metrics->fUnderlineThickness));
+        napi_set_named_property(env, objValue, "underlinePosition", CreateJsNumber(env,
+            metrics->fUnderlinePosition));
+        napi_set_named_property(env, objValue, "strikethroughThickness", CreateJsNumber(env,
+            metrics->fStrikeoutThickness));
+        napi_set_named_property(env, objValue, "strikethroughPosition", CreateJsNumber(env,
+            metrics->fStrikeoutPosition));
+    }
+    return objValue;
+}
+
 } // namespace OHOS::Rosen

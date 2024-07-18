@@ -46,6 +46,7 @@ napi_value JsPath::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("close", JsPath::Close),
         DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
         DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
+        DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
     };
 
     napi_value constructor = nullptr;
@@ -73,23 +74,49 @@ napi_value JsPath::Init(napi_env env, napi_value exportObj)
 
 napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
 {
-    size_t argCount = 0;
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
     napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    if (status != napi_ok) {
-        ROSEN_LOGE("failed to napi_get_cb_info");
-        return nullptr;
+    JsPath* jsPath = nullptr;
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ZERO, ARGC_ONE);
+    if (argc == ARGC_ZERO) {
+        Path* path = new(std::nothrow) Path();
+        if (!path) {
+            ROSEN_LOGE("Path::Constructor Failed to create Path");
+            return nullptr;
+        }
+        jsPath = new(std::nothrow) JsPath(path);
+        if (!jsPath) {
+            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
+            return nullptr;
+        }
+    } else if (argc == ARGC_ONE) {
+        napi_valuetype valueType = napi_undefined;
+        if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "JsPath::Constructor Argv[0] is invalid");
+        }
+        JsPath* path = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ZERO, path);
+        Path* p = new(std::nothrow) Path(*path->GetPath());
+        if (!p) {
+            ROSEN_LOGE("Path::Constructor Failed to create Path");
+            return nullptr;
+        }
+        jsPath = new(std::nothrow) JsPath(p);
+        if (!jsPath) {
+            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
+            return nullptr;
+        }
+    } else {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
-
-    Path *path = new Path();
-    JsPath *jsPath = new(std::nothrow) JsPath(path);
     if (!jsPath) {
         ROSEN_LOGE("Failed to create JsPath");
         return nullptr;
     }
-
-    status = napi_wrap(env, jsThis, jsPath,
-                       JsPath::Destructor, nullptr, nullptr);
+    napi_status status = napi_wrap(env, jsThis, jsPath,
+        JsPath::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPath;
         ROSEN_LOGE("JsPath::Constructor Failed to wrap native instance");
@@ -221,6 +248,12 @@ napi_value JsPath::GetLength(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnGetLength(env, info) : nullptr;
+}
+
+napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsClosed(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -626,6 +659,17 @@ napi_value JsPath::OnGetBounds(napi_env env, napi_callback_info info)
     }
 
     return GetRectAndConvertToJsValue(env, rect);
+}
+
+napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsClosed path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->IsClosed(true);
+    return CreateJsNumber(env, result);
 }
 
 Path* JsPath::GetPath()

@@ -108,7 +108,8 @@ public:
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
     bool NeedInitCacheSurface();
-    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex);
+    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
+        bool isUIFirst);
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
@@ -141,7 +142,7 @@ public:
 #endif
 
     bool DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isUIFirst = false);
     void DrawableCache(std::shared_ptr<Drawing::GPUContext> grContext_);
 
     void SetLastFrameUsedThreadIndex(pid_t tid)

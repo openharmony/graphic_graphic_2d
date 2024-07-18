@@ -1792,7 +1792,7 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     isDirtyRegionUpdated_ = true;
 }
 
-void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged)
+void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged, bool rotationStatusChanged)
 {
     bool rotationClear = false;
     if (!IsInstanceOf<RSEffectRenderNode>() && rotationChanged) {
@@ -1811,10 +1811,13 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
             }
         }
     }
+    if (IsInstanceOf<RSEffectRenderNode>()) {
+        rotationStatusChanged = false;
+    }
     if (properties.GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
-            if (!(filterDrawable->IsForceClearFilterCache()) && !dirtySlots_.empty()) {
+            if (!(filterDrawable->IsForceClearFilterCache()) && (rotationStatusChanged || !dirtySlots_.empty())) {
                 RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] foreground is dirty", GetId());
                 filterDrawable->MarkFilterForceClearCache();
             }

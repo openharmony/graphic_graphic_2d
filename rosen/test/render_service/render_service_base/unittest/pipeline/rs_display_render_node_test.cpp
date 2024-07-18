@@ -296,13 +296,8 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateRenderParams, TestSize.Level1)
 HWTEST_F(RSDisplayRenderNodeTest, UpdateScreenRenderParams, TestSize.Level1)
 {
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    ScreenInfo screenInfo;
-    std::map<ScreenId, bool> displayHasSecSurface;
-    std::map<ScreenId, bool> displayHasSkipSurface;
-    std::map<ScreenId, bool> displayHasProtectedSurface;
-    std::map<ScreenId, bool> hasCaptureWindow;
-    displayNode->UpdateScreenRenderParams(screenInfo, displayHasSecSurface, displayHasSkipSurface,
-        displayHasProtectedSurface, hasCaptureWindow);
+    RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
+    displayNode->UpdateScreenRenderParams(screenRenderParams);
     ASSERT_TRUE(true);
 }
 

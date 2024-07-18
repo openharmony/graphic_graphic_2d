@@ -42,12 +42,23 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
+    struct ScreenRenderParams
+    {
+        ScreenInfo screenInfo;
+        std::map<ScreenId, bool> displayHasSecSurface;
+        std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasProtectedSurface;
+        std::map<ScreenId, bool> displaySpecailSurfaceChanged;
+        std::map<ScreenId, bool> hasCaptureWindow;
+    };
+
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
         UNI_RENDER_MIRROR_COMPOSITE,
         UNI_RENDER_EXPAND_COMPOSITE,
         HARDWARE_COMPOSITE,
-        SOFTWARE_COMPOSITE
+        SOFTWARE_COMPOSITE,
+        UNKNOWN
     };
     using WeakPtr = std::weak_ptr<RSDisplayRenderNode>;
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
@@ -282,9 +293,7 @@ public:
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
-    void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
-        std::map<ScreenId, bool>& hasCaptureWindow);
+    void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
@@ -293,6 +302,12 @@ public:
     bool IsRotationChanged() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
+    }
+    bool GetPreRotationStatus() const {
+        return preRotationStatus_;
+    }
+    bool GetCurRotationStatus() const {
+        return curRotationStatus_;
     }
     bool IsFirstTimeToProcessor() const {
         return isFirstTimeToProcessor_;
@@ -474,6 +489,8 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+    bool preRotationStatus_ = false;
+    bool curRotationStatus_ = false;
     bool lastRotationChanged_ = false;
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;

@@ -1007,14 +1007,8 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
 
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
-    if (property == nullptr) {
-        return;
-    }
     auto propertyId = property->GetId();
     auto uiAnimation = std::make_shared<RSAnimationGroup>();
-    if (uiAnimation == nullptr) {
-        return;
-    }
     auto animationId = uiAnimation->GetId();
     AddAnimation(uiAnimation);
     if (finishCallback != nullptr) {

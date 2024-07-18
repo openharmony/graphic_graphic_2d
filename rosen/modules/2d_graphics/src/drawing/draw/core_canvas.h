@@ -68,13 +68,13 @@ struct Lattice {
         TRANSPARENT,
         FIXEDCOLOR,
     };
-    int* fXDivs = nullptr;
-    int* fYDivs = nullptr;
-    RectType* fRectTypes = nullptr;
+    std::vector<int> fXDivs;
+    std::vector<int> fYDivs;
+    std::vector<RectType> fRectTypes;
     int fXCount;
     int fYCount;
-    RectI* fBounds = nullptr;
-    Color* fColors = nullptr;
+    std::vector<RectI> fBounds;
+    std::vector<Color> fColors;
 };
 
 enum CacheType : uint8_t {

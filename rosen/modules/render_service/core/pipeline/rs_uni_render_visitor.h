@@ -178,6 +178,8 @@ public:
 
     void SurfaceOcclusionCallbackToWMS();
 
+    std::unordered_set<NodeId> GetCurrentBlackList() const;
+
     static void ClearRenderGroupCache();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
@@ -472,6 +474,7 @@ private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
     std::map<ScreenId, bool> displayHasProtectedSurface_;
+    std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
@@ -656,6 +659,9 @@ private:
     // use for curtain screen
     void DrawCurtainScreen();
     bool isCurtainScreenOn_ = false;
+
+    // use for hardware compose disabled reason collection
+    HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 };
 } // namespace Rosen
 } // namespace OHOS

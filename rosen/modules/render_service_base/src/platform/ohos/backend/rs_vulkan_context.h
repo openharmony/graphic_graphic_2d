@@ -41,7 +41,6 @@ class RsVulkanInterface {
 public:
     struct CallbackSemaphoreInfo {
         RsVulkanInterface& mVkContext;
-        VkDevice mDevice;
         VkSemaphore mSemaphore;
         int mFenceFd;
         

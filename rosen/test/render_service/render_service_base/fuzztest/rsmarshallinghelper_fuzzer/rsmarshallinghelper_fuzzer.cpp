@@ -35,7 +35,6 @@
 namespace OHOS {
 namespace Rosen {
 using namespace Drawing;
-auto rsMarshallingHelper = std::make_shared<RSMarshallingHelper>();
 
 namespace {
 const uint8_t* DATA = nullptr;
@@ -165,8 +164,8 @@ bool DoMarshallingHelper001(const uint8_t* data, size_t size)
     }
     path[length - 1] = '\0';
     std::shared_ptr<Typeface> val = Typeface::MakeFromFile(path, length);
-    rsMarshallingHelper->Marshalling(parcel, val);
-    rsMarshallingHelper->Unmarshalling(parcel, val);
+    RSMarshallingHelper::Marshalling(parcel, val);
+    RSMarshallingHelper::Unmarshalling(parcel, val);
     if (path != nullptr) {
         delete [] path;
         path = nullptr;
@@ -192,9 +191,9 @@ bool DoMarshallingHelper002(const uint8_t* data, size_t size)
         dataText[i] = GetData<char>();
     }
     dataVal->BuildWithoutCopy(dataText, length);
-    rsMarshallingHelper->Marshalling(parcel, dataVal);
-    rsMarshallingHelper->Unmarshalling(parcel, dataVal);
-    rsMarshallingHelper->UnmarshallingWithCopy(parcel, dataVal);
+    RSMarshallingHelper::Marshalling(parcel, dataVal);
+    RSMarshallingHelper::Unmarshalling(parcel, dataVal);
+    RSMarshallingHelper::UnmarshallingWithCopy(parcel, dataVal);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -224,8 +223,8 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     cmdListData.second = length;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
-    rsMarshallingHelper->Marshalling(parcel, maskCmdList);
-    rsMarshallingHelper->Unmarshalling(parcel, maskCmdList);
+    RSMarshallingHelper::Marshalling(parcel, maskCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel, maskCmdList);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -244,14 +243,17 @@ bool DoMarshallingHelper004(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Parcel parcel;
+    MessageParcel parcel;
     Bitmap bitmap;
     int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
-    bitmap.Build(width, height, bitmapFormat);
-    rsMarshallingHelper->Marshalling(parcel, bitmap);
-    rsMarshallingHelper->Unmarshalling(parcel, bitmap);
+    bool ret = bitmap.Build(width, height, bitmapFormat);
+    if (!ret) {
+        return false;
+    }
+    RSMarshallingHelper::Marshalling(parcel, bitmap);
+    RSMarshallingHelper::Unmarshalling(parcel, bitmap);
     return true;
 }
 
@@ -272,7 +274,7 @@ bool DoMarshallingHelper005(const uint8_t* data, size_t size)
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateRGB(
         static_cast<CMSTransferFuncType>(funcType % FUNCTYPE_SIZE),
         static_cast<CMSMatrixType>(matrixType % MATRIXTYPE_SIZE));
-    rsMarshallingHelper->ReadColorSpaceFromParcel(parcel, colorSpace);
+    RSMarshallingHelper::ReadColorSpaceFromParcel(parcel, colorSpace);
     return true;
 }
 
@@ -287,17 +289,23 @@ bool DoMarshallingHelper006(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Parcel parcel;
+    MessageParcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
     int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
-    bitmap.Build(width, height, bitmapFormat);
+    bool ret = bitmap.Build(width, height, bitmapFormat);
+    if (!ret) {
+        return false;
+    }
     auto image = std::make_shared<Image>();
-    image->BuildFromBitmap(bitmap);
-    rsMarshallingHelper->Marshalling(parcel, image);
-    rsMarshallingHelper->UnmarshallingNoLazyGeneratedImage(parcel, image, imagePixelPtr);
+    ret = image->BuildFromBitmap(bitmap);
+    if (!ret) {
+        return false;
+    }
+    RSMarshallingHelper::Marshalling(parcel, image);
+    RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(parcel, image, imagePixelPtr);
     return true;
 }
 
@@ -312,16 +320,22 @@ bool DoMarshallingHelper007(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Parcel parcel;
+    MessageParcel parcel;
     Bitmap bitmap;
     int width = GetData<int>() % MAX_ARRAY_SIZE;
     int height = GetData<int>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
-    bitmap.Build(width, height, bitmapFormat);
+    bool ret = bitmap.Build(width, height, bitmapFormat);
+    if (!ret) {
+        return false;
+    }
     auto image = std::make_shared<Image>();
-    image->BuildFromBitmap(bitmap);
-    rsMarshallingHelper->Marshalling(parcel, image);
-    rsMarshallingHelper->Unmarshalling(parcel, image);
+    ret = image->BuildFromBitmap(bitmap);
+    if (!ret) {
+        return false;
+    }
+    RSMarshallingHelper::Marshalling(parcel, image);
+    RSMarshallingHelper::Unmarshalling(parcel, image);
     return true;
 }
 
@@ -336,17 +350,23 @@ bool DoMarshallingHelper008(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Parcel parcel;
+    MessageParcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
     int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
-    bitmap.Build(width, height, bitmapFormat);
+    bool ret = bitmap.Build(width, height, bitmapFormat);
+    if (!ret) {
+        return false;
+    }
     auto image = std::make_shared<Image>();
-    image->BuildFromBitmap(bitmap);
-    rsMarshallingHelper->Marshalling(parcel, image);
-    rsMarshallingHelper->Unmarshalling(parcel, image, imagePixelPtr);
+    ret = image->BuildFromBitmap(bitmap);
+    if (!ret) {
+        return false;
+    }
+    RSMarshallingHelper::Marshalling(parcel, image);
+    RSMarshallingHelper::Unmarshalling(parcel, image, imagePixelPtr);
     return true;
 }
 
@@ -365,8 +385,8 @@ bool DoMarshallingHelper009(const uint8_t* data, size_t size)
     ColorQuad color = GetData<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader(shaderEffect);
-    rsMarshallingHelper->Marshalling(parcel, shader);
-    rsMarshallingHelper->Unmarshalling(parcel, shader);
+    RSMarshallingHelper::Marshalling(parcel, shader);
+    RSMarshallingHelper::Unmarshalling(parcel, shader);
     return true;
 }
 
@@ -393,8 +413,8 @@ bool DoMarshallingHelper010(const uint8_t* data, size_t size)
     scalar persp1 = GetData<scalar>();
     scalar persp2 = GetData<scalar>();
     matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
-    rsMarshallingHelper->Marshalling(parcel, matrix);
-    rsMarshallingHelper->Unmarshalling(parcel, matrix);
+    RSMarshallingHelper::Marshalling(parcel, matrix);
+    RSMarshallingHelper::Unmarshalling(parcel, matrix);
     return true;
 }
 
@@ -419,8 +439,8 @@ bool DoMarshallingHelper011(const uint8_t* data, size_t size)
     cmdListData.second = length;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
-    rsMarshallingHelper->Marshalling(parcel, drawCmdList);
-    rsMarshallingHelper->Unmarshalling(parcel, drawCmdList);
+    RSMarshallingHelper::Marshalling(parcel, drawCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel, drawCmdList);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -439,14 +459,20 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    Parcel parcel;
+    MessageParcel parcel;
     Bitmap bitmap;
     auto image = std::make_shared<Image>();
     int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
-    bitmap.Build(width, height, bitmapFormat);
-    image->BuildFromBitmap(bitmap);
+    bool ret = bitmap.Build(width, height, bitmapFormat);
+    if (!ret) {
+        return false;
+    }
+    ret = image->BuildFromBitmap(bitmap);
+    if (!ret) {
+        return false;
+    }
 
     auto dataVal = std::make_shared<Data>();
     size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
@@ -458,7 +484,7 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     AdaptiveImageInfo adaptiveImageInfo;
     adaptiveImageInfo.fitNum = GetData<int32_t>();
     adaptiveImageInfo.repeatNum = GetData<int32_t>();
-    for (int i = 0; i < POINTNUMBER; i++) {
+    for (size_t i = 0; i < POINTNUMBER; i++) {
         Point point;
         int32_t x = GetData<int32_t>();
         int32_t y = GetData<int32_t>();
@@ -471,8 +497,8 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     adaptiveImageInfo.height = GetData<int32_t>();
     adaptiveImageInfo.dynamicRangeMode = GetData<uint32_t>();
     auto extendImageObject = std::make_shared<RSExtendImageObject>(image, dataVal, adaptiveImageInfo);
-    rsMarshallingHelper->Marshalling(parcel, extendImageObject);
-    rsMarshallingHelper->Unmarshalling(parcel, extendImageObject);
+    RSMarshallingHelper::Marshalling(parcel, extendImageObject);
+    RSMarshallingHelper::Unmarshalling(parcel, extendImageObject);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -514,8 +540,8 @@ bool DoMarshallingHelper013(const uint8_t* data, size_t size)
         bottomT,
     };
     auto extendImageBaseObj = std::make_shared<RSExtendImageBaseObj>(nullptr, src, dst);
-    rsMarshallingHelper->Marshalling(parcel, extendImageBaseObj);
-    rsMarshallingHelper->Unmarshalling(parcel, extendImageBaseObj);
+    RSMarshallingHelper::Marshalling(parcel, extendImageBaseObj);
+    RSMarshallingHelper::Unmarshalling(parcel, extendImageBaseObj);
     return true;
 }
 

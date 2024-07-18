@@ -37,6 +37,7 @@ public:
     static napi_value CreateLinearToSRGBGamma(napi_env env, napi_callback_info info);
     static napi_value CreateSRGBGammaToLinear(napi_env env, napi_callback_info info);
     static napi_value CreateLumaColorFilter(napi_env env, napi_callback_info info);
+    static napi_value CreateMatrixColorFilter(napi_env env, napi_callback_info info);
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 
 private:

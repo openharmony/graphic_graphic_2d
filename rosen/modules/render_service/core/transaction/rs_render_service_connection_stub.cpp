@@ -205,6 +205,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT),
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
@@ -1189,12 +1190,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NotifyRefreshRateEvent(eventInfo);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
+            auto enableDynamicMode = data.ReadBool();
+            NotifyDynamicModeEvent(enableDynamicMode);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
             auto touchStatus = data.ReadInt32();
-            auto pkgName =  data.ReadString();
-            auto pid = data.ReadUint32();
             auto touchCnt = data.ReadInt32();
-            NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
+            NotifyTouchEvent(touchStatus, touchCnt);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {
@@ -1278,6 +1282,24 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber);
             reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber);
             reply.WriteInt32(LayerComposeInfo.redrawFrameNumber);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
+            GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO) : {
+            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
+                ret = ERR_TRANSACTION_FAILED;
+                break;
+            }
+            const auto& hwcDisabledReasonInfos = GetHwcDisabledReasonInfo();
+            reply.WriteInt32(hwcDisabledReasonInfos.size());
+            for (const auto& hwcDisabledReasonInfo : hwcDisabledReasonInfos) {
+                for (const auto& disabledReasonCount : hwcDisabledReasonInfo.disabledReasonStatistics) {
+                    reply.WriteInt32(disabledReasonCount);
+                }
+                reply.WriteInt32(hwcDisabledReasonInfo.pidOfBelongsApp);
+                reply.WriteString(hwcDisabledReasonInfo.nodeName);
+            }
             break;
         }
 #ifdef TP_FEATURE_ENABLE

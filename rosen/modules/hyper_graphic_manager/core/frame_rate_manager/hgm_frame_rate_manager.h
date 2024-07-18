@@ -121,8 +121,8 @@ public:
     void HandleLightFactorStatus(pid_t pid, bool isSafe);
     void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(pid_t remotePid, int32_t touchStatus, const std::string& pkgName,
-        uint32_t pid, int32_t touchCnt);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -200,6 +200,9 @@ private:
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
+    void UpdateEnergyConsumptionConfig();
+    void EnterEnergyConsumptionAssuranceMode();
+    void ExitEnergyConsumptionAssuranceMode();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;

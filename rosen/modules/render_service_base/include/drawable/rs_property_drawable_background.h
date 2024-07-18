@@ -128,6 +128,7 @@ public:
 private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
+    void SetCompressedDataForASTC();
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     pid_t tid_ = 0;
     Drawing::BackendTexture backendTexture_ = {};

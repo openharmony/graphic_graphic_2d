@@ -128,6 +128,20 @@ bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t 
     return true;
 }
 
+bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
+{
+    for (uint32_t i = 0; i < count; i++)  {
+        napi_value tempPoint = nullptr;
+        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
+            return false;
+        }
+        if (!GetPointFromJsValue(env, tempPoint, points[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
 {
     napi_value objValue = nullptr;

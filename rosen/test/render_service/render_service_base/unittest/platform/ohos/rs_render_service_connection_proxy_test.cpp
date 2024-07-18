@@ -902,7 +902,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     proxy->NotifyRefreshRateEvent(eventInfo);
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
-    proxy->NotifyTouchEvent(touchStatus, "", 0, touchCnt);
+    proxy->NotifyTouchEvent(touchStatus, touchCnt);
+    proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
@@ -960,6 +961,38 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetLayerComposeInfo, TestSize.Level
 {
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
     ASSERT_EQ(proxy->GetLayerComposeInfo().redrawFrameNumber, 0);
+}
+
+/**
+ * @tc.name: GetHwcDisabledReasonInfo Test
+ * @tc.desc: GetHwcDisabledReasonInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issueIACUOK
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.Level1)
+{
+    NodeId id = 0;
+    std::string nodeName = "Test";
+    HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(id,
+        HwcDisabledReasons::DISABLED_BY_SRC_PIXEL, nodeName);
+    ASSERT_EQ(proxy->GetHwcDisabledReasonInfo().size(), 0);
+}
+
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback Test, with empty/non-empty callback.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterUIExtensionCallback, TestSize.Level1)
+{
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIUIExtensionCallback> callback = iface_cast<RSIUIExtensionCallback>(remoteObject);
+    uint64_t userId = 0;
+    ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, nullptr), INVALID_ARGUMENTS);
+    ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, callback), RS_CONNECTION_ERROR);
 }
 } // namespace Rosen
 } // namespace OHOS

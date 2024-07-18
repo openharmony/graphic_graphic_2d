@@ -215,57 +215,93 @@ Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float 
 }
 
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
-    RSPaintFilterCanvas& canvas, uint32_t threadIndex)
+    RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
+    if (isUIFirst) {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-    if (!cacheCompletedBackendTexture_.IsValid()) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage invalid grBackendTexture_");
-        return nullptr;
-    }
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
-            RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage surface %p cleanupHelper %p",
-                cacheCompletedSurface_.get(), cacheCompletedSurface_.get());
+        std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
+        if (!cacheCompletedBackendTexture_.IsValid()) {
+            RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage invalid grBackendTexture_");
             return nullptr;
         }
-    }
+#ifdef RS_ENABLE_VK
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+            if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
+                RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage surface %p cleanupHelper %p",
+                    cacheCompletedSurface_.get(), cacheCompletedSurface_.get());
+                return nullptr;
+            }
+        }
 #endif
-    auto image = std::make_shared<Drawing::Image>();
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
-        Drawing::ALPHATYPE_PREMUL };
+        auto image = std::make_shared<Drawing::Image>();
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL };
 #ifdef RS_ENABLE_GL
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
-            origin, info, nullptr);
-    }
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
+                origin, info, nullptr);
+        }
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
-            origin, info, nullptr,
-            NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
-    }
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
+                origin, info, nullptr,
+                NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
+        }
 #endif
-    return image;
+        return image;
+#endif
+    }
+
+    if (!cacheCompletedSurface_) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface invalid cacheCompletedSurface");
+        return nullptr;
+    }
+    auto completeImage = cacheCompletedSurface_->GetImageSnapshot();
+    if (!completeImage) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface Get complete image failed");
+        return nullptr;
+    }
+    if (threadIndex == completedSurfaceThreadIndex_) {
+        return completeImage;
+    }
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto backendTexture = completeImage->GetBackendTexture(false, &origin);
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage DrawCacheSurface get backendTexture failed");
+        return nullptr;
+    }
+    SharedTextureContext* sharedContext = new SharedTextureContext(completeImage);
+    auto cacheImage = std::make_shared<Drawing::Image>();
+    Drawing::BitmapFormat info =
+        Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
+    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
+        origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
+    if (!ret) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
+        return nullptr;
+    }
+    return cacheImage;
+#else
+    return completeImage;
 #endif
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-    uint32_t threadIndex)
+    uint32_t threadIndex, bool isUIFirst)
 {
     if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
     }
 
-    auto cacheImage = GetCompletedImage(canvas, threadIndex);
+    auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheImage, "cacheImage");
     if (cacheImage == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
@@ -534,7 +570,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
         UpdateCompletedCacheSurface();
 #endif
     }
-    return DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX);
+    return DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id)
@@ -548,7 +584,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
     bool ret = true;
     // draw surface content&&childrensss
     if (HasCachedTexture()) {
-        ret = DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX);
+        ret = DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
     }
     // draw starting window
     {

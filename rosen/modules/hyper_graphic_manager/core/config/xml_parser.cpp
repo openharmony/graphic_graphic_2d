@@ -349,6 +349,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseAppTypes(*thresholdNode, screenSetting.appTypes);
     } else if (name == "rs_animation_power_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.animationPowerConfig);
+    } else if (name == "ui_power_config") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }

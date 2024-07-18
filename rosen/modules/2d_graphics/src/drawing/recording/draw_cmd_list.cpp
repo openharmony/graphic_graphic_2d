@@ -131,18 +131,28 @@ bool DrawCmdList::AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem)
 
 void DrawCmdList::ClearOp()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    opAllocator_.ClearData();
-    opAllocator_.Add(&width_, sizeof(int32_t));
-    opAllocator_.Add(&height_, sizeof(int32_t));
-    imageAllocator_.ClearData();
-    bitmapAllocator_.ClearData();
-    imageMap_.clear();
-    imageHandleVec_.clear();
-    drawOpItems_.clear();
-    lastOpGenSize_ = 0;
-    lastOpItemOffset_ = std::nullopt;
-    opCnt_ = 0;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        opAllocator_.ClearData();
+        opAllocator_.Add(&width_, sizeof(int32_t));
+        opAllocator_.Add(&height_, sizeof(int32_t));
+        imageAllocator_.ClearData();
+        bitmapAllocator_.ClearData();
+        imageMap_.clear();
+        imageHandleVec_.clear();
+        drawOpItems_.clear();
+        lastOpGenSize_ = 0;
+        lastOpItemOffset_ = std::nullopt;
+        opCnt_ = 0;
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        imageObjectVec_.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        imageBaseObjVec_.clear();
+    }
 }
 
 int32_t DrawCmdList::GetWidth() const

@@ -84,7 +84,7 @@ void Output::EncodeToPixelMap(ProcessData& data)
 
 void Output::WriteToBuffer(ProcessData& data)
 {
-    uint32_t bufferSize = data.textureWidth * data.textureHeight * COLOR_CHANNEL;
+    uint32_t bufferSize = static_cast<uint32_t>(data.textureWidth * data.textureHeight * COLOR_CHANNEL);
     auto colorBuf = new uint8_t[bufferSize];
     std::shared_ptr<uint8_t> colorBuffer(colorBuf, [] (uint8_t *ptr) {
         delete[] ptr;

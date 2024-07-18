@@ -270,7 +270,8 @@ void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattic
     }
 
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
-    AddDrawOpImmediate<DrawImageLatticeOpItem::ConstructorHandle>(imageHandle, lattice, dst, filterMode);
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(*cmdList_, lattice);
+    AddDrawOpImmediate<DrawImageLatticeOpItem::ConstructorHandle>(imageHandle, latticeHandle, dst, filterMode);
 }
 
 void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)

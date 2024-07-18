@@ -123,7 +123,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
 
-void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged)
+void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged, bool rotationStatusChanged)
 {
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
@@ -133,7 +133,7 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
         return;
     }
     filterDrawable->MarkEffectNode();
-    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
+    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
     if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }

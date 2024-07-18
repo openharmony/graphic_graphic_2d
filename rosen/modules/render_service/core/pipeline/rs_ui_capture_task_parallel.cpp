@@ -145,6 +145,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
+    canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
     if (nodeParams) {
         Drawing::Matrix relativeMatrix = Drawing::Matrix();
@@ -160,7 +161,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     }
 
     RSUniRenderThread::SetCaptureParam(
-        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true));
+        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 

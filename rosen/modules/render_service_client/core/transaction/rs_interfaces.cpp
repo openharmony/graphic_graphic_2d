@@ -631,9 +631,14 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    renderServiceClient_->NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
+}
+
+void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    renderServiceClient_->NotifyDynamicModeEvent(enableDynamicMode);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -662,6 +667,12 @@ LayerComposeInfo RSInterfaces::GetLayerComposeInfo() const
 {
     const auto& layerComposeInfo = renderServiceClient_->GetLayerComposeInfo();
     return layerComposeInfo;
+}
+
+HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
+{
+    const auto& hwcDisabledReasonInfo = renderServiceClient_->GetHwcDisabledReasonInfo();
+    return hwcDisabledReasonInfo;
 }
 
 #ifdef TP_FEATURE_ENABLE

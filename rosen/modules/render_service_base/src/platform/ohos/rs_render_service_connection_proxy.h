@@ -220,7 +220,9 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) override;
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
+
+    void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
     void ReportEventResponse(DataBaseRs info) override;
 
@@ -245,6 +247,8 @@ public:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
 
     LayerComposeInfo GetLayerComposeInfo() override;
+
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 

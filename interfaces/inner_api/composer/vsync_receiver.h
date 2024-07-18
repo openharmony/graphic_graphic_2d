@@ -94,6 +94,7 @@ public:
 
 private:
     void OnReadable(int32_t fileDescriptor) override;
+    int64_t CalculateExpectedEndLocked(int64_t now);
     VSyncCallback vsyncCallbacks_;
     VSyncCallbackWithId vsyncCallbacksWithId_;
     void *userData_;

@@ -121,12 +121,8 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
 
         // HandleTouchEvent
         // param 1: touchCnt
-        testThreads.push_back(std::thread([&] () {
-            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, "", i, 1);
-        }));
-        testThreads.push_back(std::thread([&] () {
-            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, "", i, 1);
-        }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, 1); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, 1); }));
 
         // HandleRefreshRateMode
         // param -1、0、1、2、3：refresh rate mode

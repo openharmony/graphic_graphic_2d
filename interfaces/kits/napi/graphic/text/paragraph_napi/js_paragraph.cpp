@@ -82,6 +82,8 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
         DECLARE_NAPI_FUNCTION("getActualTextRange", JsParagraph::GetActualTextRange),
         DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
+        DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
+        DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -626,6 +628,77 @@ napi_value JsParagraph::OnGetLineMetricsAt(napi_env env, napi_callback_info info
         return nullptr;
     }
     return CreateLineMetricsJsValue(env, lineMetrics);
+}
+
+napi_value JsParagraph::GetFontMetricsByTextStyle(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetFontMetricsByTextStyle(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetFontMetricsByTextStyle(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("JsParagraph::OnGetFontMetricsByTextStyle paragraph_ is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("JsParagraph::OnGetFontMetricsByTextStyle Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    TextStyle textStyle;
+    if (!GetTextStyleFromJS(env, argv[0], textStyle)) {
+        TEXT_LOGE("JsParagraph::OnGetLineWidth Argv is invalid");
+        return NapiGetUndefined(env);
+    }
+
+    OHOS::Rosen::Drawing::FontMetrics fontmetrics = paragraph_->GetFontMetrics(textStyle);
+    return GetFontMetricsAndConvertToJsValue(env, &fontmetrics);
+}
+
+napi_value JsParagraph::GetLineFontMetrics(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetLineFontMetrics(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetLineFontMetrics(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics paragraph_ is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    int lineNumber = 0;
+    if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
+        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics Argv is invalid");
+        return NapiGetUndefined(env);
+    }
+
+    napi_value returnFontMetrics = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &returnFontMetrics));
+    size_t fontMetricsSize = 0;
+    std::vector<Drawing::FontMetrics> grabFontMetrics;
+    if (!paragraph_->GetLineFontMetrics(lineNumber, fontMetricsSize, grabFontMetrics)) {
+        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics GetLineFontMetrics failed");
+        return returnFontMetrics;
+    }
+
+    int num = static_cast<int>(grabFontMetrics.size());
+    for (int index = 0; index < num; ++index) {
+        napi_value jsValue = GetFontMetricsAndConvertToJsValue(env, &grabFontMetrics[index]);
+        napi_set_element(env, returnFontMetrics, index, jsValue);
+    }
+    return returnFontMetrics;
 }
 
 JsParagraph::JsParagraph(std::shared_ptr<Typography> typography)

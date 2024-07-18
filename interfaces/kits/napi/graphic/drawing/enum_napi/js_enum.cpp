@@ -171,6 +171,18 @@ static const std::vector<struct JsEnumInt> g_pathFillType = {
     { "INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
 };
 
+static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
+    { "STRICT", static_cast<int32_t>(Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) },
+    { "FAST", static_cast<int32_t>(Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT) },
+};
+
+static const std::vector<struct JsEnumInt> g_scaleToFit = {
+    { "FILL_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
+    { "START_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
+    { "CENTER_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::CENTER_SCALETOFIT) },
+    { "END_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -187,6 +199,8 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
     { "PathFillType", g_pathFillType },
+    { "SrcRectConstraint", g_srcRectConstraint },
+    { "ScaleToFit", g_scaleToFit },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

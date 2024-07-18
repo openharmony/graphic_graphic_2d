@@ -44,7 +44,8 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-    void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false) override;
+    void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false,
+        bool rotationStatusChanged = false) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
     // record if there is filter cache for occlusion before this effect node

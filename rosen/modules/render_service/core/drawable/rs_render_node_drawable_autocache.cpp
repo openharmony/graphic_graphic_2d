@@ -108,7 +108,7 @@ void RSRenderNodeDrawable::DrawableCacheStateReset(RSRenderParams& params)
     opListDrawAreas_.ResetOpInfo();
     isOpincRootNode_ = false;
     opCanCache_ = false;
-    params.OpincSetCachedMark(false);
+    isOpincMarkCached_ = false;
 }
 
 bool RSRenderNodeDrawable::IsOpListDrawAreaEnable()
@@ -229,9 +229,9 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
         }
     } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {
-        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!params.OpincGetCachedMark())) {
+        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark())) {
             opincRootTotalCount++;
-            params.OpincSetCachedMark(true);
+            isOpincMarkCached_ = true;
             recordState_ = NodeRecordState::RECORD_CACHED;
             reuseCount_ = 0;
             isOpincRootNode_ = true;
