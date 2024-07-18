@@ -720,6 +720,7 @@ VsyncError VSyncGenerator::SetReferenceTimeOffset(int32_t offsetByPulseNum)
 
 VsyncError VSyncGenerator::StartRefresh()
 {
+    RS_TRACE_NAME("StartRefresh");
     std::lock_guard<std::mutex> lock(mutex_);
     startRefresh_ = true;
     referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
@@ -771,7 +772,7 @@ void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenc
 {
     int64_t actualOffset = referenceTime - pendingReferenceTime_;
     int32_t actualOffsetPulseNum = round((double)actualOffset/(double)pulse_);
-    if (startRefresh_) {
+    if (startRefresh_ || (defaultReferenceTimeOffsetPulseNum_ == 0)) {
         referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
     } else {
         referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);
