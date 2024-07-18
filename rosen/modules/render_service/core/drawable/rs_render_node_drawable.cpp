@@ -119,14 +119,14 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     {
-        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        std::scoped_lock<std::recursive_mutex> cacheLock(cacheMutex_);
         if (cachedSurface_ == nullptr) {
             // Remove node id in update time map to avoid update time exceeds DRAWING_CACHE_MAX_UPDATE_TIME
             // (If cache disabled for node not on the tree, we clear cache in OnSync func, but we can't clear node
             // id in drawingCacheUpdateTimeMap_ [drawable will not be visited in RT].
             // If this node is marked node group by arkui again, we should first clear update time here, otherwise
             // update time will accumulate.)
-            std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
+            std::lock_guard<std::mutex> mapLock(drawingCacheMapMutex_);
             drawingCacheUpdateTimeMap_.erase(nodeId_);
         }
     }
