@@ -291,7 +291,7 @@ void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::Strateg
         return;
     }
     std::sort(strategy.appBufferList.begin(), strategy.appBufferList.end(),
-        [](const std::pair<std::string, uint32_t>& a, const std::pair<std::string, uint32_t>& b) {
+        [](const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b) {
         return a.second > b.second;
     });
 
