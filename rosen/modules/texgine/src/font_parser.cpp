@@ -17,6 +17,9 @@
 
 #include <codecvt>
 #include <dirent.h>
+#include <map>
+#include <list>
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <securec.h>
@@ -34,7 +37,9 @@ namespace TextEngine {
 #define FAILED 1
 
 #define FONT_CONFIG_FILE  "/system/fonts/visibility_list.json"
+#define FONT_CONFIG_PROD_FILE "/sys_prod/fonts/visibility_list.json"
 #define SYSTEM_FONT_PATH "/system/fonts/"
+#define SYS_PROD_FONT_PATH "/sys_prod/fonts/"
 
 #define HALF(a) ((a) / 2)
 
@@ -49,8 +54,13 @@ FontParser::FontParser()
 {
     data_ = nullptr;
     length_ = 0;
+    fontSet_.clear();
     FontConfig fontConfig(FONT_CONFIG_FILE);
-    fontSet_ = fontConfig.GetFontSet();
+    auto fonts = fontConfig.GetFontSet();
+    fontSet_.insert(fontSet_.end(), fonts.begin(), fonts.end());
+    FontConfig fontProdConfig(FONT_CONFIG_PROD_FILE);
+    auto prodFonts = fontProdConfig.GetFontSet();
+    fontSet_.insert(fontSet_.end(), prodFonts.begin(), prodFonts.end());
 }
 
 void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
@@ -278,6 +288,8 @@ int FontParser::ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontPars
 
 int FontParser::SetFontDescriptor(const unsigned int languageId)
 {
+    visibilityFonts_.clear();
+    std::list<std::string> fontSetCache;
     for (unsigned int i = 0; i < fontSet_.size(); ++i) {
         FontParser::FontDescriptor fontDescriptor;
         fontDescriptor.requestedLid = languageId;
@@ -295,7 +307,13 @@ int FontParser::SetFontDescriptor(const unsigned int languageId)
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return FAILED;
         }
-        visibilityFonts_.emplace_back(fontDescriptor);
+
+        size_t idx = fontSet_[i].rfind('/');
+        std::string fontName = fontSet_[i].substr(idx + 1, fontSet_[i].size() - idx - 1);
+        if (std::find(fontSetCache.begin(), fontSetCache.end(), fontName) == fontSetCache.end()) {
+            fontSetCache.push_back(fontName);
+            visibilityFonts_.emplace_back(fontDescriptor);
+        }
     }
 
     return SUCCESSED;
@@ -388,15 +406,18 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         return nullptr;
     }
     std::string path = SYSTEM_FONT_PATH + (*fontFileMap)[fontName];
-
+    auto typeface = Drawing::Typeface::MakeFromFile(path.c_str());
+    if (typeface == nullptr) {
+        path = SYS_PROD_FONT_PATH + (*fontFileMap)[fontName];
+        typeface = Drawing::Typeface::MakeFromFile(path.c_str());
+        if (typeface == nullptr) {
+            LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << path.c_str();
+            return nullptr;
+        }
+    }
     FontParser::FontDescriptor fontDescriptor;
     fontDescriptor.requestedLid = languageId;
     fontDescriptor.path = path;
-    auto typeface = Drawing::Typeface::MakeFromFile(path.c_str());
-    if (typeface == nullptr) {
-        LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
-        return nullptr;
-    }
     auto fontStyle = typeface->GetFontStyle();
     fontDescriptor.weight = fontStyle.GetWeight();
     fontDescriptor.width = fontStyle.GetWidth();
