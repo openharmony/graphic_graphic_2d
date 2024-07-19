@@ -641,7 +641,6 @@ ohos_shared_library("librender_service_base") {
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
-  innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -85,7 +85,6 @@ ohos_shared_library("skeffectchain") {
   cflags_cc = [ "-std=c++17" ]
 
   install_enable = true
-  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

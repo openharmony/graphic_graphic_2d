@@ -61,7 +61,6 @@ ohos_shared_library("libegl_effect") {
     install_enable = false
   }
 
-  innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

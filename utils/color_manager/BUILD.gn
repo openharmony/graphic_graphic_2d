@@ -79,7 +79,6 @@ if (current_os == "ohos") {
     } else {
       public_deps += [ "$flutter_root/build/skia:ace_skia_ohos" ]
     }
-    innerapi_tags = [ "platformsdk" ]
     subsystem_name = "graphic"
     part_name = "graphic_2d"
   }

@@ -121,7 +121,6 @@ ohos_shared_library("libvsync") {
     sources += [ "src/vsync_res_event_listener.cpp" ]
   }
 
-  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

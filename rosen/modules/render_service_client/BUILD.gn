@@ -307,8 +307,6 @@ ohos_shared_library("librender_service_client") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  innerapi_tags = [ "platformsdk" ]
-
   if (enhanced_opt) {
     configs = [ ":render_service_client_link_config" ]
   }

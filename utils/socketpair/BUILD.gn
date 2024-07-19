@@ -42,7 +42,6 @@ ohos_shared_library("socketpair") {
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
-  innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
