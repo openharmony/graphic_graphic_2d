@@ -67,6 +67,10 @@ export class JoinRect extends TestBase {
       console.log("Actual rect: left = " + rect.left + ", top = " + rect.top +
                   ", right = " + rect.right + ", bottom = " + rect.bottom);
 
+      if(result) {
+        result = (rect.left == 0 && rect.top == 0 && rect.right == 600 && rect.bottom == 600);
+      }
+
       if (result) {
         this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_1);
         canvas.attachPen(pen);
