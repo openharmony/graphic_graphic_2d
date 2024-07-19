@@ -16,7 +16,7 @@
 import {TestBase, StyleType} from './testbase';
 import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, CanvasDrawImage, CanvasDrawCircle, CanvasDrawTextBlob,
   CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor } from '../testcase/interface/canvastest';
-import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString } from '../testcase/interface/pathtest';
+import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
 import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanvasDrawLine, PerformanceCanvasDrawTextBlob, PerformanceCanvasDrawPath,
@@ -45,6 +45,7 @@ export class CaseFactory {
       ['pathgetPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathgetmatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathbuildfromsvgstring', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['pathcontructor', () => { return new PathConstructor(); }],
 
       ['matrixgetvalue', () => { return new MatrixGetValue(); }],
       ['matrixgetall', () => { return new MatrixGetAll(); }],
@@ -87,6 +88,7 @@ export class CaseFactory {
       ['path_getPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
       ['path_getMatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
       ['path_buildFromSVGString', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['path_constructor', () => { return new PathConstructor(); }],
       ['textblob_createbuilder', () => { return new MakeFromRunBuffer(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时339ms
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时261ms
       ['textblob_getbounds', () => { return new TextBlobBounds(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时365ms

@@ -273,3 +273,33 @@ export class PathBuildFromSvgString extends TestBase {
     canvas.drawPath(path);
   }
 }
+
+export class PathConstructor extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let path: drawing.Path = new drawing.Path();
+    path.moveTo(0, 0);
+    path.lineTo(0, this.height_);
+    path.lineTo(this.width_, 0);
+    path.close();
+
+    let path2: drawing.Path = new drawing.Path(path);
+    canvas.drawPath(path2);
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let path: drawing.Path = new drawing.Path();
+    path.moveTo(0, 0);
+    path.lineTo(0, this.height_);
+    path.lineTo(this.width_, 0);
+    path.close();
+    let path2: drawing.Path;
+    for (let i = 0; i < this.testCount_; i++) {
+      path2 = new drawing.Path(path);
+    }
+    canvas.drawPath(path2);
+  }
+}
