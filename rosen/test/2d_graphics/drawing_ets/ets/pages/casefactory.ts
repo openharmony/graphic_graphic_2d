@@ -18,7 +18,7 @@ import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, Canvas
   CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
   FontIsSubpixel, FontIsLinearMetrics, FontIsEmbolden, FontGetSkewX, FontGetScaleX, FontGetHinting, FontGetEdging,
   BrushGetColorFilter, BrushSetImageFilter, PenGetColorFilter, PenSetImageFilter,
-  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasClipRegion } from '../testcase/interface/canvastest';
+  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion } from '../testcase/interface/canvastest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
@@ -44,6 +44,7 @@ export class CaseFactory {
       ['canvasdrawimage', () => { return new CanvasDrawImage(); }],
       ['canvassetcolor', () => { return new CanvasSetColor(); }],
       ['canvasdrawimagerect', () => { return new CanvasDrawImageRect(); }],
+      ['canvasdrawimagerectwithsrc', () => { return new CanvasDrawImageRectWithSrc(); }],
       ['canvasdrawsubpixelfont', () => { return new FontIsSubpixel(); }],
       ['canvasdrawlinearmetricsfont', () => { return new FontIsLinearMetrics(); }],
       ['canvasdrawemboldenfont', () => { return new FontIsEmbolden(); }],
@@ -101,6 +102,7 @@ export class CaseFactory {
       ['canvas_drawpoints', () => { return new CanvasDrawPoint(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时47ms
       ['canvas_drawbitmap', () => { return new CanvasDrawImage(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时2ms
       ['canvas_drawimagerect', () => { return new CanvasDrawImageRect(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['canvasdrawimagerectwithsrc', () => { return new CanvasDrawImageRectWithSrc(StyleType.DRAW_STYLE_COMPLEX); }],
       ['canvas_drawcircle', () => { return new CanvasDrawCircle(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时1016ms
       ['canvas_drawtextblob', () => { return new CanvasDrawTextBlob(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时125ms
       ['canvas_drawvertices', () => { return new CanvasDrawPixelMapMesh(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时261ms

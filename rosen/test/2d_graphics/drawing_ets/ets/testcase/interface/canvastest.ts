@@ -524,6 +524,116 @@ export class CanvasDrawImageRect extends TestBase {
     printResults(canvas, !problem);
   }
 }
+
+export class CanvasDrawImageRectWithSrc extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+    let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+    let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+    let dstRect: common2D.Rect = { left: 20, top: 20, right: (pmSize.width / 4), bottom: (pmSize.height / 4) };
+    let opts = new drawing.SamplingOptions(drawing.FilterMode.FILTER_MODE_LINEAR);
+    let constraint: drawing.SrcRectConstraint;
+    for (let i = 0; i < this.testCount_; i++) {
+      constraint = ((i % 2) == 0) ? drawing.SrcRectConstraint.STRICT : drawing.SrcRectConstraint.FAST;
+      try {
+        canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect, opts, constraint);
+      } catch (err) {
+        console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 1: ",
+          err.name, ":", err.message, err.stack);
+        problem = true;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 0, top: 0, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 1: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle(brush, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_2.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 100, top: 150, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 2: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 200, top: 233.97, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 3: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_4.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 140, top: 17.8, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 4: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
 export class CanvasDrawCircle extends TestBase {
 
   public constructor(styleType: number = StyleType.DRAW_STYLE_NONE){
