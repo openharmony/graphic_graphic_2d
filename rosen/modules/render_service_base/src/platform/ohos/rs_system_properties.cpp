@@ -223,6 +223,14 @@ float RSSystemProperties::GetClipRectThreshold()
     return threshold == nullptr ? std::atof(DEFAULT_CLIP_RECT_THRESHOLD) : std::atof(threshold);
 }
 
+bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.allsurfacevisibledebug.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualdirtydebug.enabled", "0");

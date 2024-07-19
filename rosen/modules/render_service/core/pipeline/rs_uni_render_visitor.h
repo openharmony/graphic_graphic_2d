@@ -273,11 +273,17 @@ private:
 
     void UpdatePrepareClip(RSRenderNode& node);
 
+    void CheckMergeDisplayDirtyByTransparent(RSSurfaceRenderNode& surfaceNode) const;
+    void CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNode& surfaceNode) const;
+    void CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const;
+    void CheckMergeDisplayDirtyByShadowChanged(RSSurfaceRenderNode& surfaceNode) const;
+    void CheckMergeDisplayDirtyBySurfaceChanged() const;
+    void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
-    void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
 
     bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
-    void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    void CheckMergeDisplayDirtyByTransparentFilter(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
     // If reusable filter cache covers whole screen, mark lower layer to skip process
     void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
@@ -499,6 +505,7 @@ private:
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isCanvasNodeSkipDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
@@ -541,6 +548,7 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool hasSelfDraw_ = false;
     bool ancestorNodeHasAnimation_ = false;
+    bool hasAccumulatedClip_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // check each surface could be reused per frame
     // currently available to uiFirst

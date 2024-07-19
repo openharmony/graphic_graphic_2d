@@ -59,6 +59,39 @@ constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr int32_t NO_SPECIAL_LAYER = 0;
 constexpr int32_t HAS_SPECIAL_LAYER = 1;
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
+
+std::string RectVectorToString(std::vector<RectI>& regionRects)
+{
+    std::string results = "";
+    for (auto& rect : regionRects) {
+        results += rect.ToString();
+    }
+    return results;
+}
+
+Drawing::Region GetFlippedRegion(std::vector<RectI>& rects, ScreenInfo& screenInfo)
+{
+    Drawing::Region region;
+
+    for (const auto& r : rects) {
+        int32_t topAfterFilp = 0;
+#ifdef RS_ENABLE_VK
+        topAfterFilp = (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                           RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)
+                           ? r.top_
+                           : static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
+#else
+        topAfterFilp = static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
+#endif
+        Drawing::Region tmpRegion;
+        tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFilp, r.left_ + r.width_, topAfterFilp + r.height_));
+        RS_OPTIONAL_TRACE_NAME_FMT("GetFlippedRegion orig ltrb[%d %d %d %d] to fliped rect ltrb[%d %d %d %d]",
+            r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_, r.left_, topAfterFilp, r.left_ + r.width_,
+            topAfterFilp + r.height_);
+        region.Op(tmpRegion, Drawing::RegionOp::UNION);
+    }
+    return region;
+}
 }
 class RSOverDrawDfx {
 public:
@@ -264,30 +297,6 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
     }
 
     return renderFrame;
-}
-
-static inline Drawing::Region GetFilpedRegion(std::vector<RectI>& rects, ScreenInfo& screenInfo)
-{
-    Drawing::Region region;
-
-    for (auto& r : rects) {
-        int32_t topAfterFilp = 0;
-#ifdef RS_ENABLE_VK
-        topAfterFilp = (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                           RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)
-                           ? r.top_
-                           : static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
-#else
-        topAfterFilp = static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
-#endif
-        Drawing::Region tmpRegion;
-        tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFilp, r.left_ + r.width_, topAfterFilp + r.height_));
-        RS_OPTIONAL_TRACE_NAME_FMT("GetFilpedRegion orig ltrb[%d %d %d %d] to fliped rect ltrb[%d %d %d %d]",
-            r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_, r.left_, topAfterFilp, r.left_ + r.width_,
-            topAfterFilp + r.height_);
-        region.Op(tmpRegion, Drawing::RegionOp::UNION);
-    }
-    return region;
 }
 
 static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool clear = true)
@@ -564,7 +573,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (uniParam->IsPartialRenderEnabled()) {
         damageRegionrects = MergeDirtyHistory(displayNodeSp, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx);
         uniParam->Reset();
-        clipRegion = GetFilpedRegion(damageRegionrects, screenInfo);
+        clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
+        RS_OPTIONAL_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %lu, info: %s",
+            damageRegionrects.size(), RectVectorToString(damageRegionrects).c_str());
         if (!uniParam->IsRegionDebugEnabled()) {
             renderFrame->SetDamageRegion(damageRegionrects);
         }

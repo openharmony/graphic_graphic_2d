@@ -450,7 +450,7 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
         Occlusion::Region calcRegion;
         if ((surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) ||
-            surfaceParams->IsSubSurfaceNode()) {
+            surfaceParams->IsSubSurfaceNode() || uniParam->IsAllSurfaceVisibleDebugEnabled()) {
             calcRegion = surfaceParams->GetVisibleRegion();
         } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
             calcRegion = surfaceParams->GetTransparentRegion();

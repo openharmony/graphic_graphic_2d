@@ -21,6 +21,7 @@
 #include "system/rs_system_parameters.h"
 
 #include "common/rs_occlusion_region.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_surface_render_params.h"
@@ -62,7 +63,7 @@ private:
     void DrawCurrentRefreshRate();
     void DrawDirtyRectForDFX(RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType,
         float alpha, int edgeWidth = 6) const;
-    bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node) const;
+    bool DrawDetailedTypesOfDirtyRegionForDFX(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceNodeDrawable) const;
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const;
 
     void DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects) const;
@@ -70,8 +71,8 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX() const;
     void DrawTargetSurfaceDirtyRegionForDFX() const;
     void DrawTargetSurfaceVisibleRegionForDFX() const;
-    void DrawAndTraceSingleDirtyRegionTypeForDFX(
-        RSSurfaceRenderNode& node, DirtyRegionType dirtyType, bool isDrawn = true) const;
+    void DrawAndTraceSingleDirtyRegionTypeForDFX(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceNodeDrawable,
+        DirtyRegionType dirtyType, bool isDrawn = true) const;
     void DrawDirtyRegionInVirtual() const;
 
     // dfx check if surface name is in dfx target list

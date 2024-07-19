@@ -377,20 +377,18 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
             childrenRect_ = childrenRect_.JoinRect(subRect);
         }
     }
+}
 
-    if (lastFrameSubTreeSkipped_) {
+void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
+{
+    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr) {
         return;
     }
-
-    if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
-        absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
-    }
-
-    if (GetRenderProperties().GetClipBounds() || GetRenderProperties().GetClipToFrame()) {
-        subTreeDirtyRegion_ = absChildrenRect_.IntersectRect(GetAbsDrawRect());
-    } else {
-        subTreeDirtyRegion_ = absChildrenRect_;
-    }
+    lastFrameHasChildrenOutOfRect_ = HasChildrenOutOfRect();
+    oldChildrenRect_ = childrenRect_;
+    oldClipRect_ = clipRect;
+    oldAbsMatrix_ = geoPtr->GetAbsMatrix();
 }
 
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
@@ -828,8 +826,12 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
 
 void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
+    // prepare skip -> quick prepare, old dirty do not update
     if (geoUpdateDelay_) {
-        dirtyManager.MergeDirtyRect(clipRect.IntersectRect(absChildrenRect_));
+        if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+            auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+            dirtyManager.MergeDirtyRect(absChildrenRect.IntersectRect(oldClipRect_));
+        }
     }
     lastFrameSubTreeSkipped_ = false;
 }
@@ -838,20 +840,21 @@ void RSRenderNode::SubTreeSkipPrepare(
     RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    if (isDirty || clipAbsDrawRectChange_) {
-        auto dirtyRect = subTreeDirtyRegion_;
-        if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
-            absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
-            subTreeDirtyRegion_ = absChildrenRect_.IntersectRect(clipRect);
-            dirtyRect = dirtyRect.JoinRect(subTreeDirtyRegion_);
+    if (accumGeoDirty && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
+        auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+        if (geoPtr == nullptr) {
+            return;
         }
-        if (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_) {
-            dirtyManager.MergeDirtyRect(dirtyRect);
-        }
+        auto oldDirtyRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+        auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
+        auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
+        auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
+        dirtyRectClip = dirtyRect.JoinRect(oldDirtyRectClip);
+        dirtyManager.MergeDirtyRect(dirtyRectClip);
     }
     SetGeoUpdateDelay(accumGeoDirty);
+    UpdateSubTreeInfo(clipRect);
     lastFrameSubTreeSkipped_ = true;
-    lastFrameHasChildrenOutOfRect_ = HasChildrenOutOfRect();
 }
 
 // attention: current all base node's dirty ops causing content dirty
@@ -939,6 +942,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (childHasSharedTransition_) {
+        return true;
+    }
+    if (isAccumulatedClipFlagChanged_) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -1147,7 +1153,16 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
 
 bool RSRenderNode::IsClipBound() const
 {
-    return GetRenderProperties().GetClipBounds() || GetRenderProperties().GetClipToFrame();
+    return GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame();
+}
+
+bool RSRenderNode::SetAccumulatedClipFlag(bool clipChange)
+{
+    isAccumulatedClipFlagChanged_ = (hasAccumulatedClipFlag_ != IsClipBound()) || clipChange;
+    if (isAccumulatedClipFlagChanged_) {
+        hasAccumulatedClipFlag_ = IsClipBound();
+    }
+    return isAccumulatedClipFlagChanged_;
 }
 
 const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
@@ -1344,7 +1359,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
-    if ((IsDirty() || clipAbsDrawRectChange_) && (shouldPaint_ || isLastVisible_)) {
+    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && parent->GetAccumulatedClipFlagChange())) &&
+        (shouldPaint_ || isLastVisible_)) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);

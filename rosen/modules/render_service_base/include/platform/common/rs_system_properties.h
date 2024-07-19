@@ -139,6 +139,7 @@ public:
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
     static float GetClipRectThreshold();
+    static bool GetAllSurfaceVisibleDebugEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetOcclusionEnabled();

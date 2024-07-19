@@ -51,6 +51,7 @@ namespace {
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
     constexpr uint32_t RECT_DEFAULT_SIZE = 100;
     constexpr int ROTATION_90 = 90;
+    const OHOS::Rosen::RectI DEFAULT_RECT = {0, 80, 1000, 1000};
     const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 }
 
@@ -3925,6 +3926,138 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeSurfaceDirtysForDisplay001, TestSize.
 }
 
 /*
+ * @tc.name: CheckMergeDisplayDirtyByTransparent001
+ * @tc.desc: Test CheckMergeDisplayDirtyByTransparent with transparent node
+ * @tc.type: FUNC
+ * @tc.require: issueIAD6OW
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparent001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10; // 10 non-zero dummy configId
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetDirtyManager(), nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    // 11 non-zero node id
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    // set surfaceNode to transparent, create a transparent dirty region
+    rsSurfaceRenderNode->SetAbilityBGAlpha(0);
+    rsSurfaceRenderNode->SetSrcRect(DEFAULT_RECT);
+    rsSurfaceRenderNode->GetDirtyManager()->MergeDirtyRect(DEFAULT_RECT);
+    rsSurfaceRenderNode->oldDirtyInSurface_ = DEFAULT_RECT;
+
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparent(*rsSurfaceRenderNode);
+    ASSERT_EQ(rsDisplayRenderNode->GetDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/*
+ * @tc.name: CheckMergeDisplayDirtyByZorderChanged001
+ * @tc.desc: Test CheckMergeDisplayDirtyByZorderChanged with Z order change node
+ * @tc.type: FUNC
+ * @tc.require: issueIAD6OW
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByZorderChanged001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10; // 10 non-zero dummy configId
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetDirtyManager(), nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    // 11 non-zero node id
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    // set surfaceNode Zorder change
+    rsSurfaceRenderNode->zOrderChanged_ = true;
+    rsSurfaceRenderNode->oldDirtyInSurface_ = DEFAULT_RECT;
+
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByZorderChanged(*rsSurfaceRenderNode);
+    ASSERT_EQ(rsDisplayRenderNode->GetDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/*
+ * @tc.name: CheckMergeDisplayDirtyByPosChanged001
+ * @tc.desc: Test CheckMergeDisplayDirtyByPosChanged with position change
+ * @tc.type: FUNC
+ * @tc.require: issueIAD6OW
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByPosChanged001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10; // 10 non-zero dummy configId
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetDirtyManager(), nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    // 11 non-zero node id
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    // set surfaceNode pos change
+    rsDisplayRenderNode->UpdateSurfaceNodePos(config.id, RectI());
+    rsDisplayRenderNode->ClearCurrentSurfacePos();
+    rsDisplayRenderNode->UpdateSurfaceNodePos(config.id, DEFAULT_RECT);
+
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByPosChanged(*rsSurfaceRenderNode);
+    ASSERT_EQ(rsDisplayRenderNode->GetDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/*
+ * @tc.name: CheckMergeDisplayDirtyByShadowChanged001
+ * @tc.desc: Test CheckMergeDisplayDirtyByShadowChanged with shadow change
+ * @tc.type: FUNC
+ * @tc.require: issueIAD6OW
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByShadowChanged001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10; // 10 non-zero dummy configId
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetDirtyManager(), nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    // 11 non-zero node id
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    // set surfaceNode shadow change
+    rsSurfaceRenderNode->isShadowValidLastFrame_ = true;
+    rsSurfaceRenderNode->GetDirtyManager()->MergeDirtyRect(DEFAULT_RECT);
+    rsSurfaceRenderNode->oldDirtyInSurface_ = DEFAULT_RECT;
+
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByShadowChanged(*rsSurfaceRenderNode);
+    ASSERT_EQ(rsDisplayRenderNode->GetDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/*
  * @tc.name: UpdateSurfaceDirtyAndGlobalDirty001
  * @tc.desc: Test UpdateSurfaceDirtyAndGlobalDirty
  * @tc.type: FUNC
@@ -4897,12 +5030,12 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
 }
 
 /*
- * @tc.name: CheckMergeTransparentFilterForDisplay
- * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeTransparentFilterForDisplay with mainWindow
+ * @tc.name: CheckMergeDisplayDirtyByTransparentFilter
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDisplayDirtyByTransparentFilter with mainWindow
  * @tc.type: FUNC
  * @tc.require: issuesI9V0N7
  */
-HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentFilterForDisplay001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter001, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -4919,16 +5052,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentFilterForDisplay001, TestS
     uint32_t height = 600;
     RectI rect{left, top, width, height};
     Occlusion::Region region{rect};
-    rsUniRenderVisitor->CheckMergeTransparentFilterForDisplay(surfaceNode, region);
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentFilter(surfaceNode, region);
 }
 
 /*
- * @tc.name: CheckMergeTransparentFilterForDisplay
- * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeTransparentFilterForDisplay
+ * @tc.name: CheckMergeDisplayDirtyByTransparentFilter
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDisplayDirtyByTransparentFilter
  * @tc.type: FUNC
  * @tc.require: issuesI9V0N7
  */
-HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentFilterForDisplay002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter002, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -4973,16 +5106,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentFilterForDisplay002, TestS
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
 
-    rsUniRenderVisitor->CheckMergeTransparentFilterForDisplay(surfaceNode, region1);
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentFilter(surfaceNode, region1);
 }
 
 /*
- * @tc.name: CheckMergeTransparentDirtysForDisplay
- * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeTransparentDirtysForDisplay with container window
+ * @tc.name: CheckMergeDisplayDirtyByTransparentRegions
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDisplayDirtyByTransparentRegions with container window
  * @tc.type: FUNC
  * @tc.require: issuesI9V0N7
  */
-HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentRegions001, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -5010,16 +5143,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay001, TestS
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
-    rsUniRenderVisitor->CheckMergeTransparentDirtysForDisplay(surfaceNode);
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentRegions(*surfaceNode);
 }
 
 /*
- * @tc.name: CheckMergeTransparentDirtysForDisplay
- * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeTransparentDirtysForDisplay with no container window
+ * @tc.name: CheckMergeDisplayDirtyByTransparentRegions
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDisplayDirtyByTransparentRegions with no container window
  * @tc.type: FUNC
  * @tc.require: issuesI9V0N7
  */
-HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentRegions002, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -5041,6 +5174,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay002, TestS
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
-    rsUniRenderVisitor->CheckMergeTransparentDirtysForDisplay(surfaceNode);
+    rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentRegions(*surfaceNode);
 }
 } // OHOS::Rosen
