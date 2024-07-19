@@ -14,15 +14,14 @@
  */
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
+#include "surface_buffer_impl.h"
 
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "params/rs_surface_render_params.h"
-#include "params/rs_surface_render_params.h"
-#include "drawable/rs_surface_render_node_drawable.h"
-#include "surface_buffer_impl.h"
-#include "render/rs_shadow.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_shadow.h"
 
 using namespace testing;
 using namespace testing::ext;
