@@ -286,8 +286,16 @@ export class PathConstructor extends TestBase {
     path.lineTo(this.width_, 0);
     path.close();
 
-    let path2: drawing.Path = new drawing.Path(path);
-    canvas.drawPath(path2);
+    let path2 : drawing.Path;
+    try {
+      path2 = new drawing.Path(path);
+    } catch(err) {
+      console.error("Path.constructor(Path)exception: ", err.name, ":", err.message, err.stack);
+      this.displayTestResult(canvas, false);
+      return;
+    }
+
+    this.displayTestResult(canvas, (path2.getBounds() == path.getBounds() && path2.getLength(true) == path.getLength(true)));
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
@@ -298,8 +306,22 @@ export class PathConstructor extends TestBase {
     path.close();
     let path2: drawing.Path;
     for (let i = 0; i < this.testCount_; i++) {
-      path2 = new drawing.Path(path);
+      try {
+        path2 = new drawing.Path(path);
+      } catch(err) {
+        console.error("Path.constructor(Path)exception: ", err.name, ":", err.message, err.stack);
+        this.displayTestResult(canvas, false);
+        return;
+      }
     }
-    canvas.drawPath(path2);
+    this.displayTestResult(canvas, (path2.getBounds() == path.getBounds() && path2.getLength(true) == path.getLength(true)));
+  }
+
+  private displayTestResult(canvas: drawing.Canvas, isPassed : Boolean) {
+    let testResult : string = isPassed ? "PASSED" : "FAILED. Please check the console logs";
+    let font : drawing.Font = new drawing.Font();
+    font.setSize(50);
+    let blob : drawing.TextBlob = drawing.TextBlob.makeFromString(testResult, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+    canvas.drawTextBlob(blob, 10, 100);
   }
 }
