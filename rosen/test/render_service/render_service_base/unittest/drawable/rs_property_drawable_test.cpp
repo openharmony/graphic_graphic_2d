@@ -290,7 +290,7 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->rotationChanged_ = false;
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
-    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
 }
 
 /**

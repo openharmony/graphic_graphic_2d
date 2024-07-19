@@ -35,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 const std::string OUT_STR3 =
     ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, VisibleRegion [Empty], "
-    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0";
+    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0";
 const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
 const std::string OUT_STR5 = ", skipLayer: 0";
 
