@@ -23,6 +23,7 @@
 #include "native_pixel_map_manager.h"
 #include "pixelmap_native_impl.h"
 #include "recording/recording_canvas.h"
+#include "utils/log.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -307,16 +308,18 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         return;
     }
 
-    Point* positionsPoint = new Point[vertexCount];
+    Point* positionsPoint = new(std::nothrow) Point[vertexCount];
     if (positionsPoint == nullptr) {
+        LOGE("OH_Drawing_CanvasDrawVertices: new position point failed.");
         return;
     }
     for (int32_t i = 0; i < vertexCount; ++i) {
         positionsPoint[i] = CastToPoint(positions[i]);
     }
-    Point* texsPoint = new Point[vertexCount];
+    Point* texsPoint = new(std::nothrow) Point[vertexCount];
     if (texsPoint == nullptr) {
         delete [] positionsPoint;
+        LOGE("OH_Drawing_CanvasDrawVertices: new texs point failed.");
         return;
     }
     for (int32_t i = 0; i < vertexCount; ++i) {
