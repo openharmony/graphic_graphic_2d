@@ -72,7 +72,7 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
     arg.WriteBool(bufferCount);
     if (!arg.WriteInt32(bufferCount)) {
         VLOGE("SetUiDvsyncConfig bufferCount error");
-        return VSYNC_ERROR_BINDER_ERROR;
+        return VSYNC_ERROR_UNKOWN;
     }
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG, arg, ret, opt);
     if (res != NO_ERROR) {
