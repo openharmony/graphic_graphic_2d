@@ -36,11 +36,14 @@ public:
     static napi_value MakeFromString(napi_env env, napi_callback_info info);
     static napi_value MakeFromRunBuffer(napi_env env, napi_callback_info info);
     static napi_value Bounds(napi_env env, napi_callback_info info);
+    static napi_value MakeFromPosText(napi_env env, napi_callback_info info);
+    static napi_value UniqueID(napi_env env, napi_callback_info info);
 
     std::shared_ptr<TextBlob> GetTextBlob();
 
 private:
     napi_value OnBounds(napi_env env, napi_callback_info info);
+    napi_value OnUniqueID(napi_env env, napi_callback_info info);
     static bool OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawingRect, napi_valuetype& isRectNullptr);
     static bool OnMakeRunBuffer(napi_env& env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, napi_value& array);
     std::shared_ptr<TextBlob> m_textBlob = nullptr;
