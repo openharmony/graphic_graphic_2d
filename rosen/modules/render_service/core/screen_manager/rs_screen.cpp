@@ -100,7 +100,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       producerSurface_(configs.surface),
       pixelFormat_(configs.pixelFormat),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN),
-      filteredAppSet_(configs.filteredAppSet)
+      whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
     RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64 ", "
@@ -983,9 +983,9 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     }
     return StatusCode::HDI_ERROR;
 }
-const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
+const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
 {
-    return filteredAppSet_;
+    return whiteList_;
 }
 
 void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)

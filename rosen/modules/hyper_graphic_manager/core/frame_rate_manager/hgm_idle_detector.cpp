@@ -98,9 +98,9 @@ bool HgmIdleDetector::GetSupportSurface()
     return false;
 }
 
-uint32_t HgmIdleDetector::GetSurfaceUpExpectFps()
+int32_t HgmIdleDetector::GetSurfaceUpExpectFps()
 {
-    uint32_t fps = FPS_120;
+    int32_t fps = FPS_120;
 
     std::lock_guard<std::mutex> lock(appBufferListMutex_);
     if (appBufferList_.empty()) {
@@ -117,7 +117,7 @@ uint32_t HgmIdleDetector::GetSurfaceUpExpectFps()
     for (auto &member : frameTimeMap_) {
         auto key = member.first;
         auto it = std::find_if(appBufferList_.begin(), appBufferList_.end(),
-            [&key](const std::pair<std::string, uint32_t>& pair) { return pair.first == key; });
+            [&key](const std::pair<std::string, int32_t>& pair) { return pair.first == key; });
         if (it == appBufferList_.end()) {
             return fps;
         }

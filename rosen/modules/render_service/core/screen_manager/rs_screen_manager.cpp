@@ -836,7 +836,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -860,7 +860,6 @@ ScreenId RSScreenManager::CreateVirtualScreen(
         RS_LOGD("RSScreenManager %{public}s: surface is nullptr.", __func__);
     }
 
-    std::unordered_set<NodeId> filteredAppSet(filteredAppVector.begin(), filteredAppVector.end());
     VirtualScreenConfigs configs;
     ScreenId newId = GenerateVirtualScreenIdLocked();
     configs.id = newId;
@@ -870,7 +869,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.height = height;
     configs.surface = surface;
     configs.flags = flags;
-    configs.filteredAppSet= filteredAppSet;
+    configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
 
     screens_[newId] = std::make_unique<RSScreen>(configs);
     RS_LOGD("RSScreenManager %{public}s: create virtual screen(id %{public}" PRIu64 ").", __func__, newId);
@@ -1315,7 +1314,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
     screen->GetPixelFormat(info.pixelFormat);
     screen->GetScreenHDRFormat(info.hdrFormat);
-    info.filteredAppSet = screen->GetFilteredAppSet();
+    info.whiteList = screen->GetWhiteList();
     return info;
 }
 

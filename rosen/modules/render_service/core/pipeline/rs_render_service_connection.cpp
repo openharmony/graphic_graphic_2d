@@ -393,11 +393,11 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto newVirtualScreenId = screenManager_->CreateVirtualScreen(
-        name, width, height, surface, mirrorId, flags, filteredAppVector);
+        name, width, height, surface, mirrorId, flags, whiteList);
     virtualScreenIds_.insert(newVirtualScreenId);
     if (surface != nullptr) {
         EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };

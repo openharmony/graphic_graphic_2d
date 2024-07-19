@@ -352,9 +352,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
-            std::vector<NodeId> filteredAppVector;
-            data.ReadUInt64Vector(&filteredAppVector);
-            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
+            std::vector<NodeId> whiteList;
+            data.ReadUInt64Vector(&whiteList);
+            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
             reply.WriteUint64(id);
             break;
         }

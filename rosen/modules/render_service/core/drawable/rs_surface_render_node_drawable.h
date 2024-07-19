@@ -51,7 +51,10 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
-    bool EnableRecordingOptimization(RSRenderParams& params);
+    bool CheckIfSurfaceSkipInMirror(const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams);
+    void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
+    void ResetVirtualScreenWhiteListRootId(NodeId id);
+    bool EnableRecordingOptimization(const RSSurfaceRenderParams& surfaceParams);
 
     void SubDraw(Drawing::Canvas& canvas);
     void ClipRoundRect(Drawing::Canvas& canvas);

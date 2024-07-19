@@ -297,6 +297,10 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 #endif
             break;
         }
+        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
+            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+            break;
+        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }

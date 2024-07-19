@@ -183,7 +183,7 @@ std::string RSDisplayRenderParams::ToString() const
     return ret;
 }
 
-bool RSDisplayRenderParams::HasSecurityLayer()
+bool RSDisplayRenderParams::HasSecurityLayer() const
 {
     bool hasSecLayerFlag = false;
     auto iter = displayHasSecSurface_.find(screenId_);
@@ -193,7 +193,7 @@ bool RSDisplayRenderParams::HasSecurityLayer()
     return hasSecLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasSkipLayer()
+bool RSDisplayRenderParams::HasSkipLayer() const
 {
     bool hasSkipLayerFlag = false;
     auto iter = displayHasSkipSurface_.find(screenId_);
@@ -203,7 +203,7 @@ bool RSDisplayRenderParams::HasSkipLayer()
     return hasSkipLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasProtectedLayer()
+bool RSDisplayRenderParams::HasProtectedLayer() const
 {
     bool hasProtectedLayerFlag = false;
     auto iter = displayHasProtectedSurface_.find(screenId_);
@@ -213,7 +213,7 @@ bool RSDisplayRenderParams::HasProtectedLayer()
     return hasProtectedLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasCaptureWindow()
+bool RSDisplayRenderParams::HasCaptureWindow() const
 {
     bool hasCaptureWindow = false;
     auto iter = hasCaptureWindow_.find(screenId_);

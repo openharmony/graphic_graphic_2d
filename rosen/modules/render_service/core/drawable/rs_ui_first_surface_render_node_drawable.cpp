@@ -207,7 +207,8 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
 
 Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    auto surfaceParams = GetRenderParams() ?
+        static_cast<RSSurfaceRenderParams*>(GetRenderParams().get()) : nullptr;
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
         return Vector2f{};

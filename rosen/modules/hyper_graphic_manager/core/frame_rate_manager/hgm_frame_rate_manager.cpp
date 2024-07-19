@@ -44,13 +44,14 @@ namespace {
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
-    constexpr uint32_t FIRST_FRAME_TIME_OUT = 50000000; // 50ms
+    constexpr uint32_t FIRST_FRAME_TIME_OUT = 50; // 50ms
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
     constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
     const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
+    const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -150,11 +151,12 @@ void HgmFrameRateManager::InitTouchManager()
                     .upExpectFps = OLED_120_HZ,
                 };
                 multiAppStrategy_.HandleTouchInfo(touchInfo);
-                lastTouchState_.store(TouchState::DOWN_STATE);
             }
+            startCheck_.store(false);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this] (TouchState lastState, TouchState newState) {
+            startCheck_.store(false);
             HgmMultiAppStrategy::TouchInfo touchInfo = {
                 .pkgName = touchManager_.GetPkgName(),
                 .touchState = newState,
@@ -163,10 +165,13 @@ void HgmFrameRateManager::InitTouchManager()
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
             [this] (TouchState lastState, TouchState newState) {
-            uint64_t curTime = static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
-            idleDetector_.SetTouchUpTime(curTime);
+            HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this] () { startCheck_.store(true); },
+                FIRST_FRAME_TIME_OUT);
+        });
+        touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
+            [this] (TouchState lastState, TouchState newState) {
+            HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
+            startCheck_.store(false);
         });
     });
 }
@@ -239,42 +244,14 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
         touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
         idleDetector_.GetAceAnimatorIdleStatus());
 
-    if (touchManager_.GetState() != TouchState::UP_STATE) {
-        prepareCheck_ = false;
-        startCheck_ = false;
-        lastUpExpectFps_ = 0;
-    }
-
-    if (touchManager_.GetState() == TouchState::UP_STATE && lastTouchState_.load() == TouchState::DOWN_STATE) {
-        prepareCheck_ = true;
-        if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
-            if (!idleDetector_.GetSupportSurface()) {
-                touchManager_.HandleThirdFrameIdle();
-            }
-            prepareCheck_ = false;
-            startCheck_ = true;
-        }
-    }
-
-    if (prepareCheck_) {
-        if (timestamp - idleDetector_.GetTouchUpTime() > FIRST_FRAME_TIME_OUT) {
-            if (!idleDetector_.GetSupportSurface()) {
-                touchManager_.HandleThirdFrameIdle();
-            }
-            prepareCheck_ = false;
-            startCheck_ = true;
-        }
-    }
-    lastTouchState_.store(touchManager_.GetState());
-
-    if (!startCheck_ || touchManager_.GetState() == TouchState::IDLE_STATE) {
+    if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
         return;
     }
 
     if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
         touchManager_.HandleThirdFrameIdle();
     } else {
-        uint32_t fps = idleDetector_.GetSurfaceUpExpectFps();
+        int32_t fps = idleDetector_.GetSurfaceUpExpectFps();
         if (fps == lastUpExpectFps_) {
             return;
         }
@@ -791,7 +768,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     }
 
     static std::mutex hgmTouchEventMutex;
-    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
+    std::unique_lock<std::mutex> eventLock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGI("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;

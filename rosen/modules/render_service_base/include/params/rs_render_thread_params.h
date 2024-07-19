@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -28,6 +29,7 @@ struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    NodeId rootIdInWhiteList_ = INVALID_NODEID;
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
@@ -254,12 +256,26 @@ public:
 
     void SetBlackList(std::unordered_set<NodeId> blackList)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
     }
 
-    std::unordered_set<NodeId> GetBlackList() const
+    const std::unordered_set<NodeId> GetBlackList() const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return blackList_;
+    }
+
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        whiteList_ = whiteList;
+    }
+
+    const std::unordered_set<NodeId> GetWhiteList() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return whiteList_;
     }
 
     // To be deleted after captureWindow being deleted
@@ -330,9 +346,11 @@ public:
     }
 
 private:
+    mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
     bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
     std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeId> whiteList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;

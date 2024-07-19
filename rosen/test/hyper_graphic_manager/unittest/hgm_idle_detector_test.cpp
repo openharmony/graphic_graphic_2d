@@ -98,30 +98,6 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleStatus, Function | SmallTe
 }
 
 /**
- * @tc.name: SetAndGetTouchUpTime
- * @tc.desc: Verify the result of SetAndReadAppSupportStatus function
- * @tc.type: FUNC
- * @tc.require: 19N2FS
- */
-HWTEST_F(HgmIdleDetectorTest, SetAndGetTouchUpTime, Function | SmallTest | Level1)
-{
-    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
-
-    PART("CaseDescription") {
-        STEP("1. get an idleDetector") {
-            STEP_ASSERT_NE(idleDetector, nullptr);
-        }
-        STEP("2. set app support status") {
-            idleDetector->SetTouchUpTime(currTime);
-        }
-        STEP("3. get app support status") {
-            uint64_t time = idleDetector->GetTouchUpTime();
-            STEP_ASSERT_GE(time, 0);
-        }
-    }
-}
-
-/**
  * @tc.name: SetAndGetSurfaceTimeStatus
  * @tc.desc: Verify the result of SetAndGetSurfaceTimeStatus function
  * @tc.type: FUNC
@@ -201,7 +177,7 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps001, Function | SmallTest | L
         STEP("2. get surface up expect fps") {
             idleDetector->SetAppSupportStatus(true);
             idleDetector->ClearAppBufferList();
-            uint32_t ret = idleDetector->GetSurfaceUpExpectFps();
+            int32_t ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
 
             idleDetector->SetAceAnimatorIdleStatus(false);
@@ -254,7 +230,7 @@ HWTEST_F(HgmIdleDetectorTest, GetSurfaceUpExpectFps002, Function | SmallTest | L
             idleDetector->appBufferList_.push_back(std::make_pair(rosenWeb, fps90HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(flutterBuffer, fps90HZ));
             idleDetector->appBufferList_.push_back(std::make_pair(aceAnimator, fps60HZ));
-            uint32_t ret = idleDetector->GetSurfaceUpExpectFps();
+            int32_t ret = idleDetector->GetSurfaceUpExpectFps();
             STEP_ASSERT_EQ(ret, fps120HZ);
 
             idleDetector->ClearAppBufferList();

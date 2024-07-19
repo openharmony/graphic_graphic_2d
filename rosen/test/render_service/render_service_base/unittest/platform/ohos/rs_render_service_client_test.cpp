@@ -193,9 +193,9 @@ HWTEST_F(RSClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
 {
     ASSERT_NE(rsClient, nullptr);
-    std::vector<NodeId> filteredAppVector = {1};
+    std::vector<NodeId> whiteList = {1};
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
