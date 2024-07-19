@@ -83,7 +83,11 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_value jsThis = nullptr;
     JsPath* jsPath = nullptr;
-    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ZERO, ARGC_ONE);
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsThis, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("Path::Constructor Failed to napi_get_cb_info");
+        return nullptr;
+    }
     if (argc == ARGC_ZERO) {
         Path* path = new(std::nothrow) Path();
         if (!path) {
@@ -120,7 +124,7 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         ROSEN_LOGE("Failed to create JsPath");
         return nullptr;
     }
-    napi_status status = napi_wrap(env, jsThis, jsPath,
+    status = napi_wrap(env, jsThis, jsPath,
         JsPath::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPath;
