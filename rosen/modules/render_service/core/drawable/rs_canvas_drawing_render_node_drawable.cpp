@@ -334,18 +334,6 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         }
         std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
         canvasDrawingDrawable->image_ = image;
-        auto task = [ctx, nodeId] () {
-            if (UNLIKELY(!ctx)) {
-                return;
-            }
-            ctx->PostTask([ctx, nodeId]() {
-                if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
-                    node->SetDirty();
-                    ctx->RequestVsync();
-                }
-            });
-        };
     });
 }
 

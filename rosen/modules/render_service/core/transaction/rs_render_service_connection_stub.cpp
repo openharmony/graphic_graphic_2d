@@ -591,13 +591,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             captureConfig.captureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
             captureConfig.isSync = data.ReadBool();
 
-            auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-            if (node && node->GetType() == RSRenderNodeType::DISPLAY_NODE &&
-                !securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access TAKE_SURFACE_CAPTURE");
-                return ERR_INVALID_STATE;
-            }
-            TakeSurfaceCapture(id, cb, captureConfig);
+            TakeSurfaceCapture(id, cb, captureConfig, securityManager_.IsInterfaceCodeAccessible(code));
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
