@@ -25,6 +25,9 @@ const std::string CLASS_NAME = "RoundRect";
 napi_value JsRoundRect::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("setCorner", JsRoundRect::SetCorner),
+        DECLARE_NAPI_FUNCTION("getCorner", JsRoundRect::GetCorner),
+        DECLARE_NAPI_FUNCTION("offset", JsRoundRect::Offset),
     };
 
     napi_value constructor = nullptr;
@@ -103,6 +106,64 @@ void JsRoundRect::Destructor(napi_env env, void* nativeObject, void* finalize)
         JsRoundRect* napi = reinterpret_cast<JsRoundRect*>(nativeObject);
         delete napi;
     }
+}
+
+napi_value JsRoundRect ::SetCorner(napi_env env, napi_callback_info info)
+{
+    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    return (rect != nullptr) ? rect->OnSetCorner(env, info) : nullptr;
+}
+
+napi_value JsRoundRect ::OnSetCorner(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_THREE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+    RoundRect ::CornerPos pos;
+    ConvertFromJsValue(env, argv[0], pos);
+    double x = 0;
+    GET_DOUBLE_PARAM(ARGC_ONE, x);
+    double y = 0;
+    GET_DOUBLE_PARAM(ARGC_TWO, y);
+
+    m_roundRect.SetCornerRadius(pos, x, y);
+
+    return nullptr;
+}
+
+napi_value JsRoundRect ::GetCorner(napi_env env, napi_callback_info info)
+{
+    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    return (rect != nullptr) ? rect->OnGetCorner(env, info) : nullptr;
+}
+
+napi_value JsRoundRect ::OnGetCorner(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    RoundRect ::CornerPos pos;
+    ConvertFromJsValue(env, argv[0], pos);
+    auto point = m_roundRect.GetCornerRadius(pos);
+    return ConvertPointToJsValue(env, point);
+}
+
+napi_value JsRoundRect ::Offset(napi_env env, napi_callback_info info)
+{
+    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    return (rect != nullptr) ? rect->OnOffset(env, info) : nullptr;
+}
+
+napi_value JsRoundRect ::OnOffset(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    double dx = 0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, dx);
+    double dy = 0;
+    GET_DOUBLE_PARAM(ARGC_ONE, dy);
+
+    m_roundRect.Offset(dx, dy);
+
+    return nullptr;
 }
 
 const RoundRect& JsRoundRect::GetRoundRect()
