@@ -62,6 +62,25 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return VSYNC_ERROR_OK;
 }
 
+VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
+{
+    MessageOption opt(MessageOption::TF_ASYNC);
+    MessageParcel arg;
+    MessageParcel ret;
+
+    arg.WriteInterfaceToken(GetDescriptor());
+    arg.WriteBool(dvsyncSwitch);
+    if (!arg.WriteInt32(bufferCount)) {
+        VLOGE("SetUiDvsyncConfig bufferCount error");
+        return VSYNC_ERROR_BINDER_ERROR;
+    }
+    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG, arg, ret, opt);
+    if (res != NO_ERROR) {
+        return VSYNC_ERROR_BINDER_ERROR;
+    }
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
 {
     MessageOption opt;
