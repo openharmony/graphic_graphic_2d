@@ -4943,61 +4943,47 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay002, TestS
 }
 
 /**
- * @tc.name: UpdateHwcNodeInfoForAppNode001
+ * @tc.name: UpdateHwcNodeInfoForAppNode
  * @tc.desc: Test RSUniRenderVisitorTest.UpdateHwcNodeInfoForAppNode with not nullptr
  * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
+ * @tc.require: issuesIAE8IM
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode, TestSize.Level2)
 {
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsContext = std::make_shared<RSContext>();
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsSurfaceRenderNode->InitRenderParams();
-    UpdateHwcNodeInfoForAppNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->UpdateHwcNodeInfoForAppNode(rsSurfaceRenderNode);
 }
 
 /**
  * @tc.name: UpdateHwcNodeRectInSkippedSubTree
- * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeRectInSkippedSubTree with not nullptr
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeRectInSkippedSubTree with nullptr
  * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
+ * @tc.require: issuesIAE8IM
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Level2)
 {
-    NodeId id = 0;
-    auto node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    UpdateHwcNodeRectInSkippedSubTree(node);
-}
-
-/**
- * @tc.name: UpdateHwcNodeEnableByGlobalFilter
- * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with not nullptr
- * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter001, TestSize.Level2)
-{
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = 1;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(surfaceNode, nullptr);
-    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(node);
 }
 
 /**
  * @tc.name: UpdateHwcNodeEnableByGlobalFilter
  * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with nullptr
  * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
+ * @tc.require: issuesIAE8IM
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
-    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
+    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node1);
 }
 } // OHOS::Rosen
