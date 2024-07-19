@@ -4059,6 +4059,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSrcRect001, TestSize.Level2)
 
     Drawing::Matrix absMatrix;
     RectI absRect(0, 0, 0, 0);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetBounds({0, 0, 0, 0});
     rsUniRenderVisitor->UpdateSrcRect(*rsSurfaceRenderNode, absMatrix, absRect);
     ASSERT_EQ(rsSurfaceRenderNode->GetSrcRect().left_, 0);
 }
