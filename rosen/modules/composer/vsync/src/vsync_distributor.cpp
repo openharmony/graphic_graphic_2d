@@ -815,6 +815,11 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
             std::unique_lock<std::mutex> locker(mutex_);
             // Trigger VSync Again for LTPO
             conns[i]->triggerThisTime_ = true;
+#if defined(RS_ENABLE_DVSYNC)
+            if (isDvsyncThread) {
+                hasVsync_.store(true);
+            }
+#endif
             // Exclude SetVSyncRate for LTPS
             if (conns[i]->rate_ < 0) {
                 conns[i]->rate_ = 0;
