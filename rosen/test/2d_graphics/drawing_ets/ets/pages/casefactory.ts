@@ -45,7 +45,7 @@ export class CaseFactory {
       ['pathgetPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathgetmatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathbuildfromsvgstring', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
-      ['pathcontructor', () => { return new PathConstructor(); }],
+      ['pathconstructor', () => { return new PathConstructor(); }],
 
       ['matrixgetvalue', () => { return new MatrixGetValue(); }],
       ['matrixgetall', () => { return new MatrixGetAll(); }],
