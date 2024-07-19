@@ -15,7 +15,7 @@
 
 import {TestBase, StyleType} from './testbase';
 import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, CanvasDrawImage, CanvasDrawCircle, CanvasDrawTextBlob,
-  CanvasDrawPixelMapMesh, CanvasDrawColor } from '../testcase/interface/canvastest';
+  CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor } from '../testcase/interface/canvastest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset } from '../testcase/interface/pathtest';
 import { MakeFromRunBuffer } from '../testcase/interface/textblobtest'
 import { MakeFromString } from '../testcase/interface/textblobtest'
@@ -36,6 +36,7 @@ export class CaseFactory {
       ['canvasdrawline', () => { return new CanvasDrawLine(); }],
       ['canvasdrawtextblob', () => { return new CanvasDrawTextBlob(); }],
       ['canvasdrawimage', () => { return new CanvasDrawImage(); }],
+      ['canvassetcolor', () => { return new CanvasSetColor(); }],
     ]
   );
   static PerformanceMap: Map<string, Function> = new Map(
