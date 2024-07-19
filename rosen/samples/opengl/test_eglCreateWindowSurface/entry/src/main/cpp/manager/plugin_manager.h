@@ -30,7 +30,7 @@ public:
 
     static PluginManager *GetInstance()
     {
-        return &PluginManager::m_pluginManager;
+        return &PluginManager::pluginmanager_;
     }
 
     void SetNativeXComponent(std::string &id, OH_NativeXComponent *nativeXComponent);
@@ -38,10 +38,10 @@ public:
     void Export(napi_env env, napi_value exports);
 
 private:
-    static PluginManager m_pluginManager;
+    static PluginManager pluginmanager_;
 
-    std::unordered_map<std::string, OH_NativeXComponent *> m_nativeXComponentMap;
-    std::unordered_map<std::string, PluginRender *> m_pluginRenderMap;
+    std::unordered_map<std::string, OH_NativeXComponent *> nativeXComponentMap_;
+    std::unordered_map<std::string, PluginRender *> pluginrendermap_;
 };
 } // namespace OHOS
 #endif // PLUGIN_MANAGER_H
