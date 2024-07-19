@@ -168,6 +168,6 @@ export class RoundRectOffsetTest extends RoundRectTest {
     for (let i = 0; i < this.testCount_; i++) {
       this.roundRect_.offset(this.dx_, this.dy_);
     }
-    RoundRectTest.printResults(canvas, false);
+    RoundRectTest.printResults(canvas, true);
   }
 }
