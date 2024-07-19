@@ -193,8 +193,8 @@ export class MatrixSetPolyToPoly extends TestBase {
   }
 
   public OnTestFunction(canvas: drawing.Canvas) {
-    let srcPoints: Array<common2D.Point> = [ {x: 200, y: 20}, {x: 200, y: 60} ];
-    let dstPoints: Array<common2D.Point> = [];
+    let srcPoints: Array<common2D.Point> = [ { x: 200, y: 20 }, { x: 200, y: 60 } ];
+    let dstPoints: Array<common2D.Point> = [ { x:0, y: 0 }, { x:0, y: 0 } ];
     let brush = new drawing.Brush();
     let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
     let matrix = new drawing.Matrix();
@@ -202,21 +202,36 @@ export class MatrixSetPolyToPoly extends TestBase {
     brush.setColor(color);
     canvas.attachBrush(brush);
     console.log(TAG, "matrix.setPolyToPoly1");
-    if (matrix.setPolyToPoly(srcPoints, dstPoints, 2)) {
-      console.log(TAG, "canvas.drawLine(dstPoints");
-      canvas.drawLine(dstPoints[0].x, dstPoints[0].y, dstPoints[1].x, dstPoints[1].y)
+    let result: boolean = false;
+    try {
+      if (matrix.setPolyToPoly(srcPoints, dstPoints, 2)) {
+        console.log(TAG, "canvas.drawLine(dstPoints");
+        canvas.drawLine(dstPoints[0].x, dstPoints[0].y, dstPoints[1].x, dstPoints[1].y);
+        result = true;
+      }
+    } catch(err) {
+      console.error("Matrix.setPolyToPoly exception: ", err.name, ":", err.message, err.stack);
     }
     canvas.detachBrush();
+    if (!result) {
+      displayTestResult(canvas, false);
+    }
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let matrix = new drawing.Matrix();
-    let srcPoints: Array<common2D.Point> = [ {x: 200, y: 20}, {x: 200, y: 60} ];
-    let dstPoints: Array<common2D.Point> = [];
+    let srcPoints: Array<common2D.Point> = [ { x: 200, y: 20 }, { x: 200, y: 60 } ];
+    let dstPoints: Array<common2D.Point> = [ { x:0, y: 0 }, { x:0, y: 0 } ];
+    let result: boolean = true;
     for (let i = 0; i < this.testCount_; i++) {
-      matrix.setPolyToPoly(srcPoints, dstPoints, 2);
+      try {
+        matrix.setPolyToPoly(srcPoints, dstPoints, 2);
+      } catch(err) {
+        console.error("Matrix.setPolyToPoly exception: ", err.name, ":", err.message, err.stack);
+        result = false;
+      }
     }
-    displayTestResult(canvas, true);
+    displayTestResult(canvas, result);
   }
 }
 

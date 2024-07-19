@@ -290,7 +290,7 @@ export class PathConstructor extends TestBase {
     try {
       path2 = new drawing.Path(path);
     } catch(err) {
-      console.error("Path.constructor(Path)exception: ", err.name, ":", err.message, err.stack);
+      console.error("Path.constructor(Path) exception: ", err.name, ":", err.message, err.stack);
       this.displayTestResult(canvas, false);
       return;
     }
@@ -309,7 +309,7 @@ export class PathConstructor extends TestBase {
       try {
         path2 = new drawing.Path(path);
       } catch(err) {
-        console.error("Path.constructor(Path)exception: ", err.name, ":", err.message, err.stack);
+        console.error("Path.constructor(Path) exception: ", err.name, ":", err.message, err.stack);
         this.displayTestResult(canvas, false);
         return;
       }
