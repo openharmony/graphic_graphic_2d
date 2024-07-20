@@ -76,10 +76,6 @@ HgmCore::HgmCore()
 
 bool HgmCore::Init()
 {
-    if (isInit_) {
-        return true;
-    }
-
     if (!isEnabled_) {
         HGM_LOGE("HgmCore Hgm is desactivated");
         return false;
@@ -113,7 +109,7 @@ bool HgmCore::Init()
 
     SetLtpoConfig();
 
-    isInit_ = true;
+    isInit_.store(true);
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
 }
