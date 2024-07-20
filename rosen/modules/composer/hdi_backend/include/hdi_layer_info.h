@@ -519,6 +519,16 @@ public:
     {
         return layerMask_;
     }
+
+    inline uint64_t GetNodeId()
+    {
+        return nodeId_;
+    }
+
+    void SetNodeId(uint64_t nodeId)
+    {
+        nodeId_ = nodeId;
+    }
     /* hdiLayer get layer info end */
 
 private:
@@ -556,6 +566,7 @@ private:
     mutable std::mutex mutex_;
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    uint64_t nodeId_ = 0;
     ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
 };

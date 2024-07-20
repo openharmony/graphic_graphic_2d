@@ -35,6 +35,7 @@ static constexpr uint32_t LAYER_COMPOSITION_CAPACITY_INVALID = 0;
 
 // dump layer
 struct LayerDumpInfo {
+    uint64_t nodeId;
     uint64_t surfaceId;
     LayerPtr layer;
 };
