@@ -897,6 +897,14 @@ bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
     return PreAllocateTextureBetweenFramesEnabled;
 }
 
+bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+{
+    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1")
+                       .c_str()) != 0);
+    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+}
+
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
