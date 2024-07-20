@@ -884,9 +884,9 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
     bool res = node->GetNodeIsSingleFrameComposer();
     ASSERT_FALSE(res);
     system::SetParameter("persist.sys.graphic.singleFrame", "1");
-    EXPECT_FALSE(node->GetNodeIsSingleFrameComposer());
-    node->name_ = "hwstylusfeature";
+    ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
     node->isNodeSingleFrameComposer_ = true;
+    node->name_ = "hwstylusfeature";
     EXPECT_TRUE(node->GetNodeIsSingleFrameComposer());
 }
 

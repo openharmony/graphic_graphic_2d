@@ -1650,7 +1650,7 @@ HWTEST_F(RSPropertiesTest, SetGreyCoef001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetNGetDynamicDimDegree001, TestSize.Level1)
 {
     RSProperties properties;
-    std::optional<float> dimDegree(1.f);
+    std::optional<float> dimDegree(0.9f);
     properties.SetDynamicDimDegree(dimDegree);
     ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
     EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
