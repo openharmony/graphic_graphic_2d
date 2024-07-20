@@ -31,6 +31,7 @@
 #include "region_napi/js_region.h"
 #include "roundRect_napi/js_roundrect.h"
 #include "sampling_options_napi/js_sampling_options.h"
+#include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
 #include "matrix_napi/js_matrix.h"
@@ -55,6 +56,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsPathEffect::Init(env, exportObj);
     JsRegion::Init(env, exportObj);
     JsRoundRect::Init(env, exportObj);
+    JsShaderEffect::Init(env, exportObj);
     JsShadowLayer::Init(env, exportObj);
     JsMatrix::Init(env, exportObj);
     return exportObj;
