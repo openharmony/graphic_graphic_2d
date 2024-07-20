@@ -12,12 +12,16 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 config("sandbox_utils_config") {
   include_dirs = [ "." ]
 }
 
 ohos_static_library("sandbox_utils") {
+  if (is_cross_platform) {
+    defines = [ "ROSEN_CROSS_PLATFORM" ]
+  }
   sources = [ "sandbox_utils.cpp" ]
   public_configs = [ ":sandbox_utils_config" ]
 
