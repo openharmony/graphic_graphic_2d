@@ -3065,6 +3065,12 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         needClearSurface_ = true;
     }
     nodeGroupIncludeProperty_ = includeProperty;
+#ifdef ROSEN_PREVIEW
+    if (type == NodeGroupType::GROUPED_BY_USER) {
+        dirtyTypes_.set(static_cast<int>(RSModifierType::ALPHA), true);
+        GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
+    }
+#endif
     AddToPendingSyncList();
 }
 
