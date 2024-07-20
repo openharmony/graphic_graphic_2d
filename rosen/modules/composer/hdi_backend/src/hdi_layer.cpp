@@ -139,7 +139,7 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
-    bufferCache_.clear();
+    ClearBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
@@ -261,7 +261,7 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
         for (uint32_t i = 0; i < bufferCacheSize; i++) {
             deletingList.push_back(i);
         }
-        bufferCache_.clear();
+        ClearBufferCache();
     }
     index = (uint32_t)bufferCache_.size();
     bufferCache_.push_back(sequence);
@@ -287,7 +287,7 @@ int32_t HdiLayer::SetLayerBuffer()
     std::vector<uint32_t> deletingList = {};
     bool bufferCached = false;
     if (bufferCacheCountMax_ == 0) {
-        bufferCache_.clear();
+        ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
         bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
@@ -809,5 +809,14 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
     return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
 }
 
+void HdiLayer::ClearBufferCache()
+{
+    if (bufferCache_.empty()) {
+        return;
+    }
+    int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
+    CheckRet(ret, "ClearLayerBuffer");
+    bufferCache_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -142,6 +142,8 @@ private:
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
+
+    void ClearBufferCache();
 };
 } // namespace Rosen
 } // namespace OHOS

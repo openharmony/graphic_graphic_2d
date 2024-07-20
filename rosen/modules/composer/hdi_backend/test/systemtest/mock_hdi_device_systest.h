@@ -93,6 +93,8 @@ public:
 
     MOCK_METHOD4(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD2(ClearLayerBuffer, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD1(ClearClientBuffer, int32_t(uint32_t));
 
     MOCK_METHOD7(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&,
         std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&, bool));

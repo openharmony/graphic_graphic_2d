@@ -702,5 +702,17 @@ int32_t HdiDeviceImpl::CloseLayer(uint32_t screenId, uint32_t layerId)
     return g_composer->DestroyLayer(screenId, layerId);
 }
 
+int32_t HdiDeviceImpl::ClearLayerBuffer(uint32_t screenId, uint32_t layerId)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->ClearLayerBuffer(screenId, layerId);
+}
+
+int32_t HdiDeviceImpl::ClearClientBuffer(uint32_t screenId)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->ClearClientBuffer(screenId);
+}
+
 } // namespace Rosen
 } // namespace OHOS
