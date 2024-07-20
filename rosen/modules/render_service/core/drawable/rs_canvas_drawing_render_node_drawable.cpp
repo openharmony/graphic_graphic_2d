@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_canvas_drawing_render_params.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -325,8 +326,23 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         if (image) {
             SKResourceManager::Instance().HoldResource(image);
         }
-        std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
-        canvasDrawingDrawable->image_ = image;
+        {
+            std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
+            canvasDrawingDrawable->image_ = image;
+        }
+        auto task = [ctx, nodeId]() {
+            if (UNLIKELY(!ctx)) {
+                return;
+            }
+            RSMainThread::Instance()->PostTask([ctx, nodeId]() {
+                if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in RSMainThread", nodeId);
+                    node->SetDirty();
+                    ctx->RequestVsync();
+                }
+            });
+        };
+        task();
     });
 }
 
