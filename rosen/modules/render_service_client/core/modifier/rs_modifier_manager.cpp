@@ -72,9 +72,15 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
     displaySyncs_.erase(keyId);
 }
 
-bool RSModifierManager::HasUIAnimation()
+bool RSModifierManager::HasUIRunningAnimation()
 {
-    return !animations_.empty();
+    for (auto& iter : animations_) {
+        auto animation = iter.second.lock();
+        if (animation && animation->IsRunning()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)

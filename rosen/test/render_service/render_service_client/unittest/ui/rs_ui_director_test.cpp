@@ -338,15 +338,15 @@ HWTEST_F(RSUIDirectorTest, FlushAnimationStartTime, TestSize.Level1)
 }
 
 /**
- * @tc.name: HasUIAnimation
+ * @tc.name: HasUIRunningAnimation
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSUIDirectorTest, HasUIAnimation, TestSize.Level1)
+HWTEST_F(RSUIDirectorTest, HasUIRunningAnimation, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    bool res = director->HasUIAnimation();
+    bool res = director->HasUIRunningAnimation();
     ASSERT_TRUE(res == false);
 }
 

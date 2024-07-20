@@ -391,7 +391,7 @@ bool DoHasUIAnimation(const uint8_t* data, size_t size)
 
     // test
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->HasUIAnimation();
+    director->HasUIRunningAnimation();
     return true;
 }
 
