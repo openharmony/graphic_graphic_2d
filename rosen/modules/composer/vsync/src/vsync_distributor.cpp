@@ -572,10 +572,10 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    bool waitForVSync = false;
     uint32_t generatorRefreshRate;
     int64_t vsyncCount;
     {
+        bool waitForVSync = false;
         std::lock_guard<std::mutex> locker(mutex_);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;

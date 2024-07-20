@@ -755,7 +755,7 @@ void HdiOutput::Dump(std::string &result) const
         }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         auto info = layer->GetLayerInfo();
-        result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.surfaceId) + "]";
+        result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";
         info->Dump(result);
     }
@@ -856,6 +856,7 @@ void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) con
 {
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
         struct LayerDumpInfo layerInfo = {
+            .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
             .surfaceId = iter->first,
             .layer = iter->second,
         };
