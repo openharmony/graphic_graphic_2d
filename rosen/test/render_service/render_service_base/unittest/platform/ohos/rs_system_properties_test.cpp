@@ -635,6 +635,7 @@ HWTEST_F(RSSystemPropertiesTest, SetForceHpsBlurDisabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
 {
+    RSSystemProperties::SetForceHpsBlurDisabled(false);
     ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
 }
 
