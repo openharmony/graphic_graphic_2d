@@ -332,6 +332,18 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
     return paragraph;
 }
 
+void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
+{
+    if (!paragraph_) {
+        return;
+    }
+    auto unresolvedPaintID = paragraph_->updateColor(from, to,
+        SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()));
+    for (auto paintID : unresolvedPaintID) {
+        paints_[paintID].SetColor(color);
+    }
+}
+
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
