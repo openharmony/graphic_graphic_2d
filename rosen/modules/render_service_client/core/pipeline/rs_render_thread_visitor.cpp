@@ -993,18 +993,10 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     } else {
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->clear(backgroundColor.AsArgbInt());
-#else
             canvas_->Clear(backgroundColor.AsArgbInt());
-#endif
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->restore();
-#else
     canvas_->Restore();
-#endif
 }
 #endif
 
