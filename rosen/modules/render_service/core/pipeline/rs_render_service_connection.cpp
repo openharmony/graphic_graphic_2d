@@ -1152,8 +1152,8 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
             return;
         }
         auto grContext = renderThread->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        auto getDrawableBitmapTask = [&node, &bitmap, grContext, &result]() {
-            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        auto getDrawableBitmapTask = [drawableNode, &bitmap, grContext, &result]() {
             bitmap = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
                 ->GetBitmap(grContext);
             result.set_value(!bitmap.IsEmpty());
@@ -1189,7 +1189,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         if (drawableNode) {
             tid = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->GetTid();
         }
-        auto getDrawablePixelmapTask = [&drawableNode, &pixelmap, rect, &result, tid, drawCmdList]() {
+        auto getDrawablePixelmapTask = [drawableNode, &pixelmap, rect, &result, tid, drawCmdList]() {
             result.set_value(std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 GetPixelmap(pixelmap, rect, tid, drawCmdList));
         };
