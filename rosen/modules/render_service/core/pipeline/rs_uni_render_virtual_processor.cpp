@@ -16,11 +16,13 @@
 #include "rs_uni_render_virtual_processor.h"
 
 #include <ctime>
+#include <memory>
 #include <parameters.h>
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "metadata_helper.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "platform/common/rs_log.h"
 #ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
@@ -77,16 +79,21 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
     }
 #endif
+    auto drawable = node.GetRenderDrawable();
+    if (!drawable) {
+        return false;
+    }
+    auto displayNodeDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
     if (renderFrame_ == nullptr) {
         uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
-        auto rsSurface = node.GetVirtualSurface(pSurfaceUniqueId);
+        auto rsSurface = displayNodeDrawable->GetVirtualSurface(pSurfaceUniqueId);
         if (rsSurface == nullptr || screenManager->GetAndResetVirtualSurfaceUpdateFlag(node.GetScreenId())) {
             RS_LOGD("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %{public}" PRIu64 ")",
                 node.GetScreenId());
             RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init Make rssurface from producer Screen(id %" PRIu64 ")",
                 node.GetScreenId());
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
-            node.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
+            displayNodeDrawable->SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
 #ifdef NEW_RENDER_CONTEXT
         renderFrame_ = renderEngine_->RequestFrame(
@@ -423,7 +430,12 @@ void RSUniRenderVirtualProcessor::CalculateTransform(RSDisplayRenderNode& node)
     if (isExpand_) {
         return;
     }
-    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+    auto drawable = node.GetRenderDrawable();
+    if (!drawable) {
+        return;
+    }
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+    if (canvas_ == nullptr || displayDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
         return;
     }
@@ -435,11 +447,7 @@ void RSUniRenderVirtualProcessor::CalculateTransform(RSDisplayRenderNode& node)
 
 void RSUniRenderVirtualProcessor::CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
-    auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: SurfaceHandler is null!");
-    }
-    if (canvas_ == nullptr || surfaceHandler->GetBuffer() == nullptr) {
+    if (canvas_ == nullptr || displayDrawable.GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: Canvas or buffer is null!");
         return;
     }
@@ -455,7 +463,12 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
     if (isExpand_) {
         return;
     }
-    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+    auto drawable = node.GetRenderDrawable();
+    if (!drawable) {
+        return;
+    }
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+    if (canvas_ == nullptr || displayDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
         return;
     }
@@ -468,9 +481,6 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
 void RSUniRenderVirtualProcessor::ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
     auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::ProcessVirtualDisplaySurface: SurfaceHandler is null!");
-    }
     if (canvas_ == nullptr || surfaceHandler->GetBuffer() == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::ProcessVirtualDisplaySurface: Canvas or buffer is null!");
         return;

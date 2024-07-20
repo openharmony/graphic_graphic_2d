@@ -1237,7 +1237,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, floa
     for (const auto& iter : pendingPostNodes_) {
         auto& node = iter.second;
         if (node && GetUseDmaBuffer(node->GetName())) {
-            node->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
+            node->GetRSSurfaceHandler()->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
             auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
             node->UpdateHwcNodeLayerInfo(transform);
             node->SetIsLastFrameHwcEnabled(!node->IsHardwareForcedDisabled());

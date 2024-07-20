@@ -53,6 +53,8 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
+#include "rs_uni_render_thread.h"
+
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
@@ -169,9 +171,6 @@ public:
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
-
-    bool WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
-    void NotifyDisplayNodeBufferReleased();
 
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();

@@ -717,7 +717,7 @@ public:
     }
 
     // Used to collect renderDrawable for UniRenderThread.
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable()
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable() const
     {
         return renderDrawable_;
     }

@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(id, context), RSSurfaceHandler(id), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+    : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
@@ -265,35 +265,6 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
-{
-    if (consumer_ != nullptr && surface_ != nullptr) {
-        RS_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
-        return true;
-    }
-    consumer_ = IConsumerSurface::Create("DisplayNode");
-    if (consumer_ == nullptr) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface get consumer surface fail");
-        return false;
-    }
-    SurfaceError ret = consumer_->RegisterConsumerListener(listener);
-    if (ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface RegisterConsumerListener fail");
-        return false;
-    }
-    consumerListener_ = listener;
-    auto producer = consumer_->GetProducer();
-    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(4); // 4 Buffer rotation
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    surface_ = client->CreateRSSurface(surface);
-    RS_LOGI("RSDisplayRenderNode::CreateSurface end");
-    surfaceCreated_ = true;
-    return true;
-}
-#endif
 
 bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
 {

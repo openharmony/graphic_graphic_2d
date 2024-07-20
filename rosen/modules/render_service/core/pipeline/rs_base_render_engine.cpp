@@ -42,6 +42,8 @@
 #include "render/rs_skia_filter.h"
 #include "metadata_helper.h"
 
+#include "drawable/rs_display_render_node_drawable.h"
+
 namespace OHOS {
 namespace Rosen {
 RSBaseRenderEngine::RSBaseRenderEngine()
@@ -477,7 +479,12 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
     if (params.useCPU) {
         DrawBuffer(canvas, params);
     } else {
-        RegisterDeleteBufferListener(node.GetConsumer());
+        auto drawable = node.GetRenderDrawable();
+        if (!drawable) {
+            return;
+        }
+        auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+        RegisterDeleteBufferListener(displayDrawable->GetRSSurfaceHandlerOnDraw()->GetConsumer());
         DrawImage(canvas, params);
     }
 }

@@ -22,6 +22,7 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_context.h"
@@ -32,6 +33,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+}
+
 class RSUniRenderThread {
 public:
     using Callback = std::function<void()>;
@@ -60,7 +65,7 @@ public:
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyDisplayNodeBufferReleased();
-    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode);
+    bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;

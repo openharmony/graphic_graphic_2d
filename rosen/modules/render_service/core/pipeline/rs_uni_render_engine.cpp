@@ -23,6 +23,8 @@
 #include "metadata_helper.h"
 #endif
 
+#include "drawable/rs_surface_render_node_drawable.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -36,8 +38,13 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, R
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(node.GetConsumer());
-        RegisterDeleteBufferListener(node);
+        auto drawable = node.GetRenderDrawable();
+        if (!drawable) {
+            return;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        RegisterDeleteBufferListener(surfaceDrawable->GetConsumerOnDraw());
+        RegisterDeleteBufferListener(*node.GetRSSurfaceHandler());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

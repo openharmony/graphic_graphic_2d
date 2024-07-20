@@ -1373,25 +1373,6 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: WaitUntilDisplayNodeBufferReleased
- * @tc.desc: WaitUntilDisplayNodeBufferReleased test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, WaitUntilDisplayNodeBufferReleased, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    sptr<IConsumerSurface> csurf = IConsumerSurface::Create();
-    node->SetConsumer(csurf);
-    mainThread->WaitUntilDisplayNodeBufferReleased(*node);
-}
-
-
-/**
  * @tc.name: WaitUntilUnmarshallingTaskFinished001
  * @tc.desc: WaitUntilUnmarshallingTaskFinished test
  * @tc.type: FUNC

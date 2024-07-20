@@ -860,7 +860,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
 GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
 {
     auto availableBufferCnt = node.GetAvailableBufferCount();
-    const auto& surfaceConsumer = node.GetConsumer();
+    const auto surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
         RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "): surfaceConsumer is null!",
             node.GetNodeId());
@@ -933,7 +933,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
         return true;
     }
-    auto& consumer = surfaceHandler.GetConsumer();
+    auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -998,7 +998,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
 {
-    auto& consumer = surfaceHandler.GetConsumer();
+    auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -1328,7 +1328,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
         return false;
     }
-    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    sptr<SurfaceBuffer> buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (!buffer) {
         return false;
     }

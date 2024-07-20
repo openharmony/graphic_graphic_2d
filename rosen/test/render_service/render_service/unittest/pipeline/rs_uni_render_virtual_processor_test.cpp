@@ -256,7 +256,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
     processor->ProcessDisplaySurface(rsDisplayRenderNode);
     Drawing::Canvas canvas;
     processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    rsDisplayRenderNode.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(rsDisplayRenderNode.GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     processor->ProcessDisplaySurface(rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }

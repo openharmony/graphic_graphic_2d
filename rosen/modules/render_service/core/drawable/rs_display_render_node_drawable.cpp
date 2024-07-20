@@ -16,17 +16,18 @@
 #include "drawable/rs_display_render_node_drawable.h"
 
 #include <memory>
-#include <string>
 #include <parameters.h>
+#include <string>
 
 #include "benchmarks/rs_recording_thread.h"
+#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
+#include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "luminance/rs_luminance_control.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -36,13 +37,15 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_pointer_render_manager.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/sk_resource_manager.h"
-#include "pipeline/rs_pointer_render_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
@@ -182,7 +185,7 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
 
 RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node))
+    : RSRenderNodeDrawable(std::move(node)), surfaceHandler_(std::make_shared<RSSurfaceHandler>(nodeId_))
 {}
 
 RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -258,7 +261,7 @@ static std::vector<RectI> MergeDirtyHistoryInVirtual(RSDisplayRenderNode& displa
 
 std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
     std::shared_ptr<RSDisplayRenderNode> displayNodeSp, RSDisplayRenderParams& params,
-    std::shared_ptr<RSProcessor> processor) const
+    std::shared_ptr<RSProcessor> processor)
 {
     RS_TRACE_NAME("RSDisplayRenderNodeDrawable:RequestFrame");
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -273,15 +276,15 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         return nullptr;
     }
 
-    if (!displayNodeSp->IsSurfaceCreated()) {
-        sptr<IBufferConsumerListener> listener = new RSUniRenderListener(displayNodeSp);
-        if (!displayNodeSp->CreateSurface(listener)) {
+    if (!IsSurfaceCreated()) {
+        sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler_);
+        if (!CreateSurface(listener)) {
             RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame CreateSurface failed");
             return nullptr;
         }
     }
 
-    auto rsSurface = displayNodeSp->GetRSSurface();
+    auto rsSurface = GetRSSurface();
     if (!rsSurface) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame No RSSurface found");
         return nullptr;
@@ -551,7 +554,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
-    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
+    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
     for (const auto& surfaceNode : hardwareNodes) {
         auto params = surfaceNode == nullptr ? nullptr :
@@ -980,7 +983,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(std::shared_ptr<RSDispla
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection displayNodeSp is null");
         return;
     }
-    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(displayNodeSp);
+    RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     auto renderFrame = RequestFrame(displayNodeSp, params, processor);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection failed to request frame");
@@ -1231,7 +1234,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
 
     FindHardwareEnabledNodes();
 
-    if (displayNodeSp->GetBuffer() == nullptr) {
+    if (GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
         RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: buffer is null!");
         return;
     }
@@ -1395,10 +1398,16 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     }
 
     // sort the surfaceNodes by ZOrder
-    std::stable_sort(
-        nodes.begin(), nodes.end(), [](const auto& first, const auto& second) -> bool {
-            return first->GetGlobalZOrder() < second->GetGlobalZOrder();
-        });
+    std::stable_sort(nodes.begin(), nodes.end(), [](const auto& first, const auto& second) -> bool {
+        auto firstDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(first->GetRenderDrawable());
+        auto secondDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(second->GetRenderDrawable());
+        if (!firstDrawable || !secondDrawable || !firstDrawable->GetRenderParams() ||
+            !secondDrawable->GetRenderParams()) {
+            return false;
+        }
+        return firstDrawable->GetRenderParams()->GetLayerInfo().zOrder <
+               secondDrawable->GetRenderParams()->GetLayerInfo().zOrder;
+    });
 
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params.GetMatrix());
@@ -1597,4 +1606,40 @@ bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
     }
     return true;
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+bool RSDisplayRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> listener)
+{
+    auto consumer = surfaceHandler_->GetConsumer();
+    if (consumer != nullptr && surface_ != nullptr) {
+        RS_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
+        return true;
+    }
+    consumer = IConsumerSurface::Create("DisplayNode");
+    if (consumer == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::CreateSurface get consumer surface fail");
+        return false;
+    }
+    SurfaceError ret = consumer->RegisterConsumerListener(listener);
+    if (ret != SURFACE_ERROR_OK) {
+        RS_LOGE("RSDisplayRenderNode::CreateSurface RegisterConsumerListener fail");
+        return false;
+    }
+    consumerListener_ = listener;
+    auto producer = consumer->GetProducer();
+    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    if (!surface) {
+        RS_LOGE("RSDisplayRenderNode::CreateSurface CreateSurfaceAsProducer fail");
+        return false;
+    }
+    surface->SetQueueSize(BUFFER_SIZE);
+    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    surface_ = client->CreateRSSurface(surface);
+    RS_LOGI("RSDisplayRenderNode::CreateSurface end");
+    surfaceCreated_ = true;
+    surfaceHandler_->SetConsumer(consumer);
+    return true;
+}
+#endif
+
 } // namespace OHOS::Rosen::DrawableV2

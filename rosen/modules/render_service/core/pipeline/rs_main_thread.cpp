@@ -288,7 +288,7 @@ static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
     if (!surfaceNode.IsOnTheTree()) {
         return false;
     }
-    const auto& surfaceBuffer = surfaceNode.GetBuffer();
+    const auto& surfaceBuffer = surfaceNode.GetRSSurfaceHandler()->GetBuffer();
     if (surfaceBuffer == nullptr) {
         return false;
     }
@@ -1212,6 +1212,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode == nullptr) {
             return;
         }
+
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
@@ -1228,18 +1229,18 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
             return;
         }
-        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
+        auto& surfaceHandler = *surfaceNode->GetMutableRSSurfaceHandler();
         if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
             frameRateMgr_->UpdateSurfaceTime(surfaceNode->GetName(), timestamp_);
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
-            this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
-            if (surfaceNode->IsCurrentFrameBufferConsumed() && surfaceNode->IsHardwareEnabledType()) {
+            this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceHandler.GetTimestamp());
+            if (surfaceHandler.IsCurrentFrameBufferConsumed() && surfaceNode->IsHardwareEnabledType()) {
                 GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
                     surfaceNode->GetName(), surfaceHandler.GetDamageRegion());
             }
-            if (surfaceNode->IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
+            if (surfaceHandler.IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
                 ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, current frame buffer consumed",
                     surfaceNode->GetId());
                 surfaceNode->SetContentDirty();
@@ -1248,16 +1249,16 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     "rs debug: name %s, id %" PRIu64", buffer consumed and not HardwareEnabledType",
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
-            if (isUniRender_ && surfaceNode->IsCurrentFrameBufferConsumed()) {
-                surfaceNode->UpdateBufferInfo(surfaceNode->GetBuffer(), surfaceNode->GetAcquireFence(),
-                    surfaceNode->GetPreBuffer().buffer);
-                if (surfaceNode->GetBufferSizeChanged()) {
+            if (isUniRender_ && surfaceHandler.IsCurrentFrameBufferConsumed()) {
+                surfaceNode->UpdateBufferInfo(surfaceHandler.GetBuffer(), surfaceHandler.GetAcquireFence(),
+                    surfaceHandler.GetPreBuffer().buffer);
+                if (surfaceHandler.GetBufferSizeChanged()) {
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode buffer size changed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
             }
-            if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceNode->IsCurrentFrameBufferConsumed()
+            if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceHandler.IsCurrentFrameBufferConsumed()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
                     RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
                         " SetContentDirty for UIFirst assigning to subthread");
@@ -1272,7 +1273,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #ifdef RS_ENABLE_VK
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
-            deviceType_ != DeviceType::PC && (surfaceNode->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
+            deviceType_ != DeviceType::PC && (surfaceHandler.GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
             }
@@ -1331,7 +1332,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode == nullptr) {
                 return;
             }
-            if (surfaceNode->GetBuffer() != nullptr) {
+            auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+            if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
             }
 
@@ -1343,7 +1345,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
 
             if (!surfaceNode->IsOnTheTree()) {
-                if (surfaceNode->IsCurrentFrameBufferConsumed()) {
+                if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", node not on the tree "
@@ -1367,7 +1369,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
             }
 
-            if (surfaceNode->GetBuffer() != nullptr) {
+            if (surfaceHandler->GetBuffer() != nullptr) {
                 // collect hwc nodes vector, used for display node skip and direct composition cases
                 surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
@@ -1376,13 +1378,13 @@ void RSMainThread::CollectInfoForHardwareComposer()
             // set content dirty for hwc node if needed
             if (isHardwareForcedDisabled_) {
                 // buffer updated or hwc -> gpu
-                if (surfaceNode->IsCurrentFrameBufferConsumed() || surfaceNode->GetIsLastFrameHwcEnabled()) {
+                if (surfaceHandler->IsCurrentFrameBufferConsumed() || surfaceNode->GetIsLastFrameHwcEnabled()) {
                     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, buffer updated or hardware change to gpu",
                         surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                 }
             } else if (!surfaceNode->GetIsLastFrameHwcEnabled()) { // gpu -> hwc
-                if (surfaceNode->IsCurrentFrameBufferConsumed()) {
+                if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, gpu change to hardware", surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
@@ -1408,7 +1410,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
             }
 
-            if (surfaceNode->IsCurrentFrameBufferConsumed()) {
+            if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
@@ -1486,14 +1488,14 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (surfaceNode == nullptr) {
             return;
         }
+        auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
         if (surfaceNode->IsHardwareEnabledType()) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
                 if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
-                    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
-                    auto& preBuffer = surfaceHandler.GetPreBuffer();
+                    auto& preBuffer = surfaceHandler->GetPreBuffer();
                     if (preBuffer.buffer != nullptr) {
-                        auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler.GetConsumer(),
+                        auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler->GetConsumer(),
                             fence = preBuffer.releaseFence]() mutable {
                             auto ret = consumer->ReleaseBuffer(buffer, fence);
                             if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -1509,7 +1511,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
             }
             surfaceNode->ResetCurrentFrameHardwareEnabledState();
         }
-        RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
+        RSBaseRenderUtil::ReleaseBuffer(*surfaceHandler);
     });
     RS_OPTIONAL_TRACE_END();
 }
@@ -1598,17 +1600,6 @@ void RSMainThread::WaitUtilUniRenderFinished()
     uniRenderFinished_ = false;
 }
 
-bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
-{
-    std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
-    displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (node.GetConsumer() != nullptr && node.GetConsumer()->QueryIfBufferAvailable()) {
-        return true;
-    }
-    return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(WAIT_FOR_RELEASED_BUFFER_TIMEOUT), [this]() { return displayNodeBufferReleased_; });
-}
-
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
     if (!isUniRender_) {
@@ -1665,14 +1656,6 @@ void RSMainThread::OnHideNotchStatusCallback(const char *key, const char *value,
         return;
     }
     RSMainThread::Instance()->RequestNextVSync();
-}
-
-void RSMainThread::NotifyDisplayNodeBufferReleased()
-{
-    RS_TRACE_NAME("RSMainThread::NotifyDisplayNodeBufferReleased");
-    std::lock_guard<std::mutex> lock(displayNodeBufferReleasedMutex_);
-    displayNodeBufferReleased_ = true;
-    displayNodeBufferReleasedCond_.notify_one();
 }
 
 void RSMainThread::NotifySurfaceCapProcFinish()
@@ -1973,9 +1956,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to Execute");
     }
     for (auto& surfaceNode : hardwareEnabledNodes_) {
+        auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
-            if (!surfaceNode->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
+            if (!surfaceHandler->IsCurrentFrameBufferConsumed() && surfaceHandler->GetPreBuffer().buffer != nullptr) {
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
             }

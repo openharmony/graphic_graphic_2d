@@ -25,10 +25,10 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_handler.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
+class RSUniRenderVirtualProcessor;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
@@ -52,6 +52,57 @@ public:
     {
         cacheImgForCapture_ = cacheImgForCapture;
     }
+    const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
+    {
+        return surfaceHandler_;
+    }
+
+    std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerOnDraw()
+    {
+        return surfaceHandler_;
+    }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    bool CreateSurface(sptr<IBufferConsumerListener> listener);
+    sptr<IBufferConsumerListener> GetConsumerListener() const
+    {
+        return consumerListener_;
+    }
+#endif
+    bool IsSurfaceCreated() const
+    {
+        return surfaceCreated_;
+    }
+
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> GetRSSurface() const
+    {
+        return surface_;
+    }
+    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
+    {
+        virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
+    }
+    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
+    {
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
+    }
+#else
+    std::shared_ptr<RSSurface> GetRSSurface() const
+    {
+        return surface_;
+    }
+    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
+    {
+        virtualSurface_ = virtualSurface;
+        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
+    }
+    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
+    {
+        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
+    }
+#endif
 
     bool IsFirstTimeToProcessor() const
     {
@@ -69,41 +120,12 @@ public:
         return originScreenRotation_;
     }
 
-#ifdef NEW_RENDER_CONTEXT
-    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
-    {
-        virtualSurface_ = virtualSurface;
-        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
-    }
-
-    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
-    {
-        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
-    }
-#else
-    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
-    {
-        virtualSurface_ = virtualSurface;
-        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
-    }
-
-    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
-    {
-        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
-    }
-#endif
-
-    const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
-    {
-        return surfaceHandler_;
-    }
-
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode, RSDisplayRenderParams* params,
         std::shared_ptr<RSProcessor> processor);
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
-        RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor) const;
+        RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void FindHardwareEnabledNodes();
     void AdjustZOrderAndDrawSurfaceNode(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
@@ -162,13 +184,22 @@ private:
     std::shared_ptr<RSDisplayRenderNodeDrawable> mirrorSourceDrawable_ = nullptr;
     bool isFirstTimeToProcessor_ = false;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    // surface create in render thread
+    static constexpr uint32_t BUFFER_SIZE = 4;
+    bool surfaceCreated_ = false;
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     uint64_t virtualSurfaceUniqueId_ = 0;
 #ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
     std::shared_ptr<RSRenderSurface> virtualSurface_ = nullptr;
 #else
+    std::shared_ptr<RSSurface> surface_ = nullptr;
     std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
 #endif
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
+
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IBufferConsumerListener> consumerListener_ = nullptr;
+#endif
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

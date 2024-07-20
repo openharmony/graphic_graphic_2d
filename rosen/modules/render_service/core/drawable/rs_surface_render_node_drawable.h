@@ -44,7 +44,7 @@ struct UIFirstParams {
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable, public RSSurfaceHandler {
+class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
 
@@ -238,7 +238,17 @@ public:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
 
-    sptr<IConsumerSurface> GetConsumerOnDraw()
+    const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerUiFirstOnDraw() const
+    {
+        return surfaceHandlerUiFirst_;
+    }
+
+    std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerUiFirstOnDraw()
+    {
+        return surfaceHandlerUiFirst_;
+    }
+
+    sptr<IConsumerSurface> GetConsumerOnDraw() const
     {
         return consumerOnDraw_;
     }
@@ -294,6 +304,7 @@ private:
     bool surfaceCreated_ = false;
 
     // UIFIRST
+    std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;

@@ -84,7 +84,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
 
     csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
-    rsNode->SetConsumer(csurf);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     ASSERT_NE(listener, nullptr);
@@ -111,7 +111,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
-    ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
+    RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    ASSERT_EQ(2, rsNode->GetRSSurfaceHandler()->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

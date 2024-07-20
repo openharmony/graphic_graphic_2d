@@ -205,7 +205,7 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
 HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
     sProducer->SetQueueSize(1);

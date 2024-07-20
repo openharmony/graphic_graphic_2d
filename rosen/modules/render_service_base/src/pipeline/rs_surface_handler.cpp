@@ -25,7 +25,7 @@ RSSurfaceHandler::~RSSurfaceHandler() noexcept
 #endif
 }
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceHandler::SetConsumer(const sptr<IConsumerSurface>& consumer)
+void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)
 {
     consumer_ = consumer;
 }
@@ -54,7 +54,7 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 {
-    auto& consumer = GetConsumer();
+    auto consumer = GetConsumer();
     if (consumer != nullptr && buffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {

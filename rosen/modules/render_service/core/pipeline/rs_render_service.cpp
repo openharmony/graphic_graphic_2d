@@ -213,7 +213,7 @@ void RSRenderService::DumpNodesNotOnTheTree(std::string& dumpString) const
         if (node->IsInstanceOf<RSSurfaceRenderNode>() && !node->IsOnTheTree()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
             dumpString += "\n node Id[" + std::to_string(node->GetId()) + "]:\n";
-            const auto& surfaceConsumer = surfaceNode->GetConsumer();
+            const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
             if (surfaceConsumer == nullptr) {
                 return;
             }
@@ -235,7 +235,7 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
         }
 
         const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        const auto& surfaceConsumer = surfaceNode->GetConsumer();
+        const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
         if (surfaceConsumer == nullptr) {
             return;
         }
@@ -427,7 +427,7 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
                   "(include ContextAlpha: " + std::to_string(node->contextAlpha_) + ")\n";
     dumpString += "GlobalAlpha: " + std::to_string(node->GetGlobalAlpha()) + "\n";
     dumpString += node->GetVisibleRegion().GetRegionInfo() + "\n";
-    const auto& consumer = node->GetConsumer();
+    const auto consumer = node->GetRSSurfaceHandler()->GetConsumer();
     if (consumer == nullptr) {
         return;
     }

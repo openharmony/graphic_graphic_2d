@@ -25,7 +25,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode()
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsSurfaceRenderNode->InitRenderParams();
     csurf = IConsumerSurface::Create(config.name);
-    rsSurfaceRenderNode->SetConsumer(csurf);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     csurf->RegisterConsumerListener(listener);
@@ -35,7 +35,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode()
 std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
 {
     auto rsSurfaceRenderNode = CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     psurf->SetQueueSize(1);
@@ -49,7 +49,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    auto& surfaceHandler = *rsSurfaceRenderNode->GetRSSurfaceHandler();
     surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp);
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     rsSurfaceRenderNode->SetDrawingGPUContext(drGPUContext.get());

@@ -69,15 +69,15 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     // we can use only the bound's size (ignore its offset) now,
     // (the canvas was moved to the node's left-top point correctly).
     params.dstRect = Drawing::Rect(0, 0, localBounds.GetWidth(), localBounds.GetHeight());
-
-    const sptr<IConsumerSurface>& surface = node.GetConsumer();
-    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    const sptr<IConsumerSurface>& surface = surfaceHandler->GetConsumer();
+    const sptr<SurfaceBuffer>& buffer = surfaceHandler->GetBuffer();
     if (isClipHole || surface == nullptr || buffer == nullptr) {
         return params;
     }
 
     params.buffer = buffer;
-    params.acquireFence = node.GetAcquireFence();
+    params.acquireFence = surfaceHandler->GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(surface->GetTransform(), property.GetFrameGravity(),
         localBounds, params);

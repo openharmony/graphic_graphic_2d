@@ -29,6 +29,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
@@ -98,9 +99,9 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), RSSurfaceHandler(config.id), name_(config.name),
-      bundleName_(config.bundleName), nodeType_(config.nodeType),
-      surfaceWindowType_(config.surfaceWindowType),
+    : RSRenderNode(config.id, context, config.isTextureExportNode),
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
+      bundleName_(config.bundleName), nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
@@ -132,7 +133,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
-    consumer_ = consumer;
+    GetMutableRSSurfaceHandler()->SetConsumer(consumer);
 }
 #endif
 
@@ -168,7 +169,7 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
 void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    const auto& buffer = GetBuffer();
+    const auto& buffer = surfaceHandler_->GetBuffer();
     isHardwareForcedDisabledBySrcRect_ = false;
     if (buffer == nullptr) {
         return;
@@ -179,10 +180,11 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (GetBuffer() == nullptr) {
+    auto curBuffer = surfaceHandler_->GetBuffer();
+    if (!curBuffer) {
         return false;
     }
-    auto format = GetBuffer()->GetFormat();
+    auto format = curBuffer->GetFormat();
     if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
         format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         return false;
@@ -299,7 +301,7 @@ void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    auto& consumer = GetConsumer();
+    auto consumer = surfaceHandler_->GetConsumer();
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
     }
@@ -312,7 +314,7 @@ void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>
         vec.emplace_back(shared_from_this());
     } else {
 #ifndef ROSEN_CROSS_PLATFORM
-        if (GetBuffer() != nullptr && ShouldPaint()) {
+        if (surfaceHandler_->GetBuffer() != nullptr && ShouldPaint()) {
             vec.emplace_back(shared_from_this());
         }
 #endif
@@ -349,7 +351,7 @@ void RSSurfaceRenderNode::ClearChildrenCache()
             continue;
         }
 #ifndef ROSEN_CROSS_PLATFORM
-        auto& consumer = surfaceNode->GetConsumer();
+        auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
         if (consumer != nullptr) {
             consumer->GoBackground();
         }
@@ -503,7 +505,7 @@ void RSSurfaceRenderNode::OnResetParent()
         ClearChildrenCache();
     } else {
 #ifndef ROSEN_CROSS_PLATFORM
-        auto& consumer = GetConsumer();
+        auto consumer = GetRSSurfaceHandler()->GetConsumer();
         if (consumer != nullptr && !IsSelfDrawingType() && !IsAbilityComponent()) {
             consumer->GoBackground();
         }
@@ -592,7 +594,8 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    RSPropertiesPainter::DrawBackground(property, canvas, true, IsSelfDrawingNode() && (GetBuffer() != nullptr));
+    RSPropertiesPainter::DrawBackground(
+        property, canvas, true, IsSelfDrawingNode() && (surfaceHandler_->GetBuffer() != nullptr));
 #else
     RSPropertiesPainter::DrawBackground(property, canvas);
 #endif
@@ -968,9 +971,14 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (consumer_ != nullptr) {
-        consumer_->SetDefaultWidthAndHeight(width, height);
+    if (!surfaceHandler_) {
+        return;
     }
+    auto consumer = surfaceHandler_->GetConsumer();
+    if (!consumer) {
+        return;
+    }
+    consumer->SetDefaultWidthAndHeight(width, height);
 #else
 #ifdef USE_SURFACE_TEXTURE
     auto texture = GetSurfaceTexture();
@@ -986,15 +994,15 @@ void RSSurfaceRenderNode::OnSkipSync()
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams && surfaceParams->IsBufferDirty()) {
-        auto& preBuffer = surfaceParams->GetPreBuffer();
+        auto preBuffer = surfaceParams->GetPreBuffer();
         if (!preBuffer) {
             return;
         }
         auto context = GetContext().lock();
         if (context && !surfaceParams->GetHardwareEnabled()) {
             context->GetMutableSkipSyncBuffer().push_back(
-                { preBuffer, GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
-            preBuffer = nullptr;
+                { preBuffer, GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+            surfaceParams->SetPreBuffer(nullptr);
         }
     }
 #endif
@@ -1020,13 +1028,17 @@ void RSSurfaceRenderNode::ResetPreBuffer()
 
 void RSSurfaceRenderNode::NeedClearBufferCache()
 {
+    if (!surfaceHandler_) {
+        return;
+    }
+
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     std::set<int32_t> bufferCacheSet;
-    if (GetBuffer()) {
-        bufferCacheSet.insert(GetBuffer()->GetSeqNum());
+    if (surfaceHandler_->GetBuffer()) {
+        bufferCacheSet.insert(surfaceHandler_->GetBuffer()->GetSeqNum());
     }
-    if (GetPreBuffer().buffer) {
-        bufferCacheSet.insert(GetPreBuffer().buffer->GetSeqNum());
+    if (surfaceHandler_->GetPreBuffer().buffer) {
+        bufferCacheSet.insert(surfaceHandler_->GetPreBuffer().buffer->GetSeqNum());
     }
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
@@ -1202,7 +1214,7 @@ void RSSurfaceRenderNode::SetStartAnimationFinished()
 
 bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
 {
-    if (isCurrentFrameBufferConsumed_) {
+    if (surfaceHandler_ && surfaceHandler_->IsCurrentFrameBufferConsumed()) {
         ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, frame buffer consumed", GetId());
         SetContentDirty();
         return true;
@@ -1282,10 +1294,10 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     if (!isUniRender) {
         bool diff =
 #ifndef ROSEN_CROSS_PLATFORM
-            (GetDstRect().width_ > GetBuffer()->GetWidth() || GetDstRect().height_ > GetBuffer()->GetHeight()) &&
+            (GetDstRect().width_ > surfaceHandler_->GetBuffer()->GetWidth() ||
+                GetDstRect().height_ > surfaceHandler_->GetBuffer()->GetHeight()) &&
 #endif
-            GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
-            ROSEN_EQ(GetGlobalAlpha(), 1.0f);
+            GetRenderProperties().GetFrameGravity() != Gravity::RESIZE && ROSEN_EQ(GetGlobalAlpha(), 1.0f);
         if (!IsTransparent() && !diff) {
             accumulatedRegion.OrSelf(curRegion);
         }
@@ -1345,7 +1357,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
         static_cast<uint32_t>(properties.GetBoundsWidth()),
         static_cast<uint32_t>(properties.GetBoundsHeight())};
     layer.transformType = transform;
-    layer.zOrder = GetGlobalZOrder();
+    layer.zOrder = surfaceHandler_->GetGlobalZOrder();
     layer.gravity = static_cast<int32_t>(properties.GetFrameGravity());
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
@@ -1947,6 +1959,7 @@ void RSSurfaceRenderNode::OnSync()
         }
         surfaceParams->SetNeedSync(true);
     }
+
     RSRenderNode::OnSync();
 }
 
@@ -2302,7 +2315,7 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
         auto hardwareEnabledNodes = GetChildHardwareEnabledNodes();
         for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
             auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
-            if (hardwareEnabledNodePtr && hardwareEnabledNodePtr->IsCurrentFrameBufferConsumed()) {
+            if (hardwareEnabledNodePtr && hardwareEnabledNodePtr->surfaceHandler_->IsCurrentFrameBufferConsumed()) {
                 return false;
             }
         }
@@ -2320,7 +2333,7 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
         }
         return true;
     } else if (IsSelfDrawingType()) {
-        return !isCurrentFrameBufferConsumed_;
+        return !surfaceHandler_->IsCurrentFrameBufferConsumed();
     } else {
         return false;
     }

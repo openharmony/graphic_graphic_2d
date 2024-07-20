@@ -77,7 +77,7 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
 bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
 {
-    if (!node || !node->GetConsumer() || !node->GetBuffer()) {
+    if (!node || !node->GetRSSurfaceHandler()->GetConsumer() || !node->GetRSSurfaceHandler()->GetBuffer()) {
         return false;
     }
     info.id = node->GetId();
@@ -86,8 +86,8 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     auto dst = node->GetDstRect();
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
     info.zOrder = zorder;
-    info.usage = node->GetBuffer()->GetUsage();
-    info.format = node->GetBuffer()->GetFormat();
+    info.usage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
+    info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     info.fps = fps;
     info.transform = static_cast<int>(transform);
 
@@ -101,10 +101,10 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
 
 bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const
 {
-    if (node->GetBuffer() == nullptr) {
+    if (node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
         return false;
     }
-    auto format = node->GetBuffer()->GetFormat();
+    auto format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
         format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         return false;
@@ -115,17 +115,27 @@ bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr n
 bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
-    if (!node || !node->GetConsumer() || !node->GetBuffer()) {
+    if (!node) {
         return false;
     }
+    auto drawable = node->GetRenderDrawable();
+    if (!drawable) {
+        return false;
+    }
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler->GetConsumer() || !surfaceHandler->GetBuffer()) {
+        return false;
+    }
+    auto buffer = surfaceHandler->GetBuffer();
     info.id = node->GetId();
-    info.srcRect = {0, 0, node->GetBuffer()->GetSurfaceBufferWidth(), node->GetBuffer()->GetSurfaceBufferHeight()};
+    info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
     info.dstRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
     info.zOrder = zorder;
-    info.usage = node->GetBuffer()->GetUsage() | USAGE_UNI_LAYER;
-    info.format = node->GetBuffer()->GetFormat();
+    info.usage = buffer->GetUsage() | USAGE_UNI_LAYER;
+    info.format = buffer->GetFormat();
     info.fps = fps;
-    LayerRotate(info, node->GetConsumer(), screenInfo);
+    LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
     return true;
 }
 
@@ -140,7 +150,7 @@ bool RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo(
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
-    info.zOrder = node->GetGlobalZOrder();
+    info.zOrder = node->GetRSSurfaceHandler()->GetGlobalZOrder();
     info.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     info.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA;
     info.fps = fps;
@@ -210,7 +220,7 @@ void RSUniHwcPrevalidateUtil::CollectUIFirstLayerInfo(std::vector<RequestLayerIn
             !RSUifirstManager::Instance().GetUseDmaBuffer(iter.second->GetName())) {
             continue;
         }
-        iter.second->SetGlobalZOrder(zOrder++);
+        iter.second->GetMutableRSSurfaceHandler()->SetGlobalZOrder(zOrder++);
         auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
         RequestLayerInfo uiFirstLayer;
         if (RSUniHwcPrevalidateUtil::GetInstance().CreateUIFirstLayerInfo(

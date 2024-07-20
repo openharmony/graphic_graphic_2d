@@ -1113,7 +1113,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcDisabledBySrcRectTest, TestSize.Level
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
 
-    renderNode->buffer_.buffer = buffer;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
     ASSERT_FALSE(renderNode->isHardwareForcedDisabledBySrcRect_);
 }
@@ -1130,8 +1130,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsYUVBufferFormatTest, TestSize.Level1)
     EXPECT_FALSE(testNode->IsYUVBufferFormat());
 
     auto buffer = SurfaceBuffer::Create();
-    testNode->buffer_.buffer = buffer;
-    EXPECT_NE(testNode->GetBuffer(), nullptr);
+    testNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    EXPECT_NE(testNode->GetRSSurfaceHandler()->GetBuffer(), nullptr);
     EXPECT_FALSE(testNode->IsYUVBufferFormat());
 }
 
@@ -1466,9 +1466,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceDefaultSize, TestSize.Level1)
     auto context = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(1, context, true);
     node->UpdateSurfaceDefaultSize(1920.0f, 1080.0f);
-    node->consumer_ = IConsumerSurface::Create();
+    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     node->UpdateSurfaceDefaultSize(1920.0f, 1080.0f);
-    ASSERT_NE(node->consumer_, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler()->consumer_, nullptr);
 }
 
 /**
@@ -1568,11 +1568,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, NotifyUIBufferAvailable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, UpdateDirtyIfFrameBufferConsumed, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->isCurrentFrameBufferConsumed_ = true;
+    testNode->GetRSSurfaceHandler()->isCurrentFrameBufferConsumed_ = true;
     bool resultOne = testNode->UpdateDirtyIfFrameBufferConsumed();
     EXPECT_TRUE(resultOne);
 
-    testNode->isCurrentFrameBufferConsumed_ = false;
+    testNode->GetRSSurfaceHandler()->isCurrentFrameBufferConsumed_ = false;
     bool resultTwo = testNode->UpdateDirtyIfFrameBufferConsumed();
     EXPECT_FALSE(resultTwo);
 }

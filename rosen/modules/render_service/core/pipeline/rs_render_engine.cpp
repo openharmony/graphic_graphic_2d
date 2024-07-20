@@ -29,7 +29,7 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(node.GetConsumer());
+        RegisterDeleteBufferListener(node.GetRSSurfaceHandler()->GetConsumer());
     }
 
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {

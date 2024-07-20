@@ -4777,14 +4777,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSrcRectForHwcNode001, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    ASSERT_NE(rsSurfaceRenderNode->GetConsumer(), nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer(), nullptr);
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 400;
     uint32_t height = 600;
     RectI dstRect{left, top, width, height};
     rsSurfaceRenderNode->SetSrcRect(dstRect);
-    rsSurfaceRenderNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->
+        GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4804,14 +4805,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSrcRectForHwcNode002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    ASSERT_NE(rsSurfaceRenderNode->GetConsumer(), nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer(), nullptr);
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 400;
     uint32_t height = 600;
     RectI dstRect{left, top, width, height};
     rsSurfaceRenderNode->SetSrcRect(dstRect);
-    rsSurfaceRenderNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->
+        GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4831,14 +4833,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSrcRectForHwcNode003, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    ASSERT_NE(rsSurfaceRenderNode->GetConsumer(), nullptr);
+    ASSERT_NE(rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer(), nullptr);
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 400;
     uint32_t height = 600;
     RectI dstRect{left, top, width, height};
     rsSurfaceRenderNode->SetSrcRect(dstRect);
-    rsSurfaceRenderNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->
+        GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);

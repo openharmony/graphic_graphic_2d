@@ -28,6 +28,8 @@
 #include "include/gpu/GrDirectContext.h"
 #include "surface.h"
 #include "sync_fence.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -330,31 +332,41 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        bool needRelease = !params->GetHardwareEnabled() || !params->GetLayerCreated();
-        if (needRelease && params->GetLastFrameHardwareEnabled()) {
-            params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
+        auto drawable = surfaceNode->GetRenderDrawable();
+        if (!drawable) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        auto& params = surfaceDrawable->GetRenderParams();
+        if (!params) {
+            return;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+        bool needRelease = !surfaceParams->GetHardwareEnabled() || !surfaceParams->GetLayerCreated();
+        if (needRelease && surfaceParams->GetLastFrameHardwareEnabled()) {
+            surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
         if (needRelease) {
-            auto& preBuffer = params->GetPreBuffer();
+            auto preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
-                if (params->releaseInHardwareThreadTaskNum_ > 0) {
-                    params->releaseInHardwareThreadTaskNum_--;
+                if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
+                    surfaceParams->releaseInHardwareThreadTaskNum_--;
                 }
                 continue;
             }
-            auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer(),
-                useReleaseFence = params->GetLastFrameHardwareEnabled(), acquireFence = acquireFence_]() mutable {
+            auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
+                                   useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
+                                   acquireFence = acquireFence_]() mutable {
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
                     RSHardwareThread::Instance().releaseFence_ : acquireFence);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
-            preBuffer = nullptr;
-            if (params->releaseInHardwareThreadTaskNum_ > 0) {
+            params->SetPreBuffer(nullptr);
+            if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
                 releaseTasks.emplace_back(releaseTask);
-                params->releaseInHardwareThreadTaskNum_--;
+                surfaceParams->releaseInHardwareThreadTaskNum_--;
             } else {
                 releaseTask();
             }
@@ -431,14 +443,16 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
-bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode)
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (!displayNode->IsSurfaceCreated()) {
+    if (!displayNodeDrawable.IsSurfaceCreated()) {
         return true;
     }
-    if (displayNode->GetConsumer() && displayNode->GetConsumer()->QueryIfBufferAvailable()) {
+    auto consumer = displayNodeDrawable.GetRSSurfaceHandlerOnDraw()->GetConsumer();
+    if (consumer && consumer->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +

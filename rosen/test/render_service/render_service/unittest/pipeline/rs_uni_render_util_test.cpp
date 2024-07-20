@@ -88,7 +88,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -104,7 +105,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -120,7 +122,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_001, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -136,7 +139,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_002, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -179,7 +183,10 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_002, Function | SmallTest | 
     bool forceCPU = false;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node.GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     EXPECT_TRUE(RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU).buffer);
 }
 
@@ -207,9 +214,9 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -730,7 +737,7 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Le
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
@@ -804,7 +811,7 @@ HWTEST_F(RSUniRenderUtilTest, GetLayerTransformTest, Function | SmallTest | Leve
     ScreenInfo screenInfo;
     GraphicTransformType type = RSUniRenderUtil::GetLayerTransform(node, screenInfo);
 
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     type = RSUniRenderUtil::GetLayerTransform(node, screenInfo);
     EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
@@ -821,9 +828,9 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest, Function | SmallTest |
     RSSurfaceRenderNode node(id);
     RSUniRenderUtil::SrcRectRotateTransform(node);
 
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::SrcRectRotateTransform(node);
-    EXPECT_FALSE(node.GetBuffer());
+    EXPECT_FALSE(node.GetRSSurfaceHandler()->GetBuffer());
 }
 
 /*
@@ -842,7 +849,7 @@ HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest, Function | SmallTest | Lev
     node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     RSUniRenderUtil::HandleHardwareNode(node);
-    EXPECT_FALSE(node->GetBuffer());
+    EXPECT_FALSE(node->GetRSSurfaceHandler()->GetBuffer());
 }
 
 /*
@@ -856,13 +863,13 @@ HWTEST_F(RSUniRenderUtilTest, UpdateRealSrcRectTest, Function | SmallTest | Leve
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     RectI absRect;
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
 
     absRect = RectI(1, 1, 1, 1);
     RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
-    EXPECT_TRUE(node.buffer_.buffer);
+    EXPECT_TRUE(node.GetRSSurfaceHandler()->buffer_.buffer);
 }
 
 /*
@@ -875,7 +882,7 @@ HWTEST_F(RSUniRenderUtilTest, CheckForceHardwareAndUpdateDstRectTest, Function |
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
     node.isForceHardwareByUser_ = true;
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
@@ -968,12 +975,12 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
     RSSurfaceRenderNode nodesTest1(0);
-    nodesTest1.buffer_.buffer = nullptr;
+    nodesTest1.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest1);
 
     RSSurfaceRenderNode nodesTest2(1);
-    nodesTest2.buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    nodesTest2.consumer_ = nullptr;
+    nodesTest2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    nodesTest2.GetRSSurfaceHandler()->consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest2);
 }
 

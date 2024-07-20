@@ -32,6 +32,7 @@ class RSRenderNode;
 class RSRenderParams;
 class RSDisplayRenderNode;
 class RSSurfaceRenderNode;
+class RSSurfaceHandler;
 namespace Drawing {
 class Canvas;
 }

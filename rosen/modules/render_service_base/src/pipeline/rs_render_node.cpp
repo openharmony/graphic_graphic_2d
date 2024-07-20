@@ -735,8 +735,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         auto p = parent_.lock();
         out += ", Parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
         out += ", Name [" + surfaceNode->GetName() + "]";
-        const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
-        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
+        out += ", hasConsumer: " + std::to_string(surfaceNode->GetRSSurfaceHandler()->HasConsumer());
         std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
         out += ", Alpha: " + propertyAlpha;
         if (surfaceNode->contextAlpha_ < 1.0f) {
@@ -1242,12 +1241,12 @@ void RSRenderNode::UpdateBufferDirtyRegion()
     if (surfaceNode == nullptr) {
         return;
     }
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     if (buffer != nullptr) {
         isSelfDrawingNode_ = true;
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
-        auto rect = surfaceNode->GetDamageRegion();
+        auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
         auto matrix = surfaceNode->GetBufferRelMatrix();
         auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
             RectF(rect.x, rect.y, rect.w, rect.h), matrix).ConvertTo<float>();
@@ -1490,11 +1489,12 @@ bool RSRenderNode::UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRe
     if (surfaceNode == nullptr) {
         return false;
     }
-    auto buffer = surfaceNode->GetBuffer();
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    auto buffer = surfaceHandler->GetBuffer();
     if (buffer != nullptr) {
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
-        auto rect = surfaceNode->GetDamageRegion();
+        auto rect = surfaceHandler->GetDamageRegion();
         auto matrix = surfaceNode->GetBufferRelMatrix();
         matrix.PostConcat(GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
         auto bufferDirtyRect =
