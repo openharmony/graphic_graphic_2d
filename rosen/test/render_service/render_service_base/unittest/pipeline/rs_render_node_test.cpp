@@ -24,6 +24,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
+#include "parameters.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -2134,7 +2135,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    nodeTest->NeedInitCacheSurface();
+    EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
 }
 
 /**
@@ -2240,6 +2241,47 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
     nodeTest->boundsWidth_ = 10.0f;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, false);
+
+    nodeTest->boundsWidth_ = 10.0f;
+    nodeTest->boundsHeight_ = 10.0f;
+    nodeTest->cacheCompletedBackendTexture_.isValid_ = false;
+    paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
+    EXPECT_TRUE(paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_);
+
+    // RSSystemPrperties:GetRecordongEnabled() is false
+    nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
+    RSShadow rsShadow;
+    std::optional <RSShadow>shadow(rsShadow);
+    nodeTest->renderContent_->renderProperties_.shadow_ = shadow;
+    nodeTest->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
+    nodeTest->cacheType_ = CacheType::ANIMATE_PROPERTY;
+    Drawing::Canvas canvasTest2;
+    std::shared_ptr<Drawing::GPUContext> gpuContextTest2 = std::make_shared<Drawing::GPUContext>();
+    canvasTest2.gpuContext_ = gpuContextTest2;
+    RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
+    std::shared_ptr<Drawing::SkiaCanvas> implTest1 = std::make_shared<Drawing::SkiaCanvas>();
+    implTest1->skCanvas_ = nullptr;
+    paintFilterCanvasTest2.canvas_->impl_ = implTest1;
+    paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
+    EXPECT_FALSE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+
+    // RSSystemPrperties::GetRecordongEnabled() is false
+    // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
+    // so isUIFirst only is true
+
+    nodeTest->cacheType_ = CacheType::CONTENT;
+    Drawing::Canvas canvasTest3;
+    std::shared_ptr<Drawing::GPUContext> gpuContextTest3 = std::make_shared<Drawing::GPUContext>();
+    canvasTest3.gpuContext_ = gpuContextTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    std::shared_ptr<Drawing::SkiaCanvas> implTest2 = std::make_shared<Drawing::SkiaCanvas>();
+    implTest2->skCanvas_ = nullptr;
+    paintFilterCanvasTest3.canvas_->impl_ = implTest2;
+    paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
+    EXPECT_FALSE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
 }
 
 /**
@@ -2259,19 +2301,20 @@ HWTEST_F(RSRenderNodeTest, GetCompletedImageTest026, TestSize.Level1)
     canvastest.gpuContext_ = gpuContext;
     RSPaintFilterCanvas canvas(&canvastest);
 
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface = std::make_shared<Drawing::Surface>();
+    EXPECT_NE(cacheCompletedSurface, nullptr);
+    nodeTest->cacheCompletedSurface_ = cacheCompletedSurface;
+
     nodeTest->cacheCompletedBackendTexture_.isValid_ = false;
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 
     nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
     EXPECT_NE(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 
-    nodeTest->cacheCompletedSurface_ = nullptr;
+    // cacheCompletedSurface_->GetImageSnapshot() is false
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, false), nullptr);
 
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(cacheCompletedSurface, nullptr);
-    nodeTest->cacheCompletedSurface_ = cacheCompletedSurface;
-    // cacheCompletedSurface_->GetImageSnapshot() is false
+    nodeTest->cacheCompletedSurface_ = nullptr;
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, false), nullptr);
 }
 
@@ -2537,12 +2580,22 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
 {
+    bool isPropertyChanged = false;
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "1");
+        ASSERT_NE(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+        isPropertyChanged = true;
+    }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     canvasNode->lastFrameSubTreeSkipped_ = true;
     canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
     canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
-    ASSERT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    EXPECT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    if (isPropertyChanged) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+        ASSERT_EQ(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+    }
 }
 
 /**
@@ -2553,13 +2606,23 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
 {
+    bool isPropertyChanged = false;
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "1");
+        ASSERT_NE(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+        isPropertyChanged = true;
+    }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = canvasNode->GetMutableRenderProperties();
     properties.clipToBounds_ = true;
     canvasNode->absDrawRect_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
     canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
-    ASSERT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    EXPECT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    if (isPropertyChanged) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+        ASSERT_EQ(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+    }
 }
 
 } // namespace Rosen
