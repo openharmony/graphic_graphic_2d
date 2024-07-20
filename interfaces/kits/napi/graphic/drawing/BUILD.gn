@@ -36,10 +36,7 @@ config("local_drawing_config") {
 }
 
 ohos_shared_library("drawing_napi") {
-  sources = [
-    "common_module.cpp",
-    "drawing_module.cpp",
-  ]
+  sources = [ "drawing_module.cpp" ]
 
   configs = [
     ":drawing_config",
@@ -70,7 +67,6 @@ ohos_shared_library("drawing_napi_impl") {
     "font_napi/js_typeface.cpp",
     "image_filter_napi/js_image_filter.cpp",
     "js_common.cpp",
-    "js_common_init.cpp",
     "js_drawing_init.cpp",
     "js_drawing_utils.cpp",
     "lattice_napi/js_lattice.cpp",
@@ -84,7 +80,6 @@ ohos_shared_library("drawing_napi_impl") {
     "sampling_options_napi/js_sampling_options.cpp",
     "shadow_layer_napi/js_shadow_layer.cpp",
     "text_blob_napi/js_text_blob.cpp",
-    "utils_napi/js_utils.cpp",
   ]
 
   defines = []
