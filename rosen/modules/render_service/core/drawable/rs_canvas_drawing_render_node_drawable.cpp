@@ -631,19 +631,20 @@ bool RSCanvasDrawingRenderNodeDrawable::ReuseBackendTexture(int width, int heigh
 bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_ptr<Drawing::GPUContext>& grContext,
     std::shared_ptr<Drawing::Image>& image)
 {
-    auto tid = gettid();
+    auto tid = GetTid();
     if (tid == preThreadInfo_.first) {
         grContext = canvas_->GetGPUContext();
         image = image_;
     } else {
-        if (tid == UNI_RENDER_THREAD_INDEX) {
+        auto realTid = gettid();
+        if (realTid == RSUniRenderThread::Instance().GetTid()) {
             grContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
         } else {
-            if (!RSSubThreadManager::Instance()->GetGrContextFromSubThread(tid)) {
+            if (!RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid)) {
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage get grGrContext failed");
                 return false;
             }
-            grContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(tid);
+            grContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
         }
 
         if (!grContext || !backendTexture_.IsValid()) {
