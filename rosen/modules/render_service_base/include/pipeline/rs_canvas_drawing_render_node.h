@@ -107,7 +107,6 @@ private:
 
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
-    std::atomic<bool> drawCmdListsVisited_ = false;
 
     friend class RSCanvasDrawingNodeCommandHelper;
 };

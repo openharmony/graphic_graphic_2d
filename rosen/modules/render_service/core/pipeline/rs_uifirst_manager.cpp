@@ -15,15 +15,18 @@
 
 
 #include "pipeline/rs_uifirst_manager.h"
-#include "rs_trace.h"
-#include "common/rs_optional_trace.h"
+
 #include "luminance/rs_luminance_control.h"
+#include "rs_trace.h"
+
+#include "common/rs_optional_trace.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
+#include "platform/common/rs_log.h"
 
 // use in mainthread, post subthread, not affect renderthread
 namespace OHOS {
@@ -342,7 +345,12 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceR
                 surfaceNode->SetUIFirstIsPurge(false);
                 return true;
             }
-            auto surfaceDirtyRect = surfaceNode->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
+            auto drawable = surfaceNode->GetRenderDrawable();
+            if (!drawable) {
+                continue;
+            }
+            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+            auto surfaceDirtyRect = surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
             Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
                 surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
             Occlusion::Region surfaceDirtyRegion { dirtyRect };

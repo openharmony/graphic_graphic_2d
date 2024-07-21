@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -58,10 +59,6 @@ public:
     void Draw(Drawing::Canvas& canvas) override
     {
         printf("Draw:GetRecordingState: %d \n", canvas.GetRecordingState());
-    }
-    void DumpDrawableTree(int32_t depth, std::string& out) const override
-    {
-        printf("DumpDrawableTree:depth: %d-%s \n", depth, out.c_str());
     }
 };
 
@@ -1112,7 +1109,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->stagingRenderParams_->freezeFlag_ = true;
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
-    node->clearSurfaceTask_ = clearTask;
     node->isOpincRootFlag_ = true;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
@@ -1491,10 +1487,6 @@ HWTEST_F(RSRenderNodeTest, ParentChildRelationshipTest006, TestSize.Level1)
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->RemoveChild(child2, true);
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
-
-    // ResetClearSurfaeFunc test
-    nodeTest->ResetClearSurfaeFunc();
-    EXPECT_EQ(nodeTest->clearSurfaceTask_, nullptr);
 }
 
 /**
@@ -1700,8 +1692,6 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
     surfaceTest1->visibleRegion_.rects_.emplace_back(RectI { 0, 0, 2, 2 });
     subSurfaceNodesTest1.emplace_back(surfaceTest1);
     nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
-    auto isSubNodeNeedDrawTest1 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_TRUE(isSubNodeNeedDrawTest1);
     nodeTest->subSurfaceNodes_.clear();
 
     std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest2;
@@ -1718,12 +1708,7 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
     surfaceTest2->subSurfaceNodes_.emplace(0, subSurfaceNodesTest3);
     subSurfaceNodesTest2.emplace_back(surfaceTest2);
     nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest2);
-    auto isSubNodeNeedDrawTest2 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_TRUE(isSubNodeNeedDrawTest2);
     nodeTest->subSurfaceNodes_.clear();
-
-    auto isSubNodeNeedDrawTest4 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_FALSE(isSubNodeNeedDrawTest4);
 }
 
 /**

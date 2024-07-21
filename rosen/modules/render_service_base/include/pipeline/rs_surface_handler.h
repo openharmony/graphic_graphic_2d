@@ -128,7 +128,7 @@ public:
         buffer_.timestamp = timestamp;
     }
 
-    const sptr<SurfaceBuffer>& GetBuffer() const
+    const sptr<SurfaceBuffer> GetBuffer() const
     {
         return buffer_.buffer;
     }

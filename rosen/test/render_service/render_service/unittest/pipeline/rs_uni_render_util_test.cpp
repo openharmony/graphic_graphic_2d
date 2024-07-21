@@ -15,6 +15,7 @@
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
 
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "params/rs_surface_render_params.h"
@@ -559,7 +560,7 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread005, Function | SmallTest | L
  */
 HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest | Level2)
 {
-    std::vector<RSBaseRenderNode::SharedPtr> allSurfaceNodes;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawawble;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
     NodeId id = 0;
     std::shared_ptr<RSRenderNode> nodeNull = nullptr;
@@ -567,10 +568,10 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest 
     auto node = std::make_shared<RSRenderNode>(id);
     rsRenderNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
     rsRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(id);
-    allSurfaceNodes.emplace_back(nodeNull);
-    allSurfaceNodes.emplace_back(rsRenderNode);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodes, hasVisibleDirtyRegionSurfaceVec, false, false);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodes, hasVisibleDirtyRegionSurfaceVec, true, true);
+    allSurfaceDrawawble.emplace_back(nullptr);
+    allSurfaceDrawawble.emplace_back(rsRenderNode->renderDrawable_);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, true);
     EXPECT_TRUE(rsRenderNode->renderDrawable_->renderParams_);
 }
 
@@ -637,25 +638,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTe
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
     ASSERT_TRUE(drawable->renderParams_);
-}
-
-/**
- * @tc.name: SetAllSurfaceGlobalDityRegionTest
- * @tc.desc: Verify function SetAllSurfaceGlobalDityRegion
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceGlobalDityRegionTest, Function | SmallTest | Level2)
-{
-    std::vector<RSBaseRenderNode::SharedPtr> allSurfaces;
-    RectI globalDirtyRegion;
-    NodeId id = 0;
-    std::shared_ptr<RSRenderNode> nodeNull = nullptr;
-    auto rsRenderNode = std::make_shared<RSRenderNode>(id);
-    allSurfaces.emplace_back(nodeNull);
-    allSurfaces.emplace_back(rsRenderNode);
-    RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(allSurfaces, globalDirtyRegion);
-    EXPECT_FALSE(allSurfaces.empty());
 }
 
 /**

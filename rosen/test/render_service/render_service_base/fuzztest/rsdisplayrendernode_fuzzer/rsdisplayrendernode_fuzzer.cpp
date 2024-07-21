@@ -92,8 +92,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetScreenId();
     rsDisplayRenderNode.SetRogSize(rogWidth, rogHeight);
     rsDisplayRenderNode.GetRogWidth();
-    rsDisplayRenderNode.SetRenderWindowsName(windowsName);
-    rsDisplayRenderNode.GetRenderWindowName();
     rsDisplayRenderNode.GetRogHeight();
     rsDisplayRenderNode.SetDisplayOffset(offsetX, offsetY);
     rsDisplayRenderNode.GetDisplayOffsetX();
@@ -125,7 +123,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.IsParallelDisplayNode();
     rsDisplayRenderNode.GetRotation();
     rsDisplayRenderNode.GetDirtyManager();
-    rsDisplayRenderNode.GetSyncDirtyManager();
     rsDisplayRenderNode.UpdateDisplayDirtyManager(offsetX);
     rsDisplayRenderNode.ClearCurrentSurfacePos();
     rsDisplayRenderNode.UpdateSurfaceNodePos(id, dirtyShadow);
@@ -145,15 +142,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetOriginScreenRotation();
     rsDisplayRenderNode.SetInitMatrix(matrix);
     rsDisplayRenderNode.GetInitMatrix();
-    rsDisplayRenderNode.GetCacheImgForCapture();
     auto cacheImgForCapture = std::make_shared<Drawing::Image>();
-    rsDisplayRenderNode.SetCacheImgForCapture(cacheImgForCapture);
     rsDisplayRenderNode.GetOffScreenCacheImgForCapture();
     rsDisplayRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     rsDisplayRenderNode.GetRootIdOfCaptureWindow();
     rsDisplayRenderNode.SetRootIdOfCaptureWindow(id);
-    rsDisplayRenderNode.GetResetRotate();
-    rsDisplayRenderNode.SetResetRotate(true);
     rsDisplayRenderNode.GetDirtySurfaceNodeMap();
     rsDisplayRenderNode.ClearSurfaceSrcRect();
     rsDisplayRenderNode.ClearSurfaceDstRect();

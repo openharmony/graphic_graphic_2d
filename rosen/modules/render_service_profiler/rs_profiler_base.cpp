@@ -792,7 +792,9 @@ std::string RSProfiler::DumpSurfaceNode(const RSRenderNode& node)
     const auto parent = node.parent_.lock();
     out += ", Parent [" + (parent ? std::to_string(parent->GetId()) : "null") + "]";
     out += ", Name [" + surfaceNode.GetName() + "]";
-    out += ", hasConsumer: " + std::to_string(surfaceNode.GetRSSurfaceHandler()->HasConsumer());
+    if (surfaceNode.GetRSSurfaceHandler()) {
+        out += ", hasConsumer: " + std::to_string(surfaceNode.GetRSSurfaceHandler()->HasConsumer());
+    }
     std::string contextAlpha = std::to_string(surfaceNode.contextAlpha_);
     std::string propertyAlpha = std::to_string(surfaceNode.GetRenderProperties().GetAlpha());
     out += ", Alpha: " + propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";

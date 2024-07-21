@@ -108,7 +108,7 @@ void RSRenderServiceListener::OnGoBackground()
         node->NeedClearBufferCache();
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
-        node->UpdateBufferInfo(nullptr, nullptr, nullptr);
+        node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
         ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, go background", node->GetId());
         node->SetContentDirty();

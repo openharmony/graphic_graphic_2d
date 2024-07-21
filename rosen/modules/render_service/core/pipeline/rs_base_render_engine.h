@@ -48,6 +48,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+class RSSurfaceRenderNodeDrawable;
+}
 struct FrameContextConfig {
 public:
     FrameContextConfig(bool isProtected, bool independentContext)
@@ -196,6 +200,9 @@ public:
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
+    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
     virtual void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
 

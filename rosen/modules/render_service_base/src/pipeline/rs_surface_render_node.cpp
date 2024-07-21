@@ -99,20 +99,16 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName), nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
+    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name), bundleName_(config.bundleName),
+      nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+      cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id))
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
-    if (RSUniRenderJudgement::IsUniRender()) {
-        syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
-            std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
-    }
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -217,9 +213,7 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
         " SurfaceNodeType [" + std::to_string(static_cast<unsigned int>(GetSurfaceNodeType())) + "]" +
         " Transparent [" + std::to_string(IsTransparent()) +"]" +
         " DstRect: " + GetDstRect().ToString() +
-        " VisibleRegion: " + GetVisibleRegion().GetRegionInfo() +
-        " VisibleDirtyRegion: " + GetVisibleDirtyRegion().GetRegionInfo() +
-        " GlobalDirtyRegion: " + GetGlobalDirtyRegion().GetRegionInfo();
+        " VisibleRegion: " + GetVisibleRegion().GetRegionInfo();
     if (GetDirtyManager()) {
         dump += " DirtyRegion: " + GetDirtyManager()->GetDirtyRegion().ToString();
     }
@@ -366,7 +360,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (grContext_ && !IsOnTheTree()) {
+    if (!IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
@@ -648,11 +642,6 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
-}
-
-std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetSyncDirtyManager() const
-{
-    return syncDirtyManager_;
 }
 
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyManager() const
@@ -1020,11 +1009,11 @@ void RSSurfaceRenderNode::OnSkipSync()
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const sptr<SurfaceBuffer>& preBuffer)
+void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
+    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    surfaceParams->SetBuffer(buffer);
+    surfaceParams->SetBuffer(buffer, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetPreBuffer(preBuffer);
     AddToPendingSyncList();
@@ -1451,58 +1440,6 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
                 visibleLevel, isSystemAnimatedScenes);
         }
     }
-}
-
-bool RSSurfaceRenderNode::SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const
-{
-    if (!isDirtyRegionAlignedEnable_) {
-        return false;
-    }
-    if (!extraDirtyRegionAfterAlignmentIsEmpty_) {
-        return extraDirtyRegionAfterAlignment_.IsIntersectWith(r);
-    }
-    return false;
-}
-
-bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
-{
-    Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
-    // if current node rect r is in global dirtyregion, it CANNOT be skipped
-    if (!globalDirtyRegionIsEmpty_) {
-        auto globalRect = globalDirtyRegion_.IsIntersectWith(nodeRect);
-        if (globalRect) {
-            return true;
-        }
-    }
-    // if current node is in visible dirtyRegion, it CANNOT be skipped
-    bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
-    if (localIntersect) {
-        return true;
-    }
-    // if current node is transparent
-    if (IsTransparent() || IsCurrentNodeInTransparentRegion(nodeRect) || IsTreatedAsTransparent()) {
-        return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
-    }
-    return false;
-}
-
-bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
-{
-    switch (opDropType) {
-        case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
-            return SubNodeIntersectWithDirty(r);
-        case PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION:
-            return SubNodeVisible(r);
-        case PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY:
-            // intersect with self visible dirty or other surfaces' extra dirty region after alignment
-            return SubNodeVisible(r) && (SubNodeIntersectWithDirty(r) ||
-                SubNodeIntersectWithExtraDirtyRegion(r));
-        case PartialRenderType::DISABLED:
-        case PartialRenderType::SET_DAMAGE:
-        default:
-            return true;
-    }
-    return true;
 }
 
 void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
@@ -1966,7 +1903,11 @@ void RSSurfaceRenderNode::OnSync()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::OnSync name[%s] dirty[%s]",
         GetName().c_str(), dirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str());
-    dirtyManager_->OnSync(syncDirtyManager_);
+    if (!renderDrawable_) {
+        return;
+    }
+    auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
+    dirtyManager_->OnSync(syncDirtyManager);
     if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
         if (surfaceParams == nullptr) {
@@ -1975,7 +1916,9 @@ void RSSurfaceRenderNode::OnSync()
         }
         surfaceParams->SetNeedSync(true);
     }
-
+#ifndef ROSEN_CROSS_PLATFORM
+    renderDrawable_->RegisterDeleteBufferListenerOnSync(GetRSSurfaceHandler()->GetConsumer());
+#endif
     RSRenderNode::OnSync();
 }
 
@@ -2204,20 +2147,6 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
     return childHardwareEnabledNodes_;
 }
 
-void RSSurfaceRenderNode::SetGlobalDirtyRegion(const RectI& rect, bool renderParallel)
-{
-    if (!renderDrawable_ || !renderDrawable_->GetRenderParams()) {
-        return;
-    }
-    auto visibleRegion = renderParallel
-        ? static_cast<RSSurfaceRenderParams*>(renderDrawable_->GetRenderParams().get())->GetVisibleRegion()
-        : visibleRegion_;
-    Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
-    Occlusion::Region region { tmpRect };
-    globalDirtyRegion_ = visibleRegion.And(region);
-    globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
-}
-
 void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
 {
     if (IsAppWindow()) {
@@ -2266,6 +2195,12 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     if (!ShouldPaint()) {
         UpdateFilterCacheStatusWithVisible(false);
     }
+}
+
+void RSSurfaceRenderNode::SetTotalMatrix(const Drawing::Matrix& totalMatrix)
+{
+    totalMatrix_ = totalMatrix;
+    stagingRenderParams_->SetTotalMatrix(totalMatrix);
 }
 
 std::optional<Drawing::Rect> RSSurfaceRenderNode::GetContextClipRegion() const
@@ -2684,6 +2619,7 @@ void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetNeedOffscreen(needOffscreen);
+        stagingSurfaceParams->SetFingerprint(GetFingerprint());
         AddToPendingSyncList();
     } else {
         RS_LOGE("RSSurfaceRenderNode::SetNeedOffscreen stagingSurfaceParams is null");

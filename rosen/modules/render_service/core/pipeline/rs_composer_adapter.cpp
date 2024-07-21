@@ -22,7 +22,6 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_handler.h"
@@ -33,6 +32,7 @@
 #include "string_utils.h"
 
 #include "draw/canvas.h"
+#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -303,7 +303,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     info.srcRect = newSrcRect;
 }
 
-void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node)
+void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo& info, const RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
@@ -321,7 +321,7 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
     }
 }
 
-bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
+bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo& info, RSSurfaceRenderNode& node) const
 {
     bool needClient = RSBaseRenderUtil::IsNeedClient(node, info);
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {

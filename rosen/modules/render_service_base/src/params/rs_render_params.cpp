@@ -20,7 +20,7 @@
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
-
+#include "screen_manager/rs_screen_info.h"
 namespace OHOS::Rosen {
 namespace {
 thread_local Drawing::Matrix parentSurfaceMatrix_;
@@ -473,9 +473,21 @@ const RSLayerInfo& RSRenderParams::GetLayerInfo() const
 }
 
 // overrided by displayNode
-ScreenRotation RSRenderParams::GetScreenRotation() const
+const ScreenInfo& RSRenderParams::GetScreenInfo() const
 {
-    static const ScreenRotation defaultRotation = ScreenRotation::ROTATION_0;
-    return defaultRotation;
+    static ScreenInfo defalutScreenInfo;
+    return defalutScreenInfo;
+}
+
+const Drawing::Matrix& RSRenderParams::GetTotalMatrix()
+{
+    static const Drawing::Matrix defaultMatrix;
+    return defaultMatrix;
+}
+// virtual display params
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSourceDrawable()
+{
+    static DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr defaultPtr;
+    return defaultPtr;
 }
 } // namespace OHOS::Rosen

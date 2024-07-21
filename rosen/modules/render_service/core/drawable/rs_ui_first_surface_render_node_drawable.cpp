@@ -417,9 +417,6 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 bool RSSurfaceRenderNodeDrawable::HasCachedTexture() const
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!surfaceHandlerUiFirst_) {
-        return false;
-    }
     return isTextureValid_.load() || surfaceHandlerUiFirst_->GetBuffer() != nullptr;
 #else
     return true;
