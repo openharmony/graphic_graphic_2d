@@ -803,6 +803,7 @@ protected:
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    mutable bool isFullChildrenListValid_ = true;
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -824,7 +825,6 @@ private:
     // When an empty list is needed, use EmptyChildrenList instead.
     static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
-    bool isFullChildrenListValid_ = true;
     bool isChildrenSorted_ = true;
 
     void GenerateFullChildrenList();
