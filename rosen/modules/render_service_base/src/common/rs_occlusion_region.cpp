@@ -23,8 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {
-static Rect _s_empty_rect_ { 0, 0, 0, 0 };
-static Rect _s_invalid_rect_ { 0, 0, -1, -1 };
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
