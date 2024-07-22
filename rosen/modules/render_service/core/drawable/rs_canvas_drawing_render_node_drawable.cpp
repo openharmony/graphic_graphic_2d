@@ -417,7 +417,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
     }
     std::shared_ptr<Drawing::Image> image;
     std::shared_ptr<Drawing::GPUContext> grContext;
-    if (!GetCurrentContextAndImage(grContext, image)) {
+    if (!GetCurrentContextAndImage(grContext, image, tid)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetCurrentContextAndImage failed");
         return false;
     }
@@ -638,9 +638,8 @@ bool RSCanvasDrawingRenderNodeDrawable::ReuseBackendTexture(int width, int heigh
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_ptr<Drawing::GPUContext>& grContext,
-    std::shared_ptr<Drawing::Image>& image)
+    std::shared_ptr<Drawing::Image>& image, const uint64_t tid)
 {
-    auto tid = GetTid();
     if (tid == preThreadInfo_.first) {
         grContext = canvas_->GetGPUContext();
         image = image_;
