@@ -313,11 +313,11 @@ void RSUIDirector::FlushModifier()
     RSUIDirector::RecvMessages();
 }
 
-bool RSUIDirector::HasUIAnimation()
+bool RSUIDirector::HasUIRunningAnimation()
 {
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
-        return modifierManager->HasUIAnimation();
+        return modifierManager->HasUIRunningAnimation();
     }
     return false;
 }
