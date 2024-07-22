@@ -4981,11 +4981,11 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issuesIAE8IM
  */
-// HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
-// {
-//     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-//     ASSERT_NE(rsUniRenderVisitor, nullptr);
-//     std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
-//     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node1);
-// }
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
+    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node1);
+}
 } // OHOS::Rosen
