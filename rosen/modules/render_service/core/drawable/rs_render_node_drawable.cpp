@@ -151,9 +151,10 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     if (needUpdateCache) {
         filterRects_.clear();
     }
+    bool isForegroundFilterCache = params.GetForegroundFilterCache() != nullptr;
     // in case of no filter
-    if (needUpdateCache && (!hasFilter || params.GetRSFreezeFlag())) {
-        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu", nodeId_);
+    if (needUpdateCache && (!hasFilter || isForegroundFilterCache || params.GetRSFreezeFlag())) {
+        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu, isForegroundFilter:%d", nodeId_, isForegroundFilterCache);
         UpdateCacheSurface(canvas, params);
         return;
     }

@@ -143,7 +143,7 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
     auto src = param.src;
     auto dst = param.dst;
 
-    RS_OPTIONAL_TRACE_BEGIN("ApplyForegroundEffect");
+    RS_OPTIONAL_TRACE_NAME("ApplyForegroundEffect");
     ROSEN_LOGD("ForegroundEffect::kawase radius : %{public}f, scale : %{public}f, pass num : %{public}d",
         blurRadius_, blurScale_, numberOfPasses_);
 

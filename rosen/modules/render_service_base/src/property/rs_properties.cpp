@@ -1626,11 +1626,11 @@ std::string RSProperties::GetFgBrightnessDescription() const
     }
     std::string description =
         "ForegroundBrightness, cubicCoeff: " + std::to_string(fgBrightnessParams_->rates_.x_) +
-        " quadCoeff: " + std::to_string(fgBrightnessParams_->rates_.y_) +
-        " rate: " + std::to_string(fgBrightnessParams_->rates_.z_) +
-        " lightUpDegree: " + std::to_string(fgBrightnessParams_->rates_.w_) +
-        " saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
-        " fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_);
+        ", quadCoeff: " + std::to_string(fgBrightnessParams_->rates_.y_) +
+        ", rate: " + std::to_string(fgBrightnessParams_->rates_.z_) +
+        ", lightUpDegree: " + std::to_string(fgBrightnessParams_->rates_.w_) +
+        ", saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
+        ", fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_);
     return description;
 }
 
@@ -1641,11 +1641,11 @@ std::string RSProperties::GetBgBrightnessDescription() const
     }
     std::string description =
         "BackgroundBrightnessInternal, cubicCoeff: " + std::to_string(bgBrightnessParams_->rates_.x_) +
-        " quadCoeff: " + std::to_string(bgBrightnessParams_->rates_.y_) +
-        " rate: " + std::to_string(bgBrightnessParams_->rates_.z_) +
-        " lightUpDegree: " + std::to_string(bgBrightnessParams_->rates_.w_) +
-        " saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
-        " fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_);
+        ", quadCoeff: " + std::to_string(bgBrightnessParams_->rates_.y_) +
+        ", rate: " + std::to_string(bgBrightnessParams_->rates_.z_) +
+        ", lightUpDegree: " + std::to_string(bgBrightnessParams_->rates_.w_) +
+        ", saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
+        ", fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_);
     return description;
 }
 
