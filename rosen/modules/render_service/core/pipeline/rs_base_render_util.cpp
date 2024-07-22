@@ -986,6 +986,9 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
             "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
             surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
