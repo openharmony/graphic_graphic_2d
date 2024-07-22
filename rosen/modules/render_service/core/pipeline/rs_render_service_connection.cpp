@@ -657,14 +657,15 @@ void TakeSurfaceCaptureForUiParallel(
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
 
+    if (captureConfig.isSync) {
+        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        return;
+    }
+
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (!node) {
-        if (captureConfig.isSync) {
-            RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
-        } else {
-            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
-            callback->OnSurfaceCapture(id, nullptr);
-        }
+        RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
+        callback->OnSurfaceCapture(id, nullptr);
         return;
     }
 

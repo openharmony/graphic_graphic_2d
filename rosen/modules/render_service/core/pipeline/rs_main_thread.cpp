@@ -1807,12 +1807,6 @@ void RSMainThread::ProcessUiCaptureTasks()
 {
     const auto& nodeMap = context_->GetNodeMap();
     for (auto [id, captureTask]: uiCaptureTasks_) {
-        auto node = nodeMap.GetRenderNode(id);
-        if (!node) {
-            RS_LOGE("RSMainThread::ProcessUiCaptureTasks node is nullptr");
-            continue;
-        }
-
         captureTask();
     }
     uiCaptureTasks_.clear();
