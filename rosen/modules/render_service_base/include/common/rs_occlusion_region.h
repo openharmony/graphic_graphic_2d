@@ -37,29 +37,31 @@ public:
     int top_ = 0;
     int right_ = 0;
     int bottom_ = 0;
-    static Rect _s_empty_rect_;
-    static Rect _s_invalid_rect_;
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
     Rect(int l, int t, int r, int b, bool checkValue = true)
+        : left_(l), top_(t), right_(r), bottom_(b)
     {
-        left_ = l;
-        top_ = t;
-        right_ = r;
-        bottom_ = b;
-        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
-            SetEmpty();
+        if (checkValue) {
+            CheckAndCorrectValue();
+            if (left_ != l || top_ != t || right_ != r || bottom_ != b) {
+                RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+                    "%{public}d], should in range [%{public}d, %{public}d]",
+                    l, t, t, b, MIN_REGION_VALUE, MAX_REGION_VALUE);
+            }
         }
     }
 
     Rect(const RectI& r, bool checkValue = true)
+        : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom())
     {
-        left_ = r.left_;
-        top_ = r.top_;
-        right_ = r.GetRight();
-        bottom_ = r.GetBottom();
-        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
-            SetEmpty();
+        if (checkValue) {
+            CheckAndCorrectValue();
+            if (left_ != r.left_ || top_ != r.top_ || right_ != r.GetRight() || bottom_ != r.GetBottom()) {
+                RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+                    "%{public}d], should in range [%{public}d, %{public}d]",
+                    r.left_, r.top_, r.GetRight(), r.GetBottom(), MIN_REGION_VALUE, MAX_REGION_VALUE);
+            }
         }
     }
 
@@ -69,29 +71,6 @@ public:
         top_ = 0;
         right_ = 0;
         bottom_ = 0;
-    }
-
-    bool CheckIfHasAbnormalValue()
-    {
-        bool hasAbnormalValue = false;
-        if (left_ < MIN_REGION_VALUE || left_ > MAX_REGION_VALUE) {
-            hasAbnormalValue = true;
-        }
-        if (top_ < MIN_REGION_VALUE || top_ > MAX_REGION_VALUE) {
-            hasAbnormalValue = true;
-        }
-        if (right_ < MIN_REGION_VALUE || right_ > MAX_REGION_VALUE) {
-            hasAbnormalValue = true;
-        }
-        if (bottom_ < MIN_REGION_VALUE || bottom_ > MAX_REGION_VALUE) {
-            hasAbnormalValue = true;
-        }
-        if (hasAbnormalValue) {
-            RS_LOGE("Occlusion::Rect initialized with invalid value, [%{public}d, %{public}d, %{public}d, %{public}d], \
-                should in range [%{public}d, %{public}d]",
-                left_, top_, right_, bottom_, MIN_REGION_VALUE, MAX_REGION_VALUE);
-        }
-        return hasAbnormalValue;
     }
 
     bool IsEmpty() const
@@ -157,6 +136,18 @@ public:
     {
         Rect res = this->Intersect(r);
         return res.Area();
+    }
+
+private:
+    void CheckAndCorrectValue()
+    {
+        left_ = std::max(left_, MIN_REGION_VALUE);
+        top_ = std::max(top_, MIN_REGION_VALUE);
+        right_ = std::min(right_, MAX_REGION_VALUE);
+        bottom_ = std::min(bottom_, MAX_REGION_VALUE);
+        if (IsEmpty()) {
+            SetEmpty();
+        }
     }
 };
 
