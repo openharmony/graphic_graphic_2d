@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_uni_render_composer_adapter.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "surface_buffer_impl.h"
@@ -97,7 +98,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, Start001, TestSize.Level1)
     RectI dstRect{0, 0, 400, 600};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode);
+    auto surfaceDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto layer1 =
+        composerAdapter_->CreateLayer(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable&>(*surfaceDrawable));
     ASSERT_NE(layer1, nullptr);
     std::vector<LayerInfoPtr> layers;
     layers.emplace_back(layer1);
@@ -121,7 +125,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo001, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     SetUp();
-    composerAdapter_->BuildComposeInfo(*surfaceNode);
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    composerAdapter_->BuildComposeInfo(static_cast<DrawableV2::RSDisplayRenderNodeDrawable&>(*drawable));
 }
 
 /**
@@ -767,8 +773,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
     isOutOfRegion = composerAdapter_->IsOutOfScreenRegion(info);
 
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    composerAdapter_->SetComposeInfoToLayer(
-        layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer(), &(*surfaceNode));
+    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer());
 
     composerAdapter_->LayerRotate(layer, *surfaceNode);
     composerAdapter_->LayerCrop(layer);
@@ -791,7 +796,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit001, TestSize.Level1)
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     layer->sbuffer_ = nullptr;
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -810,7 +815,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit002, TestSize.Level1)
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     layer->cSurface_ = nullptr;
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -839,12 +844,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit003, TestSize.Level1)
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
 
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    composerAdapter_->SetComposeInfoToLayer(
-        layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer(), &(*surfaceNode));
+    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer());
 
     composerAdapter_->LayerRotate(layer, *surfaceNode);
     composerAdapter_->LayerCrop(layer);
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -1051,7 +1055,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient001, TestSize.
     
     info.buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     composerAdapter_->screenInfo_.colorGamut = ScreenColorGamut::COLOR_GAMUT_DISPLAY_BT2020;
-    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *surfaceNode));
+    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *surfaceNode->GetStagingRenderParams()));
 }
 
 /**
@@ -1070,7 +1074,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient002, TestSize.
     auto node = surfaceNode->ReinterpretCastTo<RSRenderNode>();
     info.buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     composerAdapter_->screenInfo_.colorGamut = ScreenColorGamut::COLOR_GAMUT_DISPLAY_BT2020;
-    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *node));
+    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *node->GetStagingRenderParams()));
 }
 
 /**
@@ -1291,7 +1295,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
-    RSUniRenderComposerAdapter::SetBufferColorSpace(*nodePtr);
+    RSUniRenderComposerAdapter::SetBufferColorSpace(*displayDrawable);
 
     CM_ColorSpaceType colorSpaceType;
     ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
@@ -1324,7 +1328,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    composerAdapter_->SetBufferColorSpace(*node);
+    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
 }
 
 /**
@@ -1340,15 +1347,16 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     NodeId id = 1;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    composerAdapter_->SetBufferColorSpace(*node);
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(displayDrawable, nullptr);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node->GetRenderDrawable());
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->SetBufferColorSpace(*node);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
 }
 } // namespace

@@ -1253,7 +1253,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (isUniRender_ && surfaceHandler.IsCurrentFrameBufferConsumed()) {
                 auto buffer = surfaceHandler.GetBuffer();
                 auto preBuffer = surfaceHandler.GetPreBuffer().buffer;
-                surfaceNode->UpdateBufferInfo(buffer, surfaceHandler.GetAcquireFence(), preBuffer);
+                surfaceNode->UpdateBufferInfo(buffer,
+                    surfaceHandler.GetDamageRegion(), surfaceHandler.GetAcquireFence(), preBuffer);
                 if (surfaceHandler.GetBufferSizeChanged()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
@@ -1382,6 +1383,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // collect hwc nodes vector, used for display node skip and direct composition cases
                 surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
+                hardwareEnabledDrwawables_.emplace_back(surfaceNode->GetRenderDrawable());
             }
 
             // set content dirty for hwc node if needed
@@ -1889,7 +1891,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             rootNode->Prepare(uniVisitor);
         }
         renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
-        renderThreadParams_->hardwareEnabledTypeNodes_ = std::move(hardwareEnabledNodes_);
+        renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
@@ -1969,7 +1971,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
-            if (!surfaceHandler->IsCurrentFrameBufferConsumed() && surfaceHandler->GetPreBuffer().buffer != nullptr) {
+            if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
             }
@@ -3516,6 +3518,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
         hardwareEnabledNodes_.clear();
+        hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
     }
 }

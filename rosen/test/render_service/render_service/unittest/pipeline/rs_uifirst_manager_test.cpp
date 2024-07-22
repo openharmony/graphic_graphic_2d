@@ -319,7 +319,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
     EXPECT_FALSE(res);
 
     std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    surfaceRenderNode->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    surfaceRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     children.clear();
     children.push_back(surfaceRenderNode);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
@@ -334,7 +334,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
     res = uifirstManager_.CheckVisibleDirtyRegionIsEmpty(node);
     EXPECT_TRUE(res);
 
-    surfaceRenderNode->GetSyncDirtyManager()->SetCurrentFrameDirtyRect(RectI(1, 2, 3, 4));
+    surfaceRenderNode->GetDirtyManager()->SetCurrentFrameDirtyRect(RectI(1, 2, 3, 4));
     surfaceRenderNode->SetUIFirstIsPurge(true);
     res = uifirstManager_.CheckVisibleDirtyRegionIsEmpty(node);
     EXPECT_FALSE(res);

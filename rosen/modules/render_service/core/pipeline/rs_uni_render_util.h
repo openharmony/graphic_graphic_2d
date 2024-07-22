@@ -25,7 +25,9 @@
 #include "sync_fence.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -41,14 +43,12 @@ public:
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
-        bool useAlignedDirtyRegion = false, bool renderParallel = false);
+        bool useAlignedDirtyRegion = false);
 
     static void MergeDirtyHistoryForNode(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
         RSDisplayRenderParams* params = nullptr, bool useAlignedDirtyRegion = false);
-    static void MergeDirtyHistoryForDrawable(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
-        RSDisplayRenderParams* params = nullptr, bool useAlignedDirtyRegion = false);
-    static void SetAllSurfaceGlobalDityRegion(
-        std::vector<RSBaseRenderNode::SharedPtr>& allSurfaces, const RectI& globalDirtyRegion);
+    static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
+        RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
     static void SetAllSurfaceDrawableGlobalDityRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const RectI& globalDirtyRegion);
@@ -56,16 +56,13 @@ public:
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
      */
-    static Occlusion::Region MergeVisibleDirtyRegion(std::vector<RSRenderNode::SharedPtr>& allSurfaceNodes,
-        std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false,
-        bool renderParallel = false);
     static Occlusion::Region MergeVisibleDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
-    static void MergeDirtyHistoryInVirtual(RSDisplayRenderNode& node, int32_t bufferAge, bool renderParallel = false);
+    static void MergeDirtyHistoryInVirtual(
+        DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, bool renderParallel = false);
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
-        bool renderParallel = false);
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables);
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
@@ -81,6 +78,8 @@ public:
         bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool useRenderParams = false);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU);
+    static BufferDrawParam CreateBufferDrawParam(
+        const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
     static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,

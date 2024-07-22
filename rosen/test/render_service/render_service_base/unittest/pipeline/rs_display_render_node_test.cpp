@@ -398,8 +398,7 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
     int32_t bufferage = 1;
     bool useAlignedDirtyRegion = false;
-    bool renderParallel = false;
-    displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion, renderParallel);
+    displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion);
     ASSERT_TRUE(true);
 }
 

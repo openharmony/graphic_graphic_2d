@@ -18,13 +18,18 @@
 #include "string_utils.h"
 #endif
 #include "common/rs_optional_trace.h"
-
+#include "params/rs_render_params.h"
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
 constexpr int32_t BITMAP_CACHE_SIZE_MIN = 50;
 constexpr int32_t REALDRAW_WIDTH_EX = 200;
 constexpr int32_t OPINC_ROOT_TOTAL_MAX = 1;
+}
+
+bool RSRenderNodeDrawable::ShouldPaint() const
+{
+    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
 }
 
 bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()

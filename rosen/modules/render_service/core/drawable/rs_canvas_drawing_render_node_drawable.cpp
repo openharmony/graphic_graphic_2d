@@ -76,8 +76,9 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     }
 
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() && QuickReject(canvas, params->GetLocalDrawRect())) {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
     }
 
@@ -110,29 +111,16 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawForeground(canvas, bounds);
 
     // 5. Ready to clear resource.
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
-        return;
-    }
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-    auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
-    canvasDrawingRenderNode->SetDrawCmdListsVisited(true);
+    SetDrawCmdListsVisited(true);
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
     DrawContent(*canvas_, rect);
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
+    if (!renderParams_) {
         return;
     }
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-    auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
-    if (canvasDrawingNode == nullptr) {
-        return;
-    }
-    auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
-    canvasDrawingParams->SetNeedProcess(false);
+    renderParams_->SetNeedProcess(false);
     Rosen::Drawing::Matrix mat;
     const auto& params = GetRenderParams();
     if (params == nullptr) {
@@ -171,16 +159,15 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
     auto canvasDrawingPtr = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(shared_from_this());
     auto task = [this, canvasDrawingPtr]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
-        if (!surface_ || !canvas_) {
+        if (!surface_ || !canvas_ || !renderParams_) {
             return;
         }
-        auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(GetRenderParams().get());
-        if (canvasDrawingParams->GetCanvasDrawingSurfaceChanged()) {
+        if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
             return;
         }
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
-        canvasDrawingParams->SetNeedProcess(false);
+        renderParams_->SetNeedProcess(false);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }

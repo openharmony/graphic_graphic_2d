@@ -44,15 +44,13 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
     : RSRenderNodeDrawableAdapter(std::move(node))
 {
     auto task = [this] { this->RSRenderNodeDrawable::ClearCachedSurface(); };
-    std::const_pointer_cast<RSRenderNode>(node)->RegisterClearSurfaceFunc(task);
+    RegisterClearSurfaceFunc(task);
 }
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
     ClearCachedSurface();
-    if (auto renderNode = renderNode_.lock()) {
-        std::const_pointer_cast<RSRenderNode>(renderNode)->ResetClearSurfaeFunc();
-    }
+    ResetClearSurfaceFunc();
 }
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

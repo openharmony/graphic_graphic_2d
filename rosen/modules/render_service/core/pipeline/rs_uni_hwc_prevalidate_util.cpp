@@ -25,6 +25,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
+#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {

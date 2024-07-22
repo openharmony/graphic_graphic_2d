@@ -17,6 +17,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -66,24 +67,5 @@ HWTEST_F(RSRenderNodeShadowDrawableTest, DrawTest, TestSize.Level1)
     EXPECT_FALSE(rsRenderNodeShadowDrawable->nodeDrawable_->GetRenderParams()->GetShouldPaint());
 }
 
-/**
- * @tc.name: DumpDrawableTreeTest
- * @tc.desc: Verify function DumpDrawableTree
- * @tc.type:FUNC
- * @tc.require: issueI9U0VZ
- */
-HWTEST_F(RSRenderNodeShadowDrawableTest, DumpDrawableTreeTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> nodeDrawable =
-        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
-    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
-    int32_t depth = 1;
-    std::string out = "";
-    rsRenderNodeShadowDrawable->nodeId_ = 0;
-    rsRenderNodeShadowDrawable->DumpDrawableTree(depth, out);
-    rsRenderNodeShadowDrawable->OnDetach();
-    EXPECT_EQ(out, "  RS_NODE[0] Draw Shadow Only\n");
-}
 } // namespace Rosen
 } // namespace OHOS

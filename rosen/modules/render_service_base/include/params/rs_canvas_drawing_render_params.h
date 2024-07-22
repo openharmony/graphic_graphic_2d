@@ -29,7 +29,7 @@ public:
     {
         return isNeedProcess_;
     }
-    void SetNeedProcess(bool isNeedProcess)
+    void SetNeedProcess(bool isNeedProcess) override
     {
         isNeedProcess_ = isNeedProcess;
         needSync_ = true;

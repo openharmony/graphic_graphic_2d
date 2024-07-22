@@ -18,12 +18,13 @@
 #include <memory>
 #include <sys/mman.h>
 
-#include "draw/surface.h"
-#include "draw/color.h"
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "draw/surface.h"
+#include "draw/color.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -43,7 +44,6 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-
 namespace OHOS {
 namespace Rosen {
 bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)

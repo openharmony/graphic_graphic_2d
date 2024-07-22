@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
@@ -951,21 +952,6 @@ HWTEST_F(RSBaseRenderNodeTest, ResetParent, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->ResetParent();
     ASSERT_EQ(node->parent_.lock(), nullptr);
-}
-
-/**
- * @tc.name: SubSurfaceNodeNeedDraw
- * @tc.desc: test results of SubSurfaceNodeNeedDraw
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, SubSurfaceNodeNeedDraw, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->AddSubSurfaceNode(parent);
-    PartialRenderType opDropType = PartialRenderType::SET_DAMAGE;
-    ASSERT_FALSE(parent->SubSurfaceNodeNeedDraw(opDropType));
 }
 
 /**

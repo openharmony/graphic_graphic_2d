@@ -292,7 +292,6 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-    // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
@@ -335,13 +334,13 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto drawable = surfaceNode->GetRenderDrawable();
-        if (!drawable) {
+        if (UNLIKELY(!drawable)) {
             continue;
         }
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         auto& params = surfaceDrawable->GetRenderParams();
-        if (!params) {
-            return;
+        if (UNLIKELY(!params)) {
+            continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
         bool needRelease = !surfaceParams->GetHardwareEnabled() || !surfaceParams->GetLayerCreated();
@@ -356,6 +355,7 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 }
                 continue;
             }
+            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
             auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
                                    useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
                                    acquireFence = acquireFence_]() mutable {
@@ -785,11 +785,13 @@ void RSUniRenderThread::MemoryManagementBetweenFrames()
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
 {
-    if (!rootNodeDrawable_) {
-        dumpString.append("rootNode is null\n");
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (!rootNode) {
+        dumpString += "rootNode is nullptr";
         return;
     }
-    rootNodeDrawable_->DumpDrawableTree(0, dumpString);
+    rootNode->DumpDrawableTree(0, dumpString);
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

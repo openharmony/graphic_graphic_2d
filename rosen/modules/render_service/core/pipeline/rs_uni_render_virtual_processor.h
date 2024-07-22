@@ -44,11 +44,10 @@ public:
     RSUniRenderVirtualProcessor() = default;
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
-    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
+    bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+    void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
-    void CalculateTransform(RSDisplayRenderNode& node);
-    void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas);
@@ -69,7 +68,7 @@ public:
     {
         return mirrorScaleY_;
     }
-    Drawing::Matrix GetCanvasMatrix() const
+    const Drawing::Matrix& GetCanvasMatrix() const
     {
         return canvasMatrix_;
     }
@@ -77,8 +76,8 @@ public:
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
-    bool InitUniProcessor(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
     bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    void CalculateTransform(RSDisplayRenderNode& node);
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);

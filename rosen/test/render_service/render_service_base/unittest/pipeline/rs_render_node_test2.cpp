@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"

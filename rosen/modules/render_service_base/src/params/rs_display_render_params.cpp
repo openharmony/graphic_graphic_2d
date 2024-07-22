@@ -152,7 +152,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
-    targetDisplayParams->mirrorSource_ = mirrorSource_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
@@ -181,6 +180,11 @@ std::string RSDisplayRenderParams::ToString() const
     ret += RENDER_PARAM_TO_STRING(screenInfo_);
     ret += "}";
     return ret;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetMirrorSourceDrawable()
+{
+    return mirrorSourceDrawable_;
 }
 
 bool RSDisplayRenderParams::HasSecurityLayer() const
