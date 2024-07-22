@@ -50,6 +50,14 @@ Typeface* FontMgr::LoadThemeFont(const std::string& familyName, const std::strin
     }
     return nullptr;
 }
+
+void FontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Typeface> typeface)
+{
+    if (fontMgrImpl_) {
+        fontMgrImpl_->LoadThemeFont(themeName, typeface);
+    }
+    return;
+}
 #endif
 
 Typeface* FontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,

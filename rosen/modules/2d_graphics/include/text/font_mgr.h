@@ -64,6 +64,13 @@ public:
      */
     Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength);
+
+    /*
+     * @brief             Load theme font typeface.
+     * @param themeName   Theme name.
+     * @param typeface    Typeface
+    */
+    void LoadThemeFont(const std::string& themeName, std::shared_ptr<Drawing::Typeface> typeface);
 #endif
 
     /**
