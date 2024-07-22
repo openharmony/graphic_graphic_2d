@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rsproperty_fuzzer.h"
+#include "rsclientproperty_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
