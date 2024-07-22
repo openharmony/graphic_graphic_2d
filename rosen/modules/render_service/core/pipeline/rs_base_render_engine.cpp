@@ -446,7 +446,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
     auto surfaceId = targetSurface->GetUniqueId();
     uint32_t mapSize = rsSurfaces_.size();
-    RS_LOGD("RequestFrame: surfaceId=%{public}llu, mapSize=%{public}u", surfaceId, mapSize);
+    RS_LOGD("RequestFrame: surfaceId=%{public}lu, mapSize=%{public}u", surfaceId, mapSize);
     if (rsSurfaces_.count(surfaceId) != 0) {
         RS_OPTIONAL_TRACE_END();
         return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
