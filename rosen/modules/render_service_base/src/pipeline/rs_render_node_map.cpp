@@ -226,6 +226,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
+        if (pair.second == nullptr) {
+            return true;
+        }
         // update node flag to avoid animation fallback
         pair.second->fallbackAnimationOnDestroy_ = false;
         // remove node from tree
