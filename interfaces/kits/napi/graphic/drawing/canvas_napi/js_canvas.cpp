@@ -163,7 +163,7 @@ bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::B
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
         ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
-    bitmap.SetInfo(drawingImageInfo);
+    bitmap.Build(drawingImageInfo, pixelMap->GetRowStride());
     bitmap.SetPixels(const_cast<void*>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
     return true;
 }
