@@ -124,7 +124,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 #endif
-    static const std::set<uint32_t> descriptorCheckList = {
+    static constexpr std::array descriptorCheckList = {
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
@@ -225,7 +225,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK)
     };
-    if (descriptorCheckList.find(code) != descriptorCheckList.cend()) {
+    if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
+        std::cend(descriptorCheckList)) {
         auto token = data.ReadInterfaceToken();
         if (token != RSIRenderServiceConnection::GetDescriptor()) {
             if (code == static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE)) {
