@@ -51,6 +51,16 @@ protected:
         return RSModifierType::INVALID;
     }
 
+    std::string GetModifierTypeString() const
+    {
+        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(GetModifierType());
+        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
+            return iter->second;
+        } else {
+            return "UNKNOWN";
+        }
+    }
+
     void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
 
     void AttachToNode(const std::shared_ptr<RSNode> target)
