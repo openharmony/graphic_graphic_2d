@@ -18,7 +18,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "rs_sub_thread_rcd.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +35,7 @@ RoundCornerDisplay::~RoundCornerDisplay()
 
 bool RoundCornerDisplay::Init()
 {
+    std::lock_guard<std::mutex> lock(resourceMut_);
     LoadConfigFile();
     SeletedLcdModel(rs_rcd::ATTR_DEFAULT);
     LoadImgsbyResolution(displayWidth_, displayHeight_);
@@ -117,6 +118,7 @@ bool RoundCornerDisplay::SetHardwareLayerSize()
 
 bool RoundCornerDisplay::GetTopSurfaceSource()
 {
+    RS_TRACE_NAME("RoundCornerDisplay::GetTopSurfaceSource");
     if (rog_ == nullptr) {
         RS_LOGE("[%{public}s] No rog found in config file \n", __func__);
         return false;
@@ -150,6 +152,7 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
 
 bool RoundCornerDisplay::GetBottomSurfaceSource()
 {
+    RS_TRACE_NAME("RoundCornerDisplay::GetBottomSurfaceSource");
     if (rog_ == nullptr) {
         RS_LOGE("[%{public}s] No rog found in config file \n", __func__);
         return false;
@@ -167,7 +170,7 @@ bool RoundCornerDisplay::GetBottomSurfaceSource()
 
 bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
+    RS_TRACE_NAME("RoundCornerDisplay::LoadImgsbyResolution");
 
     if (lcdModel_ == nullptr) {
         RS_LOGD("[%{public}s] No lcdModel selected in config file \n", __func__);
@@ -180,15 +183,15 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
         return false;
     }
     RS_LOGD("[%{public}s] Get rog resolution (%{public}u x %{public}u) in config file \n", __func__, width, height);
-    if (supportTopSurface_) {
+    if (supportTopSurface_ && supportHardware_) {
         if (!GetTopSurfaceSource()) {
-            RS_LOGE("[%{public}s] Top surface support configured, but resources if missing! \n", __func__);
+            RS_LOGE("[%{public}s] Top surface support configured, but resources is missing! \n", __func__);
             return false;
         }
     }
-    if (supportBottomSurface_) {
+    if (supportBottomSurface_ && supportHardware_) {
         if (!GetBottomSurfaceSource()) {
-            RS_LOGE("[%{public}s] Bottom surface support configured, but resources if missing! \n", __func__);
+            RS_LOGE("[%{public}s] Bottom surface support configured, but resources is missing! \n", __func__);
             return false;
         }
     }
@@ -205,16 +208,11 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
     RS_LOGD("[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
         "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
         displayWidth_, width, displayHeight_, height);
-    // the width, height do not use reference,which is local var
-    RSSingleton<RSSubThreadRCD>::GetInstance().PostTask([this, width, height]() {
-        bool isOk = LoadImgsbyResolution(width, height);
-        if (isOk) {
-            std::lock_guard<std::mutex> lock(resourceMut_);
-            updateFlag_["display"] = isOk;
-            displayWidth_ = width;
-            displayHeight_ = height;
-        }
-    });
+    if (LoadImgsbyResolution(width, height)) {
+        updateFlag_["display"] = true;
+        displayWidth_ = width;
+        displayHeight_ = height;
+    }
 }
 
 void RoundCornerDisplay::UpdateNotchStatus(int status)

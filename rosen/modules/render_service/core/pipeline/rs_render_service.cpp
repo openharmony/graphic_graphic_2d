@@ -34,6 +34,7 @@
 
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -76,7 +77,7 @@ bool RSRenderService::Init()
     } else {
         RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
-        StartRCDUpdateThread(RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext().get());
+        RegisterRcdMsg();
     }
 
     auto generator = CreateVSyncGenerator();
@@ -140,11 +141,27 @@ void RSRenderService::Run()
     mainThread_->Start();
 }
 
-void RSRenderService::StartRCDUpdateThread(RenderContext* context) const
+void RSRenderService::RegisterRcdMsg()
 {
-    auto subThreadManager = RSSubThreadManager::Instance();
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        subThreadManager->StartRCDThread(context);
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplay::UpdateDisplayParameter);
+            msgBus.RegisterTopic<ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplay::UpdateOrientationStatus);
+            msgBus.RegisterTopic<int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplay::UpdateNotchStatus);
+            isRcdServiceRegister_ = true;
+            RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
+            return;
+        }
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
     }
 }
 

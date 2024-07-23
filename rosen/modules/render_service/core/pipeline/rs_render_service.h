@@ -39,8 +39,6 @@ public:
     bool Init();
     void Run();
 
-    void StartRCDUpdateThread(RenderContext* context) const;
-
 private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
     void DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
@@ -64,6 +62,7 @@ private:
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     void RemoveConnection(sptr<IRemoteObject> token);
+    void RegisterRcdMsg();
 
     RSMainThread* mainThread_ = nullptr;
     sptr<RSScreenManager> screenManager_;
@@ -77,6 +76,8 @@ private:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+
+    bool isRcdServiceRegister_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
