@@ -326,7 +326,6 @@ const std::map<RSModifierType, std::string> RS_MODIFIER_TYPE_TO_STRING = {
     { RSModifierType::GEOMETRYTRANS, "geometrytrans" },
     { RSModifierType::CHILDREN, "children" },
     { RSModifierType::MAX_RS_MODIFIER_TYPE, "max_rs_modifier_type" },
-
 };
 
 } // namespace Rosen
