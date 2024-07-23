@@ -85,12 +85,10 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, Function | SmallTest | Level2)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode displayNode(nodeId++, config);
-    auto node = std::make_shared<RSRenderNode>(nodeId++);
-    displayNode.renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNode, 0, true);
-    ASSERT_EQ(displayNode.GetRenderParams(), nullptr);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(drawable, 0);
+    ASSERT_EQ(drawable.renderParams_, nullptr);
 }
 
 /*
@@ -102,12 +100,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, Function | SmallTes
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual002, Function | SmallTest | Level2)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode displayNode(nodeId++, config);
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    auto displayNodeDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSDisplayRenderParams>(displayNodeDrawable->nodeId_);
-    displayNode.renderDrawable_ = displayNodeDrawable;
+    DrawableV2::RSDisplayRenderNodeDrawable displayNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSDisplayRenderParams>(displayNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -117,9 +112,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual002, Function | SmallTes
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(nullptr);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable->renderParams_ = std::move(displayNodeDrawableParam);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNode, 0, true);
-    ASSERT_NE(displayNode.GetRenderParams(), nullptr);
+    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0);
+    ASSERT_NE(displayNodeDrawable.renderParam_, nullptr);
 }
 
 /*
@@ -131,12 +126,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual002, Function | SmallTes
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual003, Function | SmallTest | Level2)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode displayNode(nodeId++, config);
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    auto displayNodeDrawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSDisplayRenderParams>(displayNodeDrawable->nodeId_);
-    displayNode.renderDrawable_ = displayNodeDrawable;
+    DrawableV2::RSRenderNodeDrawable displayNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSDisplayRenderParams>(displayNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -145,9 +137,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual003, Function | SmallTes
     drawableParam->isAppWindow_ = false;
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable->renderParams_ = std::move(displayNodeDrawableParam);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNode, 0, true);
-    ASSERT_NE(displayNode.GetRenderParams(), nullptr);
+    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0);
+    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
 }
 
 /*
@@ -169,8 +161,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionInVirtualTest001, Function 
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, true);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
     ASSERT_NE(drawable->renderParams_, nullptr);
 }
 
@@ -192,8 +184,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionInVirtualTest002, Function 
     param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(drawable);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, true);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
     ASSERT_NE(drawable->renderParams_, nullptr);
 }
 
@@ -210,8 +202,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionInVirtualTest003, Function 
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     allSurfaceNodeDrawables.push_back(drawable);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, true);
-    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
+    RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
     ASSERT_EQ(drawable->renderParams_, nullptr);
 }
 
