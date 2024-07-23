@@ -32,7 +32,9 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "pipeline/rs_pointer_render_manager.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#endif
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
@@ -731,9 +733,11 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.screenBrightnessNits = GetDisplayNit();
 #endif
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (IsHardwareEnabledTopSurface()) {
         RSPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
     }
+#endif
 
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }

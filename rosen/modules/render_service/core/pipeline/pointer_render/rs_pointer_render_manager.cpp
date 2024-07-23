@@ -15,16 +15,17 @@
 
 #include "common/rs_background_thread.h"
 #include "src/gpu/gl/GrGLDefines.h"
-#include "rs_uni_render_processor.h"
+#include "rs_trace.h"
+#include "pipeline/rs_uni_render_processor.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "pipeline/rs_pointer_render_manager.h"
+#include "rs_pointer_render_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-static const std::string DISPLAY_NODE = "DisplayNode";
-static const std::string POINTER_NODE = "pointer";
-static const float RGB = 255.f;
+static const std::string DISPLAY = "DisplayNode";
+static const std::string POINTER = "pointer";
+static const float RGB = 255.0f;
 static const float HALF = 0.5f;
 } // namespace
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
@@ -123,7 +124,7 @@ void RSPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
 
 bool RSPointerRenderManager::CheckColorPickerEnabled()
 {
-    if (!isEnableCursorInversion_) {
+    if (!isEnableCursorInversion_ || taskDoing_) {
         return false;
     }
 
@@ -133,8 +134,13 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
     }
 
     bool exists = false;
-    auto& hardwareDrawables =
-        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (threadParams == nullptr) {
+        ROSEN_LOGE("RSPointerRenderManager::CheckColorPickerEnabled threadParams == nullptr");
+        return false;
+    }
+    auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
+
     for (const auto& drawable : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         if (surfaceDrawable != nullptr && surfaceDrawable->IsHardwareEnabledTopSurface()) {
@@ -143,10 +149,6 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
         }
     }
 
-    if (taskDoing_) {
-        ROSEN_LOGD("RSPointerRenderManager::CheckColorPickerEnabled flag:%{public}u!", std::atomic_load(&taskDoing_));
-        return false;
-    }
     return exists;
 }
 
@@ -158,6 +160,9 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
         return;
     }
 
+    RS_TRACE_BEGIN("RSPointerRenderManager ProcessColorPicker");
+    std::lock_guard<std::mutex> locker(mtx_);
+    image_ = nullptr;
     if (cacheImgForPointer_) {
         if (!GetIntersectImageBySubset(gpuContext)) {
             ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageBySubset is false!");
@@ -172,6 +177,7 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
 
     // post color picker task to background thread
     RunColorPickerTask();
+    RS_TRACE_END();
 }
 
 bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
@@ -213,11 +219,11 @@ bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> p
     int displayNodeIndex = INT_MAX;
     for (int i = 0; i < layers.size(); ++i) {
         std::string name = layers[i]->GetSurface()->GetName();
-        if (name.find(OHOS::Rosen::DISPLAY_NODE) != std::string::npos) {
+        if (name.find(DISPLAY) != std::string::npos) {
             displayNodeIndex = i;
             continue;
         }
-        if (name.find(OHOS::Rosen::POINTER_NODE) != std::string::npos) {
+        if (name.find(POINTER) != std::string::npos) {
             GraphicIRect rect = layers[i]->GetLayerSize();
             pRect.SetAll(rect.x, rect.y, rect.w, rect.h);
             find = true;
@@ -243,7 +249,7 @@ void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& la
     rect_.Clear();
 
     for (int i = std::max(0, displayNodeIndex - 1); i >= 0; --i) {
-        if (layers[i]->GetSurface()->GetName().find(OHOS::Rosen::POINTER_NODE) != std::string::npos) {
+        if (layers[i]->GetSurface()->GetName().find(POINTER) != std::string::npos) {
             continue;
         }
         GraphicIRect layerSize = layers[i]->GetLayerSize();
@@ -269,6 +275,53 @@ void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& la
     }
 }
 
+void RSPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& param)
+{
+#ifdef RS_ENABLE_UNI_RENDER
+    std::lock_guard<std::mutex> locker(mtx_);
+    taskDoing_ = true;
+    std::shared_ptr<Drawing::Image> image;
+    auto context = RSBackgroundThread::Instance().GetShareGPUContext().get();
+    if (image_) {
+        image = image_;
+    } else {
+        image = GetIntersectImageByLayer(param);
+        if (image == nullptr || !image->IsValid(context)) {
+            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground image not valid.");
+            taskDoing_ = false;
+            return;
+        }
+    }
+    if (!colorPickerTask_->InitTask(image)) {
+        bool initStatus = colorPickerTask_->InitTask(image);
+        if (!initStatus) {
+            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground InitTask failed.");
+            taskDoing_ = false;
+            return;
+        }
+    }
+    colorPickerTask_->SetStatus(CacheProcessStatus::DOING);
+    if (!colorPickerTask_->InitSurface(context)) {
+        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground InitSurface failed.");
+        colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        taskDoing_ = false;
+        return;
+    }
+    if (!colorPickerTask_->Render()) {
+        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground Render failed.");
+        taskDoing_ = false;
+        return;
+    }
+    colorPickerTask_->Reset();
+    RSColor color;
+    colorPickerTask_->GetColor(color);
+
+    luminance_ = color.GetRed() * 0.2126f + color.GetGreen() * 0.7152f + color.GetBlue() * 0.0722f;
+    taskDoing_ = false;
+    CallPointerLuminanceChange(luminance_);
+#endif
+}
+
 void RSPointerRenderManager::RunColorPickerTask()
 {
     if (!image_ && (target_ == nullptr || rect_.IsEmpty())) {
@@ -278,48 +331,11 @@ void RSPointerRenderManager::RunColorPickerTask()
 
     BufferDrawParam param;
     if (!image_) {
-        ROSEN_LOGD("RSPointerRenderManager::RunColorPickerTask get param!");
         param = RSUniRenderUtil::CreateLayerBufferDrawParam(target_, forceCPU_);
     }
-    std::function<void()> task = [this, param]() -> void {
-#ifdef RS_ENABLE_UNI_RENDER
-        taskDoing_ = true;
-        auto image = image_ ? image_ : GetIntersectImageByLayer(param);
-        auto context = RSBackgroundThread::Instance().GetShareGPUContext().get();
-        if (!colorPickerTask_->InitTask(image)) {
-            bool initStatus = colorPickerTask_->InitTask(image);
-            if (!initStatus) {
-                RS_LOGE("RSPointerRenderManager::RunColorPickerTask InitTask failed.");
-                image_ = nullptr;
-                taskDoing_ = false;
-                return;
-            }
-        }
-        colorPickerTask_->SetStatus(CacheProcessStatus::DOING);
-        if (!colorPickerTask_->InitSurface(context)) {
-            RS_LOGE("RSPointerRenderManager::RunColorPickerTask InitSurface failed.");
-            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
-            image_ = nullptr;
-            taskDoing_ = false;
-            return;
-        }
-        if (!colorPickerTask_->Render()) {
-            RS_LOGE("RSPointerRenderManager::RunColorPickerTask Render failed.");
-            image_ = nullptr;
-            taskDoing_ = false;
-            return;
-        }
-        colorPickerTask_->Reset();
-        RSColor color;
-        colorPickerTask_->GetColor(color);
-
-        luminance_ = color.GetRed() * 0.2126f + color.GetGreen() * 0.7152f + color.GetBlue() * 0.0722f;
-        image_ = nullptr;
-        taskDoing_ = false;
-        CallPointerLuminanceChange(luminance_);
-#endif
-    };
-    RSBackgroundThread::Instance().PostTask(task);
+    RSBackgroundThread::Instance().PostTask([this, param] () {
+        this->RunColorPickerTaskBackground(param);
+    });
 }
 
 std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageByLayer(const BufferDrawParam& param)
@@ -371,7 +387,7 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromVK(
     if (!layerImage->BuildFromTexture(*context, backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
-        ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageFromVK backendTexture is not valid!");
+        ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageFromVK image BuildFromTexture failed.");
         return nullptr;
     }
 

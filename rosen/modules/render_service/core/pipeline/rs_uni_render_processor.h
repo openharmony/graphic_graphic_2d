@@ -40,7 +40,9 @@ public:
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     std::vector<LayerInfoPtr> GetLayers() const;
+#endif
 
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& node, ScreenId mirroredId,

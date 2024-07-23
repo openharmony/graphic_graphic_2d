@@ -426,6 +426,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
             float darkBuffer = data.ReadFloat();
             float brightBuffer = data.ReadFloat();
@@ -460,6 +461,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
+#endif
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
             ScreenId id = data.ReadUint64();
             uint32_t modeId = data.ReadUint32();

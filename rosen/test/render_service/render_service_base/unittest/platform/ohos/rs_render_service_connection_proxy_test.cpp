@@ -253,6 +253,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreen, TestSize.Level
     ASSERT_TRUE(true);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig Test
  * @tc.desc: SetPointerColorInversionConfig Test
@@ -298,6 +299,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterPointerLuminanceChangeCallb
     proxy->RegisterPointerLuminanceChangeCallback(callback);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
+#endif
 
 /**
  * @tc.name: SetScreenChangeCallback Test

@@ -552,6 +552,7 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
     }
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval)
 {
@@ -642,6 +643,7 @@ int32_t RSRenderServiceConnectionProxy::UnRegisterPointerLuminanceChangeCallback
     int32_t result = reply.ReadInt32();
     return result;
 }
+#endif
 
 int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {

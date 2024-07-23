@@ -441,6 +441,7 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
     EXPECT_EQ(status, StatusCode::SUCCESS);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig Test
  * @tc.desc: SetPointerColorInversionConfig Test
@@ -488,6 +489,7 @@ HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Lev
 {
     EXPECT_EQ(rsClient->UnRegisterPointerLuminanceChangeCallback(), StatusCode::SUCCESS);
 }
+#endif
 
 /**
  * @tc.name: SetScreenActiveMode Test

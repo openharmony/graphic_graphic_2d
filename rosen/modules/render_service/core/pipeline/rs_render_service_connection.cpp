@@ -31,7 +31,9 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_pointer_render_manager.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#endif
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -482,6 +484,7 @@ bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 }
 #endif
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval)
 {
@@ -511,6 +514,7 @@ int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
     RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
     return StatusCode::SUCCESS;
 }
+#endif
 
 void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
 {

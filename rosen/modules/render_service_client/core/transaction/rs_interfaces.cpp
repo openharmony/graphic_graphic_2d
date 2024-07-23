@@ -109,6 +109,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
 {
     if (renderServiceClient_ == nullptr) {
@@ -140,6 +141,7 @@ int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
     }
     return renderServiceClient_->UnRegisterPointerLuminanceChangeCallback();
 }
+#endif
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
