@@ -23,7 +23,6 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "rs_base_render_engine.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -31,6 +30,10 @@ namespace Rosen {
 class RSRcdSurfaceRenderNode;
 class RSDisplayRenderParams;
 class RSSurfaceRenderParams;
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+class RSSurfaceRenderNodeDrawable;
+}
 class RSProcessor : public std::enable_shared_from_this<RSProcessor> {
 public:
     static inline constexpr RSProcessorType Type = RSProcessorType::RS_PROCESSOR;
@@ -45,7 +48,7 @@ public:
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false);
+        std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
         RSSurfaceRenderParams& params) {}
@@ -53,6 +56,13 @@ public:
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void PostProcess() = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
+
+    virtual bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
+    virtual void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) {}
+    virtual void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
+
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
     void MirrorScenePerf();
@@ -86,8 +96,6 @@ public:
     }
 
 protected:
-    bool InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirroredId,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine);
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);

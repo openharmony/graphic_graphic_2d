@@ -281,10 +281,11 @@ int main()
     };
     sleep(2);
     std::shared_ptr<SurfaceCaptureCallback> cb = make_shared<TestSurfaceCapture>(surfaceNode1);
-    g_dms.rsInterface_.TakeSurfaceCapture(surfaceNode2, cb);
+    RSSurfaceCaptureConfig captureConfig;
+    g_dms.rsInterface_.TakeSurfaceCapture(surfaceNode2, cb, captureConfig);
     sleep(2);
     std::shared_ptr<SurfaceCaptureCallback> cb2 = make_shared<TestSurfaceCapture>(surfaceNode3);
-    g_dms.rsInterface_.TakeSurfaceCapture(displayNode, cb2);
+    g_dms.rsInterface_.TakeSurfaceCapture(displayNode, cb2, captureConfig);
     ROSEN_LOGD("***SurfaceCaptureTest*** main: end");
     return 0;
 }

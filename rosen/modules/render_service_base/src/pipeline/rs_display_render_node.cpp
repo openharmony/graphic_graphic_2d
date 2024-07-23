@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
@@ -27,14 +28,12 @@ namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(id, context), RSSurfaceHandler(id), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+    : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
-        std::make_shared<RSDirtyRegionManager>(true) : dirtyManager_;
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
@@ -181,9 +180,26 @@ void RSDisplayRenderNode::OnSync()
         RS_LOGE("RSDisplayRenderNode::OnSync displayParams is null");
         return;
     }
-    dirtyManager_->OnSync(syncDirtyManager_);
+    if (!renderDrawable_) {
+        return;
+    }
+    auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
+    dirtyManager_->OnSync(syncDirtyManager);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
+    HandleCurMainAndLeashSurfaceNodes();
+}
+
+void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
+{
+    surfaceCountForMultiLayersPerf_ = 0;
+    for (const auto& surface : curMainAndLeashSurfaceNodes_) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
+        if (!surfaceNode || surfaceNode->IsLeashWindow()) {
+            continue;
+        }
+        surfaceCountForMultiLayersPerf_++;
+    }
     curMainAndLeashSurfaceNodes_.clear();
 }
 
@@ -199,17 +215,22 @@ void RSDisplayRenderNode::UpdateRenderParams()
         RS_LOGE("RSDisplayRenderNode::UpdateRenderParams displayParams is null");
         return;
     }
+    auto mirroredNode = GetMirrorSource().lock();
+    if (mirroredNode == nullptr) {
+        displayParams->mirrorSourceId_ = INVALID_NODEID;
+        RS_LOGW("RSDisplayRenderNode::UpdateRenderParams mirroredNode is null");
+    } else {
+        displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
+        displayParams->mirrorSourceId_ = mirroredNode->GetId();
+    }
     displayParams->offsetX_ = GetDisplayOffsetX();
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
     displayParams->mirrorSource_ = GetMirrorSource();
-
     RSRenderNode::UpdateRenderParams();
 }
 
-void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
-    std::map<ScreenId, bool>& displayHasSecSurface, std::map<ScreenId, bool>& displayHasSkipSurface,
-    std::map<ScreenId, bool>& displayHasProtectedSurface, std::map<ScreenId, bool>& hasCaptureWindow)
+void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
@@ -219,11 +240,13 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->screenId_ = GetScreenId();
     displayParams->screenRotation_ = GetScreenRotation();
     displayParams->compositeType_ = GetCompositeType();
-    displayParams->screenInfo_ = std::move(screenInfo);
-    displayParams->displayHasSecSurface_ = std::move(displayHasSecSurface);
-    displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
-    displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
-    displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
+    displayParams->isSecurityDisplay_ = GetSecurityDisplay();
+    displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
+    displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
+    displayParams->displayHasSkipSurface_ = std::move(screenRenderParams.displayHasSkipSurface);
+    displayParams->displayHasProtectedSurface_ = std::move(screenRenderParams.displayHasProtectedSurface);
+    displayParams->displaySpecailSurfaceChanged_ = std::move(screenRenderParams.displaySpecailSurfaceChanged);
+    displayParams->hasCaptureWindow_ = std::move(screenRenderParams.hasCaptureWindow);
 }
 
 void RSDisplayRenderNode::UpdateOffscreenRenderParams(bool needOffscreen)
@@ -246,47 +269,32 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
-bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
+bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
-    if (consumer_ != nullptr && surface_ != nullptr) {
-        RS_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
-        return true;
-    }
-    consumer_ = IConsumerSurface::Create("DisplayNode");
-    if (consumer_ == nullptr) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface get consumer surface fail");
+    if (refreshRate == 0 || skipFrameInterval <= 1) {
         return false;
     }
-    SurfaceError ret = consumer_->RegisterConsumerListener(listener);
-    if (ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface RegisterConsumerListener fail");
-        return false;
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    int64_t refreshInterval = currentTime - lastRefreshTime_;
+    // 1000000000ns == 1s, 110/100 allows 10% over.
+    bool needSkip = refreshInterval < (1000000000LL / refreshRate) * (skipFrameInterval - 1) * 110 / 100;
+    if (!needSkip) {
+        lastRefreshTime_ = currentTime;
     }
-    consumerListener_ = listener;
-    auto producer = consumer_->GetProducer();
-    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(4); // 4 Buffer rotation
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    surface_ = client->CreateRSSurface(surface);
-    RS_LOGI("RSDisplayRenderNode::CreateSurface end");
-    surfaceCreated_ = true;
-    return true;
+    return needSkip;
 }
-#endif
 
-bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
+void RSDisplayRenderNode::SetDisplayGlobalZOrder(float zOrder)
 {
-    frameCount_++;
-    // ensure skipFrameInterval is not 0
-    if (skipFrameInterval == 0) {
-        return false;
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetDisplayGlobalZOrder displayParams is null");
+        return;
     }
-    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
-        return false;
-    }
-    return true;
+    displayParams->SetGlobalZOrder(zOrder);
 }
+
 
 ScreenRotation RSDisplayRenderNode::GetRotation() const
 {
@@ -321,14 +329,15 @@ void RSDisplayRenderNode::UpdateRotation()
     }
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
-    displayParams->SetRotationChanged(IsRotationChanged());
+    preRotationStatus_ = curRotationStatus_;
+    curRotationStatus_ = IsRotationChanged();
+    displayParams->SetRotationChanged(curRotationStatus_);
 }
 
-void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)
+void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
 {
-    auto dirtyManager = renderParallel ? syncDirtyManager_ : dirtyManager_;
-    dirtyManager->SetBufferAge(bufferage);
-    dirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    dirtyManager_->SetBufferAge(bufferage);
+    dirtyManager_->UpdateDirty(useAlignedDirtyRegion);
 }
 
 void RSDisplayRenderNode::ClearCurrentSurfacePos()
@@ -386,6 +395,7 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         }
         currentChildrenList_->emplace_back(child);
     }
+    isFullChildrenListValid_ = false;
     return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
 }
 } // namespace Rosen

@@ -756,7 +756,6 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode009, TestSize.Level
     RSDisplayNodeConfig config;
     config.screenId = 0;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    node->frameCount_ = 0;
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 

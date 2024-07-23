@@ -17,9 +17,20 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
 #include "common/rs_common_def.h"
+#include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
+#include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
+#include "utils/region.h"
+
+#ifndef ROSEN_CROSS_PLATFORM
+#include <iconsumer_surface.h>
+#include <surface.h>
+#include "sync_fence.h"
+#endif
 
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
@@ -34,7 +45,8 @@ struct DirtyRegionInfoForDFX {
         return oldDirty == rhs.oldDirty && oldDirtyInSurface == rhs.oldDirtyInSurface;
     }
 };
-
+struct RSLayerInfo;
+struct ScreenInfo;
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -44,6 +56,7 @@ public:
         int width = 0;
         int height = 0;
     };
+    void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -65,7 +78,6 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
-    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -114,6 +126,11 @@ public:
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
 
+    inline bool IsBufferDirty() const
+    {
+        return dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
@@ -133,10 +150,8 @@ public:
 
     void OpincUpdateRootFlag(bool suggestFlag);
     bool OpincGetRootFlag() const;
-    void OpincSetCacheChangeFlag(bool state);
+    void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
     bool OpincGetCacheChangeState();
-    bool OpincGetCachedMark();
-    void OpincSetCachedMark(bool mark);
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const;
@@ -145,9 +160,6 @@ public:
     bool GetRSFreezeFlag() const;
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
-
-    void SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo);
-    DirtyRegionInfoForDFX GetDirtyRegionInfoForDFX() const;
 
     // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
@@ -184,6 +196,86 @@ public:
     static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
     static const Drawing::Matrix& GetParentSurfaceMatrix();
 
+    // overrided surface params
+#ifndef ROSEN_CROSS_PLATFORM
+    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) {}
+    virtual sptr<SurfaceBuffer> GetBuffer() const { return nullptr; }
+    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) {}
+    virtual sptr<SurfaceBuffer> GetPreBuffer() { return nullptr; }
+    virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) {}
+    virtual sptr<SyncFence> GetAcquireFence() const { return nullptr; }
+    virtual const Rect& GetBufferDamage() const
+    {
+        static const Rect defaultRect = {};
+        return defaultRect;
+    }
+#endif
+    virtual const RSLayerInfo& GetLayerInfo() const;
+    virtual const RectI& GetAbsDrawRect() const
+    {
+        static const RectI defaultRect = {};
+        return defaultRect;
+    }
+    // surface params
+    virtual bool GetOcclusionVisible() const { return true; }
+    virtual bool IsLeashWindow() const { return true; }
+    virtual bool IsAppWindow() const { return false; }
+    virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetLayerCreated() const { return false; }
+    virtual bool GetLastFrameHardwareEnabled() const { return false; }
+    virtual void SetLayerCreated(bool layerCreated) {}
+    virtual void SetOldDirtyInSurface(const RectI& oldDirtyInSurface) {}
+    virtual RectI GetOldDirtyInSurface() const { return {}; }
+
+    // overrided by displayNode
+    virtual std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetAllMainAndLeashSurfaceDrawables()
+    {
+        static std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> defaultSurfaceVector;
+        return defaultSurfaceVector;
+    }
+
+    virtual Occlusion::Region GetVisibleRegion() const
+    {
+        return {};
+    }
+
+    virtual void SetRotationChanged(bool changed) {}
+    virtual bool IsRotationChanged() const
+    {
+        return false;
+    }
+
+    virtual const ScreenInfo& GetScreenInfo() const;
+    virtual uint64_t GetScreenId() const
+    {
+        return 0;
+    }
+    virtual ScreenRotation GetScreenRotation() const
+    {
+        return ScreenRotation::ROTATION_0;
+    }
+    virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
+    virtual const Drawing::Matrix& GetTotalMatrix();
+    virtual void SetGlobalAlpha(float alpha) {}
+    virtual float GetGlobalAlpha()
+    {
+        return 0;
+    }
+    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
+    virtual ScalingMode GetPreScalingMode() const
+    {
+        return ScalingMode::SCALING_MODE_FREEZE;
+    }
+    virtual void SetNeedClient(bool needClient) {}
+    virtual bool GetNeedClient() const { return false; }
+    virtual bool GetFingerprint() { return false; }
+    virtual void SetFingerprint(bool hasFingerprint) {}
+    // virtual display params
+    virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
+    virtual bool GetSecurityDisplay() const { return true; }
+    // canvas drawing node
+    virtual bool IsNeedProcess() const { return true; }
+    virtual void SetNeedProcess(bool isNeedProcess) {}
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -216,7 +308,6 @@ private:
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
-    bool isOpincMarkCached_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;

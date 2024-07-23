@@ -72,6 +72,10 @@ private:
     RSModifierType type_;
     bool needClearOp_ = false;
     bool needSync_ = false;
+    Gravity gravity_ = Gravity::DEFAULT;
+    Gravity stagingGravity_ = Gravity::DEFAULT;
+    bool isCanvasNode_ = false;
+    bool stagingIsCanvasNode_ = false;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
 };

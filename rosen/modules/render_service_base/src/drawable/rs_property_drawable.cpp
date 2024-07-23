@@ -21,6 +21,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
@@ -128,8 +129,11 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
+        // Enable anti-aliasing only on surface nodes to resolve the issue of jagged edges on card compoments
+        // during dragging.
+        bool aa = node.IsInstanceOf<RSSurfaceRenderNode>();
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, aa);
     }
     return true;
 }
@@ -169,9 +173,11 @@ void RSFilterDrawable::OnSync()
         needSync_ = false;
     }
 
-    ClearFilterCache();
+    renderFilterHashChanged_ = filterHashChanged_;
+    renderForceClearCacheForLastFrame_ = forceClearCacheForLastFrame_;
+    renderIsEffectNode_ = isEffectNode_;
 
-    clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
+    ClearFilterCache();
 
     filterHashChanged_ = false;
     filterRegionChanged_ = false;
@@ -179,13 +185,13 @@ void RSFilterDrawable::OnSync()
     rotationChanged_ = false;
     forceClearCache_ = false;
     forceUseCache_ = false;
-    stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
-    forceClearCacheWithLastFrame_ = false;
+    forceClearCacheForLastFrame_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
     isFilterCacheValid_ = false;
+    isEffectNode_ = false;
     needSync_ = false;
 }
 
@@ -205,7 +211,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
                 }
             }
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
-                ptr->cacheManager_, ptr->IsForeground(), ptr->clearFilteredCacheAfterDrawing_);
+                ptr->cacheManager_, ptr->IsForeground(), ptr->renderClearFilteredCacheAfterDrawing_);
         }
     };
 }
@@ -252,7 +258,7 @@ void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
 
 void RSFilterDrawable::ForceClearCacheWithLastFrame()
 {
-    forceClearCacheWithLastFrame_ = true;
+    forceClearCacheForLastFrame_ = true;
 }
 
 void RSFilterDrawable::ClearCacheIfNeeded()
@@ -261,22 +267,19 @@ void RSFilterDrawable::ClearCacheIfNeeded()
         return;
     }
 
-    stagingClearFilteredCacheAfterDrawing_ = filterType_ != RSFilter::AIBAR ? filterHashChanged_ : false;
     RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d,"
-        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d, currentClearAfterDrawing:%d,"
+        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
         "forceClearCacheWithLastFrame:%d, rotationChanged:%d",
         nodeId_, forceUseCache_, forceClearCache_, filterHashChanged_, filterRegionChanged_, filterInteractWithDirty_,
-        stagingClearFilteredCacheAfterDrawing_, lastCacheType_, cacheUpdateInterval_, canSkipFrame_, isLargeArea_,
-        filterType_, pendingPurge_, forceClearCacheWithLastFrame_, rotationChanged_);
+        lastCacheType_, cacheUpdateInterval_, canSkipFrame_, isLargeArea_,
+        filterType_, pendingPurge_, forceClearCacheForLastFrame_, rotationChanged_);
 
-    if (forceClearCacheWithLastFrame_) {
+    // if do not request NextVsync, close skip
+    if (forceClearCacheForLastFrame_) {
         cacheUpdateInterval_ = 0;
-        pendingPurge_ = false;
-        clearType_ = FilterCacheType::BOTH;
-        isFilterCacheValid_ = false;
-        return;
     }
+
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
         UpdateFlags(FilterCacheType::NONE, false);
@@ -332,6 +335,11 @@ bool RSFilterDrawable::NeedPendingPurge() const
     return !filterInteractWithDirty_ && pendingPurge_;
 }
 
+void RSFilterDrawable::MarkEffectNode()
+{
+    isEffectNode_ = true;
+}
+
 void RSFilterDrawable::RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
@@ -356,17 +364,32 @@ void RSFilterDrawable::ClearFilterCache()
     }
     // 1. clear memory when region changed and is not the first time occured.
     bool needClearMemoryForGpu = filterRegionChanged_ && cacheManager_->GetCachedType() != FilterCacheType::NONE;
-    cacheManager_->InvalidateFilterCache(clearType_);
+    if (filterType_ == RSFilter::AIBAR && isOccluded_) {
+        cacheManager_->InvalidateFilterCache(FilterCacheType::BOTH);
+    } else {
+        cacheManager_->InvalidateFilterCache(clearType_);
+    }
     // 2. clear memory when region changed without skip frame.
     needClearMemoryForGpu = needClearMemoryForGpu && cacheManager_->GetCachedType() == FilterCacheType::NONE;
     if (needClearMemoryForGpu) {
         cacheManager_->SetFilterInvalid(true);
     }
-    lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
+
+    // whether to clear blur images. true: clear blur image, false: clear snapshot
+    bool isSaveSnapshot = renderFilterHashChanged_ || cacheManager_->GetCachedType() == FilterCacheType::NONE;
+    bool isAIbarWithLastFrame = filterType_ == RSFilter::AIBAR && renderForceClearCacheForLastFrame_; // last vsync
+
+    if ((filterType_ != RSFilter::AIBAR || isAIbarWithLastFrame) && isSaveSnapshot) {
+        renderClearFilteredCacheAfterDrawing_ = true;      // hold snapshot
+    } else {
+        renderClearFilteredCacheAfterDrawing_ = false;     // hold blur image
+    }
+    if (renderIsEffectNode_) { renderClearFilteredCacheAfterDrawing_ = renderFilterHashChanged_; }
+    lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
-    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache "
-        "nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d",
-        nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d,"
+        " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
+        nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
 }
 
 void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
@@ -380,16 +403,34 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
-        cacheUpdateInterval_--;
-        pendingPurge_ = true;
+    if (isAIBarInteractWithHWC_) {
+        if (cacheUpdateInterval_ > 0) {
+            cacheUpdateInterval_--;
+            pendingPurge_ = true;
+        }
+    } else {
+        if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ > 0) {
+            cacheUpdateInterval_--;
+            pendingPurge_ = true;
+        }
     }
+    isAIBarInteractWithHWC_ = false;
 }
 
 bool RSFilterDrawable::IsAIBarCacheValid()
 {
-    return (filterType_ == RSFilter::AIBAR) && !filterRegionChanged_ &&
-        (forceUseCache_ || ((filterInteractWithDirty_ || rotationChanged_))) && cacheUpdateInterval_ > 0;
+    if (filterType_ != RSFilter::AIBAR) {
+        return false;
+    }
+    isAIBarInteractWithHWC_ = true;
+    RS_OPTIONAL_TRACE_NAME_FMT("IsAIBarCacheValid cacheUpdateInterval_:%d forceClearCacheForLastFrame_:%d",
+        cacheUpdateInterval_, forceClearCacheForLastFrame_);
+    if (cacheUpdateInterval_ == 0 || forceClearCacheForLastFrame_) {
+        return false;
+    } else {
+        MarkFilterForceUseCache(true);
+        return true;
+    }
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -82,12 +82,12 @@ void EGLBundleMgrHelper::OnDeath()
 ErrCode EGLBundleMgrHelper::GetBundleInfoForSelf(AppExecFwk::GetBundleInfoFlag flags, BundleInfo &bundleInfo)
 {
     WLOGD("Call EGLBundleMgrHealper::GetBundleInfoForSelf.");
-    auto bundleMgr_ = Connect();
-    if (bundleMgr_ == nullptr) {
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
         WLOGE("Failed to connect.");
         return -1;
     }
-    return bundleMgr_->GetBundleInfoForSelf(static_cast<int32_t>(flags), bundleInfo);
+    return bundleMgr->GetBundleInfoForSelf(static_cast<int32_t>(flags), bundleInfo);
 }
 
 EGLBundleMgrServiceDeathRecipient::EGLBundleMgrServiceDeathRecipient(

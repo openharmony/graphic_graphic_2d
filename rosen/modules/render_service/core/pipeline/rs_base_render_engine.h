@@ -48,6 +48,20 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+class RSSurfaceRenderNodeDrawable;
+}
+struct FrameContextConfig {
+public:
+    FrameContextConfig(bool isProtected, bool independentContext)
+    {
+        this->isProtected = isProtected;
+        this->independentContext = independentContext;
+    }
+    bool isProtected = false;
+    bool independentContext = false;
+};
 // The RenderFrame can do auto flush
 class RSRenderFrame {
 public:
@@ -164,18 +178,21 @@ public:
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
+        const FrameContextConfig& frameContextConfig = {false, false});
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
+        const FrameContextConfig& frameContextConfig = {false, false});
     std::shared_ptr<RSRenderSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
     void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos);
 #else
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true, bool isProtected = false);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
+        const FrameContextConfig& frameContextConfig = {false, false});
     std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
     void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);
@@ -183,11 +200,16 @@ public:
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
+    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
     virtual void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
 
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
+    void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
+        BufferDrawParam& drawParam);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
 
@@ -258,6 +280,7 @@ public:
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
+    static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:

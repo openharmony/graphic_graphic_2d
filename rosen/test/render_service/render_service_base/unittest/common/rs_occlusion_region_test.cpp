@@ -491,4 +491,23 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
     Region regionOperator;
     regionOperator.RegionOp(emptyRegion, baseRegion, resultRegion, operationType);
 }
-} // namespace OHOS::Rosen
+
+/**
+ * @tc.name: CheckAndCorrectValue001
+ * @tc.desc: test function CheckAndCorrectValue
+ * @tc.type: FUNC
+ * @tc.require: issuesIAEG1C
+ */
+HWTEST_F(RSOcclusionRegionTest, CheckAndCorrectValue001, Function | MediumTest | Level2)
+{
+    const Rect maxRect { MIN_REGION_VALUE, MIN_REGION_VALUE, MAX_REGION_VALUE, MAX_REGION_VALUE };
+    constexpr int invalidLeft = MIN_REGION_VALUE - 1;
+    constexpr int invalidTop = MIN_REGION_VALUE - 1;
+    constexpr int invalidRight = MAX_REGION_VALUE + 1;
+    constexpr int invalidBottom = MAX_REGION_VALUE + 1;
+    Rect rect{ invalidLeft, invalidTop, invalidRight, invalidBottom, false };
+    EXPECT_NE(rect, maxRect);
+    rect.CheckAndCorrectValue();
+    EXPECT_EQ(rect, maxRect);
+}
+} // namespace OHOS::Rosen::Occlusion

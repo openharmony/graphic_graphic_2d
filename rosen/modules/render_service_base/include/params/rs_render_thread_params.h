@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -25,16 +26,17 @@
 
 namespace OHOS::Rosen {
 struct CaptureParam {
-    bool isInCaptureFlag_ = false;
+    bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    NodeId rootIdInWhiteList_ = INVALID_NODEID;
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     CaptureParam() {}
-    CaptureParam(bool isInCaptureFlag, bool isSingleSurface, bool isMirror,
+    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
         float scaleX, float scaleY, bool isFirstNode = false)
-        : isInCaptureFlag_(isInCaptureFlag),
+        : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
@@ -54,6 +56,11 @@ public:
     bool IsRegionDebugEnabled() const
     {
         return isRegionDebugEnabled_;
+    }
+
+    bool IsAllSurfaceVisibleDebugEnabled() const
+    {
+        return isAllSurfaceVisibleDebugEnabled_;
     }
 
     bool IsVirtualDirtyEnabled() const
@@ -96,10 +103,11 @@ public:
         return selfDrawingNodes_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTypeNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
     {
-        return hardwareEnabledTypeNodes_;
+        return hardwareEnabledTypeDrawables_;
     }
+
 
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -228,21 +236,25 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
+    // To be deleted after captureWindow being deleted
     void SetStartVisit(bool startVisit)
     {
         startVisit_ = startVisit;
     }
 
+    // To be deleted after captureWindow being deleted
     bool GetStartVisit() const
     {
         return startVisit_;
     }
 
+    // To be deleted after captureWindow being deleted
     void SetHasCaptureImg(bool hasCaptureImg)
     {
         hasCaptureImg_ = hasCaptureImg;
     }
 
+    // To be deleted after captureWindow being deleted
     bool GetHasCaptureImg() const
     {
         return hasCaptureImg_;
@@ -250,19 +262,35 @@ public:
 
     void SetBlackList(std::unordered_set<NodeId> blackList)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
     }
 
-    std::unordered_set<NodeId> GetBlackList() const
+    const std::unordered_set<NodeId> GetBlackList() const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return blackList_;
     }
 
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        whiteList_ = whiteList;
+    }
+
+    const std::unordered_set<NodeId> GetWhiteList() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return whiteList_;
+    }
+
+    // To be deleted after captureWindow being deleted
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
     {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
 
+    // To be deleted after captureWindow being deleted
     NodeId GetRootIdOfCaptureWindow() const
     {
         return rootIdOfCaptureWindow_;
@@ -318,11 +346,18 @@ public:
         return discardJankFrames_;
     }
 
+    bool HasMirrorDisplay() const
+    {
+        return hasMirrorDisplay_;
+    }
+
 private:
-    bool startVisit_ = false;
-    bool hasCaptureImg_ = false;
+    mutable std::mutex mutex_;
+    bool startVisit_ = false;     // To be deleted after captureWindow being deleted
+    bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
     std::unordered_set<NodeId> blackList_ = {};
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList_ = {};
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
@@ -336,6 +371,7 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
@@ -344,8 +380,9 @@ private:
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
+    bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;

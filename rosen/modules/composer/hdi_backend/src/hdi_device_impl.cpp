@@ -37,7 +37,7 @@ namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
 using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
-using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<Composer::V1_2::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -69,7 +69,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface::Get();
+        g_composer = Composer::V1_2::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;
@@ -700,6 +700,18 @@ int32_t HdiDeviceImpl::CloseLayer(uint32_t screenId, uint32_t layerId)
 {
     CHECK_FUNC(g_composer);
     return g_composer->DestroyLayer(screenId, layerId);
+}
+
+int32_t HdiDeviceImpl::ClearLayerBuffer(uint32_t screenId, uint32_t layerId)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->ClearLayerBuffer(screenId, layerId);
+}
+
+int32_t HdiDeviceImpl::ClearClientBuffer(uint32_t screenId)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->ClearClientBuffer(screenId);
 }
 
 } // namespace Rosen

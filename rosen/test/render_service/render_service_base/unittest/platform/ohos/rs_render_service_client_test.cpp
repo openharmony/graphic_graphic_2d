@@ -82,9 +82,11 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, false); // test a notfound number: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test a notfound number: 123
     ASSERT_EQ(ret, true);
-    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, 1.0f, 1.0f, true); // test number: 123 twice
+    captureConfig.useDma = true;
+    ret = rsClient->TakeSurfaceCapture(TEST_ID, cb, captureConfig); // test number: 123 twice
     ASSERT_EQ(ret, true);
 }
 
@@ -97,7 +99,8 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false); // NodeId: 123
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig); // NodeId: 123
     ASSERT_NE(ret, true);
 }
 
@@ -110,8 +113,9 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, 1.0f, 1.0f, false,
-        SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSync = true;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, nullptr, captureConfig);
     ASSERT_NE(ret, true);
 }
 
@@ -189,9 +193,9 @@ HWTEST_F(RSClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
 {
     ASSERT_NE(rsClient, nullptr);
-    std::vector<NodeId> filteredAppVector = {1};
+    std::vector<NodeId> whiteList = {1};
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
@@ -438,6 +442,54 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetPointerColorInversionConfig Test
+ * @tc.desc: SetPointerColorInversionConfig Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, SetPointerColorInversionConfig001, TestSize.Level1)
+{
+    float darkBuffer = 0.5f;
+    float brightBuffer = 0.5f;
+    int64_t interval = 50;
+    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionEnabled Test
+ * @tc.desc: SetPointerColorInversionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, SetPointerColorInversionEnabled001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->SetPointerColorInversionEnabled(false), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterPointerLuminanceChangeCallback Test
+ * @tc.desc: RegisterPointerLuminanceChangeCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {}),
+        StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: UnRegisterPointerLuminanceChangeCallback Test
+ * @tc.desc: UnRegisterPointerLuminanceChangeCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->UnRegisterPointerLuminanceChangeCallback(), StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -464,7 +516,7 @@ HWTEST_F(RSClientTest, SetScreenRefreshRate001, TestSize.Level1)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     FrameRateLinkerId id = 0;
     FrameRateRange range;
-    rsClient->SyncFrameRateRange(id, range, false);
+    rsClient->SyncFrameRateRange(id, range, 0);
     uint32_t rateToSet = 990; // 990 for test
     rsClient->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);
@@ -760,5 +812,32 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
 
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback, expected success when callback non-empty.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSClientTest, RegisterUIExtensionCallback_001, TestSize.Level1)
+{
+    UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
+    uint64_t userId = 0;
+    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+        StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterUIExtensionCallback Test
+ * @tc.desc: RegisterUIExtensionCallback, expected success when callback is empty.
+ * @tc.type:FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
+{
+    UIExtensionCallback callback = nullptr;
+    uint64_t userId = 0;
+    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+        StatusCode::INVALID_ARGUMENTS);
+}
 } // namespace Rosen
 } // namespace OHOS

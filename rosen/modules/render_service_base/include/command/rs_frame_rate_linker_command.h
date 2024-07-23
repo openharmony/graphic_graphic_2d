@@ -31,14 +31,15 @@ enum RSFrameRateLinkerCommandType : uint16_t {
 class RSB_EXPORT RSFrameRateLinkerCommandHelper {
 public:
     static void Destroy(RSContext& context, FrameRateLinkerId id);
-    static void UpdateRange(RSContext& context, FrameRateLinkerId id, FrameRateRange range, bool isAnimatorStopped);
+    static void UpdateRange(RSContext& context, FrameRateLinkerId id, FrameRateRange range,
+        int32_t animatorExpectedFrameRate);
 };
 
 ADD_COMMAND(RSFrameRateLinkerDestroy,
     ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_DESTROY, RSFrameRateLinkerCommandHelper::Destroy, FrameRateLinkerId))
 ADD_COMMAND(RSFrameRateLinkerUpdateRange,
     ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_UPDATE_RANGE, RSFrameRateLinkerCommandHelper::UpdateRange,
-        FrameRateLinkerId, FrameRateRange, bool))
+        FrameRateLinkerId, FrameRateRange, int32_t))
 } // namespace Rosen
 } // namespace OHOS
 

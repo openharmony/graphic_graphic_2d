@@ -36,6 +36,11 @@ constexpr size_t MAX_SIZE = 4;
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
 constexpr size_t SCREEN_REFRESH_RATE = 60;
+constexpr int MAX_CODE = 98;
+constexpr int MIN_CODE = 0;
+constexpr int MIN_SPECIAL_CODE = 1000;
+constexpr int MAX_SPECIAL_CODE = 1002;
+
 const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
 static std::shared_ptr<RSRenderServiceClient> rsClient = std::make_shared<RSRenderServiceClient>();
 
@@ -80,7 +85,46 @@ bool DoOnRemoteRequest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t code = GetData<uint32_t>();
+    uint32_t code = 0;
+    do {
+        code = GetData<uint32_t>();
+    } while (code < MIN_CODE || code > MAX_CODE);
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint8_t subData = GetData<uint8_t>();
+    std::vector<uint8_t> subDataVec;
+    subDataVec.push_back(subData);
+    dataParcel.WriteBuffer(subDataVec.data(), subDataVec.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoOnRemoteRequest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code = 0;
+    do {
+        code = GetData<uint32_t>();
+    } while (code < MIN_SPECIAL_CODE || code > MAX_SPECIAL_CODE);
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
         new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
@@ -221,6 +265,42 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+ 
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return true;
+}
+
+bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    if (size < MAX_SIZE) {
+        return false;
+    }
+ 
+    PointerLuminanceChangeCallback cb = [](int32_t brightness) {};
+    rsClient->RegisterPointerLuminanceChangeCallback(cb);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -329,12 +409,17 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto nodeId = GetData<NodeId>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
 
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY, useDma);
+    rsClient->TakeSurfaceCapture(nodeId, cb, captureConfig);
     return true;
 }
 
@@ -737,12 +822,16 @@ bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
+    OHOS::Rosen::DoOnRemoteRequest(data, size);
+    OHOS::Rosen::DoOnRemoteRequest002(data, size);
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
+    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);

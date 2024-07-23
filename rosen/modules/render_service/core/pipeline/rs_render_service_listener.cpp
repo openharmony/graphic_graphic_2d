@@ -38,13 +38,13 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-    node->IncreaseAvailableBuffer();
-
-    uint64_t uniqueId = node->GetConsumer()->GetUniqueId();
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    surfaceHandler->IncreaseAvailableBuffer();
+    uint64_t uniqueId = surfaceHandler->GetConsumer()->GetUniqueId();
     bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
     if (isActiveGame) {
         std::string name = node->GetName();
-        FrameReport::GetInstance().SetPendingBufferNum(name, node->GetAvailableBufferCount());
+        FrameReport::GetInstance().SetPendingBufferNum(name, surfaceHandler->GetAvailableBufferCount());
     }
 
     if (!node->IsNotifyUIBufferAvailable()) {
@@ -80,13 +80,18 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 
 void RSRenderServiceListener::OnCleanCache()
 {
-    auto node = surfaceRenderNode_.lock();
-    if (node == nullptr) {
-        RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-        return;
-    }
-    RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
-    node->ResetBufferAvailableCount();
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+            return;
+        }
+        RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
+        node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
+        node->ResetPreBuffer();
+        node->GetRSSurfaceHandler()->CleanPreBuffer();
+    });
 }
 
 void RSRenderServiceListener::OnGoBackground()
@@ -98,12 +103,14 @@ void RSRenderServiceListener::OnGoBackground()
             RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
             return;
         }
+        auto surfaceHandler = node->GetMutableRSSurfaceHandler();
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
         node->NeedClearBufferCache();
-        node->ResetBufferAvailableCount();
-        node->CleanCache();
-        node->UpdateBufferInfo(nullptr, nullptr, nullptr);
+        surfaceHandler->ResetBufferAvailableCount();
+        surfaceHandler->CleanCache();
+        node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, go background", node->GetId());
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();
     });
@@ -119,6 +126,7 @@ void RSRenderServiceListener::OnTransformChange()
             return;
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
+        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, transform changed", node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
     });

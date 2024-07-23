@@ -77,6 +77,89 @@ bool DoPostSyncTask(const uint8_t* data, size_t size)
     RSBackgroundThread::Instance().PostSyncTask([]() {});
     return true;
 }
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef RS_ENABLE_GL
+bool DoCreateShareEglContext(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    RSBackgroundThread::Instance().CreateShareEglContext();
+
+#if defined(ACE_ENABLE_GL) || defined(RS_ENABLE_GL)
+    RSBackgroundThread::Instance().CreateShareEglContext();
+    RSBackgroundThread::Instance().renderContext_ = new RenderContext();
+    delete RSBackgroundThread::Instance().renderContext_;
+    RSBackgroundThread::Instance().renderContext_ = nullptr;
+#endif
+    return true;
+}
+#endif
+bool DoInitRenderContext(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    RenderContext* context = new RenderContext();
+    RSBackgroundThread::Instance().InitRenderContext(context);
+    return true;
+}
+bool DoGetShareGPUContext(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    RSBackgroundThread::Instance().GetShareGPUContext();
+    return true;
+}
+bool DoCreateShareGPUContext(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    RSBackgroundThread::Instance().GetShareGPUContext();
+#ifdef RS_ENABLE_GL
+    RSBackgroundThread::Instance().GetShareGPUContext();
+#endif
+#ifdef RS_ENABLE_VK
+    RSBackgroundThread::Instance().GetShareGPUContext();
+#endif
+    return true;
+}
+bool DoCleanGrResource(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    RSBackgroundThread::Instance().CleanGrResource();
+    return true;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -86,5 +169,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoPostTask(data, size);     // PostTask
     OHOS::Rosen::DoPostSyncTask(data, size); // PostSyncTask
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef RS_ENABLE_GL
+    OHOS::Rosen::DoCreateShareEglContext(data, size); // CreateShareEglContext
+#endif
+    OHOS::Rosen::DoInitRenderContext(data, size);     // InitRenderContext
+    OHOS::Rosen::DoGetShareGPUContext(data, size);    // GetShareGPUContext
+    OHOS::Rosen::DoCreateShareGPUContext(data, size); // CreateShareGPUContext
+    OHOS::Rosen::DoCleanGrResource(data, size);       // CleanGrResource
+#endif
     return 0;
 }

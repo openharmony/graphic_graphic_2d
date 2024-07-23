@@ -89,7 +89,7 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     }
     std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     // End resources definition
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
@@ -115,9 +115,9 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
 
     if (RSSystemProperties::IsUseVulkan()) {
-        layer1->SetBuffer(buffer, surfaceNode->GetAcquireFence());
-        layer2->SetBuffer(buffer, surfaceNode->GetAcquireFence());
-        layer3->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+        layer1->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+        layer2->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+        layer3->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     }
 
     layers.emplace_back(layer1);
@@ -157,7 +157,7 @@ HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
     BufferDrawParam param;
     param.useCPU = false;
     if (RSSystemProperties::IsUseVulkan()) {
-        param.buffer = surfaceNode->GetBuffer();
+        param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     }
     uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
 

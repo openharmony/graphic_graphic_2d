@@ -293,7 +293,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -309,7 +310,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -325,7 +327,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_001, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -341,7 +344,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_002, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(params, node.GetBuffer(), node.GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -384,7 +388,10 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_002, Function | SmallTest | 
     bool forceCPU = false;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node.GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     EXPECT_TRUE(RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU).buffer);
 }
 
@@ -412,9 +419,9 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -757,7 +764,7 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread005, Function | SmallTest | L
  */
 HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest | Level2)
 {
-    std::vector<RSBaseRenderNode::SharedPtr> allSurfaceNodes;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawawble;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
     NodeId id = 0;
     std::shared_ptr<RSRenderNode> nodeNull = nullptr;
@@ -765,10 +772,10 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest 
     auto node = std::make_shared<RSRenderNode>(id);
     rsRenderNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
     rsRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(id);
-    allSurfaceNodes.emplace_back(nodeNull);
-    allSurfaceNodes.emplace_back(rsRenderNode);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodes, hasVisibleDirtyRegionSurfaceVec, false, false);
-    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodes, hasVisibleDirtyRegionSurfaceVec, true, true);
+    allSurfaceDrawawble.emplace_back(nullptr);
+    allSurfaceDrawawble.emplace_back(rsRenderNode->renderDrawable_);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, false);
+    RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, true);
     EXPECT_TRUE(rsRenderNode->renderDrawable_->renderParams_);
 }
 
@@ -835,25 +842,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTe
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
     ASSERT_TRUE(drawable->renderParams_);
-}
-
-/**
- * @tc.name: SetAllSurfaceGlobalDityRegionTest
- * @tc.desc: Verify function SetAllSurfaceGlobalDityRegion
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceGlobalDityRegionTest, Function | SmallTest | Level2)
-{
-    std::vector<RSBaseRenderNode::SharedPtr> allSurfaces;
-    RectI globalDirtyRegion;
-    NodeId id = 0;
-    std::shared_ptr<RSRenderNode> nodeNull = nullptr;
-    auto rsRenderNode = std::make_shared<RSRenderNode>(id);
-    allSurfaces.emplace_back(nodeNull);
-    allSurfaces.emplace_back(rsRenderNode);
-    RSUniRenderUtil::SetAllSurfaceGlobalDityRegion(allSurfaces, globalDirtyRegion);
-    EXPECT_FALSE(allSurfaces.empty());
 }
 
 /**
@@ -935,7 +923,7 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Le
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
@@ -1009,7 +997,7 @@ HWTEST_F(RSUniRenderUtilTest, GetLayerTransformTest, Function | SmallTest | Leve
     ScreenInfo screenInfo;
     GraphicTransformType type = RSUniRenderUtil::GetLayerTransform(node, screenInfo);
 
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     type = RSUniRenderUtil::GetLayerTransform(node, screenInfo);
     EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
@@ -1026,9 +1014,9 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest, Function | SmallTest |
     RSSurfaceRenderNode node(id);
     RSUniRenderUtil::SrcRectRotateTransform(node);
 
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::SrcRectRotateTransform(node);
-    EXPECT_FALSE(node.GetBuffer());
+    EXPECT_FALSE(node.GetRSSurfaceHandler()->GetBuffer());
 }
 
 /*
@@ -1047,7 +1035,7 @@ HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest, Function | SmallTest | Lev
     node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     RSUniRenderUtil::HandleHardwareNode(node);
-    EXPECT_FALSE(node->GetBuffer());
+    EXPECT_FALSE(node->GetRSSurfaceHandler()->GetBuffer());
 }
 
 /*
@@ -1061,13 +1049,13 @@ HWTEST_F(RSUniRenderUtilTest, UpdateRealSrcRectTest, Function | SmallTest | Leve
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     RectI absRect;
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    node.consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
 
     absRect = RectI(1, 1, 1, 1);
     RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
-    EXPECT_TRUE(node.buffer_.buffer);
+    EXPECT_TRUE(node.GetRSSurfaceHandler()->buffer_.buffer);
 }
 
 /*
@@ -1080,7 +1068,7 @@ HWTEST_F(RSUniRenderUtilTest, CheckForceHardwareAndUpdateDstRectTest, Function |
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    node.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
     node.isForceHardwareByUser_ = true;
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
@@ -1173,12 +1161,12 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
     RSSurfaceRenderNode nodesTest1(0);
-    nodesTest1.buffer_.buffer = nullptr;
+    nodesTest1.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest1);
 
     RSSurfaceRenderNode nodesTest2(1);
-    nodesTest2.buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    nodesTest2.consumer_ = nullptr;
+    nodesTest2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    nodesTest2.GetRSSurfaceHandler()->consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest2);
 }
 
@@ -1261,5 +1249,128 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest03, TestSize.Level2)
     rsUniRenderUtil.LayerScaleFit(node);
     ASSERT_EQ(node.GetDstRect().width_, retWidth);
     ASSERT_EQ(node.GetDstRect().height_, retHeight);
+}
+
+/*
+ * @tc.name: UIExtensionFindAndTraverseAncestor_001
+ * @tc.desc: test when node map is empty or host node is not surface node, expect empty callback data
+ * @tc.type: FUNC
+ * @tc.require: issueI9SDDH
+ */
+HWTEST_F(RSUniRenderUtilTest, UIExtensionFindAndTraverseAncestor_001, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    UIExtensionCallbackData callbackData;
+    NodeId uiExtensionNodeId = 0;
+    NodeId hostNodeId = 1;
+    RSSurfaceRenderNode::secUIExtensionNodes_.insert(std::pair<NodeId, NodeId>(uiExtensionNodeId, hostNodeId));
+    // empty nodeMap
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_TRUE(callbackData.empty());
+    // hostnode is not surface node
+    auto canvasNode = std::make_shared<RSRenderNode>(hostNodeId);
+    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, canvasNode));
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_TRUE(callbackData.empty());
+}
+
+/*
+ * @tc.name: UIExtensionFindAndTraverseAncestor_002
+ * @tc.desc: test when host node is surface node and one uiextension child, callback data is not empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SDDH
+ */
+HWTEST_F(RSUniRenderUtilTest, UIExtensionFindAndTraverseAncestor_002, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    UIExtensionCallbackData callbackData;
+    NodeId uiExtensionNodeId = 0;
+    NodeId hostNodeId = 1;
+    // hostnode is surface node
+    auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
+    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(uiExtensionNodeId);
+    uiExtensionNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_NODE);
+    hostNode->AddChild(uiExtensionNode);
+    hostNode->GenerateFullChildrenList();
+    uiExtensionNode->SetIsOnTheTree(true, hostNodeId, INVALID_NODEID, INVALID_NODEID);
+    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_FALSE(callbackData.empty());
+}
+
+/*
+ * @tc.name: TraverseAndCollectUIExtensionInfo_001
+ * @tc.desc: test when host node is nullptr, callback data is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SDDH
+ */
+HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo_001, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    UIExtensionCallbackData callbackData;
+    NodeId hostNodeId = 0;
+    // hostnode is surface node
+    auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
+    hostNode->AddChild(nullptr);
+    hostNode->GenerateFullChildrenList();
+    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_TRUE(callbackData.empty());
+}
+
+/*
+ * @tc.name: TraverseAndCollectUIExtensionInfo_002
+ * @tc.desc: test when the node does not need to be collected, callback data is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SDDH
+ */
+HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo_002, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    UIExtensionCallbackData callbackData;
+    NodeId hostNodeId = 0;
+    NodeId childNodeId = 1;
+    // hostnode is surface node
+    auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
+    auto childNode = std::make_shared<RSRenderNode>(childNodeId);
+    hostNode->AddChild(childNode);
+    hostNode->GenerateFullChildrenList();
+    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_TRUE(callbackData.empty());
+}
+
+/*
+ * @tc.name: TraverseAndCollectUIExtensionInfo_003
+ * @tc.desc: test when the node collected after UIExtension, callback data is not empty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SDDH
+ */
+HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo_003, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    UIExtensionCallbackData callbackData;
+    NodeId uiExtensionNodeId = 0;
+    NodeId hostNodeId = 1;
+    // hostnode is surface node
+    auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
+    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(uiExtensionNodeId);
+    uiExtensionNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_NODE);
+    hostNode->AddChild(uiExtensionNode);
+    NodeId canvasNodeId = 2;
+    auto upperNode = std::make_shared<RSRenderNode>(canvasNodeId);
+    hostNode->AddChild(upperNode);
+
+    hostNode->GenerateFullChildrenList();
+    uiExtensionNode->SetIsOnTheTree(true, hostNodeId, INVALID_NODEID, INVALID_NODEID);
+    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+
+    RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
+    ASSERT_FALSE(callbackData.empty());
+    ASSERT_FALSE(callbackData[hostNodeId].empty());
+    ASSERT_FALSE(callbackData[hostNodeId][0].upperNodes.empty());
 }
 } // namespace OHOS::Rosen

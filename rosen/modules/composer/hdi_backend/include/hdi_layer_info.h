@@ -402,6 +402,26 @@ public:
         return brightnessRatio_ = brightnessRatio;
     }
 
+    void SetScalingMode(ScalingMode scalingMode)
+    {
+        scalingMode_ = scalingMode;
+    }
+
+    ScalingMode GetScalingMode() const
+    {
+        return scalingMode_;
+    }
+    // source crop tuning
+    int32_t GetLayerSourceTuning() const
+    {
+        return layerSource_;
+    }
+
+    void SetLayerSourceTuning(int32_t layerSouce)
+    {
+        layerSource_ = layerSouce;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -430,6 +450,8 @@ public:
         preMulti_ = layerInfo->IsPreMulti();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
+        scalingMode_ = layerInfo->GetScalingMode();
+        layerSource_ = layerInfo->GetLayerSourceTuning();
     }
 
     void Dump(std::string &result) const
@@ -497,6 +519,16 @@ public:
     {
         return layerMask_;
     }
+
+    inline uint64_t GetNodeId()
+    {
+        return nodeId_;
+    }
+
+    void SetNodeId(uint64_t nodeId)
+    {
+        nodeId_ = nodeId;
+    }
     /* hdiLayer get layer info end */
 
 private:
@@ -534,6 +566,9 @@ private:
     mutable std::mutex mutex_;
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    uint64_t nodeId_ = 0;
+    ScalingMode scalingMode_;
+    int32_t layerSource_ = 0; // default layer source tag
 };
 } // namespace Rosen
 } // namespace OHOS

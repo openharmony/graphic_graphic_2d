@@ -52,6 +52,7 @@ public:
 
     NATIVEEXPORT uint32_t GetLargestProportionColor(ColorManager::Color &color) const;
     NATIVEEXPORT uint32_t GetHighestSaturationColor(ColorManager::Color &color) const;
+    NATIVEEXPORT uint32_t GetGrayscaleMSD() const;
     NATIVEEXPORT uint32_t GetAverageColor(ColorManager::Color &color) const;
     NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
     NATIVEEXPORT std::vector<ColorManager::Color> GetTopProportionColors(uint32_t colorsNum) const;

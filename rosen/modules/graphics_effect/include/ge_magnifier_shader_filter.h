@@ -70,7 +70,7 @@ private:
     void ConvertToRgba(uint32_t rgba, float* color, int tupleSize);
 
     std::shared_ptr<GEMagnifierParams> magnifierPara_ = nullptr;
-    static std::shared_ptr<Drawing::RuntimeEffect> magnifierShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> g_magnifierShaderEffect;
 };
 
 } // namespace Rosen

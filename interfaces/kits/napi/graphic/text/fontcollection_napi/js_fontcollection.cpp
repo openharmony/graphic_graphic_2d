@@ -14,8 +14,8 @@
  */
 
 #include <fstream>
-#include "js_drawing_utils.h"
 #include "js_fontcollection.h"
+#include "log_wrapper.h"
 
 namespace OHOS::Rosen {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
@@ -30,7 +30,7 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
-        ROSEN_LOGE("failed from napi_get_cb_info");
+        TEXT_LOGE("failed from napi_get_cb_info");
         return nullptr;
     }
 
@@ -39,7 +39,7 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
         JsFontCollection::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsFontCollection;
-        ROSEN_LOGE("failed from napi_wrap");
+        TEXT_LOGE("failed from napi_wrap");
         return nullptr;
     }
     return jsThis;
@@ -96,21 +96,21 @@ napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info 
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok || !constructor) {
-        ROSEN_LOGE("Failed to get constructor object");
+        TEXT_LOGE("Failed to get constructor object");
         return nullptr;
     }
 
     napi_value object = nullptr;
     status = napi_new_instance(env, constructor, 0, nullptr, &object);
     if (status != napi_ok || !object) {
-        ROSEN_LOGE("Failed to instantiate instance");
+        TEXT_LOGE("Failed to instantiate instance");
         return nullptr;
     }
 
     JsFontCollection* jsFontCollection = nullptr;
     status = napi_unwrap(env, object, reinterpret_cast<void**>(&jsFontCollection));
     if (status != napi_ok || !jsFontCollection) {
-        ROSEN_LOGE("Failed to unwrap JsFontCollection");
+        TEXT_LOGE("Failed to unwrap JsFontCollection");
         return nullptr;
     }
     jsFontCollection->fontcollection_ = OHOS::Rosen::FontCollection::Create();
@@ -128,7 +128,7 @@ bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
 {
     auto iter = absolutePath.find_first_of(':');
     if (iter == std::string::npos) {
-        ROSEN_LOGE("font file directory is not absolute path");
+        TEXT_LOGE("font file directory is not absolute path");
         return false;
     }
     std::string head = absolutePath.substr(0, iter);
@@ -181,7 +181,7 @@ bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, nap
             napi_get_value_int32(env, indexValue, &num);
             info.params.emplace_back(std::to_string(num));
         } else {
-            ROSEN_LOGE("invalid argument");
+            TEXT_LOGE("invalid argument");
         }
     }
 
@@ -278,7 +278,7 @@ bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const s
         }
         return true;
     } else {
-        ROSEN_LOGE("incorrect path type of font file");
+        TEXT_LOGE("incorrect path type of font file");
         return false;
     }
     return true;
@@ -372,8 +372,8 @@ napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
 napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info)
 {
     if (fontcollection_ == nullptr) {
-        ROSEN_LOGE("JsFontCollection is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        TEXT_LOGE("JsFontCollection is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
             "JsFontCollection::OnClearCaches fontCollection is nullptr.");
     }
     fontcollection_->ClearCaches();

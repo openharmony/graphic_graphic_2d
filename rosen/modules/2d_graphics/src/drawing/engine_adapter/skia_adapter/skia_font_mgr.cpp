@@ -60,6 +60,16 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     return new Typeface(typefaceImpl);
 }
 
+void SkiaFontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Typeface> typeface)
+{
+    if (typeface == nullptr) {
+        return;
+    }
+    auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
+    SkiaTypeface *skiaTypeFace = typeface->GetImpl<SkiaTypeface>();
+    dynamicFontMgr->font_provider().RegisterTypeface(skiaTypeFace->GetTypeface(), themeName);
+}
+
 Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
     const uint8_t* data, size_t dataLength)
 {

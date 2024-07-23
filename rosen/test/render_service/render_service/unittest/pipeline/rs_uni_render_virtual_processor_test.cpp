@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -175,10 +177,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeed, TestSize.Level2)
     virtualProcessor->scaleMode_ = ScreenScaleMode::FILL_MODE;
     virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
 
-    virtualProcessor->mainWidth_ = DEFAULT_CANVAS_WIDTH;
-    virtualProcessor->mainHeight_ = DEFAULT_CANVAS_HEIGHT;
-    virtualProcessor->mirrorWidth_ = DEFAULT_CANVAS_WIDTH / 2;
-    virtualProcessor->mirrorHeight_ = DEFAULT_CANVAS_HEIGHT / 2;
+    virtualProcessor->virtualScreenWidth_ = DEFAULT_CANVAS_WIDTH;
+    virtualProcessor->virtualScreenHeight_ = DEFAULT_CANVAS_HEIGHT;
+    virtualProcessor->mirroredScreenWidth_ = DEFAULT_CANVAS_WIDTH / 2;
+    virtualProcessor->mirroredScreenHeight_ = DEFAULT_CANVAS_HEIGHT / 2;
     virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
 
     virtualProcessor->scaleMode_ = ScreenScaleMode::UNISCALE_MODE;
@@ -256,7 +258,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
     processor->ProcessDisplaySurface(rsDisplayRenderNode);
     Drawing::Canvas canvas;
     processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    rsDisplayRenderNode.buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(rsDisplayRenderNode.GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     processor->ProcessDisplaySurface(rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }

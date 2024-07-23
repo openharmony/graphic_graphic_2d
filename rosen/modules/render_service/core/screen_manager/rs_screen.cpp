@@ -84,6 +84,8 @@ RSScreen::RSScreen(ScreenId id,
         hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
+        RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u],"
+            "screenType: %{public}u}", id_, width_, height_, screenType_);
     }
     capability_.props.clear();
 }
@@ -98,9 +100,12 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       producerSurface_(configs.surface),
       pixelFormat_(configs.pixelFormat),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN),
-      filteredAppSet_(configs.filteredAppSet)
+      whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
+    RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64 ", "
+        "w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
+        id_, mirrorId_, width_, height_, name_.c_str(), screenType_);
 }
 
 RSScreen::~RSScreen() noexcept
@@ -270,6 +275,7 @@ void RSScreen::SetActiveMode(uint32_t modeId)
         RS_LOGE("RSScreen %{public}s: set fails because the index is out of bounds.", __func__);
         return;
     }
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
         RS_LOGE("RSScreen %{public}s: Hdi SetScreenMode fails.", __func__);
@@ -315,6 +321,7 @@ void RSScreen::SetResolution(uint32_t width, uint32_t height)
         RS_LOGW("RSScreen %{public}s: physical screen not support SetResolution.", __func__);
         return;
     }
+    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set resolution, w * h: [%{public}u * %{public}u]", width, height);
     width_ = width;
     height_ = height;
 }
@@ -419,6 +426,16 @@ sptr<Surface> RSScreen::GetProducerSurface() const
 void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
     producerSurface_ = producerSurface;
+    isVirtualSurfaceUpdateFlag_ = true;
+}
+
+bool RSScreen::GetAndResetVirtualSurfaceUpdateFlag()
+{
+    if (isVirtualSurfaceUpdateFlag_) {
+        isVirtualSurfaceUpdateFlag_ = false;
+        return true;
+    }
+    return false;
 }
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
@@ -966,9 +983,9 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     }
     return StatusCode::HDI_ERROR;
 }
-const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
+const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
 {
-    return filteredAppSet_;
+    return whiteList_;
 }
 
 void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)

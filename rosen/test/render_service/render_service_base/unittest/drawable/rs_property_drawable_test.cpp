@@ -221,10 +221,10 @@ HWTEST_F(RSPropertyDrawableTest, ClearCacheIfNeededTest007, TestSize.Level1)
     EXPECT_NE(cacheManager, nullptr);
     filterDrawable->cacheManager_ = std::move(cacheManager);
     filterDrawable->isFilterCacheValid_ = true;
-    filterDrawable->forceClearCacheWithLastFrame_ = true;
+    filterDrawable->forceClearCacheForLastFrame_ = true;
     filterDrawable->ClearCacheIfNeeded();
     EXPECT_FALSE(filterDrawable->isFilterCacheValid_);
-    filterDrawable->forceClearCacheWithLastFrame_ = false;
+    filterDrawable->forceClearCacheForLastFrame_ = false;
     filterDrawable->lastCacheType_ = FilterCacheType::NONE;
     filterDrawable->ClearCacheIfNeeded();
     filterDrawable->lastCacheType_ = FilterCacheType::SNAPSHOT;
@@ -290,7 +290,7 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->rotationChanged_ = false;
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
-    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
 }
 
 /**
@@ -308,9 +308,9 @@ HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
     filterDrawable->filterType_ = RSFilter::AIBAR;
     EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
     filterDrawable->cacheUpdateInterval_ = 1;
-    filterDrawable->forceClearCacheWithLastFrame_ = true;
+    filterDrawable->forceClearCacheForLastFrame_ = true;
     EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
-    filterDrawable->forceClearCacheWithLastFrame_ = false;
+    filterDrawable->forceClearCacheForLastFrame_ = false;
     EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
 }
 } // namespace OHOS::Rosen

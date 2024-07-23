@@ -52,7 +52,7 @@ public:
 
     bool IsInit() const
     {
-        return isInit_;
+        return isInit_.load();
     }
 
     int32_t GetScreenListSize() const
@@ -195,6 +195,16 @@ public:
     {
         return refreshRateUpdateCallback_;
     }
+
+    void SetEnableDynamicMode(bool enableDynamicMode)
+    {
+        enableDynamicMode_ = enableDynamicMode;
+    }
+
+    bool GetEnableDynamicMode() const
+    {
+        return enableDynamicMode_;
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -209,7 +219,7 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
 
     bool isEnabled_ = true;
-    bool isInit_ = false;
+    std::atomic<bool> isInit_{false};
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
@@ -240,6 +250,7 @@ private:
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
     bool doDirectComposition_ = false;
+    bool enableDynamicMode_ = true;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

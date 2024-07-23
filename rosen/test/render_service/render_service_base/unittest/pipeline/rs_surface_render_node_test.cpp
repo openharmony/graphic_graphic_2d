@@ -104,64 +104,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetVisibleDirtyRegion
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: I68IPR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleDirtyRegion, TestSize.Level1)
-{
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    Occlusion::Rect rect {0, 0, 200, 200};
-    Occlusion::Region region {rect};
-    surfaceRenderNode.SetVisibleDirtyRegion(region);
-    auto vdRegion = surfaceRenderNode.GetVisibleDirtyRegion();
-}
-
-/**
- * @tc.name: SetAlignedVisibleDirtyRegion
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: I68IPR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetAlignedVisibleDirtyRegion, TestSize.Level1)
-{
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    Occlusion::Rect rect {0, 0, 256, 256};
-    Occlusion::Region region {rect};
-    surfaceRenderNode.SetAlignedVisibleDirtyRegion(region);
-    auto vdRegion = surfaceRenderNode.GetAlignedVisibleDirtyRegion();
-}
-
-/**
- * @tc.name: SetDirtyRegionBelowCurrentLayer
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: I68IPR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDirtyRegionBelowCurrentLayer, TestSize.Level1)
-{
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    Occlusion::Rect rect {0, 0, 256, 256};
-    Occlusion::Region region {rect};
-    surfaceRenderNode.SetDirtyRegionBelowCurrentLayer(region);
-    auto vdRegion = surfaceRenderNode.GetDirtyRegionBelowCurrentLayer();
-}
-
-/**
- * @tc.name: SetGlobalDirtyRegion
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: I68IPR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalDirtyRegion, TestSize.Level1)
-{
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    RectI rect {0, 0, 256, 256};
-    surfaceRenderNode.SetGlobalDirtyRegion(rect);
-}
-
-/**
  * @tc.name: ResetSurfaceOpaqueRegion02
  * @tc.desc: function test
  * @tc.type:FUNC
@@ -521,184 +463,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
     ASSERT_EQ(node->IsContentDirtyNodeLimited(), true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw001
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，global dirty
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    node->visibleRegion_ = Occlusion::Region(rect);
-    node->globalDirtyRegion_ = Occlusion::Region(rect);
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw002
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，visible dirty
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw002, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    node->SetVisibleDirtyRegion(Occlusion::Region(rect));
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw003
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，transparent
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw003, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    node->oldDirtyInSurface_ = rect;
-    node->SetGlobalAlpha(0.0f);
-    Occlusion::Region region = Occlusion::Region(rect);
-    node->SetDirtyRegionBelowCurrentLayer(region);
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw004
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_OCCLUSION
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw004, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    node->visibleRegion_ = Occlusion::Region(rect);
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw005
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw005, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    // Do not have any visible region
-    ASSERT_EQ(needDraw, false);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw006
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw006, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY;
-    RectI rect = RectI(0, 0, 100, 100);
-    subnode->oldDirtyInSurface_ = rect;
-    node->oldDirtyInSurface_ = rect;
-    Occlusion::Region region = Occlusion::Region(rect);
-    node->visibleRegion_ = region;
-    node->transparentRegion_ = region;
-    node->SetDirtyRegionBelowCurrentLayer(region);
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw007
- * @tc.desc: check if subnode need draw when PartialRenderType is DISABLED
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw007, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::DISABLED;
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
-}
-
-/**
- * @tc.name: SubNodeNeedDraw008
- * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE
- * @tc.type: FUNC
- * @tc.require: I999FR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw008, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
-    node->AddChild(subnode, 0);
-    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE;
-    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
-    ASSERT_EQ(needDraw, true);
 }
 
 /**
@@ -1113,7 +877,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcDisabledBySrcRectTest, TestSize.Level
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
 
-    renderNode->buffer_.buffer = buffer;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
     ASSERT_FALSE(renderNode->isHardwareForcedDisabledBySrcRect_);
 }
@@ -1130,8 +894,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsYUVBufferFormatTest, TestSize.Level1)
     EXPECT_FALSE(testNode->IsYUVBufferFormat());
 
     auto buffer = SurfaceBuffer::Create();
-    testNode->buffer_.buffer = buffer;
-    EXPECT_NE(testNode->GetBuffer(), nullptr);
+    testNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    EXPECT_NE(testNode->GetRSSurfaceHandler()->GetBuffer(), nullptr);
     EXPECT_FALSE(testNode->IsYUVBufferFormat());
 }
 
@@ -1466,9 +1230,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceDefaultSize, TestSize.Level1)
     auto context = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(1, context, true);
     node->UpdateSurfaceDefaultSize(1920.0f, 1080.0f);
-    node->consumer_ = IConsumerSurface::Create();
+    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     node->UpdateSurfaceDefaultSize(1920.0f, 1080.0f);
-    ASSERT_NE(node->consumer_, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler()->consumer_, nullptr);
 }
 
 /**
@@ -1568,11 +1332,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, NotifyUIBufferAvailable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, UpdateDirtyIfFrameBufferConsumed, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->isCurrentFrameBufferConsumed_ = true;
+    testNode->GetRSSurfaceHandler()->isCurrentFrameBufferConsumed_ = true;
     bool resultOne = testNode->UpdateDirtyIfFrameBufferConsumed();
     EXPECT_TRUE(resultOne);
 
-    testNode->isCurrentFrameBufferConsumed_ = false;
+    testNode->GetRSSurfaceHandler()->isCurrentFrameBufferConsumed_ = false;
     bool resultTwo = testNode->UpdateDirtyIfFrameBufferConsumed();
     EXPECT_FALSE(resultTwo);
 }
@@ -1744,45 +1508,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleRegionRecursive, TestSize.Level1)
     node->SetVisibleRegionRecursive(
         region, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_TRUE(node->visibleRegionForCallBack_.IsEmpty());
-}
-
-/**
- * @tc.name: SubNodeIntersectWithExtraDirtyRegion
- * @tc.desc: test results of SubNodeIntersectWithExtraDirtyRegion
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeIntersectWithExtraDirtyRegion, TestSize.Level1)
-{
-    RectI testRect { 0, 0, 10, 10 };
-    auto mockNode = std::make_shared<RSSurfaceRenderNode>(id);
-    mockNode->isDirtyRegionAlignedEnable_ = false;
-    EXPECT_FALSE(mockNode->SubNodeIntersectWithExtraDirtyRegion(testRect));
-
-    mockNode->isDirtyRegionAlignedEnable_ = true;
-    mockNode->extraDirtyRegionAfterAlignmentIsEmpty_ = true;
-    EXPECT_FALSE(mockNode->SubNodeIntersectWithExtraDirtyRegion(testRect));
-
-    mockNode->extraDirtyRegionAfterAlignment_ = Occlusion::Region();
-    mockNode->extraDirtyRegionAfterAlignmentIsEmpty_ = false;
-    EXPECT_FALSE(mockNode->SubNodeIntersectWithExtraDirtyRegion(testRect));
-}
-
-/**
- * @tc.name: SubNodeIntersectWithDirty
- * @tc.desc: test results of SubNodeIntersectWithDirty
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SubNodeIntersectWithDirty, TestSize.Level1)
-{
-    RectI testRect { 0, 0, 10, 10 };
-    auto mockNode = std::make_shared<RSSurfaceRenderNode>(id);
-
-    mockNode->globalDirtyRegionIsEmpty_ = true;
-    Occlusion::Rect rect;
-    mockNode->visibleDirtyRegion_ = Occlusion::Region(rect);
-    EXPECT_FALSE(mockNode->SubNodeIntersectWithDirty(testRect));
 }
 
 /**

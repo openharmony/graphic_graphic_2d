@@ -49,29 +49,47 @@ public:
         return aceAnimatorIdleState_;
     }
 
-    void SetTouchUpTime(uint64_t touchUpTime)
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp);
+    bool GetSurfaceIdleState(uint64_t timestamp);
+    int32_t GetSurfaceUpExpectFps();
+    bool GetSupportSurface();
+    void ClearAppBufferList()
     {
-        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
-        touchUpTime_ = touchUpTime;
+        std::lock_guard<std::mutex> lock(appBufferListMutex_);
+        appBufferList_.clear();
     }
-
-    uint64_t GetTouchUpTime()
+    void ClearAppBufferBlackList()
     {
-        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
-        return touchUpTime_;
+        std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
+        appBufferBlackList_.clear();
     }
-
-    void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
-    bool GetSurFaceIdleState(uint64_t timestamp);
- 
+    void UpdateAppBufferList(std::vector<std::pair<std::string, int32_t>> &appBufferList)
+    {
+        std::lock_guard<std::mutex> lock(appBufferListMutex_);
+        appBufferList_ = appBufferList;
+    }
+    void UpdateAppBufferBlackList(std::vector<std::string> &appBufferBlackList)
+    {
+        std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
+        appBufferBlackList_ = appBufferBlackList;
+    }
+    void UpdateSupportAppBufferList(std::vector<std::string> &supportAppBufferList)
+    {
+        supportAppBufferList_ = supportAppBufferList;
+    }
 private:
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
-    uint64_t touchUpTime_ = 0;
     std::mutex appSupportedMutex_;
-    std::mutex touchUpTimeMutex_;
+    std::mutex appBufferListMutex_;
+    std::mutex appBufferBlackListMutex_;
+    // FORMAT: <buffername>
+    std::vector<std::string> appBufferBlackList_;
+    std::vector<std::string> supportAppBufferList_;
     // FORMAT: <buffername, time>
     std::unordered_map<std::string, uint64_t> frameTimeMap_;
+    // FORMAT: <buffername, fps>
+    std::vector<std::pair<std::string, int32_t>> appBufferList_;
 };
 } // namespace Rosen
 } // namespace OHOS

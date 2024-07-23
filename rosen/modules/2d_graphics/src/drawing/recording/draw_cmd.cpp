@@ -41,21 +41,7 @@ namespace Rosen {
 namespace Drawing {
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
-bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
-    std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas)
-{
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        return false;
-    }
-    offScreenSurface = surface->MakeSurface(surface->Width(), surface->Height());
-    if (!offScreenSurface) {
-        return false;
-    }
-    offScreenCanvas = offScreenSurface->GetCanvas();
-    offScreenCanvas->SetMatrix(canvas.GetTotalMatrix());
-    return true;
-}
+constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
 }
 
 std::function<void (std::shared_ptr<Drawing::Image> image)> DrawOpItem::holdDrawingImagefunc_ = nullptr;
@@ -76,6 +62,7 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
 {
     brush.SetBlendMode(brushHandle.mode);
     brush.SetAntiAlias(brushHandle.isAntiAlias);
+    brush.SetBlenderEnabled(brushHandle.blenderEnabled);
 
     if (brushHandle.colorSpaceHandle.size) {
         auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, brushHandle.colorSpaceHandle);
@@ -121,6 +108,7 @@ void DrawOpItem::BrushToBrushHandle(const Brush& brush, DrawCmdList& cmdList, Br
     brushHandle.color = brush.GetColor();
     brushHandle.mode = brush.GetBlendMode();
     brushHandle.isAntiAlias = brush.IsAntiAlias();
+    brushHandle.blenderEnabled = brush.GetBlenderEnabled();
     brushHandle.filterQuality = filter.GetFilterQuality();
     brushHandle.colorSpaceHandle = CmdListHelper::AddColorSpaceToCmdList(cmdList, brush.GetColorSpace());
     brushHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, brush.GetShaderEffect());
@@ -133,6 +121,7 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 {
     paint.SetBlendMode(paintHandle.mode);
     paint.SetAntiAlias(paintHandle.isAntiAlias);
+    paint.SetBlenderEnabled(paintHandle.blenderEnabled);
     paint.SetStyle(paintHandle.style);
 
     if (paintHandle.colorSpaceHandle.size) {
@@ -195,6 +184,7 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle)
 {
     paintHandle.isAntiAlias = paint.IsAntiAlias();
+    paintHandle.blenderEnabled = paint.GetBlenderEnabled();
     paintHandle.style = paint.GetStyle();
     paintHandle.color = paint.GetColor();
     paintHandle.mode = paint.GetBlendMode();
@@ -803,13 +793,14 @@ REGISTER_UNMARSHALLING_FUNC(DrawImageLattice, DrawOpItem::IMAGE_LATTICE_OPITEM, 
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     const DrawCmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM), lattice_(handle->lattice),
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM),
     dst_(handle->dst), filter_(handle->filter)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
     if (DrawOpItem::holdDrawingImagefunc_) {
         DrawOpItem::holdDrawingImagefunc_(image_);
     }
+    lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
 std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -823,7 +814,8 @@ void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
-    cmdList.AddOp<ConstructorHandle>(imageHandle, lattice_, dst_, filter_, paintHandle);
+    auto latticeHandle =  CmdListHelper::AddLatticeToCmdList(cmdList, lattice_);
+    cmdList.AddOp<ConstructorHandle>(imageHandle, latticeHandle, dst_, filter_, paintHandle);
 }
 
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -1112,6 +1104,26 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 }
 
+bool DrawTextBlobOpItem::GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
+    std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas) const
+{
+    auto surface = canvas.GetSurface();
+    auto textBlobBounds = textBlob_->Bounds();
+    if (!surface || !textBlobBounds) {
+        return false;
+    }
+    offScreenSurface = surface->MakeSurface(textBlobBounds->GetWidth(), textBlobBounds->GetHeight());
+    if (!offScreenSurface) {
+        return false;
+    }
+    offScreenCanvas = offScreenSurface->GetCanvas();
+    if (!offScreenCanvas) {
+        return false;
+    }
+    offScreenCanvas->Translate(-textBlobBounds->GetLeft(), -textBlobBounds->GetTop());
+    return true;
+}
+
 void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
 {
     ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
@@ -1120,46 +1132,47 @@ void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
         canvas->DrawTextBlob(textBlob_.get(), x_, y_);
         return;
     }
-    if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < 1.0f) {
+    // in case of perceptible transparent, text should be drawn offscreen to avoid stroke and content overlap.
+    if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < HIGH_CONTRAST_OFFSCREEN_THREASHOLD) {
         std::shared_ptr<Drawing::Surface> offScreenSurface;
         std::shared_ptr<Canvas> offScreenCanvas;
         if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
-            DrawHighContrast(offScreenCanvas.get());
+            DrawHighContrast(offScreenCanvas.get(), true);
             offScreenCanvas->Flush();
             Drawing::Brush paint;
             paint.SetAntiAlias(true);
             canvas->AttachBrush(paint);
             Drawing::SamplingOptions sampling =
                 Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-            canvas->Save();
-            canvas->ResetMatrix();
-            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
+            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(),
+                x_ + textBlob_->Bounds()->GetLeft(), y_ + textBlob_->Bounds()->GetTop(), sampling);
             canvas->DetachBrush();
-            canvas->Restore();
             return;
         }
     }
     DrawHighContrast(canvas);
 }
 
-void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas) const
+void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
 {
     ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
     uint32_t channelSum = Color::ColorQuadGetR(colorQuad) + Color::ColorQuadGetG(colorQuad) +
         Color::ColorQuadGetB(colorQuad);
     bool flag = channelSum < 594; // 594 is empirical value
 
-    Paint outlinePaint(paint_);
-    SimplifyPaint(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK, outlinePaint);
-    outlinePaint.SetStyle(Paint::PAINT_FILL_STROKE);
-    canvas->AttachPaint(outlinePaint);
-    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    // draw outline stroke with pen
+    Drawing::Pen outlinePen;
+    outlinePen.SetColor(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK);
+    outlinePen.SetAntiAlias(false);
+    canvas->AttachPen(outlinePen);
+    offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 
-    Paint innerPaint(paint_);
-    SimplifyPaint(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE, innerPaint);
-    innerPaint.SetStyle(Paint::PAINT_FILL);
-    canvas->AttachPaint(innerPaint);
-    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    // draw inner content with brush
+    Drawing::Brush innerBrush;
+    innerBrush.SetColor(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE);
+    canvas->DetachPen();
+    canvas->AttachBrush(innerBrush);
+    offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(

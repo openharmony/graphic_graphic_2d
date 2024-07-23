@@ -52,6 +52,11 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+bool RSSystemProperties::GetVkQueueDividedEnable()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
@@ -90,6 +95,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 float RSSystemProperties::GetClipRectThreshold()
 {
     return 1.f;
+}
+
+bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
@@ -275,6 +285,11 @@ bool RSSystemProperties::IsFoldScreenFlag()
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;
+}
+
+void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
+{
+    forceHpsBlurDisabled_ = flag;
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()

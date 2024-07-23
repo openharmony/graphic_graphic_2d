@@ -23,8 +23,6 @@
 #include "image/picture.h"
 #if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
-#else
-#include "experimental/svg/model/SkSVGDOM.h"
 #endif
 #include "transaction/rs_marshalling_helper.h"
 

@@ -46,6 +46,12 @@ ohos_fuzztest("NdkCanvasFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
 
+  external_deps = [
+    "image_framework:image_native",
+    "image_framework:pixelmap",
+    "image_framework:pixelmap_ndk",
+  ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

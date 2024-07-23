@@ -46,6 +46,8 @@ public:
 
     const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
+    const std::string GetSelfDrawSurfaceNameByPid(pid_t nodePid) const;
+
     bool ContainPid(pid_t pid) const;
     void FilterNodeByPid(pid_t pid);
     void MoveRenderNodeMap(

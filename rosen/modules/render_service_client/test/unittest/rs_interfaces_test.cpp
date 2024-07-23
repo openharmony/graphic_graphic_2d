@@ -379,13 +379,13 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: call CreateVirtualScreen with filteredAppVector
+* CaseDescription: call CreateVirtualScreen with whiteList
 */
 HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2)
 {
-    std::vector<NodeId> filteredAppVector = {};
+    std::vector<NodeId> whiteList = {};
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
@@ -418,6 +418,57 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
 {
     auto supportedScreenModes = rsInterfaces->GetScreenSupportedModes(INVALID_SCREEN_ID);
     EXPECT_EQ(supportedScreenModes.size(), 0);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionConfig001
+ * @tc.desc: set pointer color inversion config function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
+{
+    float darkBuffer = 0.5f;
+    float brightBuffer = 0.5f;
+    int64_t interval = 50;
+    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionEnabled001
+ * @tc.desc: set pointer color inversion enabled function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, TestSize.Level1)
+{
+    int32_t ret = rsInterfaces->SetPointerColorInversionEnabled(false);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterPointerLuminanceChangeCallback001
+ * @tc.desc: register pointer luminance change callback function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    int32_t ret = rsInterfaces->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {});
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: UnRegisterPointerLuminanceChangeCallback001
+ * @tc.desc: unregister pointer luminance change callback function.
+ * @tc.type: FUNC
+ * @tc.require: Issue #IA8DQ6
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
+{
+    int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1031,7 +1082,7 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
 
     FrameRateLinkerId id = 0;
     FrameRateRange range;
-    rsInterfaces->SyncFrameRateRange(id, range, false);
+    rsInterfaces->SyncFrameRateRange(id, range, 0);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
     uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);
@@ -1284,6 +1335,20 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
     rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyDynamicModeEvent001
+ * @tc.desc: Notify touch event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool enableDynamicMode = false;
+    rsInterfaces->NotifyDynamicModeEvent(enableDynamicMode);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1610,6 +1675,36 @@ HWTEST_F(RSInterfacesTest, SetCastScreenEnableSkipWindow_Test, Function | SmallT
     bool enable = true;
     auto res = rsInterfaces->SetCastScreenEnableSkipWindow(virtualScreenId, enable);
     EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: RegisterUIExtensionCallback_001
+ * @tc.desc: Test if UIExtensionCallback can be sucessifully registered.
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
+    uint64_t userId = 0;
+    auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: RegisterUIExtensionCallback_002
+ * @tc.desc: Test if UIExtensionCallback is null, registration failed.
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    UIExtensionCallback callback = nullptr;
+    uint64_t userId = 0;
+    auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
 }
 } // namespace Rosen
 } // namespace OHOS

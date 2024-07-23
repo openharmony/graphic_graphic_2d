@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "parameters.h"
 #include "draw/surface.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_material_filter.h"
@@ -240,6 +241,7 @@ HWTEST_F(RSMaterialFilterTest, AddTest001, TestSize.Level1)
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
+    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
 }
 
 /**
@@ -256,6 +258,7 @@ HWTEST_F(RSMaterialFilterTest, SubTest001, TestSize.Level1)
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
+    EXPECT_EQ(rsMaterialFilter->Sub(nullptr), rsMaterialFilter);
 }
 
 /**
@@ -370,6 +373,7 @@ HWTEST_F(RSMaterialFilterTest, IsNearEqual001, TestSize.Level1)
     float threshold = 1.0f;
     std::shared_ptr<RSFilter> rsMaterialFilter1 = std::make_shared<RSMaterialFilter>(materialParam1, mode);
     EXPECT_TRUE(rsMaterialFilter->IsNearEqual(rsMaterialFilter1, threshold));
+    EXPECT_TRUE(rsMaterialFilter->IsNearEqual(nullptr, threshold));
 }
 
 /**
@@ -444,6 +448,14 @@ HWTEST_F(RSMaterialFilterTest, GetColorPickerCacheTaskFilterTest001, TestSize.Le
  */
 HWTEST_F(RSMaterialFilterTest, ReleaseColorPickerFilterTest001, TestSize.Level1)
 {
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    EXPECT_TRUE(RSUniRenderJudgement::IsUniRender());
+    bool enabled = false;
+    if (!RSSystemProperties::GetColorPickerPartialEnabled()) {
+        system::SetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1");
+        enabled = true;
+    }
+    EXPECT_TRUE(RSSystemProperties::GetColorPickerPartialEnabled());
     MaterialParam materialParam;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::FASTAVERAGE);
     EXPECT_NE(rsMaterialFilter->colorPickerTask_, nullptr);
@@ -451,5 +463,8 @@ HWTEST_F(RSMaterialFilterTest, ReleaseColorPickerFilterTest001, TestSize.Level1)
     rsMaterialFilter->colorPickerTask_ = nullptr;
     rsMaterialFilter->ReleaseColorPickerFilter();
     EXPECT_EQ(rsMaterialFilter->colorPickerTask_, nullptr);
+    if (enabled) {
+        system::SetParameter("persist.sys.graphic.colorPickerPartialEnabled", "0");
+    }
 }
 } // namespace OHOS::Rosen

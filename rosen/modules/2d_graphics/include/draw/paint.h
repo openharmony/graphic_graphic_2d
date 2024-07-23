@@ -92,6 +92,9 @@ public:
     const std::shared_ptr<Blender> GetBlender() const { return blender_; }
     const Blender* GetBlenderPtr() const { return blender_.get(); }
 
+    void SetBlenderEnabled(bool blenderEnabled);
+    bool GetBlenderEnabled() const { return blenderEnabled_; };
+
     void SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper);
     std::shared_ptr<BlurDrawLooper> GetLooper() const;
 
@@ -117,6 +120,7 @@ private:
     Pen::JoinStyle join_ = Pen::JoinStyle::DEFAULT_JOIN;
     Pen::CapStyle cap_ = Pen::CapStyle::DEFAULT_CAP;
 
+    bool blenderEnabled_ = true;
     bool hasFilter_ = false;
     bool hdrImage_ = false;
     Filter filter_;

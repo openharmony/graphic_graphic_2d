@@ -53,11 +53,6 @@ public:
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
-    void MoveRenderNodeMap(
-        std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept;
-    static void RemoveRenderNodeMap(
-        std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept;
-    void CleanRenderNodeMap() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
@@ -96,7 +91,7 @@ private:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int32_t flags = 0,
-        std::vector<NodeId> filteredAppVector = {}) override;
+        std::vector<NodeId> whiteList = {}) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
@@ -110,6 +105,14 @@ private:
 
     void RemoveVirtualScreen(ScreenId id) override;
 
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
+ 
+    int32_t SetPointerColorInversionEnabled(bool enable) override;
+ 
+    int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) override;
+ 
+    int32_t UnRegisterPointerLuminanceChangeCallback() override;
+
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
@@ -118,7 +121,8 @@ private:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped) override;
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
+        int32_t animatorExpectedFrameRate) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -130,6 +134,8 @@ private:
 
     void SetShowRefreshRateEnabled(bool enable) override;
 
+    std::string GetRefreshInfo(pid_t pid) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;
@@ -138,13 +144,8 @@ private:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync) override;
-
-    void TakeSurfaceCaptureForUIWithUni(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
-    static void TakeSurfaceCaptureForUiParallel(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) override;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -259,6 +260,8 @@ private:
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
+    void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
+
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
@@ -268,6 +271,11 @@ private:
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
 
     LayerComposeInfo GetLayerComposeInfo() override;
+
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
+
+    int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif

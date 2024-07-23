@@ -25,6 +25,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -102,6 +103,13 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     VkDevice device = vkContext.GetDevice();
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
+
+    if (width * height > VKIMAGE_LIMIT_SIZE) {
+        ROSEN_LOGE(
+            "RSUniRenderUtil::MakeBackendTexture failed, image is too large, width:%{public}u, height::%{public}u",
+            width, height);
+        return {};
+    }
 
     if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         return {};
@@ -200,7 +208,8 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
 
 Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    auto surfaceParams = GetRenderParams() ?
+        static_cast<RSSurfaceRenderParams*>(GetRenderParams().get()) : nullptr;
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
         return Vector2f{};
@@ -408,7 +417,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 bool RSSurfaceRenderNodeDrawable::HasCachedTexture() const
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    return isTextureValid_.load() || GetBuffer() != nullptr;
+    return isTextureValid_.load() || surfaceHandlerUiFirst_->GetBuffer() != nullptr;
 #else
     return true;
 #endif
@@ -531,19 +540,12 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-    bool useDmaBuffer = UseDmaBuffer();
-    if (useDmaBuffer) {
-        DrawBackground(canvas, bounds);
-    }
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
-    if (useDmaBuffer) {
-        DrawForeground(canvas, bounds);
-    }
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)
@@ -588,11 +590,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
         return false;
     }
-    auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (!drawable) {
-        return false;
-    }
-
     bool ret = true;
     // draw surface content&&childrensss
     if (HasCachedTexture()) {
@@ -600,6 +597,10 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
     }
     // draw starting window
     {
+        auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
+        if (!drawable) {
+            return false;
+        }
         RS_TRACE_NAME_FMT("drawStarting");
         drawable->Draw(rscanvas);
     }

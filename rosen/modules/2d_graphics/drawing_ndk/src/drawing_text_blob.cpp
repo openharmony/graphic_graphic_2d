@@ -162,11 +162,11 @@ void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rec
 
 uint32_t OH_Drawing_TextBlobUniqueID(const OH_Drawing_TextBlob* cTextBlob)
 {
-    const TextBlob* textblob = CastToTextBlob(cTextBlob);
     if (cTextBlob == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
+    const TextBlob* textblob = CastToTextBlob(cTextBlob);
     return textblob->UniqueID();
 }
 

@@ -31,44 +31,57 @@ namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+class RSSurfaceRenderNodeDrawable;
+}
 class RSUniRenderComposerAdapter {
 public:
     RSUniRenderComposerAdapter() = default;
     ~RSUniRenderComposerAdapter() noexcept = default;
-
-    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
-
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
+    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
+
+    LayerInfoPtr CreateLayer(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    LayerInfoPtr CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
+    static RectI SrcRectRotateTransform(DrawableV2::RSSurfaceRenderNodeDrawable& node);
+
+    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& node);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
-    ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& node) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
+
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
-        const sptr<IConsumerSurface>& surface,
-        RSBaseRenderNode* node) const;
-    static void SetBufferColorSpace(RSDisplayRenderNode& node);
-    void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
+        const sptr<IConsumerSurface>& surface) const;
+    static void SetBufferColorSpace(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    void LayerRotate(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
+    void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& node) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
+    void DealWithNodeGravity(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, ComposeInfo& info) const;
     LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
+    LayerInfoPtr CreateBufferLayer(DrawableV2::RSSurfaceRenderNodeDrawable& node) const;
 
     void LayerCrop(const LayerInfoPtr& layer) const;
     static void LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node);
-    void LayerScaleFit(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
+    static void LayerScaleDown(const LayerInfoPtr& layer, DrawableV2::RSSurfaceRenderNodeDrawable& node);
+    void LayerScaleFit(const LayerInfoPtr& layer) const;
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
-    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const;
-    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
+    static void GetComposerInfoSrcRect(ComposeInfo& info, const DrawableV2::RSSurfaceRenderNodeDrawable& node);
+    bool GetComposerInfoNeedClient(const ComposeInfo& info, RSRenderParams& params) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
+    bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& node) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
     std::shared_ptr<HdiOutput> output_;

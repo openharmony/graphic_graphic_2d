@@ -72,6 +72,7 @@ struct TypographyStyle {
             this->halfLeading == rhs.halfLeading &&
             this->heightOnly == rhs.heightOnly &&
             this->useLineStyle == rhs.useLineStyle &&
+            this->lineStyleFontWidth == rhs.lineStyleFontWidth &&
             this->lineStyleFontWeight == rhs.lineStyleFontWeight &&
             this->lineStyleFontStyle == rhs.lineStyleFontStyle &&
             this->lineStyleFontFamilies == rhs.lineStyleFontFamilies &&
@@ -105,7 +106,6 @@ struct TypographyStyle {
     bool customTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
-    bool ellipsizedForNDK = false;
 };
 } // namespace Rosen
 } // namespace OHOS

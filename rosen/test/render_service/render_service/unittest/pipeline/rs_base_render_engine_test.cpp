@@ -71,7 +71,7 @@ HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_002, TestSize.Level1)
 HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto buffer = node->GetBuffer();
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     std::vector<LayerInfoPtr> layers;
     layers.emplace_back(nullptr);
@@ -94,11 +94,11 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
 HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto buffer = node->GetBuffer();
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     std::vector<LayerInfoPtr> layers;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, node->GetAcquireFence());
+    layer->SetBuffer(buffer, node->GetRSSurfaceHandler()->GetAcquireFence());
     layers.emplace_back(layer);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
@@ -130,7 +130,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
 
     if (RSSystemProperties::IsUseVulkan()) {
         auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-        param.buffer = surfaceNode->GetBuffer();
+        param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
 
         auto renderEngine = std::make_shared<RSRenderEngine>();
         renderEngine->Init(true);
@@ -173,7 +173,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
         ASSERT_EQ(nullptr, img);
         [[maybe_unused]] auto grContext = canvas->GetGPUContext();
         grContext = nullptr;
-        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
+        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
         ASSERT_EQ(nullptr, img);
     }
 }
@@ -192,8 +192,8 @@ HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Lev
 #ifdef RS_ENABLE_VK
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
-    renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), true);
-    renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), false);
+    renderEngine->RegisterDeleteBufferListener(node->GetRSSurfaceHandler()->GetConsumer(), true);
+    renderEngine->RegisterDeleteBufferListener(node->GetRSSurfaceHandler()->GetConsumer(), false);
 #endif
 }
 #endif

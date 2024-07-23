@@ -123,7 +123,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
 
-void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged)
+void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged, bool rotationStatusChanged)
 {
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
@@ -132,7 +132,8 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     if (filterDrawable == nullptr) {
         return;
     }
-    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
+    filterDrawable->MarkEffectNode();
+    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
     if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
@@ -190,7 +191,9 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
         GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
-    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_);
+    // case 3: the state of freeze changed to false, and the last cache maybe wrong.
+    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
+        (preStaticStatus_ != isStaticCached_ && isStaticCached_ == false);
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)

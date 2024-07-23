@@ -43,7 +43,7 @@ using namespace OHOS::Rosen;
 #define ERROR_NULL_FONT_BUFFER 6
 #define ERROR_BUFFER_SIZE_ZERO 7
 #define ERROR_NULL_FONT_COLLECTION 8
-#define ERROR_REGISTER_FAILED 9
+#define ERROR_FILE_CORRUPTION 9
 
 #ifdef BUILD_NON_SDK_VER
 static bool StdFilesystemExists(const std::string &p, std::error_code &ec)
@@ -72,9 +72,15 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
     }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
 #ifndef USE_GRAPHIC_TEXT_GINE
-    fc->LoadFontFromList(data, dataLength, familyName);
+    auto face = fc->LoadFontFromList(data, dataLength, familyName);
+    if (face == nullptr) {
+        return ERROR_FILE_CORRUPTION;
+    }
 #else
-    fc->LoadFont(familyName, data, dataLength);
+    auto face = fc->LoadFont(familyName, data, dataLength);
+    if (face == nullptr) {
+        return ERROR_FILE_CORRUPTION;
+    }
 #endif
     return 0;
 }

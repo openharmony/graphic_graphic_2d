@@ -21,9 +21,12 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t MAX_SIZE = 5000;
+}
 namespace Drawing {
 
-bool TextBlobBuilderFuzzTest(const uint8_t* data, size_t size)
+bool TextBlobBuilderFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -40,6 +43,23 @@ bool TextBlobBuilderFuzzTest(const uint8_t* data, size_t size)
     builder.Make();
     return true;
 }
+
+bool TextBlobBuilderFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    TextBlobBuilder builder;
+    Font font;
+    int count = GetObject<int>() % MAX_SIZE;
+    builder.AllocRunRSXform(font, count);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -48,6 +68,7 @@ bool TextBlobBuilderFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::TextBlobBuilderFuzzTest(data, size);
+    OHOS::Rosen::Drawing::TextBlobBuilderFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::TextBlobBuilderFuzzTest002(data, size);
     return 0;
 }

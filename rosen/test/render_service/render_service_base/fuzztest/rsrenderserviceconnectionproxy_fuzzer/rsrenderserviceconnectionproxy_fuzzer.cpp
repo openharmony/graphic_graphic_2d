@@ -148,7 +148,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
     rsRenderServiceConnectionProxy.SetRefreshRateMode(pid1);
-    rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, true);
+    rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, 0);
     rsRenderServiceConnectionProxy.GetScreenCurrentRefreshRate(id1);
     rsRenderServiceConnectionProxy.GetCurrentRefreshRateMode();
     rsRenderServiceConnectionProxy.GetScreenSupportedRefreshRates(id1);
@@ -202,6 +202,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
+    rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
@@ -213,6 +214,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetActiveDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
+    rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.SetCurtainScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
@@ -220,6 +222,31 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
     return true;
 }
+
+#ifdef TP_FEATURE_ENABLE
+bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    int32_t tpFeature = GetData<int32_t>();
+    std::string tpConfig = GetData<std::string>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    RSRenderServiceConnectionProxy.SetTpFeatureConfig(tpFeature, tpConfig);
+    return true;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -228,5 +255,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
+#ifdef TP_FEATURE_ENABLE
+    OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
+#endif
     return 0;
 }

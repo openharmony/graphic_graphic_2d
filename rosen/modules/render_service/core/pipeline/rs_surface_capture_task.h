@@ -36,7 +36,7 @@ namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
-        RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
+        RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
         void PrepareChildren(RSRenderNode& node) override {}
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
@@ -97,8 +97,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool DrawBlurInCache(RSRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
-        float scaleX_ = 1.0f;
-        float scaleY_ = 1.0f;
+        RSSurfaceCaptureConfig captureConfig_;
         bool isUniRender_ = false;
         bool hasSecurityOrSkipOrProtectedLayer_ = false;
         bool isUIFirst_ = false;
@@ -117,8 +116,9 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 
 class RSSurfaceCaptureTask {
 public:
-    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread),
+    explicit RSSurfaceCaptureTask(NodeId nodeId,
+        const RSSurfaceCaptureConfig& captureConfig, bool isProcOnBgThread = false)
+        : nodeId_(nodeId), captureConfig_(captureConfig), isProcOnBgThread_(isProcOnBgThread),
         rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTask() = default;
 
@@ -142,9 +142,7 @@ private:
 
     NodeId nodeId_;
 
-    float scaleX_;
-
-    float scaleY_;
+    RSSurfaceCaptureConfig captureConfig_;
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 

@@ -24,6 +24,8 @@ namespace Rosen {
 namespace {
 static const std::string DISPLAY_NODE = "DisplayNode";
 static const std::string POINTER_NODE = "pointer";
+static const float RGB = 255.f;
+static const float HALF = 0.5f;
 } // namespace
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
     std::make_unique<RSPointerRenderManager>();
@@ -53,17 +55,89 @@ void RSPointerRenderManager::InitInstance(const std::shared_ptr<RSEglImageManage
 }
 #endif
 
+int64_t RSPointerRenderManager::GetCurrentTime()
+{
+    auto timeNow = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
+    return std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch()).count();
+}
+
+void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+{
+    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    darkBuffer_ = darkBuffer;
+    brightBuffer_ = brightBuffer;
+    colorSamplingInterval_ = interval;
+}
+ 
+void RSPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
+{
+    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    isEnableCursorInversion_ = enable;
+}
+ 
+void RSPointerRenderManager::RegisterPointerLuminanceChangeCallback(pid_t pid,
+    sptr<RSIPointerLuminanceChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    colorChangeListeners_[pid] = callback;
+}
+ 
+void RSPointerRenderManager::UnRegisterPointerLuminanceChangeCallback(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    colorChangeListeners_.erase(pid);
+}
+ 
+void RSPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brightness)
+{
+    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    lastColorPickerTime_ = RSPointerRenderManager::GetCurrentTime();
+    for (auto it = colorChangeListeners_.begin(); it != colorChangeListeners_.end(); it++) {
+        if (it->second) {
+            it->second->OnPointerLuminanceChanged(brightness);
+        }
+    }
+}
+
+void RSPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
+{
+    RS_LOGD("RSPointerRenderManager::CallPointerLuminanceChange luminance_:%{public}d.", luminance_);
+    if (brightnessMode_ == CursorBrightness::NONE) {
+        brightnessMode_ = brightness < static_cast<int32_t>(RGB * HALF) ?
+            CursorBrightness::DARK : CursorBrightness::BRIGHT;
+        ExecutePointerLuminanceChangeCallback(brightness);
+    } else if (brightnessMode_ == CursorBrightness::DARK) {
+        // Dark cursor to light cursor buffer
+        if (brightness > static_cast<int32_t>(RGB * darkBuffer_)) {
+            brightnessMode_ = CursorBrightness::BRIGHT;
+            ExecutePointerLuminanceChangeCallback(brightness);
+        }
+    } else {
+        // light cursor to Dark cursor buffer
+        if (brightness < static_cast<int32_t>(RGB * brightBuffer_)) {
+            brightnessMode_ = CursorBrightness::DARK;
+            ExecutePointerLuminanceChangeCallback(brightness);
+        }
+    }
+}
+
 bool RSPointerRenderManager::CheckColorPickerEnabled()
 {
     if (!isEnableCursorInversion_) {
         return false;
     }
 
+    auto time = RSPointerRenderManager::GetCurrentTime() - lastColorPickerTime_;
+    if (time < colorSamplingInterval_) {
+        return false;
+    }
+
     bool exists = false;
-    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    for (auto& it : hardwareNodes) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode != nullptr && surfaceNode->IsHardwareEnabledTopSurface()) {
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceDrawable != nullptr && surfaceDrawable->IsHardwareEnabledTopSurface()) {
             exists = true;
             break;
         }
@@ -102,14 +176,16 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
 
 bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    for (auto& it : hardwareNodes) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode == nullptr || !surfaceNode->IsHardwareEnabledTopSurface()) {
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceDrawable == nullptr || !surfaceDrawable->IsHardwareEnabledTopSurface() ||
+            !surfaceDrawable->GetRenderParams()) {
             continue;
         }
         image_ = std::make_shared<Drawing::Image>();
-        RectI pointerRect = surfaceNode->GetDstRect();
+        RectI pointerRect = surfaceDrawable->GetRenderParams()->GetAbsDrawRect();
         Drawing::RectI drawingPointerRect = Drawing::RectI(pointerRect.GetLeft(), pointerRect.GetTop(),
             pointerRect.GetRight(), pointerRect.GetBottom());
         image_->BuildSubset(cacheImgForPointer_, drawingPointerRect, *gpuContext);
@@ -240,6 +316,7 @@ void RSPointerRenderManager::RunColorPickerTask()
         luminance_ = color.GetRed() * 0.2126f + color.GetGreen() * 0.7152f + color.GetBlue() * 0.0722f;
         image_ = nullptr;
         taskDoing_ = false;
+        CallPointerLuminanceChange(luminance_);
 #endif
     };
     RSBackgroundThread::Instance().PostTask(task);

@@ -29,9 +29,9 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
     switch (code) {
         case IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC: {
-            auto fromWhom = data.ReadString();
+            auto fromWho = data.ReadString();
             auto ts = data.ReadInt64();
-            RequestNextVSync(fromWhom, ts);
+            RequestNextVSync(fromWho, ts);
             break;
         }
         case IVSYNC_CONNECTION_GET_RECEIVE_FD: {

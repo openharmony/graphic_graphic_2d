@@ -18,15 +18,17 @@
 #include <memory>
 #include <sys/mman.h>
 
-#include "draw/surface.h"
-#include "draw/color.h"
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "draw/surface.h"
+#include "draw/color.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_composer_adapter.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -42,12 +44,12 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-
 namespace OHOS {
 namespace Rosen {
 bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
-    if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
+    if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
         RS_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
         RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
@@ -59,7 +61,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
-    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_, RSUniRenderJudgement::IsUniRender());
+    visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig_, RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
@@ -264,7 +266,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: node == nullptr");
         return nullptr;
     }
-    if (!isUniRender && node->GetBuffer() == nullptr) {
+    if (!isUniRender && node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: node GetBuffer == nullptr");
         return nullptr;
     }
@@ -272,15 +274,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
     int pixmapWidth = property.GetBoundsWidth();
     int pixmapHeight = property.GetBoundsHeight();
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * scaleX_);
-    opts.size.height = ceil(pixmapHeight * scaleY_);
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],"
         " isProcOnBgThread_[%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        scaleX_, scaleY_, isProcOnBgThread_);
+        captureConfig_.scaleX, captureConfig_.scaleY, isProcOnBgThread_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -309,15 +311,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
         }
     }
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * scaleX_);
-    opts.size.height = ceil(pixmapHeight * scaleY_);
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],"
         " isProcOnBgThread_[%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        scaleX_, scaleY_, isProcOnBgThread_);
+        captureConfig_.scaleX, captureConfig_.scaleY, isProcOnBgThread_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -448,8 +450,8 @@ bool RSSurfaceCaptureTask::FindSecurityOrSkipOrProtectedLayer()
     return hasSecurityOrSkipOrProtectedLayer;
 }
 
-RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender)
-    : scaleX_(scaleX), scaleY_(scaleY), isUniRender_(isUniRender)
+RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender)
+    : captureConfig_(captureConfig), isUniRender_(isUniRender)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
@@ -462,7 +464,7 @@ void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
         return;
     }
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
-    canvas_->Scale(scaleX_, scaleY_);
+    canvas_->Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas_->SetDisableFilterCache(true);
 }
 
@@ -510,7 +512,12 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             ProcessChildren(node);
             DrawWatermarkIfNeed(node);
         } else {
-            if (node.GetBuffer() == nullptr) {
+            auto drawable = node.GetRenderDrawable();
+            if (!drawable) {
+                return;
+            }
+            auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+            if (displayDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
                 RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: buffer is null!");
                 return;
             }
@@ -574,10 +581,11 @@ void RSSurfaceCaptureVisitor::FindHardwareEnabledNodes()
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
             return;
         }
-        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+        auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceHandler->GetBuffer() != nullptr) {
             // To get dump image
             // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
-            auto buffer = surfaceNode->GetBuffer();
+            auto buffer = surfaceHandler->GetBuffer();
             RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer, surfaceNode->GetId());
             if (surfaceNode->IsHardwareEnabledTopSurface()) {
                 // surfaceNode which should be drawn above displayNode like pointer window
@@ -601,12 +609,18 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode(std::vector<std::sh
     // sort the surfaceNodes by ZOrder
     std::stable_sort(
         nodes.begin(), nodes.end(), [](const auto& first, const auto& second) -> bool {
-            return first->GetGlobalZOrder() < second->GetGlobalZOrder();
+            if (!first || !second) {
+                return false;
+            }
+            return first->GetRSSurfaceHandler()->GetGlobalZOrder() < second->GetRSSurfaceHandler()->GetGlobalZOrder();
         });
 
     // draw hardware-composition nodes
     for (auto& surfaceNode : nodes) {
-        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+        if (!surfaceNode) {
+            continue;
+        }
+        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr) {
             Drawing::AutoCanvasRestore acr(*canvas_, true);
             CaptureSurfaceInDisplayWithUni(*surfaceNode);
         }
@@ -686,7 +700,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         }
     }
     canvas_->Restore();
-    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+    if (!node.IsAppWindow() && node.GetRSSurfaceHandler()->GetBuffer() != nullptr) {
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
@@ -772,7 +786,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         canvas_->Restore();
     }
 
-    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+    if (!node.IsAppWindow() && node.GetRSSurfaceHandler()->GetBuffer() != nullptr) {
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
@@ -874,7 +888,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         const auto saveCnt = canvas_->Save();
         ProcessChildren(node);
         canvas_->RestoreToCount(saveCnt);
-        if (node.GetBuffer() != nullptr) {
+        if (node.GetRSSurfaceHandler()->GetBuffer() != nullptr) {
             // in node's local coordinate.
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
@@ -882,7 +896,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
     } else {
         Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
         canvas_->ConcatMatrix(translateMatrix);
-        if (node.GetBuffer() != nullptr) {
+        if (node.GetRSSurfaceHandler()->GetBuffer() != nullptr) {
             // in node's local coordinate.
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
@@ -899,7 +913,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderN
         return;
     }
     ProcessChildren(node);
-    if (node.GetBuffer() != nullptr) {
+    if (node.GetRSSurfaceHandler()->GetBuffer() != nullptr) {
         // in display's coordinate.
         auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);

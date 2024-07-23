@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "render_frame_trace_impl.h"
 #include "render_frame_trace.h"
+#include "render_frame_trace_impl.h"
 #undef private
 
 namespace OHOS {
@@ -47,7 +47,7 @@ void RenderFrameTraceImplTest::TearDown() {}
  */
 HWTEST_F(RenderFrameTraceImplTest, AccessFrameTrace, TestSize.Level1)
 {
-    bool ret = RenderFrameTraceImpl::instance_ ->AccessFrameTrace();
+    bool ret = RenderFrameTraceImpl::instance_->AccessFrameTrace();
     EXPECT_NE(ret, 0);
 }
 
@@ -59,10 +59,10 @@ HWTEST_F(RenderFrameTraceImplTest, AccessFrameTrace, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceOpen, TestSize.Level1)
 {
-    RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
-    RenderFrameTraceImpl::instance_ ->RenderFrameTraceOpen();
-    RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
-    bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    RenderFrameTraceImpl::instance_->RenderFrameTraceClose();
+    RenderFrameTraceImpl::instance_->RenderFrameTraceOpen();
+    RenderFrameTraceImpl::instance_->RenderFrameTraceClose();
+    bool ret = RenderFrameTraceImpl::instance_->RenderFrameTraceIsOpen();
     EXPECT_EQ(ret, 0);
 }
 
@@ -74,8 +74,8 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceOpen, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceIsOpen, TestSize.Level1)
 {
-    RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
-    bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    RenderFrameTraceImpl::instance_->RenderFrameTraceClose();
+    bool ret = RenderFrameTraceImpl::instance_->RenderFrameTraceIsOpen();
     EXPECT_EQ(ret, 0);
 }
 
@@ -87,8 +87,8 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceIsOpen, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceClose, TestSize.Level1)
 {
-    RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
-    bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    RenderFrameTraceImpl::instance_->RenderFrameTraceClose();
+    bool ret = RenderFrameTraceImpl::instance_->RenderFrameTraceIsOpen();
     EXPECT_EQ(ret, 0);
 }
 
@@ -100,9 +100,9 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceClose, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, ui, TestSize.Level1)
 {
-    const std::string traceTag="ui";
-    RenderFrameTraceImpl::instance_ ->RenderStartFrameTrace(traceTag);
-    RenderFrameTraceImpl::instance_ ->RenderEndFrameTrace(traceTag);
+    const std::string traceTag = "ui";
+    RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
+    RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
 
 /**
@@ -113,9 +113,9 @@ HWTEST_F(RenderFrameTraceImplTest, ui, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, renderthread, TestSize.Level1)
 {
-    const std::string traceTag="renderthread";
-    RenderFrameTraceImpl::instance_ ->RenderStartFrameTrace(traceTag);
-    RenderFrameTraceImpl::instance_ ->RenderEndFrameTrace(traceTag);
+    const std::string traceTag = "renderthread";
+    RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
+    RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
 
 /**
@@ -126,9 +126,9 @@ HWTEST_F(RenderFrameTraceImplTest, renderthread, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, renderservice, TestSize.Level1)
 {
-    const std::string traceTag="renderservice";
-    RenderFrameTraceImpl::instance_ ->RenderStartFrameTrace(traceTag);
-    RenderFrameTraceImpl::instance_ ->RenderEndFrameTrace(traceTag);
+    const std::string traceTag = "renderservice";
+    RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
+    RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
 
 /**
@@ -139,9 +139,9 @@ HWTEST_F(RenderFrameTraceImplTest, renderservice, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, test, TestSize.Level1)
 {
-    const std::string traceTag="test";
-    RenderFrameTraceImpl::instance_ ->RenderStartFrameTrace(traceTag);
-    RenderFrameTraceImpl::instance_ ->RenderEndFrameTrace(traceTag);
+    const std::string traceTag = "test";
+    RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
+    RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
 } // namespace Rosen
 } // namespace OHOS

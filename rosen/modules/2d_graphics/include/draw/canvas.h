@@ -30,62 +30,37 @@ public:
     Canvas() {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
-    virtual Canvas* GetRecordingCanvas() const
-    {
-        return nullptr;
-    }
+    virtual Canvas* GetRecordingCanvas() const;
 
-    void AddCanvas(Canvas* canvas)
-    {
-        if (canvas != nullptr) {
-            pCanvasList_.push_back(canvas);
-        }
-    }
+    void AddCanvas(Canvas* canvas);
 
-    void RemoveAll()
-    {
-        pCanvasList_.clear();
-    }
+    void RemoveAll();
     // constructor adopt a raw canvas ptr, using for ArkUI, should remove after rosen modifier provide drawing Canvas.
     explicit Canvas(void* rawCanvas) : CoreCanvas(rawCanvas) {}
-    virtual ~Canvas() {
-        RemoveAll();
-    }
+    virtual ~Canvas();
 
     /*
      * @brief        Restores Canvas Matrix and clip value state to count.
      * @param count  Depth of state stack to restore.
      */
-    void RestoreToCount(uint32_t count)
-    {
-        for (uint32_t i = this->GetSaveCount(); i > count; i--) {
-            this->Restore();
-        }
-    }
+    void RestoreToCount(uint32_t count);
 
-    virtual bool GetRecordingState() const
-    {
-        return recordingState_;
-    }
+    virtual bool GetRecordingState() const;
 
-    virtual void SetRecordingState(bool flag)
-    {
-        recordingState_ = flag;
-    }
+    virtual void SetRecordingState(bool flag);
 
-    virtual void SetOffscreen(bool isOffscreen)
-    {
-        isOffscreen_ = isOffscreen;
-    }
+    virtual void SetOffscreen(bool isOffscreen);
 
-    virtual bool GetOffscreen() const
-    {
-        return isOffscreen_;
-    }
+    virtual bool GetOffscreen() const;
+
+    virtual void SetUICapture(bool isUICapture);
+
+    virtual bool GetUICapture() const;
 protected:
     std::vector<Canvas*> pCanvasList_;
     bool recordingState_ = false;
     bool isOffscreen_ = false;
+    bool isUICapture_ = false;
 };
 
 class DRAWING_API OverDrawCanvas : public Canvas {

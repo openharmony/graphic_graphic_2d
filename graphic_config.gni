@@ -70,7 +70,8 @@ if (graphic_2d_feature_product == "phone" ||
   graphic_2d_feature_enable_stack_culling = true
 }
 
-if (graphic_2d_feature_product == "phone") {
+if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "tablet") {
   graphic_2d_feature_enable_opinc = true
 }
 
@@ -309,6 +310,7 @@ arkui_root = "//foundation/arkui"
 ace_root = "//foundation/arkui/ace_engine"
 bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
+mindspore_root = "//third_party/mindspore"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

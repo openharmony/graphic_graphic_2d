@@ -27,11 +27,16 @@
 #include "pipeline/rs_render_content.h"
 #include "utils/rect.h"
 
+#ifndef ROSEN_CROSS_PLATFORM
+#include <iconsumer_surface.h>
+#endif
+
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderParams;
 class RSDisplayRenderNode;
 class RSSurfaceRenderNode;
+class RSSurfaceHandler;
 namespace Drawing {
 class Canvas;
 }
@@ -62,7 +67,7 @@ enum class SkipType : uint8_t {
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
-    virtual ~RSRenderNodeDrawableAdapter() = default;
+    virtual ~RSRenderNodeDrawableAdapter();
 
     // delete
     RSRenderNodeDrawableAdapter(const RSRenderNodeDrawableAdapter&) = delete;
@@ -75,7 +80,6 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-    virtual void DumpDrawableTree(int32_t depth, std::string& out) const;
 
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
@@ -92,9 +96,35 @@ public:
         return uifirstRenderParams_;
     }
 
+    inline NodeId GetId() const
+    {
+        return nodeId_;
+    }
+    inline RSRenderNodeType GetNodeType() const
+    {
+        return nodeType_;
+    }
+    virtual std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const
+    {
+        return nullptr;
+    }
+
+    using ClearSurfaceTask = std::function<void()>;
+    void RegisterClearSurfaceFunc(ClearSurfaceTask task);
+    void ResetClearSurfaceFunc();
+    void TryClearSurfaceOnSync();
+
+#ifndef ROSEN_CROSS_PLATFORM
+    virtual void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) {}
+#endif
+
+    virtual bool IsDrawCmdListsVisited() const
+    {
+        return true;
+    }
+    virtual void SetDrawCmdListsVisited(bool flag) {}
 protected:
     // Util functions
-    std::string DumpDrawableVec() const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
 
@@ -150,7 +180,7 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
-
+    ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);

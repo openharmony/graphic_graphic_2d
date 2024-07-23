@@ -23,6 +23,9 @@
 #include "metadata_helper.h"
 #endif
 
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -33,11 +36,17 @@ const float REDRAW_DFX_ALPHA = 0.4f; // redraw dfx drawrect alpha
 void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
+    RS_LOGE("RSUniRenderEngine::DrawSurfaceNodeWithParams is not support");
+}
+
+void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
+    PostProcessFunc postProcess)
+{
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(node.GetConsumer());
-        RegisterDeleteBufferListener(node);
+        RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);
@@ -51,6 +60,9 @@ GraphicColorGamut RSUniRenderEngine::ComputeTargetColorGamut(const std::vector<L
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSUniRenderEngine::ComputeTargetColorGamut The buffer of layer is nullptr");

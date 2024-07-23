@@ -25,6 +25,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "ipc_callbacks/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
@@ -32,6 +33,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -239,7 +241,7 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, bool useDma, SurfaceCaptureType surfaceCaptureType, bool isSync)
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -265,8 +267,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY,
-        useDma, surfaceCaptureType, isSync);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
 }
 
@@ -318,14 +319,14 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
 
-    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
+    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -378,6 +379,63 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
     }
 
     renderService->RemoveVirtualScreen(id);
+}
+
+int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+ 
+    return renderService->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+}
+ 
+int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+ 
+    return renderService->SetPointerColorInversionEnabled(enable);
+}
+ 
+class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub
+{
+public:
+    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
+    ~CustomPointerLuminanceChangeCallback() override {};
+ 
+    void OnPointerLuminanceChanged(int32_t brightness) override
+    {
+        if (cb_ != nullptr) {
+            cb_(brightness);
+        }
+    }
+ 
+private:
+    PointerLuminanceChangeCallback cb_;
+};
+ 
+int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+ 
+    sptr<RSIPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
+    return renderService->RegisterPointerLuminanceChangeCallback(cb);
+}
+ 
+int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->UnRegisterPointerLuminanceChangeCallback();
 }
 
 class CustomScreenChangeCallback : public RSScreenChangeCallbackStub
@@ -441,7 +499,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 }
 
 void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
-    const FrameRateRange& range, bool isAnimatorStopped)
+    const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -449,7 +507,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
         return;
     }
 
-    return renderService->SyncFrameRateRange(id, range, isAnimatorStopped);
+    return renderService->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
@@ -494,6 +552,16 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
     }
 
     return renderService->GetShowRefreshRateEnabled();
+}
+
+std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return "";
+    }
+    return renderService->GetRefreshInfo(pid);
 }
 
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
@@ -1260,6 +1328,14 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchC
     }
 }
 
+void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyDynamicModeEvent(enableDynamicMode);
+    }
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1311,6 +1387,15 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
     return renderService->GetLayerComposeInfo();
 }
 
+HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return {};
+    }
+    return renderService->GetHwcDisabledReasonInfo();
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -1336,6 +1421,34 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     if (renderService != nullptr) {
         renderService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
+}
+
+class CustomUIExtensionCallback : public RSUIExtensionCallbackStub
+{
+public:
+    explicit CustomUIExtensionCallback(const UIExtensionCallback &callback) : cb_(callback) {}
+    ~CustomUIExtensionCallback() override {};
+
+    void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override
+    {
+        if (cb_ != nullptr) {
+            cb_(uiExtensionData, userId);
+        }
+    }
+
+private:
+    UIExtensionCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterUIExtensionCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomUIExtensionCallback> cb = new CustomUIExtensionCallback(callback);
+    return renderService->RegisterUIExtensionCallback(userId, cb);
 }
 } // namespace Rosen
 } // namespace OHOS

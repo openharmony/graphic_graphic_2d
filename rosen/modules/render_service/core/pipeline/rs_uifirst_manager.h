@@ -22,6 +22,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_main_thread.h"
+#include "rs_processor.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS::Rosen {
@@ -72,7 +73,8 @@ public:
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
 
-    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo);
+    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
+    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
     
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
@@ -119,7 +121,7 @@ public:
         collectedCardNodes_.erase(id);
     }
 
-    std::vector<DrawableV2::RSSurfaceRenderNodeDrawable*> GetPendingPostDrawables()
+    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> GetPendingPostDrawables()
     {
         return pendingPostDrawables_;
     }
@@ -135,6 +137,7 @@ public:
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
+    void TryReleaseTextureForIdleThread();
 
 private:
     RSUifirstManager() = default;
@@ -147,9 +150,9 @@ private:
     void PostSubTask(NodeId id);
     void UpdateCompletedSurface(NodeId id);
 
-    DrawableV2::RSSurfaceRenderNodeDrawable* GetSurfaceDrawableByID(NodeId id);
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId id);
     void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
-    void RenderGroupUpdate(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+    void RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
     void ProcessResetNode();
@@ -167,7 +170,7 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
-    void SyncHDRDisplayParam(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
@@ -199,14 +202,14 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
-    std::vector<DrawableV2::RSSurfaceRenderNodeDrawable*> pendingPostDrawables_;
+    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
-    int noUifirstNodeFrameCount_ = 0;
+    std::atomic<int> noUifirstNodeFrameCount_ = 0;
     bool hasDoneNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;

@@ -130,6 +130,7 @@ public:
     CoreCanvas& DetachPaint() override;
 
     bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+    std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
 protected:
     virtual bool OnFilter() const = 0;
@@ -146,7 +147,7 @@ public:
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
     ~RSPaintFilterCanvas() override = default;;
 
-    void CopyConfiguration(const RSPaintFilterCanvas& other);
+    void CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
@@ -234,6 +235,7 @@ public:
         ~CachedEffectData() = default;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
+        Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
@@ -336,7 +338,7 @@ private:
 
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
-    
+
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
 

@@ -94,7 +94,7 @@ private:
     float endFraction_ { FRACTION_MAX };
     bool isNeedPath_ { true };
     bool needAddOrigin_ { false };
-    PropertyId rotationId_;
+    PropertyId rotationId_ {};
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
     std::shared_ptr<RSRenderPropertyBase> startValue_ {};
     std::shared_ptr<RSRenderPropertyBase> endValue_ {};

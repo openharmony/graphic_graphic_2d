@@ -60,7 +60,7 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int flags = 0,
-        std::vector<NodeId> filteredAppVector = {});
+        std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -75,16 +75,24 @@ public:
 
     void RemoveVirtualScreen(ScreenId id);
 
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
+ 
+    int32_t SetPointerColorInversionEnabled(bool enable);
+ 
+    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
+ 
+    int32_t UnRegisterPointerLuminanceChangeCallback();
+
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX = 1.0f, float scaleY = 1.0f, bool useDma = false);
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
@@ -124,7 +132,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, bool isAnimatorStopped);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -135,6 +143,8 @@ public:
     bool GetShowRefreshRateEnabled();
 
     void SetShowRefreshRateEnabled(bool enable);
+
+    std::string GetRefreshInfo(pid_t pid);
 
 #ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
@@ -234,6 +244,8 @@ public:
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
+    void NotifyDynamicModeEvent(bool enableDynamicMode);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);
@@ -258,10 +270,14 @@ public:
 
     LayerComposeInfo GetLayerComposeInfo() const;
 
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
+
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
 private:
     RSInterfaces();

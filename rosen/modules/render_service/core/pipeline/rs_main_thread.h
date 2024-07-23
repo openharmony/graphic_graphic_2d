@@ -34,9 +34,11 @@
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "memory/rs_app_state_listener.h"
 #include "memory/rs_memory_graphic.h"
 #include "params/rs_render_thread_params.h"
@@ -46,6 +48,7 @@
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
+#include "transaction/rs_uiextension_data.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
@@ -167,9 +170,6 @@ public:
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
-
-    bool WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
-    void NotifyDisplayNodeBufferReleased();
 
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();
@@ -301,8 +301,6 @@ public:
         markRenderFlag_ = false;
     }
 
-    void PerfForBlurIfNeeded();
-
     bool IsOnVsync() const
     {
         return isOnVsync_.load();
@@ -345,6 +343,9 @@ public:
     }
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
+    void SetHardwareTaskNum(uint32_t num);
+    void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
+    void UnRegisterUIExtensionCallback(pid_t pid);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -394,6 +395,7 @@ private:
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
+    static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -410,6 +412,7 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
+    void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState(bool isUniRender);
@@ -459,6 +462,8 @@ private:
     void DvsyncCheckRequestNextVsync();
 
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void UIExtensionNodesTraverseAndCallback();
+    bool CheckUIExtensionCallbackDataChanged() const;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -472,7 +477,6 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     std::unordered_map<int32_t, int32_t> subSyncTransactionCounts_;
-    int32_t syncTransactionCount_ { 0 };
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
@@ -481,6 +485,7 @@ private:
 
     uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
+    uint64_t vsyncId_ = 0;
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
@@ -517,11 +522,6 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
-    // used for blocking mainThread before displayNode has no freed buffer to request
-    mutable std::mutex displayNodeBufferReleasedMutex_;
-    bool displayNodeBufferReleased_ = false;
-    // used for stalling mainThread before displayNode has no freed buffer to request
-    std::condition_variable displayNodeBufferReleasedCond_;
 
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
@@ -580,6 +580,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -667,6 +668,13 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
+
+    // uiextension
+    std::mutex uiExtensionMutex_;
+    UIExtensionCallbackData uiExtensionCallbackData_;
+    bool lastFrameUIExtensionDataEmpty_ = false;
+    // <pid, <uid, callback>>
+    std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

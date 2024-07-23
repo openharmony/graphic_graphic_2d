@@ -38,6 +38,8 @@ public:
 
     double GetLongestLine() override;
 
+    double GetLongestLineWithIndent() override;
+
     double GetMinIntrinsicWidth() override;
 
     double GetMaxIntrinsicWidth() override;
@@ -114,6 +116,7 @@ public:
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) override;
+    void UpdateColor(size_t from, size_t to, const RSColor& color) override;
 
 private:
 

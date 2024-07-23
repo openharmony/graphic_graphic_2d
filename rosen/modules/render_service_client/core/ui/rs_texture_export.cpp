@@ -44,8 +44,7 @@ RSTextureExport::~RSTextureExport()
 bool RSTextureExport::DoTextureExport()
 {
     if (!rootNode_->IsTextureExportNode()) {
-        RS_LOGE("RSTextureExport::DoTextureExport rootNode is not textureExportNode");
-        return false;
+        rootNode_->SyncTextureExport(true);
     }
     rsUiDirector_->StartTextureExport();
     if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {

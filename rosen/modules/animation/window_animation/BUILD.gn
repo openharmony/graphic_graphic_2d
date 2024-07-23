@@ -41,7 +41,6 @@ ohos_shared_library("window_animation") {
     "ipc:ipc_core",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

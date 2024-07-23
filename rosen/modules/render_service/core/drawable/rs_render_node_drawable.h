@@ -61,10 +61,7 @@ public:
         return isOpDropped_;
     }
 
-    inline bool ShouldPaint() const
-    {
-        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
-    }
+    bool ShouldPaint() const;
 
     // opinc switch
     bool IsOpincRenderCacheEnable();
@@ -138,11 +135,10 @@ protected:
     // opinc global state
     static inline bool autoCacheEnable_ = false;
     static inline bool autoCacheDrawingEnable_ = false;
-    static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
-    static inline bool isDiscardSurface_ = true;
+    thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
-    static inline bool isOpincDropNodeExt_ = true;
-    static inline int opincRootTotalCount_ = 0;
+    thread_local static inline bool isOpincDropNodeExt_ = true;
+    thread_local static inline int opincRootTotalCount_ = 0;
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -157,10 +153,13 @@ protected:
     const std::shared_ptr<RSFilter>& rsFilter = nullptr);
     void ClearCachedSurface();
 
-    bool CheckIfNeedUpdateCache(RSRenderParams& params);
+    bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
 
+    static int GetProcessedNodeCount();
+    static void ProcessedNodeCountInc();
+    static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
 
 private:
@@ -182,6 +181,7 @@ private:
 
     static thread_local bool isOpDropped_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
+    static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
 
     // opinc cache state
@@ -198,6 +198,11 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
+    bool isOpincMarkCached_ = false;
+    bool OpincGetCachedMark() const
+    {
+        return isOpincMarkCached_;
+    }
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

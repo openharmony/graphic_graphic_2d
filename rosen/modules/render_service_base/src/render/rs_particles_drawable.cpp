@@ -75,6 +75,9 @@ Drawing::RSXform RSParticlesDrawable::MakeRSXform(Vector2f center, Vector2f posi
 void RSParticlesDrawable::CaculatePointAtlsArry(
     const std::shared_ptr<RSRenderParticle>& particle, Vector2f position, float opacity, float scale)
 {
+    if (particle == nullptr) {
+        return;
+    }
     if (circleImage_ == nullptr) {
         circleImage_ = MakeCircleImage(DEFAULT_RADIUS);
     }
@@ -92,18 +95,25 @@ void RSParticlesDrawable::CaculatePointAtlsArry(
 void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
     const std::shared_ptr<RSRenderParticle>& particle, Vector2f position, float opacity, float scale)
 {
-    auto imageSize = particle->GetImageSize();
-    auto spin = particle->GetSpin();
-    auto imageIndex = particle->GetImageIndex();
+    if (particle == nullptr) {
+        return;
+    }
     auto image = particle->GetImage();
+    if (image == nullptr) {
+        return;
+    }
     auto pixelmap = image->GetPixelMap();
+    if (pixelmap == nullptr) {
+        return;
+    }
+    auto imageIndex = particle->GetImageIndex();
     if (imageIndex >= imageCount_) {
         return;
     }
+    auto imageSize = particle->GetImageSize();
+    auto spin = particle->GetSpin();
     float left = position.x_;
     float top = position.y_;
-    float right = position.x_ + imageSize.x_ * scale;
-    float bottom = position.y_ + imageSize.y_ * scale;
     float width = imageSize.x_;
     float height = imageSize.y_;
     RectF destRect(left, top, width, height);
@@ -121,20 +131,39 @@ void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
         imageColors_[imageIndex].push_back(Drawing::Color(color.AsArgbInt()).CastToColorQuad());
         count_[imageIndex]++;
     } else {
-        canvas.Save();
-        canvas.Translate(position.x_, position.y_);
-        canvas.Rotate(spin, imageSize.x_ * scale / DOUBLE, imageSize.y_ * scale / DOUBLE);
-        image->SetScale(scale);
-        image->SetImageRepeat(0);
-        Drawing::Rect rect { left, top, right, bottom };
-        Drawing::Brush brush;
-        brush.SetAntiAlias(true);
-        brush.SetAlphaF(opacity);
-        canvas.AttachBrush(brush);
-        image->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
-        canvas.DetachBrush();
-        canvas.Restore();
+        DrawImageFill(canvas, particle, position, opacity, scale);
     }
+}
+
+void RSParticlesDrawable::DrawImageFill(Drawing::Canvas& canvas, const std::shared_ptr<RSRenderParticle>& particle,
+    Vector2f position, float opacity, float scale)
+{
+    if (particle == nullptr) {
+        return;
+    }
+    auto image = particle->GetImage();
+    if (image == nullptr) {
+        return;
+    }
+    auto imageSize = particle->GetImageSize();
+    auto spin = particle->GetSpin();
+    float left = position.x_;
+    float top = position.y_;
+    float right = position.x_ + imageSize.x_ * scale;
+    float bottom = position.y_ + imageSize.y_ * scale;
+    canvas.Save();
+    canvas.Translate(position.x_, position.y_);
+    canvas.Rotate(spin, imageSize.x_ * scale / DOUBLE, imageSize.y_ * scale / DOUBLE);
+    image->SetScale(scale);
+    image->SetImageRepeat(0);
+    Drawing::Rect rect { left, top, right, bottom };
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    brush.SetAlphaF(opacity);
+    canvas.AttachBrush(brush);
+    image->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    canvas.DetachBrush();
+    canvas.Restore();
 }
 
 void RSParticlesDrawable::Draw(Drawing::Canvas& canvas, std::shared_ptr<RectF> bounds)

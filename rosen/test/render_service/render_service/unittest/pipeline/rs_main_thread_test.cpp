@@ -388,7 +388,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
     rsTransactionData->SetSyncId(1);
-    mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
@@ -408,7 +407,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     rsTransactionData->MarkNeedSync();
     rsTransactionData->MarkNeedCloseSync();
     rsTransactionData->SetSyncTransactionNum(1);
-    mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
@@ -424,22 +422,15 @@ HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     auto rsTransactionData = std::make_unique<RSTransactionData>();
 
-    mainThread->syncTransactionCount_ = 1;
     rsTransactionData->SetParentPid(-1);
-    rsTransactionData->SetChildPid(-1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     auto parentPid = rsTransactionData->GetParentPid();
-    auto childPid = rsTransactionData->GetChildPid();
     ASSERT_EQ(parentPid, -1);
-    ASSERT_EQ(childPid, -1);
 
-    mainThread->syncTransactionCount_ = 1;
     rsTransactionData->SetSyncTransactionNum(1);
-    rsTransactionData->SetParentPid(1);
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     ASSERT_EQ(rsTransactionData->GetSyncTransactionNum(), 1);
 
-    mainThread->syncTransactionCount_ = 0;
     rsTransactionData->MarkNeedCloseSync();
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
     mainThread->ProcessEmptySyncTransactionCount(0, 0, 0);
@@ -1380,25 +1371,6 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckIfHardwareForcedDisabled();
 }
-
-/**
- * @tc.name: WaitUntilDisplayNodeBufferReleased
- * @tc.desc: WaitUntilDisplayNodeBufferReleased test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, WaitUntilDisplayNodeBufferReleased, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    sptr<IConsumerSurface> csurf = IConsumerSurface::Create();
-    node->SetConsumer(csurf);
-    mainThread->WaitUntilDisplayNodeBufferReleased(*node);
-}
-
 
 /**
  * @tc.name: WaitUntilUnmarshallingTaskFinished001
@@ -3386,5 +3358,36 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
+}
+
+/**
+ * @tc.name: UIExtensionNodesTraverseAndCallback001
+ * @tc.desc: test UIExtensionNodesTraverseAndCallback, no need to callback
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = true;
+    mainThread->uiExtensionCallbackData_.clear();
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+}
+
+/**
+ * @tc.name: UIExtensionNodesTraverseAndCallback002
+ * @tc.desc: test UIExtensionNodesTraverseAndCallback, empty callback list
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = false;
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
 }
 } // namespace OHOS::Rosen

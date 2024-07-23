@@ -214,6 +214,7 @@ const bool RSProperties::FilterCacheEnabled = false;
 #endif
 
 const bool RSProperties::IS_UNI_RENDER = RSUniRenderJudgement::IsUniRender();
+const bool RSProperties::FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
 RSProperties::RSProperties()
 {
@@ -1625,11 +1626,11 @@ std::string RSProperties::GetFgBrightnessDescription() const
     }
     std::string description =
         "ForegroundBrightness, cubicCoeff: " + std::to_string(fgBrightnessParams_->rates_.x_) +
-        " quadCoeff: " + std::to_string(fgBrightnessParams_->rates_.y_) +
-        " rate: " + std::to_string(fgBrightnessParams_->rates_.z_) +
-        " lightUpDegree: " + std::to_string(fgBrightnessParams_->rates_.w_) +
-        " saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
-        " fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_);
+        ", quadCoeff: " + std::to_string(fgBrightnessParams_->rates_.y_) +
+        ", rate: " + std::to_string(fgBrightnessParams_->rates_.z_) +
+        ", lightUpDegree: " + std::to_string(fgBrightnessParams_->rates_.w_) +
+        ", saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
+        ", fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_);
     return description;
 }
 
@@ -1640,11 +1641,11 @@ std::string RSProperties::GetBgBrightnessDescription() const
     }
     std::string description =
         "BackgroundBrightnessInternal, cubicCoeff: " + std::to_string(bgBrightnessParams_->rates_.x_) +
-        " quadCoeff: " + std::to_string(bgBrightnessParams_->rates_.y_) +
-        " rate: " + std::to_string(bgBrightnessParams_->rates_.z_) +
-        " lightUpDegree: " + std::to_string(bgBrightnessParams_->rates_.w_) +
-        " saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
-        " fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_);
+        ", quadCoeff: " + std::to_string(bgBrightnessParams_->rates_.y_) +
+        ", rate: " + std::to_string(bgBrightnessParams_->rates_.z_) +
+        ", lightUpDegree: " + std::to_string(bgBrightnessParams_->rates_.w_) +
+        ", saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
+        ", fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_);
     return description;
 }
 
@@ -1760,7 +1761,7 @@ const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 bool RSProperties::IsDynamicDimValid() const
 {
     return dynamicDimDegree_.has_value() &&
-           ROSEN_GE(*dynamicDimDegree_, 0.0) && ROSEN_LE(*dynamicDimDegree_, 1.0);
+           ROSEN_GE(*dynamicDimDegree_, 0.0) && ROSEN_LNE(*dynamicDimDegree_, 1.0);
 }
 
 const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
@@ -2198,9 +2199,9 @@ void RSProperties::ResetDirty()
 
 void RSProperties::RecordCurDirtyStatus()
 {
-    curIsDirty_ = false;
-    curGeoDirty_ = false;
-    curContentDirty_ = false;
+    curIsDirty_ = isDirty_;
+    curGeoDirty_ = geoDirty_;
+    curContentDirty_ = contentDirty_;
 }
 
 void RSProperties::AccmulateDirtyStatus()
@@ -2218,6 +2219,11 @@ bool RSProperties::IsDirty() const
 bool RSProperties::IsGeoDirty() const
 {
     return geoDirty_;
+}
+
+bool RSProperties::IsCurGeoDirty() const
+{
+    return curGeoDirty_;
 }
 
 bool RSProperties::IsContentDirty() const
@@ -2793,7 +2799,7 @@ void RSProperties::GenerateForegroundBlurFilter()
     if (greyCoef_.has_value()) {
         std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
-        std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
+        originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
     if (RSSystemProperties::GetHpsBlurEnabled() && false) {
@@ -4115,12 +4121,14 @@ void RSProperties::UpdateFilter()
         filter_.reset();
     }
 
-    UpdateForegroundFilter();
+    if (FOREGROUND_FILTER_ENABLED) {
+        UpdateForegroundFilter();
+    }
 
     needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                  foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
+                  foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
                   IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
                   magnifierPara_.has_value();
 }

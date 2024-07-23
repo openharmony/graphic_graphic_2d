@@ -29,7 +29,7 @@ struct RoiRegionInfo {
 };
 
 struct RoiRegions {
-    uint32_t regionCnt;
+    uint32_t regionCnt = 0;
     RoiRegionInfo regions[ROI_REGIONS_MAX_CNT];
 };
 
@@ -44,11 +44,10 @@ public:
     RSUniRenderVirtualProcessor() = default;
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
-    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
+    bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+    void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
-    void CalculateTransform(RSDisplayRenderNode& node);
-    void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas);
@@ -69,16 +68,23 @@ public:
     {
         return mirrorScaleY_;
     }
-    Drawing::Matrix GetCanvasMatrix() const
+    const Drawing::Matrix& GetCanvasMatrix() const
     {
         return canvasMatrix_;
     }
-    void SetDirtyInfo(std::vector<RectI>& damageRegion_);
+    void SetDirtyInfo(std::vector<RectI>& damageRegion);
     int32_t GetBufferAge() const;
+    // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
+    GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
+    bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    void CalculateTransform(RSDisplayRenderNode& node);
+    void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
+    void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
 private:
+    void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasInit(RSDisplayRenderNode& node);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
-    GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
@@ -89,6 +95,11 @@ private:
     float mirrorHeight_ = 0.f;
     float mainWidth_ = 0.f;
     float mainHeight_ = 0.f;
+    float virtualScreenWidth_ = 0.f;
+    float virtualScreenHeight_ = 0.f;
+    float mirroredScreenWidth_ = 0.f;
+    float mirroredScreenHeight_ = 0.f;
+    bool updateFlag_ = false;
     bool canvasRotation_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
@@ -96,6 +107,9 @@ private:
     float mirrorScaleX_ = 1.0f;
     float mirrorScaleY_ = 1.0f;
     Drawing::Matrix canvasMatrix_;
+    sptr<RSScreenManager> screenManager_ = nullptr;
+    ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
+    ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;
 };
 } // namespace Rosen
 } // namespace OHOS

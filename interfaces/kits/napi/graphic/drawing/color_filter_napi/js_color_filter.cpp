@@ -32,6 +32,7 @@ napi_value JsColorFilter::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("createLinearToSRGBGamma", JsColorFilter::CreateLinearToSRGBGamma),
         DECLARE_NAPI_STATIC_FUNCTION("createSRGBGammaToLinear", JsColorFilter::CreateSRGBGammaToLinear),
         DECLARE_NAPI_STATIC_FUNCTION("createLumaColorFilter", JsColorFilter::CreateLumaColorFilter),
+        DECLARE_NAPI_STATIC_FUNCTION("createMatrixColorFilter", JsColorFilter::CreateMatrixColorFilter)
     };
 
     napi_value constructor = nullptr;
@@ -110,18 +111,30 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
 {
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-
-    int32_t argb[ARGC_FOUR] = {0};
-    if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
-        ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+    bool isJsColor = false;
+    ColorQuad color;
+    napi_has_named_property(env, argv[ARGC_ZERO], JSPROPERTY[0], &isJsColor);
+    if (isJsColor) {
+        int32_t argb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+            ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[0] is invalid");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter verification failed. The range of color channels must be [0, 255].");
+        }
+        color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+    } else {
+        uint32_t hexNumber = 0;
+        GET_UINT32_PARAM(ARGC_ZERO, hexNumber);
+        uint32_t alpha = (hexNumber >> 24) & 0xFF;
+        uint32_t red = (hexNumber >> 16) & 0xFF;
+        uint32_t green = (hexNumber >> 8) & 0xFF;
+        uint32_t blue = hexNumber & 0xFF;
+        color = Color::ColorQuadSetARGB(alpha, red, green, blue);
     }
 
     int32_t jsMode = 0;
     GET_ENUM_PARAM(ARGC_ONE, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
-    auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateBlendModeColorFilter(color, BlendMode(jsMode));
     return JsColorFilter::Create(env, colorFilter);
 }
@@ -163,6 +176,41 @@ napi_value JsColorFilter::CreateSRGBGammaToLinear(napi_env env, napi_callback_in
 napi_value JsColorFilter::CreateLumaColorFilter(napi_env env, napi_callback_info info)
 {
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLumaColorFilter();
+    return JsColorFilter::Create(env, colorFilter);
+}
+
+napi_value JsColorFilter::CreateMatrixColorFilter(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    uint32_t arrayLength = 0;
+    if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
+    }
+    if (arrayLength != ColorMatrix::MATRIX_SIZE) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "parameter array length verification failed.");
+    }
+
+    scalar matrix[ColorMatrix::MATRIX_SIZE];
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[ARGC_ZERO], i, &hasElement);
+        if (!hasElement) {
+            ROSEN_LOGE("JsColorFilter::CreateMatrixColorFilter parameter check error");
+            return nullptr;
+        }
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[ARGC_ZERO], i, &element);
+
+        double value = 0;
+        ConvertFromJsNumber(env, element, value);
+        matrix[i] = value;
+    }
+
+    std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateFloatColorFilter(matrix);
     return JsColorFilter::Create(env, colorFilter);
 }
 

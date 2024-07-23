@@ -39,21 +39,26 @@ class RSRenderThreadParams;
 class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable, public RSSurfaceHandler {
+class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
-    bool EnableRecordingOptimization(RSRenderParams& params);
+    bool CheckIfSurfaceSkipInMirror(const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams);
+    void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
+    void ResetVirtualScreenWhiteListRootId(NodeId id);
+    bool EnableRecordingOptimization(const RSSurfaceRenderParams& surfaceParams);
 
     void SubDraw(Drawing::Canvas& canvas);
+    void ClipRoundRect(Drawing::Canvas& canvas);
 
     void UpdateCacheSurface();
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
@@ -174,6 +179,16 @@ public:
         return hasHdrPresent_;
     }
 
+    void SetDisplayNit(int32_t displayNit)
+    {
+        displayNit_ = displayNit;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
     void SetBrightnessRatio(float brightnessRatio)
     {
         brightnessRatio_ = brightnessRatio;
@@ -182,6 +197,26 @@ public:
     float GetBrightnessRatio() const
     {
         return brightnessRatio_;
+    }
+
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
+    void SetScreenId(ScreenId screenId)
+    {
+        screenId_ = screenId;
+    }
+
+    GraphicColorGamut GetTargetColorGamut() const
+    {
+        return targetColorGamut_;
+    }
+
+    void SetTargetColorGamut(GraphicColorGamut colorGamut)
+    {
+        targetColorGamut_ = colorGamut;
     }
 
     void SetSubThreadSkip(bool isSubThreadSkip)
@@ -197,59 +232,75 @@ public:
 
     uint64_t GetTaskFrameCount() const;
 
-    std::shared_ptr<RSSurfaceRenderNode> GetSurfaceRenderNode() const;
-
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
+    void SetGlobalDirtyRegion(const RectI& rect);
+    const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
-    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
-    void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
-        RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
+    void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
+    std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerUiFirstOnDraw()
+    {
+        return surfaceHandlerUiFirst_;
+    }
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IConsumerSurface> GetConsumerOnDraw() const
+    {
+        return consumerOnDraw_;
+    }
+    void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
+#endif
+    bool IsHardwareEnabledTopSurface() const
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
+    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
-    void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
-    bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
-        RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
+    void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
+    bool DealWithUIFirstCache(
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
+    void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
+    void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    void CaptureSurface(RSSurfaceRenderNode& surfaceNode,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-
-    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
-        RSSurfaceRenderParams* surfaceParams,
-        std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
-        RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
-        bool isOffscreen) const;
+    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
+    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+        RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
+    bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
     std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
+    // To be deleted after captureWindow being deleted
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DealWithHdr(RSSurfaceRenderNode& surfaceNode, const RSSurfaceRenderParams& surfaceParams);
+    void DealWithHdr(const RSSurfaceRenderParams& surfaceParams);
 #endif
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
 
+    // dirty manager
+    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
+
     // DMA Buffer
     bool DrawUIFirstCacheWithDma(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
-    void DrawSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
+    void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
+
+    RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
@@ -261,6 +312,7 @@ private:
     bool surfaceCreated_ = false;
 
     // UIFIRST
+    std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
@@ -281,7 +333,11 @@ private:
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     bool hasHdrPresent_ = false;
+    // hdr
+    int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // 1.of means no discount.
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
     uint64_t frameCount_ = 0;
     bool isSubThreadSkip_ = false;
 
@@ -293,6 +349,22 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
     int maxRenderSize_ = 0;
     std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
+
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
+#endif
+
+    // dirty manager
+    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
+    Occlusion::Region visibleDirtyRegion_;
+    Occlusion::Region alignedVisibleDirtyRegion_;
+    bool isDirtyRegionAlignedEnable_ = false;
+    Occlusion::Region globalDirtyRegion_;
+    bool globalDirtyRegionIsEmpty_ = false;
+
+    // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
+    Occlusion::Region dirtyRegionBelowCurrentLayer_;
+    bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

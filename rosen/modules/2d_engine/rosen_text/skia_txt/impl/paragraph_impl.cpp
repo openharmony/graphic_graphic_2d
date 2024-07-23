@@ -76,6 +76,11 @@ double ParagraphImpl::GetLongestLine()
     return paragraph_->getLongestLine();
 }
 
+double ParagraphImpl::GetLongestLineWithIndent()
+{
+    return paragraph_->getLongestLineWithIndent();
+}
+
 double ParagraphImpl::GetMinIntrinsicWidth()
 {
     return paragraph_->getMinIntrinsicWidth();
@@ -330,6 +335,18 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
     std::unique_ptr<ParagraphImpl> paragraph = std::make_unique<ParagraphImpl>(std::move(sktParagraph),
         std::move(paints));
     return paragraph;
+}
+
+void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
+{
+    if (!paragraph_) {
+        return;
+    }
+    auto unresolvedPaintID = paragraph_->updateColor(from, to,
+        SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()));
+    for (auto paintID : unresolvedPaintID) {
+        paints_[paintID].SetColor(color);
+    }
 }
 
 } // namespace SPText

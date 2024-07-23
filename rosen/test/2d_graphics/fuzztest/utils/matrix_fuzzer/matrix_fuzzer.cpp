@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <securec.h>
 
 #include "get_object.h"
+#include "skia_adapter/skia_canvas.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -27,10 +28,15 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t ELEMENT_SIZE = 9;
+constexpr size_t ARRAY_MAX_SIZE = 5000;
+constexpr size_t MATH_TWO = 2;
+constexpr size_t MATH_ONE = 1;
+constexpr size_t MATH_FORE = 4;
+constexpr size_t MATH_NINE = 9;
 } // namespace
 
 namespace Drawing {
-bool MatrixFuzzTest(const uint8_t* data, size_t size)
+bool MatrixFuzzTest000(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -42,12 +48,114 @@ bool MatrixFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     uint32_t index = GetObject<uint32_t>();
+    scalar sx = GetObject<scalar>();
+    scalar sy = GetObject<scalar>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+
     Matrix matrix;
     if (index < ELEMENT_SIZE) { // default matrix is 3x3 identity matrix
         matrix.Get(index);
         return true;
     }
+    matrix.Skew(sx, sy);
+    matrix.Rotate(sx, sy, dx);
+    matrix.Translate(dx, dy);
+    matrix.Scale(sx, sy, dx, dy);
+    matrix.SetScale(sx, sy);
+    matrix.SetScaleTranslate(sx, sy, dx, dy);
+    matrix.SetSkew(sx, sy);
+    matrix.SetSkew(sx, sy, dx, dy);
+    matrix.PreRotate(dx);
+    matrix.PostRotate(dx);
+    matrix.PostRotate(sx, sy, dx);
+    matrix.PreTranslate(dx, dy);
+    matrix.PostTranslate(dx, dy);
+    matrix.PreScale(sx, sy);
+    matrix.PostScale(sx, sy);
+    matrix.PreSkew(dx, dy);
+    matrix.PostSkew(dx, dy);
+    matrix.PreSkew(dx, dy, sx, sy);
+    matrix.PostSkew(dx, dy, sx, sy);
+    matrix.PostScale(dx, dy, sx, sy);
     return false;
+}
+
+void MatrixFuzzTest001(const uint8_t* data, size_t size)
+{
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    scalar sx = GetObject<scalar>();
+    scalar sy = GetObject<scalar>();
+    scalar sz = GetObject<scalar>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    scalar dz = GetObject<scalar>();
+    scalar tx = GetObject<scalar>();
+    scalar ty = GetObject<scalar>();
+    scalar tz = GetObject<scalar>();
+    uint32_t stf = GetObject<uint32_t>() % MATH_FORE;
+    uint32_t index = GetObject<uint32_t>() % MATH_NINE;
+
+    Matrix matrix;
+    Matrix other = Matrix(matrix);
+    Matrix other1 = matrix;
+    Matrix44 matrix44;
+    matrix.PreConcat(other);
+    matrix.PreConcat(matrix44);
+    matrix.PostConcat(other);
+    matrix.PostConcat(matrix44);
+    matrix.Invert(other);
+    matrix.SetMatrix(tx, ty, tz, sx, sy, sz, dx, dy, dz);
+    Rect src;
+    Rect dst;
+    matrix.SetRectToRect(src, dst, static_cast<ScaleToFit>(stf));
+    matrix.MapRect(dst, src);
+    matrix.Set(static_cast<Matrix::Index>(index), dx);
+    matrix.IsIdentity();
+    matrix.PreRotate(dx, dy, sx);
+    matrix.PreScale(dx, dy, sx, sy);
+    matrix.Reset();
+    matrix.HasPerspective();
+    matrix.Swap(other);
+    if (other == matrix) {}
+    Matrix other2 = other * other1;
+}
+
+void MatrixFuzzTest002(const uint8_t* data, size_t size)
+{
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    scalar xRad = GetObject<scalar>();
+    scalar yRad = GetObject<scalar>();
+    uint32_t array_size = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
+
+    Matrix matrix;
+    std::vector<Point> dst = { {xRad, yRad} };
+    std::vector<Point> src = { {xRad, yRad} };
+    Point src1[array_size];
+    Point dst1[array_size];
+    for (size_t i = 0; i< array_size; i++) {
+        src1[i].Set(xRad, yRad);
+        dst1[i].Set(xRad, yRad);
+    }
+    matrix.MapPoints(dst, src, MATH_ONE);
+    matrix.SetPolyToPoly(src1, dst1, array_size);
+    Matrix::Buffer buffer;
+    for (size_t i = 0; i < Matrix::MATRIX_SIZE; i++) {
+        buffer[i] = GetObject<scalar>();
+    }
+    matrix.SetAll(buffer);
+    matrix.GetAll(buffer);
+    matrix.GetImpl<SkiaMatrix>();
+    scalar scaleFactors[MATH_TWO] = {xRad, yRad};
+    matrix.GetMinMaxScales(scaleFactors);
 }
 } // namespace Drawing
 } // namespace Rosen
@@ -57,6 +165,8 @@ bool MatrixFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::MatrixFuzzTest(data, size);
+    OHOS::Rosen::Drawing::MatrixFuzzTest000(data, size);
+    OHOS::Rosen::Drawing::MatrixFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::MatrixFuzzTest002(data, size);
     return 0;
 }

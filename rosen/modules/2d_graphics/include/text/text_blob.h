@@ -76,6 +76,14 @@ public:
 
     uint32_t UniqueID() const;
 
+    bool IsEmoji() {
+        return this->isEmoji;
+    }
+ 
+    void SetEmoji(bool emoji) {
+        this->isEmoji = emoji;
+    }
+
     class Context {
     public:
         explicit Context(std::shared_ptr<Typeface> typeface, bool isCustomTypeface) noexcept
@@ -107,6 +115,7 @@ public:
 
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;
+    bool isEmoji = false;
 };
 } // namespace Drawing
 } // namespace Rosen

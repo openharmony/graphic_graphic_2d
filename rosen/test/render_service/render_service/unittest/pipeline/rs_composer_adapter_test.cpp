@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_composer_adapter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_test_util.h"
@@ -127,7 +128,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     std::vector<std::shared_ptr<HdiLayerInfo>> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
-    auto& consumer = surfaceNode1->GetConsumer();
+    auto consumer = surfaceNode1->GetRSSurfaceHandler()->GetConsumer();
     GraphicExtDataHandle handle;
     handle.fd = -1;
     handle.reserveInts = 1;
@@ -308,8 +309,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Leve
     auto& property = surfaceNode1->GetMutableRenderProperties();
     EXPECT_NE(&property, nullptr);
     property.SetBounds({ 0, 0, 200, 400 });
-    surfaceNode1->GetConsumer()->SetScalingMode(surfaceNode1->GetBuffer()->GetSeqNum(),
-        ScalingMode::SCALING_MODE_SCALE_CROP);
+    surfaceNode1->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(
+        surfaceNode1->GetRSSurfaceHandler()->GetBuffer()->GetSeqNum(), ScalingMode::SCALING_MODE_SCALE_CROP);
     CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
@@ -334,7 +335,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
     metaData.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_X;
     metaData.value = 1.0f;
     std::vector<uint8_t> metaDataVec(2, 128); // mock virtual metaData;
-    surfaceNode1->GetConsumer()->SetMetaData(surfaceNode1->GetBuffer()->GetSeqNum(), {{metaData}});
+    surfaceNode1->GetRSSurfaceHandler()->GetConsumer()->SetMetaData(
+        surfaceNode1->GetRSSurfaceHandler()->GetBuffer()->GetSeqNum(), { { metaData } });
     auto& property = surfaceNode1->GetMutableRenderProperties();
     EXPECT_NE(&property, nullptr);
     property.SetBounds({ 0, 0, 200, 400 });
@@ -362,7 +364,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
     metaData.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_X;
     metaData.value = 1.0f;
     std::vector<uint8_t> metaDataVec(2, 128); // mock virtual metaData;
-    surfaceNode1->GetConsumer()->SetMetaData(surfaceNode1->GetBuffer()->GetSeqNum(), {{metaData}});
+    surfaceNode1->GetRSSurfaceHandler()->GetConsumer()->SetMetaData(
+        surfaceNode1->GetRSSurfaceHandler()->GetBuffer()->GetSeqNum(), { { metaData } });
     auto& property = surfaceNode1->GetMutableRenderProperties();
     EXPECT_NE(&property, nullptr);
     property.SetBounds({ 0, 0, 200, 400 });
@@ -392,8 +395,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
     auto& property = surfaceNode1->GetMutableRenderProperties();
     EXPECT_NE(&property, nullptr);
     property.SetBounds({ 0, 0, 200, 400 });
-    surfaceNode1->GetConsumer()->SetScalingMode(surfaceNode1->GetBuffer()->GetSeqNum(),
-        ScalingMode::SCALING_MODE_SCALE_CROP);
+    surfaceNode1->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(
+        surfaceNode1->GetRSSurfaceHandler()->GetBuffer()->GetSeqNum(), ScalingMode::SCALING_MODE_SCALE_CROP);
     CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
@@ -437,12 +440,14 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSDisplayRenderNode node(nodeId, config);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    node.SetConsumer(consumer);
+    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    node.SetBuffer(buffer, acquireFence, damage, timestamp);
+    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
     composerAdapter_->CreateLayer(node);
 }
 
@@ -460,9 +465,9 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest |
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     layer->IsSupportedPresentTimestamp_ = false;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
@@ -482,9 +487,9 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest |
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     layer->IsSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
@@ -522,7 +527,7 @@ HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     PrepareCompleteParam para;
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
     composerAdapter_->OnPrepareComplete(sProducer, para, nullptr);

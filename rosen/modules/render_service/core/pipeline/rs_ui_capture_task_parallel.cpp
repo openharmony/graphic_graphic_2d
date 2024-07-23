@@ -47,10 +47,11 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY)
+void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     std::shared_ptr<RSUiCaptureTaskParallel> captureHandle =
-        std::make_shared<RSUiCaptureTaskParallel>(id, scaleX, scaleY);
+        std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     if (captureHandle == nullptr) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture captureHandle is nullptr!");
         callback->OnSurfaceCapture(id, nullptr);
@@ -63,16 +64,19 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
     }
 
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
+        RSSystemProperties::SetForceHpsBlurDisabled(true);
         if (!captureHandle->Run(callback)) {
             callback->OnSurfaceCapture(id, nullptr);
         }
+        RSSystemProperties::SetForceHpsBlurDisabled(false);
     };
     RSUniRenderThread::Instance().PostTask(captureTask);
 }
 
 bool RSUiCaptureTaskParallel::CreateResources()
 {
-    if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
+    if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }
@@ -139,13 +143,14 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     }
 
     RSPaintFilterCanvas canvas(surface.get());
-    canvas.Scale(scaleX_, scaleY_);
+    canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
+    canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
     if (nodeParams) {
         Drawing::Matrix relativeMatrix = Drawing::Matrix();
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, scaleX_);
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, scaleY_);
+        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
+        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
         Drawing::Matrix invertMatrix;
         if (nodeParams->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
@@ -155,14 +160,16 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
     }
 
-    RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, scaleX_, scaleY_, true));
+    RSUniRenderThread::SetCaptureParam(
+        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-        auto copytask = RSSurfaceCaptureTaskParallel::CreateSurfaceCopyTaskWithDMA(surface, std::move(pixelMap_),
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
+        auto copytask = RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, callback);
         if (!copytask) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: create capture task failed!");
@@ -196,14 +203,14 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * scaleX_);
-    opts.size.height = ceil(pixmapHeight * scaleY_);
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        scaleX_, scaleY_);
+        captureConfig_.scaleX, captureConfig_.scaleY);
     return Media::PixelMap::Create(opts);
 }
 

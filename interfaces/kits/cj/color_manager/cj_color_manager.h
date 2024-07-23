@@ -25,7 +25,7 @@ namespace ColorManager {
 class CjColorManager : public OHOS::FFI::FFIData {
 public:
     explicit CjColorManager(std::shared_ptr<ColorSpace> ptr);
-    virtual ~CjColorManager()
+    ~CjColorManager() override
     {
         colorSpaceToken_ = nullptr;
     }

@@ -15,7 +15,7 @@
 
 #include "drawing_font.h"
 
-#include "drawing_canvas_utils.h"
+#include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
 #include "text/font.h"
@@ -230,6 +230,22 @@ void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyp
     CastToFont(*cFont).GetWidths(glyphs, count, widths);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font* cFont, const char* str,
+    float* textWidth)
+{
+    if (cFont == nullptr || str == nullptr || textWidth == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    *textWidth = CastToFont(*cFont).MeasureSingleCharacter(unicode);
+    return OH_DRAWING_SUCCESS;
+}
+
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* cFont, const void* text, size_t byteLength,
     OH_Drawing_TextEncoding encoding, OH_Drawing_Rect* bounds, float* textWidth)
 {
@@ -315,7 +331,7 @@ void OH_Drawing_FontSetScaleX(OH_Drawing_Font* cFont, float scaleX)
 float OH_Drawing_FontGetScaleX(const OH_Drawing_Font* cFont)
 {
     const Font* font = CastToFont(cFont);
-    if (cFont == nullptr) {
+    if (font == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return -1.0f;
     }
@@ -351,7 +367,7 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
 {
     float ret = -1;
     Font* font = CastToFont(cFont);
-    if (cFont == nullptr || cFontMetrics == nullptr) {
+    if (font == nullptr || cFontMetrics == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return ret;
     }

@@ -72,6 +72,7 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     }
     // The smallest value of t, which is the first time the particle will reach the boundary.
     float tEdge = *std::min_element(times.begin(), times.end());
+    
     // Calculates the distance to the border.
     float distance = std::sqrt(std::pow(tEdge * direction.x_, 2) + std::pow(tEdge * direction.y_, 2));
     return distance;

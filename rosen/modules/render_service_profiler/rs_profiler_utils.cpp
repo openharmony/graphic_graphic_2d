@@ -417,6 +417,7 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     if (path == "RECORD_IN_MEMORY") {
         if (options == "wbe") {
             g_recordInMemory.str("");
+            g_recordInMemory.clear();
         }
         g_recordInMemory.seekg(0);
         g_recordInMemory.seekp(0);
@@ -444,6 +445,8 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 void Utils::FileClose(FILE* file)
 {
     if (file == g_recordInMemoryFile) {
+        g_recordInMemory.str("");
+        g_recordInMemory.clear();
         return;
     }
     if (fflush(file) != 0) {

@@ -159,6 +159,8 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
     int32_t bufferLen, ImageStructVec& imgVec);
 
 bool CloseZipFile(const unzFile zipFile, bool ret);
+
+int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

@@ -297,6 +297,10 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 #endif
             break;
         }
+        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
+            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+            break;
+        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
@@ -1094,14 +1098,6 @@ void OH_Drawing_SetTypographyTextEllipsisModal(OH_Drawing_TypographyStyle* style
     #else
         ConvertToOriginalText<TypographyStyle>(style)->ellipsisModal = rosenEllipsisModal;
     #endif
-    if (!ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK) {
-        #ifndef USE_GRAPHIC_TEXT_GINE
-            ConvertToOriginalText<TypographyStyle>(style)->ellipsis_ = TypographyStyle::ELLIPSIS;
-        #else
-            ConvertToOriginalText<TypographyStyle>(style)->ellipsis = TypographyStyle::ELLIPSIS;
-        #endif
-        ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK = true;
-    }
 }
 
 double OH_Drawing_TypographyGetLineHeight(OH_Drawing_Typography* typography, int lineNumber)
@@ -1875,7 +1871,6 @@ void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, con
 #else
     ConvertToOriginalText<TypographyStyle>(style)->ellipsis = u16Ellipsis;
 #endif
-    ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK = true;
 }
 
 void OH_Drawing_TextStyleSetBackgroundRect(OH_Drawing_TextStyle* style, const OH_Drawing_RectStyle_Info* rectStyleInfo,
@@ -2401,7 +2396,10 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string str = convert.to_bytes(buffer);
     char* result = new char[str.size()+1];
-    strcpy(result, str.c_str());
+    if (strcpy_s(result, str.size() + 1, str.c_str()) != 0) {
+        delete[] result;
+        return nullptr;
+    }
     return result;
 }
 
@@ -2880,10 +2878,11 @@ static bool CopyDrawingFontGenericInfoSetInner(OH_Drawing_FontGenericInfo** font
 static bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInfo,
     const TextEngine::FallbackInfo& fallbackInfo, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
+    if (!fallbackInfo.font.empty() && !CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
         return false;
     }
-    if (!CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
+    if (!fallbackInfo.familyName.empty() &&
+        !CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
         return false;
     }
     return true;
@@ -3474,4 +3473,15 @@ void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox* textBox)
     }
     delete textRectArr;
     textRectArr = nullptr;
+}
+
+void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const char* axis, const float value)
+{
+    if (style == nullptr || axis == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle) {
+        convertStyle->fontVariations.SetAxisValue(axis, value);
+    }
 }

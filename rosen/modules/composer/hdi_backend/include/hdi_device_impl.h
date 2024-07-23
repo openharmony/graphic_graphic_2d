@@ -101,6 +101,8 @@ public:
     int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
                         uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
+    int32_t ClearLayerBuffer(uint32_t screenId, uint32_t layerId) override;
+    int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
 
 private:

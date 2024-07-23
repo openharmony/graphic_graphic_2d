@@ -29,16 +29,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class FontEdging {
-    ALIAS,
-    ANTI_ALIAS,
-    SUBPIXEL_ANTI_ALIAS,
-};
-
 class DRAWING_API Font {
 public:
     Font();
     Font(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX);
+    Font(const Font& font);
     virtual ~Font() = default;
 
     /**
@@ -148,7 +143,7 @@ public:
      * @brief         Returns Typeface if set, or nullptr.
      * @return        Typeface if previously set, nullptr otherwise.
      */
-    std::shared_ptr<Typeface> GetTypeface();
+    std::shared_ptr<Typeface> GetTypeface() const;
 
     /**
      * @brief         Get font edge pixels pattern.
@@ -237,6 +232,20 @@ public:
      * @return            The width of text.
      */
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr) const;
+
+    /**
+     * @brief          Measure the width of a single character.
+     * @param unicode  unicode encoding of a single character.
+     * @return         The width of a single character.
+     */
+    scalar MeasureSingleCharacter(int32_t unicode) const;
+
+    /**
+     * @brief          Gets a font where you can draw a single character.
+     * @param unicode  unicode encoding of a single character.
+     * @return         A pointer to font, if nullptr is returned, get failed.
+     */
+    std::shared_ptr<Font> GetFallbackFont(int32_t unicode) const;
 
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
 

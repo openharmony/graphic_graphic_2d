@@ -25,16 +25,16 @@ config("vsync_config") {
     "-g3",
   ]
 
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    ldflags = [ "-Wl,-Bsymbolic" ]
-  }
-
   if (graphic_2d_feature_enable_dvsync) {
     gpu_defines += [ "RS_ENABLE_DVSYNC" ]
   }
 
   defines = []
   defines += gpu_defines
+
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 }
 
 config("vsync_public_config") {
@@ -118,9 +118,9 @@ ohos_shared_library("libvsync") {
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "COMPOSER_SCHED_ENABLE" ]
+    sources += [ "src/vsync_res_event_listener.cpp" ]
   }
 
-  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

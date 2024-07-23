@@ -19,6 +19,7 @@
 #include "context/webgl_rendering_context_base.h"
 #include "image_source.h"
 #include "util/util.h"
+#include <functional>
 
 namespace OHOS {
 namespace Rosen {
@@ -312,6 +313,11 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
     return status;
 }
 
+size_t hash_pointer(void* ptr)
+{
+    return std::hash<void*> {}(ptr);
+}
+
 template<class dstT>
 napi_value WebGLWriteBufferArg::GenExternalArray()
 {
@@ -326,7 +332,7 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
         status = napi_create_external_arraybuffer(
             env_, data_, dataLen_,
             [](napi_env env_, void* finalize_data, void* finalize_hint) {
-                LOGD("GenExternalArray free %{public}p", finalize_data);
+                LOGD("GenExternalArray free %{private}zu", hash_pointer(finalize_data));
                 delete[] reinterpret_cast<uint8_t*>(finalize_data);
             },
             nullptr, &outputBuffer);

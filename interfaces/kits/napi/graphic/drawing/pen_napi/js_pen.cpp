@@ -18,9 +18,13 @@
 #include <cstdint>
 
 #include "color_filter_napi/js_color_filter.h"
+#include "image_filter_napi/js_image_filter.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
+#include "matrix_napi/js_matrix.h"
 #include "path_effect_napi/js_path_effect.h"
+#include "path_napi/js_path.h"
+#include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 
 namespace OHOS::Rosen {
@@ -32,11 +36,15 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setAntiAlias", SetAntiAlias),
         DECLARE_NAPI_FUNCTION("setAlpha", SetAlpha),
+        DECLARE_NAPI_FUNCTION("getAlpha", GetAlpha),
         DECLARE_NAPI_FUNCTION("setBlendMode", SetBlendMode),
         DECLARE_NAPI_FUNCTION("setCapStyle", SetCapStyle),
         DECLARE_NAPI_FUNCTION("getCapStyle", GetCapStyle),
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
+        DECLARE_NAPI_FUNCTION("getColor", GetColor),
         DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
+        DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
+        DECLARE_NAPI_FUNCTION("setImageFilter", SetImageFilter),
         DECLARE_NAPI_FUNCTION("setDither", SetDither),
         DECLARE_NAPI_FUNCTION("setJoinStyle", SetJoinStyle),
         DECLARE_NAPI_FUNCTION("getJoinStyle", GetJoinStyle),
@@ -44,6 +52,13 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("setPathEffect", SetPathEffect),
         DECLARE_NAPI_FUNCTION("setStrokeWidth", SetStrokeWidth),
         DECLARE_NAPI_FUNCTION("setShadowLayer", SetShadowLayer),
+        DECLARE_NAPI_FUNCTION("setShaderEffect", SetShaderEffect),
+        DECLARE_NAPI_FUNCTION("getFillPath", GetFillPath),
+        DECLARE_NAPI_FUNCTION("isAntiAlias", IsAntiAlias),
+        DECLARE_NAPI_FUNCTION("getWidth", GetWidth),
+        DECLARE_NAPI_FUNCTION("setMiterLimit", SetMiterLimit),
+        DECLARE_NAPI_FUNCTION("getMiterLimit", GetMiterLimit),
+        DECLARE_NAPI_FUNCTION("reset", Reset),
     };
 
     napi_value constructor = nullptr;
@@ -71,22 +86,32 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
 
 napi_value JsPen::Constructor(napi_env env, napi_callback_info info)
 {
-    size_t argCount = 0;
+    size_t argCount = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
     napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
+    napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
     if (status != napi_ok) {
         ROSEN_LOGE("JsPen::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
 
-    JsPen* jsPen = new(std::nothrow) JsPen();
-    if (!jsPen) {
-        ROSEN_LOGE("JsPen::Constructor Failed to create JsPen");
+    JsPen* jsPen = nullptr;
+    if (argCount == 0) {
+        jsPen = new (std::nothrow) JsPen();
+    } else {
+        JsPen* otherPen = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ZERO, otherPen);
+        Pen* pen = otherPen->GetPen();
+        if (pen != nullptr) {
+            jsPen = new (std::nothrow) JsPen(*pen);
+        }
+    }
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::Constructor jsPen is nullptr");
         return nullptr;
     }
 
-    status = napi_wrap(env, jsThis, jsPen,
-                       JsPen::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, jsThis, jsPen, JsPen::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPen;
         ROSEN_LOGE("JsPen::Constructor Failed to wrap native instance");
@@ -108,6 +133,11 @@ void JsPen::Destructor(napi_env env, void* nativeObject, void* finalize)
 JsPen::JsPen()
 {
     pen_ = new Pen();
+}
+
+JsPen::JsPen(const Pen& pen)
+{
+    pen_ = new Pen(pen);
 }
 
 JsPen::~JsPen()
@@ -133,13 +163,25 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 
     Drawing::Color drawingColor;
     if (argc == ARGC_ONE) {
-        int32_t argb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
-            ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The range of color channels must be [0, 255].");
+        bool isJsColor = false;
+        napi_has_named_property(env, argv[ARGC_ZERO], JSPROPERTY[0], &isJsColor);
+        if (isJsColor) {
+            int32_t argb[ARGC_FOUR] = {0};
+            if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+                ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+                return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                    "Parameter verification failed. The range of color channels must be [0, 255].");
+            }
+            drawingColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+        } else {
+            uint32_t hexNumber = 0;
+            GET_UINT32_PARAM(ARGC_ZERO, hexNumber);
+            uint32_t alpha = (hexNumber >> 24) & 0xFF;
+            uint32_t red = (hexNumber >> 16) & 0xFF;
+            uint32_t green = (hexNumber >> 8) & 0xFF;
+            uint32_t blue = hexNumber & 0xFF;
+            drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
         }
-        drawingColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     } else if (argc == ARGC_FOUR) {
         int32_t alpha = 0;
         GET_COLOR_PARAM(ARGC_ZERO, alpha);
@@ -270,6 +312,49 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
 
     Filter filter = pen->GetFilter();
     filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
+    pen->SetFilter(filter);
+    return nullptr;
+}
+
+napi_value JsPen::GetColorFilter(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColorFilter jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColorFilter pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    if (pen->HasFilter()) {
+        return JsColorFilter::Create(env, pen->GetFilter().GetColorFilter());
+    }
+    return nullptr;
+}
+
+napi_value JsPen::SetImageFilter(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::SetImageFilter jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::SetImageFilter pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsImageFilter* jsImageFilter = nullptr;
+    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsImageFilter));
+
+    Filter filter = pen->GetFilter();
+    filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);
     pen->SetFilter(filter);
     return nullptr;
 }
@@ -424,6 +509,7 @@ napi_value JsPen::GetCapStyle(napi_env env, napi_callback_info info)
     Pen::CapStyle capStyle = pen->GetCapStyle();
     return CreateJsNumber(env, CapCastToTsCap(capStyle));
 }
+
 napi_value JsPen::SetPathEffect(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
@@ -468,6 +554,153 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
 
     pen->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
+}
+
+napi_value JsPen::SetShaderEffect(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::SetShaderEffect pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsShaderEffect* jsShaderEffect = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsShaderEffect);
+
+    pen->SetShaderEffect(jsShaderEffect->GetShaderEffect());
+    return nullptr;
+}
+
+napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    
+    JsPath* src = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, src);
+    if (src->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath src jsPath is nullptr");
+        return nullptr;
+    }
+
+    JsPath* dst = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, dst);
+    if (dst->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPen::GetFillPath dst jsPath is nullptr");
+        return nullptr;
+    }
+
+    return CreateJsValue(env, pen->GetFillPath(*src->GetPath(), *dst->GetPath(), nullptr, Matrix()));
+}
+
+napi_value JsPen::IsAntiAlias(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::IsAntiAlias pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, pen->IsAntiAlias());
+}
+
+napi_value JsPen::GetAlpha(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetAlpha pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    uint32_t alpha = pen->GetAlpha();
+    return CreateJsNumber(env, alpha);
+}
+
+napi_value JsPen::GetWidth(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetWidth pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    scalar width = pen->GetWidth();
+    return CreateJsNumber(env, width);
+}
+
+napi_value JsPen::SetMiterLimit(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::SetMiterLimit pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    double miterLimit = 0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, miterLimit);
+
+    pen->SetMiterLimit(miterLimit);
+    return nullptr;
+}
+
+napi_value JsPen::GetMiterLimit(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetMiterLimit pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    scalar miterLimit = pen->GetMiterLimit();
+    return CreateJsNumber(env, miterLimit);
+}
+
+napi_value JsPen::Reset(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::Reset pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    pen->Reset();
+    return nullptr;
+}
+
+napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColor pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    Color color = pen->GetColor();
+    return GetColorAndConvertToJsValue(env, color);
 }
 
 Pen* JsPen::GetPen()

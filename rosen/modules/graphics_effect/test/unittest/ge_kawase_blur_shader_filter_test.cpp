@@ -142,6 +142,27 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor001, TestSize.Level
 }
 
 /**
+ * @tc.name: ScaleAndAddRandomColor002
+ * @tc.desc: Verify function ScaleAndAddRandomColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto filter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(100, 30, format); // 100, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    std::shared_ptr<Drawing::Image> imageBlur = bmp.MakeImage();
+    auto width = std::max(static_cast<int>(std::ceil(dst_.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst_.GetHeight())), imageBlur->GetHeight());
+    filter->blurScale_ = 0;
+    EXPECT_EQ(filter->ScaleAndAddRandomColor(canvas_, image_, imageBlur, src_, dst_, width, height), imageBlur);
+}
+
+/**
  * @tc.name: ComputeRadiusAndScale001
  * @tc.desc: Verify function ComputeRadiusAndScale
  * @tc.type:FUNC

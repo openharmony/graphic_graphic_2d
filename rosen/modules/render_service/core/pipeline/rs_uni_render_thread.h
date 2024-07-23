@@ -22,7 +22,6 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_render_thread_params.h"
@@ -32,6 +31,11 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace DrawableV2 {
+class RSRenderNodeDrawable;
+class RSDisplayRenderNodeDrawable;
+}
+
 class RSUniRenderThread {
 public:
     using Callback = std::function<void()>;
@@ -60,7 +64,7 @@ public:
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyDisplayNodeBufferReleased();
-    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode);
+    bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
@@ -70,6 +74,9 @@ public:
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
+    void MemoryManagementBetweenFrames();
+    void PreAllocateTextureBetweenFrames();
+    void AsyncFreeVMAMemoryBetweenFrames();
     void ResetClearMemoryTask();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
@@ -94,6 +101,7 @@ public:
     static void SetCaptureParam(const CaptureParam& param);
     static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();
+    static bool IsInCaptureProcess();
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;
@@ -147,6 +155,7 @@ private:
     ~RSUniRenderThread() noexcept;
     void Inittcache();
     void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
+    void PerfForBlurIfNeeded();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

@@ -39,10 +39,9 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 }
 
 bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                    std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
+                                    std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    // TO-DO adapt isRenderThread
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
         return false;
     }
 

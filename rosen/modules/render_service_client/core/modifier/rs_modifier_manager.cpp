@@ -16,6 +16,7 @@
 
 #include "modifier/rs_modifier_manager.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
@@ -71,9 +72,15 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
     displaySyncs_.erase(keyId);
 }
 
-bool RSModifierManager::HasUIAnimation()
+bool RSModifierManager::HasUIRunningAnimation()
 {
-    return !animations_.empty();
+    for (auto& iter : animations_) {
+        auto animation = iter.second.lock();
+        if (animation && animation->IsRunning()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
@@ -154,6 +161,8 @@ void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimat
     AnimationId animationId = animation->GetAnimationId();
     displaySyncs_.erase(animationId);
 
+    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+        "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
 

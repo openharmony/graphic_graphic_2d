@@ -37,20 +37,21 @@ public:
     }
 
     void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f,
-        ImageBlurType blurType) override;
-    void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) override;
+        ImageBlurType blurType, const Rect& cropRect) override;
+    void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f,
+        const Rect& cropRect) override;
     void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY,
-        ImageBlurType blurType) override;
-    void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) override;
+        ImageBlurType blurType, const Rect& cropRect) override;
+    void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f, const Rect& cropRect) override;
     void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
-        const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) override;
+        const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2, const Rect& cropRect) override;
     void InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) override;
     void InitWithGradientBlur(float radius, const std::vector<std::pair<float, float>>& fractionStops,
         GradientDir direction, GradientBlurType blurType,
         const std::shared_ptr<ImageFilter> f) override;
-    void InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
+    void InitWithBlend(BlendMode mode, const Rect& cropRect, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) override;
-    void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect) override;
+    void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) override;
     sk_sp<SkImageFilter> GetImageFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

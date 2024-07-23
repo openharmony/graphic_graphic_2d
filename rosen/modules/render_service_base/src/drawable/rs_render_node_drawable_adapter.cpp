@@ -41,6 +41,8 @@ RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ =
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
 
+RSRenderNodeDrawableAdapter::~RSRenderNodeDrawableAdapter() = default;
+
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
 {
     std::lock_guard<std::mutex> lock(cacheMapMutex_);
@@ -173,6 +175,11 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
+    if (end > drawCmdList_.size()) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
+        return;
+    }
+
     if (UNLIKELY(skipType_ != SkipType::NONE)) {
         auto skipIndex_ = GetSkipIndex();
         if (start <= skipIndex_ && end > skipIndex_) {
@@ -249,10 +256,10 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
     const auto& drawCmdList = uifirstDrawCmdList_;
     auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
     auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
-    if (contentIdx != -1) {
+    if (0 <= contentIdx && contentIdx < drawCmdList.size()) {
         drawCmdList[contentIdx](&canvas, &rect);
     }
-    if (childrenIdx != -1) {
+    if (0 <= childrenIdx && childrenIdx < drawCmdList.size()) {
         drawCmdList[childrenIdx](&canvas, &rect);
     }
 }
@@ -265,57 +272,6 @@ void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.endIndex_);
-}
-
-void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
-        return;
-    }
-    RSRenderNode::DumpNodeType(nodeType_, out);
-    out += "[" + std::to_string(nodeId_) + "]";
-    renderNode->DumpSubClassNode(out);
-    out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-    out += ", " + renderNode->GetRenderParams()->ToString();
-    if (skipType_ != SkipType::NONE) {
-        out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
-        out += ", SkipIndex:" + std::to_string(GetSkipIndex());
-    }
-    out += "\n";
-
-    auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
-        renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
-    if (childrenDrawable) {
-        for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
-            renderNodeDrawable->DumpDrawableTree(depth + 1, out);
-        }
-    }
-}
-
-std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
-{
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
-        return "";
-    }
-    const auto& drawableVec = renderNode->drawableVec_;
-    std::string str;
-    for (uint8_t i = 0; i < drawableVec.size(); ++i) {
-        if (drawableVec[i]) {
-            str += std::to_string(i) + ", ";
-        }
-    }
-    // str has more than 2 chars
-    if (str.length() > 2) {
-        str.pop_back();
-        str.pop_back();
-    }
-
-    return str;
 }
 
 bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect)
@@ -442,5 +398,23 @@ int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
         default:
             return -1;
     }
+}
+
+void RSRenderNodeDrawableAdapter::RegisterClearSurfaceFunc(ClearSurfaceTask task)
+{
+    clearSurfaceTask_ = task;
+}
+
+void RSRenderNodeDrawableAdapter::ResetClearSurfaceFunc()
+{
+    clearSurfaceTask_ = nullptr;
+}
+
+void RSRenderNodeDrawableAdapter::TryClearSurfaceOnSync()
+{
+    if (!clearSurfaceTask_) {
+        return;
+    }
+    clearSurfaceTask_();
 }
 } // namespace OHOS::Rosen::DrawableV2

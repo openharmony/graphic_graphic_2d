@@ -154,6 +154,11 @@ void Pen::SetBlender(std::shared_ptr<Blender> blender)
     brush_.SetBlender(blender);
 }
 
+void Pen::SetBlenderEnabled(bool blenderEnabled)
+{
+    blenderEnabled_ = blenderEnabled;
+}
+
 std::shared_ptr<Blender> Pen::GetBlender() const
 {
     return brush_.GetBlender();

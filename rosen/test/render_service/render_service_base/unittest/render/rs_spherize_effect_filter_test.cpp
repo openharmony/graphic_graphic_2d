@@ -74,5 +74,39 @@ HWTEST_F(RSSpherizeEffectFilterTest, DrawImageRect001, TestSize.Level1)
     EXPECT_TRUE(image->GetWidth());
     EXPECT_TRUE(image->GetHeight());
 }
+
+/**
+ * @tc.name: GetDescriptionTest
+ * @tc.desc: test results of GetDescription
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, GetDescriptionTest, TestSize.Level1)
+{
+    RSSpherizeEffectFilter effectFilter(0.f);
+    std::string expectRes = "RSSpherizeEffectFilter " + std::to_string(0.f);
+    EXPECT_EQ(effectFilter.GetDescription(), expectRes);
+}
+
+/**
+ * @tc.name: GetSpherizeDegreeTest
+ * @tc.desc: test results of GetSpherizeDegree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, GetSpherizeDegreeTest, TestSize.Level1)
+{
+    RSSpherizeEffectFilter effectFilter(0.f);
+    EXPECT_EQ(effectFilter.GetSpherizeDegree(), 0.f);
+}
+
+/**
+ * @tc.name: IsValidTest
+ * @tc.desc: test results of IsValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, IsValidTest, TestSize.Level1)
+{
+    RSSpherizeEffectFilter effectFilter(0.f);
+    EXPECT_FALSE(effectFilter.IsValid());
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #define SKIA_YUV_INFO_H
 
 #include "include/core/SkYUVAInfo.h"
+#include "include/core/SkYUVAPixmaps.h"
 
 #include "image/yuv_info.h"
 
@@ -59,8 +60,22 @@ public:
                 return SkYUVColorSpace::kJPEG_Full_SkYUVColorSpace;
             case YUVInfo::YUVColorSpace::IDENTITY_YUVCOLORSPACE:
                 return SkYUVColorSpace::kIdentity_SkYUVColorSpace;
+            case YUVInfo::YUVColorSpace::BT2020_10BIT_LIMITED_YUVCOLORSPACE:
+                return SkYUVColorSpace::kBT2020_10bit_Limited_SkYUVColorSpace;
             default:
                 return SkYUVColorSpace::kIdentity_SkYUVColorSpace;
+        }
+    }
+
+    static SkYUVAPixmapInfo::DataType ConvertToSkDataType(const YUVInfo::YUVDataType& dataType)
+    {
+        switch (dataType) {
+            case YUVInfo::YUVDataType::UNORM_8:
+                return SkYUVAPixmapInfo::DataType::kUnorm8;
+            case YUVInfo::YUVDataType::UNORM_16:
+                return SkYUVAPixmapInfo::DataType::kUnorm16;
+            default:
+                return SkYUVAPixmapInfo::DataType::kUnorm8;
         }
     }
 };

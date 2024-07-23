@@ -70,6 +70,10 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
     }
     auto region = std::make_shared<Region>();
     JsRegion* jsRegion = new(std::nothrow) JsRegion(region);
+    if (jsRegion == nullptr) {
+        ROSEN_LOGE("JsRegion::Constructor failed to new region");
+        return nullptr;
+    }
     status = napi_wrap(env, jsThis, jsRegion,
                        JsRegion::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

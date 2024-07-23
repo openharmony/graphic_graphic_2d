@@ -37,9 +37,12 @@ void RSTransaction::OpenSyncTransaction()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("OpenSyncTransaction");
+        transactionProxy->FlushImplicitTransaction();
         transactionProxy->StartSyncTransaction();
         transactionProxy->Begin();
         isOpenSyncTransaction_ = true;
+        transactionCount_ = 0;
+        parentPid_ = GetRealPid();
     }
 }
 
@@ -47,8 +50,7 @@ void RSTransaction::CloseSyncTransaction()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d extensionCount %d", syncId_,
-            transactionCount_, extensionCount_);
+        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
         ROSEN_LOGD(
             "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
         isOpenSyncTransaction_ = false;
@@ -74,13 +76,13 @@ void RSTransaction::Commit()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d childPid %d extensionCount %d",
-            syncId_, transactionCount_, parentPid_, childPid_, extensionCount_);
+        RS_TRACE_NAME_FMT(
+            "CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_, transactionCount_, parentPid_);
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
-        transactionProxy->SetParentAndChildPid(parentPid_, childPid_);
+        transactionProxy->SetParentPid(parentPid_);
         if (transactionProxy->IsRemoteCommandEmpty()) {
-            RSInterfaces::GetInstance().ChangeSyncCount(syncId_, parentPid_, childPid_);
+            RSInterfaces::GetInstance().ChangeSyncCount(syncId_, parentPid_, GetRealPid());
         }
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
@@ -109,9 +111,7 @@ void RSTransaction::ResetSyncTransactionInfo()
     syncId_ = 0;
     transactionCount_ = 0;
     parentPid_ = -1;
-    childPid_ = -1;
     isOpenSyncTransaction_ = false;
-    extensionCount_ = 0;
 }
 
 RSTransaction* RSTransaction::Unmarshalling(Parcel& parcel)
@@ -139,10 +139,6 @@ bool RSTransaction::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSTransaction marshalling parent pid failed");
         return false;
     }
-    if (!parcel.WriteInt32(childPid_)) {
-        ROSEN_LOGE("RSTransaction marshalling child pid failed");
-        return false;
-    }
     if (!parcel.WriteBool(isOpenSyncTransaction_)) {
         ROSEN_LOGE("RSTransaction marshalling parameter of whether synchronous transaction is open failed");
         return false;
@@ -165,10 +161,6 @@ bool RSTransaction::UnmarshallingParam(Parcel& parcel)
     }
     if (!parcel.ReadInt32(parentPid_)) {
         ROSEN_LOGE("RSTransaction unmarshallingParam parent pid failed");
-        return false;
-    }
-    if (!parcel.ReadInt32(childPid_)) {
-        ROSEN_LOGE("RSTransaction unmarshallingParam child pid failed");
         return false;
     }
     if (!parcel.ReadBool(isOpenSyncTransaction_)) {

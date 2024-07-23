@@ -22,10 +22,14 @@
 #endif
 
 #include "common/rs_common_def.h"
+#include "draw/color.h"
+#include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
+#include "utils/point.h"
+#include "utils/point3.h"
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
@@ -165,7 +169,10 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
 constexpr size_t ARGC_SEVEN = 7;
+constexpr size_t ARGC_EIGHT = 8;
+constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
+extern const char* const JSPROPERTY[4];
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -330,10 +337,51 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
+bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t size);
+
+bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size);
+
+bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d);
+
+bool ConvertFromJsShadowFlag(napi_env env, napi_value src, ShadowFlags& shadowFlag,
+    ShadowFlags defaultFlag = ShadowFlags::NONE);
+
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
     return napi_get_value_int32(env, jsValue, &value) == napi_ok && value >= lo && value <= hi;
 }
+
+inline bool GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetX = 0;
+    if (napi_get_named_property(env, argValue, "x", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetX) != napi_ok) {
+        return false;
+    }
+    point.SetX(targetX);
+    return true;
+}
+
+inline bool GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetY = 0;
+    if (napi_get_named_property(env, argValue, "y", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetY) != napi_ok) {
+        return false;
+    }
+    point.SetY(targetY);
+    return true;
+}
+
+inline bool GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    return GetPointXFromJsNumber(env, argValue, point) &&
+           GetPointYFromJsNumber(env, argValue, point);
+}
+
+bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count);
 
 inline napi_value GetDoubleAndConvertToJsValue(napi_env env, double d)
 {
@@ -364,6 +412,19 @@ inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect>
     return objValue;
 }
 
+inline napi_value ConvertPointToJsValue(napi_env env, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        if (napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX())) != napi_ok ||
+            napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY())) != napi_ok) {
+            return nullptr;
+        }
+    }
+    return objValue;
+}
+
 inline napi_value NapiGetUndefined(napi_env env)
 {
     napi_value result = nullptr;
@@ -375,6 +436,19 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name, const
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
+
+inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "alpha", CreateJsNumber(env, color.GetAlpha()));
+        napi_set_named_property(env, objValue, "red", CreateJsNumber(env, color.GetRed()));
+        napi_set_named_property(env, objValue, "green", CreateJsNumber(env, color.GetGreen()));
+        napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color.GetBlue()));
+    }
+    return objValue;
+}
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 } // namespace Drawing

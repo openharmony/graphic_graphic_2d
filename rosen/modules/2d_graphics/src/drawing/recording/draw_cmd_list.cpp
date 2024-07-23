@@ -131,18 +131,28 @@ bool DrawCmdList::AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem)
 
 void DrawCmdList::ClearOp()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    opAllocator_.ClearData();
-    opAllocator_.Add(&width_, sizeof(int32_t));
-    opAllocator_.Add(&height_, sizeof(int32_t));
-    imageAllocator_.ClearData();
-    bitmapAllocator_.ClearData();
-    imageMap_.clear();
-    imageHandleVec_.clear();
-    drawOpItems_.clear();
-    lastOpGenSize_ = 0;
-    lastOpItemOffset_ = std::nullopt;
-    opCnt_ = 0;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        opAllocator_.ClearData();
+        opAllocator_.Add(&width_, sizeof(int32_t));
+        opAllocator_.Add(&height_, sizeof(int32_t));
+        imageAllocator_.ClearData();
+        bitmapAllocator_.ClearData();
+        imageMap_.clear();
+        imageHandleVec_.clear();
+        drawOpItems_.clear();
+        lastOpGenSize_ = 0;
+        lastOpItemOffset_ = std::nullopt;
+        opCnt_ = 0;
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        imageObjectVec_.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        imageBaseObjVec_.clear();
+    }
 }
 
 int32_t DrawCmdList::GetWidth() const
@@ -257,7 +267,7 @@ void DrawCmdList::UnmarshallingDrawOps()
         CaculatePerformanceOpType();
     }
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
 
     if (opAllocator_.GetSize() <= offset_) {
@@ -314,7 +324,7 @@ void DrawCmdList::UnmarshallingDrawOps()
     }
 
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance UnmarshallingDrawOps end %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());
     }
 }
 
@@ -324,7 +334,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
         return;
     }
     if (performanceCaculateOpType_ != 0) {
-        LOGI("Drawing Performance Playback begin %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance Playback begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
     if (canvas.GetDrawingType() == DrawingType::RECORDING) {
         PlaybackToDrawCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
@@ -355,7 +365,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     if (performanceCaculateOpType_ != 0) {
         DRAWING_PERFORMANCE_STOP_CACULATE;
         performanceCaculateOpType_ = 0;
-        LOGI("Drawing Performance Playback end %{public}llu", PerformanceCaculate::GetUpTime());
+        LOGI("Drawing Performance Playback end %{public}lld", PerformanceCaculate::GetUpTime());
     }
 }
 

@@ -46,11 +46,7 @@ void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t wid
     windowHeight_ = height;
     duration_ = duration * DELAY_TIME_MS;
 
-    eventThread_ = std::thread(&BootAnimationOperation::StartEventHandler, this, config);
-    std::unique_lock<std::mutex> lock(eventMutex_);
-    eventCon_.wait(lock, [this] {
-        return mainHandler_ != nullptr;
-    });
+    eventThread_ = std::thread([this, &config] { this->StartEventHandler(config); });
 }
 
 void BootAnimationOperation::StartEventHandler(const BootAnimationConfig& config)
@@ -58,25 +54,24 @@ void BootAnimationOperation::StartEventHandler(const BootAnimationConfig& config
     LOGI("StartEventHandler");
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    mainHandler_->PostTask(std::bind(&BootAnimationOperation::InitRsDisplayNode, this));
-    mainHandler_->PostTask(std::bind(&BootAnimationOperation::InitRsSurfaceNode, this, config.rotateDegree));
-    mainHandler_->PostTask(std::bind(&BootAnimationOperation::StopBootAnimation, this), duration_);
-    eventCon_.notify_all();
+    mainHandler_->PostTask([this] { this->InitRsDisplayNode(); });
+    mainHandler_->PostTask([this, &config] { this->InitRsSurfaceNode(config.rotateDegree); });
+    mainHandler_->PostTask([this] { this->StopBootAnimation(); }, duration_);
 #ifdef PLAYER_FRAMEWORK_ENABLE
     if (IsBootVideoEnabled(config)) {
-        mainHandler_->PostTask(std::bind(&BootAnimationOperation::PlayVideo, this, config.videoDefaultPath));
+        mainHandler_->PostTask([this, &config] { this->PlayVideo(config.videoDefaultPath); });
         runner_->Run();
+        LOGI("runner run has ended.");
         return;
     } else {
-        mainHandler_->PostTask(std::bind(
-            &BootAnimationOperation::PlaySound, this, config.soundPath));
+        mainHandler_->PostTask([this, &config] { this->PlaySound(config.soundPath); });
     }
 #else
     LOGI("player framework is disabled");
 #endif
-    mainHandler_->PostTask(
-        std::bind(&BootAnimationOperation::PlayPicture, this, config.picZipPath));
+    mainHandler_->PostTask([this, &config] { this->PlayPicture(config.picZipPath); });
     runner_->Run();
+    LOGI("runner run has ended.");
 }
 
 void BootAnimationOperation::SetSoundEnable(bool isEnabled)
@@ -153,7 +148,7 @@ void BootAnimationOperation::PlayVideo(const std::string& path)
     params.resPath = path;
     callback_ = {
         .userData = this,
-        .callback = std::bind(&BootAnimationOperation::StopBootAnimation, this),
+        .callback = [this](void*) { this->StopBootAnimation(); },
     };
     params.callback = &callback_;
     params.screenId = currentScreenId_;
@@ -251,8 +246,7 @@ void BootAnimationOperation::StopBootAnimation()
         system::SetParameter(BOOT_ANIMATION_STARTED, "true");
         LOGI("set boot animation started true");
     }
-    if (runner_ != nullptr) {
-        runner_->Stop();
-    }
+    runner_->Stop();
+    LOGI("runner has called stop.");
     mainHandler_ = nullptr;
 }

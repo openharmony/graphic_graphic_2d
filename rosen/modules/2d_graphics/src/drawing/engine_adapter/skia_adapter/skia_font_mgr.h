@@ -42,6 +42,7 @@ public:
     Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) override;
     Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) override;
+    void LoadThemeFont(const std::string& themeName, std::shared_ptr<Typeface> typeface) override;
 #endif
     Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                         const char* bcp47[], int bcp47Count,

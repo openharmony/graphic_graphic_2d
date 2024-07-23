@@ -15,6 +15,7 @@
 
 #include "drawable/rs_render_node_shadow_drawable.h"
 
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -56,15 +57,6 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     for (auto i = 0; i <= shadowIndex; i++) {
         nodeDrawable_->drawCmdList_[i](&canvas, &rect);
     }
-}
-
-void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    RSRenderNode::DumpNodeType(nodeType_, out);
-    out += "[" + std::to_string(nodeId_) + "] Draw Shadow Only\n";
 }
 
 void RSRenderNodeShadowDrawable::OnDetach()

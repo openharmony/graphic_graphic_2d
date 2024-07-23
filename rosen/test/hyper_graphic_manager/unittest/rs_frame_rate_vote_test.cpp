@@ -20,6 +20,7 @@
 #include "rs_frame_rate_vote.h"
 #undef private
 #include "hgm_core.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,44 +50,46 @@ void RSFrameRateVoteTest::TearDown() {}
  */
 HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Level1)
 {
+    sptr<SurfaceBuffer> nullBuffer = nullptr;
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 0);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 0);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 0);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 100000);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 100000);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, 100000);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 0);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, 100000);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
 }

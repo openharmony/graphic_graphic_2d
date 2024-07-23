@@ -37,7 +37,7 @@ enum DrawingAnimationType {
     BOUNCE_TYPE = 5,
     PULSE_TYPE = 6,
     REPLACE_APPEAR_TYPE = 7,
-    REPLACE_DISAPPEAR_TYPE
+    REPLACE_DISAPPEAR_TYPE = 8,
 };
 
 enum DrawingCurveType {
@@ -54,10 +54,10 @@ enum DrawingCommonSubType {
 };
 
 struct DrawingPiecewiseParameter {
-    DrawingCurveType curveType;
+    DrawingCurveType curveType = DrawingCurveType::INVALID_CURVE_TYPE;
     std::map<std::string, float> curveArgs;
-    uint32_t duration;
-    int delay;
+    uint32_t duration = 0;
+    int delay = 0;
     std::map<std::string, std::vector<float>> properties;
 };
 
@@ -68,7 +68,7 @@ struct DrawingAnimationPara {
 };
 
 struct DrawingAnimationInfo {
-    DrawingAnimationType animationType;
+    DrawingAnimationType animationType = DrawingAnimationType::INVALID_ANIMATION_TYPE;
     std::map<uint32_t, DrawingAnimationPara> animationParas;
 };
 
@@ -108,11 +108,11 @@ enum DrawingEffectStrategy {
     BOUNCE = 5,
     PULSE = 6,
     REPLACE_APPEAR = 7,
-    REPLACE_DISAPPEAR
+    REPLACE_DISAPPEAR = 8,
 };
 
 struct DrawingSymbolLayers {
-    uint16_t symbolGlyphId;
+    uint16_t symbolGlyphId = 0;
     std::vector<std::vector<size_t>> layers;
     std::vector<DrawingRenderGroup> renderGroups;
 };
@@ -124,7 +124,7 @@ enum DrawingSymbolRenderingStrategy {
 };
 
 struct DrawingSymbolLayersGroups {
-    uint16_t symbolGlyphId;
+    uint16_t symbolGlyphId = 0;
     std::vector<std::vector<size_t>> layers;
     std::map<DrawingSymbolRenderingStrategy, std::vector<DrawingRenderGroup>> renderModeGroups;
     std::vector<DrawingAnimationSetting> animationSettings;

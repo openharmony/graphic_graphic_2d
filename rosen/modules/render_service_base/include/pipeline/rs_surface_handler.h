@@ -97,9 +97,9 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetConsumer(const sptr<IConsumerSurface>& consumer);
+    void SetConsumer(sptr<IConsumerSurface> consumer);
 
-    const sptr<IConsumerSurface>& GetConsumer() const
+    sptr<IConsumerSurface> GetConsumer() const
     {
         return consumer_;
     }
@@ -128,9 +128,18 @@ public:
         buffer_.timestamp = timestamp;
     }
 
-    const sptr<SurfaceBuffer>& GetBuffer() const
+    const sptr<SurfaceBuffer> GetBuffer() const
     {
         return buffer_.buffer;
+    }
+
+    uint64_t GetBufferUsage() const
+    {
+        std::lock_guard<std::mutex> lock(bufMutex_);
+        if (!buffer_.buffer) {
+            return 0;
+        }
+        return buffer_.buffer->GetUsage();
     }
 
     const sptr<SyncFence>& GetAcquireFence() const
@@ -199,6 +208,11 @@ public:
         preBuffer_.Reset();
     }
 
+    void CleanPreBuffer()
+    {
+        preBuffer_.Reset();
+    }
+
     void ResetBufferAvailableCount()
     {
         bufferAvailableCount_ = 0;
@@ -220,7 +234,7 @@ public:
         return false;
 #endif
     }
-    inline bool IsCurrentFrameBufferConsumed()
+    inline bool IsCurrentFrameBufferConsumed() const
     {
         return isCurrentFrameBufferConsumed_;
     }

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createProgram, loadImage } from "../utils/extension";
+import { createProgram, loadImage } from '../utils/extension';
 import { Images } from '../utils/Images';
 
 const VS_CODE = `
@@ -46,7 +46,7 @@ let arr = new Float32Array([
 
 export async function texture_2d_demo() {
     let gl = globalThis.gl;
-    let program = createProgram(globalThis.gl, VS_CODE, FS_CODE, ["a_Matrix", "a_Position", "a_TexCoord"], ["u_Sampler"]);
+    let program = createProgram(globalThis.gl, VS_CODE, FS_CODE, ['a_Matrix', 'a_Position', 'a_TexCoord'], ['u_Sampler']);
     let buffer = gl.createBuffer();
     if (buffer === null) {
         gl.deleteBuffer(buffer);

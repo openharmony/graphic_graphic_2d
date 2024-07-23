@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { createProgram, loadImage } from "../utils/extension";
+import { createProgram, loadImage } from '../utils/extension';
 import { Images } from '../utils/Images';
-import { Matrix4 } from "../utils/Matrix";
+import { Matrix4 } from '../utils/Matrix';
 
 let lastTime = Date.now();
 const WIDTH = 1024, HEIGHT = 1024;
@@ -75,8 +75,8 @@ let mvpMatrixFromLight_p = new Matrix4();
 export async function shadow_demo(gl) {
     let floorImage = await loadImage(Images.FLOOR);
     let boxImage = await loadImage(Images.BOX);
-    let shadowProgram = createProgram(gl, SHADOW_VS_CODE, SHADOW_FS_CODE, ["a_Position"], ["u_MvpMatrix"]);
-    let program = createProgram(gl, NORMAL_VS_CODE, NORMAL_FS_CODE, ["a_Position", "a_Color", "a_TexCoord"], ["u_MvpMatrix", "u_MvpMatrixFromLight", "u_ShadowMap", "u_Sampler"]);
+    let shadowProgram = createProgram(gl, SHADOW_VS_CODE, SHADOW_FS_CODE, ['a_Position'], ['u_MvpMatrix']);
+    let program = createProgram(gl, NORMAL_VS_CODE, NORMAL_FS_CODE, ['a_Position', 'a_Color', 'a_TexCoord'], ['u_MvpMatrix', 'u_MvpMatrixFromLight', 'u_ShadowMap', 'u_Sampler']);
     let triangle = initVertexBuffersTriangle(gl);
     let plane = initVertexBuffersPlane(gl);
     let fbo = initFramebuffer(gl);
@@ -124,8 +124,9 @@ export async function shadow_demo(gl) {
 
 function draw(gl, program, o, viewProjMatrix) {
     initAttributeVariable(gl, program.a_Position, o.vertexBuffer);
-    if (program.a_Color != undefined) // 如果a_Color定义为属性
+    if (program.a_Color != undefined) { // 如果a_Color定义为属性
         initAttributeVariable(gl, program.a_Color, o.colorBuffer);
+    }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
     // 计算模型视图项目矩阵并将其传递给u_MvpMatrix
     g_mvpMatrix.set(viewProjMatrix);
@@ -142,8 +143,9 @@ function draw2(gl, program, o, viewProjMatrix, image) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.uniform1i(program.u_Sampler, 1);
-    if (program.a_Color != undefined) // 如果a_Color定义为属性
+    if (program.a_Color != undefined) { // 如果a_Color定义为属性
         initAttributeVariable(gl, program.a_Color, o.colorBuffer);
+    }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
     // 计算模型视图项目矩阵并将其传递给u_MvpMatrix
     g_mvpMatrix.set(viewProjMatrix);
@@ -184,8 +186,9 @@ function initVertexBuffersPlane(gl) {
     o.indexBuffer = initElementArrayBuffer(gl, indices, gl.UNSIGNED_BYTE);
     o.uvsBuffer = initArrayBuffer(gl, uvs, 2, gl.FLOAT);
     o.texture = gl.createTexture();
-    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer)
+    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer) {
         return null;
+    }
     o.numIndices = indices.length;
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -253,7 +256,7 @@ const triangleIndices = new Uint8Array([
 ]);
 
 function initVertexBuffersTriangle(gl) {
-    let vertices = triangleVertices
+    let vertices = triangleVertices;
     let uvs = triangleUVS;
     let colors = triangleColors;
     let indices = triangleIndices;
@@ -262,8 +265,9 @@ function initVertexBuffersTriangle(gl) {
     o.colorBuffer = initArrayBuffer(gl, colors, 3, gl.FLOAT); // colorBuffer
     o.uvsBuffer = initArrayBuffer(gl, uvs, 2, gl.FLOAT); // uvsBuffer
     o.indexBuffer = initElementArrayBuffer(gl, indices, gl.UNSIGNED_BYTE); // indexBuffer
-    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer)
+    if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer) {
         return null;
+    }
     o.numIndices = indices.length;
     o.texture = gl.createTexture();
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -293,20 +297,25 @@ function initElementArrayBuffer(gl, data, type) {
 function initFramebuffer(gl) {
     let framebuffer, texture, depthBuffer;
     let error = () => {
-        if (framebuffer)
+        if (framebuffer) {
             gl.deleteFramebuffer(framebuffer);
-        if (texture)
+        }
+        if (texture) {
             gl.deleteTexture(texture);
-        if (depthBuffer)
+        }
+        if (depthBuffer) {
             gl.deleteRenderbuffer(depthBuffer);
+        }
         return null;
     };
     framebuffer = gl.createFramebuffer();
-    if (!framebuffer)
+    if (!framebuffer) {
         return error();
+    }
     texture = gl.createTexture();
-    if (!texture)
+    if (!texture) {
         return error();
+    }
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, WIDTH, HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -314,16 +323,18 @@ function initFramebuffer(gl) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     depthBuffer = gl.createRenderbuffer();
-    if (!depthBuffer)
+    if (!depthBuffer) {
         return error();
+    }
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, WIDTH, HEIGHT);
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
     let e = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if (gl.FRAMEBUFFER_COMPLETE !== e)
+    if (gl.FRAMEBUFFER_COMPLETE !== e) {
         return error();
+    }
     framebuffer.texture = texture;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);

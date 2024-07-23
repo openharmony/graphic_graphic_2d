@@ -122,6 +122,7 @@ public:
     void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -168,6 +169,7 @@ public:
     }
 
     static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
     void UpdateAppSupportStatus();
@@ -199,13 +201,16 @@ private:
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
-    void ClearScene();
+    void UpdateEnergyConsumptionConfig();
+    void EnterEnergyConsumptionAssuranceMode();
+    void ExitEnergyConsumptionAssuranceMode();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
     std::shared_ptr<uint32_t> pendingRefreshRate_;
     uint64_t pendingConstraintRelativeTime_ = 0;
     std::shared_ptr<HgmVSyncGeneratorController> controller_;
+    std::mutex appChangeDataMutex_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
 
     std::function<void(bool, bool)> forceUpdateCallback_;
@@ -224,6 +229,7 @@ private:
     std::unordered_set<std::string> gameScenes_;
     std::mutex cleanPidCallbackMutex_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
+    std::mutex frameRateVoteInfoMutex_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 
@@ -236,10 +242,9 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
-    int32_t lastTouchState_ = IDLE_STATE;
-    bool startCheck_ = false;
-    bool prepareCheck_ = false;
+    std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
+    int32_t lastUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;

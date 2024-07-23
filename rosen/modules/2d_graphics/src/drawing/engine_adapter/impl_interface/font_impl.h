@@ -51,7 +51,7 @@ public:
     virtual void GetWidths(const uint16_t glyphs[], int count, scalar widths[]) const = 0;
     virtual void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const = 0;
     virtual scalar GetSize() const = 0;
-    virtual std::shared_ptr<Typeface> GetTypeface() = 0;
+    virtual std::shared_ptr<Typeface> GetTypeface() const = 0;
 
     virtual FontEdging GetEdging() const = 0;
     virtual FontHinting GetHinting() const = 0;

@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createProgram, loadImage } from "../utils/extension";
-import { Matrix4 } from "../utils/Matrix";
-import { SphereGraph } from "../utils/SphereGraph";
+import { createProgram, loadImage } from '../utils/extension';
+import { Matrix4 } from '../utils/Matrix';
+import { SphereGraph } from '../utils/SphereGraph';
 import { Images } from '../utils/Images';
 
 const VSCODE = `
@@ -46,7 +46,7 @@ let angle = 0;
 let lastTime = Date.now();
 
 export async function panorama_demo(gl) {
-    let program = createProgram(gl, VSCODE, FSCODE, ["a_Position", "a_TexCoord"], ["u_MvpMatrix", "u_ModelMatrix", "u_Sampler"]);
+    let program = createProgram(gl, VSCODE, FSCODE, ['a_Position', 'a_TexCoord'], ['u_MvpMatrix', 'u_ModelMatrix', 'u_Sampler']);
     let sphere = new SphereGraph(1, 16, 12);
     let arr = new Float32Array(sphere.vertices);
     indices = new Uint8Array(sphere.indices);

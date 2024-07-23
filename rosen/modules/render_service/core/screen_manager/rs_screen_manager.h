@@ -68,9 +68,9 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int flags = 0,
-        std::vector<uint64_t> filteredAppVector = {}) = 0;
+        std::vector<uint64_t> whiteList = {}) = 0;
 
-    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) = 0;
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
 
@@ -81,6 +81,8 @@ public:
     virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
+
+    virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
@@ -260,9 +262,9 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId,
         int32_t flags,
-        std::vector<uint64_t> filteredAppVector) override;
+        std::vector<uint64_t> whiteList) override;
 
-    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) override;
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
@@ -273,6 +275,8 @@ public:
     std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
+
+    bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 

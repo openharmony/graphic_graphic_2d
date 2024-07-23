@@ -97,7 +97,7 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage002, TestSize.Level1)
     auto filter = std::make_shared<GEMagnifierShaderFilter>();
     ASSERT_TRUE(filter != nullptr);
 
-    EXPECT_NE(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
+    EXPECT_EQ(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
 }
 
 /**
@@ -115,11 +115,11 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage003, TestSize.Level1)
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
 #ifdef GE_OHOS
 #undef GE_OHOS
-    EXPECT_NE(filter->ProcessImage(canvas_, image_, src, dst), image_);
+    EXPECT_EQ(filter->ProcessImage(canvas_, image_, src, dst), image_);
 #define GE_OHOS
 #else
 #define GE_OHOS
-    EXPECT_NE(filter->ProcessImage(canvas_, image_, src, dst), image_);
+    EXPECT_EQ(filter->ProcessImage(canvas_, image_, src, dst), image_);
 #undef GE_OHOS
 #endif
 }
@@ -134,7 +134,7 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage004, TestSize.Level1)
     auto filter = std::make_shared<GEMagnifierShaderFilter>();
     ASSERT_TRUE(filter != nullptr);
 
-    EXPECT_NE(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
+    EXPECT_EQ(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
 
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     EXPECT_EQ(filter->ProcessImage(canvas_, image, src_, dst_), image);

@@ -198,6 +198,7 @@ void RSTransitionTranslate::UpdateFraction(float fraction) const
     if (property_ == nullptr) {
         return;
     }
+    fraction = std::clamp(fraction, 0.0f, 1.0f);
     Vector2f startValue(0.0f, 0.0f);
     Vector2f endValue(translateX_, translateY_);
     auto value = startValue * (1.0f - fraction) + endValue * fraction;

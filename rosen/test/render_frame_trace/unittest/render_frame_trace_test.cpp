@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "render_frame_trace_impl.h"
 #include "render_frame_trace.h"
+#include "render_frame_trace_impl.h"
 #undef private
 
 namespace OHOS {
@@ -91,7 +91,7 @@ HWTEST_F(RenderFrameTraceTest, Close, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceTest, ui, TestSize.Level1)
 {
-    const std::string traceTag="ui";
+    const std::string traceTag = "ui";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
@@ -105,7 +105,7 @@ HWTEST_F(RenderFrameTraceTest, ui, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceTest, renderthread, TestSize.Level1)
 {
-    const std::string traceTag="renderthread";
+    const std::string traceTag = "renderthread";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
@@ -119,7 +119,7 @@ HWTEST_F(RenderFrameTraceTest, renderthread, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceTest, renderservice, TestSize.Level1)
 {
-    const std::string traceTag="renderservice";
+    const std::string traceTag = "renderservice";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);

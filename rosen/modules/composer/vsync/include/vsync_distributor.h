@@ -58,7 +58,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
+    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
@@ -76,6 +76,7 @@ public:
     bool rnvTrigger_ = false;
 private:
     VsyncError CleanAllLocked();
+    VsyncError GetRemoteDistributorLocked(sptr<VSyncDistributor> &distributor);
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit VSyncConnectionDeathRecipient(wptr<VSyncConnection> conn);
@@ -124,10 +125,12 @@ public:
     void UnmarkRSAnimate();
     bool HasPendingUIRNV();
     uint32_t GetRefreshRate();
-    void RecordVsyncModeChange(uint32_t refreshReate, int64_t period);
+    void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
-    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
+    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     int64_t GetUiCommandDelayTime();
+    void UpdatePendingReferenceTime(int64_t &timeStamp);
+    void SetHardwareTaskNum(uint32_t num);
 
 private:
 
@@ -144,13 +147,13 @@ private:
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
-                            std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
+                            std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
     constexpr pid_t ExtractPid(uint64_t id);
-    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp);
+    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp, bool isDvsyncThread);
     void ChangeConnsRateLocked();
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
-                                std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
+        std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
@@ -162,7 +165,7 @@ private:
 #endif
     void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     void CollectConns(bool &waitForVSync, int64_t &timestamp,
-        std::vector<sptr<VSyncConnection>> &conns);
+        std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread);
     bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -183,6 +186,9 @@ private:
     uint32_t generatorRefreshRate_ = 0;
     uint32_t countTraceValue_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
+    int32_t GetUIDVsyncPid();
+    void SendConnectionsToVSyncWindow(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode,
+        std::unique_lock<std::mutex> &locker);
     void OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync

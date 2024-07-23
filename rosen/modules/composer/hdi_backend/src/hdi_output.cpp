@@ -51,6 +51,7 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 
 HdiOutput::~HdiOutput()
 {
+    ClearBufferCache();
 }
 
 GSError HdiOutput::ClearFrameBuffer()
@@ -61,7 +62,7 @@ GSError HdiOutput::ClearFrameBuffer()
     }
     currFrameBuffer_ = nullptr;
     lastFrameBuffer_ = nullptr;
-    bufferCache_.clear();
+    ClearBufferCache();
     fbSurface_->ClearFrameBuffer();
     sptr<Surface> pFrameSurface = GetFrameBufferSurface();
     if (pFrameSurface != nullptr) {
@@ -95,7 +96,7 @@ RosenError HdiOutput::Init()
         HLOGE("Set screen client buffer cache count failed, ret is %{public}d", ret);
         return ROSEN_ERROR_INVALID_OPERATING;
     }
-    bufferCache_.clear();
+    ClearBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     historicalPresentfences_.clear();
 
@@ -403,7 +404,7 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
 
     if (bufferCahceSize >= bufferCacheCountMax_) {
         HLOGI("the length of buffer cache exceeds the limit, and not find the aim buffer!");
-        bufferCache_.clear();
+        ClearBufferCache();
     }
 
     index = (uint32_t)bufferCache_.size();
@@ -507,7 +508,7 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     uint32_t index = INVALID_BUFFER_CACHE_INDEX;
     bool bufferCached = false;
     if (bufferCacheCountMax_ == 0) {
-        bufferCache_.clear();
+        ClearBufferCache();
         HLOGE("The count of this client buffer cache is 0.");
     } else {
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
@@ -755,7 +756,7 @@ void HdiOutput::Dump(std::string &result) const
         }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         auto info = layer->GetLayerInfo();
-        result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.surfaceId) + "]";
+        result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";
         info->Dump(result);
     }
@@ -856,6 +857,7 @@ void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) con
 {
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
         struct LayerDumpInfo layerInfo = {
+            .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
             .surfaceId = iter->first,
             .layer = iter->second,
         };
@@ -868,6 +870,18 @@ void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) con
 int HdiOutput::GetBufferCacheSize()
 {
     return bufferCache_.size();
+}
+
+void HdiOutput::ClearBufferCache()
+{
+    if (bufferCache_.empty()) {
+        return;
+    }
+    int32_t ret = device_->ClearClientBuffer(screenId_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGD("Call hdi ClearClientBuffer failed, ret is %{public}d", ret);
+    }
+    bufferCache_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

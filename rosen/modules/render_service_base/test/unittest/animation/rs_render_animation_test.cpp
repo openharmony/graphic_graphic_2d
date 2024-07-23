@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_animation.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,6 +41,10 @@ public:
     {
         RSRenderAnimation::FinishOnCurrentPosition();
     }
+    std::string GetTargeName()
+    {
+        return RSRenderAnimation::GetTargetName();
+    }
 
 protected:
     explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
@@ -51,6 +56,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static constexpr uint64_t NODE_ID = 12345;
 };
 
 void RSRenderAnimationTest::SetUpTestCase() {}
@@ -128,6 +135,27 @@ HWTEST_F(RSRenderAnimationTest, SetReversed001, TestSize.Level1)
     renderAnimation->SetReversed(true);
     EXPECT_TRUE(renderAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest SetReversed001 end";
+}
+
+/**
+ * @tc.name: GetTargetName001
+ * @tc.desc: Verify the GetTargetName
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, GetTargetName001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GetTargetName001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    std::string nodeName = "1"; // for test
+    renderNode->SetNodeName(nodeName);
+
+    EXPECT_TRUE(renderAnimation != nullptr);
+    renderAnimation->Attach(renderNode.get());
+    auto name = renderAnimation->GetTargeName();
+    EXPECT_EQ(name, nodeName);
+
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GetTargetName001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

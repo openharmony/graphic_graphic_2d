@@ -42,7 +42,7 @@ void BootPicturePlayer::Play()
     VsyncError ret = receiver_->Init();
     if (ret) {
         LOGE("vsync receiver init failed: %{public}d", ret);
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return;
     }
 
@@ -51,20 +51,20 @@ void BootPicturePlayer::Play()
         imgVecSize_ = static_cast<int32_t> (imageVector_.size());
     } else {
         LOGE("read pic zip failed");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return;
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 
     OHOS::Rosen::VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
-        .callback_ = std::bind(&BootPicturePlayer::OnVsync, this),
+        .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
     int32_t changeFreq = static_cast<int32_t> (1000.0 / freq_ / 16);
     ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         LOGE("SetVSyncRate failed: %{public}d %{public}d", ret, freq_);
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return;
     } else {
         LOGI("SetVSyncRate success: %{public}d, %{public}d", freq_, changeFreq);
@@ -127,14 +127,14 @@ bool BootPicturePlayer::CheckFrameRateValid(int32_t frameRate)
 
 void BootPicturePlayer::OnVsync()
 {
-    PostTask(std::bind(&BootPicturePlayer::Draw, this));
+    PostTask([this] { this->Draw(); });
 }
 
 bool BootPicturePlayer::Draw()
 {
     if (picCurNo_ >= (imgVecSize_ - 1)) {
         LOGI("play sequence frames end");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
     picCurNo_ = picCurNo_ + 1;
@@ -143,13 +143,13 @@ bool BootPicturePlayer::Draw()
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     if (frame == nullptr) {
         LOGE("draw frame is nullptr");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
 #ifdef NEW_RENDER_CONTEXT
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
     auto canvas = rsSurface_->GetCanvas();
@@ -172,11 +172,11 @@ bool BootPicturePlayer::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo
 {
     if (canvas == nullptr) {
         LOGE("OnDraw canvas is nullptr");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
     if (curNo > (imgVecSize_ - 1) || curNo < 0) {
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, AppExecFwk::EventRunner::Current()));
+        AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
     std::shared_ptr<ImageStruct> imgstruct = imageVector_[curNo];
@@ -194,6 +194,7 @@ bool BootPicturePlayer::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo
     Rosen::Drawing::Rect rect(pointX_, pointY_, pointX_ + realWidth_, pointY_ + realHeight_);
     Rosen::Drawing::SamplingOptions samplingOptions;
     canvas->DrawImageRect(*image, rect, samplingOptions);
+    imageVector_[curNo].reset();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return true;
 }

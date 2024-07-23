@@ -18,12 +18,14 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
+#include "parameters.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -42,6 +44,8 @@ const std::string OUT_STR2 =
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
     "Children list needs update, current count: 0 expected count: 0+1\n";
+const int DEFAULT_BOUNDS_SIZE = 10;
+const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawableAdapterBoy(std::shared_ptr<const RSRenderNode> node)
@@ -55,10 +59,6 @@ public:
     void Draw(Drawing::Canvas& canvas) override
     {
         printf("Draw:GetRecordingState: %d \n", canvas.GetRecordingState());
-    }
-    void DumpDrawableTree(int32_t depth, std::string& out) const override
-    {
-        printf("DumpDrawableTree:depth: %d-%s \n", depth, out.c_str());
     }
 };
 
@@ -1109,7 +1109,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->stagingRenderParams_->freezeFlag_ = true;
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
-    node->clearSurfaceTask_ = clearTask;
     node->isOpincRootFlag_ = true;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
@@ -1488,10 +1487,6 @@ HWTEST_F(RSRenderNodeTest, ParentChildRelationshipTest006, TestSize.Level1)
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->RemoveChild(child2, true);
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
-
-    // ResetClearSurfaeFunc test
-    nodeTest->ResetClearSurfaeFunc();
-    EXPECT_EQ(nodeTest->clearSurfaceTask_, nullptr);
 }
 
 /**
@@ -1697,8 +1692,6 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
     surfaceTest1->visibleRegion_.rects_.emplace_back(RectI { 0, 0, 2, 2 });
     subSurfaceNodesTest1.emplace_back(surfaceTest1);
     nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
-    auto isSubNodeNeedDrawTest1 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_TRUE(isSubNodeNeedDrawTest1);
     nodeTest->subSurfaceNodes_.clear();
 
     std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest2;
@@ -1715,12 +1708,7 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
     surfaceTest2->subSurfaceNodes_.emplace(0, subSurfaceNodesTest3);
     subSurfaceNodesTest2.emplace_back(surfaceTest2);
     nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest2);
-    auto isSubNodeNeedDrawTest2 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_TRUE(isSubNodeNeedDrawTest2);
     nodeTest->subSurfaceNodes_.clear();
-
-    auto isSubNodeNeedDrawTest4 = nodeTest->SubSurfaceNodeNeedDraw(PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION);
-    EXPECT_FALSE(isSubNodeNeedDrawTest4);
 }
 
 /**
@@ -2132,7 +2120,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    nodeTest->NeedInitCacheSurface();
+    EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
 }
 
 /**
@@ -2238,6 +2226,47 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
     nodeTest->boundsWidth_ = 10.0f;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, false);
+
+    nodeTest->boundsWidth_ = 10.0f;
+    nodeTest->boundsHeight_ = 10.0f;
+    nodeTest->cacheCompletedBackendTexture_.isValid_ = false;
+    paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
+    EXPECT_TRUE(paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_);
+
+    // RSSystemPrperties:GetRecordongEnabled() is false
+    nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
+    RSShadow rsShadow;
+    std::optional <RSShadow>shadow(rsShadow);
+    nodeTest->renderContent_->renderProperties_.shadow_ = shadow;
+    nodeTest->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
+    nodeTest->cacheType_ = CacheType::ANIMATE_PROPERTY;
+    Drawing::Canvas canvasTest2;
+    std::shared_ptr<Drawing::GPUContext> gpuContextTest2 = std::make_shared<Drawing::GPUContext>();
+    canvasTest2.gpuContext_ = gpuContextTest2;
+    RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
+    std::shared_ptr<Drawing::SkiaCanvas> implTest1 = std::make_shared<Drawing::SkiaCanvas>();
+    implTest1->skCanvas_ = nullptr;
+    paintFilterCanvasTest2.canvas_->impl_ = implTest1;
+    paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
+    EXPECT_FALSE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+
+    // RSSystemPrperties::GetRecordongEnabled() is false
+    // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
+    // so isUIFirst only is true
+
+    nodeTest->cacheType_ = CacheType::CONTENT;
+    Drawing::Canvas canvasTest3;
+    std::shared_ptr<Drawing::GPUContext> gpuContextTest3 = std::make_shared<Drawing::GPUContext>();
+    canvasTest3.gpuContext_ = gpuContextTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    std::shared_ptr<Drawing::SkiaCanvas> implTest2 = std::make_shared<Drawing::SkiaCanvas>();
+    implTest2->skCanvas_ = nullptr;
+    paintFilterCanvasTest3.canvas_->impl_ = implTest2;
+    paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
+    nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
+    EXPECT_FALSE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
 }
 
 /**
@@ -2257,19 +2286,20 @@ HWTEST_F(RSRenderNodeTest, GetCompletedImageTest026, TestSize.Level1)
     canvastest.gpuContext_ = gpuContext;
     RSPaintFilterCanvas canvas(&canvastest);
 
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface = std::make_shared<Drawing::Surface>();
+    EXPECT_NE(cacheCompletedSurface, nullptr);
+    nodeTest->cacheCompletedSurface_ = cacheCompletedSurface;
+
     nodeTest->cacheCompletedBackendTexture_.isValid_ = false;
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 
     nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
     EXPECT_NE(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 
-    nodeTest->cacheCompletedSurface_ = nullptr;
+    // cacheCompletedSurface_->GetImageSnapshot() is false
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, false), nullptr);
 
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(cacheCompletedSurface, nullptr);
-    nodeTest->cacheCompletedSurface_ = cacheCompletedSurface;
-    // cacheCompletedSurface_->GetImageSnapshot() is false
+    nodeTest->cacheCompletedSurface_ = nullptr;
     EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, false), nullptr);
 }
 
@@ -2526,5 +2556,59 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
     node.ProcessTransitionAfterChildren(*canvas_);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDFX001
+ * @tc.desc: test if subTreeDirtyRegion can be correctly collected.
+ * @tc.type: FUNC
+ * @tc.require: issueA7UVD
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
+{
+    bool isPropertyChanged = false;
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "1");
+        ASSERT_NE(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+        isPropertyChanged = true;
+    }
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    canvasNode->lastFrameSubTreeSkipped_ = true;
+    canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
+    canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
+    EXPECT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    if (isPropertyChanged) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+        ASSERT_EQ(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+    }
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDFX002
+ * @tc.desc: test if absDrawRect can be correctly collected when clip property is true.
+ * @tc.type: FUNC
+ * @tc.require: issueA7UVD
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
+{
+    bool isPropertyChanged = false;
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "1");
+        ASSERT_NE(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+        isPropertyChanged = true;
+    }
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    auto& properties = canvasNode->GetMutableRenderProperties();
+    properties.clipToBounds_ = true;
+    canvasNode->absDrawRect_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
+    canvasNode->UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
+    EXPECT_FALSE(rsDirtyManager->dirtyCanvasNodeInfo_.empty());
+    if (isPropertyChanged) {
+        system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+        ASSERT_EQ(RSSystemProperties::GetDirtyRegionDebugType(), DirtyRegionDebugType::DISABLED);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

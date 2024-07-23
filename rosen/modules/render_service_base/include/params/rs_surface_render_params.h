@@ -16,9 +16,11 @@
 #ifndef RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 #define RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 
+#include <memory>
 #include <string>
 
 #include "common/rs_occlusion_region.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -40,12 +42,14 @@ struct RSLayerInfo {
     float alpha = 1.f;
     GraphicBlendType blendType;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    int32_t layerSource;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
-            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha));
+            (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
+            (layerSource == layerInfo.layerSource);
     }
 #endif
 };
@@ -57,11 +61,11 @@ public:
     {
         return isMainWindowType_;
     }
-    inline bool IsLeashWindow() const
+    inline bool IsLeashWindow() const override
     {
         return isLeashWindow_;
     }
-    bool IsAppWindow() const
+    bool IsAppWindow() const override
     {
         return isAppWindow_;
     }
@@ -76,10 +80,17 @@ public:
     void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
     {
         ancestorDisplayNode_ = ancestorDisplayNode;
+        auto node = ancestorDisplayNode.lock();
+        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
+  
     RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
+    }
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
+    {
+        return ancestorDisplayDrawable_;
     }
 
     float GetAlpha() const
@@ -102,7 +113,7 @@ public:
     {
         return backgroundColor_;
     }
-    const RectI& GetAbsDrawRect() const
+    const RectI& GetAbsDrawRect() const override
     {
         return absDrawRect_;
     }
@@ -122,6 +133,10 @@ public:
     bool GetIsProtectedLayer() const
     {
         return isProtectedLayer_;
+    }
+    bool GetAnimateState() const
+    {
+        return animateState_;
     }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
@@ -256,7 +271,7 @@ public:
     }
 
     void SetOcclusionVisible(bool visible);
-    bool GetOcclusionVisible() const;
+    bool GetOcclusionVisible() const override;
 
     void SetIsParentScaling(bool isParentScaling);
     bool IsParentScaling() const;
@@ -264,11 +279,11 @@ public:
     void SetTransparentRegion(const Occlusion::Region& transparentRegion);
     const Occlusion::Region& GetTransparentRegion() const;
 
-    void SetOldDirtyInSurface(const RectI& oldDirtyInSurface);
-    RectI GetOldDirtyInSurface() const;
+    void SetOldDirtyInSurface(const RectI& oldDirtyInSurface) override;
+    RectI GetOldDirtyInSurface() const override;
 
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
-    Occlusion::Region GetVisibleRegion() const;
+    Occlusion::Region GetVisibleRegion() const override;
 
     void SetVisibleRegionInVirtual(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegionInVirtual() const;
@@ -277,13 +292,16 @@ public:
     bool GetOccludedByFilterCache() const;
 
     void SetLayerInfo(const RSLayerInfo& layerInfo);
-    const RSLayerInfo& GetLayerInfo() const;
+    const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
-    bool GetHardwareEnabled() const;
+    bool GetHardwareEnabled() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
-    bool GetLastFrameHardwareEnabled() const;
+    bool GetLastFrameHardwareEnabled() const override;
     void SetForceHardwareByUser(bool flag);
     bool GetForceHardwareByUser() const;
+    // source crop tuning
+    void SetLayerSourceTuning(int32_t needSourceTuning);
+    int32_t GetLayerSourceTuning() const;
 
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
@@ -301,22 +319,27 @@ public:
 
     bool IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
-    void SetPreScalingMode(ScalingMode scalingMode)
+    void SetPreScalingMode(ScalingMode scalingMode) override
     {
+        if (preScalingMode_ == scalingMode) {
+            return;
+        }
         preScalingMode_ = scalingMode;
+        needSync_ = true;
     }
-    ScalingMode GetPreScalingMode() const
+    ScalingMode GetPreScalingMode() const override
     {
         return preScalingMode_;
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetBuffer(const sptr<SurfaceBuffer>& buffer);
-    sptr<SurfaceBuffer> GetBuffer() const;
-    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer);
-    sptr<SurfaceBuffer>& GetPreBuffer();
-    void SetAcquireFence(const sptr<SyncFence>& acquireFence);
-    sptr<SyncFence> GetAcquireFence() const;
+    void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
+    sptr<SurfaceBuffer> GetBuffer() const override;
+    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) override;
+    sptr<SurfaceBuffer> GetPreBuffer() override;
+    void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
+    sptr<SyncFence> GetAcquireFence() const override;
+    const Rect& GetBufferDamage() const override;
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
@@ -341,6 +364,51 @@ public:
         return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
     }
 
+    void SetLayerCreated(bool layerCreated) override
+    {
+        layerCreated_ = layerCreated;
+    }
+
+    bool GetLayerCreated() const override
+    {
+        return layerCreated_;
+    }
+    void SetTotalMatrix(const Drawing::Matrix& totalMatrix) override
+    {
+        if (totalMatrix_ == totalMatrix) {
+            return;
+        }
+        totalMatrix_ = totalMatrix;
+        needSync_ = true;
+    }
+    const Drawing::Matrix& GetTotalMatrix() override
+    {
+        return totalMatrix_;
+    }
+    void SetGlobalAlpha(float alpha) override
+    {
+        if (globalAlpha_ == alpha) {
+            return;
+        }
+        globalAlpha_ = alpha;
+        needSync_ = true;
+    }
+    float GetGlobalAlpha() override
+    {
+        return globalAlpha_;
+    }
+    void SetFingerprint(bool hasFingerprint) override
+    {
+        if (hasFingerprint_ == hasFingerprint) {
+            return;
+        }
+        hasFingerprint_ = hasFingerprint;
+        needSync_ = true;
+    }
+    bool GetFingerprint() override {
+        return false;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -349,6 +417,7 @@ private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
 
     float alpha_ = 0;
     bool isTransparent_ = false;
@@ -380,9 +449,11 @@ private:
     bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<SurfaceBuffer> buffer_;
-    sptr<SurfaceBuffer> preBuffer_;
+    sptr<SurfaceBuffer> buffer_ = nullptr;
+    sptr<SurfaceBuffer> preBuffer_ = nullptr;
+    sptr<SurfaceBuffer> preBufferFence_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -391,6 +462,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
+    bool animateState_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
@@ -404,7 +476,12 @@ private:
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
+    bool layerCreated_ = false;
+    int32_t layerSource_ = 0;
 
+    Drawing::Matrix totalMatrix_;
+    float globalAlpha_ = 1.0f;
+    bool hasFingerprint_ = false;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

@@ -24,6 +24,7 @@ constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 
 template<typename T>
 bool Compare(const T& lhs, const T& rhs)
@@ -138,7 +139,7 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
-    bufferCache_.clear();
+    ClearBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
@@ -260,7 +261,7 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
         for (uint32_t i = 0; i < bufferCacheSize; i++) {
             deletingList.push_back(i);
         }
-        bufferCache_.clear();
+        ClearBufferCache();
     }
     index = (uint32_t)bufferCache_.size();
     bufferCache_.push_back(sequence);
@@ -286,7 +287,7 @@ int32_t HdiLayer::SetLayerBuffer()
     std::vector<uint32_t> deletingList = {};
     bool bufferCached = false;
     if (bufferCacheCountMax_ == 0) {
-        bufferCache_.clear();
+        ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
         bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
@@ -761,6 +762,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
             ret = SetPerFrameParameterBrightnessRatio();
             CheckRet(ret, "SetPerFrameParameterBrightnessRatio");
+        } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
+            ret = SetPerFrameLayerSourceTuning();
+            CheckRet(ret, "SetLayerSourceTuning");
         }
     }
     return ret;
@@ -792,5 +796,27 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
     return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
 }
 
+int32_t HdiLayer::SetPerFrameLayerSourceTuning()
+{
+    if (doLayerInfoCompare_) {
+        if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
+    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
+}
+
+void HdiLayer::ClearBufferCache()
+{
+    if (bufferCache_.empty()) {
+        return;
+    }
+    int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
+    CheckRet(ret, "ClearLayerBuffer");
+    bufferCache_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS

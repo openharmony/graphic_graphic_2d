@@ -32,7 +32,7 @@ public:
 
     /* specify constructor and destructor here */
     RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier();
-    ~RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
+    virtual ~RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
     /* specify exclusive verification rules here */

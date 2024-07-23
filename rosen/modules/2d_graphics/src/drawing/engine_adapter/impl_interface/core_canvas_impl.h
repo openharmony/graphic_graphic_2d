@@ -172,6 +172,8 @@ public:
     virtual void Reset(int32_t width, int32_t height) = 0;
 
     virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
+
+    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

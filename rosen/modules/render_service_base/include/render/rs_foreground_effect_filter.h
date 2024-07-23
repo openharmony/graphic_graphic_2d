@@ -43,7 +43,7 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
     void PostProcess(Drawing::Canvas& canvas) override {};
-    float GetDirtyExtension();
+    float GetDirtyExtension() const;
 
     std::shared_ptr<RSDrawingFilterOriginal> Compose(
         const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
@@ -58,7 +58,7 @@ private:
     float radiusByPasses_{};
     float unit_{};
 
-    std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder_ = nullptr;
 
     static constexpr float BASE_BLUR_SCALE = 0.5f; // base downSample radio
     static constexpr uint32_t MAX_PASSES_LARGE_RADIUS = 7;

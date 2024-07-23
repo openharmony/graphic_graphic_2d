@@ -23,8 +23,8 @@
 #include "common.h"
 
 namespace OHOS {
-std::unordered_map<std::string, PluginRender *> PluginRender::m_instance;
-OH_NativeXComponent_Callback PluginRender::m_callback;
+std::unordered_map<std::string, PluginRender *> PluginRender::instance_;
+OH_NativeXComponent_Callback PluginRender::callback_;
 
 void OnSurfaceCreatedCB(OH_NativeXComponent *component, void *window)
 {
@@ -49,7 +49,7 @@ void OnSurfaceCreatedCB(OH_NativeXComponent *component, void *window)
     uint64_t height;
     int32_t xSize = OH_NativeXComponent_GetXComponentSize(component, window, &width, &height);
     if ((xSize == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) && (render != nullptr)) {
-        render->m_eglCore->EglContextInit(window, width, height);
+        render->eglcore_->EglContextInit(window, width, height);
     }
 }
 
@@ -74,23 +74,23 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent *component, void *window)
     PluginRender::Release(id);
 }
 
-PluginRender::PluginRender(std::string &id)
+PluginRender::PluginRender(const std::string &id)
 {
-    this->m_id = id;
-    this->m_eglCore = new EGLCore();
-    OH_NativeXComponent_Callback *renderCallback = &PluginRender::m_callback;
+    this->id_ = id;
+    this->eglcore_ = new EGLCore();
+    OH_NativeXComponent_Callback *renderCallback = &PluginRender::callback_;
     renderCallback->OnSurfaceCreated = OnSurfaceCreatedCB;
     renderCallback->OnSurfaceDestroyed = OnSurfaceDestroyedCB;
 }
 
 PluginRender *PluginRender::GetInstance(std::string &id)
 {
-    if (m_instance.find(id) == m_instance.end()) {
+    if (instance_.find(id) == instance_.end()) {
         PluginRender *instance = new PluginRender(id);
-        m_instance[id] = instance;
+        instance_[id] = instance;
         return instance;
     } else {
-        return m_instance[id];
+        return instance_[id];
     }
 }
 
@@ -133,8 +133,8 @@ napi_value PluginRender::NapiDrawRectangle(napi_env env, napi_callback_info info
     std::string id(idStr);
     PluginRender *render = PluginRender::GetInstance(id);
     if (render) {
-        render->m_eglCore->Draw();
-        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "PluginRender", "render->m_eglCore->Draw() executed");
+        render->eglcore_->Draw();
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "PluginRender", "render->eglcore_->Draw() executed");
     }
     return nullptr;
 }
@@ -158,12 +158,12 @@ void PluginRender::Release(std::string &id)
 {
     PluginRender *render = PluginRender::GetInstance(id);
     if (render != nullptr) {
-        render->m_eglCore->Release();
-        delete render->m_eglCore;
-        render->m_eglCore = nullptr;
+        render->eglcore_->Release();
+        delete render->eglcore_;
+        render->eglcore_ = nullptr;
         delete render;
         render = nullptr;
-        m_instance.erase(m_instance.find(id));
+        instance_.erase(instance_.find(id));
     }
 }
 } // namespace OHOS

@@ -33,7 +33,7 @@ public:
     void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces();
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetAllMainAndLeashSurfaceDrawables();
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetAllMainAndLeashSurfaceDrawables() override;
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
@@ -45,7 +45,7 @@ public:
     {
         return offsetY_;
     }
-    uint64_t GetScreenId() const
+    uint64_t GetScreenId() const override
     {
         return screenId_;
     }
@@ -53,19 +53,19 @@ public:
     {
         return mirroredId_;
     }
-    const ScreenInfo& GetScreenInfo() const
+    const ScreenInfo& GetScreenInfo() const override
     {
         return screenInfo_;
     }
-    std::weak_ptr<RSDisplayRenderNode> GetMirrorSource()
+    NodeId GetMirrorSourceId() const
     {
-        return mirrorSource_;
+        return mirrorSourceId_;
     }
     RSDisplayRenderNode::CompositeType GetCompositeType() const
     {
         return compositeType_;
     };
-    ScreenRotation GetScreenRotation() const
+    ScreenRotation GetScreenRotation() const override
     {
         return screenRotation_;
     }
@@ -89,25 +89,35 @@ public:
     {
         return hasCaptureWindow_;
     }
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledNodes()
+
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledDrawables()
     {
-        return hardwareEnabledNodes_;
+        return hardwareEnabledDrawables_;
     }
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTopNodes()
+
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTopDrawables()
     {
-        return hardwareEnabledTopNodes_;
+        return hardwareEnabledTopDrawables_;
     }
+
+    void SetSecurityDisplay(bool isSecurityDisplay);
+    bool GetSecurityDisplay() const override
+    {
+        return isSecurityDisplay_;
+    }
+    void SetGlobalZOrder(float zOrder);
+    float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    bool HasSecurityLayer();
-    bool HasSkipLayer();
-    bool HasProtectedLayer();
-    bool HasCaptureWindow();
+    bool HasSecurityLayer() const;
+    bool HasSkipLayer() const;
+    bool HasProtectedLayer() const;
+    bool HasCaptureWindow() const;
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
-    void SetRotationChanged(bool changed);
-    bool IsRotationChanged() const;
+    void SetRotationChanged(bool changed) override;
+    bool IsRotationChanged() const override;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -117,13 +127,21 @@ public:
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
 
+    bool IsSpecialLayerChanged() const
+    {
+        auto iter = displaySpecailSurfaceChanged_.find(screenId_);
+        return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
+    }
+
     // dfx
     std::string ToString() const override;
 
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable() override;
 private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
     std::map<ScreenId, bool> displayHasProtectedSurface_;
+    std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
@@ -132,7 +150,10 @@ private:
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
+    bool isSecurityDisplay_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
+    NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
@@ -140,13 +161,15 @@ private:
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
-
+    float zOrder_ = 0.0f;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrawables_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTopDrawables_;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 };

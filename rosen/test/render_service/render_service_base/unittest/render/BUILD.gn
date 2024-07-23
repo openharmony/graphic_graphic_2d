@@ -24,10 +24,12 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   sources = [
     "rs_aibar_filter_test.cpp",
     "rs_aibar_shader_filter_test.cpp",
+    "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",
     "rs_border_test.cpp",
     "rs_color_extract_test.cpp",
     "rs_color_picker_test.cpp",
+    "rs_colorful_shadow_filter_test.cpp",
     "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
@@ -75,6 +77,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   ]
 
   deps = [
+    "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]

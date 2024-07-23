@@ -21,6 +21,7 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <string>
+#include <rs_trace.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -158,12 +159,14 @@ void VSyncSampler::UpdateReferenceTimeLocked()
     if (!isFrameRateChanging && (numSamples_ == 1)) {
         phase_ = 0;
         referenceTime_ = samples_[firstSampleIndex_];
+        CheckIfFirstRefreshAfterIdleLocked();
         CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
     }
     // check if the actual framerate is changed, at least 2 samples
     if (isFrameRateChanging && (numSamples_ >= 2)) {
         int64_t prevSample = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // at least 2 samples
         int64_t latestSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
+        CheckIfFirstRefreshAfterIdleLocked();
         CreateVSyncGenerator()->CheckAndUpdateReferenceTime(latestSample - prevSample, prevSample);
     }
 }
@@ -224,6 +227,7 @@ void VSyncSampler::UpdateModeLocked()
         phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
 
         modeUpdated_ = true;
+        CheckIfFirstRefreshAfterIdleLocked();
         CreateVSyncGenerator()->UpdateMode(period_, phase_, referenceTime_);
         pendingPeriod_ = period_;
     }
@@ -270,24 +274,28 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 
-    if (presentFenceTimeOffset_ + NUM_PRESENT >= 1) {
-        int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
-        if ((prevFenceTimeStamp != INVALID_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
-            ScopedBytrace trace("StartRefreshAfterIdle");
-            CreateVSyncGenerator()->StartRefresh();
-            numSamples_ = 0;
-        }
-    }
-
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;
     numResyncSamplesSincePresent_ = 0;
 
     UpdateErrorLocked();
     if (error_ > ERROR_THRESHOLD) {
-        ScopedBytrace trace("PresentFenceTime error_:" + std::to_string(error_));
+        RS_TRACE_NAME_FMT("PresentFenceTime error_:%lf", error_);
     }
 
     return !modeUpdated_ || error_ > ERROR_THRESHOLD;
+}
+
+void VSyncSampler::CheckIfFirstRefreshAfterIdleLocked()
+{
+    if (presentFenceTimeOffset_ + NUM_PRESENT < 1) {
+        return;
+    }
+    int64_t curFenceTimeStamp = presentFenceTime_[presentFenceTimeOffset_];
+    int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
+    if ((curFenceTimeStamp != INVALID_TIMESTAMP) && (prevFenceTimeStamp != INVALID_TIMESTAMP) &&
+        (curFenceTimeStamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
+        CreateVSyncGenerator()->StartRefresh();
+    }
 }
 
 int64_t VSyncSampler::GetPeriod() const

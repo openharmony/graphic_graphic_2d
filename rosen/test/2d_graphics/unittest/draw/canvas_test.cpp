@@ -791,6 +791,21 @@ HWTEST_F(CanvasTest, SetOffscreenTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUICaptureTest001
+ * @tc.desc: Test for SetUICapture functions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, SetUICaptureTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetUICapture(true);
+    bool state = canvas->GetUICapture();
+    ASSERT_TRUE(state);
+}
+
+/**
  * @tc.name: GetRecordingStateTest001
  * @tc.desc: Test for GetRecordingState functions.
  * @tc.type: FUNC

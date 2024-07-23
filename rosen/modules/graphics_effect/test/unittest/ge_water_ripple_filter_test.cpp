@@ -92,5 +92,17 @@ HWTEST_F(GEWaterRippleFilterTest, ProcessImage002, TestSize.Level1)
     auto geWaterRippleFilter = std::make_shared<GEWaterRippleFilter>(geWaterRippleFilterParams);
     EXPECT_EQ(geWaterRippleFilter->ProcessImage(canvas_, nullptr, src_, dst_), nullptr);
 }
+
+/**
+ * @tc.name: ProcessImage003
+ * @tc.desc: Verify function ProcessImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEWaterRippleFilterTest, ProcessImage003, TestSize.Level1)
+{
+    Drawing::GEWaterRippleFilterParams geWaterRippleFilterParams { 0.5f, 2.0f, 0.5f, 0.0f };
+    auto geWaterRippleFilter = std::make_shared<GEWaterRippleFilter>(geWaterRippleFilterParams);
+    EXPECT_NE(geWaterRippleFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+}
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

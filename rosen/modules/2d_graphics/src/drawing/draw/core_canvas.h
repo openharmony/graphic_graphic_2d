@@ -61,7 +61,6 @@ enum class QuadAAFlags {
     ALL_QUADAAFLAGS = 15,
 };
 
-const int DIVES_SIZE = 2;
 #undef TRANSPARENT
 struct Lattice {
     enum RectType : uint8_t {
@@ -69,13 +68,13 @@ struct Lattice {
         TRANSPARENT,
         FIXEDCOLOR,
     };
-    int fXDivs[DIVES_SIZE];
-    int fYDivs[DIVES_SIZE];
-    RectType fRectTypes = RectType::DEFAULT;
+    std::vector<int> fXDivs;
+    std::vector<int> fYDivs;
+    std::vector<RectType> fRectTypes;
     int fXCount;
     int fYCount;
-    RectI fBounds;
-    Color fColors;
+    std::vector<RectI> fBounds;
+    std::vector<Color> fColors;
 };
 
 enum CacheType : uint8_t {
@@ -416,7 +415,7 @@ public:
      * This approach can be optimized when you want to draw many parts of an image on the canvas.
      * Rect tex selects the area in the atlas, xform transforms each sprite individually rotating or zooming.
      * MaskFilter and PathEffect on brush are ignored.
-     * 
+     *
      * The xform and tex list must contain count entries, and if the colors is present,
      * it must be the same length as the other two lists, the max count supported is 2000.
      * Optional parameter colors, if present, are applied to each sprite using BlendMode mode, treating
@@ -467,6 +466,21 @@ public:
      * @param y    vertical offset applied to blob
     */
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y);
+
+    /**
+     * @brief blob contains glyphs, their positions, and paint attributes specific to text:
+     * Typeface, text size, text scale x, text skew x, anti-alias, fake bold,
+     * font embedded bitmaps, pen/brush full hinting spacing, LCD text, linear text,
+     * and subpixel text. TextEncoding must be set to TextEncoding::GLYPH_ID.
+     * Elements of pen/brush: anti-alias, BlendMode, color including alpha,
+     * ColorFilter, MaskFilter, PathEffect, Shader, and Brush::Style; apply to blob.
+     * If attach pen to draw text, set Pen::Cap, Pen::Join, and stroke width;
+     * apply to Path created from blob.
+     * @param blob glyphs, positions, and their paints' text size, typeface, and so on
+     * @param x    horizontal offset applied to blob
+     * @param y    vertical offset applied to blob
+    */
+    void DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y);
 
     // symbol
     virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
@@ -548,7 +562,7 @@ public:
      * @brief Sets RSMatrix to the identity matrix. Any prior matrix state is overwritten.
      */
     virtual void ResetMatrix();
-    
+
     /**
      * @brief Replaces RSMatrix with matrix premultiplied with existing RSMatrix.
      * This has the effect of transforming the drawn geometry by matrix, before
@@ -556,7 +570,7 @@ public:
      * @param matrix matrix to premultiply with existing RSMatrix
      */
     virtual void ConcatMatrix(const Matrix& matrix);
-    
+
     /**
      * @brief Translates RSMatrix by dx along the x-axis and dy along the y-axis.
      * Mathematically, replaces RSMatrix with a translation matrix premultiplied with RSMatrix.
@@ -565,7 +579,7 @@ public:
      * @param dy distance to translate on y-axis
      */
     virtual void Translate(scalar dx, scalar dy);
-    
+
     /**
      * @brief Scales RSMatrix by sx on the x-axis and sy on the y-axis.
      * Mathematically, replaces RSMatrix with a scale matrix premultiplied with RSMatrix.
@@ -641,7 +655,7 @@ public:
 
     /**
      * @brief Returns the number of saved states, each containing Matrix and clipping area.
-     * 
+     *
      * @return uint32_t type, represent depth of save state stack
      */
     virtual uint32_t GetSaveCount() const;
@@ -672,13 +686,13 @@ public:
      * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPaint(const Paint& paint);
-    
+
     /**
      * @brief Detach pen from canvas.
      * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPen();
-    
+
     /**
      * @brief Detach brush from canvas.
      * @return CoreCanvas&
@@ -717,6 +731,13 @@ public:
     }
 
     virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
+
+    /**
+     * @brief                   Get the size after HPS blur downsampling. Only VK will return valid values.
+     * @param blurParam         HPS blur Param is used to calculate the size after downsampling.
+     * @return {width, height}, if return {0, 0}, witch means something error.
+     */
+    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams);
 
 protected:
     CoreCanvas(int32_t width, int32_t height);

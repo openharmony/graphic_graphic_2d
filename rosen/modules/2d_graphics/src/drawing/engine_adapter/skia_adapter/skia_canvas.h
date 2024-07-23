@@ -169,6 +169,8 @@ public:
 
     bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) override;
 
+    std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);

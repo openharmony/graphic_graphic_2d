@@ -72,8 +72,8 @@ private:
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
-    static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
-    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
+    static void GetComposerInfoSrcRect(ComposeInfo& info, const RSSurfaceRenderNode& node);
+    bool GetComposerInfoNeedClient(const ComposeInfo& info, RSSurfaceRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, bool isTunnelCheck = false) const;
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<HdiOutput> output_;

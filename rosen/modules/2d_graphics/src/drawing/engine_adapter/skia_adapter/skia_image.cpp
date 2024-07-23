@@ -129,7 +129,7 @@ std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, co
                                  SkiaYUVInfo::ConvertToSkPlaneConfig(info.GetConfig()),
                                  SkiaYUVInfo::ConvertToSkSubSampling(info.GetSampling()),
                                  SkiaYUVInfo::ConvertToSkYUVColorSpace(info.GetColorSpace())},
-                                 SkYUVAPixmapInfo::DataType::kUnorm8,
+                                 SkiaYUVInfo::ConvertToSkDataType(info.GetDataType()),
                                  nullptr);
     auto skYUVAPixmaps = SkYUVAPixmaps::FromExternalMemory(pixmapInfo, memory);
     auto skImage = SkImage::MakeFromYUVAPixmaps(grContext.get(), skYUVAPixmaps);

@@ -15,11 +15,13 @@
 
 #include <cstdint>
 #include <sys/types.h>
+#include <parameters.h>
 
 #include "rs_dirty_rects_dfx.h"
 #include "rs_trace.h"
 
 #include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
@@ -47,16 +49,13 @@ static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::RENDER_PROPERTIES_RECT, "RENDER_PROPERTIES_RECT" },
     { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
     { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
+    { DirtyRegionType::SUBTREE_SKIP_RECT, "SUBTREE_SKIP_RECT" },
 };
 
 void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
 {
-    if (!targetNode_) {
-        RS_LOGE("RSDirtyRectsDfx::OnDraw target node is nullptr!");
-        return;
-    }
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (!renderThreadParams) {
+    if (UNLIKELY(!renderThreadParams)) {
         RS_LOGE("RSDirtyRectsDfx::OnDraw render thread params is nullptr!");
         return;
     }
@@ -74,7 +73,7 @@ void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
             DrawTargetSurfaceDirtyRegionForDFX();
         }
         if (renderThreadParams->isDisplayDirtyDfxEnabled_) {
-            DrawDirtyRegionForDFX(targetNode_->GetSyncDirtyManager()->GetMergedDirtyRegions());
+            DrawDirtyRegionForDFX(targetDrawable_.GetSyncDirtyManager()->GetMergedDirtyRegions());
         }
     }
 
@@ -98,12 +97,8 @@ void RSDirtyRectsDfx::OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas)
         RS_LOGE("RSDirtyRectsDfx::OnDraw canvas is nullptr!");
         return;
     }
-    if (!targetNode_) {
-        RS_LOGE("RSDirtyRectsDfx::OnDraw target node is nullptr!");
-        return;
-    }
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (!renderThreadParams) {
+    if (UNLIKELY(!renderThreadParams)) {
         RS_LOGE("RSDirtyRectsDfx::OnDraw render thread params is nullptr!");
         return;
     }
@@ -136,14 +131,41 @@ void RSDirtyRectsDfx::DrawDirtyRegionInVirtual() const
     }
 }
 
+bool RSDirtyRectsDfx::RefreshRateRotationProcess(ScreenRotation rotation, uint64_t screenId)
+{
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->Rotate(-90, 0, 0); // 90 degree for text draw
+            canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            // 180 degree for text draw
+            canvas_->Rotate(-180, static_cast<float>(mainScreenInfo.width) / 2, // 2 half of screen width
+                static_cast<float>(mainScreenInfo.height) / 2);                 // 2 half of screen height
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->Rotate(-270, 0, 0); // 270 degree for text draw
+            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
 void RSDirtyRectsDfx::DrawCurrentRefreshRate()
 {
-    RS_TRACE_NAME("RSUniRender::DrawCurrentRefreshRate");
-    auto displayParams = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
-    if (!displayParams) {
+    RS_TRACE_FUNC();
+    if (UNLIKELY(!displayParams_)) {
         return;
     }
-    auto screenId = displayParams->GetScreenId();
+    auto screenId = displayParams_->GetScreenId();
+    static const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    const char DUAL_DISPLAY = '2';
+    // fold device with two logic screens
+    if (FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY && screenId != 0) {
+        return;
+    }
     uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
     uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate();
     if (realtimeRefreshRate > currentRefreshRate) {
@@ -162,29 +184,17 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     brush.SetAntiAlias(true);
     RSAutoCanvasRestore acr(canvas_);
     canvas_->AttachBrush(brush);
-    auto rotation = displayParams->GetScreenRotation();
-    if (RSSystemProperties::IsFoldScreenFlag() && screenId == 0) {
+    auto rotation = displayParams_->GetScreenRotation();
+    // fold device with one logic screen
+    if (RSSystemProperties::IsFoldScreenFlag() && FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY
+        && screenId == 0) {
         rotation =
             (rotation == ScreenRotation::ROTATION_270 ? ScreenRotation::ROTATION_0
                                                       : static_cast<ScreenRotation>(static_cast<int>(rotation) + 1));
     }
     auto saveCount = canvas_->Save();
-    if (rotation != ScreenRotation::ROTATION_0) {
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
-        if (rotation == ScreenRotation::ROTATION_90) {
-            canvas_->Rotate(-90, 0, 0); // 90 degree for text draw
-            canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
-        } else if (rotation == ScreenRotation::ROTATION_180) {
-            // 180 degree for text draw
-            canvas_->Rotate(-180, static_cast<float>(mainScreenInfo.width) / 2, // 2 half of screen width
-                static_cast<float>(mainScreenInfo.height) / 2);                 // 2 half of screen height
-        } else if (rotation == ScreenRotation::ROTATION_270) {
-            canvas_->Rotate(-270, 0, 0); // 270 degree for text draw
-            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
-        } else {
-            return;
-        }
+    if (!RefreshRateRotationProcess(rotation, screenId)) {
+        return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DrawTextBlob(textBlob.get(), 100.f, 200.f);
@@ -193,7 +203,7 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
 }
 
 void RSDirtyRectsDfx::DrawDirtyRectForDFX(
-    const RectI& dirtyRect, const Drawing::Color color, const RSPaintStyle fillType, float alpha, int edgeWidth) const
+    RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType, float alpha, int edgeWidth) const
 {
     if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
         ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
@@ -202,6 +212,14 @@ void RSDirtyRectsDfx::DrawDirtyRectForDFX(
     ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = %{public}s", dirtyRect.ToString().c_str());
     auto rect = Drawing::Rect(
         dirtyRect.left_, dirtyRect.top_, dirtyRect.left_ + dirtyRect.width_, dirtyRect.top_ + dirtyRect.height_);
+    RSAutoCanvasRestore acr(canvas_);
+    Drawing::Matrix invertMatrix;
+    if (displayParams_ && displayParams_->GetMatrix().Invert(invertMatrix)) {
+        // Modifying the drawing origin does not affect the actual drawing content
+        canvas_->ConcatMatrix(displayParams_->GetMatrix());
+        invertMatrix.MapRect(rect, rect);
+        dirtyRect.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
+    }
     std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
                            std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
     const int defaultTextOffsetX = edgeWidth;
@@ -240,11 +258,11 @@ void RSDirtyRectsDfx::DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects
 }
 
 void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(
-    RSSurfaceRenderNode& node, DirtyRegionType dirtyType, bool isDrawn) const
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, DirtyRegionType dirtyType, bool isDrawn) const
 {
-    auto dirtyManager = node.GetSyncDirtyManager();
+    auto dirtyManager = surfaceDrawable.GetSyncDirtyManager();
     auto matchType = DIRTY_REGION_TYPE_MAP.find(dirtyType);
-    if (dirtyManager == nullptr || matchType == DIRTY_REGION_TYPE_MAP.end()) {
+    if (matchType == DIRTY_REGION_TYPE_MAP.end()) {
         return;
     }
     std::map<NodeId, RectI> dirtyInfo;
@@ -263,14 +281,16 @@ void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(
             }
         }
     }
-    RS_TRACE_NAME("DrawAndTraceSingleDirtyRegionTypeForDFX target surface node " + node.GetName() + " - id[" +
-                  std::to_string(node.GetId()) + "] has dirtytype " + matchType->second + subInfo);
+    RS_TRACE_NAME_FMT("DrawAndTraceSingleDirtyRegionTypeForDFX target surface node %s - id[%" PRIu64 "]"
+        " has dirtytype %s %s", surfaceDrawable.GetName().c_str(), surfaceDrawable.GetId(),
+        matchType->second.c_str(), subInfo.c_str());
     ROSEN_LOGD("DrawAndTraceSingleDirtyRegionTypeForDFX target surface node %{public}s, id[%{public}" PRIu64 "]"
-               "has dirtytype %{public}s%{public}s",
-        node.GetName().c_str(), node.GetId(), matchType->second.c_str(), subInfo.c_str());
+        "has dirtytype %{public}s%{public}s",
+        surfaceDrawable.GetName().c_str(), surfaceDrawable.GetId(), matchType->second.c_str(), subInfo.c_str());
 }
 
-bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node) const
+bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const
 {
     auto dirtyRegionDebugType = RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_;
     if (dirtyRegionDebugType < DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE) {
@@ -279,7 +299,7 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& 
     if (dirtyRegionDebugType == DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE) {
         auto i = DirtyRegionType::UPDATE_DIRTY_REGION;
         for (; i < DirtyRegionType::TYPE_AMOUNT; i = static_cast<DirtyRegionType>(i + 1)) {
-            DrawAndTraceSingleDirtyRegionTypeForDFX(node, i, false);
+            DrawAndTraceSingleDirtyRegionTypeForDFX(surfaceDrawable, i, false);
         }
         return true;
     }
@@ -296,7 +316,7 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& 
     };
     auto matchType = DIRTY_REGION_DEBUG_TYPE_MAP.find(dirtyRegionDebugType);
     if (matchType != DIRTY_REGION_DEBUG_TYPE_MAP.end()) {
-        DrawAndTraceSingleDirtyRegionTypeForDFX(node, matchType->second);
+        DrawAndTraceSingleDirtyRegionTypeForDFX(surfaceDrawable, matchType->second);
     }
     return true;
 }
@@ -319,14 +339,14 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX() const
     DrawDirtyRegionForDFX(rects);
 
     // draw display dirtyregion with red color
-    RectI dirtySurfaceRect = targetNode_->GetSyncDirtyManager()->GetDirtyRegion();
+    RectI dirtySurfaceRect = targetDrawable_.GetSyncDirtyManager()->GetDirtyRegion();
     DrawDirtyRectForDFX(dirtySurfaceRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE, DFXFillAlpha);
 }
 
 void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
 {
     if (!displayParams_) {
-        RS_LOGE("RSDirtyRectsDfx: displayParams is null ptr.");
+        RS_LOGE("RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX displayParams is null ptr.");
         return;
     }
     auto& curAllSurfacesDrawables = displayParams_->GetAllMainAndLeashSurfaceDrawables();
@@ -340,25 +360,32 @@ void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
 {
-    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
-    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+    if (UNLIKELY(!displayParams_)) {
+        return;
+    }
+    const auto& curAllSurfaceDrawables = displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    for (const auto& drawable : curAllSurfaceDrawables) {
+        if (UNLIKELY(!drawable)) {
             continue;
         }
-        if (CheckIfSurfaceTargetedForDFX(surfaceNode->GetName())) {
-            if (DrawDetailedTypesOfDirtyRegionForDFX(*surfaceNode)) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        auto& surfaceParams = surfaceDrawable->GetRenderParams();
+        if (UNLIKELY(!surfaceParams) || !surfaceParams->IsAppWindow()) {
+            continue;
+        }
+        if (CheckIfSurfaceTargetedForDFX(surfaceDrawable->GetName())) {
+            if (DrawDetailedTypesOfDirtyRegionForDFX(*surfaceDrawable)) {
                 continue;
             }
-            const auto& visibleDirtyRegions = surfaceNode->GetVisibleDirtyRegion().GetRegionRects();
+            auto dirtyManager = targetDrawable_.GetSyncDirtyManager();
+            const auto& visibleDirtyRects = surfaceDrawable->GetVisibleDirtyRegion().GetRegionRects();
             std::vector<RectI> rects;
-            for (auto& rect : visibleDirtyRegions) {
+            for (auto& rect : visibleDirtyRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
             }
-            const auto& visibleRegions = surfaceNode->GetVisibleRegion().GetRegionRects();
-            auto displayDirtyRegion = targetNode_->GetSyncDirtyManager()->GetDirtyRegion();
-            for (auto& rect : visibleRegions) {
+            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
+            auto displayDirtyRegion = dirtyManager->GetDirtyRegion();
+            for (auto& rect : visibleRects) {
                 auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
                 auto intersectRegion = displayDirtyRegion.IntersectRect(visibleRect);
                 rects.emplace_back(intersectRegion);
@@ -381,9 +408,9 @@ void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
             continue;
         }
         if (CheckIfSurfaceTargetedForDFX(surfaceParams->GetName())) {
-            const auto& visibleRegions = surfaceParams->GetVisibleRegion().GetRegionRects();
+            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
             std::vector<RectI> rects;
-            for (auto& rect : visibleRegions) {
+            for (auto& rect : visibleRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
             }
             DrawDirtyRegionForDFX(rects);

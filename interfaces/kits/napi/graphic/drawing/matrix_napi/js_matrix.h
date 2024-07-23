@@ -32,16 +32,52 @@ public:
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
+    static napi_value GetValue(napi_env env, napi_callback_info info);
+    static napi_value PostRotate(napi_env env, napi_callback_info info);
+    static napi_value PostTranslate(napi_env env, napi_callback_info info);
     static napi_value PreRotate(napi_env env, napi_callback_info info);
     static napi_value PreScale(napi_env env, napi_callback_info info);
     static napi_value PreTranslate(napi_env env, napi_callback_info info);
+    static napi_value SetRotation(napi_env env, napi_callback_info info);
+    static napi_value MapPoints(napi_env env, napi_callback_info info);
+    static napi_value PostScale(napi_env env, napi_callback_info info);
+    static napi_value Reset(napi_env env, napi_callback_info info);
+    static napi_value SetPolyToPoly(napi_env env, napi_callback_info info);
+    static napi_value SetRectToRect(napi_env env, napi_callback_info info);
+    static napi_value MapRect(napi_env env, napi_callback_info info);
+    static napi_value SetScale(napi_env env, napi_callback_info info);
+    static napi_value SetTranslation(napi_env env, napi_callback_info info);
+    static napi_value PreConcat(napi_env env, napi_callback_info info);
+    static napi_value IsEqual(napi_env env, napi_callback_info info);
+    static napi_value Invert(napi_env env, napi_callback_info info);
+    static napi_value IsIdentity(napi_env env, napi_callback_info info);
+    static napi_value SetMatrix(napi_env env, napi_callback_info info);
 
     std::shared_ptr<Matrix> GetMatrix();
+    static napi_value GetAll(napi_env env, napi_callback_info info);
 private:
 
+    napi_value OnGetValue(napi_env env, napi_callback_info info);
+    napi_value OnPostRotate(napi_env env, napi_callback_info info);
+    napi_value OnPostTranslate(napi_env env, napi_callback_info info);
     napi_value OnPreRotate(napi_env env, napi_callback_info info);
     napi_value OnPreScale(napi_env env, napi_callback_info info);
     napi_value OnPreTranslate(napi_env env, napi_callback_info info);
+    napi_value OnSetRotation(napi_env env, napi_callback_info info);
+    napi_value OnMapPoints(napi_env env, napi_callback_info info);
+    napi_value OnPostScale(napi_env env, napi_callback_info info);
+    napi_value OnReset(napi_env env, napi_callback_info info);
+    napi_value OnGetAll(napi_env env, napi_callback_info info);
+    napi_value OnSetPolyToPoly(napi_env env, napi_callback_info info);
+    napi_value OnSetRectToRect(napi_env env, napi_callback_info info);
+    napi_value OnMapRect(napi_env env, napi_callback_info info);
+    napi_value OnSetScale(napi_env env, napi_callback_info info);
+    napi_value OnSetTranslation(napi_env env, napi_callback_info info);
+    napi_value OnPreConcat(napi_env env, napi_callback_info info);
+    napi_value OnIsEqual(napi_env env, napi_callback_info info);
+    napi_value OnInvert(napi_env env, napi_callback_info info);
+    napi_value OnIsIdentity(napi_env env, napi_callback_info info);
+    napi_value OnSetMatrix(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Matrix> m_matrix = nullptr;

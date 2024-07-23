@@ -20,3 +20,4 @@ persist.graphic.bootsound.enabled = graphics:servicectrl:0775
 rosen.dirtyregiondebug.enabled = graphics:servicectrl:0775
 rosen.drawingCache.enabledDfx = graphics:servicectrl:0775
 bootevent.renderservice.ready = graphics:graphics:0777
+persist.sys.graphic.hideNotch.status = graphics:graphics:0777

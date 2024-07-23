@@ -117,8 +117,7 @@ void Network::Run()
 
         const SocketState state = socket->GetState();
         if (forceShutdown_) {
-            delete socket;
-            socket = nullptr;
+            Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
             socket->Open(port);
@@ -137,8 +136,7 @@ void Network::Run()
                 ProcessOutgoing(*socket);
             }
         } else if (state == SocketState::SHUTDOWN) {
-            delete socket;
-            socket = nullptr;
+            Shutdown(socket);
         }
     }
 
@@ -188,6 +186,14 @@ std::vector<NetworkStats> Network::GetStats(const std::string& interface)
     };
 
     return results;
+}
+
+void Network::SendPacket(const Packet& packet)
+{
+    if (isRunning_) {
+        const std::lock_guard<std::mutex> guard(outgoingMutex_);
+        outgoing_.emplace(const_cast<Packet&>(packet).Release());
+    }
 }
 
 void Network::SendPath(const std::string& path, PackageID id)
@@ -248,8 +254,7 @@ void Network::SendRSTreeDumpJSON(const std::string& jsonstr)
     Packet packet { Packet::BINARY };
     packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_DUMP_JSON));
     packet.Write(jsonstr);
-    const std::lock_guard<std::mutex> guard(outgoingMutex_);
-    outgoing_.emplace(packet.Release());
+    SendPacket(packet);
 }
 
 void Network::SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList)
@@ -257,8 +262,7 @@ void Network::SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNod
     Packet packet { Packet::BINARY };
     packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_PERF_NODE_LIST));
     packet.Write(perfNodesList);
-    const std::lock_guard<std::mutex> guard(outgoingMutex_);
-    outgoing_.emplace(packet.Release());
+    SendPacket(packet);
 }
 
 void Network::SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec)
@@ -267,8 +271,7 @@ void Network::SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec)
     packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_SINGLE_NODE_PERF));
     packet.Write(id);
     packet.Write(nanosec);
-    const std::lock_guard<std::mutex> guard(outgoingMutex_);
-    outgoing_.emplace(packet.Release());
+    SendPacket(packet);
 }
 
 void Network::SendBinary(const void* data, size_t size)
@@ -276,8 +279,7 @@ void Network::SendBinary(const void* data, size_t size)
     if (data && (size > 0)) {
         Packet packet { Packet::BINARY };
         packet.Write(data, size);
-        const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(packet.Release());
+        SendPacket(packet);
     }
 }
 
@@ -296,8 +298,7 @@ void Network::SendMessage(const std::string& message)
     if (!message.empty()) {
         Packet packet { Packet::LOG };
         packet.Write(message);
-        const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(packet.Release());
+        SendPacket(packet);
     }
 }
 
@@ -383,6 +384,18 @@ void Network::ProcessBinary(const char* data, size_t size)
 void Network::ForceShutdown()
 {
     forceShutdown_ = true;
+}
+
+void Network::Shutdown(Socket*& socket)
+{
+    delete socket;
+    socket = nullptr;
+
+    std::string command = "rsrecord_stop";
+    ProcessCommand(command.c_str(), command.size());
+    command = "rsrecord_replay_stop";
+    ProcessCommand(command.c_str(), command.size());
+    AwakeRenderServiceThread();
 }
 
 void Network::ProcessIncoming(Socket& socket)

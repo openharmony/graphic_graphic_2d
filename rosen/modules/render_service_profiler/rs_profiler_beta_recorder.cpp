@@ -18,9 +18,9 @@
 #include "rs_profiler.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
-#include "rs_profiler_packet.h"
 
 namespace OHOS::Rosen {
 

@@ -629,12 +629,12 @@ private:
 class DrawImageLatticeOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
-            const PaintHandle& paintHandle) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), image(image),
-            lattice(lattice), dst(dst), filter(filterMode), paintHandle(paintHandle) {}
+        ConstructorHandle(const OpDataHandle& image, const LatticeHandle& latticeHandle, const Rect& dst,
+            FilterMode filterMode, const PaintHandle& paintHandle) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM),
+            image(image), latticeHandle(latticeHandle), dst(dst), filter(filterMode), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle image;
-        Lattice lattice;
+        LatticeHandle latticeHandle;
         Rect dst;
         FilterMode filter;
         PaintHandle paintHandle;
@@ -838,8 +838,10 @@ public:
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
-    void DrawHighContrast(Canvas* canvas) const;
+    void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;
+    bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
+        std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas) const;
 private:
     scalar x_;
     scalar y_;

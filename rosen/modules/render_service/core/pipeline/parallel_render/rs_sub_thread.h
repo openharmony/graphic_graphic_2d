@@ -22,7 +22,7 @@
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #ifdef RS_ENABLE_VK
-#include"include/gpu/vk/GrVkBackendContext.h"
+#include "include/gpu/vk/GrVkBackendContext.h"
 #endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "render_context/render_context.h"
@@ -39,9 +39,9 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
-    void DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
+    void DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     void ReleaseSurface();
-    void ReleaseCacheSurfaceOnly(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
+    void ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();
@@ -56,8 +56,12 @@ public:
     {
         doingCacheProcessNum++;
     }
-    void DrawableCacheWithSkImage(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
-    void DrawableCacheWithDma(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
+    void DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
+    void DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
+    std::shared_ptr<Drawing::GPUContext> GetGrContext() const
+    {
+        return grContext_;
+    }
 
 private:
     void CreateShareEglContext();

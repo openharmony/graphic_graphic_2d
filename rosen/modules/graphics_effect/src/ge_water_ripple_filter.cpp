@@ -15,6 +15,7 @@
  
 #include "chrono"
  
+#include "common/rs_common_def.h"
 #include "ge_log.h"
 #include "ge_water_ripple_filter.h"
  
@@ -26,6 +27,7 @@ namespace Rosen {
 namespace {
  
 static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffect = nullptr;
+static std::shared_ptr<Drawing::RuntimeEffect> g_waterRipplePcEffect = nullptr;
  
 } // namespace
  
@@ -56,18 +58,28 @@ std::shared_ptr<Drawing::Image> GEWaterRippleFilter::ProcessImage(Drawing::Canva
             LOGE("GEWaterRippleFilter::ProcessImage g_waterRippleEffect init failed");
             return nullptr;
         }
-        LOGE("GEWaterRippleFilter::ProcessImage g_waterRippleEffect first time create");
+    }
+    if (g_waterRipplePcEffect == nullptr) {
+        if (InitWaterRipplePcEffect() == false) {
+            LOGE("GEWaterRippleFilter::ProcessImage g_waterRipplePcEffect init failed");
+            return nullptr;
+        }
     }
     auto imageInfo = image->GetImageInfo();
     float height = imageInfo.GetHeight();
     float width = imageInfo.GetWidth();
-    LOGD("GEWaterRippleFilter::ProcessImage input image heigth = %{public}f, width = %{public}f", height, width);
-    Drawing::RuntimeShaderBuilder builder(g_waterRippleEffect);
+    std::shared_ptr<Drawing::RuntimeEffect> waterRipple;
+    if (ROSEN_GNE(rippleCenterY_, 0.5f)) {
+        waterRipple = g_waterRipplePcEffect;
+    } else {
+        waterRipple = g_waterRippleEffect;
+    }
+    Drawing::RuntimeShaderBuilder builder(waterRipple);
  
     builder.SetChild("image", shader);
     builder.SetUniform("iResolution", width, height);
     builder.SetUniform("progress", progress_);
-    builder.SetUniform("waveNum", waveCount_);
+    builder.SetUniform("waveCount", waveCount_);
     builder.SetUniform("rippleCenter", rippleCenterX_, rippleCenterY_);
  
     auto invertedImage = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, imageInfo, false);
@@ -87,6 +99,15 @@ bool GEWaterRippleFilter::InitWaterRippleEffect()
     }
     return true;
 }
- 
+
+bool GEWaterRippleFilter::InitWaterRipplePcEffect()
+{
+    g_waterRipplePcEffect = Drawing::RuntimeEffect::CreateForShader(shaderPcString);
+    if (g_waterRipplePcEffect == nullptr) {
+        LOGE("GEWaterRippleFilter::RuntimeShader failed to create water ripple filter");
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

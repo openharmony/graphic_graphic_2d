@@ -20,9 +20,13 @@ namespace Rosen {
 namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr uint64_t MAX_BUFFER_COUNT = 10;
+    constexpr uint32_t MAX_BUFFER_LENGTH = 10;
+    constexpr uint32_t FPS_120 = 120;
+    const std::string ACE_ANIMATOR_NAME = "AceAnimato";
+    const std::string OTHER_SURFACE = "Other_SF";
 }
 
-void HgmIdleDetector::UpdateSurfaceTime(const std::string& name, uint64_t timestamp)
+void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp)
 {
     if (!GetAppSupportStatus() || frameTimeMap_.size() > MAX_BUFFER_COUNT) {
         if (!frameTimeMap_.empty()) {
@@ -30,13 +34,27 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& name, uint64_t timest
         }
         return;
     }
-    if (name.empty()) {
+    if (surfaceName.empty()) {
         return;
     }
-    frameTimeMap_[name] = timestamp;
+
+    auto temp = surfaceName;
+    if (surfaceName.size() > MAX_BUFFER_LENGTH) {
+        temp = surfaceName.substr(0, MAX_BUFFER_LENGTH);
+    }
+
+    auto it = std::find(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE);
+    if (it == supportAppBufferList_.end()) {
+        auto bufferName = std::find(supportAppBufferList_.begin(), supportAppBufferList_.end(), temp);
+        if (bufferName == supportAppBufferList_.end()) {
+            return;
+        }
+    }
+
+    frameTimeMap_[temp] = timestamp;
 }
 
-bool HgmIdleDetector::GetSurFaceIdleState(uint64_t timestamp)
+bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)
 {
     bool idle = true;
 
@@ -54,6 +72,67 @@ bool HgmIdleDetector::GetSurFaceIdleState(uint64_t timestamp)
     }
 
     return idle;
+}
+
+bool HgmIdleDetector::GetSupportSurface()
+{
+    std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
+    if (appBufferBlackList_.empty()) {
+        return true;
+    }
+    if (std::find(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACE_ANIMATOR_NAME) ==
+        appBufferBlackList_.end() && !aceAnimatorIdleState_) {
+            return true;
+        }
+
+    if (frameTimeMap_.empty()) {
+        return false;
+    }
+
+    for (auto &it : frameTimeMap_) {
+        if (std::find(appBufferBlackList_.begin(), appBufferBlackList_.end(), it.first) ==
+            appBufferBlackList_.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int32_t HgmIdleDetector::GetSurfaceUpExpectFps()
+{
+    int32_t fps = FPS_120;
+
+    std::lock_guard<std::mutex> lock(appBufferListMutex_);
+    if (appBufferList_.empty()) {
+        return fps;
+    }
+    if (!aceAnimatorIdleState_) {
+        auto iter = std::find_if(appBufferList_.begin(), appBufferList_.end(),
+            [&](const auto& pair) { return pair.first == ACE_ANIMATOR_NAME; });
+        if (iter != appBufferList_.end() && frameTimeMap_.empty()) {
+            return iter->second;
+        }
+    }
+
+    for (auto &member : frameTimeMap_) {
+        auto key = member.first;
+        auto it = std::find_if(appBufferList_.begin(), appBufferList_.end(),
+            [&key](const std::pair<std::string, int32_t>& pair) { return pair.first == key; });
+        if (it == appBufferList_.end()) {
+            return fps;
+        }
+    }
+
+    for (auto &it : appBufferList_) {
+        if (it.first == ACE_ANIMATOR_NAME && !aceAnimatorIdleState_) {
+            return it.second;
+        }
+        if (frameTimeMap_.count(it.first)) {
+            return it.second;
+        }
+    }
+
+    return fps;
 }
 
 } // namespace Rosen

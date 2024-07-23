@@ -148,12 +148,19 @@ void RSRenderInterpolatingSpringAnimation::UpdateFractionAfterContinue()
 
 float RSRenderInterpolatingSpringAnimation::CalculateTimeFraction(float targetFraction)
 {
+    int secondTime = std::ceil(static_cast<float>(GetDuration()) / SECOND_TO_MS);
+    if (secondTime <= 0) {
+        return FRACTION_MIN;
+    }
+    auto frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
     float lastFraction = FRACTION_MIN;
-    for (float time = FRAME_PER_TIME_FRACTION; time <= FRACTION_MAX; time += FRAME_PER_TIME_FRACTION) {
-        auto mappedTime = time * GetDuration() * MILLISECOND_TO_SECOND;
+    for (int time = 1; time <= frameTimes; time++) {
+        float frameFraction = static_cast<float>(time) / frameTimes;
+        frameFraction = std::clamp(frameFraction, 0.0f, 1.0f);
+        auto mappedTime = frameFraction * GetDuration() * MILLISECOND_TO_SECOND;
         float displacement = 1.0f + CalculateDisplacement(mappedTime);
-        if (lastFraction <= displacement && displacement >= targetFraction) {
-            return time;
+        if (lastFraction <= targetFraction && displacement >= targetFraction) {
+            return frameFraction;
         }
         lastFraction = displacement;
     }

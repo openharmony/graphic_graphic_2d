@@ -56,9 +56,9 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
-    RSMainThread::Instance()->ProcessUiCaptureTasks();
     const bool doJankStats = IsUniRenderAndOnVsync();
     JankStatsRenderFrameAfterSync(doJankStats);
+    RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     Render();
@@ -68,11 +68,12 @@ void RSDrawFrame::RenderFrame()
         RsFrameReport::GetInstance().RSRenderEnd();
     }
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
-    JankStatsRenderFrameEnd(doJankStats);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
+    unirenderInstance_.MemoryManagementBetweenFrames();
+    JankStatsRenderFrameEnd(doJankStats);
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -95,12 +96,12 @@ void RSDrawFrame::PostAndWait()
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([this, renderFrameNumber]() {
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 unirenderInstance_.SetMainLooping(true);
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 RenderFrame();
                 unirenderInstance_.RunImageReleaseTask();
-                unirenderInstance_.SetMainLooping(false);
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
+                unirenderInstance_.SetMainLooping(false);
             });
             break;
         }
@@ -114,12 +115,12 @@ void RSDrawFrame::PostAndWait()
             std::unique_lock<std::mutex> frameLock(frameMutex_);
             canUnblockMainThread = false;
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 unirenderInstance_.SetMainLooping(true);
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 RenderFrame();
                 unirenderInstance_.RunImageReleaseTask();
-                unirenderInstance_.SetMainLooping(false);
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
+                unirenderInstance_.SetMainLooping(false);
             });
 
             frameCV_.wait(frameLock, [this] { return canUnblockMainThread; });
@@ -181,7 +182,6 @@ void RSDrawFrame::Render()
 
 void RSDrawFrame::JankStatsRenderFrameStart()
 {
-    unirenderInstance_.SetDiscardJankFrames(false);
     unirenderInstance_.SetSkipJankAnimatorFrame(false);
 }
 
@@ -207,6 +207,7 @@ void RSDrawFrame::JankStatsRenderFrameAfterSync(bool doJankStats)
 void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
 {
     if (!doJankStats) {
+        unirenderInstance_.SetDiscardJankFrames(false);
         return;
     }
     const auto& renderThreadParams = unirenderInstance_.GetRSRenderThreadParams();
@@ -219,6 +220,7 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
         unirenderInstance_.GetSkipJankAnimatorFrame(),
         unirenderInstance_.GetDiscardJankFrames() || renderThreadParams->GetDiscardJankFrames(),
         unirenderInstance_.GetDynamicRefreshRate());
+    unirenderInstance_.SetDiscardJankFrames(false);
 }
 } // namespace Rosen
 } // namespace OHOS

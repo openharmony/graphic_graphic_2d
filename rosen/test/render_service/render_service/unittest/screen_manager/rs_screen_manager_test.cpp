@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include <parameter.h>
+#include <parameters.h>
+#include "param/sys_param.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
@@ -33,6 +36,7 @@ public:
     static constexpr int SLEEP_TIME_US = 500;
     static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
     static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
+    static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
@@ -120,7 +124,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_001, TestSize.Level1)
 
 /*
  * @tc.name: CreateVirtualScreen_002
- * @tc.desc: Test CreateVirtualScreen while filteredAppVector is empty
+ * @tc.desc: Test CreateVirtualScreen while whiteList is empty
  * @tc.type: FUNC
  * @tc.require: issueI8FSLX
  */
@@ -138,10 +142,10 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_002, TestSize.Level2)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
-    std::vector<NodeId> filteredAppVector = {};
+    std::vector<NodeId> whiteList = {};
 
     auto id = screenManager->CreateVirtualScreen(
-        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
@@ -149,7 +153,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_002, TestSize.Level2)
 
 /*
  * @tc.name: CreateVirtualScreen_003
- * @tc.desc: Test CreateVirtualScreen while filteredAppVector is not empty
+ * @tc.desc: Test CreateVirtualScreen while whiteList is not empty
  * @tc.type: FUNC
  * @tc.require: issueI981R9
  */
@@ -167,10 +171,10 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_003, TestSize.Level2)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
-    std::vector<NodeId> filteredAppVector = {1};
+    std::vector<NodeId> whiteList = {1};
 
     auto id = screenManager->CreateVirtualScreen(
-        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
@@ -383,14 +387,14 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_002, TestSize.Level2)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
-    std::vector<NodeId> filteredAppVector = {1};
+    std::vector<NodeId> whiteList = {1};
 
     auto id = screenManager->CreateVirtualScreen(
-        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     auto info = screenManager->QueryScreenInfo(id);
-    ASSERT_NE(info.filteredAppSet.end(), info.filteredAppSet.find(1));
+    ASSERT_NE(info.whiteList.end(), info.whiteList.find(1));
 
     screenManager->RemoveVirtualScreen(id);
     usleep(500);
@@ -422,6 +426,32 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface_001, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager->GetProducerSurface(id));
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
+}
+
+/*
+ * @tc.name: GetAndResetVirtualSurfaceUpdateFlag_001
+ * @tc.desc: Test get virtualSurface update flag correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIA9QG0
+ */
+HWTEST_F(RSScreenManagerTest, GetAndResetVirtualSurfaceUpdateFlag_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(screenManager->GetAndResetVirtualSurfaceUpdateFlag(id), false);
 }
 
 /*
@@ -1011,12 +1041,11 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
 
     auto id = screenManager->CreateVirtualScreen("virtualScreen001", 480, 320, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
-
-    auto id_ = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface);
-    ASSERT_EQ(INVALID_SCREEN_ID, id_);
-
-    ScreenId screenId = INVALID_SCREEN_ID;
-    screenManager->RemoveVirtualScreen(screenId);
+    auto surface = screenManager->GetProducerSurface(id);
+    ASSERT_NE(surface, nullptr);
+    screenManager->RemoveVirtualScreen(id);
+    surface = screenManager->GetProducerSurface(id);
+    ASSERT_EQ(surface, nullptr);
 }
 
 /*
@@ -1283,8 +1312,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = INVALID_SCREEN_ID;
-    uint32_t level = static_cast<uint32_t>(1);
-    screenManager->SetScreenBacklight(screenId, level);
+    screenManager->SetScreenBacklight(screenId, LIGHT_LEVEL);
 }
 
 /*
@@ -1297,23 +1325,10 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
-    std::string name = "virtualScreen01";
-    uint32_t width = 480;
-    uint32_t height = 320;
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurface, nullptr);
-
-    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
-    ASSERT_NE(INVALID_SCREEN_ID, id);
-
-    uint32_t level = static_cast<uint32_t>(1);
-    screenManager->SetScreenBacklight(id, level);
+    auto id = screenManager->GetDefaultScreenId();
+    screenManager->SetScreenBacklight(id, LIGHT_LEVEL);
     auto ret = screenManager->GetScreenBacklight(id);
-    ASSERT_EQ(ret, level);
+    ASSERT_EQ(ret, LIGHT_LEVEL);
 
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
@@ -1721,7 +1736,16 @@ HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
     auto activeScreenId = screenManager->GetActiveScreenId();
-    ASSERT_EQ(screenManager->GetDefaultScreenId(), activeScreenId);
+    ASSERT_EQ(INVALID_SCREEN_ID, activeScreenId);
+    bool isFoldScreenFlag = false;
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+#endif
+    if (isFoldScreenFlag) {
+        ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
+    } else {
+        ASSERT_EQ(INVALID_SCREEN_ID, activeScreenId);
+    }
 }
 
 /*

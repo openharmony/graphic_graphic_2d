@@ -44,7 +44,7 @@ void FrameRateReportTest::TearDown() {}
  */
 HWTEST_F(FrameRateReportTest, SendFrameRates001, TestSize.Level1)
 {
-    std::unordered_map<int, unint32_t> rates;
+    std::unordered_map<int, uint32_t> rates;
     FrameRateReport::GetInstance().SendFrameRates(rates);
     rates[1008] = 60;
     rates[-1] = 120;
@@ -59,11 +59,11 @@ HWTEST_F(FrameRateReportTest, SendFrameRates001, TestSize.Level1)
  */
 HWTEST_F(FrameRateReportTest, SendFrameRatesToRss001, TestSize.Level1)
 {
-    std::unordered_map<int, unint32_t> rates;
-    FrameRateReport::GetInstance().SendFrameRatesToRss001(rates);
+    std::unordered_map<int, uint32_t> rates;
+    FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     rates[1008] = 60;
     rates[-1] = 120;
-    FrameRateReport::GetInstance().SendFrameRatesToRss001(rates);
+    FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -37,7 +37,7 @@ static std::string g_aibarString(R"(
         float luminance = dot(c, toLuminance);
         half3 satAdjust = mix(vec3(luminance), c, saturation);
         half3 res = satAdjust - (opacity + 1.0) * gray + bin;
-        return half4(res, 1.0);
+        return half4(mix(c, res, 0.42857), 1.0);
     }
 )");
 

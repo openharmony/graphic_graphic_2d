@@ -41,9 +41,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 10;
-}
 
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -250,6 +247,7 @@ void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_p
         node->image_ = image;
         ctx->PostRTTask([ctx, nodeId]() {
             if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
                 node->SetDirty();
                 ctx->RequestVsync();
             }
@@ -490,14 +488,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
             drawCmdLists_[type].emplace_back(cmd);
             SetNeedProcess(true);
         }
-        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
-        // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || drawCmdListsVisited_) &&
-            drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-            RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
-                type, drawCmdLists_[type].size());
-            drawCmdLists_[type].pop_front();
-        }
     }
 }
 
@@ -526,21 +516,12 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 
 void RSCanvasDrawingRenderNode::ClearResource()
 {
-    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    if (drawCmdListsVisited_) {
+    if (renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()) {
+        std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdLists_.clear();
-        drawCmdListsVisited_ = false;
+        renderDrawable_->SetDrawCmdListsVisited(false);
     }
 }
 
-bool RSCanvasDrawingRenderNode::IsDrawCmdListsVisited() const
-{
-    return drawCmdListsVisited_;
-}
-
-void RSCanvasDrawingRenderNode::SetDrawCmdListsVisited(bool flag)
-{
-    drawCmdListsVisited_ = flag;
-}
 } // namespace Rosen
 } // namespace OHOS

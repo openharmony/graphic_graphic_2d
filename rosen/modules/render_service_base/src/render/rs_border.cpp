@@ -258,8 +258,10 @@ void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot
     if (style == BorderStyle::DASHED) {
         float dashWidth = GetDashWidth(idx);
         float dashGap = GetDashGap(idx);
+        bool bothZero = ROSEN_EQ(dashWidth, 0.f) && ROSEN_EQ(dashGap, 0.f);
         if (dashWidth >= 0.f && dashGap >= 0.f) {
-            float intervals[] = { dashWidth, dashGap };
+            // Set fake gap for the case when dashWidth and dashGap params are both zero to prevent solid border line
+            float intervals[] = { dashWidth, bothZero ? 1.f : dashGap };
             pen.SetPathEffect(
                 Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
             return;

@@ -14,20 +14,23 @@
  */
 
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#include <memory>
+#include <mutex>
 #include <set>
 #include <dlfcn.h>
 #include <vector>
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "render_context/memory_handler.h"
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "unistd.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_ohos.h"
+#include "sync_fence.h"
 
 #define ACQUIRE_PROC(name, context)                         \
     if (!(vk##name = AcquireProc("vk" #name, context))) {   \
         ROSEN_LOGE("Could not acquire proc: vk" #name);     \
-        return false;                                       \
     }
 
 namespace OHOS {
@@ -73,11 +76,25 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
-    CreateSkiaBackendContext(&backendContext_, false, isProtected);
+    if (RSSystemProperties::GetVkQueueDividedEnable()) {
+        if (!isProtected) {
+            CreateSkiaBackendContext(&backendContext_, false, isProtected);
+        }
+        CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+    } else {
+        CreateSkiaBackendContext(&backendContext_, false, isProtected);
+    }
 }
 
 RsVulkanInterface::~RsVulkanInterface()
 {
+    for (auto && semaphoreFence : usedSemaphoreFenceList_) {
+        if (semaphoreFence.fence != nullptr) {
+            semaphoreFence.fence->Wait(-1);
+        }
+        vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+    }
+    usedSemaphoreFenceList_.clear();
     if (protectedMemoryFeatures_) {
         delete protectedMemoryFeatures_;
     }
@@ -212,7 +229,9 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
-    const float priorities[1] = {0.0f};
+    // The priority of the queue under the same device is determined
+    // when it is greater than 0.5 indicates high priority and less than 0.5 indicates low priority
+    const float priorities[2] = {1.0f, 0.2f};
     VkDeviceQueueCreateFlags deviceQueueCreateFlags = isProtected ? VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT : 0;
     std::vector<VkDeviceQueueCreateInfo> queueCreate {{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .pNext = nullptr,
@@ -441,9 +460,49 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
     return drawingContext;
 }
 
+VkSemaphore RsVulkanInterface::RequireSemaphore()
+{
+    std::unique_lock<std::mutex> lock(semaphoreLock_);
+    for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
+        auto& fence = it->fence;
+        if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
+            vkDestroySemaphore(device_, it->semaphore, nullptr);
+            it->semaphore = VK_NULL_HANDLE;
+            it = usedSemaphoreFenceList_.erase(it);
+        } else {
+            break;
+        }
+    }
+
+    lock.unlock();
+    VkSemaphoreCreateInfo semaphoreInfo;
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreInfo.pNext = nullptr;
+    semaphoreInfo.flags = 0;
+    VkSemaphore semaphore;
+    auto err = vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &semaphore);
+    if (err != VK_SUCCESS) {
+        return VK_NULL_HANDLE;
+    }
+    return semaphore;
+}
+
+void RsVulkanInterface::SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd)
+{
+    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    auto& semaphoreFence = usedSemaphoreFenceList_.emplace_back();
+    semaphoreFence.semaphore = semaphore;
+    semaphoreFence.fence = (fenceFd != -1 ? std::make_unique<SyncFence>(fenceFd) : nullptr);
+}
+
 std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(bool isProtected)
 {
-    CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+    if (hcontext_ != nullptr) {
+        return hcontext_;
+    }
+    if (!RSSystemProperties::GetVkQueueDividedEnable()) {
+        CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+    }
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     memHandler_ = std::make_shared<MemoryHandler>();
@@ -468,10 +527,13 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(
 RsVulkanContext::RsVulkanContext()
 {
     rsVulkanInterface.Init();
+    // Init drawingContext_ bind to backendContext
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     isProtected_ = true;
-    rsProtectedVulkanInterface.Init(true);
-    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(false, true);
+    rsProtectedVulkanInterface.Init(isProtected_);
+    // Init protectedDrawingContext_ bind to hbackendContext
+    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
+        RSSystemProperties::GetVkQueueDividedEnable(), true);
     isProtected_ = false;
 }
 
@@ -501,9 +563,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
 
     RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     if (queue == vkInterface.GetHardwareQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
+        RS_LOGD("%{public}s hardware queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     }
     std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+    RS_LOGD("%{public}s queue", __func__);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
     return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 }
 
@@ -512,10 +579,15 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
 {
     RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     if (queue == vkInterface.GetHardwareQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
+        RS_LOGD("%{public}s hardware queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount,
             pWaitSemaphores, image, pNativeFenceFd);
     }
     std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+    RS_LOGD("%{public}s queue", __func__);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
     return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
 }
 

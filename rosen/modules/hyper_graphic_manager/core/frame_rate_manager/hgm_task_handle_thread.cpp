@@ -27,6 +27,11 @@ HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Cr
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 
+std::shared_ptr<AppExecFwk::EventHandler> HgmTaskHandleThread::CreateHandler()
+{
+    return std::make_shared<AppExecFwk::EventHandler>(runner_);
+}
+
 void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {
@@ -40,5 +45,19 @@ bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
         return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
     return false;
+}
+
+void HgmTaskHandleThread::PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, eventId, delayTime);
+    }
+}
+
+void HgmTaskHandleThread::RemoveEvent(std::string eventId)
+{
+    if (handler_) {
+        handler_->RemoveTask(eventId);
+    }
 }
 }

@@ -438,6 +438,7 @@ public:
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
+    bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
 
     void SetSpherize(float spherizeDegree);
@@ -711,6 +712,7 @@ private:
     static const bool FilterCacheEnabled;
 #endif
     static const bool IS_UNI_RENDER;
+    static const bool FOREGROUND_FILTER_ENABLED;
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 

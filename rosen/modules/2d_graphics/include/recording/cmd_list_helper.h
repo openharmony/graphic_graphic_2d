@@ -222,6 +222,9 @@ public:
     static std::shared_ptr<BlurDrawLooper> GetBlurDrawLooperFromCmdList(const CmdList& cmdList,
         const OpDataHandle& blurDrawLooperHandle);
 
+    static LatticeHandle AddLatticeToCmdList(CmdList& cmdList, const Lattice& lattice);
+    static Lattice GetLatticeFromCmdList(const CmdList& cmdList, const LatticeHandle& latticeHandle);
+
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);
 

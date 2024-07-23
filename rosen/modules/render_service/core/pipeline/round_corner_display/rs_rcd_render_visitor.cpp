@@ -34,7 +34,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
         return true;
     }
 
-    auto& consumer = node.GetConsumer();
+    auto consumer = node.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }

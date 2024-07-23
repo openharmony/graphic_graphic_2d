@@ -334,6 +334,29 @@ void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar
     DRAW_API_WITH_PAINT_LOOPER(DrawTextBlob, blob, x, y);
 }
 
+void CoreCanvas::DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y)
+{
+    std::function<void(int, const Font&)> drawSingleCharacterProc = [&](int currentGlyph, const Font& currentFont) {
+        TextBlobBuilder textBlobBuilder;
+        const TextBlobBuilder::RunBuffer& runBuffer = textBlobBuilder.AllocRunPos(currentFont, 1);
+        runBuffer.glyphs[0] = currentGlyph;
+        runBuffer.pos[0] = 0;
+        runBuffer.pos[1] = 0;
+        std::shared_ptr<TextBlob> textBlob = textBlobBuilder.Make();
+        DrawTextBlob(textBlob.get(), x, y);
+    };
+    uint16_t glyph = font.UnicharToGlyph(unicode);
+    if (glyph != 0) {
+        drawSingleCharacterProc(glyph, font);
+    } else {
+        std::shared_ptr<Font> fallbackFont = font.GetFallbackFont(unicode);
+        if (fallbackFont) {
+            uint16_t fallbackGlyph = fallbackFont->UnicharToGlyph(unicode);
+            drawSingleCharacterProc(fallbackGlyph, *fallbackFont);
+        }
+    }
+}
+
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
 {
     DRAW_API_WITH_PAINT(DrawSymbol, symbol, locate);
@@ -546,6 +569,11 @@ void CoreCanvas::Reset(int32_t width, int32_t height)
 bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)
 {
     return impl_->DrawBlurImage(image, blurParams);
+}
+
+std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam)
+{
+    return impl_->CalcHpsBluredImageDimension(blurParam);
 }
 
 void CoreCanvas::GetLooperPaint(const Paint& paint, Paint& looperPaint)

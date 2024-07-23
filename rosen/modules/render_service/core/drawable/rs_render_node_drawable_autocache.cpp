@@ -18,13 +18,18 @@
 #include "string_utils.h"
 #endif
 #include "common/rs_optional_trace.h"
-
+#include "params/rs_render_params.h"
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
 constexpr int32_t BITMAP_CACHE_SIZE_MIN = 50;
 constexpr int32_t REALDRAW_WIDTH_EX = 200;
 constexpr int32_t OPINC_ROOT_TOTAL_MAX = 1;
+}
+
+bool RSRenderNodeDrawable::ShouldPaint() const
+{
+    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
 }
 
 bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()
@@ -108,7 +113,7 @@ void RSRenderNodeDrawable::DrawableCacheStateReset(RSRenderParams& params)
     opListDrawAreas_.ResetOpInfo();
     isOpincRootNode_ = false;
     opCanCache_ = false;
-    params.OpincSetCachedMark(false);
+    isOpincMarkCached_ = false;
 }
 
 bool RSRenderNodeDrawable::IsOpListDrawAreaEnable()
@@ -229,9 +234,9 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
         }
     } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {
-        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!params.OpincGetCachedMark())) {
+        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark())) {
             opincRootTotalCount++;
-            params.OpincSetCachedMark(true);
+            isOpincMarkCached_ = true;
             recordState_ = NodeRecordState::RECORD_CACHED;
             reuseCount_ = 0;
             isOpincRootNode_ = true;

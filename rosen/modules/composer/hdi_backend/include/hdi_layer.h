@@ -128,6 +128,8 @@ private:
     int32_t SetPerFrameParameters();
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
+    int32_t SetPerFrameLayerSourceTuning(); // used for source crop tuning
+    void ClearBufferCache();
 };
 } // namespace Rosen
 } // namespace OHOS

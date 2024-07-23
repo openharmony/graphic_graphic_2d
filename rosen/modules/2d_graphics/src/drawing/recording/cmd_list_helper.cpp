@@ -24,7 +24,10 @@
 #include "skia_adapter/skia_shader_effect.h"
 #include "skia_adapter/skia_path_effect.h"
 
+#include "draw/color.h"
+#include "draw/core_canvas.h"
 #include "utils/log.h"
+#include "utils/rect.h"
 
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_picture.h"
@@ -260,6 +263,32 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
     }
 
     return childHandle;
+}
+
+LatticeHandle CmdListHelper::AddLatticeToCmdList(CmdList& cmdList, const Lattice& lattice)
+{
+    LatticeHandle latticeHandle;
+    latticeHandle.fXDivs = AddVectorToCmdList<int>(cmdList, lattice.fXDivs);
+    latticeHandle.fYDivs = AddVectorToCmdList<int>(cmdList, lattice.fYDivs);
+    latticeHandle.fRectTypes = AddVectorToCmdList<Lattice::RectType>(cmdList, lattice.fRectTypes);
+    latticeHandle.fXCount = lattice.fXCount;
+    latticeHandle.fYCount = lattice.fYCount;
+    latticeHandle.fBounds = AddVectorToCmdList<RectI>(cmdList, lattice.fBounds);
+    latticeHandle.fColors = AddVectorToCmdList<Color>(cmdList, lattice.fColors);
+    return latticeHandle;
+}
+
+Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const LatticeHandle& latticeHandle)
+{
+    Lattice lattice;
+    lattice.fXDivs = GetVectorFromCmdList<int>(cmdList, latticeHandle.fXDivs);
+    lattice.fYDivs = GetVectorFromCmdList<int>(cmdList, latticeHandle.fYDivs);
+    lattice.fRectTypes = GetVectorFromCmdList<Lattice::RectType>(cmdList, latticeHandle.fRectTypes);
+    lattice.fXCount = latticeHandle.fXCount;
+    lattice.fYCount = latticeHandle.fYCount;
+    lattice.fBounds = GetVectorFromCmdList<RectI>(cmdList, latticeHandle.fBounds);
+    lattice.fColors = GetVectorFromCmdList<Color>(cmdList, latticeHandle.fColors);
+    return lattice;
 }
 
 SymbolOpHandle CmdListHelper::AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol)

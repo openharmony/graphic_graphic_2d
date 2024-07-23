@@ -5777,12 +5777,19 @@ HWTEST_F(RSNodeTest, SetPixelStretchPercent, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    auto name = rsNode->GetNodeName();
+    EXPECT_EQ(name, "");
+
     std::string nodeName = "1"; // for test
     rsNode->SetNodeName(nodeName);
+    name = rsNode->GetNodeName();
+    EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 
     nodeName = ""; // for test
     rsNode->SetNodeName(nodeName);
+    name = rsNode->GetNodeName();
+    EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 

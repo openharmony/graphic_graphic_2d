@@ -571,6 +571,38 @@ HWTEST_F(PenTest, GetterAndSetterOfBlender001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetterAndSetterOfBlenderEnabled001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfBlenderEnabled001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    pen->SetBlenderEnabled(true);
+    auto result = pen->GetBlenderEnabled();
+    EXPECT_TRUE(result == true);
+}
+
+/**
+ * @tc.name: GetterAndSetterOfBlenderEnabled002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfBlenderEnabled002, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    pen->SetBlenderEnabled(false);
+    auto result = pen->GetBlenderEnabled();
+    EXPECT_TRUE(result == false);
+}
+
+/**
  * @tc.name: GetterAndSetterOfAntiAlias001
  * @tc.desc:
  * @tc.type: FUNC

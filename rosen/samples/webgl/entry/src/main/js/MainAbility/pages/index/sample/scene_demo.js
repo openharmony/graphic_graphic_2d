@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { PlaneShape } from "../utils/PlaneShape";
-import { CubeShape } from "../utils/CubeShape";
-import { Point } from "../utils/Point";
-import { Scene } from "../utils/Scene";
-import { loadImage } from "../utils/extension";
+import { PlaneShape } from '../utils/PlaneShape';
+import { CubeShape } from '../utils/CubeShape';
+import { Point } from '../utils/Point';
+import { Scene } from '../utils/Scene';
+import { loadImage } from '../utils/extension';
 import { Shape } from '../utils/Shape';
 import { Images } from '../utils/Images';
 
@@ -66,13 +66,15 @@ export async function scene_demo(gl) {
         if (scene.camera().pointMoveDirect === 0) {
             scene.camera().pointLightY -= 0.02;
             cube2.alpha -= 0.02;
-            if (cube2.alpha <= 0)
+            if (cube2.alpha <= 0) {
                 cube2.alpha = 0;
+            }
         }
         else {
             cube2.alpha += 0.02;
-            if (cube2.alpha >= 1)
+            if (cube2.alpha >= 1) {
                 cube2.alpha = 1;
+            }
             scene.camera().pointLightY += 0.02;
         }
         angle = anim(angle);

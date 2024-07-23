@@ -14,19 +14,27 @@
  */
 
 #include "rs_uni_render_processor.h"
+
 #include <vector>
 
 #include "hdi_layer.h"
 #include "hdi_layer_info.h"
+#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
 #include "common/rs_optional_trace.h"
-#include "platform/common/rs_log.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "params/rs_display_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-
+#include "platform/common/rs_log.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
@@ -39,9 +47,23 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 }
 
 bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
+                                std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+        return false;
+    }
+    // In uni render mode, we can handle screen rotation in the rendering process,
+    // so we do not need to handle rotation in composer adapter any more,
+    // just pass the buffer to composer straightly.
+    screenInfo_.rotation = ScreenRotation::ROTATION_0;
+    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
+}
+
+bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    ScreenId mirroredId, std::shared_ptr<RSBaseRenderEngine> renderEngine)
+{
+    if (!RSProcessor::InitForRenderThread(displayDrawable, mirroredId, renderEngine)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,
@@ -56,59 +78,126 @@ void RSUniRenderProcessor::PostProcess()
 {
     uniComposerAdapter_->CommitLayers(layers_);
     if (!isPhone_) {
-        MultiLayersPerf(layerNum);
+        MultiLayersPerf(layerNum_);
     }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+void RSUniRenderProcessor::DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer)
+{
+    auto ancestorNode = node.GetAncestorDisplayNode().lock();
+    auto ancestorDisplayNode = ancestorNode ? ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>() : nullptr;
+    if (!ancestorDisplayNode) {
+        RS_LOGE("ancestorDisplayNode return nullptr");
+        return;
+    }
+    auto screenId = ancestorDisplayNode->GetScreenId();
+    if (!RSLuminanceControl::Get().IsHdrOn(screenId)) {
+        return;
+    }
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+        return;
+    }
+    bool isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
+        colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
+
+    node.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
+    node.SetBrightnessRatio(isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+}
+#endif
+
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    auto buffer = surfaceHandler->GetBuffer();
+    if (buffer == nullptr || surfaceHandler->GetConsumer() == nullptr) {
+        return;
+    }
+    auto& layerInfo = params.GetLayerInfo();
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] ",
+        node.GetName().c_str(), layerInfo.zOrder,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    RS_LOGI("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+        node.GetName().c_str(), layerInfo.zOrder,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    auto& preBuffer = surfaceHandler->GetPreBuffer();
+    ScalingMode scalingMode = params.GetPreScalingMode();
+    if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        params.SetPreScalingMode(scalingMode);
+    }
+    LayerInfoPtr layer = GetLayerInfo(
+        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    DealWithHdr(node, layer, buffer);
+#endif
+    layer->SetDisplayNit(node.GetDisplayNit());
+    layer->SetBrightnessRatio(node.GetBrightnessRatio());
+
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, surfaceHandler->GetBuffer(), surfaceHandler->GetConsumer());
+    layers_.emplace_back(layer);
+    params.SetLayerCreated(true);
+}
+
+void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    auto& paramsSp = surfaceDrawable.GetRenderParams();
+    if (!paramsSp) {
+        return;
+    }
+    auto& params = *paramsSp;
     auto buffer = params.GetBuffer();
     if (buffer == nullptr) {
         return;
     }
-    auto& layerInfo = params.layerInfo_;
+    auto& layerInfo = params.GetLayerInfo();
     RS_OPTIONAL_TRACE_NAME_FMT(
         "CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f]",
-        node.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        surfaceDrawable.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w,
+        layerInfo.srcRect.h, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
-    auto& preBuffer = params.GetPreBuffer();
-    LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer, node.GetConsumer(), params.GetAcquireFence());
-    if (layer != nullptr) {
-        layer->SetDisplayNit(node.GetDisplayNit());
-        layer->SetBrightnessRatio(node.GetBrightnessRatio());
-    }
-
-    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), node.GetConsumer());
+    auto preBuffer = params.GetPreBuffer();
+    LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
+        surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
+    layer->SetNodeId(surfaceDrawable.GetId());
+    layer->SetDisplayNit(surfaceDrawable.GetDisplayNit());
+    layer->SetBrightnessRatio(surfaceDrawable.GetBrightnessRatio());
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     layers_.emplace_back(layer);
+    params.SetLayerCreated(true);
 }
 
 void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
     RSSurfaceRenderParams& params)
 {
-    auto buffer = drawable.GetBuffer();
-    if (buffer == nullptr && drawable.GetAvailableBufferCount() <= 0) {
+    auto surfaceHandler = drawable.GetMutableRSSurfaceHandlerUiFirstOnDraw();
+    auto buffer = surfaceHandler->GetBuffer();
+    if (buffer == nullptr && surfaceHandler->GetAvailableBufferCount() <= 0) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(params.GetId());
     }
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(drawable);
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true) || !drawable.GetBuffer()) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) || !surfaceHandler->GetBuffer()) {
         RS_LOGE("CreateUIFirstLayer ConsumeAndUpdateBuffer or GetBuffer return  false");
         return;
     }
-    buffer = drawable.GetBuffer();
-    auto preBuffer = drawable.GetPreBuffer();
+    buffer = surfaceHandler->GetBuffer();
+    auto preBuffer = surfaceHandler->GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer.buffer, drawable.GetConsumer(), drawable.GetAcquireFence());
-    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), drawable.GetConsumer());
+        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     layers_.emplace_back(layer);
     auto& layerInfo = params.layerInfo_;
     RS_LOGD("RSUniRenderProcessor::CreateUIFirstLayer: [%{public}s-%{public}" PRIu64 "] "
         "src: %{public}d %{public}d %{public}d %{public}d, "
         "dst: %{public}d %{public}d %{public}d %{public}d, zOrder: %{public}d",
-        drawable.GetName().c_str(), drawable.GetNodeId(),
+        drawable.GetName().c_str(), drawable.GetId(),
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h, layerInfo.zOrder);
 }
@@ -131,8 +220,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    layer->SetCompositionType(RSSystemProperties::IsForceClient() ?
-        GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
+    bool forceClient = RSSystemProperties::IsForceClient() ||
+        (params.GetIsProtectedLayer() && params.GetAnimateState());
+    layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
     std::vector<GraphicIRect> visibleRegions;
@@ -152,18 +242,24 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
+    layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     return layer;
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    auto layer = uniComposerAdapter_->CreateLayer(node);
+    RS_LOGE("It is update to DrawableV2 to process node now!!");
+}
+
+void RSUniRenderProcessor::ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    auto layer = uniComposerAdapter_->CreateLayer(surfaceDrawable);
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            node.GetId());
+            surfaceDrawable.GetId());
         return;
     }
-    node.MarkCurrentFrameHardwareEnabled();
     layers_.emplace_back(layer);
 }
 
@@ -182,14 +278,51 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    for (auto surface : node.GetCurAllSurfaces()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || !surfaceNode->GetOcclusionVisible() || surfaceNode->IsLeashWindow()) {
+    layerNum_ = node.GetSurfaceCountForMultiLayersPerf();
+    auto drawable = node.GetRenderDrawable();
+    if (!drawable) {
+        return;
+    }
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    RSUniRenderThread::Instance().SetAcquireFence(surfaceHandler->GetAcquireFence());
+}
+
+void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    auto layer = uniComposerAdapter_->CreateLayer(displayDrawable);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
+            displayDrawable.GetId());
+        return;
+    }
+    auto& params = displayDrawable.GetRenderParams();
+    if (!params) {
+        return;
+    }
+    if (params->GetFingerprint()) {
+        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
+        RS_LOGD("RSUniRenderProcessor::ProcessDisplaySurface, set layer mask hbm sync");
+    } else {
+        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
+    }
+    layers_.emplace_back(layer);
+    auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+    for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        if (!surfaceDrawable || surfaceDrawable->GetRenderParams() ||
+            !surfaceDrawable->GetRenderParams()->GetOcclusionVisible() ||
+            surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
             continue;
         }
-        layerNum++;
+        layerNum_++;
     }
-    RSUniRenderThread::Instance().SetAcquireFence(node.GetAcquireFence());
+    auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        return;
+    }
+    RSUniRenderThread::Instance().SetAcquireFence(surfaceHandler->GetAcquireFence());
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

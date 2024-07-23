@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +16,31 @@
 
 #include "rs_base_render_util.h"
 
+#include <parameters.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <unordered_set>
-#include <parameters.h>
+
+#include "include/utils/SkCamera.h"
+#include "png.h"
+#include "rs_frame_rate_vote.h"
+#include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
-#include "include/utils/SkCamera.h"
-#include "params/rs_surface_render_params.h"
-#include "pipeline/rs_uni_render_util.h"
-#include "platform/common/rs_log.h"
-#include "png.h"
-#include "rs_frame_rate_vote.h"
-#include "rs_trace.h"
-#include "system/rs_system_parameters.h"
-#include "transaction/rs_transaction_data.h"
-
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/rs_uni_render_util.h"
+#include "platform/common/rs_log.h"
+#include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
 
 namespace OHOS {
@@ -85,7 +88,7 @@ inline PixelTransformFunc GenOETF(float gamma)
         return PassThrough;
     }
 
-    return std::bind(SafePow, std::placeholders::_1, 1.0f / gamma);
+    return [gamma](float x) { return SafePow(x, 1.0f / gamma); };
 }
 
 inline PixelTransformFunc GenEOTF(float gamma)
@@ -94,7 +97,7 @@ inline PixelTransformFunc GenEOTF(float gamma)
         return PassThrough;
     }
 
-    return std::bind(SafePow, std::placeholders::_1, gamma);
+    return [gamma](float x) { return SafePow(x, gamma); };
 }
 
 struct TransferParameters {
@@ -143,27 +146,27 @@ inline constexpr float FullResponse(float x, const TransferParameters& p)
 inline PixelTransformFunc GenOETF(const TransferParameters& params)
 {
     if (params.g < 0) { // HDR
-        return std::bind(RcpResponsePq, std::placeholders::_1, params);
+        return [params](float x) { return RcpResponsePq(x, params); };
     }
 
     if (params.e == 0.0f && params.f == 0.0f) {
-        return std::bind(RcpResponse, std::placeholders::_1, params);
+        return [params](float x) { return RcpResponse(x, params); };
     }
 
-    return std::bind(RcpFullResponse, std::placeholders::_1, params);
+    return [params](float x) { return RcpFullResponse(x, params); };
 }
 
 inline PixelTransformFunc GenEOTF(const TransferParameters& params)
 {
     if (params.g < 0) {
-        return std::bind(ResponsePq, std::placeholders::_1, params);
+        return [params](float x) { return ResponsePq(x, params); };
     }
 
     if (params.e == 0.0f && params.f == 0.0f) {
-        return std::bind(Response, std::placeholders::_1, params);
+        return [params](float x) { return Response(x, params); };
     }
 
-    return std::bind(FullResponse, std::placeholders::_1, params);
+    return [params](float x) { return FullResponse(x, params); };
 }
 
 float ACESToneMapping(float color, float targetLum)
@@ -184,7 +187,7 @@ inline PixelTransformFunc GenACESToneMapping(float targetLum)
         const float defaultLum = 200.f;
         targetLum = defaultLum;
     }
-    return std::bind(ACESToneMapping, std::placeholders::_1, targetLum);
+    return [targetLum](float color) { return ACESToneMapping(color, targetLum); };
 }
 
 Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vector2f& whitePoint)
@@ -857,13 +860,13 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
 {
-    auto availableBufferCnt = node.GetAvailableBufferCount();
-    const auto& surfaceConsumer = node.GetConsumer();
+    auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
+    const auto surfaceConsumer = surfaceHandler.GetConsumer();
     if (surfaceConsumer == nullptr) {
         RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "): surfaceConsumer is null!",
-            node.GetNodeId());
+            surfaceHandler.GetNodeId());
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
@@ -878,7 +881,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
-                " ret: %{public}d), do nothing ", node.GetNodeId(), ret);
+                " ret: %{public}d), do nothing ", surfaceHandler.GetNodeId(), ret);
             return OHOS::GSERROR_NO_BUFFER;
         }
 
@@ -886,11 +889,11 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
-                node.GetNodeId(), ret);
+                surfaceHandler.GetNodeId(), ret);
         }
-        node.ReduceAvailableBuffer();
+        surfaceHandler.ReduceAvailableBuffer();
         RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
-            node.GetNodeId());
+            surfaceHandler.GetNodeId());
     }
 
     return OHOS::GSERROR_OK;
@@ -933,7 +936,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
         return true;
     }
-    auto& consumer = surfaceHandler.GetConsumer();
+    auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -986,19 +989,27 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
             "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
             surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-        consumer->GetSurfaceSourceType(), surfaceBuffer->timestamp);
+        consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        return true;
+    }
+    renderEngine->RegisterDeleteBufferListener(surfaceHandler);
     return true;
 }
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
 {
-    auto& consumer = surfaceHandler.GetConsumer();
+    auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -1155,7 +1166,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
-    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ?
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
+        (system::GetParameter("const.build.product", "") == "ICL") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
@@ -1324,7 +1336,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
         return false;
     }
-    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    sptr<SurfaceBuffer> buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (!buffer) {
         return false;
     }

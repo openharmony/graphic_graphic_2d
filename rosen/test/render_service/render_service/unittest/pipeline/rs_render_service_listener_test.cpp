@@ -87,7 +87,7 @@ HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     rsListener = std::make_shared<RSRenderServiceListener>(node);
     rsListener->OnCleanCache();
-    ASSERT_EQ(node->GetAvailableBufferCount(), 0);
+    ASSERT_EQ(node->GetRSSurfaceHandler()->GetAvailableBufferCount(), 0);
 }
 
 /**

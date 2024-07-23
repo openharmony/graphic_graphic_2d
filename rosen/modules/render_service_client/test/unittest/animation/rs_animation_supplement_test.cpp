@@ -1065,7 +1065,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     property.SetValueFromRender(nullptr);
 
     RSModifierManager modifierManager;
-    modifierManager.HasUIAnimation();
+    modifierManager.HasUIRunningAnimation();
     auto animatablProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto value = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto springAnimation = std::make_shared<RSSpringAnimationMock>(animatablProperty, value);
@@ -1173,7 +1173,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
 
     auto rsUiDirector = RSUIDirector::Create();
     rsUiDirector->FlushAnimationStartTime(1);
-    rsUiDirector->HasUIAnimation();
+    rsUiDirector->HasUIRunningAnimation();
 
     Vector4 vec = { 0.f, 0.f, 0.f, 0.f };
     vec.IsNearEqual(vec1, 1.f);
