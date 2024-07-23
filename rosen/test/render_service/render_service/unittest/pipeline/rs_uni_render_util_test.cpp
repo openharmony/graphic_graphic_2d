@@ -115,7 +115,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual002, Function | SmallTes
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
     displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
     RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0);
-    ASSERT_NE(displayNodeDrawable.renderParam_, nullptr);
+    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
 }
 
 /*
