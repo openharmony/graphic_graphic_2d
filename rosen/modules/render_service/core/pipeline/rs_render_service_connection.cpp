@@ -50,6 +50,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "render/rs_typeface_cache.h"
+#include "src/gpu/vk/GrVkImage.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -1377,6 +1378,9 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t to
         return;
     }
     mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+    if (touchStatus == TouchStatus::TOUCH_DOWN) {
+        GrVkImage::SetLastTouchDownTime();
+    }
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
