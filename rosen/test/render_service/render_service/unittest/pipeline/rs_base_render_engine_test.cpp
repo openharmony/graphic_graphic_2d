@@ -185,7 +185,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     BufferDrawParam params;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    params.buffer = surfaceNode->GetBuffer();
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Drawing::Rect srcRect(0.0f, 0.0f, 10, 20);
     Drawing::Rect dstRect(0.0f, 0.0f, 10, 20);
     Drawing::Brush paint;
