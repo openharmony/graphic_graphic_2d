@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_sub_thread_rcd.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/round_corner_display/rs_round_corner_config.h"
@@ -42,22 +41,6 @@ void RSRoundCornerDisplayTest::SetUpTestCase() {}
 void RSRoundCornerDisplayTest::TearDownTestCase() {}
 void RSRoundCornerDisplayTest::SetUp() {}
 void RSRoundCornerDisplayTest::TearDown() {}
-
-/*
- * @tc.name: RSSubThreadRCDTest
- * @tc.desc: Test RSRoundCornerDisplayTest.RSSubThreadRCDTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, RSSubThreadRCDTest, TestSize.Level1)
-{
-    auto context = new RenderContext();
-    auto threadRcd = &(RSSingleton<RSSubThreadRCD>::GetInstance());
-    threadRcd->Start(nullptr);
-    threadRcd->Start(context);
-    delete context;
-    context = nullptr;
-}
 
 /*
  * @tc.name: RCDLoadConfigFileTest

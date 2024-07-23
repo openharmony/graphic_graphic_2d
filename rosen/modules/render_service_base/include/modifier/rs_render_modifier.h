@@ -58,7 +58,21 @@ public:
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
-    virtual RSModifierType GetType() = 0;
+    virtual RSModifierType GetType()
+    {
+        return RSModifierType::INVALID;
+    }
+
+    std::string GetModifierTypeString()
+    {
+        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(GetType());
+        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
+            return iter->second;
+        } else {
+            return "UNKNOWN";
+        }
+    }
+
     virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;
 
     virtual bool Marshalling(Parcel& parcel) = 0;

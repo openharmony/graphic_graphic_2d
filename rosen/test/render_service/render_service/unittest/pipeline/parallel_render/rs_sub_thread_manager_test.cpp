@@ -49,19 +49,6 @@ HWTEST_F(RsSubThreadManagerTest, StartTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartRCDThreadTest001
- * @tc.desc: Verify function StartRCDThread
- * @tc.type:FUNC
- */
-HWTEST_F(RsSubThreadManagerTest, StartRCDThreadTest001, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    auto renderContext = std::make_shared<RenderContext>();
-    rsSubThreadManager->StartRCDThread(renderContext.get());
-    EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
-}
-
-/**
  * @tc.name: PostTaskTest
  * @tc.desc: Test RsSubThreadManagerTest.PostTaskTest
  * @tc.type: FUNC

@@ -29,6 +29,7 @@
 #include "rs_profiler_cache.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_file.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -595,17 +596,17 @@ static void CreateRenderSurfaceNode(RSContext& context, NodeId id, bool isTextur
     }
 }
 
-void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
+void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
     uint32_t count = 0;
     data.read(reinterpret_cast<char*>(&count), sizeof(count));
     for (uint32_t i = 0; i < count; i++) {
-        UnmarshalNode(context, data);
+        UnmarshalNode(context, data, fileVersion);
     }
 
     data.read(reinterpret_cast<char*>(&count), sizeof(count));
     for (uint32_t i = 0; i < count; i++) {
-        UnmarshalTree(context, data);
+        UnmarshalTree(context, data, fileVersion);
     }
 
     auto& nodeMap = context.GetMutableNodeMap();
@@ -621,7 +622,7 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
     });
 }
 
-void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
+void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
     RSRenderNodeType nodeType = RSRenderNodeType::UNKNOW;
     data.read(reinterpret_cast<char*>(&nodeType), sizeof(nodeType));
@@ -652,10 +653,10 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
     } else {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     }
-    UnmarshalNode(context, data, nodeId);
+    UnmarshalNode(context, data, nodeId, fileVersion);
 }
 
-void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId)
+void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion)
 {
     float positionZ = 0.0f;
     data.read(reinterpret_cast<char*>(&positionZ), sizeof(positionZ));
@@ -665,8 +666,11 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
     data.read(reinterpret_cast<char*>(&priority), sizeof(priority));
     bool isOnTree = false;
     data.read(reinterpret_cast<char*>(&isOnTree), sizeof(isOnTree));
+
     uint8_t nodeGroupType = 0;
-    data.read(reinterpret_cast<char*>(&nodeGroupType), sizeof(nodeGroupType));
+    if (fileVersion >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
+        data.read(reinterpret_cast<char*>(&nodeGroupType), sizeof(nodeGroupType));
+    }
 
     if (auto node = context.GetMutableNodeMap().GetRenderNode(nodeId)) {
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
@@ -674,7 +678,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
         node->SetPriority(priority);
         node->SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
-        UnmarshalNode(*node, data);
+        UnmarshalNode(*node, data, fileVersion);
     }
 }
 
@@ -695,7 +699,7 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data)
     return RSRenderModifier::Unmarshalling(*parcel);
 }
 
-void RSProfiler::UnmarshalNode(RSRenderNode& node, std::stringstream& data)
+void RSProfiler::UnmarshalNode(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
     node.instanceRootNodeId_ = Utils::PatchNodeId(node.instanceRootNodeId_);
@@ -722,7 +726,7 @@ void RSProfiler::UnmarshalNode(RSRenderNode& node, std::stringstream& data)
     node.ApplyModifiers();
 }
 
-void RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data)
+void RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
     const auto& map = context.GetMutableNodeMap();
 
@@ -738,7 +742,7 @@ void RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data)
         NodeId nodeId = 0;
         data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
         node->AddChild(map.GetRenderNode(Utils::PatchNodeId(nodeId)), i);
-        UnmarshalTree(context, data);
+        UnmarshalTree(context, data, fileVersion);
     }
 }
 

@@ -2097,6 +2097,7 @@ void RSRenderNode::SetUifirstSyncFlag(bool needSync)
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
 {
     if (!modifier) {
+        ROSEN_LOGW("RSRenderNode: null modifier add failed.");
         return;
     }
     SetDirty();
@@ -2106,6 +2107,9 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
             singleFrameComposer_ = std::make_shared<RSSingleFrameComposer>();
         }
         singleFrameComposer_->SingleFrameAddModifier(modifier);
+        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier for single frame, node id: %{public}" PRIu64 ","
+            "type: %{public}s, cmdList: %{public}s",
+            GetId(), modifier->GetModifierTypeString().c_str(), std::to_string(modifier->GetDrawCmdListId()).c_str());
         return;
     }
     if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
@@ -2117,6 +2121,8 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
+    ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        GetId(), modifier->GetModifierTypeString().c_str());
 }
 
 void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
@@ -2149,6 +2155,8 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         if (it->second) {
             AddDirtyType(it->second->GetType());
         }
+        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+            GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
         modifiers_.erase(it);
         return;
     }

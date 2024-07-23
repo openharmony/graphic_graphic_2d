@@ -37,7 +37,6 @@ public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
     void StartColorPickerThread(RenderContext* context);
-    void StartRCDThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
@@ -80,8 +79,6 @@ private:
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
     bool needCancelReleaseTextureTask_ = false;
-
-    bool isRcdServiceRegister_ = false;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

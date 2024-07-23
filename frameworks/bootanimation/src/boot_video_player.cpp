@@ -117,7 +117,6 @@ bool BootVideoPlayer::SetVideoSound()
 
 void BootVideoPlayer::SetCallback(const BootAnimationCallback* cb)
 {
-    std::lock_guard<std::mutex> locker(mtx_);
     vSyncCallback_ = cb->callback;
     userData_ = cb->userData;
 }
