@@ -401,7 +401,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsSCBNode();
+    bool IsSCBNode() const;
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
