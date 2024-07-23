@@ -672,8 +672,8 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
     return colorSpace;
 }
 
-void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
+void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader,
+    BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
     
