@@ -128,7 +128,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual003, Function | SmallTes
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSRenderNodeDrawable displayNodeDrawable(topNode);
+    DrawableV2::RSDisplayRenderNodeDrawable displayNodeDrawable(topNode);
     auto displayNodeDrawableParam = std::make_unique<RSDisplayRenderParams>(displayNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
