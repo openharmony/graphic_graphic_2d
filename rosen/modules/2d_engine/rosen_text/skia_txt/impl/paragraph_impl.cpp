@@ -76,6 +76,11 @@ double ParagraphImpl::GetLongestLine()
     return paragraph_->getLongestLine();
 }
 
+double ParagraphImpl::GetLongestLineWithIndent()
+{
+    return paragraph_->getLongestLineWithIndent();
+}
+
 double ParagraphImpl::GetMinIntrinsicWidth()
 {
     return paragraph_->getMinIntrinsicWidth();

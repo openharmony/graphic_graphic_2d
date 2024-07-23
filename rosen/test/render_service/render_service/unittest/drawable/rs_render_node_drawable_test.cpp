@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "params/rs_render_params.h"
 
 using namespace testing;
 using namespace testing::ext;

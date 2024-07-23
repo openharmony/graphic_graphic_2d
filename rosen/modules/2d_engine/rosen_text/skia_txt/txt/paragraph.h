@@ -89,6 +89,9 @@ public:
     // Returns the width of the longest line as found in Layout().
     virtual double GetLongestLine() = 0;
 
+    // Returns the actual max width with indent of the longest line after Layout().
+    virtual double GetLongestLineWithIndent() = 0;
+
     // Returns the actual max width of the longest line after Layout().
     virtual double GetMinIntrinsicWidth() = 0;
 

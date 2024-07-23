@@ -29,6 +29,7 @@ public:
     double GetMaxWidth() const override;
     double GetHeight() const override;
     double GetActualWidth() const override;
+    double GetLongestLineWithIndent() const override;
     double GetMinIntrinsicWidth() override;
     double GetMaxIntrinsicWidth() override;
     double GetAlphabeticBaseline() override;

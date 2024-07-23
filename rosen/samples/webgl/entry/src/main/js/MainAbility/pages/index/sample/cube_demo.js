@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { createProgram, loadImage } from "../utils/extension";
+import { createProgram, loadImage } from '../utils/extension';
 import { Images } from '../utils/Images';
-import { Matrix4 } from "../utils/Matrix";
+import { Matrix4 } from '../utils/Matrix';
 
 const vSource = `
 uniform mat4 a_Matrix;
@@ -111,7 +111,7 @@ let angle = 0;
 let lastTime = Date.now();
 
 export async function cube_demo(gl) {
-    let program = createProgram(gl, vSource, fSource, ["a_Position", "a_TexCoord", "a_Normal"], ["a_Matrix", "u_NormalMatrix", "u_Sampler"]);
+    let program = createProgram(gl, vSource, fSource, ['a_Position', 'a_TexCoord', 'a_Normal'], ['a_Matrix', 'u_NormalMatrix', 'u_Sampler']);
     let buffer = gl.createBuffer();
     if (buffer === null) {
         return;
@@ -175,7 +175,7 @@ let anim = (angle) => {
     lastTime = now;
     let newAngle = angle + (20 * offset) / 1000.0;
     return newAngle % 360;
-}
+};
 
 function clear(gl) {
     gl.clearColor(0.0, 0.0, 0.0, 1);

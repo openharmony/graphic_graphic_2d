@@ -59,21 +59,108 @@ HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SkipFrameTest
- * @tc.desc: test results of SkipFrame
+ * @tc.name: SkipFrameTest001
+ * @tc.desc: test SkipFrame for refreshRate 0 and skipFrameInterval 0
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest, TestSize.Level1)
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 0;
     uint32_t skipFrameInterval = 0;
-    node->SkipFrame(skipFrameInterval);
-    skipFrameInterval = 10;
-    node->frameCount_ = 0;
-    ASSERT_FALSE(node->SkipFrame(skipFrameInterval));
-    node->frameCount_ = 6;
-    ASSERT_TRUE(node->SkipFrame(skipFrameInterval));
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest002
+ * @tc.desc: test SkipFrame for skipFrameInterval 0
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 0;
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest003
+ * @tc.desc: test SkipFrame for skipFrameInterval 1
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 1;
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest004
+ * @tc.desc: test SkipFrame for time within skipFrameInterval 2
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest004, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 2; // skipFrameInterval 2
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest005
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 2
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest005, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 2; // skipFrameInterval 2
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(50000); // 50000us == 50ms
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest006
+ * @tc.desc: test SkipFrame for time within skipFrameInterval 6
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest006, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 6; // skipFrameInterval 6
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(50000); // 50000us == 50ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest007
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 6
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 6; // skipFrameInterval 6
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(150000); // 150000us == 150ms
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
 }
 
 /**
@@ -311,8 +398,7 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
     int32_t bufferage = 1;
     bool useAlignedDirtyRegion = false;
-    bool renderParallel = false;
-    displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion, renderParallel);
+    displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion);
     ASSERT_TRUE(true);
 }
 

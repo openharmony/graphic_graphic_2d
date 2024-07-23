@@ -61,10 +61,7 @@ public:
         return isOpDropped_;
     }
 
-    inline bool ShouldPaint() const
-    {
-        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
-    }
+    bool ShouldPaint() const;
 
     // opinc switch
     bool IsOpincRenderCacheEnable();

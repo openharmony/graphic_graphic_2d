@@ -15,6 +15,7 @@
 
 import drawing from "@ohos.graphics.drawing";
 import common2D from "@ohos.graphics.common2D";
+import uiEffect from '@ohos.graphics.uiEffect';
 import {TestBase, TestFunctionStyleType, StyleType} from '../../pages/testbase';
 import { N, OHRandom } from '../../utils/OHRandom';
 import globalThis from '../../utils/globalThis'
@@ -22,6 +23,15 @@ import ArrayList from '@ohos.util.ArrayList';
 import image from '@ohos.multimedia.image';
 
 const TAG = '[BezierBench]';
+
+// Print test result: Passed or Not Passed
+function printResults(canvas: drawing.Canvas, isPassed: Boolean) {
+  let font: drawing.Font = new drawing.Font();
+  font.setSize(50);
+  let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(isPassed ? "Passed": "Not Passed",
+    font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+  canvas.drawTextBlob(blob, 10, 50);
+}
 
 export class CanvasDrawRect extends TestBase {
 
@@ -244,6 +254,49 @@ export class CanvasDrawPath extends TestBase {
   }
 }
 
+export class CanvasIsClipEmpty extends TestBase {
+
+  public constructor(){
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    const path = new drawing.Path();
+
+    canvas.save();
+    canvas.clipPath(path);
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.isClipEmpty();
+    }
+    canvas.restore();
+    printResults(canvas, true);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let failure: boolean = false;
+    const path = new drawing.Path();
+
+    canvas.save();
+    if (canvas.isClipEmpty()) {
+      console.log(TAG, "canvas.isClipEmpty() returned TRUE for empty clipPath");
+      failure = true;
+    }
+
+    canvas.clipPath(path);
+    if (!(canvas.isClipEmpty())) {
+      console.log(TAG, "canvas.isClipEmpty() returned FALSE for non-empty clipPath");
+      failure = true;
+    }
+
+    canvas.restore();
+    if (canvas.isClipEmpty()) {
+      console.log(TAG, "canvas.isClipEmpty() returned TRUE for empty (restored) clipPath");
+      failure = true;
+    }
+    printResults(canvas, !failure);
+  }
+}
+
 export class CanvasDrawPoint extends TestBase {
 
   public constructor(styleType: number = StyleType.DRAW_STYLE_NONE){
@@ -376,6 +429,211 @@ export class CanvasDrawImage extends TestBase {
   }
 }
 
+export class CanvasDrawImageRect extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+    let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+    let rect: common2D.Rect = { left: 20, top: 20, right: (pmSize.width / 4), bottom: (pmSize.height / 4) };
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        canvas.drawImageRect(pixelMap, rect);
+      } catch (err) {
+        console.error("CanvasDrawImageRect.OnTestFunction: exception on test 1: ", err.name, ":", err.message, err.stack);
+        problem = true;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let rect: common2D.Rect = { left: 0, top: 0, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRect(pixelMap, rect);
+      canvas.detachPen();
+    } catch (err) {
+      console.error("CanvasDrawImageRect.OnTestFunction: exception on test 1: ", err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle(brush, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_2.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let rect: common2D.Rect = { left: 100, top: 150, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRect(pixelMap, rect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRect.OnTestFunction: exception on test 2: ", err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let rect: common2D.Rect = { left: 200, top: 233.97, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRect(pixelMap, rect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRect.OnTestFunction: exception on test 3: ", err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_4.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let rect: common2D.Rect = { left: 140, top: 17.8, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRect(pixelMap, rect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRect.OnTestFunction: exception on test 4: ", err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class CanvasDrawImageRectWithSrc extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+    let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+    let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+    let dstRect: common2D.Rect = { left: 20, top: 20, right: (pmSize.width / 4), bottom: (pmSize.height / 4) };
+    let opts = new drawing.SamplingOptions(drawing.FilterMode.FILTER_MODE_LINEAR);
+    let constraint: drawing.SrcRectConstraint;
+    for (let i = 0; i < this.testCount_; i++) {
+      constraint = ((i % 2) == 0) ? drawing.SrcRectConstraint.STRICT : drawing.SrcRectConstraint.FAST;
+      try {
+        canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect, opts, constraint);
+      } catch (err) {
+        console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 1: ",
+          err.name, ":", err.message, err.stack);
+        problem = true;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: boolean = false;
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 0, top: 0, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 1: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle(brush, TestFunctionStyleType.DRAW_STYLE_TYPE_2);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_2.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 100, top: 150, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 2: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 200, top: 233.97, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 3: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+
+    try {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_4);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_4.jpg");
+      let pmSize: image.Size = pixelMap.getImageInfoSync().size;
+      let srcRect: common2D.Rect = { left: 0, top: 0, right: (pmSize.width / 2), bottom: (pmSize.height / 2) };
+      let dstRect: common2D.Rect = { left: 140, top: 17.8, right: pmSize.width, bottom: pmSize.height };
+      canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect);
+      canvas.detachPen();
+      canvas.detachBrush();
+    } catch (err) {
+      console.error("CanvasDrawImageRectWithSrc.OnTestFunction: exception on test 4: ",
+        err.name, ":", err.message, err.stack);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
 export class CanvasDrawCircle extends TestBase {
 
   public constructor(styleType: number = StyleType.DRAW_STYLE_NONE){
@@ -440,6 +698,548 @@ export class CanvasDrawCircle extends TestBase {
     }
   }
 
+}
+
+export class BrushGetColorFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let clr: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+    let brush = new drawing.Brush();
+    let setColorFilter = drawing.ColorFilter.createSRGBGammaToLinear();
+    brush.setColor(clr);
+    brush.setColorFilter(setColorFilter);
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        let brushColorFilter = brush.getColorFilter();
+        if (brushColorFilter == null) {
+          console.log("BrushGetColorFilter failed: getColorFilter is null");
+          problem = true;
+          break;
+        }
+      } catch (exc) {
+        console.log("BrushGetColorFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    let brush = new drawing.Brush();
+    let color: common2D.Color = { alpha: 80, red: 255, green: 255, blue: 0 };
+    let cf = drawing.ColorFilter.createLumaColorFilter();
+    try {
+      brush.setColor(color);
+      brush.setColorFilter(cf);
+      let cf2 = brush.getColorFilter();
+      if (cf2 == null) {
+        console.log("BrushGetColorFilter failed: ColorFilter for brush is null");
+        problem = true;
+      }
+      canvas.attachBrush(brush);
+      canvas.drawCircle(200, 550, 50);
+      canvas.detachBrush();
+
+      let brush2 = new drawing.Brush();
+      brush2.setColor(color);
+      brush2.setColorFilter(cf2);
+      canvas.attachBrush(brush2);
+      canvas.drawCircle(400, 550, 50);
+      canvas.detachBrush();
+    } catch (exc) {
+      console.log("BrushGetColorFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class BrushSetImageFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    brush.setColor(clr);
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        brush.setImageFilter(imgFilter);
+      } catch (exc) {
+        console.log("BrushSetImageFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    try {
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 250, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 250, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 255 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 550, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 550, 50);
+        canvas.detachBrush();
+      }
+    } catch (exc) {
+      console.log("BrushSetImageFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class PenGetColorFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let clr: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+    let pen = new drawing.Pen();
+    let setColorFilter = drawing.ColorFilter.createSRGBGammaToLinear();
+    pen.setColor(clr);
+    pen.setColorFilter(setColorFilter);
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        let penColorFilter = pen.getColorFilter();
+        if (penColorFilter == null) {
+          console.log("PenGetColorFilter failed: getColorFilter is null");
+          problem = true;
+          break;
+        }
+      } catch (exc) {
+        console.log("PenGetColorFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    let pen = new drawing.Pen();
+    let color: common2D.Color = { alpha: 80, red: 255, green: 255, blue: 0 };
+    let cf = drawing.ColorFilter.createLumaColorFilter();
+    try {
+      pen.setColor(color);
+      pen.setColorFilter(cf);
+      pen.setStrokeWidth(30);
+      let cf2 = pen.getColorFilter();
+      if (cf2 == null) {
+        console.log("PenGetColorFilter failed: ColorFilter for pen is null");
+        problem = true;
+      }
+      canvas.attachPen(pen);
+      canvas.drawCircle(200, 550, 50);
+      canvas.detachPen();
+
+      let pen2 = new drawing.Pen();
+      pen2.setColor(color);
+      pen2.setColorFilter(cf2);
+      pen2.setStrokeWidth(30);
+      canvas.attachPen(pen2);
+      canvas.drawCircle(400, 550, 50);
+      canvas.detachPen();
+    } catch (exc) {
+      console.log("PenGetColorFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class PenSetImageFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let pen = new drawing.Pen();
+    let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    pen.setColor(clr);
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        pen.setImageFilter(imgFilter);
+      } catch (exc) {
+        console.log("PenSetImageFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    try {
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let clr: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setColorFilter(cf);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(150, 150, 50);
+        canvas.detachPen();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let clr: common2D.Color = { alpha: 255, red: 0, green: 0, blue: 255 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setColorFilter(cf);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(400, 150, 50);
+        canvas.detachPen();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(150, 450, 50);
+        canvas.detachPen();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let clr: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 255 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(400, 450, 50);
+        canvas.detachPen();
+      }
+    } catch (exc) {
+      console.log("PenSetImageFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class CreateBlurImageFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        if (imgFilter == null) {
+          console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
+          problem = true;
+          break;
+        }
+      } catch (exc) {
+        console.log("CreateBlurImageFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false
+    try {
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        if (imgFilter1 == null) {
+          console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
+          problem = true;
+        }
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 250, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        if (imgFilter1 == null) {
+          console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
+          problem = true;
+        }
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 250, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        if (imgFilter1 == null) {
+          console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
+          problem = true;
+        }
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 255 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 550, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        if (imgFilter1 == null) {
+          console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
+          problem = true;
+        }
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 550, 50);
+        canvas.detachBrush();
+      }
+    } catch (exc) {
+      console.log("CreateBlurImageFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
+}
+
+export class CreateColorImageFilter extends TestBase {
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let colorFilter = drawing.ColorFilter.createSRGBGammaToLinear();
+    let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    var problem: Boolean = false;
+    for (let i = 0; i < this.testCount_; i++) {
+      try {
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(colorFilter, imgFilter1);
+        if (imgFilter2 == null) {
+          console.log("CreateColorImageFilter failed: createFromColorFilter is null");
+          problem = true;
+          break;
+        }
+      } catch (exc) {
+        console.log("CreateColorImageFilter exception: " + exc);
+        problem = true;
+        break;
+      }
+    }
+    printResults(canvas, !problem);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    var problem: Boolean = false;
+    try {
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 250, 50);
+        canvas.detachBrush();
+
+        let clr: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        if (imgFilter2 == null) {
+          console.log("CreateColorImageFilter failed: createFromColorFilter is null");
+          problem = true;
+        }
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setColorFilter(cf);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(150, 150, 50);
+        canvas.detachPen();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 250, 50);
+        canvas.detachBrush();
+
+        let clr: common2D.Color = { alpha: 255, red: 0, green: 0, blue: 255 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        if (imgFilter2 == null) {
+          console.log("CreateColorImageFilter failed: createFromColorFilter is null");
+          problem = true;
+        }
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setColorFilter(cf);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(400, 150, 50);
+        canvas.detachPen();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        if (imgFilter2 == null) {
+          console.log("CreateColorImageFilter failed: createFromColorFilter is null");
+          problem = true;
+        }
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(150, 450, 50);
+        canvas.detachPen();
+
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 255 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(150, 550, 50);
+        canvas.detachBrush();
+      }
+      {
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let clr: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 255 };
+        let cf = drawing.ColorFilter.createSRGBGammaToLinear();
+        let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
+        if (imgFilter2 == null) {
+          console.log("CreateColorImageFilter failed: createFromColorFilter is null");
+          problem = true;
+        }
+        let pen = new drawing.Pen();
+        pen.setColor(clr);
+        pen.setStrokeWidth(20);
+        pen.setImageFilter(imgFilter2);
+        canvas.attachPen(pen);
+        canvas.drawCircle(400, 450, 50);
+        canvas.detachPen();
+
+        let brush = new drawing.Brush();
+        let color: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
+        brush.setColor(color);
+        brush.setAntiAlias(true);
+        brush.setColorFilter(cf);
+        brush.setImageFilter(imgFilter1);
+        canvas.attachBrush(brush);
+        canvas.drawCircle(400, 550, 50);
+        canvas.detachBrush();
+      }
+    } catch (exc) {
+      console.log("CreateColorImageFilter exception: " + exc);
+      problem = true;
+    }
+    printResults(canvas, !problem);
+  }
 }
 
 export class CanvasDrawTextBlob extends TestBase {
@@ -559,13 +1359,11 @@ export class CanvasDrawPixelMapMesh extends TestBase {
   }
 }
 
-
 export class CanvasDrawColor extends TestBase {
 
   public constructor() {
     // 根据需求，如果与默认值不一样，请继承重写
-    super();
-    
+    super();   
   }
 
   public OnTestFunction(canvas: drawing.Canvas) {
@@ -603,6 +1401,438 @@ export class CanvasDrawColor extends TestBase {
 
   }
 
+}
+
+export class CanvasResetMatrix extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let matrix = new drawing.Matrix();
+    canvas.setMatrix(matrix);
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.resetMatrix();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let rect1: common2D.Rect = { left: 10, top: 20, right: 30, bottom: 60 };
+    let rect2: common2D.Rect = { left: 30, top: 20, right: 50, bottom: 60 };
+    let brush = new drawing.Brush();
+    let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+    brush.setColor(color);
+    canvas.attachBrush(brush);
+
+    canvas.scale(4, 6);
+    canvas.drawRect(rect1);
+
+    brush.setColor({ alpha: 255, red: 0, green: 0, blue: 255 });
+    canvas.attachBrush(brush);
+    canvas.scale(2, 3);
+    canvas.drawRect(rect2);
+
+    canvas.resetMatrix();
+
+    brush.setColor({ alpha: 255, red: 255, green: 0, blue: 0 });
+    canvas.attachBrush(brush);
+    canvas.scale(4, 6);
+    canvas.drawRect(rect2);
+
+    canvas.detachBrush();
+    canvas.resetMatrix();
+  }
+}
+
+export class CanvasSetMatrix extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let matrix = new drawing.Matrix();
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.setMatrix(matrix);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    {
+      let rect: common2D.Rect = { left: 10, top: 20, right: 30, bottom: 60 };
+      let brush = new drawing.Brush();
+      let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
+      let matrix = new drawing.Matrix();
+      matrix.preRotate(-30, 10, 20)
+      brush.setColor(color)
+      canvas.attachBrush(brush)
+      canvas.drawRect(rect)
+      canvas.detachBrush()
+      brush.setColor({ alpha: 255, red: 0, green: 255, blue: 0 })
+      canvas.attachBrush(brush)
+      canvas.setMatrix(matrix)
+      canvas.drawRect(rect)
+      canvas.detachBrush()
+    }
+
+    {
+      let rect: common2D.Rect = { left: 10, top: 20, right: 30, bottom: 60 };
+      let brush = new drawing.Brush();
+      let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
+      let matrix = new drawing.Matrix();
+      matrix.preTranslate(0, 60)
+      canvas.setMatrix(matrix)
+      matrix.preScale(2, 0.5, 0, 0)
+      brush.setColor(color)
+      canvas.attachBrush(brush)
+      canvas.drawRect(rect)
+      canvas.detachBrush()
+      brush.setColor({ alpha: 255, red: 0, green: 255, blue: 0 })
+      canvas.attachBrush(brush)
+      canvas.setMatrix(matrix)
+      canvas.drawRect(rect)
+      canvas.detachBrush()
+    }
+  }
+}
+
+export class CanvasClipRoundRect extends TestBase {
+
+  public constructor(){
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let rect: common2D.Rect = { left: 2.7, top: 175.7, right: 450.7, bottom: 315.9 };
+
+    let rand: OHRandom = new OHRandom();
+      for (let i = 0; i < this.testCount_; i++) {
+        let l = i % this.width_;
+        let t = (i + 100) % this.height_;
+        let r = ((l + 100) > this.width_) ? this.width_ : (l + 100);
+        let b = ((t + 100) > this.height_) ? this.height_ : (t + 100);
+        let rect: common2D.Rect = {left: l, top: t, right: r, bottom: b};
+        let roundRect = new drawing.RoundRect(rect, 10, 10);
+        canvas.clipRoundRect(roundRect);
+      }
+  }
+  
+  public OnTestFunction(canvas: drawing.Canvas) {
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      let brush = new drawing.Brush();
+      this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3);
+      canvas.attachPen(pen);
+      canvas.attachBrush(brush);
+
+      let rectOne: common2D.Rect = { left: 10, top: 100, right: 200, bottom: 300 };
+      let roundRectOne = new drawing.RoundRect(rectOne, 10, 10);
+      canvas.clipRoundRect(roundRectOne);
+      canvas.drawRect(rectOne);
+
+      let rectTwo: common2D.Rect = { left: 100, top: 200, right: 300, bottom: 400 };
+      let roundRectTwo = new drawing.RoundRect(rectTwo, 10, 10);
+      canvas.clipRoundRect(roundRectTwo, drawing.ClipOp.INTERSECT);
+      canvas.drawRect(rectTwo);
+
+      let rectThree: common2D.Rect = { left: 200, top: 300, right: 400, bottom: 500 };
+      let roundRectThree = new drawing.RoundRect(rectThree, 10, 10);
+      canvas.clipRoundRect(roundRectThree, drawing.ClipOp.INTERSECT);
+      canvas.drawRect(rectThree);
+
+      canvas.detachPen();
+      canvas.detachBrush();
+    }
+}
+
+export class FontIsSubpixel extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+    font.enableSubpixel(true);
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.isSubpixel();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    let text: string = 'Hello World, This is test code <isSubpixel>';
+    font.setSize(30);
+    font.enableSubpixel(true);
+
+    if (font.isSubpixel()) {
+      let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      canvas.drawTextBlob(blob, 50, 50);
+    } else {
+      console.error("isSubpixel() expected: true, actual: false");
+    }
+
+    canvas.detachBrush();
+  }
+}
+
+export class FontIsLinearMetrics extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+    font.enableLinearMetrics(true);
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.isLinearMetrics();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    let text: string = 'Hello World, This is test code <isLinearMetrics>';
+    font.setSize(30);
+    font.enableLinearMetrics(true);
+
+    if (font.isLinearMetrics()) {
+      let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      canvas.drawTextBlob(blob, 50, 50);
+    } else {
+      console.error("isLinearMetrics() expected: true, actual: false");
+    }
+
+    canvas.detachBrush();
+  }
+}
+
+export class FontIsEmbolden extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+    font.enableEmbolden(true);
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.isEmbolden();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    let text: string = 'Hello World, This is test code <isEmbolden>';
+    font.setSize(30);
+    font.enableEmbolden(true);
+
+    if (font.isEmbolden()) {
+      let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      canvas.drawTextBlob(blob, 50, 50);
+    } else {
+      console.error("isEmbolden() expected: true, actual: false");
+    }
+
+    canvas.detachBrush();
+  }
+}
+
+export class FontGetSkewX extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+    font.setSkewX(-20);
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.getSkewX();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    let text: string = 'Hello World, This is test code <getSkewX>';
+    font.setSize(30);
+    font.setSkewX(-1);
+
+    if (font.getSkewX() == -1) {
+      let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      canvas.drawTextBlob(blob, 50, 50);
+    } else {
+      console.error("getSkewX() expected -1, actual " + font.getSkewX());
+    }
+
+    canvas.detachBrush();
+  }
+}
+
+export class FontGetScaleX extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+    font.setScaleX(2);
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.getScaleX();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    let text: string = 'Hello World, This is test code <getSkewX>';
+    font.setSize(30);
+    font.setScaleX(2);
+
+    if (font.getScaleX() == 2) {
+      let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+      canvas.drawTextBlob(blob, 50, 50);
+    } else {
+      console.error("getScaleX() expected 2, actual " + font.getScaleX());
+    }
+
+    canvas.detachBrush();
+  }
+}
+
+export class FontGetHinting extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.getHinting();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    font.setSize(30);
+    let text: string = 'Hello World, This is test code <getHinting = ' + font.getHinting() + '>';
+    let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+    canvas.drawTextBlob(blob, 50, 50);
+    canvas.detachBrush();
+  }
+}
+
+export class FontGetEdging extends TestBase {
+
+  public constructor(styleType: number = StyleType.DRAW_STYLE_NONE) {
+    super();
+    this.styleType_ = styleType;
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let font: drawing.Font = new drawing.Font();
+
+    for (let i = 0; i < this.testCount_; i++) {
+      font.getEdging();
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let brush = new drawing.Brush();
+    canvas.attachBrush(brush);
+    let font: drawing.Font = new drawing.Font();
+    font.setSize(30);
+    let text: string = 'Hello World, This is test code <getEdging = ' + font.getEdging() + '>';
+    let blob: drawing.TextBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+    canvas.drawTextBlob(blob, 50, 50);
+    canvas.detachBrush();
+  }
+}
+
+export class CanvasClipRegion extends TestBase {
+
+  region_: drawing.Region | undefined;
+
+  public constructor(){
+    super();
+    this.region_ = new drawing.Region();
+    this.region_.setRect(0, 0, 500, 500);
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas): void {
+    let pen = new drawing.Pen();
+    let brush = new drawing.Brush();
+    pen.setColor({ alpha: 255, red: 255, green: 0, blue: 0 });
+    brush.setColor({ alpha: 255, red: 255, green: 0, blue: 0 });
+    canvas.attachPen(pen);
+    canvas.attachBrush(brush);
+    canvas.drawRegion(this.region_);
+    canvas.detachPen();
+    canvas.detachBrush();
+
+    let region1 = new drawing.Region();
+    region1.setRect(0, 0, 250, 250);
+    pen.setColor({ alpha: 255, red: 0, green: 255, blue: 0 });
+    brush.setColor({ alpha: 255, red: 0, green: 255, blue: 0 });
+    canvas.attachPen(pen);
+    canvas.attachBrush(brush);
+    try {
+      canvas.clipRegion(region1);
+    } catch (e) {
+      console.log("clipRegion exception: " + e);
+      printResults(canvas, false);
+    }
+    canvas.drawRegion(this.region_);
+    canvas.detachPen();
+    canvas.detachBrush();
+
+    let region2 = new drawing.Region();
+    region2.setRect(0, 0, 125, 125);
+    pen.setColor({ alpha: 255, red: 0, green: 0, blue: 255 });
+    brush.setColor({ alpha: 255, red: 0, green: 0, blue: 255 });
+    canvas.attachPen(pen);
+    canvas.attachBrush(brush);
+    try {
+      canvas.clipRegion(region2);
+    } catch (e) {
+      console.log("clipRegion exception: " + e);
+      printResults(canvas, false);
+    }
+    canvas.drawRegion(this.region_);
+    canvas.detachPen();
+    canvas.detachBrush();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.clipRegion(this.region_);
+    }
+    printResults(canvas, true);
+  }
 }
 
 export class CanvasSetColor extends TestBase {

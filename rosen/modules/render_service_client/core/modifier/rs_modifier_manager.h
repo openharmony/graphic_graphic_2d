@@ -38,7 +38,7 @@ public:
     void AddModifier(const std::shared_ptr<RSModifier>& modifier);
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(const AnimationId keyId);
-    bool HasUIAnimation();
+    bool HasUIRunningAnimation();
 
     bool Animate(int64_t time, int64_t vsyncPeriod = 0);
     void Draw();

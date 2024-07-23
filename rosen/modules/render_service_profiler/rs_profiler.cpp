@@ -589,7 +589,7 @@ void RSProfiler::AwakeRenderServiceThreadResetCaches()
             surfaceNode->NeedClearBufferCache();
             surfaceNode->GetRSSurfaceHandler()->ResetBufferAvailableCount();
             surfaceNode->GetRSSurfaceHandler()->CleanCache();
-            surfaceNode->UpdateBufferInfo(nullptr, nullptr, nullptr);
+            surfaceNode->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
             surfaceNode->SetNotifyRTBufferAvailable(false);
             surfaceNode->SetContentDirty();
             surfaceNode->ResetHardwareEnabledStates();

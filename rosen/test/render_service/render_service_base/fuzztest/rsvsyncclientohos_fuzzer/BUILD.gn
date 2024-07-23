@@ -17,7 +17,7 @@ import("//build/test.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSVsynClientOhosFuzzTest") {
+ohos_fuzztest("RSVsyncClientOhosFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsvsyncclientohos_fuzzer"
   include_dirs = [
@@ -52,7 +52,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSVsynClientOhosFuzzTest",
+    ":RSVsyncClientOhosFuzzTest",
   ]
 }
 ###############################################################################

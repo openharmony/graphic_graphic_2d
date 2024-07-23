@@ -18,6 +18,7 @@
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
 #include "modifier/rs_modifier_type.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "property/rs_properties_painter.h"
@@ -483,7 +484,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     auto modifier2 = std::make_shared<RSDrawCmdListRenderModifier>(property2);
     listModifier.emplace_back(modifier2);
     rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(type, listModifier);
-    rsCanvasDrawingRenderNode.drawCmdListsVisited_.store(true);
     std::list<Drawing::DrawCmdListPtr> listDrawCmd;
     auto listDrawCmdMax = 20;
     for (int i = 0; i < listDrawCmdMax; ++i) {
@@ -640,8 +640,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
 {
     NodeId nodeId = 7;
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    rsCanvasDrawingRenderNode->SetDrawCmdListsVisited(true);
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
+    EXPECT_FALSE(drawable == nullptr);
+    drawable->SetDrawCmdListsVisited(true);
     rsCanvasDrawingRenderNode->ClearResource();
-    EXPECT_FALSE(rsCanvasDrawingRenderNode->IsDrawCmdListsVisited());
+    EXPECT_FALSE(drawable->IsDrawCmdListsVisited());
 }
 } // namespace OHOS::Rosen

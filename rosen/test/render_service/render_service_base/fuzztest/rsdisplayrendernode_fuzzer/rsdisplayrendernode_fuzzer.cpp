@@ -69,6 +69,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     uint32_t rogHeight = GetData<uint32_t>();
     int32_t offsetX = GetData<int32_t>();
     int32_t offsetY = GetData<int32_t>();
+    uint32_t refreshRate = GetData<uint32_t>();
+    uint32_t skipFrameInterval = GetData<uint32_t>();
     ScreenRotation screenRotation = (ScreenRotation)rogWidth;
     RSDisplayRenderNode::CompositeType type = (RSDisplayRenderNode::CompositeType)rogWidth;
     auto node = std::make_shared<RSBaseRenderNode>(id);
@@ -90,8 +92,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetScreenId();
     rsDisplayRenderNode.SetRogSize(rogWidth, rogHeight);
     rsDisplayRenderNode.GetRogWidth();
-    rsDisplayRenderNode.SetRenderWindowsName(windowsName);
-    rsDisplayRenderNode.GetRenderWindowName();
     rsDisplayRenderNode.GetRogHeight();
     rsDisplayRenderNode.SetDisplayOffset(offsetX, offsetY);
     rsDisplayRenderNode.GetDisplayOffsetX();
@@ -115,7 +115,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.SetIsMirrorDisplay(true);
     rsDisplayRenderNode.SetSecurityDisplay(true);
     rsDisplayRenderNode.GetSecurityDisplay();
-    rsDisplayRenderNode.SkipFrame(rogWidth);
+    rsDisplayRenderNode.SkipFrame(refreshRate, skipFrameInterval);
     rsDisplayRenderNode.SetBootAnimation(true);
     rsDisplayRenderNode.GetBootAnimation();
     rsDisplayRenderNode.GetMirrorSource();
@@ -123,7 +123,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.IsParallelDisplayNode();
     rsDisplayRenderNode.GetRotation();
     rsDisplayRenderNode.GetDirtyManager();
-    rsDisplayRenderNode.GetSyncDirtyManager();
     rsDisplayRenderNode.UpdateDisplayDirtyManager(offsetX);
     rsDisplayRenderNode.ClearCurrentSurfacePos();
     rsDisplayRenderNode.UpdateSurfaceNodePos(id, dirtyShadow);
@@ -143,15 +142,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetOriginScreenRotation();
     rsDisplayRenderNode.SetInitMatrix(matrix);
     rsDisplayRenderNode.GetInitMatrix();
-    rsDisplayRenderNode.GetCacheImgForCapture();
     auto cacheImgForCapture = std::make_shared<Drawing::Image>();
-    rsDisplayRenderNode.SetCacheImgForCapture(cacheImgForCapture);
     rsDisplayRenderNode.GetOffScreenCacheImgForCapture();
     rsDisplayRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     rsDisplayRenderNode.GetRootIdOfCaptureWindow();
     rsDisplayRenderNode.SetRootIdOfCaptureWindow(id);
-    rsDisplayRenderNode.GetResetRotate();
-    rsDisplayRenderNode.SetResetRotate(true);
     rsDisplayRenderNode.GetDirtySurfaceNodeMap();
     rsDisplayRenderNode.ClearSurfaceSrcRect();
     rsDisplayRenderNode.ClearSurfaceDstRect();

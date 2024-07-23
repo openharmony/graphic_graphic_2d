@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RSPROPERTY_FUZZER_H
-#define RSPROPERTY_FUZZER_H
+#ifndef RSCLIENTPROPERTY_FUZZER_H
+#define RSCLIENTPROPERTY_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -23,6 +23,6 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-#define FUZZ_PROJECT_NAME "rsproperty_fuzzer"
+#define FUZZ_PROJECT_NAME "rsclientproperty_fuzzer"
 
-#endif // RSPROPERTY_FUZZER_H
+#endif // RSCLIENTPROPERTY_FUZZER_H

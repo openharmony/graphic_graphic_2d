@@ -154,7 +154,7 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     RSLayerInfo layerInfo;
     sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
     sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(bufferTest);
+    params.SetBuffer(bufferTest, {});
     params.SetPreBuffer(preBufferTest);
     layerInfo.zOrder = 0;
     params.SetLayerInfo(layerInfo);

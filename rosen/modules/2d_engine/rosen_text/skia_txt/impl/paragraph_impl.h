@@ -38,6 +38,8 @@ public:
 
     double GetLongestLine() override;
 
+    double GetLongestLineWithIndent() override;
+
     double GetMinIntrinsicWidth() override;
 
     double GetMaxIntrinsicWidth() override;

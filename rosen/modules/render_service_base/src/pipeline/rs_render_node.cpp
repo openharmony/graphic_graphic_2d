@@ -30,8 +30,10 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -254,11 +256,6 @@ void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
     isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
-}
-
-void RSRenderNode::ResetClearSurfaeFunc()
-{
-    clearSurfaceTask_ = nullptr;
 }
 
 void RSRenderNode::MoveChild(SharedPtr child, int index)
@@ -529,21 +526,6 @@ void RSRenderNode::ResetParent()
 bool RSRenderNode::IsFirstLevelNode()
 {
     return id_ == firstLevelNodeId_;
-}
-
-bool RSRenderNode::SubSurfaceNodeNeedDraw(PartialRenderType opDropType)
-{
-    for (auto &nodes : subSurfaceNodes_) {
-        for (auto &node : nodes.second) {
-            const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.lock());
-            if (surfaceNode != nullptr &&
-                (surfaceNode->SubNodeNeedDraw(surfaceNode->GetOldDirtyInSurface(), opDropType) ||
-                surfaceNode->SubSurfaceNodeNeedDraw(opDropType))) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void RSRenderNode::AddSubSurfaceNode(SharedPtr parent)
@@ -2620,6 +2602,7 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
         OnAlphaChanged();
     }
     globalAlpha_ = alpha;
+    stagingRenderParams_->SetGlobalAlpha(alpha);
 }
 
 float RSRenderNode::GetGlobalAlpha() const
@@ -3805,8 +3788,10 @@ void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     if (rect && (rect->GetHeight() >= std::numeric_limits<uint16_t>::max() ||
         rect->GetWidth() >= std::numeric_limits<uint16_t>::max())) {
-        RS_LOGW("large draw region from arkui: %{public}s", rect->ToString().c_str());
-        RS_OPTIONAL_TRACE_NAME_FMT("large draw region from arkui: %s", rect->ToString().c_str());
+        RS_LOGW("node %{public}" PRIu64" set large draw region from arkui: %{public}s",
+            GetId(), rect->ToString().c_str());
+        RS_OPTIONAL_TRACE_NAME_FMT("node %" PRIu64" set large draw region from arkui: %s",
+            GetId(), rect->ToString().c_str());
     }
     drawRegion_ = rect;
     GetMutableRenderProperties().SetDrawRegion(rect);
@@ -3978,7 +3963,7 @@ void RSRenderNode::OnSync()
         isLeashWindowPartialSkip = true;
     }
     if (ShouldClearSurface()) {
-        clearSurfaceTask_();
+        renderDrawable_->TryClearSurfaceOnSync();
         needClearSurface_ = false;
     }
     // Reset FilterCache Flags
@@ -3995,7 +3980,7 @@ bool RSRenderNode::ShouldClearSurface()
     bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
     bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
     return (renderGroupFlag || freezeFlag || nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE)) &&
-        clearSurfaceTask_ && needClearSurface_;
+        needClearSurface_;
 }
 
 void RSRenderNode::ValidateLightResources()
@@ -4099,6 +4084,58 @@ void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
     if (parent && parent->ChildrenHasUIExtension() != childrenHasUIExtension) {
         parent->SetChildrenHasUIExtension(childrenHasUIExtension);
     }
+}
+
+void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
+{
+    for (int32_t i = 0; i < depth; ++i) {
+        out += "  ";
+    }
+    RSRenderNode::DumpNodeType(Type, out);
+    out += "[" + std::to_string(id_) + "]";
+    DumpSubClassNode(out);
+
+    if (renderDrawable_) {
+        // [dfx] use drawable in main thread
+        out += ", DrawableVec:[" + DumpDrawableVec() + "]";
+        if (renderDrawable_->skipType_ != DrawableV2::SkipType::NONE) {
+            out += ", SkipType:" + std::to_string(static_cast<int>(renderDrawable_->skipType_));
+            out += ", SkipIndex:" + std::to_string(renderDrawable_->GetSkipIndex());
+        }
+        out += "\n";
+        auto& params = renderDrawable_->GetRenderParams();
+        if (params) {
+            out += ", params" + params->ToString();
+        }
+    } else {
+        out += ", drawable null";
+    }
+
+    auto childList = GetChildren();
+    if (childList) {
+        for (auto childNode : *childList) {
+            if (childNode) {
+                childNode->DumpDrawableTree(depth + 1, out);
+            }
+        }
+    }
+}
+
+std::string RSRenderNode::DumpDrawableVec() const
+{
+    std::string str;
+    for (uint8_t i = 0; i < drawableVec_.size(); ++i) {
+        if (drawableVec_[i]) {
+            str += std::to_string(i) + ", ";
+        }
+    }
+    // str has more than 2 chars
+    if (str.length() > 2) {
+        str.pop_back();
+        str.pop_back();
+    }
+
+    return str;
 }
 
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)

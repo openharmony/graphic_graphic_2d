@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Matrix4 } from "./Matrix.js";
+import { Matrix4 } from './Matrix.js';
 export class Camera {
     data = new Float32Array([]);
     fovy = 30;

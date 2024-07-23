@@ -29,6 +29,9 @@ public:
     void operator=(const RSUniRenderEngine&) = delete;
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
+    void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
+        PostProcessFunc postProcess) override;
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
     void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override;

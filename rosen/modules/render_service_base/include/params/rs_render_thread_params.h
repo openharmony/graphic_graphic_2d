@@ -103,10 +103,11 @@ public:
         return selfDrawingNodes_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTypeNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
     {
-        return hardwareEnabledTypeNodes_;
+        return hardwareEnabledTypeDrawables_;
     }
+
 
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -379,7 +380,7 @@ private:
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

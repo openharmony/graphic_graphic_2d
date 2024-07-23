@@ -17,10 +17,14 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
 #include "common/rs_common_def.h"
+#include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
+#include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
+#include "utils/region.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
@@ -42,6 +46,7 @@ struct DirtyRegionInfoForDFX {
     }
 };
 struct RSLayerInfo;
+struct ScreenInfo;
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -73,7 +78,6 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
-    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -194,18 +198,84 @@ public:
 
     // overrided surface params
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer) {}
+    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) {}
     virtual sptr<SurfaceBuffer> GetBuffer() const { return nullptr; }
     virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) {}
     virtual sptr<SurfaceBuffer> GetPreBuffer() { return nullptr; }
     virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) {}
     virtual sptr<SyncFence> GetAcquireFence() const { return nullptr; }
+    virtual const Rect& GetBufferDamage() const
+    {
+        static const Rect defaultRect = {};
+        return defaultRect;
+    }
 #endif
     virtual const RSLayerInfo& GetLayerInfo() const;
+    virtual const RectI& GetAbsDrawRect() const
+    {
+        static const RectI defaultRect = {};
+        return defaultRect;
+    }
+    // surface params
+    virtual bool GetOcclusionVisible() const { return true; }
+    virtual bool IsLeashWindow() const { return true; }
+    virtual bool IsAppWindow() const { return false; }
+    virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetLayerCreated() const { return false; }
+    virtual bool GetLastFrameHardwareEnabled() const { return false; }
+    virtual void SetLayerCreated(bool layerCreated) {}
+    virtual void SetOldDirtyInSurface(const RectI& oldDirtyInSurface) {}
+    virtual RectI GetOldDirtyInSurface() const { return {}; }
 
     // overrided by displayNode
-    virtual ScreenRotation GetScreenRotation() const;
+    virtual std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetAllMainAndLeashSurfaceDrawables()
+    {
+        static std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> defaultSurfaceVector;
+        return defaultSurfaceVector;
+    }
 
+    virtual Occlusion::Region GetVisibleRegion() const
+    {
+        return {};
+    }
+
+    virtual void SetRotationChanged(bool changed) {}
+    virtual bool IsRotationChanged() const
+    {
+        return false;
+    }
+
+    virtual const ScreenInfo& GetScreenInfo() const;
+    virtual uint64_t GetScreenId() const
+    {
+        return 0;
+    }
+    virtual ScreenRotation GetScreenRotation() const
+    {
+        return ScreenRotation::ROTATION_0;
+    }
+    virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
+    virtual const Drawing::Matrix& GetTotalMatrix();
+    virtual void SetGlobalAlpha(float alpha) {}
+    virtual float GetGlobalAlpha()
+    {
+        return 0;
+    }
+    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
+    virtual ScalingMode GetPreScalingMode() const
+    {
+        return ScalingMode::SCALING_MODE_FREEZE;
+    }
+    virtual void SetNeedClient(bool needClient) {}
+    virtual bool GetNeedClient() const { return false; }
+    virtual bool GetFingerprint() { return false; }
+    virtual void SetFingerprint(bool hasFingerprint) {}
+    // virtual display params
+    virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
+    virtual bool GetSecurityDisplay() const { return true; }
+    // canvas drawing node
+    virtual bool IsNeedProcess() const { return true; }
+    virtual void SetNeedProcess(bool isNeedProcess) {}
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;

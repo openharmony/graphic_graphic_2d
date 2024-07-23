@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef RSFUNTIONALDELEGATE_FUZZER_H
-#define RSFUNTIONALDELEGATE_FUZZER_H
+#ifndef RSFUNCTIONALDELEGATE_FUZZER_H
+#define RSFUNCTIONALDELEGATE_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "rsfuntionaldelegate_fuzzer"
+#define FUZZ_PROJECT_NAME "rsfunctionaldelegate_fuzzer"
 
-#endif // RSFUNTIONALDELEGATE_FUZZER_H
+#endif // RSFUNCTIONALDELEGATE_FUZZER_H

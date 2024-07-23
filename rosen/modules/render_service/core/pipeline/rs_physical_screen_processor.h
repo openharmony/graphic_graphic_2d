@@ -33,7 +33,7 @@ public:
     ~RSPhysicalScreenProcessor() noexcept override;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
+              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;

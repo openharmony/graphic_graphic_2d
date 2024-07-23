@@ -133,10 +133,11 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
     }
 
     bool exists = false;
-    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    for (auto& it : hardwareNodes) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode != nullptr && surfaceNode->IsHardwareEnabledTopSurface()) {
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceDrawable != nullptr && surfaceDrawable->IsHardwareEnabledTopSurface()) {
             exists = true;
             break;
         }
@@ -175,14 +176,16 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
 
 bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    for (auto& it : hardwareNodes) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode == nullptr || !surfaceNode->IsHardwareEnabledTopSurface()) {
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceDrawable == nullptr || !surfaceDrawable->IsHardwareEnabledTopSurface() ||
+            !surfaceDrawable->GetRenderParams()) {
             continue;
         }
         image_ = std::make_shared<Drawing::Image>();
-        RectI pointerRect = surfaceNode->GetDstRect();
+        RectI pointerRect = surfaceDrawable->GetRenderParams()->GetAbsDrawRect();
         Drawing::RectI drawingPointerRect = Drawing::RectI(pointerRect.GetLeft(), pointerRect.GetTop(),
             pointerRect.GetRight(), pointerRect.GetBottom());
         image_->BuildSubset(cacheImgForPointer_, drawingPointerRect, *gpuContext);

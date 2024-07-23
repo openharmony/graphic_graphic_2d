@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Matrix4 } from "./Matrix.js";
+import { Matrix4 } from './Matrix.js';
 export class Shape {
     initFinish = false;
     vertexCode = `
@@ -99,7 +99,7 @@ export class Shape {
     static lightDirection = new Float32Array([-0.0, -1, -0.0]);
     constructor() {
     }
-    createProgram(gl,attribute = [], uniform = []) {
+    createProgram(gl, attribute = [], uniform = []) {
         let initShader = (gl, type, source) => {
             let shader = gl.createShader(type);
             if (shader === null) {
@@ -146,8 +146,9 @@ export class Shape {
                 this.program[item] = gl.getUniformLocation(program, item);
             });
         }
+        return null;
     }
-    initAttributeUniform(gl,attribute = [], uniform = []){
+    initAttributeUniform(gl, attribute = [], uniform = []){
         if (attribute.length > 0) {
             attribute.forEach((item, index) => {
                 this.program[item] = gl.getAttribLocation(this.program, item);

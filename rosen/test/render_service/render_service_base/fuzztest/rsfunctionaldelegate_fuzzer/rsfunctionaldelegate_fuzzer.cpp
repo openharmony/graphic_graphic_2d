@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rsfuntionaldelegate_fuzzer.h"
+#include "rsfunctionaldelegate_fuzzer.h"
 
 #include <climits>
 #include <cstddef>

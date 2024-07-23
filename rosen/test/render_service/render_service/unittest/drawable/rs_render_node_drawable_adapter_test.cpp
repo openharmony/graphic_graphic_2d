@@ -17,6 +17,7 @@
 
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
@@ -178,7 +179,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     std::string out;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    adapter->DumpDrawableTree(depth, out);
+    node->DumpDrawableTree(depth, out);
     EXPECT_EQ(adapter->renderNode_.lock(), nullptr);
     EXPECT_TRUE(!out.empty());
     out.clear();
@@ -191,7 +192,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
     adapter->renderNode_ = renderNode;
-    adapter->DumpDrawableTree(depth, out);
+    node->DumpDrawableTree(depth, out);
     EXPECT_TRUE(out.size() > depth);
 }
 
@@ -223,7 +224,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     NodeId id = 5;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    auto retStr = adapter->DumpDrawableVec();
+    auto retStr = node->DumpDrawableVec();
     EXPECT_TRUE(retStr.empty());
 
     auto renderNode = std::make_shared<RSRenderNode>(id + 1);
@@ -232,7 +233,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     auto foregroundStyle = std::make_shared<RSChildrenDrawableBrotherAdapter>();
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
-    retStr = adapter->DumpDrawableVec();
+    retStr = node->DumpDrawableVec();
     EXPECT_GT(retStr.length(), 2);
 }
 /**

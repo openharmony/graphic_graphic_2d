@@ -47,8 +47,8 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
 
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() &&
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         return;
     }

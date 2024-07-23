@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +16,31 @@
 
 #include "rs_base_render_util.h"
 
+#include <parameters.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <unordered_set>
-#include <parameters.h>
+
+#include "include/utils/SkCamera.h"
+#include "png.h"
+#include "rs_frame_rate_vote.h"
+#include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
-#include "include/utils/SkCamera.h"
-#include "params/rs_surface_render_params.h"
-#include "pipeline/rs_uni_render_util.h"
-#include "platform/common/rs_log.h"
-#include "png.h"
-#include "rs_frame_rate_vote.h"
-#include "rs_trace.h"
-#include "system/rs_system_parameters.h"
-#include "transaction/rs_transaction_data.h"
-
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/rs_uni_render_util.h"
+#include "platform/common/rs_log.h"
+#include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
 
 namespace OHOS {
@@ -857,13 +860,13 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
 {
-    auto availableBufferCnt = node.GetAvailableBufferCount();
-    const auto surfaceConsumer = node.GetConsumer();
+    auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
+    const auto surfaceConsumer = surfaceHandler.GetConsumer();
     if (surfaceConsumer == nullptr) {
         RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "): surfaceConsumer is null!",
-            node.GetNodeId());
+            surfaceHandler.GetNodeId());
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
@@ -878,7 +881,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
-                " ret: %{public}d), do nothing ", node.GetNodeId(), ret);
+                " ret: %{public}d), do nothing ", surfaceHandler.GetNodeId(), ret);
             return OHOS::GSERROR_NO_BUFFER;
         }
 
@@ -886,11 +889,11 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
-                node.GetNodeId(), ret);
+                surfaceHandler.GetNodeId(), ret);
         }
-        node.ReduceAvailableBuffer();
+        surfaceHandler.ReduceAvailableBuffer();
         RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
-            node.GetNodeId());
+            surfaceHandler.GetNodeId());
     }
 
     return OHOS::GSERROR_OK;
@@ -986,6 +989,9 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
             "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
             surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success(buffer control enable), "
+            "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
+            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
         surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
     }
@@ -993,6 +999,11 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        return true;
+    }
+    renderEngine->RegisterDeleteBufferListener(surfaceHandler);
     return true;
 }
 

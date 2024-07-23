@@ -30,7 +30,6 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "rs_surface_render_node.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -41,6 +40,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSurfaceRenderNode;
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
     struct ScreenRenderParams
@@ -89,16 +89,6 @@ public:
     uint32_t GetRogWidth() const
     {
         return rogWidth_;
-    }
-
-    void SetRenderWindowsName(std::vector<std::string>& windowsName)
-    {
-        windowsName_ = windowsName;
-    }
-
-    std::vector<std::string>& GetRenderWindowName()
-    {
-        return windowsName_;
     }
 
     uint32_t GetRogHeight() const
@@ -166,7 +156,7 @@ public:
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
     void SetDisplayGlobalZOrder(float zOrder);
-    bool SkipFrame(uint32_t skipFrameInterval) override;
+    bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const
@@ -195,11 +185,7 @@ public:
     {
         return dirtyManager_;
     }
-    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const
-    {
-        return syncDirtyManager_;
-    }
-    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false, bool renderParallel = false);
+    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
@@ -289,12 +275,6 @@ public:
         return initMatrix_;
     }
 
-    std::shared_ptr<Drawing::Image> GetCacheImgForCapture() {
-        return cacheImgForCapture_;
-    }
-    void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture) {
-        cacheImgForCapture_ = cacheImgForCapture;
-    }
     std::shared_ptr<Drawing::Image> GetOffScreenCacheImgForCapture() {
         return offScreenCacheImgForCapture_;
     }
@@ -306,12 +286,6 @@ public:
     }
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    }
-    bool GetResetRotate() const {
-        return resetRotate_;
-    }
-    void SetResetRotate(bool resetRotate) {
-        resetRotate_ = resetRotate;
     }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
@@ -397,16 +371,6 @@ public:
         lastSurfaceIds_ = std::move(lastSurfaceIds);
     }
 
-    const std::vector<RectI>& GetDirtyRects() const
-    {
-        return dirtyRects_;
-    }
-
-    void SetDirtyRects(const std::vector<RectI>& rects)
-    {
-        dirtyRects_ = rects;
-    }
-
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
     {
         oldScbPids_ = oldScbPids;
@@ -454,23 +418,19 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
-    uint64_t frameCount_ = 0;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
-    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
     // Use in screen recording optimization
-    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
-    bool resetRotate_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
@@ -486,7 +446,6 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     std::vector<NodeId> lastSurfaceIds_;
-    std::vector<RectI> dirtyRects_;
 
     std::vector<int32_t> oldScbPids_ {};
     int32_t currentScbPid_ = -1;
@@ -495,6 +454,7 @@ private:
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
 
     friend class DisplayNodeCommandHelper;
+    int64_t lastRefreshTime_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

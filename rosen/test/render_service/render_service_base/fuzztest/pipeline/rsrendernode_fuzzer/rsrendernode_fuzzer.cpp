@@ -251,6 +251,7 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
     RSDisplayRenderNode::SharedPtr displayPtrNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
     bool isMirror = GetData<bool>();
     bool isSecurityDisplay = GetData<bool>();
+    uint32_t refreshRate = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
     int32_t bufferage = GetData<int32_t>();
     int left = GetData<int>();
@@ -268,7 +269,7 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
     displayNode.SetMirrorSource(displayPtrNode);
     displayNode.SetIsMirrorDisplay(isMirror);
     displayNode.SetSecurityDisplay(isSecurityDisplay);
-    displayNode.SkipFrame(skipFrameInterval);
+    displayNode.SkipFrame(refreshRate, skipFrameInterval);
     displayNode.UpdateDisplayDirtyManager(bufferage);
     displayNode.UpdateSurfaceNodePos(id, rect);
 

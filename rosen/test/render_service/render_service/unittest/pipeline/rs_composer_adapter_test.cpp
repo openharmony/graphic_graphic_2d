@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_composer_adapter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_test_util.h"

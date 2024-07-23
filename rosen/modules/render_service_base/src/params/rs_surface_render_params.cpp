@@ -169,9 +169,10 @@ bool RSSurfaceRenderParams::GetForceHardwareByUser() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
+void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect)
 {
     buffer_ = buffer;
+    damageRect_ = damageRect;
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
@@ -179,6 +180,11 @@ void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
 {
     return buffer_;
+}
+
+const Rect& RSSurfaceRenderParams::GetBufferDamage() const
+{
+    return damageRect_;
 }
 
 void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
@@ -326,6 +332,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->buffer_ = buffer_;
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
+        targetSurfaceParams->damageRect_ = damageRect_;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -336,6 +343,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
+    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
@@ -380,6 +388,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->preScalingMode_ = preScalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->totalMatrix_ = totalMatrix_;
+    targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     RSRenderParams::OnSync(target);
 }
 

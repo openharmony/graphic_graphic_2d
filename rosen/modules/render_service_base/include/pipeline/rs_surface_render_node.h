@@ -48,6 +48,7 @@ namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
+class RSSurfaceHandler;
 class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -163,8 +164,8 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const sptr<SurfaceBuffer>& preBuffer);
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
 
     void ResetPreBuffer();
 #endif
@@ -410,10 +411,7 @@ public:
 
     void OnApplyModifiers() override;
 
-    void SetTotalMatrix(const Drawing::Matrix& totalMatrix)
-    {
-        totalMatrix_ = totalMatrix;
-    }
+    void SetTotalMatrix(const Drawing::Matrix& totalMatrix);
     const Drawing::Matrix& GetTotalMatrix() const
     {
         return totalMatrix_;
@@ -488,7 +486,6 @@ public:
     bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
-    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -621,50 +618,10 @@ public:
 
     void SetLeashWindowVisibleRegionEmptyParam();
 
-    const Occlusion::Region& GetVisibleDirtyRegion() const
-    {
-        return visibleDirtyRegion_;
-    }
-
-    void SetVisibleDirtyRegion(const Occlusion::Region& region)
-    {
-        visibleDirtyRegion_ = region;
-    }
-
-    void SetAlignedVisibleDirtyRegion(const Occlusion::Region& alignedRegion)
-    {
-        alignedVisibleDirtyRegion_ = alignedRegion;
-    }
-
-    const Occlusion::Region& GetAlignedVisibleDirtyRegion()
-    {
-        return alignedVisibleDirtyRegion_;
-    }
-
     void SetExtraDirtyRegionAfterAlignment(const Occlusion::Region& region)
     {
         extraDirtyRegionAfterAlignment_ = region;
         extraDirtyRegionAfterAlignmentIsEmpty_ = extraDirtyRegionAfterAlignment_.IsEmpty();
-    }
-
-    void SetDirtyRegionAlignedEnable(bool enable)
-    {
-        isDirtyRegionAlignedEnable_ = enable;
-    }
-
-    const Occlusion::Region& GetDirtyRegionBelowCurrentLayer() const
-    {
-        return dirtyRegionBelowCurrentLayer_;
-    }
-
-    void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region)
-    {
-#ifndef ROSEN_CROSS_PLATFORM
-        Occlusion::Rect dirtyRect { GetOldDirtyInSurface() };
-        Occlusion::Region dirtyRegion { dirtyRect };
-        dirtyRegionBelowCurrentLayer_ = dirtyRegion.And(region);
-        dirtyRegionBelowCurrentLayerIsEmpty_ = dirtyRegionBelowCurrentLayer_.IsEmpty();
-#endif
     }
 
     bool GetDstRectChanged() const
@@ -685,13 +642,6 @@ public:
     void CleanAlphaChanged()
     {
         alphaChanged_ = false;
-    }
-
-    void SetGlobalDirtyRegion(const RectI& rect, bool renderParallel = false);
-
-    const Occlusion::Region& GetGlobalDirtyRegion() const
-    {
-        return globalDirtyRegion_;
     }
 
     void SetLocalZOrder(float localZOrder);
@@ -790,12 +740,6 @@ public:
     {
         return isTreatedAsTransparent_;
     }
-
-    bool SubNodeIntersectWithDirty(const RectI& r) const;
-
-    // judge if a rect r is intersect with existing dirtyregion, include current surfacenode's dirtyregion, display
-    // dirtyregion, and dirtyregion from other surfacenode because of 32/64 bits alignment.
-    bool SubNodeNeedDraw(const RectI& r, PartialRenderType opDropType) const;
 
     bool GetZorderChanged() const
     {
@@ -1232,7 +1176,6 @@ private:
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void OnResetParent() override;
     void ClearChildrenCache();
-    bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetLeashWindowNestedSurfaces();
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
@@ -1258,8 +1201,6 @@ private:
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
-
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
@@ -1309,30 +1250,21 @@ private:
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
-    Occlusion::Region visibleDirtyRegion_;
-    bool isDirtyRegionAlignedEnable_ = false;
     bool isLeashWindowVisibleRegionEmpty_ = false;
-    Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
     bool isOcclusionInSpecificScenes_ = false;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
-    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     RectI dstRect_;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
-    Occlusion::Region globalDirtyRegion_;
+
     // dirtyRegion caused by surfaceNode visible region after alignment
     Occlusion::Region extraDirtyRegionAfterAlignment_;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
-
-    bool globalDirtyRegionIsEmpty_ = false;
-    // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
-    Occlusion::Region dirtyRegionBelowCurrentLayer_;
-    bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
 
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
@@ -1451,6 +1383,8 @@ private:
 
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
+
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
 
     // UIFirst
     int64_t uifirstStartTime_ = -1;

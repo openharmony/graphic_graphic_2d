@@ -64,6 +64,11 @@ double Typography::GetActualWidth() const
     return paragraph_->GetLongestLine();
 }
 
+double Typography::GetLongestLineWithIndent() const
+{
+    return paragraph_->GetLongestLineWithIndent();
+}
+
 double Typography::GetMinIntrinsicWidth()
 {
     return paragraph_->GetMinIntrinsicWidth();

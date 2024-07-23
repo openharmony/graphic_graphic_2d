@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
@@ -33,8 +34,6 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
-        std::make_shared<RSDirtyRegionManager>(true) : dirtyManager_;
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
@@ -181,7 +180,11 @@ void RSDisplayRenderNode::OnSync()
         RS_LOGE("RSDisplayRenderNode::OnSync displayParams is null");
         return;
     }
-    dirtyManager_->OnSync(syncDirtyManager_);
+    if (!renderDrawable_) {
+        return;
+    }
+    auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
+    dirtyManager_->OnSync(syncDirtyManager);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
     HandleCurMainAndLeashSurfaceNodes();
@@ -266,17 +269,20 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
 
-bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
+bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
-    frameCount_++;
-    // ensure skipFrameInterval is not 0
-    if (skipFrameInterval == 0) {
+    if (refreshRate == 0 || skipFrameInterval <= 1) {
         return false;
     }
-    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
-        return false;
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    int64_t refreshInterval = currentTime - lastRefreshTime_;
+    // 1000000000ns == 1s, 110/100 allows 10% over.
+    bool needSkip = refreshInterval < (1000000000LL / refreshRate) * (skipFrameInterval - 1) * 110 / 100;
+    if (!needSkip) {
+        lastRefreshTime_ = currentTime;
     }
-    return true;
+    return needSkip;
 }
 
 void RSDisplayRenderNode::SetDisplayGlobalZOrder(float zOrder)
@@ -328,11 +334,10 @@ void RSDisplayRenderNode::UpdateRotation()
     displayParams->SetRotationChanged(curRotationStatus_);
 }
 
-void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)
+void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
 {
-    auto dirtyManager = renderParallel ? syncDirtyManager_ : dirtyManager_;
-    dirtyManager->SetBufferAge(bufferage);
-    dirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    dirtyManager_->SetBufferAge(bufferage);
+    dirtyManager_->UpdateDirty(useAlignedDirtyRegion);
 }
 
 void RSDisplayRenderNode::ClearCurrentSurfacePos()

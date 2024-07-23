@@ -34,6 +34,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -52,8 +53,6 @@
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
-
-#include "rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
@@ -523,11 +522,6 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
-    // used for blocking mainThread before displayNode has no freed buffer to request
-    mutable std::mutex displayNodeBufferReleasedMutex_;
-    bool displayNodeBufferReleased_ = false;
-    // used for stalling mainThread before displayNode has no freed buffer to request
-    std::condition_variable displayNodeBufferReleasedCond_;
 
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
@@ -586,6 +580,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
     // used for watermark
     std::mutex watermarkMutex_;

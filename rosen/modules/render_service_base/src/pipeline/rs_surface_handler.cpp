@@ -112,8 +112,9 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
         }
     }
     if (buffer.buffer != nullptr) {
-        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, id = %" PRIu64 " cacheCount = %zu",
-            GetNodeId(), bufferCache_.size());
+        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, "
+            "id = %" PRIu64 ", timestamp = %" PRId64 ",cacheCount = %zu .",
+            GetNodeId(), buffer.timestamp, bufferCache_.size());
         RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
     }
     return buffer;

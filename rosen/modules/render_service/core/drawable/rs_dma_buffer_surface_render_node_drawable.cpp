@@ -46,10 +46,6 @@ bool RSSurfaceRenderNodeDrawable::UseDmaBuffer()
 #ifndef ROSEN_CROSS_PLATFORM
 bool RSSurfaceRenderNodeDrawable::CreateSurface()
 {
-    surfaceHandlerUiFirst_ = std::make_shared<RSSurfaceHandler>(nodeId_);
-    if (!surfaceHandlerUiFirst_) {
-        return false;
-    }
     auto consumer = surfaceHandlerUiFirst_->GetConsumer();
     if (consumer != nullptr && surface_ != nullptr) {
         RS_LOGI("RSSurfaceRenderNodeDrawable::CreateSurface already created, return");
@@ -150,9 +146,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     RS_TRACE_NAME("DrawUIFirstCacheWithDma");
-    if (!surfaceHandlerUiFirst_) {
-        return false;
-    }
     if (surfaceParams.GetHardwareEnabled()) {
         return true;
     }
@@ -160,7 +153,9 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", surfaceParams.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_, true)) {
+    // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_, true) ||
+        !surfaceHandlerUiFirst_->GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");
         return false;
     }
@@ -170,9 +165,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
 
 void RSSurfaceRenderNodeDrawable::DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas)
 {
-    if (!surfaceHandlerUiFirst_) {
-        return;
-    }
     auto buffer = surfaceHandlerUiFirst_->GetBuffer();
     BufferDrawParam param;
     param.srcRect = {0, 0, buffer->GetWidth(), buffer->GetHeight()};
@@ -202,9 +194,6 @@ void RSSurfaceRenderNodeDrawable::ClipRoundRect(Drawing::Canvas& canvas)
 
 void RSSurfaceRenderNodeDrawable::ClearBufferQueue()
 {
-    if (!surfaceHandlerUiFirst_) {
-        return;
-    }
     if (surface_ != nullptr) {
         surface_->ClearBuffer();
         surface_ = nullptr;
