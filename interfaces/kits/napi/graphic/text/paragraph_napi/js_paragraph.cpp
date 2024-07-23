@@ -17,6 +17,7 @@
 #include "recording/recording_canvas.h"
 #include "log_wrapper.h"
 #include "js_paragraph.h"
+#include "napi_async_work.h"
 #include "napi_common.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "path_napi/js_path.h"
@@ -84,6 +85,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
         DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
         DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
+        DECLARE_NAPI_FUNCTION("layoutAsync", JsParagraph::LayoutAsync),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -774,5 +776,52 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
         napi_set_element(env, array, index++, itemObject);
     }
     return array;
+}
+
+napi_value JsParagraph::LayoutAsync(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnLayoutAsync(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
+{
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM,
+        "JsParagraph::OnLayoutAsync paragraph_ is nullptr");
+
+    struct ConcreteContext : public ContextBase {
+        double width = 0.0;
+    };
+    auto context = std::make_shared<ConcreteContext>();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERR_NO_MEMORY,
+        "JsParagraph::OnLayoutAsync failed, no memory");
+
+    auto inputParser = [env, context](size_t argc, napi_value* argv) {
+        TEXT_ERROR_CHECK(argv, return, "JsParagraph::OnLayoutAsync inputParser context or argv is nullptr");
+        NAPI_CHECK_ARGS_RETURN_VOID(context, context->status == napi_ok, napi_invalid_arg,
+            "JsParagraph::OnLayoutAsync status error", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, argc >= ARGC_ONE, napi_invalid_arg,
+            "JsParagraph::OnLayoutAsync argc is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, ConvertFromJsValue(env, argv[0], context->width), napi_invalid_arg,
+            "JsParagraph::OnLayoutAsync Argv is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        TEXT_ERROR_CHECK(context != nullptr, return, "JsParagraph::OnLayoutAsync executor error, context is nullptr");
+
+        auto* jsParagraph = reinterpret_cast<JsParagraph*>(context->native);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, jsParagraph != nullptr, napi_generic_failure,
+            "JsParagraph::OnLayoutAsync executor failed jsParagraph is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, jsParagraph->paragraph_ != nullptr, napi_generic_failure,
+            "JsParagraph::OnLayoutAsync executor failed paragraph_ is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+        jsParagraph->paragraph_->Layout(context->width);
+    };
+
+    auto complete = [env](napi_value& output) {
+        output = NapiGetUndefined(env);
+    };
+    return NapiAsyncWork::Enqueue(env, context, "onLayoutAsync", executor, complete);
 }
 } // namespace OHOS::Rosen

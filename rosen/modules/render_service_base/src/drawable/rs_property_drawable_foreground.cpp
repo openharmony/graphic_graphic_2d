@@ -491,6 +491,7 @@ void RSPointLightDrawable::OnSync()
     for (auto &pair : lightSourcesAndPosMap) {
         lightSourcesAndPosVec_.push_back(pair);
     }
+    properties_.GetIlluminated()->GetLightSourcesAndPosMap();
     if (lightSourcesAndPosVec_.empty()) {
         return;
     }

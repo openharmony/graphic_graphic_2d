@@ -16,14 +16,43 @@
 #include <fstream>
 #include "js_fontcollection.h"
 #include "log_wrapper.h"
+#include "napi_async_work.h"
 
 namespace OHOS::Rosen {
+namespace {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
-thread_local napi_ref JsFontCollection::constructor_ = nullptr;
 const std::string CLASS_NAME = "FontCollection";
 const std::string LOCAL_BIND_PATH = "/data/storage/el1/bundle/";
 const std::string HAP_POSTFIX = ".hap";
 const int32_t GLOBAL_ERROR = 10000;
+struct FontArgumentsConcreteContext : public ContextBase {
+    std::string familyName;
+    std::string filePath;
+    ResourceInfo info;
+};
+
+bool ParseContextFilePath(napi_env env, napi_value* argv, std::shared_ptr<FontArgumentsConcreteContext> context)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[ARGC_ONE], &valueType);
+
+    if (valueType == napi_object) {
+        return false;
+    } else if (valueType == napi_string) {
+        if (!ConvertFromJsValue(env, argv[ARGC_ONE], context->filePath)) {
+            std::string errMessage("ParseContextFilePath ConvertFromJsValue failed, context->filePath = ");
+            errMessage += context->filePath;
+            context->status = napi_invalid_arg;
+            context->errMessage = errMessage;
+            (context)->errCode = static_cast<int32_t>(TextErrorCode::ERROR_INVALID_PARAM);
+            TEXT_LOGE("%{public}s", errMessage.c_str());
+        }
+    }
+    return true;
+}
+}
+
+thread_local napi_ref JsFontCollection::constructor_ = nullptr;
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -51,6 +80,7 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
+        DECLARE_NAPI_FUNCTION("loadFontAsync", JsFontCollection::LoadFontAsync),
     };
 
     napi_value constructor = nullptr;
@@ -241,12 +271,8 @@ bool JsFontCollection::ParseResourceType(napi_env env, napi_value value, Resourc
     return true;
 }
 
-bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const std::string familyName)
+bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceInfo& info)
 {
-    ResourceInfo info;
-    if (!ParseResourceType(env, value, info)) {
-        return false;
-    }
     int32_t state = 0;
 
     auto reSourceManager = GetResourManager(info.moduleName);
@@ -356,7 +382,8 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    if (!ParseResourcePath(env, argv[1], familyName)) {
+    ResourceInfo resourceInfo;
+    if (!ParseResourceType(env, argv[1], resourceInfo) || !ParseResourcePath(familyName, resourceInfo)) {
         return nullptr;
     }
 
@@ -378,5 +405,67 @@ napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info
     }
     fontcollection_->ClearCaches();
     return NapiGetUndefined(env);
+}
+
+napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
+    return (me != nullptr) ? me->OnLoadFontAsync(env, info) : nullptr;
+}
+
+napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_shared<FontArgumentsConcreteContext>();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERR_NO_MEMORY, "OnLoadFontAsync failed, no memory");
+
+    auto inputParser = [env, context](size_t argc, napi_value* argv) {
+        TEXT_ERROR_CHECK(argv != nullptr, return, "OnLoadFontAsync inputParser argv is nullptr");
+        NAPI_CHECK_ARGS_RETURN_VOID(context, context->status == napi_ok, napi_invalid_arg,
+            "OnLoadFontAsync inputParser status error", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, argc >= ARGC_TWO, napi_invalid_arg,
+            "OnLoadFontAsync inputParser argc is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
+            "OnLoadFontAsync inputParser familyName is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+
+        if (!ParseContextFilePath(env, argv, context)) {
+            auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
+            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection != nullptr, napi_invalid_arg,
+                "OnLoadFontAsync inputParser failed fontCollection is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->ParseResourceType(env, argv[ARGC_ONE], context->info),
+                napi_invalid_arg, "OnLoadFontAsync inputParser failed parse resource error",
+                TextErrorCode::ERROR_INVALID_PARAM);
+        }
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        TEXT_ERROR_CHECK(context != nullptr, return, "OnLoadFontAsync executor error, context is nullptr");
+
+        auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection != nullptr, napi_generic_failure,
+            "OnLoadFontAsync executor error, fontCollection is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
+            "OnLoadFontAsync executor error, fontcollection_ is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+
+        if (!context->filePath.empty()) {
+            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->SpiltAbsoluteFontPath(context->filePath),
+                napi_invalid_arg, "OnLoadFontAsync executor SpiltAbsoluteFontPath failed",
+                TextErrorCode::ERROR_INVALID_PARAM);
+
+            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->GetFontFileProperties(context->filePath,
+                context->familyName), napi_invalid_arg, "OnLoadFontAsync executor GetFontFileProperties failed",
+                TextErrorCode::ERROR_INVALID_PARAM);
+        } else {
+            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->ParseResourcePath(context->familyName, context->info),
+                napi_invalid_arg, "OnLoadFontAsync executor load font failed, path is invalid",
+                TextErrorCode::ERROR_INVALID_PARAM);
+        }
+    };
+
+    auto complete = [env](napi_value& output) {
+        output = NapiGetUndefined(env);
+    };
+    return NapiAsyncWork::Enqueue(env, context, "OnLoadFontAsync", executor, complete);
 }
 } // namespace OHOS::Rosen

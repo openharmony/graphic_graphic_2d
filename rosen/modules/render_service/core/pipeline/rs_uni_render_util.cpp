@@ -602,7 +602,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
-    params.paint.SetAlphaF(layer->GetAlpha().gAlpha);
+    params.paint.SetAlpha(layer->GetAlpha().gAlpha);
     sptr<SurfaceBuffer> buffer = layer->GetBuffer();
     if (buffer == nullptr) {
         return params;

@@ -56,6 +56,7 @@ public:
     static napi_value CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> GetParagraph();
+    static napi_value LayoutAsync(napi_env env, napi_callback_info info);
 
 private:
     static thread_local napi_ref constructor_;
@@ -83,6 +84,7 @@ private:
     napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);
     napi_value OnGetFontMetricsByTextStyle(napi_env env, napi_callback_info info);
     napi_value OnGetLineFontMetrics(napi_env env, napi_callback_info info);
+    napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen
