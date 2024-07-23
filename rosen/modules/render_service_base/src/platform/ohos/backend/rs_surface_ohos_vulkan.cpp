@@ -144,15 +144,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.window = mNativeWindow;
         nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
-            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)) {
-            ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
-            mSurfaceList.pop_back();
-            NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
-            mSurfaceMap.erase(nativeWindowBuffer);
-            return nullptr;
-        }
-
-        if (!nativeSurface.drawingSurface) {
+            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)
+            || !nativeSurface.drawingSurface) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
