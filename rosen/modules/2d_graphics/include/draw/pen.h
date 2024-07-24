@@ -67,7 +67,7 @@ public:
      *
      * @param c color int value to set
      */
-    void SetColor(int c);
+    void SetColor(uint32_t c);
     
     /**
      * @brief set ARGB of pen

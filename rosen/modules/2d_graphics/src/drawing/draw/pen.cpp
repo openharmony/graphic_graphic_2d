@@ -49,7 +49,7 @@ void Pen::SetColor(const Color& c)
     brush_.SetColor(c);
 }
 
-void Pen::SetColor(int c)
+void Pen::SetColor(uint32_t c)
 {
     brush_.SetColor(c);
 }
