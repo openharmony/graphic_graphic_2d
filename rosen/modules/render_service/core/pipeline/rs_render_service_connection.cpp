@@ -893,8 +893,7 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RSHardwareThread::Instance().ScheduleTask(
-            [=]() { return screenManager_->SetScreenBacklight(id, level); }).wait();
+        screenManager_->SetScreenBacklight(id, level);
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenBacklight(id, level); }).wait();
