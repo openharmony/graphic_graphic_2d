@@ -1727,11 +1727,11 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2
     uint32_t defaultHeight = 1280;
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VIRTUAL_SCREEN_PLAY), true);
-    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VIRTUAL_SCREEN_PAUSE), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE), true);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 } // namespace Rosen

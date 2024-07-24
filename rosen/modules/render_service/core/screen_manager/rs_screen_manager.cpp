@@ -1881,21 +1881,23 @@ int RSScreenManager::GetDisableRenderControlScreensCount() const
 bool RSScreenManager::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (screens_.count(id) == 0) {
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return false;
     }
-    return screens_.at(id)->SetVirtualScreenStatus(screenStatus);
+    return screensIt->second->SetVirtualScreenStatus(screenStatus);
 }
 
-VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id)
+VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (screens_.count(id) == 0) {
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return VIRTUAL_SCREEN_PLAY;
+        return VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
     }
-    return screens_.at(id)->GetVirtualScreenStatus();
+    screensIt->second->GetVirtualScreenStatus();
 }
 } // namespace impl
 
