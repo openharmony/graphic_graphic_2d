@@ -193,9 +193,11 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     auto parent = GetParent().lock();
     if (parent &&
         parent->GetRenderProperties().GetUseShadowBatching()) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         // Just need to skip RSPropertyDrawableSlot::SHADOW
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     } else {
         DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     }
