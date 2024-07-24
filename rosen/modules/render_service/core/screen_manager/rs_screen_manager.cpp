@@ -1877,6 +1877,26 @@ int RSScreenManager::GetDisableRenderControlScreensCount() const
     std::lock_guard<std::mutex> lock(mutex_);
     return disableRenderControlScreens_.size();
 }
+
+bool RSScreenManager::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+    return screens_.at(id)->SetVirtualScreenStatus(screenStatus);
+}
+
+VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return VIRTUAL_SCREEN_PLAY;
+    }
+    return screens_.at(id)->GetVirtualScreenStatus();
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

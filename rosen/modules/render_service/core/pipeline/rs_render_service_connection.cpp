@@ -1752,5 +1752,11 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
     return StatusCode::SUCCESS;
 }
+
+bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
+}
 } // namespace Rosen
 } // namespace OHOS

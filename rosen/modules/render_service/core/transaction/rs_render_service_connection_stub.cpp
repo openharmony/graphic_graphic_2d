@@ -1338,6 +1338,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
+            bool result = SetVirtualScreenStatus(id, screenStatus);
+            reply.WriteBool(result);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
