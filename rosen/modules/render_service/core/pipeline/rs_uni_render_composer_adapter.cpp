@@ -1151,6 +1151,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, node);
     LayerCrop(layer);
+    layer->SetNodeId(node.GetId());
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
     ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     const auto& buffer = layer->GetBuffer();
@@ -1246,6 +1247,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType, surfaceHandler->GetBuffer()->GetFormat());
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetNodeId(node.GetId());
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, *displayDrawable);
@@ -1300,6 +1302,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
     if (drawable) {
         LayerRotate(layer, *drawable);
     }
+    layer->SetNodeId(node.GetId());
     return layer;
 }
 
