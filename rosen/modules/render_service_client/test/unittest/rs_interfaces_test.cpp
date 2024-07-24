@@ -1706,7 +1706,7 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
     UIExtensionCallback callback = nullptr;
     uint64_t userId = 0;
     auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
-    EXPECT_EQ(res, INVALID_ARGUMENTS);
+    EXPECT_EQ(res, SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

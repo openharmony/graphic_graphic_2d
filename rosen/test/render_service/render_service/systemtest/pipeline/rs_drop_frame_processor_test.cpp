@@ -73,11 +73,13 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     rsNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsNode, nullptr);
+    rsNode->InitRenderParams();
 
     // add the node on tree, and visible default true
     // so that RSRenderServiceListener will increase AvailableBufferCount
     rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsParentNode, nullptr);
+    rsParentNode->InitRenderParams();
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
     ASSERT_TRUE(rsNode->IsOnTheTree());
