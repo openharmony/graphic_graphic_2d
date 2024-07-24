@@ -73,14 +73,14 @@ bool DoCreateColorPicker(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto pixmap = std::make_shared<Pixmap>();
-    auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap); 
+    auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     FuzzedDataProvider fdp(data, size);
     uint32_t werrorCodeidth = fdp.ConsumeIntegralInRange<uint32_t>(0, 2);
-    double coordinates[4];
-    coordinates[0] = GetData<double>();
-    coordinates[1] = GetData<double>();
-    coordinates[2] = GetData<double>();
-    coordinates[3] = GetData<double>();
+    double coordinates[4]; // 4 is number of array members
+    coordinates[0] = GetData<double>(); // 0 is index of left
+    coordinates[1] = GetData<double>(); // 1 is index of top
+    coordinates[2] = GetData<double>(); // 2 is index of right
+    coordinates[3] = GetData<double>(); // 3 is index of bottom
     RSColorPicker::CreateColorPicker(pixmap, werrorCodeidth);
     RSColorPicker::CreateColorPicker(pixmap, coordinates, werrorCodeidth);
     return true;
