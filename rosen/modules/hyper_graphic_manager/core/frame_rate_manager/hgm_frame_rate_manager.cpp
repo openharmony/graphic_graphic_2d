@@ -1014,7 +1014,7 @@ void HgmFrameRateManager::DeliverRefreshRateVote(const VoteInfo& voteInfo, bool 
                 vec.erase(it);
                 vec.push_back(voteInfo);
                 MarkVoteChange();
-            } else if (voteInfo.voterName == "VOTE_PACKAGES") {
+            } else if (voteInfo.voterName == "VOTER_PACKAGES") {
                 // force update cause VOTER_PACKAGES is flag of safe_voter
                 MarkVoteChange();
             }
