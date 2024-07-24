@@ -614,18 +614,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
 
-    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
-        return false;
-    }
-
-    if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {
-        return false;
-    }
-
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
-    ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
+    GSError ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
     if (ret != GSERROR_OK) {
         RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
     }
@@ -682,10 +672,11 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
     return colorSpace;
 }
 
-void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params)
+void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader,
+    BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    
     if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
         RS_OPTIONAL_TRACE_END();
         return;
@@ -787,35 +778,61 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.DetachBrush();
     } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-        Drawing::Matrix matrix;
-        auto srcWidth = params.srcRect.GetWidth();
-        auto srcHeight = params.srcRect.GetHeight();
-        auto sx = params.dstRect.GetWidth() / srcWidth;
-        auto sy = params.dstRect.GetHeight() / srcHeight;
-        auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
-        auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
-        if (srcWidth == 0.0f || srcHeight == 0.0f) {
-            RS_LOGE("RSBaseRenderEngine::DrawImage image srcRect params invalid.");
-        }
-        matrix.SetScaleTranslate(sx, sy, tx, ty);
-        auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
-        if (imageShader == nullptr) {
-            RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
-        } else {
-            params.paint.SetShaderEffect(imageShader);
-            ColorSpaceConvertor(imageShader, params);
-        }
-        canvas.AttachBrush(params.paint);
-        canvas.DrawRect(params.dstRect);
-        canvas.DetachBrush();
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.", ret);
+        DrawImageRect(canvas, image, params, samplingOptions);
+        return;
+    }
+    
+    if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage ConvertColorGamutToSpaceInfo failed");
+        DrawImageRect(canvas, image, params, samplingOptions);
+        return;
+    }
+ 
+    if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries
+        && parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
+        DrawImageRect(canvas, image, params, samplingOptions);
+        return;
+    }
+    Drawing::Matrix matrix;
+    auto srcWidth = params.srcRect.GetWidth();
+    auto srcHeight = params.srcRect.GetHeight();
+    auto sx = params.dstRect.GetWidth() / srcWidth;
+    auto sy = params.dstRect.GetHeight() / srcHeight;
+    auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
+    auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
+    if (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f)) {
+        RS_LOGE("RSBaseRenderEngine::DrawImage image srcRect params invalid.");
+    }
+    matrix.SetScaleTranslate(sx, sy, tx, ty);
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+    if (imageShader == nullptr) {
+        RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
+    } else {
+        params.paint.SetShaderEffect(imageShader);
+        ColorSpaceConvertor(imageShader, params);
+    }
+    canvas.AttachBrush(params.paint);
+    canvas.DrawRect(params.dstRect);
+    canvas.DetachBrush();
 #else
-        canvas.AttachBrush(params.paint);
-        canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
-            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        canvas.DetachBrush();
+    DrawImageRect(canvas, image, params, samplingOptions);
 #endif // USE_VIDEO_PROCESSING_ENGINE
     }
+}
+
+void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+    BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions)
+{
+    canvas.AttachBrush(params.paint);
+    canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

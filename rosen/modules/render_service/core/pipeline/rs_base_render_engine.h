@@ -181,6 +181,9 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
+    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
+
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
@@ -275,7 +278,8 @@ public:
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
