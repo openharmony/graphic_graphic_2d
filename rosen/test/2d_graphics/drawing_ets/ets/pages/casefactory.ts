@@ -180,6 +180,16 @@ export class CaseFactory {
       ['join_Rect', () => { return new JoinRect(); }],
     ]
   );
+  
+  static StabilityMap: Map<string, Function> = new Map(
+    [
+      ['canvasdrawrect', () => { return new CanvasDrawRect(); }],
+    ]
+  );
+
+  static getStabilityCpuAllCase(): Map<string, Function> {
+    return this.StabilityMap;
+  }    
 
   static getFunctonCpuAllCase(): Map<string, Function> {
     return this.FunctionMap;

@@ -25,7 +25,7 @@ const TAG = '[DrawingTest]';
 struct Index {
   private xComponentContext: XComponentContext | undefined = undefined;
   @State testType: string = 'function';
-  @State drawingType: string = 'gpu-xcomponent';
+  @State drawingType: string = 'cpu-xcomponent';
   @State caseNameStr: string  = 'aarectmodes';
   @State information: string = '';
   imagePackerApi: image.ImagePacker = image.createImagePacker();
@@ -63,6 +63,7 @@ struct Index {
         Select([
           { value: 'function' },
           { value: 'performance' },
+          { value: 'stability' },
         ])
           .id('testType')
           .selected(0)
@@ -75,22 +76,33 @@ struct Index {
             console.log(TAG, "select: " + this.testType);
           })
 
-        Select([
-          { value: 'cpu-xcomponent' },
-          { value: 'gpu-xcomponent' },
-          { value: 'gpu-xnode' },
-
-        ])
-          .id('drawingType')
-          .selected(0)
-          .value(this.drawingType)
-          .padding({left:5})
-          .border({width:1})
-          .width('40%')
-          .onSelect((index: number, value: string)=>{
-            this.drawingType = value;
-            console.log(TAG, "select: " + this.drawingType);
-          })
+        if (this.testType == 'stability'){
+          Select([
+            { value: 'cpu-xcomponent' },
+          ])
+            .id('drawingType')
+            .selected(0)
+            .value(this.drawingType)
+            .padding({left:5})
+            .border({width:1})
+            .width('40%')
+        } else {
+          Select([
+            { value: 'cpu-xcomponent' },
+            { value: 'gpu-xcomponent' },
+            { value: 'gpu-xnode' },
+          ])
+            .id('drawingType')
+            .selected(0)
+            .value(this.drawingType)
+            .padding({left:5})
+            .border({width:1})
+            .width('40%')
+            .onSelect((index: number, value: string)=>{
+              this.drawingType = value;
+              console.log(TAG, "select: " + this.drawingType);
+            })
+        }
       }
       .height('7%')
       Row() {
@@ -132,7 +144,7 @@ struct Index {
       .width('80%')
       .margin({left:5})
 
-      if(this.testType == 'performance') {
+      if(this.testType == 'performance' || this.testType == 'stability') {
         Row() {
           Text('TestCount')
             .fontSize(14)
@@ -251,6 +263,9 @@ struct Index {
         return this.TestPerformanceGpu();
       }
     }
+    if (this.testType == 'stability') {
+      return this.TestStabilityCpu(this.caseNameStr);
+    }
   }
 
   sleep(ms: number): Promise<void> {
@@ -303,11 +318,7 @@ struct Index {
     await this.sleep(100);
     this.myNodeController.TestFunctional(str);
     this.caseNameStr = str;
-    if (str == 'bigbitmaprect') {
-      await this.sleep(1500);
-    } else {
-      await this.sleep(500);
-    }
+    await this.sleep(1500);
     const context: Context = getContext(this);
     componentSnapshot.get("myNodeController",
       (error:Error, pixmap: image.PixelMap) => {
@@ -328,6 +339,15 @@ struct Index {
     this.LogMsg('TestFunctionalCpu end');
   }
 
+  async TestStabilityCpu(str: string) {
+    console.log(TAG, 'TestStabilityCpu start');
+    if (this.xComponentContext) {
+      let testCount = Number.parseInt(this.caseCountStr, 10);
+      this.xComponentContext.setTestCount(testCount);
+      this.xComponentContext.testStabilityCpu(str);
+    }
+  }
+
   async TestFunctionalGpu(str: string) {
     console.log(TAG, 'TestFunctionalGpu start');
     if (this.xComponentContext) {
@@ -339,8 +359,8 @@ struct Index {
   async TestPerformanceCpu() {
     console.log(TAG, 'TestPerformanceCpu start');
 
-    let testCount = Number.parseInt(this.caseCountStr, 10);
     if (this.xComponentContext) {
+      let testCount = Number.parseInt(this.caseCountStr, 10);
       this.xComponentContext.setTestCount(testCount);
       this.xComponentContext.testPerformanceCpu(this.caseNameStr);
       let time = this.xComponentContext.getTime();

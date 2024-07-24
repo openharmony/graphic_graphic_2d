@@ -84,6 +84,10 @@ export class TestBase {
     //接口调用，功能测试
   }
 
+  public async OnTestStability(canvas: drawing.Canvas) {
+    //接口调用，功能测试
+  }
+
   public OnTestPerformance(canvas: drawing.Canvas) {
     //接口重复调用，性能功耗测试
   }
@@ -91,6 +95,11 @@ export class TestBase {
   public OnTestFunctionCpu(canvas: drawing.Canvas) {
     //离屏canvas绘制图案
     this.OnTestFunction(canvas)
+  }
+
+  public async OnTestStabilityCpu(canvas: drawing.Canvas) {
+    //离屏canvas绘制图案
+    await this.OnTestStability(canvas)
   }
 
   public OnTestPerformanceCpu(canvas: drawing.Canvas) {
@@ -116,6 +125,15 @@ export class TestBase {
     }
     this.OnTestFunctionCpu(this.canvas_);
     this.BitmapCanvasToFile(dir);
+  }
+
+  public async TestStabilityCpu() {
+    await this.CreateBitmapCanvas();
+    if (this.canvas_ == null || this.canvas_ == undefined) {
+      console.error(TAG, 'canvas_ is invalid');
+      return;
+    }
+    await this.OnTestStabilityCpu(this.canvas_);
   }
 
   public SetTestCount(count: number) {

@@ -76,7 +76,7 @@ void TestBase::TestFunctionCpu(napi_env env)
 {
     CreateBitmapCanvas();
     OnTestFunction(bitmapCanvas_);
-    BitmapCanvasToFile(env);
+    BitmapCanvasToFile();
 }
 
 void TestBase::TestFunctionGpu(napi_env env)
@@ -85,6 +85,13 @@ void TestBase::TestFunctionGpu(napi_env env)
     OnTestFunction(gpuCanvas_);
     GpuCanvasToFile(env, true);
     Destroy();
+}
+
+void TestBase::TestStabilityCpu()
+{
+    CreateBitmapCanvas();
+    OnTestStability(bitmapCanvas_);
+    BitmapCanvasToFile();
 }
 
 void TestBase::TestFunctionGpu(OH_Drawing_Canvas *canvas) { OnTestFunction(canvas); }
@@ -182,7 +189,7 @@ void TestBase::CreateGpuCanvas()
     OH_Drawing_CanvasClear(gpuCanvas_, OH_Drawing_ColorSetArgb(backgroundA_, backgroundR_, backgroundG_, backgroundB_));
 }
 
-void TestBase::BitmapCanvasToFile(napi_env env)
+void TestBase::BitmapCanvasToFile()
 {
     DRAWING_LOGE("BitmapCanvasToFile");
     //创建pixmap
