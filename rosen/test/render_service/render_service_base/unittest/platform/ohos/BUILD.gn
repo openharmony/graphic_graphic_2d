@@ -88,7 +88,6 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
-
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",

@@ -71,7 +71,6 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
-
 }
 
 ###############################################################################

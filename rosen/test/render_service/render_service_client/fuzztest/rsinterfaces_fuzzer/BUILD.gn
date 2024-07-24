@@ -12,7 +12,6 @@
 # limitations under the License.
 
 #####################hydra-fuzz###################
-import("//build/config/components/multimodalinput/cursor_config.gni")
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
@@ -34,7 +33,6 @@ ohos_fuzztest("RSInterfacesFuzzTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
-
 
   cflags = [
     "-g",
