@@ -53,6 +53,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     VirtualScreenStatus screenStatus = screenManager->GetVirtualScreenStatus(virtualScreenId_);
     if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
         RS_LOGD("RSUniRenderVirtualProcessor::Init screenStatus is pause");
+        screenManager->ClearFrameBufferIfNeed();
         return false;
     }
     auto virtualScreenInfo = screenManager->QueryScreenInfo(virtualScreenId_);
