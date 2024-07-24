@@ -244,6 +244,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetMatrix(matrix);
     layer->SetScalingMode(params.GetPreScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
+    layer->SetClearCacheSet(params.GetBufferClearCacheSet());
     return layer;
 }
 
