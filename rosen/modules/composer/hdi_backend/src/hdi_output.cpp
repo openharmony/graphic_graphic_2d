@@ -120,6 +120,7 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
 
 void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
+    std::unique_lock<std::mutex> lock(surfaceIdMutex_);
     for (auto &layerInfo : layerInfos) {
         if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
             HLOGE("current layerInfo or layerInfo's cSurface is null");
@@ -855,13 +856,17 @@ static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 
 void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const
 {
+    std::unique_lock<std::mutex> lock(surfaceIdMutex_);
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
         struct LayerDumpInfo layerInfo = {
             .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
             .surfaceId = iter->first,
             .layer = iter->second,
         };
-        dumpLayerInfos.emplace_back(layerInfo);
+
+        if (iter->second != nullptr) {
+            dumpLayerInfos.emplace_back(layerInfo);
+        }
     }
 
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);
