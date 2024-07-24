@@ -85,7 +85,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
         DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
         DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
-        DECLARE_NAPI_FUNCTION("layoutAsync", JsParagraph::LayoutAsync),
+        DECLARE_NAPI_FUNCTION("layout", JsParagraph::LayoutAsync),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
