@@ -2467,13 +2467,15 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     EXPECT_TRUE(properties.systemBarEffect_);
 
     properties.waterRippleProgress_ = 0.1f;
-    float waveCount = 2.0f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
+    uint32_t rippleMode = 1;
     RSWaterRipplePara rs_water_ripple_param = {
         waveCount,
         rippleCenterX,
-        rippleCenterY
+        rippleCenterY,
+        rippleMode
     };
     properties.waterRippleParams_ =  std::optional<RSWaterRipplePara>(rs_water_ripple_param);
     properties.GenerateBackgroundFilter();
@@ -3174,14 +3176,16 @@ HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams002, TestSize.Level1)
 {
     RSProperties properties;
-    float waveCount = 2.0f;
+    float progress = 0.5f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
-    float progress = 0.5f;
+    uint32_t rippleMode = 1;
     RSWaterRipplePara rs_water_ripple_param = {
         waveCount,
         rippleCenterX,
-        rippleCenterY
+        rippleCenterY,
+        rippleMode
     };
     properties.SetWaterRippleParams(rs_water_ripple_param);
     properties.SetWaterRippleProgress(progress);

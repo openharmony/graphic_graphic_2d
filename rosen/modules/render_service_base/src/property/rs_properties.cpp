@@ -1402,9 +1402,11 @@ std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
  
 bool RSProperties::IsWaterRippleValid() const
 {
+    uint32_t WAVE_COUNT_MAX = 3;
+    uint32_t WAVE_COUNT_MIN = 1;
     return ROSEN_GE(waterRippleProgress_, 0.0f) && ROSEN_LE(waterRippleProgress_, 1.0f) &&
-           waterRippleParams_.has_value() && ROSEN_GE(waterRippleParams_->waveCount, 1.0f) &&
-           ROSEN_LE(waterRippleParams_->waveCount, 3.0f);
+           waterRippleParams_.has_value() && waterRippleParams_->waveCount >= WAVE_COUNT_MIN &&
+           waterRippleParams_->waveCount <= WAVE_COUNT_MAX;
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -2923,11 +2925,13 @@ void RSProperties::GenerateMagnifierFilter()
 
 void RSProperties::GenerateWaterRippleFilter()
 {
-    float waveCount = waterRippleParams_->waveCount;
+    uint32_t waveCount = waterRippleParams_->waveCount;
     float rippleCenterX = waterRippleParams_->rippleCenterX;
     float rippleCenterY = waterRippleParams_->rippleCenterY;
+    uint32_t rippleMode = waterRippleParams_->rippleMode;
     std::shared_ptr<RSWaterRippleShaderFilter> waterRippleFilter =
-        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY);
+        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY,
+            rippleMode);
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(waterRippleFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;

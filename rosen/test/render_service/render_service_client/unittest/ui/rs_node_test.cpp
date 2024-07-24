@@ -6989,17 +6989,19 @@ HWTEST_F(RSNodeTest, SetInstanceId, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
 {
-    float waveCount = 2.0f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
     float progress = 0.5f;
+    uint32_t rippleMode = 1;
     RSWaterRipplePara rs_water_ripple_param = {
         waveCount,
         rippleCenterX,
-        rippleCenterY
+        rippleCenterY,
+        rippleMode
     };
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
-    EXPECT_EQ(waveCount, 2.0f);
+    EXPECT_EQ(waveCount, 2);
 }
 } // namespace OHOS::Rosen

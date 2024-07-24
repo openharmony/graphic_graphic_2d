@@ -44,11 +44,13 @@ constexpr char GE_FILTER_WATER_RIPPLE_PROGRESS[] = "PROGRESS";
 constexpr char GE_FILTER_WATER_RIPPLE_WAVE_NUM[] = "WAVE_NUM";
 constexpr char GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X[] = "RIPPLE_CENTER_X";
 constexpr char GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y[] = "RIPPLE_CENTER_Y";
+constexpr char GE_FILTER_WATER_RIPPLE_RIPPLE_MODE[] = "RIPPLE_MODE";
 struct GEWaterRippleFilterParams {
     float progress = 0.0f;
-    float waveCount = 2.0f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.5f;
     float rippleCenterY = 0.7f;
+    uint32_t rippleMode = 1;
 };
 
 constexpr char GE_FILTER_GREY[] = "GREY";
