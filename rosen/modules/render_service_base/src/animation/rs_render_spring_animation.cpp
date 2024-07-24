@@ -278,7 +278,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
         }
     }
 
-    if (initialVelocity_ == nullptr) {
+    if (startValue_ != nullptr && initialVelocity_ == nullptr) {
         initialVelocity_ = startValue_ * 0.f;
     }
 

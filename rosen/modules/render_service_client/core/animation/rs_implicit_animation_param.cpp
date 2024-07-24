@@ -69,8 +69,8 @@ void RSImplicitCancelAnimationParam::SyncProperties()
     }
 
     // Create sync map
-    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap RSpropertiesMap;
-    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap RTpropertiesMap;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap renderServicePropertiesMap;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap renderThreadPropertiesMap;
     for (auto& rsProperty : pendingSyncList_) {
         auto node = rsProperty->target_.lock();
         if (node == nullptr) {
@@ -79,18 +79,18 @@ void RSImplicitCancelAnimationParam::SyncProperties()
         if (!node->HasPropertyAnimation(rsProperty->GetId()) || rsProperty->GetIsCustom()) {
             continue;
         }
-        auto& propertiesMap = node->IsRenderServiceNode() ? RSpropertiesMap : RTpropertiesMap;
+        auto& propertiesMap = node->IsRenderServiceNode() ? renderServicePropertiesMap : renderThreadPropertiesMap;
         propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), rsProperty->GetId()),
             std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
                 nullptr, node->GetAnimationByPropertyId(rsProperty->GetId())));
     }
     pendingSyncList_.clear();
 
-    if (!RSpropertiesMap.empty()) {
-        ExecuteSyncPropertiesTask(std::move(RSpropertiesMap), true);
+    if (!renderServicePropertiesMap.empty()) {
+        ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true);
     }
-    if (!RTpropertiesMap.empty()) {
-        ExecuteSyncPropertiesTask(std::move(RTpropertiesMap), false);
+    if (!renderThreadPropertiesMap.empty()) {
+        ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false);
     }
 }
 
