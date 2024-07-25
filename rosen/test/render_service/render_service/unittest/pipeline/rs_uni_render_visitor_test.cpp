@@ -4989,7 +4989,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Lev
     std::weak_ptr<RSContext> context;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
-    NodeId dispalyNodeId = 3;
+    NodeId displayNodeId = 3;
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
