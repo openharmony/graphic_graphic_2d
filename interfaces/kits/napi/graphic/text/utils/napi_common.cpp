@@ -322,6 +322,27 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     return true;
 }
 
+void SetParagraphStyleEllipsis(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, argValue, "ellipsis", &tempValue) != napi_ok) {
+        return;
+    }
+    std::string text = "";
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
+        pographyStyle.ellipsis = Str8ToStr16(text);
+    }
+
+    if (napi_get_named_property(env, argValue, "ellipsisMode", &tempValue) != napi_ok) {
+        return;
+    }
+    uint32_t ellipsisModal = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal) == napi_ok) {
+        pographyStyle.ellipsisModal = EllipsisModal(ellipsisModal);
+    }
+    return;
+}
+
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     if (argValue == nullptr) {
@@ -369,8 +390,12 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         SetStrutStyleFromJS(env, strutStyleValue, pographyStyle);
     }
 
-    pographyStyle.ellipsis = textStyle.ellipsis;
-    pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    if (!textStyle.ellipsis.empty()) {
+        pographyStyle.ellipsis = textStyle.ellipsis;
+        pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    } else {
+        SetParagraphStyleEllipsis(env, argValue, pographyStyle);
+    }
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
