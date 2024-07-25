@@ -4976,7 +4976,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Lev
 
 /**
  * @tc.name: UpdateHwcNodeEnableByGlobalFilter
- * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with nullptr
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with not nullptr
  * @tc.type: FUNC
  * @tc.require: issuesIAE8IM
  */
