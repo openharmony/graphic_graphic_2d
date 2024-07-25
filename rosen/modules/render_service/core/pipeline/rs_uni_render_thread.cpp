@@ -223,8 +223,7 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
-    static bool isAln = system::GetParameter("const.build.product", "") == "ALN";
-    if (isAln && tid_ == gettid()) {
+    if (tid_ == gettid()) {
         task();
         return;
     }
