@@ -244,6 +244,7 @@ private:
     HgmTouchManager touchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
+    bool alreadyDone_ = false;
     int32_t lastUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;

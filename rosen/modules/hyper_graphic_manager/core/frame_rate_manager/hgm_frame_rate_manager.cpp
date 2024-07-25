@@ -245,8 +245,17 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
         idleDetector_.GetAceAnimatorIdleStatus());
 
     if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
+        alreadyDone_ = false;
         lastUpExpectFps_ = 0;
         return;
+    }
+
+    if (!alreadyDone_) {
+        alreadyDone_ = true;
+        if (!idleDetector_.GetSupportSurface()) {
+            touchManager_.HandleThirdFrameIdle();
+            return;
+        }
     }
 
     if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {

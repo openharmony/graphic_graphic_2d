@@ -82,8 +82,8 @@ bool HgmIdleDetector::GetSupportSurface()
     }
     if (std::find(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACE_ANIMATOR_NAME) ==
         appBufferBlackList_.end() && !aceAnimatorIdleState_) {
-            return true;
-        }
+        return true;
+    }
 
     if (frameTimeMap_.empty()) {
         return false;
