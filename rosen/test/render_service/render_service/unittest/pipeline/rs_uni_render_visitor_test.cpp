@@ -4984,7 +4984,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Lev
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
-    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node1);
+
+    NodeId id = 0;
+    std::weak_ptr<RSContext> context;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
+    
+    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
 }
 } // OHOS::Rosen
