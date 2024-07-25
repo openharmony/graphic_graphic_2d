@@ -84,9 +84,8 @@ if (current_os == "ohos") {
     part_name = "graphic_2d"
   }
 } else {
-  ohos_shared_library("color_manager") {
+  ohos_source_set("color_manager") {
     public_deps = [ ":color_manager_source" ]
-    public_configs = [ ":export" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

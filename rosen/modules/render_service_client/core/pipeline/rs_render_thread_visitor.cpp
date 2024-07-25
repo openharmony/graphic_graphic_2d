@@ -191,6 +191,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
+#ifndef CROSS_PLATFORM
     if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
         return;
     }
@@ -205,6 +206,7 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 
     effectRegion_ = effectRegion;
     dirtyFlag_ = dirtyFlag;
+#endif
 }
 
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color,
@@ -997,10 +999,10 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     } else {
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
-            canvas_->clear(backgroundColor.AsArgbInt());
+            canvas_->Clear(backgroundColor.AsArgbInt());
         }
     }
-    canvas_->restore();
+    canvas_->Restore();
 }
 #endif
 
