@@ -906,6 +906,9 @@ void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 }
 bool RSSurfaceRenderNode::GetForceUIFirst() const
 {
+    if (name_.find("SCBWallpaper") != std::string::npos) {
+        return true;
+    }
     return forceUIFirst_;
 }
 

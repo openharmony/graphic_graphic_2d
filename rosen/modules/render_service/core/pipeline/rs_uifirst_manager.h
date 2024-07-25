@@ -132,14 +132,14 @@ public:
     }
 
     void SetUseDmaBuffer(bool val);
-    bool GetUseDmaBuffer(const std::string& name) const;
+    bool GetUseDmaBuffer(const std::string& name);
     bool IsScreenshotAnimation();
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
 
 private:
-    RSUifirstManager() = default;
+    RSUifirstManager();
     ~RSUifirstManager() = default;
     RSUifirstManager(const RSUifirstManager&);
     RSUifirstManager(const RSUifirstManager&&);
@@ -235,6 +235,9 @@ private:
         { "SCREENSHOT_SCALE_ANIMATION" },
         { "SCREENSHOT_DISMISS_ANIMATION" },
     };
+
+    // use in MainThread & RT & subThread
+    std::mutex useDmaBufferMutex_;
     bool useDmaBuffer_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;

@@ -3625,13 +3625,6 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
-#if defined(RS_ENABLE_VK)
-    RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        deviceType_ == DeviceType::PHONE && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN);
-#else
-    RSUifirstManager::Instance().SetUseDmaBuffer(false);
-#endif
-
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
@@ -3786,6 +3779,7 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
         return;
     }
+    RSUifirstManager::Instance().SetUseDmaBuffer(!isCurtainScreenOn);
     isCurtainScreenOn_ = isCurtainScreenOn;
     isCurtainScreenUsingStatusChanged_ = true;
     SetDirtyFlag();
