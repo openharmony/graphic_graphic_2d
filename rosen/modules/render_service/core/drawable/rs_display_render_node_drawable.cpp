@@ -707,7 +707,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
         return;
     }
 
-    auto hardwareDrawables = params.GetHardwareEnabledDrawables();
+    auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
         specialLayerType_ != NO_SPECIAL_LAYER) {
         DrawMirror(params, virtualProcesser,
@@ -1147,7 +1147,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
 
-        DrawHardwareEnabledNodes(canvas);
+        DrawHardwareEnabledNodes(canvas, *params);
     }
 }
 
