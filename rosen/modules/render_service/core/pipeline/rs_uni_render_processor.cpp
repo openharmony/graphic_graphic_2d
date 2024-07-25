@@ -159,9 +159,16 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     }
     auto& layerInfo = params.GetLayerInfo();
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "CreateLayer name:%s src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f]",
-        surfaceDrawable.GetName().c_str(), layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w,
-        layerInfo.srcRect.h, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d]",
+        surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
+    RS_LOGI("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+        surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,

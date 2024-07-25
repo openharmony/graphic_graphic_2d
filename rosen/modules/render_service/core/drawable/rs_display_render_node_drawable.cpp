@@ -390,10 +390,6 @@ void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& u
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    // if screen power off, skip on draw
-    if (SkipDisplayIfScreenOff()) {
-        return;
-    }
     // canvas will generate in every request frame
     (void)canvas;
 
@@ -403,6 +399,20 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+
+    // [Attention] do not return before layer created set false, otherwise will result in buffer not released
+    auto& hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+            continue;
+        }
+        drawable->GetRenderParams()->SetLayerCreated(false);
+    }
+
+    // if screen power off, skip on draw
+    if (SkipDisplayIfScreenOff()) {
+        return;
+    }
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
@@ -539,13 +549,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
-    auto& hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
-    for (const auto& drawable : hardwareDrawables) {
-        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
-            continue;
-        }
-        drawable->GetRenderParams()->SetLayerCreated(false);
-    }
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
     if (!renderFrame) {
