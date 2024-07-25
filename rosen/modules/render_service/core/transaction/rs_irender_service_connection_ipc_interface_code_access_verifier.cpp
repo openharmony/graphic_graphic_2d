@@ -30,15 +30,15 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
     bool hasPermission = true;
     switch (code) {
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
-            hasPermission = CheckPermission(code);
+            hasPermission = IsSystemApp();
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SHOW_REFRESH_RATE_ENABLED");
+            hasPermission = IsSystemApp();
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SHOW_REFRESH_RATE_ENABLED");
+            hasPermission = IsSystemApp();
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
