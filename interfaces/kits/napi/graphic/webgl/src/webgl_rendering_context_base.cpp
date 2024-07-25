@@ -2393,7 +2393,7 @@ static napi_value CreateWebGLActiveInfo(napi_env env, napi_callback_info info,
     LOGD("WebGL CreateWebGLActiveInfo programId %{public}u index %{public}" PRIi64, programId, index);
     WebGLActiveInfo* webGLActiveInfo = nullptr;
     napi_value objActiveInfo = WebGLActiveInfo::CreateObjectInstance(env, &webGLActiveInfo).val_;
-    if (!objActiveInfo) {
+    if (webGLActiveInfo == nullptr) {
         return NVal::CreateNull(env).val_;
     }
     GLint size = 0;

@@ -77,37 +77,35 @@ static napi_value Export(napi_env env, napi_value exports)
         return nullptr;
     }
     size_t webglItem = vec[0].find("webgl");
+    if (webglItem == std::string::npos) {
+        return nullptr;
+    }
     string webgl2Str = vec[0].substr(webglItem, 6); // length of webgl2
     string webgl1Str = vec[0].substr(webglItem, 5); // length of webgl
     if (webgl2Str == "webgl2") {
         WebGL2RenderingContext *webGl2RenderingContext =
             static_cast<WebGL2RenderingContext *>(ObjectManager::GetInstance().GetWebGLContext(true, idStr));
         if (webGl2RenderingContext == nullptr) {
-            webGl2RenderingContext = new WebGL2RenderingContext(env, exports);
+            webGl2RenderingContext = new (std::nothrow) WebGL2RenderingContext(env, exports);
             if (webGl2RenderingContext == nullptr) {
                 return nullptr;
             }
             ObjectManager::GetInstance().AddWebGLObject(true, idStr, webGl2RenderingContext);
         }
-
-        webGl2RenderingContext->SetWebGLContextAttributes(vec);
-        webGl2RenderingContext->CreateSurface();
-        if (!webGl2RenderingContext->Export(env, exports)) {
+        if (!webGl2RenderingContext->SetWebGLContextAttributes(vec) || !webGl2RenderingContext->Export(env, exports)) {
             return nullptr;
         }
     } else if (webgl1Str == "webgl") {
         WebGLRenderingContext *webGlRenderingContext =
             static_cast<WebGLRenderingContext *>(ObjectManager::GetInstance().GetWebGLContext(false, idStr));
         if (webGlRenderingContext == nullptr) {
-            webGlRenderingContext = new WebGLRenderingContext(env, exports);
+            webGlRenderingContext = new (std::nothrow) WebGLRenderingContext(env, exports);
             if (webGlRenderingContext == nullptr) {
                 return nullptr;
             }
             ObjectManager::GetInstance().AddWebGLObject(false, idStr, webGlRenderingContext);
         }
-        webGlRenderingContext->SetWebGLContextAttributes(vec);
-        webGlRenderingContext->CreateSurface();
-        if (!webGlRenderingContext->Export(env, exports)) {
+        if (!webGlRenderingContext->SetWebGLContextAttributes(vec) || !webGlRenderingContext->Export(env, exports)) {
             return nullptr;
         }
     } else {
