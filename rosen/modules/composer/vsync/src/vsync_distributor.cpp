@@ -45,7 +45,7 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int32_t DEFAULT_VSYNC_RATE = 1;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
-constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 128;
+constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -183,6 +183,13 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     data[1] = period;
     data[2] = vsyncCount;
     int32_t ret = socketPair->SendData(data, sizeof(data));
+    if (ret == ERRNO_EAGAIN) {
+        RS_TRACE_NAME("remove the earlies data and SendData again.");
+        VLOGW("vsync signal is not processed in time, please check pid:%{public}d", proxyPid_);
+        int64_t receiveData[3];
+        socketPair->ReceiveData(receiveData, sizeof(receiveData));
+        ret = socketPair->SendData(data, sizeof(data));
+    }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
