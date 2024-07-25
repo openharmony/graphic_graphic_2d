@@ -237,7 +237,7 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGD("AccessibilityObserver OnConfigChanged configId: %{public}d", id);
+        RS_LOGI("RSMainThread AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
             switch (value.daltonizationColorFilter) {
@@ -3869,10 +3869,11 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
     if (CheckUIExtensionCallbackDataChanged()) {
-        RS_TRACE_NAME("RSMainThread::UIExtensionNodesTraverseAndCallback.");
-        for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
-            auto userId = iter->second.first;
-            auto callback = iter->second.second;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::UIExtensionNodesTraverseAndCallback data size: [%lu]",
+            uiExtensionCallbackData_.size());
+        for (const auto& item : uiExtensionListenners_) {
+            auto userId = item.second.first;
+            auto callback = item.second.second;
             if (callback) {
                 callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
             }
@@ -3885,19 +3886,18 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
 bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
 {
     // empty for two consecutive frames, callback can be skipped.
-    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
-        RS_TRACE_NAME("RSMainThread::UIExtensionCallbackData is consecutively empty, skip callback.");
-        return false;
+    if (uiExtensionCallbackData_.empty()) {
+        return !lastFrameUIExtensionDataEmpty_;
     }
     // layout of host node was not changed, callback can be skipped.
     const auto& nodeMap = context_->GetNodeMap();
-    for (auto iter = uiExtensionCallbackData_.begin(); iter != uiExtensionCallbackData_.end(); ++iter) {
-        auto hostNode = nodeMap.GetRenderNode(iter->first);
+    for (const auto& data : uiExtensionCallbackData_) {
+        auto hostNode = nodeMap.GetRenderNode(data.first);
         if (hostNode != nullptr && !hostNode->LastFrameSubTreeSkipped()) {
             return true;
         }
     }
-    RS_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
+    RS_OPTIONAL_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
     return false;
 }
 

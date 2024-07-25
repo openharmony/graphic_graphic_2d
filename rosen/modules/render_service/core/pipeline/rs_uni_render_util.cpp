@@ -1783,11 +1783,11 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
         if (surfaceNode->IsUIExtension()) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
-            if (callbackData.find(hostId) == callbackData.end()) {
-                callbackData[hostId] = std::vector<SecSurfaceInfo>();
+            auto [iter, inserted] = callbackData.insert(std::pair(hostId, std::vector<SecSurfaceInfo>{}));
+            if (iter != callbackData.end()) {
+                iter->second.push_back(GenerateSecSurfaceInfoFromNode(
+                    surfaceNode->GetId(), hostId, GenerateSecRectInfoFromNode(*surfaceNode, rect)));
             }
-            callbackData[hostId].push_back(GenerateSecSurfaceInfoFromNode(
-                surfaceNode->GetId(), hostId, GenerateSecRectInfoFromNode(*surfaceNode, rect)));
             if (surfaceNode->ChildrenHasUIExtension()) {
                 RS_LOGW("RSUniRenderUtil::TraverseAndCollectUIExtensionInfo UIExtension node [%{public}" PRIu64 "]"
                     " has children UIExtension, not surpported!", surfaceNode->GetId());
@@ -1796,8 +1796,10 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
         }
     }
     // if the node is traversed after a UIExtension, collect it and skip its children (except it has UIExtension child.)
-    if (currentUIExtensionIndex_ != -1) {
-        callbackData[hostId][currentUIExtensionIndex_].upperNodes.push_back(GenerateSecRectInfoFromNode(*node, rect));
+    auto iter = callbackData.find(hostId);
+    if (iter != callbackData.end() && currentUIExtensionIndex_ != -1 &&
+        currentUIExtensionIndex_ < static_cast<int>((iter->second).size())) {
+        (iter->second)[currentUIExtensionIndex_].upperNodes.push_back(GenerateSecRectInfoFromNode(*node, rect));
         if (!node->ChildrenHasUIExtension()) {
             return;
         }
