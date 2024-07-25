@@ -63,6 +63,10 @@ std::shared_ptr<Drawing::Image> GEMagnifierShaderFilter::ProcessImage(Drawing::C
     float imageWidth = image->GetWidth();
     float imageHeight = image->GetHeight();
     auto builder = MakeMagnifierShader(imageShader, imageWidth, imageHeight);
+    if (builder == nullptr) {
+        LOGE("GEMagnifierShaderFilter::ProcessImage builder is null");
+        return image;
+    }
 
     auto resultImage = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
     if (resultImage == nullptr) {

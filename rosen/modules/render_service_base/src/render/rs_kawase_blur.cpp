@@ -194,6 +194,11 @@ void KawaseBlurFilter::CheckInputImage(Drawing::Canvas& canvas, const std::share
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
+        if ((canvas.GetGPUContext() == nullptr) || (resizedImage == nullptr)) {
+            ROSEN_LOGE("KawaseBlurFilter::canvas context or resizedImage is null.");
+            return;
+        }
+
         if (resizedImage->BuildSubset(image, srcRect, *canvas.GetGPUContext())) {
             checkedImage = resizedImage;
             ROSEN_LOGD("KawaseBlurFilter::resize image success");
