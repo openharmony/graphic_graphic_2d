@@ -63,7 +63,6 @@ FontParser::FontParser()
     fontSet_.insert(fontSet_.end(), prodFonts.begin(), prodFonts.end());
 }
 
-std::string FontParser::targetFullname = "";
 
 void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
 {
