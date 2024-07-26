@@ -1340,7 +1340,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
     return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
 }
 
-bool RSSurfaceRenderNode::IsSCBNode()
+bool RSSurfaceRenderNode::IsSCBNode() const
 {
     return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
