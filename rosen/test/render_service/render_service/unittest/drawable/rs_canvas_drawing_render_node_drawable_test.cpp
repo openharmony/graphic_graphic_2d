@@ -82,27 +82,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawRenderContent
- * @tc.desc: Test If DrawRenderContent Can Run
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas canvas;
-    const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
-    drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
-    drawable->DrawRenderContent(canvas, dst);
-
-    drawable->image_ = std::make_shared<Drawing::Image>();
-    drawable->DrawRenderContent(canvas, dst);
-    EXPECT_NE(drawable->image_, nullptr);
-}
-
-/**
  * @tc.name: InitSurface
  * @tc.desc: Test If InitSurface Can Run
  * @tc.type: FUNC

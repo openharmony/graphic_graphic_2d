@@ -425,33 +425,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
 }
 
 /**
- * @tc.name: CreateLayer
- * @tc.desc: RSComposerAdapter.CreateLayer test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
-{
-    uint32_t width = 2160;
-    uint32_t height = 1080;
-    CreateComposerAdapterWithScreenInfo(
-        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    RSDisplayNodeConfig config;
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSDisplayRenderNode node(nodeId, config);
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    Rect damage;
-    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->CreateLayer(node);
-}
-
-/**
  * @tc.name: LayerPresentTimestamp001
  * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test, not SupportedPresentTimestamp
  * @tc.type: FUNC

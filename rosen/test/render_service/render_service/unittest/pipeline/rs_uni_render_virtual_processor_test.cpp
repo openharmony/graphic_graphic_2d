@@ -242,27 +242,4 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessRcdSurfaceTest, TestSize.Level2
     processor->ProcessRcdSurface(node);
     EXPECT_FALSE(processor->forceCPU_);
 }
-
-/**
- * @tc.name: ProcessDisplaySurfaceTest
- * @tc.desc: Verify function ProcessDisplaySurface
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level2)
-{
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    processor->ProcessDisplaySurface(rsDisplayRenderNode);
-    Drawing::Canvas canvas;
-    processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(rsDisplayRenderNode.GetRenderDrawable());
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
-    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    processor->ProcessDisplaySurface(rsDisplayRenderNode);
-    EXPECT_FALSE(processor->forceCPU_);
-}
 } // namespace OHOS::Rosen

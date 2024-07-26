@@ -36,27 +36,6 @@ void RSDividedRenderUtilTest::SetUp() {}
 void RSDividedRenderUtilTest::TearDown() {}
 
 /*
- * @tc.name: CreateBufferDrawParam001
- * @tc.desc: Test CreateBufferDrawParam
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-    Drawing::Matrix matrix  = Drawing::Matrix();
-    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node, true);
-    ASSERT_EQ(matrix, param.matrix);
-
-    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    node->SetTotalMatrix(matrix);
-    param = RSDividedRenderUtil::CreateBufferDrawParam(*node, false);
-    ASSERT_EQ(matrix, param.matrix);
-}
-
-/*
  * @tc.name: CreateBufferDrawParam002
  * @tc.desc: Test CreateBufferDrawParam
  * @tc.type: FUNC

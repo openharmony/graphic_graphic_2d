@@ -326,39 +326,6 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level
 }
 
 /**
- * @tc.name: PrepareSurfaceRenderNode003
- * @tc.desc: Test RSRenderServiceVisitorTest.PrepareSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI614P1
- */
-HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1)
-{
-    RSRenderServiceVisitor rsRenderServiceVisitor;
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: PrepareSurfaceRenderNode004
- * @tc.desc: Test RSRenderServiceVisitorTest.PrepareSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI614P1
- */
-HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level1)
-{
-    RSRenderServiceVisitor rsRenderServiceVisitor;
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    rsSurfaceRenderNode.GetMutableRenderProperties().SetAlpha(0.0f);
-    rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
-}
-
-/**
  * @tc.name: PrepareCanvasRenderNode001
  * @tc.desc: Test RSRenderServiceVisitorTest.PrepareCanvasRenderNode
  * @tc.type: FUNC

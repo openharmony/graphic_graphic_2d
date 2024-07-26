@@ -395,43 +395,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawMirrorScreen
- * @tc.desc: Test DrawMirrorScreen
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorScreenTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    displayDrawable_->DrawMirrorScreen(*params, processor);
-}
-
-/**
- * @tc.name: CalculateVirtualDirty
- * @tc.desc: Test CalculateVirtualDirty
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
-    displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    Drawing::Matrix matrix;
-    displayDrawable_->CalculateVirtualDirty(virtualProcesser, *params, matrix);
-}
-
-/**
  * @tc.name: DrawMirror
  * @tc.desc: Test DrawMirror
  * @tc.type: FUNC

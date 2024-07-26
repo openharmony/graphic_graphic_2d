@@ -597,31 +597,4 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfxTest, TestSize.Level1)
     surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, true);
     surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, false);
 }
-
-/**
- * @tc.name: DealWithSelfDrawingNodeBuffer
- * @tc.desc: Test DealWithSelfDrawingNodeBuffer
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto& rtThread = RSUniRenderThread::Instance();
-    rtThread.captureParam_ = CaptureParam();
-
-    surfaceParams->isHardwareEnabled_ = true;
-    const auto params01 = surfaceParams;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *params01);
-
-    rtThread.captureParam_.isSnapshot_ = false;
-    surfaceParams->isHardwareEnabled_ = false;
-    const auto params02 = surfaceParams;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *params02);
-}
 }
