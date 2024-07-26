@@ -91,7 +91,8 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int lan
             break;
         }
         case FontParser::NameId::FULL_NAME: {
-            if ( !fontDescriptor.requestedFullname.empty() && fontDescriptor.fullName == fontDescriptor.requestedFullname) {
+            if (!fontDescriptor.requestedFullname.empty() &&
+                fontDescriptor.fullName == fontDescriptor.requestedFullname) {
                 break;
             }
 
