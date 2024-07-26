@@ -63,7 +63,6 @@ FontParser::FontParser()
     fontSet_.insert(fontSet_.end(), prodFonts.begin(), prodFonts.end());
 }
 
-
 void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
 {
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
