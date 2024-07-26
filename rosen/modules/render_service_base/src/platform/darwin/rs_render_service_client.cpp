@@ -573,7 +573,7 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
 
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
-    return {};
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
