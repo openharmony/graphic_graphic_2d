@@ -201,7 +201,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawCmdList : ptr->drawCmdListVec_) {
             drawCmdList->Playback(*canvas, rect);
-            if (ptr->needClearOp_) {
+            if (ptr->needClearOp_ && ptr->type_ == RSModifierType::CONTENT_STYLE) {
                 drawCmdList->ClearOp();
             }
         }
