@@ -93,7 +93,7 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int lan
             break;
         }
         case FontParser::NameId::FULL_NAME: {
-            if (FontParser::targetFullname != "" && fontDescriptor.fullName == FontParser::targetFullname) {
+            if ( !fontDescriptor.requestedFullname.empty() && fontDescriptor.fullName == fontDescriptor.requestedFullname) {
                 break;
             }
 
@@ -400,7 +400,6 @@ private:
 std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(const std::string& fontName,
     const unsigned int languageId)
 {
-    FontParser::targetFullname = fontName;
     FontConfigJson fontConfigJson;
     fontConfigJson.ParseFontFileMap();
     std::shared_ptr<FontFileMap> fontFileMap = fontConfigJson.GetFontFileMap();
@@ -425,6 +424,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     FontParser::FontDescriptor fontDescriptor;
     fontDescriptor.requestedLid = languageId;
     fontDescriptor.path = path;
+    fontDescriptor.requestedFullname = fontName;
     auto fontStyle = typeface->GetFontStyle();
     fontDescriptor.weight = fontStyle.GetWeight();
     fontDescriptor.width = fontStyle.GetWidth();
