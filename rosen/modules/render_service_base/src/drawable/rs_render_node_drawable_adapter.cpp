@@ -138,8 +138,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
             std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
             shadowDrawableCache.erase(ptr->nodeId_); // Remove from cache before deleting
         }
-        // tell associated RenderNodeDrawable not to skip shadow
-        static_cast<RSRenderNodeShadowDrawable*>(ptr)->OnDetach();
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
 
