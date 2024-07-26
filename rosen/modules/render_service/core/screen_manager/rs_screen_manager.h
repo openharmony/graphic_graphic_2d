@@ -424,6 +424,8 @@ private:
 
     static void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    static void OnRefresh(ScreenId id, void *data);
+    void OnRefreshEvent(ScreenId id);
     static void OnHwcDead(void *data);
     void OnHwcDeadEvent();
     static void OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data);

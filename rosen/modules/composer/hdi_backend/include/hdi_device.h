@@ -31,6 +31,7 @@ public:
     virtual ~HdiDevice() = default;
     /* set & get device screen info begin */
     virtual int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) = 0;
+    virtual int32_t RegRefreshCallback(RefreshCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) = 0;
     virtual bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) = 0;

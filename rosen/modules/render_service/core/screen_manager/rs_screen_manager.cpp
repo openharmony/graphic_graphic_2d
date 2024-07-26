@@ -83,6 +83,10 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
+    if (composer_->RegScreenRefresh(&RSScreenManager::OnRefresh, this) != 0) {
+        RS_LOGE("RSScreenManager %{public}s: Failed to register OnHotPlug Func to composer.", __func__);
+    }
+
     if (composer_->RegHwcDeadListener(&RSScreenManager::OnHwcDead, this) != 0) {
         RS_LOGE("RSScreenManager %{public}s: Failed to register OnHwcDead Func to composer.", __func__);
         return false;
@@ -326,6 +330,34 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
         return;
     }
     mainThread->RequestNextVSync();
+}
+
+void RSScreenManager::OnRefresh(ScreenId id, void *data)
+{
+    RSScreenManager *screenManager = nullptr;
+    if (data != nullptr) {
+        screenManager = static_cast<RSScreenManager *>(data);
+    } else {
+        screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    }
+
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %{public}s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+    screenManager->OnRefreshEvent(id);
+}
+
+void RSScreenManager::OnRefreshEvent(ScreenId id)
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread == nullptr) {
+        return;
+    }
+    mainThread->PostTask([mainThread]() {
+        mainThread->SetForceUpdateUniRenderFlag(true);
+        mainThread->RequestNextVSync();
+    });
 }
 
 void RSScreenManager::OnHwcDead(void *data)
