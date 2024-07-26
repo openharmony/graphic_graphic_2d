@@ -112,7 +112,7 @@ private:
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
 
     std::once_flag layerPerFrameParameterKeyCreateFlag_;
-    std::vector<std::string> layerPerFrameParameterKeys_ = {};
+    std::vector<std::string> layerPerFrameParameterKeys_{};
 };
 
 } // namespace Rosen

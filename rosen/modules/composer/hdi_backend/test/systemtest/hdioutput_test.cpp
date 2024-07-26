@@ -32,6 +32,7 @@ public:
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::vector<LayerInfoPtr> layerInfos_;
     static inline std::shared_ptr<HdiLayerContext> hdiLayerTemp_;
+    static inline std::vector<std::string> paramKey_{};
 };
 
 void HdiOutputSysTest::SetUpTestCase()
@@ -59,6 +60,7 @@ void HdiOutputSysTest::SetUpTestCase()
 
     mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     hdiOutput_->SetHdiOutputDevice(mockDevice_);
+    EXPECT_CALL(*mockDevice_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 
 void HdiOutputSysTest::TearDownTestCase() {}
