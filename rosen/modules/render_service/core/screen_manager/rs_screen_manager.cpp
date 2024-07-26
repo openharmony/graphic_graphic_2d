@@ -85,7 +85,6 @@ bool RSScreenManager::Init() noexcept
 
     if (composer_->RegScreenRefresh(&RSScreenManager::OnRefresh, this) != 0) {
         RS_LOGE("RSScreenManager %{public}s: Failed to register OnHotPlug Func to composer.", __func__);
-        return false;
     }
 
     if (composer_->RegHwcDeadListener(&RSScreenManager::OnHwcDead, this) != 0) {
