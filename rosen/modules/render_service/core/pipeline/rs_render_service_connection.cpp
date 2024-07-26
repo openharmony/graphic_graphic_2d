@@ -885,6 +885,9 @@ bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpu
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 {
     MemoryGraphic memoryGraphic;
+    if (!mainThread_) {
+        return memoryGraphic;
+    }
     if (GetUniRenderEnabled()) {
         RSMainThread* mainThread = mainThread_;
         mainThread_->ScheduleTask([mainThread, &pid, &memoryGraphic]() {
