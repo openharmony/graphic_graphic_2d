@@ -372,9 +372,13 @@ int32_t HdiOutput::UpdateLayerCompType()
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
     int32_t ret = device_->GetScreenCompChange(screenId_, layersId, types);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != types.size()) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
         return ret;
+    }
+    if (layersId.size() != types.size()) {
+        HLOGE("HdiOutput::UpdateLayerCompType layersId size is not types size");
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     std::unique_lock<std::mutex> lock(layerMutex_);
