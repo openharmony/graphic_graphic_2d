@@ -806,7 +806,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
     } else {
         bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
-            (RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
+            uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
         drawCacheSuccess = useDmaBuffer ?
             DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
     }

@@ -519,6 +519,7 @@ void RSUifirstManager::ProcessSubDoneNode()
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
+    ResetCurrentFrameDeletedCardNodes();
 }
 
 void RSUifirstManager::ConvertPendingNodeToDrawable()
@@ -957,6 +958,10 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     if (events.empty()) {
         return false;
     }
+    if (isCurrentFrameHasCardNodeReCreate_) {
+        RS_OPTIONAL_TRACE_NAME("uifirst current frame can't skip wait");
+        return false;
+    }
     for (auto& item : events) {
         if (IsCardSkipFirstWaitScene(item.sceneId, item.appPid)) {
             return true;
@@ -1255,6 +1260,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, floa
 
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
+    RSUifirstManager::Instance().CheckCurrentFrameHasCardNodeReCreate(node);
     // Planning: do not clear complete image for card
     if (node.IsOnTheTree() || node.IsNodeToBeCaptured()) {
         return;
@@ -1284,5 +1290,26 @@ bool RSUifirstManager::GetUseDmaBuffer(const std::string& name) const
 {
     return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
+
+void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()
+{
+    currentFrameDeletedCardNodes_.clear();
+    isCurrentFrameHasCardNodeReCreate_ = false;
+}
+
+void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node)
+{
+    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
+        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos) {
+        return;
+    }
+    if (!node.IsOnTheTree()) {
+        currentFrameDeletedCardNodes_.emplace_back(node.GetId());
+    } else if (std::find(currentFrameDeletedCardNodes_.begin(), currentFrameDeletedCardNodes_.end(),
+        node.GetId()) != currentFrameDeletedCardNodes_.end()) {
+        isCurrentFrameHasCardNodeReCreate_ = true;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
