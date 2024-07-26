@@ -189,6 +189,7 @@ typedef enum : uint32_t {
 typedef enum {
     VIRTUAL_SCREEN_PLAY = 0,
     VIRTUAL_SCREEN_PAUSE,
+    VIRTUAL_SCREEN_INVALID_STATUS,
 } VirtualScreenStatus;
 
 /*

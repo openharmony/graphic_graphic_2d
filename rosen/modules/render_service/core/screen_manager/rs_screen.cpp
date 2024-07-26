@@ -1031,7 +1031,7 @@ bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
     return false;
 }
 
-VirtualScreenStatus RSScreen::GetVirtualScreenStatus()
+VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
 {
     return screenStatus_;
 }

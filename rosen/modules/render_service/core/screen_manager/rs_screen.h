@@ -109,7 +109,7 @@ public:
     virtual bool GetCastScreenEnableSkipWindow() = 0;
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
-    virtual VirtualScreenStatus GetVirtualScreenStatus() = 0;
+    virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
 };
 
 namespace impl {
@@ -191,7 +191,7 @@ public:
     bool GetCastScreenEnableSkipWindow() override;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
-    VirtualScreenStatus GetVirtualScreenStatus() override;
+    VirtualScreenStatus GetVirtualScreenStatus() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
